@@ -1,0 +1,78 @@
+\documentclass{beamer}
+
+\usetheme{egee}
+\usepackage[utf8]{inputenc}
+\usepackage{fmtcount}
+
+\begin{document}
+
+\title{Deska: A Dashboard for a Grid Site}
+\author{Jan Kundrát\\*
+Institute of Physics of the AS CR}
+\date{
+%% leave the following line alone
+   {EGEE-III INFSO-RI-222667}  
+%% edit the next line
+\hfill
+NSWI041, MFF UK Prague, October~15\fmtord{th}~2009
+}
+\begin{frame}
+\maketitle
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{The Problem}
+
+Running a Grid Site is Demanding:
+
+\begin{itemize}
+    \item Lots of HW -- $\ge 1500$ CPU, about 250 hosts
+    \item Several monitoring/sysadmin tools
+        \begin{itemize}
+            \item Nagios
+            \item Cfengine
+            \item Munin
+            \item Ganglia
+        \end{itemize}
+    \item A few sysadmins
+    \item \bf{Too many places too check, too many places to change}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Project Objectives}
+
+Proposed Project Goals
+
+\begin{itemize}
+    \item Central place to keep track of machines and services {\bf and}~make
+        changes
+        \begin{itemize}
+            \item A piece of hardware
+            \item Runing OS image -- network host
+            \item Services and logical roles
+        \end{itemize}
+    \item Central place to aggregate monitoring results
+        \begin{itemize}
+            \item Nagios
+            \item Munin
+            \item MRTG
+            \item Ganglia
+            \item \ldots
+        \end{itemize}
+    \item Cross-platform
+    \item Re-use existing technologies as much as possible
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Thank you}
+
+\center
+{\Large Thanks for your attention!}
+
+\end{frame}
+
+\end{document}
