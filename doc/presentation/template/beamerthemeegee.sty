@@ -1,0 +1,107 @@
+\ProvidesPackage{beamerthemeegee}
+
+\mode<presentation>
+
+\newdimen\head@height
+\head@height=42pt
+
+\definecolor{eblueI}{RGB}{52,94,172}
+\definecolor{eblueII}{RGB}{43,81,154}
+\definecolor{eyellow}{RGB}{245,205,2}
+\setbeamercolor{section in head}{fg=white,bg=eblueI}
+\setbeamercolor{egee in head}{fg=white,bg=eblueII}
+\setbeamercolor{date in foot}{fg=eblueII,bg=eyellow}
+
+\setbeamertemplate{navigation symbols}{}
+
+\newbox\logobox
+\setbox\logobox\hbox{\includegraphics[height=\head@height]{egee.jpg}}
+
+\defbeamertemplate*{headline}{egee theme}{\hrule height0pt depth0pt}
+
+\newdimen\headI
+
+\defbeamertemplate*{frametitle}{egee theme}
+{
+\nointerlineskip
+\baselineskip=0pt
+\lineskip=0pt
+\parsep=0pt
+\headI=\head@height
+\advance\headI-17pt
+\begin{beamercolorbox}[wd=\paperwidth,ht=\headI,dp=10pt]{section in head}
+\hfill\textbf{\insertframetitle\ }
+\end{beamercolorbox}
+\begin{beamercolorbox}[wd=\paperwidth,ht=6pt,dp=1pt]{egee in head}
+\vbox to 7pt{\hsize=\wd\logobox
+\vss\leavevmode\lower1pt\copy\logobox\par
+}
+\tiny\hskip1em Enabling Grids for E-sciencE
+\end{beamercolorbox}
+}
+
+\defbeamertemplate*{footline}{egee theme}
+{
+\leavevmode
+\begin{beamercolorbox}[wd=\paperwidth,ht=3ex,dp=1ex]{date in foot}
+\hfill \tiny\insertdate\quad\insertframenumber\ \ 
+\end{beamercolorbox}
+}
+
+\setbeamercolor{normal text}{fg=eblueII}
+
+\setbeamercolor{alerted text}{fg=eyellow!90!black}
+\setbeamerfont{alerted text}{series=\bfseries}
+
+\setbeamertemplate{itemize item}{{\color{eyellow}$\bullet$}}
+\setbeamertemplate{itemize subitem}{{\color{eyellow}\textbf{--}}}
+\setbeamertemplate{itemize subsubitem}{{\color{eyellow}$\scriptstyle\blacktriangleright$}}
+
+\setbeamertemplate{title page}{
+\lineskip=0pt
+\begin{beamercolorbox}[wd=\paperwidth,ht=\head@height,dp=7pt]{section in head}
+\lower7pt\vbox to \head@height{
+\hbox{\includegraphics[width=70pt]{glob.jpg}}
+\vss
+}%
+\lower7pt\copy\logobox
+\hskip1em Enabling Grids for E-sciencE
+\end{beamercolorbox}
+\vskip\head@height
+\hskip70pt\vbox to120pt{
+\advance\hsize-70pt
+\begin{raggedright}
+\textbf{\Large\inserttitle}
+\bigskip
+
+\textit{\normalsize\insertauthor}
+\end{raggedright}
+\vfill
+}
+
+\advance\hsize\beamer@rightmargin
+
+\vfill
+\hskip-\beamer@leftmargin
+\raise10pt\hbox to 70pt{\hfil\textbf{\scriptsize www.eu-egee.org}\hfil}
+\hfill 
+\includegraphics[width=60pt]{e-infrastructure-logo.png}
+\quad
+\vbox{
+\hsize=60pt
+\centering
+\includegraphics[width=40pt]{ist.jpg} \\
+\vskip-1ex
+\hbox{\textrm{\tiny Information Society}}
+\vskip-1.5ex
+\hbox{\textrm{\tiny and media}}
+%% \par
+}
+%% \quad
+\includegraphics[width=40pt]{capac-logo.png}
+\quad
+\includegraphics[width=45pt]{eu.jpg}
+\hskip2em\strut
+
+\vskip0pt plus1filll
+}

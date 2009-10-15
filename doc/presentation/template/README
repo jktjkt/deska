@@ -1,0 +1,50 @@
+
+Contents:
+
+beamerthemeegee.sty
+capac-logo.png
+e-infrastructure-logo.png
+egee.jpg
+eu.jpg
+glob.jpg
+ist.jpg
+talk.tex
+
+
+Install ALL these files into the directory where you will
+run your LaTeX command.
+
+Alternatively, place all except the talk.tex into a directory
+in the LaTeX search path.
+
+Important
+---------
+
+You need the following packages in your LaTeX installation. 
+Usually located somewhere like:
+
+/usr/share/texmf/tex/latex/[package base name]
+
+* beamer
+
+Available from:
+
+http://www.ctan.org/tex-archive/macros/latex/contrib/beamer/base/
+
+under GPL licence.
+
+* pgf
+
+Available from:
+
+http://www.ctan.org/tex-archive/graphics/pgf/base/latex/
+
+under GPL licence.
+
+* xcolor
+
+Available from:
+
+http://www.ctan.org/tex-archive/macros/latex/contrib/xcolor/
+
+under GPL licence.
