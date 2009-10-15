@@ -3,6 +3,11 @@ Information System for Managing a Grid Computing Center
 
 A draft specification by Jan Kundrát <kundratj@fzu.cz>
 
+FIXME:
+- Add more references
+- Mention EGEE/EGI/WLCG/LHC
+- Clarify roles of the HW DB
+
 
 Motivation
 ----------
@@ -40,16 +45,20 @@ Institute, we expect the following goals to be met:
 
 - One single place to define services, their assignment to operating system
 instances, mapping of OS instances to physical machines and the underlying
-fabric scheme
+fabric scheme.  A cross-platform interface for editing of the information
+contained therein shall be developed, too.
 
-- One single place to look for troubles
+- One single place to look for troubles as detected by the monitoring tools
+managed by the system.  A status dashboard aggregating results obtained by the
+sensors.
 
 
 Problems which will not be solved
 ---------------------------------
 
 - While the team shall focus on proper modularisation of the system, they are
-not expected to implement custom modules which are not currently used at FZU
+not expected to implement custom modules for services which are not currently
+deployed at FZU
 
 - Interaction with user-generated issues is specifically not part of the "single
 place to look for troubles" requirement
@@ -87,7 +96,7 @@ Design considerations
 We expect to reuse existing technologies and products whenever feasible. Due to
 the increasing popularity of Nagios as the monitoring tool in the grid
 community, it will likely be used as a central component of the design, even
-without the option for plugging-in a different component instead.
+to an extent that plugging a different monitoring tool would not be supported.
 
 Ways for further automation of the system deployment will be investigated. In an
 ideal case, it should be possible to just ask the system to "make the machine
