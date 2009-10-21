@@ -1,0 +1,204 @@
+\documentclass{beamer}
+
+\usetheme{egee}
+\usepackage[utf8]{inputenc}
+\usepackage{fmtcount}
+
+\begin{document}
+
+\title{Deska: Dashboard for a Grid Site}
+\author{Jan Kundrát, Tomáš Hubík, Lukáš Kerpl, Martina Krejčová}
+\institute{FZU AV ČR}
+\date{
+%% leave the following line alone
+   {EGEE-III INFSO-RI-222667}  
+%% edit the next line
+\hfill
+NSWI049, MFF UK Prague, October~22\fmtord{nd}~2009
+}
+\begin{frame}
+\maketitle
+\end{frame}
+
+
+\begin{frame}
+\frametitle{The Problem}
+
+Running a Grid Site is Demanding:
+
+\begin{itemize}
+    \item Lots of HW -- $\ge 1500$ CPU, about 250 hosts
+    \item Several monitoring/sysadmin tools
+        \begin{itemize}
+            \item Nagios
+            \item Cfengine
+            \item Munin
+            \item Ganglia
+        \end{itemize}
+    \item A few sysadmins
+    \item \bf{Too many places too check, too many places to change}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Project}
+
+\begin{columns}
+\begin{column}[l]{5cm}
+\begin{itemize}
+    \item Tomáš Hubík
+    \item Lukáš Kerpl
+    \item Martina Krejčová
+    \item Jan Kundrát
+\end{itemize}
+\end{column}
+\begin{column}[r]{5cm}
+\includegraphics[width=5cm]{../../../../logo.jpg}
+\end{column}
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Project Objectives}
+
+\begin{itemize}
+    \item Central place to store {\bf authoritative} information about machines
+        at various levels
+        \begin{itemize}
+            \item A piece of hardware
+                \begin{itemize}
+                    \item HW model
+                    \item Rack location
+                    \item Serial \#
+                    \item Network interconnects
+                \end{itemize}
+            \item Runing OS image -- network host
+                \begin{itemize}
+                    \item Hostname
+                    \item OS version and release
+                \end{itemize}
+            \item Services and logical roles
+                \begin{itemize}
+                    \item Concept of {\em machine roles}
+                \end{itemize}
+        \end{itemize}
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Project Objectives (cont.)}
+
+\begin{itemize}
+    \item Generating configuration files for various services
+        \begin{itemize}
+            \item Nagios server
+                \begin{itemize}
+                    \item Knowledge about what to monitor
+                \end{itemize}
+            \item Cfengine classes
+                \begin{itemize}
+                    \item Which in turn configures almost everything
+                \end{itemize}
+            \item Network infrastructure?
+        \end{itemize}
+    % FIXME: Yeah, the following would really make sense in the long run, but
+    % could we make it?
+    %\item Run consistency-checks against observed infrastructure state
+    %    \begin{itemize}
+    %        \item Are ethernet cables really set up properly?
+    %    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Project Objectives (cont.)}
+    \begin{itemize}
+    \item Central place to aggregate monitoring results
+        \begin{itemize}
+            \item Nagios
+            \item Munin
+            \item MRTG
+            \item Ganglia
+            \item \ldots
+        \end{itemize}
+    \item Cross-platform
+    \item Re-use existing technologies as much as possible
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Existing Projects}
+
+\begin{itemize}
+    \item Rackmonkey
+        \begin{itemize}
+            \item Doesn't handle other HW than pizza boxes
+            \item Manages just HW placement and nothing else
+            \item Written in Perl
+        \end{itemize}
+    \item OCS Inventory
+        \begin{itemize}
+            \item Auto-discovery not that much compelling for our use case
+            \item Solving a different problem
+            \item Complexity
+        \end{itemize}
+    \item Various VO-level dashboards
+        \begin{itemize}
+            \item Site-level view, not host/service-level statistics
+            \item Code quality debatable
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Design Decisions}
+
+\begin{itemize}
+    \item Heavy integration
+    \item Re-use of existing technologies as much as possible
+    \item Modular design
+        \begin{itemize}
+            \item Want to use something else than cfengine? No problem, here is
+                the API you got to implement
+        \end{itemize}
+    \item Be usable for other grid sites
+        \begin{itemize}
+            \item And perhaps other clusters/HPC, too?
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Supporting Infrastructure}
+
+\begin{itemize}
+    \item Use what we know and have been already using for unrelated projects
+        \begin{itemize}
+            \item Redmine
+            \item Git
+            \item Mlmmj
+        \end{itemize}
+    \item Funding and HW support by FZU
+    \item Close collaboration with FZU's technicians
+        \begin{itemize}
+            \item One team member has been working at the site for 3+ years
+            \item Attendance of FZU's representatives on all meetings so far
+            \item Consult often, share ideas, learn from other sites!
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Thank you}
+
+\center
+{\Large Thanks for your attention!}
+
+\end{frame}
+
+\end{document}
