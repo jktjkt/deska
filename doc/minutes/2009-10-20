@@ -1,0 +1,44 @@
+Schuzka resitelu projektu Deska, 2009-10-20, FZU
+
+Pritomni: vsi
+
+Co jsme resili:
+---------------
+
+- nazev, logo - Deska zustava, logo od Martiny je krasne, pochvala pred
+  nastoupenou cetou
+- infrastruktura -- redmine, git, mlmmj snad vyhovuji
+- pravidelne schuze (jupi :( ) - utery odpoledne od 13.00 vyhovuje vsem
+- architektura -- zurive malovani na papir, vime, ze nic nevime, je potreba si
+  ujasnovat, jak se vlastne ten nas system ma chovat
+- detailne jsme si rozebrali slajdy na ctvrtek; z duvodu nejlepsich zakladu pro
+  pripadnou obranu projektu prezentuje Honza, priste to bude na nekoho jineho
+- ukoly na priste
+
+Ukoly pro vsechny:
+
+- podivat se na webove frameworky (Python, Ruby)
+
+Ukoly Honza:
+- nasadit logo
+
+Ukoly Martina:
+- vektorove logo
+- linoryt
+- template pro prezentace
+
+(poznamka na okraj: vmssdmt)
+
+rozvrh slajdu:
+
+- FZU intro (z minula)
+- logo, nazev, resitele
+- co to ma umet ( 1->2 slajdy)
+- proc rackmonkey etc nestaci, ocs inventory
+- dahsboardy experimentu
+- cross--platform, *modularity*, bla bla
+- integrace dat z jinych systemu
+- redmine (proc,...), git, ML
+
+poznamka, na co se asi zamerit: tooly umi podmnozinu pozadavku, ne cely, navic casto blbe
+-> integrace
