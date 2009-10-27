@@ -29,7 +29,7 @@
 
 \vspace{0.2in}
 
-{\large Date 2009-Oct-22}
+{\large Date 2009-Oct-27}
 
 \vspace{0.5in}
 
@@ -39,6 +39,7 @@
 	\begin{tabular}{l l l l}
 		\textbf{Date} & \textbf{Version} & \textbf{Author} & \textbf{Description} \\
 		2009-Oct-23 & V1.0 & Tomáš Hubík & Master plan \\
+		2009-Oct-27 & V1.1 & Tomáš Hubík & Features specified \\
 	\end{tabular}
 	\label{tab:RevisionHistory}
 \end{table}
@@ -75,10 +76,14 @@
 \section{Introduction}
 
 \subsection{Purpose}
-This document defines the project scope for the Tool for Central Administration of a Grid Site. It establishes the business need for the Deska, and it outlines the high level requirements needed to satisfy the specified need. This document is not an exhaustive requirements description, but will instead provide overall direction for a separate -- more detailed -- set of system requirements. This document's primary purpose is to establish priority among the most important issues, considerations, features, and overall goals.
+This document defines the project scope for the Tool for Central Administration of a Grid Site. It establishes the business need for 
+the Deska, and it outlines the high level requirements needed to satisfy the specified need. This document is not an exhaustive 
+requirements description, but will instead provide overall direction for a separate -- more detailed -- set of system requirements. 
+This document's primary purpose is to establish priority among the most important issues, considerations, features, and overall goals.
 
 \subsection{Scope}
-The Deska will be responsible for managing and monitoring of a grid site. Especially it automates configuration of several monitoring and deployment tools. All functions and features will be displayed and managed through a web interface.
+The Deska will be responsible for managing and monitoring of a grid site. Especially it automates configuration of several monitoring 
+and deployment tools. All functions and features will be displayed and managed through a web interface.
 
 
 \section{Business Opportunity}
@@ -87,53 +92,71 @@ The Deska will be responsible for managing and monitoring of a grid site. Especi
 To be written by Honza. TODO
  
 \subsection{Positioning}
-The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, that must be made manually by editing of several files now.
+The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the 
+information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, 
+that must be made manually by editing of several files now.
 
 \subsection{Impact of Missed Opportunity}
-The fundamental benefit of this system is that it will save time of administrators, that can focus on other things. It will also decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
+The fundamental benefit of this system is that it will save time of administrators, that can focus on other things. It will also 
+decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
 
 
 \section{Proposed Solution}
 
 \subsection{Primary Functional Requirements}
-In this section, we classify the primary features of the Tool for Central Administration of a Grid Site across three categories. Essential features cannot be done without. High-value features can be done without, although it may be very undesirable to do so. Follow-on Features are those for which it is not clear they should be included in the first release. In all cases, the lists are not exhaustive but include the most important features from a business perspective.
+In this section, we classify the primary features of the Tool for Central Administration of a Grid Site across three categories. 
+Essential features cannot be done without. High-value features can be done without, although it may be very undesirable to do so. 
+Follow-on Features are those for which it is not clear they should be included in the first release. In all cases, the lists are not 
+exhaustive but include the most important features from a business perspective.
 
 \subsubsection{Essential Features}
 \begin{itemize}
-\item Feature TODO
+	\item Central storage of authoritative information about the whole grid site
+	\item Generating configuration files for various tools. For example Nagios, Cfengine
+	\item Unified API for creating other modules
 \end{itemize}
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-\item Feature TODO
+\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
 \end{itemize}
 
 \subsubsection{Follow-on Features}
 \begin{itemize}
-\item Feature TODO
+	\item Data correlation about load from various sources to determine if there is some dead lock, or hung application
+	\item Implementation of modules for other tools, than those, that are currently used on FZU
 \end{itemize}
 
 \subsection{Primary Non-Functional Requirements (NFRs)}
-In this section, we identify the primary non-functional requirements for the Tool for Central Administration of a Grid Site. This list is not exhaustive but is intended to capture the most important requirements from a business perspective. A full list of NFRs will be included in the SRS document.
+In this section, we identify the primary non-functional requirements for the Tool for Central Administration of a Grid Site. This 
+list is not exhaustive but is intended to capture the most important requirements from a business perspective. A full list of NFRs 
+will be included in the SRS document.
 
 \subsubsection{Performance, Throughput, and Scalability}
-Performance TODO\\
-The system will provide a hi level of scalability, so we will be able to run it over various monitoring and deployment tools. Configuring of single applications will be made by modules. These modules will use our system's API, so creating a new module for another application will be an easy task.
+The system is expected to handle up to thousands of managed machines, tens of administrators with about ten changes performed each hour.\\
+The system will provide a high level of scalability, so we will be able to run it over various monitoring and deployment tools. 
+Configuring of single applications will be made by modules. These modules will use our system's API, so creating a new module for 
+another application will be an easy task.
 
 \subsubsection{Reliability and Availability}
-Because of the fact, that our system will not replace any of the functional parts of current system, it is not necessary to be available 7 by 24 by 365.\\
-It is necessary to be well protected against failure while generating configuration files, because this failure can lead to failure of whole grid site. This will be made by some versioning of these files, so there will be some way back if this failure occurs.
+Because of the fact, that our system will not replace any of the functional parts of current system, it is not necessary to be 
+available 7 by 24 by 365.\\
+It is necessary to be well protected against failure while generating configuration files, because this failure can lead to failure 
+of the whole grid site. This will be made by some versioning of these files, so there will be some way back if this failure occurs.
 
 \subsubsection{Security}
-Several features of the system require authorization. The system will be divided into two security levels. First can only view grid status and second can beside the viewing part make also changes. For example adding a new machine, changing machine roles, removing them and so on.
+Several features of the system require authorization. The system will be divided into security levels. Each level will be allowed 
+to make changes only of some attributes and every module will have some list of attributes, which it will need, so if somebody 
+does not have permission for changing all these required attributes, he will not be allowed to activate this module.
 
 \subsubsection{Usability}
-The application will be used by administrators who speak english, so the system will initially be translated into english.\\
+The application will be used by administrators who speak english, so the system will initially be translated into English.\\
 It is also expected, that administrators have some experience with grid site maintenance.
 
 
 \section{Risks}
-Don't know. TODO
+Making some mistake in changing of attributes can have very serious consequence to the whole grid site, co administrator can
+check all generated configuration files and can make the final decision whether apply these changes, or not.
 
 
 \section{Constraints}
@@ -142,10 +165,12 @@ Don't know. TODO
 At this time, there are no known constraints.
 
 \subsection{Environmental and Technology Constraints}
-At this time, there are no known constraints. TODO
+At this time, there are no known constraints.
 
-\subsection{Environmental and Technology Constraints}
-The application will be hosted on some machine with UNIX type operating system. The web part of the system will be browser independent.\\
-TODO Maybe database type, is it necessary to mention language/framework used?
+\subsection{Delivery and Deployment Constraints}
+The application will be hosted on some machine with UNIX type operating system. The web part of the system will be browser 
+independent.\\
+FZU wants to have a possibility to influence the essential parts of design of the system, so we have to discuss all important issues
+with administrators of FZU.
 
 \end{document}
