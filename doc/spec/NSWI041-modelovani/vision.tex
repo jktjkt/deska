@@ -87,10 +87,10 @@ The Deska will be responsible for managing and monitoring of a grid site. Especi
 To be written by Honza. TODO
  
 \subsection{Positioning}
-The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, that must be made manually by edittingof several files now.
+The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, that must be made manually by editing of several files now.
 
 \subsection{Impact of Missed Opportunity}
-The fundamental benefit of this system is that it wil save time of administrators, that can focus on other things. It will also decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
+The fundamental benefit of this system is that it will save time of administrators, that can focus on other things. It will also decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
 
 
 \section{Proposed Solution}
@@ -117,19 +117,19 @@ In this section, we classify the primary features of the Tool for Central Admini
 In this section, we identify the primary non-functional requirements for the Tool for Central Administration of a Grid Site. This list is not exhaustive but is intended to capture the most important requirements from a business perspective. A full list of NFRs will be included in the SRS document.
 
 \subsubsection{Performance, Throughput, and Scalability}
-Performace TODO\\
+Performance TODO\\
 The system will provide a hi level of scalability, so we will be able to run it over various monitoring and deployment tools. Configuring of single applications will be made by modules. These modules will use our system's API, so creating a new module for another application will be an easy task.
 
 \subsubsection{Reliability and Availability}
 Because of the fact, that our system will not replace any of the functional parts of current system, it is not necessary to be available 7 by 24 by 365.\\
-It is necessary to be well protected against failure while generating configuration files, because this failure can leadt to failre of whole grid site. This will be made by some versioning of these files, so there will be some way back if this failure occures.
+It is necessary to be well protected against failure while generating configuration files, because this failure can lead to failure of whole grid site. This will be made by some versioning of these files, so there will be some way back if this failure occurs.
 
 \subsubsection{Security}
 Several features of the system require authorization. The system will be divided into two security levels. First can only view grid status and second can beside the viewing part make also changes. For example adding a new machine, changing machine roles, removing them and so on.
 
 \subsubsection{Usability}
 The application will be used by administrators who speak english, so the system will initially be translated into english.\\
-It is also expected, that administrators have some experience with grid site maintanance.
+It is also expected, that administrators have some experience with grid site maintenance.
 
 
 \section{Risks}
