@@ -21,11 +21,11 @@
 
 \vspace{0.2in}
 
-{\large Prepared for FZU AV CR}
+{\large Prepared for Institute of Physics of the AS CR}
 
 \vspace{0.2in}
 
-{\large Version 1.0}
+{\large Version 1.1}
 
 \vspace{0.2in}
 
@@ -50,7 +50,6 @@
 \begin{table}[!h]
 	\begin{tabular}{l l l l}
 		\textbf{Date} & \textbf{Version} & \textbf{Reviewer Name} & \textbf{Contact Info.} \\
-		2009-Oct-22 & V1.0 & Peter Parker & p.parker@bayview.com \\
 	\end{tabular}
 	\label{tab:DocumentReview}
 \end{table}
@@ -61,7 +60,6 @@
 \begin{table}[!h]
 	\begin{tabular}{l l l l}
 		\textbf{Date} & \textbf{Version} & \textbf{Reviewer Name} & \textbf{Contact Info.} \\
-		2009-Oct-25 & V1.0 & Peter Parker & p.parker@bayview.com \\
 	\end{tabular}
 	\label{tab:DocumentApproval}
 \end{table}
@@ -93,11 +91,11 @@ One of the activities taking at the Institute of Physics of the AS CR (FZU) is r
 an international computing grid, running user programs from various scientific communities from the whole world. Currently 
 installed capacity of the clusters is about 1500 CPUs with more than 250TB of disk storage. The center itself consists of several 
 hundreds of physical machines. While certain policies and management tools were developed and deployed over the years, the center 
-still lacks a centralised dashboard listing the state of various resources.\\
+still lacks a centralized dashboard listing the state of various resources.\\
 The administrators were pretty successful at deploying various industrial-standard management and monitoring tools. Nagios is used 
-for fabric monitoring, most of the machine's configuration is being handled by Cfengine, SNMP agents are used for monitoring 
+for fabric monitoring, most of the machine's configuration is being handled by Cfengine. SNMP agents are used for monitoring 
 critical parts of the network infrastructure and Munin is used for generating graphs depicting performance characteristics of the 
-computing nodes. Various in-house apps were developed to assist with keeping track of HW issues and interesting events.\\
+computing nodes. Various in-house applications were developed to assist with keeping track of HW issues and interesting events.\\
 Unfortunately, all these tools are currently being managed in an isolated manner. Despite some efforts, there is still no central 
 place to define roles of machines which would in turn be used by all the other tools.
 
@@ -129,7 +127,7 @@ exhaustive but include the most important features from a business perspective.
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
+	\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
 \end{itemize}
 
 \subsubsection{Follow-on Features}
