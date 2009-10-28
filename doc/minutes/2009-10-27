@@ -1,0 +1,43 @@
+Schuzka 2009-10-27, FZU
+
+pritomni z tymu: vsi
+hoste: Tomas Kouba, Jirka Horky
+
+- diskuse nad Quattorem
+- zamyslet se nad moznosti ACL
+- velky pozor na ACL a promitani zmen -- provadim zmenu v konf. naseho toolu, ta
+  spusti kompletni pregenerovani te "druhotne" konfigurace, tool se podiva,
+  jestli doslo ke zmenam v druhotnych souborech, na kterou nemam pravo -- no jo,
+  ale co kdyz ty druhotny konfy ani nemuzu checkoutovat? Muze takovy pripad
+  vubec nastat?
+
+- kazda komponenta, co neco generuje, si pri sve registraci rekne o vsechno, co
+  bude potrebovat, coz se pak bude dat pouzit k tomu, ze kdyz se meni neco
+  nesouvisejiciho, tak se komponenta vubec nemusi aktivovat --> souvisi to s
+  ACLkama
+
+- zvazit, jestli generovat opravdu klientem a nebo na serveru -- dlouha diskuse,
+  benefity existuji na obou stranach
+
+"Vize":
+
+- essential: "databaze", generovani konfigu pro ruzne sluzby (Nag, cfe,... )
+- high-value: agregace dat pro vizualizaci z vice mist do jednoho prehledoveho
+webu
+- follow-on: korelace dat, napr o zatezi, z vice zdroju, implementace komponent,
+  ktere v soucasne dobe nejsou nasazeny na FZU
+- hiGH
+- security: prepsat, diskuse o ACL,... ?
+- english: E
+- performance: The system is expected to scale up to thousands of managed
+  machines, tens of administrators with about ten changes performed each hour.
+- risks: clovek ma posledni slovo o tom, jestli se zmena promitne ci nepromitne
+- update titulku v 5.3, text neco jako "fzu chce mit moznost ovlivnit zasadni
+  otazky designu systemu"
+
+
+Ukoly:
+
+- Honza: napsat JCh, ze potrebujou FZU account (ethernet, dole neni eduroam)
+- ostatni: smlouva s JCh
+- Honza: vize 2.1, 3.2.3, podivat se na 2.3
