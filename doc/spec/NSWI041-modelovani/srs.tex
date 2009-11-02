@@ -1,0 +1,478 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{a4wide}
+\author{Tomáš Hubík}
+\title{Deska}
+
+
+
+\begin{document}
+
+{\Huge \textbf{Deska}}
+
+\vspace{0.2in}
+
+{\large Tool for Central Administration of a Grid Site}
+
+\vspace{0.5in}
+
+{\large System Requirements Specification}
+
+\vspace{0.2in}
+
+{\large Prepared for the Institute of Physics of the AS CR}
+
+\vspace{0.2in}
+
+{\large Version 1.0}
+
+\vspace{0.2in}
+
+{\large Date 2009-Nov-02}
+
+\vspace{0.5in}
+
+\subsection*{Revision History}
+
+\begin{table}[!h]
+	\begin{tabular}{l l l l}
+		\textbf{Date} & \textbf{Version} & \textbf{Author} & \textbf{Description} \\
+		2009-Nov-02 & V1.0 & Tomáš Hubík & Document structure \\
+	\end{tabular}
+	\label{tab:RevisionHistory}
+\end{table}
+
+
+\subsection*{Document Review}
+
+\begin{table}[!h]
+	\begin{tabular}{l l l l}
+		\textbf{Date} & \textbf{Version} & \textbf{Reviewer Name} & \textbf{Contact Info.} \\
+	\end{tabular}
+	\label{tab:DocumentReview}
+\end{table}
+
+
+\subsection*{Document Approval}
+
+\begin{table}[!h]
+	\begin{tabular}{l l l l}
+		\textbf{Date} & \textbf{Version} & \textbf{Reviewer Name} & \textbf{Contact Info.} \\
+	\end{tabular}
+	\label{tab:DocumentApproval}
+\end{table}
+
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+\subsection{Purpose}
+The purpose of this document is to define the specific requirements for the Tool for Central Administration of a Grid Site 
+(henceforth, referred to as ``the System'') and to detail the specifications for the features, capabilities, critical attributes, 
+and major characteristics of the proposed system. It is intended to be read by management, and administrators of Institute of 
+Physics of the AS CR for the purposes of evaluating the benefits and feasibility of the proposed application as well as to provide 
+a basis for the estimation of the time and effort necessary to construct, test, deploy, and maintain it. This document does not 
+describe how, when, or where any of these activities will be performed or who will do them.
+
+\subsection{Scope}
+The Deska will be responsible for managing and monitoring of a grid site. Especially it automates configuration of several monitoring 
+and deployment tools. All functions and features will be displayed and managed through client--server environment. TODO\\
+For more details on the scope of this project see the Scope document.
+
+\subsection{System Context}
+There are three main ``touch points'' of the Hotel Reservation System: the central DBMS for configurations and history storage, the server, 
+that will authorize clients and will generate configurations for single tools and clients, that will conect to the server to make some 
+changes in the central configuration. TODO
+
+\subsection{Primary Stakeholders}
+The following is a list client stakeholders for different areas within the project. Each area can have many reference stakeholders 
+who should be consulted for requirements information gathering. Each area also has one primary stakeholder who, among all reference 
+stakeholders, resolves disagreement and has final approval for requirements in that area. TODO
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l | l |}
+		\hline
+		\textbf{Area}		& \textbf{Primary Stakeholder} & \textbf{Reference Stakeholders}\\
+		\hline
+		Administrators	& Somebody1										 & Somebody1\\
+										&															 & Somebody2\\
+										&															 & Somebody3\\
+		\hline
+		Management			& Somebody4										 & Somebody4\\
+		\hline
+	\end{tabular}
+	\label{tab:PrimaryStakeholders}
+\end{table}
+
+\subsection{Acronyms and Abbreviations}
+
+TODO
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Acronym / Abbreviation}		& \textbf{Expanded Term}\\
+		\hline
+		DBMS	& Database Management System\\
+		\hline
+		ECO		&	Engineering Change Order\\
+		\hline
+		FR		&	Functional requirement\\
+		\hline
+		NFR		&	Non-functional requirement\\
+		\hline
+		OS		& Operating System\\
+		\hline
+		SRS		& System Requirements Specification\\
+		\hline
+		UC		&	Use Case\\
+		\hline
+	\end{tabular}
+	\label{tab:AcronymsAndAbbreviations}
+\end{table}
+
+\subsection{How This Document is Organized}
+
+The following sections provide all known system requirements, including both functional and nonfunctional requirements. 
+This document is complete except where noted with reference to an external source. It is helpful but not necessary to read 
+the sections in a sequential order. Section 2 describes the project constraints and assumptions. Section 3 describes the 
+project risks and how these will be mitigated. Section 4 describes the functional requirements (FRs) of the System. Most 
+functional requirements exist to directly support business process; some exist to support the correct operation of the system 
+itself. All functional requirements are described in terms of use cases. Section 5 describes the non-functional requirements 
+(NFRs) of the System. Section 6 provides a Project Glossary that includes project-related terms as well as software 
+developmentrelated terms.
+
+\subsection{Engineering Change Orders}
+
+TODO
+
+[This section describes whether this document will be updated according to agreed Engineering Change Orders either continuously 
+during the project, at the end, or not at all will be up to each project to determine. In projects where time is too short to 
+update the requirements, the ECOs could simply be appended to the requirements.]
+
+\subsection{References}
+
+\begin{enumerate}
+	\item Tool for Central Administration of a Grid Site Scope document
+\end{enumerate}
+
+
+\section{Constraints and Assumptions}
+The following sections provide additional detail on the matching sections in the Tool for Central Administration of a Grid Site 
+Scope document.
+
+\subsection{Development Process and Team Constraints}
+At this time, there are no known constraints.
+
+\subsection{Environmental and Technology Constraints}
+
+\subsubsection{Software Constraints}
+At this time, there are no known constraints.
+
+\subsubsection{Hardware Contraints}
+At this time, there are no known constraints. TODO
+
+\subsection{Delivery and Deployment Constraints}
+The application will be hosted on some machine with UNIX type operating system. The web part of the system will be browser 
+independent.\\
+FZU wants to have a possibility to influence the essential parts of design of the system, so we have to discuss all important issues
+with administrators of FZU.
+
+
+\section{Risk Mitigation}
+
+\subsection{Technological Risks}
+TODO
+
+\subsection{Skills and Resources Risks}
+TODO
+
+\subsection{Requirements Risks}
+TODO
+
+\subsection{Political Risks}
+There are no political risks for this project.
+
+
+\section{Functional Requirements}
+This section defines the actors who use this system while supporting the targeted business processes, as well as the use cases this 
+system provides to those actors.
+
+\subsection{Primary Functional Requirements}
+In this section, we classify the primary features of the Hotel Reservation System across three categories. This list is an updated 
+version of the same list from the Scope document. Some FRs have changed priority and a few new ones have been added.\\
+Essential features cannot be done without. High-value features can be done without, although it may be very undesirable to 
+do so. Follow-on features are those for which it is not clear they should be included in the first release. In all cases, 
+the lists are not exhaustive but include the most important features from a business perspective.
+
+\subsubsection{Essential Features}
+\begin{itemize}
+	\item Central storage of authoritative information about the whole grid site
+	\item Generating configuration files for various tools. For example Nagios, Cfengine
+	\item Unified API for creating other modules
+\end{itemize}
+
+\subsubsection{High-Value Features}
+\begin{itemize}
+	\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
+\end{itemize}
+
+\subsubsection{Follow-on Features}
+\begin{itemize}
+	\item Data correlation about load from various sources to determine if there is some dead lock, or hung application
+	\item Implementation of modules for other tools, than those, that are currently used on FZU
+\end{itemize}
+
+\subsection{Actors}
+These are the roles of persons and systems that interact with the System.
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Actor name}		& \textbf{Description}\\
+		\hline
+		SomeName	& Description\\
+		\hline
+	\end{tabular}
+	\label{tab:Actors}
+\end{table}
+
+\subsubsection{Actor: SomeName}
+TODO
+
+\subsection{Use Cases}
+
+TODO
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l | l | l |}
+		\hline
+		\textbf{Use Case Name} & \textbf{Priority} & \textbf{Number} & \textbf{Description}\\
+		\hline
+		SomeCase	& E-H & 1 & something\\
+		\hline
+	\end{tabular}
+	\label{tab:UseCases}
+\end{table}
+
+\subsection{Applications}
+
+TODO
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Application Name} & \textbf{Description}\\ \cline{2-1}
+															& \textbf{UseCases}\\
+		\hline
+		SomeApp	& something\\ \cline{2-1}
+						& Supports UCs: E1\\
+		\hline
+	\end{tabular}
+	\label{tab:Applications}
+\end{table}
+
+\subsection{Use Case Detailed Requirements}
+
+\subsubsection{SomeApp Requirements}
+This section lists all of the detailed requirements for the SomeApp.
+TODO
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+	 	\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-1	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:SomeAppRequirements}
+\end{table}
+
+
+\section{Non-Functional Requirements}
+Note: non-functional requirements are distinguished from FRs by starting each requirement number above 100. Therefore, the first 
+NFR for Use Case \#E1 would be given the code E1-101.
+
+\subsection{Performance}
+This System will not require significant demands on the hardware.
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-101	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:PerformanceRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional performance requirements for future releases.
+
+
+\subsection{Scalability}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-105	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:ScalabilityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional scalability requirements for future releases.
+
+
+\subsection{Availability}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-108	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:AvailabilityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional availability requirements for future releases.
+
+
+\subsection{Reliability}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l|}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-110	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:ReliabilityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional reliability requirements for future releases.
+
+
+\subsection{Security}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-113	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:SecurityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional security requirements for future releases.
+
+
+\subsection{Manageability}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-115	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:ManageabilityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional manageability requirements for future releases.
+
+
+\subsection{Usability}
+
+\subsubsection{Current Release}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-116	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:UsabilityRequirements}
+\end{table}
+
+\subsubsection{Future Releases}
+No additional manageability requirements for future releases.
+
+
+\subsection{Maintainability}
+
+[Define the life expectancy of the application, and describe the requirements that will facilitate maintenance throughout its 
+lifecycle, including use of specific languages, compilers, tools, libraries, coding conventions, or methodologies that will 
+facilitate debugging and enhancement by those engineers who will be responsible for long-term maintenance. Define specific 
+requirements for source code headers that might include module name, author's name, date of creation, purpose of module, placeholders 
+for SCM, and revision history. There may also be specific requirements for file naming, directory organization, make files, development 
+environment, and such that will facilitate maintenance.]\\
+
+[Describe the different levels of application problems that your IT department tracks and the acceptable number of undetected and/or 
+unresolved errors at first release. Discuss ``bug inflation'' and how bugs will be assigned a severity.]\\
+
+Typical categories of system problems are listed below:
+\begin{itemize}
+	\item Severity 1, Fatal - Entire system is affected and cannot be used at all.
+	\item Severity 2, Major - Part of the system or critical functionality is affected and an acceptable workaround is not possible.
+	\item Severity 3, Medium - A functional problem requires increased effort to avoid via a temporary workaround. The problem cannot be indefinitely deferred.
+	\item Severity 4, Minor - Functioning of system is not significantly impaired and users can live with the problem for now.
+	\item Severity 5, Enhancement - A change or addition to the requirements is desired to address an unanticipated deficiency.
+\end{itemize}
+
+
+\subsection{Extensibility}
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+		\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+		E1-118	& something\\
+		\hline
+	\end{tabular}
+	\label{tab:ExtensibilityRequirements}
+\end{table}
+
+
+\section{Project Glossary}
+[Define all terms referenced in any of the scope or requirements documents. This can include both system-related terms and software 
+development terms. For clarity you might choose to separate these two sets of terms into different lists. The Project Glossary can 
+also be a separate document to reduce the size of the SRS.]
+
+\end{document}
