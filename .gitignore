@@ -1,0 +1,7 @@
+# latex stuff
+*.aux
+*.dvi
+*.log
+*.toc
+# vim
+.*.swp
