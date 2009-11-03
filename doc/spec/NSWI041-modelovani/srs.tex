@@ -81,9 +81,11 @@ a basis for the estimation of the time and effort necessary to construct, test, 
 describe how, when or where any of these activities will be performed or who will do them.
 
 \subsection{Scope}
-The Deska will be responsible for managing and monitoring a grid site. Especially it automates configuration of several monitoring 
-and deployment tools. All functions and features will be displayed and managed through client--server environment. TODO\\
-For more details on the scope of this project see the Scope document.
+Main purpose of the Deska project is to provide an effective aid for system
+administrators in their daily tasks related to running a production grid
+cluster.  The main aim is to reduce data duplication and aggregate certain
+metrics to a central place for monitoring.  For more information and a detailed
+overview of main tasks please see the Scope document.
 
 \subsection{System Context}
 There are three main ``touch points'' of the Hotel Reservation System: the central DBMS for configurations and history storage, the server, 
@@ -149,6 +151,7 @@ itself. All functional requirements are described in terms of use cases. Section
 developmentrelated terms.
 
 \subsection{Engineering Change Orders}
+\label{steering-committee}
 
 TODO
 
@@ -179,10 +182,13 @@ At this time, there are no known constraints.
 At this time, there are no known constraints. TODO
 
 \subsection{Delivery and Deployment Constraints}
-The application will be hosted on some machine with UNIX type operating system. The web part of the system will be browser 
-independent.\\
-FZU wants to have a possibility to influence the essential parts of design of the system, so we have to discuss all important issues
-with administrators of FZU.
+The target platform for the core parts of the application is a UNIX-like
+operating system, preferably a Red Hat Enterprise Linux-compatible distribution.
+All the web interfaces of the application are to be browser-independent.
+
+The Customer expressed a strong desire to have influence in the design of
+essential parts of the system.   Therefore, we have to discuss major decisions
+with employees of the Institute of Physics and their administrators.
 
 
 \section{Risk Mitigation}
@@ -191,13 +197,22 @@ with administrators of FZU.
 TODO
 
 \subsection{Skills and Resources Risks}
-TODO
+We have examined the programming skills of all programmers who will work on the
+code base of the Project.  All design decisions will be additionally verified by
+the requester's employee.
 
 \subsection{Requirements Risks}
-TODO
+In order to reduce the risks and delays related with sudden incompatible changes
+to the requirements, a Steering Committee will be established as specified in
+section \ref{steering-committee}.  Any changes to the requirements of the
+project are to be explicitly approved by the Committee.
 
 \subsection{Political Risks}
-There are no political risks for this project.
+Certain groups in the EGEE/WLCG communities have expressed their preference of
+usage of various tools which are already deployed in the Grid.  Therefore, the
+team shall take care to comply with these decisions unless a major technical
+obstacle emerges.  Failure to do so might jeopardize the adoption of the System
+throughout the Grid and shed a wrong light on the Institute.
 
 
 \section{Functional Requirements}
