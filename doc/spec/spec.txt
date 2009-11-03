@@ -27,7 +27,7 @@ Overview of already deployed tools
 
 The administrators were pretty successful at deploying various
 industrial-standard management and monitoring tools. Nagios is used for fabric
-monitoring, most of the machines' configuration is being handled by cfengine,
+monitoring, most of the machine's configuration is being handled by Cfengine,
 SNMP agents are used for monitoring critical parts of the network
 infrastructure and Munin is used for generating graphs depicting performance
 characteristics of the computing nodes.  Various in-house apps were developed to
