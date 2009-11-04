@@ -238,13 +238,20 @@ include the most important features from a business perspective.
 \subsubsection{Essential Features}
 \begin{itemize}
 	\item Central storage of authoritative information about the whole grid site
-	\item Generating configuration files for various tools. For example Nagios, Cfengine
-	\item Unified API for creating other modules
+        at various levels of detail (hardware, operating system, services and
+        their relations).  A SCM-managed storage of these data in human-readable
+        text files.
+	\item Automated generating of configuration files in response to new data
+        committed to the central database.  A flexible and unified API for
+        retrieving information from the DB and for invocation of the generating
+        components.
+    \item Implementation of sample components for core systems currently
+        deployed at the Institute (Nagios, Cfengine's {\tt groups.conf}).
 \end{itemize}
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-	\item Data aggregation from more tools to one well-arranged place
+	\item Data aggregation from monitoring tools to one well-arranged place
     \item Dashboard providing a view of overall system health
     \item Visualization of performance/availability metrics
 \end{itemize}
@@ -255,6 +262,7 @@ include the most important features from a business perspective.
         in system performance with the aim to identify possible bottlenecks and
         troubles early
 	\item Implementation of modules for other tools than those that are currently used on FZU
+    \item A GUI or CLI interface for database access
 \end{itemize}
 
 \subsection{Actors}
