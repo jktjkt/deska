@@ -153,11 +153,15 @@ developmentrelated terms.
 \subsection{Engineering Change Orders}
 \label{steering-committee}
 
-TODO
+In order to guarantee the immutability of the specification to both sides of the
+contract, it was decided that any change to the specification that was already
+agreed upon has to be approved by the Steering Committee.  This body consists of
+representatives of both the team responsible for the implementation as well as
+from the Institute.  Exact personal constitution is outside the scope of this
+document.
 
-[This section describes whether this document will be updated according to agreed Engineering Change Orders either continuously 
-during the project, at the end, or not at all will be up to each project to determine. In projects where time is too short to 
-update the requirements, the ECOs could simply be appended to the requirements.]
+Only the Steering Committee is authorised to issue Engineering Change Orders for
+this project.
 
 \subsection{References}
 
@@ -179,7 +183,8 @@ At this time, there are no known constraints.
 At this time, there are no known constraints.
 
 \subsubsection{Hardware Contraints}
-At this time, there are no known constraints. TODO
+The server part of the system shall run on a moderately-sized x86-compatible
+server-class machine.
 
 \subsection{Delivery and Deployment Constraints}
 The target platform for the core parts of the application is a UNIX-like
@@ -190,16 +195,19 @@ The Customer expressed a strong desire to have influence in the design of
 essential parts of the system.   Therefore, we have to discuss major decisions
 with employees of the Institute of Physics and their administrators.
 
+The exact time frame in which the system will be put into production is unknown
+at this time.
 
 \section{Risk Mitigation}
 
 \subsection{Technological Risks}
-TODO
+There are no known technological risks at this time.
 
 \subsection{Skills and Resources Risks}
-We have examined the programming skills of all programmers who will work on the
-code base of the Project.  All design decisions will be additionally verified by
-the requester's employee.
+In order to establish a well-performing team, we have examined the programming
+skills of all programmers who will work on the code base of the Project.  All
+design decisions will be additionally verified by the requester's
+representative.
 
 \subsection{Requirements Risks}
 In order to reduce the risks and delays related with sudden incompatible changes
@@ -235,13 +243,17 @@ the lists are not exhaustive but include the most important features from a busi
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-	\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
+	\item Data aggregation from more tools to one well-arranged place
+    \item Dashboard providing a view of overall system health
+    \item Visualization of performance/availability metrics
 \end{itemize}
 
 \subsubsection{Follow-on Features}
 \begin{itemize}
-	\item Data correlation about load from various sources to determine if there is some dead lock, or hung application
-	\item Implementation of modules for other tools, than those, that are currently used on FZU
+    \item Correlating data form various sources in order to discover anomalies
+        in system performance with the aim to identify possible bottlenecks and
+        troubles early
+	\item Implementation of modules for other tools than those that are currently used on FZU
 \end{itemize}
 
 \subsection{Actors}
