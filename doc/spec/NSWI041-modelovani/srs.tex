@@ -273,7 +273,12 @@ These are the roles of persons and systems that interact with the System.
 		\hline
 		\textbf{Actor name}		& \textbf{Description}\\
 		\hline
-		SomeName	& Description\\
+		System Administrator	& General site maintenance\\
+		\hline
+		Manager of the Institute	& Verifying general system reliability and
+        availability\\
+		\hline
+		Students on an internship	& Limited access to the system\\
 		\hline
 	\end{tabular}
 	\label{tab:Actors}
@@ -472,19 +477,30 @@ No additional manageability requirements for future releases.
 
 \subsection{Maintainability}
 
-[Define the life expectancy of the application, and describe the requirements that will facilitate maintenance throughout its 
-lifecycle, including use of specific languages, compilers, tools, libraries, coding conventions, or methodologies that will 
-facilitate debugging and enhancement by those engineers who will be responsible for long-term maintenance. Define specific 
-requirements for source code headers that might include module name, author's name, date of creation, purpose of module, placeholders 
-for SCM, and revision history. There may also be specific requirements for file naming, directory organization, make files, development 
-environment, and such that will facilitate maintenance.]\\
+The Institute expects to use the system in production for the next ten years.
+It is therefore expected to stick with programming languages that will be
+available and supported in this time frame when developing the application.
 
-[Describe the different levels of application problems that your IT department tracks and the acceptable number of undetected and/or 
-unresolved errors at first release. Discuss ``bug inflation'' and how bugs will be assigned a severity.]\\
+In order to make such a long-term maintenance feasible, the team will focus on
+covering the system with test cases when reasonable.
 
-Typical categories of system problems are listed below:
+FIXME: nope, I'm not gonna talk about directory structure *now* -- we haven't
+even finished how is that bloody system going to work!
+
+The whole code base of the project will be stored in a SCM repository and a
+reliable bug tracker will be deployed in order to ensure that user-reported
+problems will be handled in a timely manner.  Based on previous experience, Git
+and Redmine will be employed.
+
+When dealing with bugs, a high priority will be given to issues directly
+blocking production use of the system.  The last call in specifying a bug's
+priority will be given to the real administrators.
+
+A list of bug priorities considered at the moment are the following:
 \begin{itemize}
-	\item Severity 1, Fatal - Entire system is affected and cannot be used at all.
+	\item Severity 1, Fatal - Entire system is affected and cannot be used at
+        all, or produces results which put a critical part of the infrastructure
+        in danger.
 	\item Severity 2, Major - Part of the system or critical functionality is affected and an acceptable workaround is not possible.
 	\item Severity 3, Medium - A functional problem requires increased effort to avoid via a temporary workaround. The problem cannot be indefinitely deferred.
 	\item Severity 4, Minor - Functioning of system is not significantly impaired and users can live with the problem for now.
