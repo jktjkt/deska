@@ -88,7 +88,7 @@ metrics to a central place for monitoring.  For more information and a detailed
 overview of main tasks please see the Scope document.
 
 \subsection{System Context}
-There are three main ``touch points'' of the Hotel Reservation System: the central DBMS for configurations and history storage, the server, 
+There are three main ``touch points'' of the System: the central DBMS for configurations and history storage, the server, 
 that will authorize clients and will generate configurations for single tools and clients, that will conect to the server to make some 
 changes in the central configuration. TODO
 
@@ -153,11 +153,15 @@ developmentrelated terms.
 \subsection{Engineering Change Orders}
 \label{steering-committee}
 
-TODO
+In order to guarantee the immutability of the specification to both sides of the
+contract, it was decided that any change to the specification that was already
+agreed upon has to be approved by the Steering Committee.  This body consists of
+representatives of both the team responsible for the implementation as well as
+from the Institute.  Exact personal constitution is outside the scope of this
+document.
 
-[This section describes whether this document will be updated according to agreed Engineering Change Orders either continuously 
-during the project, at the end, or not at all will be up to each project to determine. In projects where time is too short to 
-update the requirements, the ECOs could simply be appended to the requirements.]
+Only the Steering Committee is authorised to issue Engineering Change Orders for
+this project.
 
 \subsection{References}
 
@@ -179,7 +183,8 @@ At this time, there are no known constraints.
 At this time, there are no known constraints.
 
 \subsubsection{Hardware Contraints}
-At this time, there are no known constraints. TODO
+The server part of the system shall run on a moderately-sized x86-compatible
+server-class machine.
 
 \subsection{Delivery and Deployment Constraints}
 The target platform for the core parts of the application is a UNIX-like
@@ -190,16 +195,19 @@ The Customer expressed a strong desire to have influence in the design of
 essential parts of the system.   Therefore, we have to discuss major decisions
 with employees of the Institute of Physics and their administrators.
 
+The exact time frame in which the system will be put into production is unknown
+at this time.
 
 \section{Risk Mitigation}
 
 \subsection{Technological Risks}
-TODO
+There are no known technological risks at this time.
 
 \subsection{Skills and Resources Risks}
-We have examined the programming skills of all programmers who will work on the
-code base of the Project.  All design decisions will be additionally verified by
-the requester's employee.
+In order to establish a well-performing team, we have examined the programming
+skills of all programmers who will work on the code base of the Project.  All
+design decisions will be additionally verified by the requester's
+representative.
 
 \subsection{Requirements Risks}
 In order to reduce the risks and delays related with sudden incompatible changes
@@ -220,28 +228,41 @@ This section defines the actors who use this system while supporting the targete
 system provides to those actors.
 
 \subsection{Primary Functional Requirements}
-In this section, we classify the primary features of the Hotel Reservation System across three categories. This list is an updated 
-version of the same list from the Scope document. Some FRs have changed priority and a few new ones have been added.\\
-Essential features cannot be done without. High-value features can be done without, although it may be very undesirable to 
-do so. Follow-on features are those for which it is not clear they should be included in the first release. In all cases, 
-the lists are not exhaustive but include the most important features from a business perspective.
+In this section, we classify the primary features of the Hotel Reservation
+System across three categories.  Essential features cannot be done without.
+High-value features can be done without, although it may be very undesirable to
+do so. Follow-on features are those for which it is not clear they should be
+included in the first release. In all cases, the lists are not exhaustive but
+include the most important features from a business perspective.
 
 \subsubsection{Essential Features}
 \begin{itemize}
 	\item Central storage of authoritative information about the whole grid site
-	\item Generating configuration files for various tools. For example Nagios, Cfengine
-	\item Unified API for creating other modules
+        at various levels of detail (hardware, operating system, services and
+        their relations).  A SCM-managed storage of these data in human-readable
+        text files.
+	\item Automated generating of configuration files in response to new data
+        committed to the central database.  A flexible and unified API for
+        retrieving information from the DB and for invocation of the generating
+        components.
+    \item Implementation of sample components for core systems currently
+        deployed at the Institute (Nagios, Cfengine's {\tt groups.conf}).
 \end{itemize}
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-	\item Data aggregation from more tools to one well-arranged place, one place where to look for problems
+	\item Data aggregation from monitoring tools to one well-arranged place
+    \item Dashboard providing a view of overall system health
+    \item Visualization of performance/availability metrics
 \end{itemize}
 
 \subsubsection{Follow-on Features}
 \begin{itemize}
-	\item Data correlation about load from various sources to determine if there is some dead lock, or hung application
-	\item Implementation of modules for other tools, than those, that are currently used on FZU
+    \item Correlating data form various sources in order to discover anomalies
+        in system performance with the aim to identify possible bottlenecks and
+        troubles early
+	\item Implementation of modules for other tools than those that are currently used on FZU
+    \item A GUI or CLI interface for database access
 \end{itemize}
 
 \subsection{Actors}
@@ -252,7 +273,12 @@ These are the roles of persons and systems that interact with the System.
 		\hline
 		\textbf{Actor name}		& \textbf{Description}\\
 		\hline
-		SomeName	& Description\\
+		System Administrator	& General site maintenance\\
+		\hline
+		Manager of the Institute	& Verifying general system reliability and
+        availability\\
+		\hline
+		Students on an internship	& Limited access to the system\\
 		\hline
 	\end{tabular}
 	\label{tab:Actors}
@@ -451,19 +477,30 @@ No additional manageability requirements for future releases.
 
 \subsection{Maintainability}
 
-[Define the life expectancy of the application, and describe the requirements that will facilitate maintenance throughout its 
-lifecycle, including use of specific languages, compilers, tools, libraries, coding conventions, or methodologies that will 
-facilitate debugging and enhancement by those engineers who will be responsible for long-term maintenance. Define specific 
-requirements for source code headers that might include module name, author's name, date of creation, purpose of module, placeholders 
-for SCM, and revision history. There may also be specific requirements for file naming, directory organization, make files, development 
-environment, and such that will facilitate maintenance.]\\
+The Institute expects to use the system in production for the next ten years.
+It is therefore expected to stick with programming languages that will be
+available and supported in this time frame when developing the application.
 
-[Describe the different levels of application problems that your IT department tracks and the acceptable number of undetected and/or 
-unresolved errors at first release. Discuss ``bug inflation'' and how bugs will be assigned a severity.]\\
+In order to make such a long-term maintenance feasible, the team will focus on
+covering the system with test cases when reasonable.
 
-Typical categories of system problems are listed below:
+FIXME: nope, I'm not gonna talk about directory structure *now* -- we haven't
+even finished how is that bloody system going to work!
+
+The whole code base of the project will be stored in a SCM repository and a
+reliable bug tracker will be deployed in order to ensure that user-reported
+problems will be handled in a timely manner.  Based on previous experience, Git
+and Redmine will be employed.
+
+When dealing with bugs, a high priority will be given to issues directly
+blocking production use of the system.  The last call in specifying a bug's
+priority will be given to the real administrators.
+
+A list of bug priorities considered at the moment are the following:
 \begin{itemize}
-	\item Severity 1, Fatal - Entire system is affected and cannot be used at all.
+	\item Severity 1, Fatal - Entire system is affected and cannot be used at
+        all, or produces results which put a critical part of the infrastructure
+        in danger.
 	\item Severity 2, Major - Part of the system or critical functionality is affected and an acceptable workaround is not possible.
 	\item Severity 3, Medium - A functional problem requires increased effort to avoid via a temporary workaround. The problem cannot be indefinitely deferred.
 	\item Severity 4, Minor - Functioning of system is not significantly impaired and users can live with the problem for now.
