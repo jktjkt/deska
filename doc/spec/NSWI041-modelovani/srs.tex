@@ -89,7 +89,7 @@ overview of main tasks please see the Scope document.
 
 \subsection{System Context}
 There are three main ``touch points'' of the System: the central DBMS for configurations and history storage, the server, 
-that will authorize clients and will generate configurations for single tools and clients, that will conect to the server to make some 
+that will authorize clients and will generate configurations for single tools and clients, that will connect to the server to make some 
 changes in the central configuration. TODO
 
 \subsection{Primary Stakeholders}
@@ -148,7 +148,7 @@ project risks and how these will be mitigated. Section 4 describes the functiona
 functional requirements exist to directly support business process; some exist to support the correct operation of the system 
 itself. All functional requirements are described in terms of use cases. Section 5 describes the non-functional requirements 
 (NFRs) of the System. Section 6 provides a Project Glossary that includes project-related terms as well as software 
-developmentrelated terms.
+development related terms.
 
 \subsection{Engineering Change Orders}
 \label{steering-committee}
@@ -160,7 +160,7 @@ representatives of both the team responsible for the implementation as well as
 from the Institute.  Exact personal constitution is outside the scope of this
 document.
 
-Only the Steering Committee is authorised to issue Engineering Change Orders for
+Only the Steering Committee is authorized to issue Engineering Change Orders for
 this project.
 
 \subsection{References}
@@ -182,7 +182,7 @@ At this time, there are no known constraints.
 \subsubsection{Software Constraints}
 At this time, there are no known constraints.
 
-\subsubsection{Hardware Contraints}
+\subsubsection{Hardware Constraints}
 The server part of the system shall run on a moderately-sized x86-compatible
 server-class machine.
 
@@ -228,12 +228,11 @@ This section defines the actors who use this system while supporting the targete
 system provides to those actors.
 
 \subsection{Primary Functional Requirements}
-In this section, we classify the primary features of the Hotel Reservation
-System across three categories.  Essential features cannot be done without.
-High-value features can be done without, although it may be very undesirable to
-do so. Follow-on features are those for which it is not clear they should be
-included in the first release. In all cases, the lists are not exhaustive but
-include the most important features from a business perspective.
+In this section, we classify the primary features of the Hotel Reservation System across three categories. This list is an updated 
+version of the same list from the Scope document. Some FRs have changed priority and a few new ones have been added.\\
+Essential features cannot be done without. High-value features can be done without, although it may be very undesirable to 
+do so. Follow-on features are those for which it is not clear they should be included in the first release. In all cases, 
+the lists are not exhaustive but include the most important features from a business perspective.
 
 \subsubsection{Essential Features}
 \begin{itemize}
@@ -245,13 +244,13 @@ include the most important features from a business perspective.
         committed to the central database.  A flexible and unified API for
         retrieving information from the DB and for invocation of the generating
         components.
-    \item Implementation of sample components for core systems currently
+  \item Implementation of sample components for core systems currently
         deployed at the Institute (Nagios, Cfengine's {\tt groups.conf}).
 \end{itemize}
 
 \subsubsection{High-Value Features}
 \begin{itemize}
-	\item Data aggregation from monitoring tools to one well-arranged place
+	  \item Data aggregation from monitoring tools to one well-arranged place
     \item Dashboard providing a view of overall system health
     \item Visualization of performance/availability metrics
 \end{itemize}
@@ -261,7 +260,7 @@ include the most important features from a business perspective.
     \item Correlating data form various sources in order to discover anomalies
         in system performance with the aim to identify possible bottlenecks and
         troubles early
-	\item Implementation of modules for other tools than those that are currently used on FZU
+	  \item Implementation of modules for other tools than those that are currently used on FZU
     \item A GUI or CLI interface for database access
 \end{itemize}
 
@@ -275,8 +274,7 @@ These are the roles of persons and systems that interact with the System.
 		\hline
 		System Administrator	& General site maintenance\\
 		\hline
-		Manager of the Institute	& Verifying general system reliability and
-        availability\\
+		Manager of the Institute	& Verifying general system reliability and availability\\
 		\hline
 		Students on an internship	& Limited access to the system\\
 		\hline
@@ -284,8 +282,15 @@ These are the roles of persons and systems that interact with the System.
 	\label{tab:Actors}
 \end{table}
 
-\subsubsection{Actor: SomeName}
+\subsubsection{Actor: System Administrator}
+TODO What is his work, what i allowed to do and what not, requirements to knowledge.
+
+\subsubsection{Actor: Manager of the Institute}
 TODO
+
+\subsubsection{Actor: Students on an internship}
+TODO
+
 
 \subsection{Use Cases}
 
@@ -490,13 +495,13 @@ even finished how is that bloody system going to work!
 The whole code base of the project will be stored in a SCM repository and a
 reliable bug tracker will be deployed in order to ensure that user-reported
 problems will be handled in a timely manner.  Based on previous experience, Git
-and Redmine will be employed.
+and Redmine will be employed. TODO-write more specific, why
 
 When dealing with bugs, a high priority will be given to issues directly
 blocking production use of the system.  The last call in specifying a bug's
 priority will be given to the real administrators.
 
-A list of bug priorities considered at the moment are the following:
+A list of bug priorities are the following:
 \begin{itemize}
 	\item Severity 1, Fatal - Entire system is affected and cannot be used at
         all, or produces results which put a critical part of the infrastructure
