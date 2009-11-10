@@ -3,7 +3,7 @@
 \usepackage[english]{babel}
 \usepackage{a4wide}
 \author{Tomáš Hubík}
-\title{Deska}
+\title{Deska SRS}
 
 
 
@@ -25,11 +25,11 @@
 
 \vspace{0.2in}
 
-{\large Version 1.0}
+{\large Version 1.1}
 
 \vspace{0.2in}
 
-{\large Date 2009-Nov-02}
+{\large Date 2009-Nov-11}
 
 \vspace{0.5in}
 
@@ -39,6 +39,7 @@
 	\begin{tabular}{l l l l}
 		\textbf{Date} & \textbf{Version} & \textbf{Author} & \textbf{Description} \\
 		2009-Nov-02 & V1.0 & Tomáš Hubík & Document structure \\
+		2009-Nov-11 & V1.1 & Jan Kundrát & Use cases and requirements specified \\
 	\end{tabular}
 	\label{tab:RevisionHistory}
 \end{table}
@@ -364,11 +365,11 @@ This section lists all of the detailed requirements for the Database part of the
         E1-2    & Providing ACID semantics\\
 		\hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
+	\label{tab:DatabaseRequirements}
 \end{center}
 
 \subsubsection{The Versioning Backend Requirements}
-This section lists all of the detailed requirements for the versioning storage susbsystem.
+This section lists all of the detailed requirements for the versioning storage subsystem.
 
 \begin{center}
 	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
@@ -381,7 +382,7 @@ This section lists all of the detailed requirements for the versioning storage s
                   of the author and the real change performed\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
+	\label{tab:VersioningBackendRequirements}
 \end{center}
 
 \subsubsection{The Configuration Components Requirements}
@@ -395,7 +396,7 @@ This section lists all of the detailed requirements for the components which pro
         E1-5    & Integration with systems already deployed at FZU, most notably Nagios and Cfengine\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
+	\label{tab:ConfigurationComponentsRequirements}
 \end{center}
 
 
@@ -413,7 +414,7 @@ This section lists all of the detailed requirements for the monitoring dashboard
                     metrics obtained from third-party sources\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
+	\label{tab:DashboardRequirements}
 \end{center}
 
 
