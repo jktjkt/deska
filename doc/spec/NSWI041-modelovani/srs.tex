@@ -339,6 +339,9 @@ TODO
         Versioning Backend & A versioning storage for data contained in the Database \\ \cline{2-1}
                         & Supports UCs: E6 \\
         \hline
+        Configuration Components & Components generating configuration for already deployed system tools \\ \cline{2-1}
+                        & Supports UCs: E1, E2, E3, E4, E5 \\
+        \hline
         Dashboard & A monitoring interface providing an overview of system health status and performance \\ \cline{2-1}
                         & Supports UCs: H8, H9, F10 \\
 		\hline
@@ -364,7 +367,7 @@ This section lists all of the detailed requirements for the Database part of the
 	\label{tab:SomeAppRequirements}
 \end{table}
 
-\subsubsection{The versioning Backend Requirements}
+\subsubsection{The Versioning Backend Requirements}
 This section lists all of the detailed requirements for the versioning storage susbsystem.
 
 \begin{table}[!h]
@@ -381,6 +384,21 @@ This section lists all of the detailed requirements for the versioning storage s
 	\label{tab:SomeAppRequirements}
 \end{table}
 
+\subsubsection{The Configuration Components Requirements}
+This section lists all of the detailed requirements for the components which propagate changes in the DB to the managed machines.
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+	 	\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+        E1-5    & Integration with systems already deployed at FZU, most notably Nagios and Cfengine\\
+        \hline
+	\end{tabular}
+	\label{tab:SomeAppRequirements}
+\end{table}
+
+
 \subsubsection{The Dashboard Requirements}
 This section lists all of the detailed requirements for the monitoring dashboard.
 
@@ -389,9 +407,9 @@ This section lists all of the detailed requirements for the monitoring dashboard
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-        H8-5    &   Providing a well arranged view on the managed infrastructure\\
+        H8-6    &   Providing a well arranged view on the managed infrastructure\\
 		\hline
-        H9-6    &   Generating graphs depicting interesting performance and availability
+        H9-7    &   Generating graphs depicting interesting performance and availability
                     metrics obtained from third-party sources\\
         \hline
 	\end{tabular}
@@ -414,7 +432,7 @@ This System will not require significant demands on the hardware.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-101	& something\\
+		E1-101	& Each change of the data in the DB should complete in 30 seconds\\
 		\hline
 	\end{tabular}
 	\label{tab:PerformanceRequirements}
@@ -433,7 +451,7 @@ No additional performance requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-105	& something\\
+		E1-102	& The system should scale up to ten thousands of individually managed entities\\
 		\hline
 	\end{tabular}
 	\label{tab:ScalabilityRequirements}
@@ -452,7 +470,7 @@ No additional scalability requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-108	& something\\
+		E1-103	& The system should be resilient to various network and system outages\\
 		\hline
 	\end{tabular}
 	\label{tab:AvailabilityRequirements}
@@ -471,7 +489,8 @@ No additional availability requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-110	& something\\
+		E1-104	& The administrators shall have the ability to review each change for correctness
+        and to block disruptive changes from propagating to production systems\\
 		\hline
 	\end{tabular}
 	\label{tab:ReliabilityRequirements}
@@ -490,7 +509,8 @@ No additional reliability requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-113	& something\\
+		E1-105	& All components of the system shall make use of an already existing user
+        management systems, namely with SSH RSA and DSA keys and an X.509 PKI infrastructure\\
 		\hline
 	\end{tabular}
 	\label{tab:SecurityRequirements}
@@ -509,7 +529,9 @@ No additional security requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-115	& something\\
+		E1-106	& All user-tunable system settings will be integrated into the Configuration Components\\
+        \hline
+        E1-107  & A strict API shall be defined for the Configuration Components and the DB to adhere to\\
 		\hline
 	\end{tabular}
 	\label{tab:ManageabilityRequirements}
@@ -528,8 +550,10 @@ No additional manageability requirements for future releases.
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-116	& something\\
+		E1-108	& All information in the database shall be managed from a CLI-only environment\\
 		\hline
+        F1-109  & An optional GUI/web-GUI interface for editing the Database shall be developed\\
+        \hline
 	\end{tabular}
 	\label{tab:UsabilityRequirements}
 \end{table}
@@ -547,13 +571,15 @@ available and supported in this time frame when developing the application.
 In order to make such a long-term maintenance feasible, the team will focus on
 covering the system with test cases when reasonable.
 
-FIXME: nope, I'm not gonna talk about directory structure *now* -- we haven't
-even finished how is that bloody system going to work!
-
 The whole code base of the project will be stored in a SCM repository and a
 reliable bug tracker will be deployed in order to ensure that user-reported
-problems will be handled in a timely manner.  Based on previous experience, Git
-and Redmine will be employed. TODO-write more specific, why
+problems will be handled in a timely manner.  Based on previous experience, the
+Git source code management tool shall be employed for storing the source codes,
+while interaction with system users (the employees of the Institute of Physics)
+shall be conducted via the issue tracker integrated in the Redmine project management tool.
+
+In order to further increase efficiency when dealing with the customer's issues,
+optional direct communication channels are expected to be established, too.
 
 When dealing with bugs, a high priority will be given to issues directly
 blocking production use of the system.  The last call in specifying a bug's
@@ -578,7 +604,9 @@ A list of bug priorities are the following:
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-118	& something\\
+        E1-110	& The API between the Database and the Configuration Components
+        will export enough information to enable future development of
+        additional Configuration Components\\
 		\hline
 	\end{tabular}
 	\label{tab:ExtensibilityRequirements}
