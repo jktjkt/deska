@@ -300,8 +300,20 @@ TODO
 	\begin{tabular}{| l | l | l | l |}
 		\hline
 		\textbf{Use Case Name} & \textbf{Priority} & \textbf{Number} & \textbf{Description}\\
-		\hline
-		SomeCase	& E-H & 1 & something\\
+        \hline
+        Adding a New Machine & E & 1 & A new instance of HW is to be registered\\
+        \hline
+        Changing Machine Role & E & 2 & A purpose of an already existing machine is being changed\\
+        \hline
+        Changing Essential Properties & E & 3 & A critical property of a machine (e.g. hostname) changes\\
+        \hline
+        Modification to Regular Property & H & 4 & A non-critical data related to a machine changes\\
+        \hline
+        Deleting a Machine & E & 5 & A machine is retired\\
+        \hline
+        Review of Changes & E & 6 & Auditing record is created for each change performed through the system\\
+        \hline
+        Reinstallation of a Host & H & 7 & A complete reinstallation of a machine in needed\\
 		\hline
 	\end{tabular}
 	\label{tab:UseCases}
