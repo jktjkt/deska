@@ -314,14 +314,18 @@ TODO
         Review of Changes & E & 6 & Auditing record is created for each change performed through the system\\
         \hline
         Reinstallation of a Host & H & 7 & A complete reinstallation of a machine in needed\\
+        \hline
+        Verifying System Status & H & 8 & Status of each managed host is included in a monitoring dashboard\\
+        \hline
+        Metric Visualization & H & 9 & Graphical visualization of various performance and availability metrics\\
 		\hline
+        Data Correlation & F & 10 & Data from various sources are correlated to each other\\
+        \hline
 	\end{tabular}
 	\label{tab:UseCases}
 \end{table}
 
 \subsection{Applications}
-
-TODO
 
 \begin{table}[!h]
 	\begin{tabular}{| l | l |}
@@ -329,8 +333,14 @@ TODO
 		\textbf{Application Name} & \textbf{Description}\\ \cline{2-1}
 															& \textbf{UseCases}\\
 		\hline
-		SomeApp	& something\\ \cline{2-1}
-						& Supports UCs: E1\\
+        The Database & An authoritative storage for the database of machines\\ \cline{2-1}
+                        & Supports UCs: E1, E2, E3, E4, E5 \\
+        \hline
+        Versioning Backend & A versioning storage for data contained in the Database \\ \cline{2-1}
+                        & Supports UCs: E6 \\
+        \hline
+        Dashboard & A monitoring interface providing an overview of system health status and performance \\ \cline{2-1}
+                        & Supports UCs: H8, H9, F10 \\
 		\hline
 	\end{tabular}
 	\label{tab:Applications}
@@ -338,20 +348,56 @@ TODO
 
 \subsection{Use Case Detailed Requirements}
 
-\subsubsection{SomeApp Requirements}
-This section lists all of the detailed requirements for the SomeApp.
-TODO
+\subsubsection{The Database Requirements}
+This section lists all of the detailed requirements for the Database part of the system.
 
 \begin{table}[!h]
 	\begin{tabular}{| l | l |}
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-		E1-1	& something\\
+        E1-1    & Storing all required properties for each object being managed\\
+        \hline
+        E1-2    & Providing ACID semantics\\
 		\hline
 	\end{tabular}
 	\label{tab:SomeAppRequirements}
 \end{table}
+
+\subsubsection{The versioning Backend Requirements}
+This section lists all of the detailed requirements for the versioning storage susbsystem.
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+	 	\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+        E6-3    & Providing ACID semantics\\
+		\hline
+        E6-4    & Keeping an audit log of all performed changes including the credentials
+                  of the author and the real change performed\\
+        \hline
+	\end{tabular}
+	\label{tab:SomeAppRequirements}
+\end{table}
+
+\subsubsection{The Dashboard Requirements}
+This section lists all of the detailed requirements for the monitoring dashboard.
+
+\begin{table}[!h]
+	\begin{tabular}{| l | l |}
+	 	\hline
+		\textbf{Req. Code} & \textbf{Requirement Description}\\
+		\hline
+        H8-5    &   Providing a well arranged view on the managed infrastructure\\
+		\hline
+        H9-6    &   Generating graphs depicting interesting performance and availability
+                    metrics obtained from third-party sources\\
+        \hline
+	\end{tabular}
+	\label{tab:SomeAppRequirements}
+\end{table}
+
 
 
 \section{Non-Functional Requirements}
