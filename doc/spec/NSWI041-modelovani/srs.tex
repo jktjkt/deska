@@ -3,7 +3,7 @@
 \usepackage[english]{babel}
 \usepackage{a4wide}
 \author{Tomáš Hubík}
-\title{Deska}
+\title{Deska SRS}
 
 
 
@@ -25,11 +25,11 @@
 
 \vspace{0.2in}
 
-{\large Version 1.0}
+{\large Version 1.1}
 
 \vspace{0.2in}
 
-{\large Date 2009-Nov-02}
+{\large Date 2009-Nov-11}
 
 \vspace{0.5in}
 
@@ -39,6 +39,7 @@
 	\begin{tabular}{l l l l}
 		\textbf{Date} & \textbf{Version} & \textbf{Author} & \textbf{Description} \\
 		2009-Nov-02 & V1.0 & Tomáš Hubík & Document structure \\
+		2009-Nov-11 & V1.1 & Jan Kundrát & Use cases and requirements specified \\
 	\end{tabular}
 	\label{tab:RevisionHistory}
 \end{table}
@@ -267,8 +268,8 @@ the lists are not exhaustive but include the most important features from a busi
 \subsection{Actors}
 These are the roles of persons and systems that interact with the System.
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{5.5cm} | p{9.5cm} |}
 		\hline
 		\textbf{Actor name}		& \textbf{Description}\\
 		\hline
@@ -280,7 +281,7 @@ These are the roles of persons and systems that interact with the System.
 		\hline
 	\end{tabular}
 	\label{tab:Actors}
-\end{table}
+\end{center}
 
 \subsubsection{Actor: System Administrator}
 TODO What is his work, what i allowed to do and what not, requirements to knowledge.
@@ -296,8 +297,8 @@ TODO
 
 TODO
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l | l | l |}
+\begin{center}
+	\begin{tabular}{| p{4cm} | p{1.5cm} | p{1.5cm} | p{7cm} |}
 		\hline
 		\textbf{Use Case Name} & \textbf{Priority} & \textbf{Number} & \textbf{Description}\\
         \hline
@@ -323,12 +324,12 @@ TODO
         \hline
 	\end{tabular}
 	\label{tab:UseCases}
-\end{table}
+\end{center}
 
 \subsection{Applications}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{5cm} | p{10cm} |}
 		\hline
 		\textbf{Application Name} & \textbf{Description}\\ \cline{2-1}
 															& \textbf{UseCases}\\
@@ -347,15 +348,15 @@ TODO
 		\hline
 	\end{tabular}
 	\label{tab:Applications}
-\end{table}
+\end{center}
 
 \subsection{Use Case Detailed Requirements}
 
 \subsubsection{The Database Requirements}
 This section lists all of the detailed requirements for the Database part of the system.
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -364,14 +365,14 @@ This section lists all of the detailed requirements for the Database part of the
         E1-2    & Providing ACID semantics\\
 		\hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
-\end{table}
+	\label{tab:DatabaseRequirements}
+\end{center}
 
 \subsubsection{The Versioning Backend Requirements}
-This section lists all of the detailed requirements for the versioning storage susbsystem.
+This section lists all of the detailed requirements for the versioning storage subsystem.
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -381,29 +382,29 @@ This section lists all of the detailed requirements for the versioning storage s
                   of the author and the real change performed\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
-\end{table}
+	\label{tab:VersioningBackendRequirements}
+\end{center}
 
 \subsubsection{The Configuration Components Requirements}
 This section lists all of the detailed requirements for the components which propagate changes in the DB to the managed machines.
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
         E1-5    & Integration with systems already deployed at FZU, most notably Nagios and Cfengine\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
-\end{table}
+	\label{tab:ConfigurationComponentsRequirements}
+\end{center}
 
 
 \subsubsection{The Dashboard Requirements}
 This section lists all of the detailed requirements for the monitoring dashboard.
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -413,8 +414,8 @@ This section lists all of the detailed requirements for the monitoring dashboard
                     metrics obtained from third-party sources\\
         \hline
 	\end{tabular}
-	\label{tab:SomeAppRequirements}
-\end{table}
+	\label{tab:DashboardRequirements}
+\end{center}
 
 
 
@@ -427,8 +428,8 @@ This System will not require significant demands on the hardware.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -436,7 +437,7 @@ This System will not require significant demands on the hardware.
 		\hline
 	\end{tabular}
 	\label{tab:PerformanceRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional performance requirements for future releases.
@@ -446,8 +447,8 @@ No additional performance requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -455,7 +456,7 @@ No additional performance requirements for future releases.
 		\hline
 	\end{tabular}
 	\label{tab:ScalabilityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional scalability requirements for future releases.
@@ -465,8 +466,8 @@ No additional scalability requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -474,7 +475,7 @@ No additional scalability requirements for future releases.
 		\hline
 	\end{tabular}
 	\label{tab:AvailabilityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional availability requirements for future releases.
@@ -484,8 +485,8 @@ No additional availability requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l|}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -494,7 +495,7 @@ No additional availability requirements for future releases.
 		\hline
 	\end{tabular}
 	\label{tab:ReliabilityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional reliability requirements for future releases.
@@ -504,8 +505,8 @@ No additional reliability requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -514,7 +515,7 @@ No additional reliability requirements for future releases.
 		\hline
 	\end{tabular}
 	\label{tab:SecurityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional security requirements for future releases.
@@ -524,8 +525,8 @@ No additional security requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -535,7 +536,7 @@ No additional security requirements for future releases.
 		\hline
 	\end{tabular}
 	\label{tab:ManageabilityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional manageability requirements for future releases.
@@ -545,8 +546,8 @@ No additional manageability requirements for future releases.
 
 \subsubsection{Current Release}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -556,7 +557,7 @@ No additional manageability requirements for future releases.
         \hline
 	\end{tabular}
 	\label{tab:UsabilityRequirements}
-\end{table}
+\end{center}
 
 \subsubsection{Future Releases}
 No additional manageability requirements for future releases.
@@ -599,8 +600,8 @@ A list of bug priorities are the following:
 
 \subsection{Extensibility}
 
-\begin{table}[!h]
-	\begin{tabular}{| l | l |}
+\begin{center}
+	\begin{tabular}{| p{2.5cm} | p{12.5cm} |}
 		\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
@@ -610,7 +611,7 @@ A list of bug priorities are the following:
 		\hline
 	\end{tabular}
 	\label{tab:ExtensibilityRequirements}
-\end{table}
+\end{center}
 
 
 \section{Project Glossary}
