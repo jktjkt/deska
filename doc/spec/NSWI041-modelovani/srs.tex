@@ -89,9 +89,9 @@ metrics to a central place for monitoring.  For more information and a detailed
 overview of main tasks please see the Scope document.
 
 \subsection{System Context}
-There are three main ``touch points'' of the System: the central DBMS for configurations and history storage, the server, 
-that will authorize clients and will generate configurations for single tools and clients, that will connect to the server to make some 
-changes in the central configuration. TODO
+The whole system can be easily divided into two major component.  The first of
+them is the Database providing an authoritative answer about the site's
+topology, the other is the Monitoring Dashboard.
 
 \subsection{Primary Stakeholders}
 The following is a list client stakeholders for different areas within the project. Each area can have many reference stakeholders 
@@ -313,14 +313,25 @@ These are the roles of persons and systems that interact with the System.
 \end{center}
 
 \subsubsection{Actor: System Administrator}
-TODO What is his work, what i allowed to do and what not, requirements to knowledge.
+A system administrator is a fully qualified employee of an institution.  As
+such, she has already received a training in how to operate the services and is
+supposed to know what changes have the potential of breaking the whole site, and
+therefore is assumed to know what she is doing.  However, if the system could
+reduce the possibility of making errors, this opportunity should be explored
+nonetheless.
 
 \subsubsection{Actor: Manager of the Institute}
-TODO
+A management stuff is usually responsible for working with accounting data
+including system availability and reliability.  She is usually also curious
+about what the individual administrators do in their paid time.
 
 \subsubsection{Actor: Students on an internship}
-TODO
-
+In several use cases, it might be beneficial for the system to allow students on
+an internship a temporary and severely limited access to the central management
+system.  However, as the amount of time and effort which could be invested in
+their training is rather limited and because there are usually no straight legal
+contracts about possible damage, it is critical to ensure there actors cannot
+cause any significant damage to the system.
 
 \subsection{Use Cases}
 
