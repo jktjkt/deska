@@ -117,24 +117,44 @@ stakeholders, resolves disagreement and has final approval for requirements in t
 
 \subsection{Acronyms and Abbreviations}
 
-TODO
-
 \begin{table}[!h]
 	\begin{tabular}{| l | l |}
 		\hline
 		\textbf{Acronym / Abbreviation}		& \textbf{Expanded Term}\\
 		\hline
+		ACID	& Atomicity, Consistency, Isolation, Durability\\
+		\hline
+		API		& Application Programming Interface\\
+		\hline
+		CLI		& Command-line Interface\\
+		\hline
+		DB		& Database\\
+		\hline
+		DSA		& Digital Signature Algorithm\\
+		\hline
 		DBMS	& Database Management System\\
 		\hline
 		ECO		&	Engineering Change Order\\
 		\hline
-		FR		&	Functional requirement\\
+		FR		&	Functional Requirement\\
 		\hline
-		NFR		&	Non-functional requirement\\
+		GUI		& Graphical User Interface\\
+		\hline
+		HW		& Hardware\\
+		\hline
+		NFR		&	Non-functional Requirement\\
 		\hline
 		OS		& Operating System\\
 		\hline
+		PKI		& Public Key Infrastructure\\
+		\hline
+		RSA		& Rivest, Shamir, Adleman\\
+		\hline
+		SCM		& Software Configuration Management\\
+		\hline
 		SRS		& System Requirements Specification\\
+		\hline
+		SSH		& Secure Shell\\
 		\hline
 		UC		&	Use Case\\
 		\hline
@@ -188,6 +208,13 @@ At this time, there are no known constraints.
 \subsubsection{Hardware Constraints}
 The server part of the system shall run on a moderately-sized x86-compatible
 server-class machine.
+
+\subsubsection{Project Language}
+We assume we will present our project at international conferences. And another computing centres
+may want to use our program. In addition, there is an assumption, that administrators has good
+English knowledge. For these reasons, we choose English for the entire project, including web page
+and all documents.
+
 
 \subsection{Delivery and Deployment Constraints}
 The target platform for the core parts of the application is a UNIX-like
@@ -263,7 +290,7 @@ the lists are not exhaustive but include the most important features from a busi
     \item Correlating data form various sources in order to discover anomalies
         in system performance with the aim to identify possible bottlenecks and
         troubles early
-	  \item Implementation of modules for other tools than those that are currently used on FZU
+	  \item Implementation of modules for other tools than those that are currently used on the Institute
     \item A GUI or CLI interface for database access
 \end{itemize}
 
@@ -296,8 +323,6 @@ TODO
 
 
 \subsection{Use Cases}
-
-TODO
 
 \begin{center}
 	\begin{tabular}{| p{4cm} | p{1.5cm} | p{1.5cm} | p{7cm} |}
@@ -395,7 +420,7 @@ This section lists all of the detailed requirements for the components which pro
 	 	\hline
 		\textbf{Req. Code} & \textbf{Requirement Description}\\
 		\hline
-        E1-5    & Integration with systems already deployed at FZU, most notably Nagios and Cfengine\\
+        E1-5    & Integration with systems already deployed at the Institute, most notably Nagios and Cfengine\\
         \hline
 	\end{tabular}
 	\label{tab:ConfigurationComponentsRequirements}
@@ -617,8 +642,7 @@ A list of bug priorities are the following:
 
 
 \section{Project Glossary}
-[Define all terms referenced in any of the scope or requirements documents. This can include both system-related terms and software 
-development terms. For clarity you might choose to separate these two sets of terms into different lists. The Project Glossary can 
-also be a separate document to reduce the size of the SRS.]
+Refer Tool for Central Administration of a Grid Site Project Glossary document.
+
 
 \end{document}

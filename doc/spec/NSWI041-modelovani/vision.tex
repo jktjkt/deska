@@ -80,18 +80,15 @@ requirements description, but will instead provide overall direction for a separ
 This document's primary purpose is to establish priority among the most important issues, considerations, features, and overall goals.
 
 \subsection{Scope}
-The Deska will be responsible for managing and monitoring of a grid site. A
-first goal is to automate configuration of several monitoring and deployment
-tools, the second one is to provide a single web-based dashboard to look at the
-status of the site from different perspectives and to integrate the output of
-various monitoring tools, both in-house and remote, to a single place to check.
+The Deska will be responsible for managing and monitoring of a grid site. Especially it automates configuration of several monitoring 
+and deployment tools. All functions and features will be displayed and managed through a web interface.
 
 
 \section{Business Opportunity}
 
 \subsection{Background}
 One of the activities taking at the Institute of Physics of the AS CR (FZU) is running a local Tier-2 computing center connected to 
-an international WLCG computing grid, running user programs from various scientific communities from the whole world. Currently 
+an international computing grid, running user programs from various scientific communities from the whole world. Currently 
 installed capacity of the clusters is about 1500 CPUs with more than 250TB of disk storage. The center itself consists of several 
 hundreds of physical machines. While certain policies and management tools were developed and deployed over the years, the center 
 still lacks a centralized dashboard listing the state of various resources.\\
@@ -105,34 +102,13 @@ place to define roles of machines which would in turn be used by all the other t
  
 \subsection{Positioning}
 The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the 
-information by itself in a well-arranged way. It will substitute the unpractical way of configuration of currently used tools, 
+information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, 
 that must be made manually by editing of several files now.
 
 \subsection{Impact of Missed Opportunity}
-The need for this system is motivated by several factors.  First of them is the duplication of information in current
-implementation -- for example, the ``logical role'' of a system is currently defined on at least five places, and any change thus
-needs to happen at all of them or inconsistencies show up.  Experience shows that any site which rolls out a similar
-de-duplicating tool immediately improves their availability and reliability numbers.  Furthermore, certain tasks like deploying
-new machines is made substantively easier by having just one place to perform any modifications.  Due to the nature of the
-Institute, hard numbers are hard to estimate, but reducing deployment times by an {\bf order of magnitude} and at least {\bf
-halving the maintenance windows} are not unheard of, and therefore build a rough estimate.
+The fundamental benefit of this system is that it will save time of administrators, that can focus on other things. It will also 
+decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
 
-Even more beneficial is the Dashboard, a system for aggregating monitoring and performance data from various places, both local
-and from throughout the Grid.  The EGEE and WLCG projects have been successful in developing a number of monitoring tools, which
-typically overlap in their scope for increased robustness.  However, the main problem of these tolls remains in their isolation.
-As there are many places, many websites which publish their opinion about a site's availability and reliability, it is common for
-system administrators to overlook certain minor indicators until the situation (and the provided service) deteriorates
-significantly.  All of the staff at the Institute, both administrators and managers included, firmly believe that having a system
-aggregating all the monitoring metrics will {\bf significantly reduce the latency between the discovery of a problem} by an
-automated tool and {\bf the fix}.
-
-Should the system not be put in place, it is expected that the grid site of the Institute will not cope with increased demands at
-data processing, typically introduced by the scheduled start of the LHC accelerator and subsequent sudden increase in processed
-jobs and managed data.
-
-We are currently not aware of any competitive project with similar aims, and therefore believe that Deska could be successfully
-offered to other sites in the WLCG and EGEE/EGI Grid, therefore establishing the reputation of the Institute and CESNET as leading
-players in the international collaboration scene.
 
 \section{Proposed Solution}
 
