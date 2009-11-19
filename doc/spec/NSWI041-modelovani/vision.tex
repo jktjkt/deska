@@ -152,6 +152,58 @@ Should the system not be put in place, it is expected that the grid site of the 
 data processing, typically introduced by the scheduled start of the LHC accelerator and subsequent sudden increase in processed
 jobs and managed data.
 
+\section{Alternative solutions}
+Most of the sites involved in the WLCG collaboration has either already developed, or is actively developing, a system, usually
+database-based, for keeping track of the HW resources.  Such systems might involve just a pretty straightforward web application
+with a bunch of forms providing an interface for the underlying data, or even a complex system with well-defined API for accessing
+the information stored therein.  However, no such project has been completed to a state where it is usable by more than one grid
+site.  In fact, most of the systems involve a home-made, strictly locally-coupled, and their respective authors have expressed
+their uncertainty about the future release of their products.  Therefore, no well-established products are available for general
+consumption.
+
+The FZU employees have conducted an evaluation of the possible solutions nonetheless.  Based on a feedback mostly obtained by
+personal meetings, they have gathered information about three different solutions whose aim and scope might at least partially
+overlap with the proposed Deska project.
+
+\subsection{CC-IN2P3}
+The scientists at the CC-IN2P3 institute in Lyon, France have developed an in-house project which is currently being refactored in
+preparation to possible future release.  It is based on a MySQL setup, parts of the system communicate with the database directly,
+using a Perl library.  The system is tightly coupled with their instance of Puppet, a configuration and policy-based system
+similar to FZU's cfengine.
+
+While the sheer power of the tool is doubtlessly impressive, certain obstacles would have to be overcome if the decision was to go
+with this particular project.  The main obstacle is the rather tight integration with the Puppet tool and subsequent design
+choices.  While outside of scope of this document, certain properties of the database layout are likely not compatible with the
+setuo being deployed in Prague.  Another disadvantage is the lack of an enforced API (the database is still directly-available
+after all) and the choice of the implementation language, as nobody in Prague wants to maintain yet another Perl-based tool.
+Finally, system which has not been released (neither formally nor in an intermediate form suitable for testing) is not really a
+sustainable tool.
+
+\subsection{INFN}
+The scientific collaboration in Italy (several cities) is currently attempting to heavily refit their Oracle-based system.  As
+such, no public release of the tool has been made, and the sheer existence or a detailed feature list is not available.  More
+details were not available at the time this document was written.
+
+\subsection{Quattor}
+Being developed in a collaboration of several mostly French sited, the Quattor tool is certainly an impressive piece of HEP
+Unix-like infrastructure.  The following analysis is based on a quick narrative conducted by one FZU's employee which might not be
+accurate, and therefore can not serve as a basis for thorough evaluation of the system.  However, the memebers of the FZU's
+infrastructure team believe that it is close enough to the reality.
+
+Quattor tasks include a wide range of responsibilities, from problems like system installation and deployment to configuration of
+the respective components.  Thus, the main issue with Quattor is related to this conception -- it might be implied that its
+infrastructure encourages doing certain tasks in an independent and therefore non-standard way, hindering the process of migration
+to an industrial-standard tool for centra; policy-based system administration like Cfengine or Puppet.  In contrast, the proposed
+project goals of Deska put a heavy emphasis on re-use of existing, already deployed setups and well-known technologies.  The team
+recognizes Quaotr's strengths and conditions which lead to the design, but are lead to believe by experience that Quator's design
+choices would not fit nicely to the anticipated behavior of the Deska project.  Last but not least, the times required to perform
+a change are in fact more than compatible with the 10Gb/s  Ethernet.
+
+\section{Other non-HEP software}
+Quite a lot of software pieces come from outside of the HPC/WLCG community, too.  After all, the LHC accelerator and the HEP
+physics in overall is just one of the many most intensive users of grids and clouds.  Perhaps the most prominent piece of HW
+inventory management is OCS Inventory.  Based on aquial collaboration, the accident happened in a 
+
 We are currently not aware of any competitive project with similar aims, and therefore believe that Deska could be successfully
 offered to other sites in the WLCG and EGEE/EGI Grid, therefore establishing the reputation of the Institute and CESNET as leading
 players in the international collaboration scene.
