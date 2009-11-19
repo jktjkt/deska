@@ -119,6 +119,26 @@ new machines is made substantively easier by having just one place to perform an
 Institute, hard numbers are hard to estimate, but reducing deployment times by an {\bf order of magnitude} and at least {\bf
 halving the maintenance windows} are not unheard of, and therefore build a rough estimate.
 
+In an attempt to gather statistical data, the Institute's staff attempted to keep track of accidents and exceptional situations
+encountered during a typical system maintenance.  It is important to note that many possible sources of trouble tend not to
+manifest themselves too often, and therefore it is entirely expected that they did not contribute to this experiment at all.
+Examples of such phenomenons are network issues which typically arise only when people are actually touching the equipment, like
+when installing new computational resources.  No new machine installation took place and the staffers were not performing any
+network maintenance at all.
+
+One of the most critical problems encountered was the failure of 63 jobs belonging to the Atlas VO.  This interruption was
+triggered by a scheduled reboot of a DPM disk pool node due to security reasons.  While both the managers and staffers of the
+Institute recognize the importance of applying security patches, this particular situation could have been handled more
+gracefully.  Had the administrator who was performing the kernel upgrade on the file server been aware of an ongoing activity
+reaching the particular storage node, he might have decreased the number of allocated slots for production Atlas jobs, thus
+limiting the number of failed jobs.  The staffers of the Institute are firmly convinced that a comprehensive dashboard, ideally
+one matching the criteria specified in this text, would have mitigated the risk of failed production jobs.
+
+Due to the nature of the grid site and the WLCG funding model, there are no financial loses associated with the unexpected
+troubles.  The only damage which the site had suffered from was confined on the ``political'' and reputation level, as all
+resource pledges were still fulfilled throughout the month.  Therefore, the management of the Institute refused to give any
+estimate on possible financial risk associated with the missed opportunity, should the system not be put in place.
+
 Even more beneficial is the Dashboard, a system for aggregating monitoring and performance data from various places, both local
 and from throughout the Grid.  The EGEE and WLCG projects have been successful in developing a number of monitoring tools, which
 typically overlap in their scope for increased robustness.  However, the main problem of these tolls remains in their isolation.
