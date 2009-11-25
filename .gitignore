@@ -3,5 +3,7 @@
 *.dvi
 *.log
 *.toc
+*.bbl
+*.blg
 # vim
 .*.swp

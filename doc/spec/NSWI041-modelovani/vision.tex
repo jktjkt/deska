@@ -1,9 +1,9 @@
 \documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[english]{babel}
+\usepackage[english,czech]{babel}
 \usepackage{a4wide}
 \author{Tomáš Hubík}
-\title{Deska}
+\title{Deska Scope Document}
 
 
 
@@ -25,11 +25,11 @@
 
 \vspace{0.2in}
 
-{\large Version 1.1}
+{\large Version 1.2}
 
 \vspace{0.2in}
 
-{\large Date 2009-Oct-27}
+{\large Date 2009-Nov-12}
 
 \vspace{0.5in}
 
@@ -40,6 +40,8 @@
 		\textbf{Date} & \textbf{Version} & \textbf{Author} & \textbf{Description} \\
 		2009-Oct-23 & V1.0 & Tomáš Hubík & Master plan \\
 		2009-Oct-27 & V1.1 & Tomáš Hubík & Features specified \\
+		2009-Nov-12 & V1.2 & Jan Kundrát & Changed the scope to aim at the
+        Dashboard \\
 	\end{tabular}
 	\label{tab:RevisionHistory}
 \end{table}
@@ -80,15 +82,18 @@ requirements description, but will instead provide overall direction for a separ
 This document's primary purpose is to establish priority among the most important issues, considerations, features, and overall goals.
 
 \subsection{Scope}
-The Deska will be responsible for managing and monitoring of a grid site. Especially it automates configuration of several monitoring 
-and deployment tools. All functions and features will be displayed and managed through a web interface.
+The Deska will be responsible for managing and monitoring of a grid site. A
+first goal is to automate configuration of several monitoring and deployment
+tools, the second one is to provide a single web-based dashboard to look at the
+status of the site from different perspectives and to integrate the output of
+various monitoring tools, both in-house and remote, to a single place to check.
 
 
 \section{Business Opportunity}
 
 \subsection{Background}
 One of the activities taking at the Institute of Physics of the AS CR (FZU) is running a local Tier-2 computing center connected to 
-an international computing grid, running user programs from various scientific communities from the whole world. Currently 
+an international WLCG computing grid, running user programs from various scientific communities from the whole world. Currently 
 installed capacity of the clusters is about 1500 CPUs with more than 250TB of disk storage. The center itself consists of several 
 hundreds of physical machines. While certain policies and management tools were developed and deployed over the years, the center 
 still lacks a centralized dashboard listing the state of various resources.\\
@@ -102,13 +107,106 @@ place to define roles of machines which would in turn be used by all the other t
  
 \subsection{Positioning}
 The system will not replace any of the existing monitoring tools. It will replace only their web interfaces and display all the 
-information by itself in some well-arranged way. It will substitute the unpractical way of configuration of currently used tools, 
+information by itself in a well-arranged way. It will substitute the unpractical way of configuration of currently used tools, 
 that must be made manually by editing of several files now.
 
 \subsection{Impact of Missed Opportunity}
-The fundamental benefit of this system is that it will save time of administrators, that can focus on other things. It will also 
-decrease the possibility of making a mistake while adding new machine and resulting time consuming finding of this mistake.
+The need for this system is motivated by several factors.  First of them is the duplication of information in current
+implementation -- for example, the ``logical role'' of a system is currently defined on at least five places, and any change thus
+needs to happen at all of them or inconsistencies show up.  Experience shows that any site which rolls out a similar
+de-duplicating tool immediately improves their availability and reliability numbers.  Furthermore, certain tasks like deploying
+new machines is made substantively easier by having just one place to perform any modifications.  Due to the nature of the
+Institute, hard numbers are hard to estimate, but reducing deployment times by an {\bf order of magnitude} and at least {\bf
+halving the maintenance windows} are not unheard of, and therefore build a rough estimate.
 
+In an attempt to gather statistical data, the Institute's staff attempted to keep track of accidents and exceptional situations
+encountered during a typical system maintenance.  It is important to note that many possible sources of trouble tend not to
+manifest themselves too often, and therefore it is entirely expected that they did not contribute to this experiment at all.
+Examples of such phenomenons are network issues which typically arise only when people are actually touching the equipment, like
+when installing new computational resources.  No new machine installation took place and the staffers were not performing any
+network maintenance at all.
+
+One of the most critical problems encountered was the failure of 63 jobs belonging to the Atlas VO.  This interruption was
+triggered by a scheduled reboot of a DPM disk pool node due to security reasons.  While both the managers and staffers of the
+Institute recognize the importance of applying security patches, this particular situation could have been handled more
+gracefully.  Had the administrator who was performing the kernel upgrade on the file server been aware of an ongoing activity
+reaching the particular storage node, he might have decreased the number of allocated slots for production Atlas jobs, thus
+limiting the number of failed jobs.  The staffers of the Institute are firmly convinced that a comprehensive dashboard, ideally
+one matching the criteria specified in this text, would have mitigated the risk of failed production jobs.
+
+Due to the nature of the grid site and the WLCG funding model, there are no financial loses associated with the unexpected
+troubles.  The only damage which the site had suffered from was confined on the ``political'' and reputation level, as all
+resource pledges were still fulfilled throughout the month.  Therefore, the management of the Institute refused to give any
+estimate on possible financial risk associated with the missed opportunity, should the system not be put in place.
+
+Even more beneficial is the Dashboard, a system for aggregating monitoring and performance data from various places, both local
+and from throughout the Grid.  The EGEE and WLCG projects have been successful in developing a number of monitoring tools, which
+typically overlap in their scope for increased robustness.  However, the main problem of these tolls remains in their isolation.
+As there are many places, many websites which publish their opinion about a site's availability and reliability, it is common for
+system administrators to overlook certain minor indicators until the situation (and the provided service) deteriorates
+significantly.  All of the staff at the Institute, both administrators and managers included, firmly believe that having a system
+aggregating all the monitoring metrics will {\bf significantly reduce the latency between the discovery of a problem} by an
+automated tool and {\bf the fix}.
+
+Should the system not be put in place, it is expected that the grid site of the Institute will not cope with increased demands at
+data processing, typically introduced by the scheduled start of the LHC accelerator and subsequent sudden increase in processed
+jobs and managed data.
+
+\section{Alternative solutions}
+Most of the sites involved in the WLCG collaboration has either already developed, or is actively developing, a system, usually
+database-based, for keeping track of the HW resources.  Such systems might involve just a pretty straightforward web application
+with a bunch of forms providing an interface for the underlying data, or even a complex system with well-defined API for accessing
+the information stored therein.  However, no such project has been completed to a state where it is usable by more than one grid
+site.  In fact, most of the systems involve a home-made, strictly locally-coupled, and their respective authors have expressed
+their uncertainty about the future release of their products.  Therefore, no well-established products are available for general
+consumption.
+
+The FZU employees have conducted an evaluation of the possible solutions nonetheless.  Based on a feedback mostly obtained by
+personal meetings, they have gathered information about three different solutions whose aim and scope might at least partially
+overlap with the proposed Deska project.
+
+\subsection{CC-IN2P3}
+The scientists at the CC-IN2P3 institute in Lyon, France have developed an in-house project which is currently being refactored in
+preparation to possible future release.  It is based on a MySQL setup, parts of the system communicate with the database directly,
+using a Perl library.  The system is tightly coupled with their instance of Puppet, a configuration and policy-based system
+similar to FZU's cfengine.
+
+While the sheer power of the tool is doubtlessly impressive, certain obstacles would have to be overcome if the decision was to go
+with this particular project.  The main obstacle is the rather tight integration with the Puppet tool and subsequent design
+choices.  While outside of scope of this document, certain properties of the database layout are likely not compatible with the
+setuo being deployed in Prague.  Another disadvantage is the lack of an enforced API (the database is still directly-available
+after all) and the choice of the implementation language, as nobody in Prague wants to maintain yet another Perl-based tool.
+Finally, system which has not been released (neither formally nor in an intermediate form suitable for testing) is not really a
+sustainable tool.
+
+\subsection{INFN}
+The scientific collaboration in Italy (several cities) is currently attempting to heavily refit their Oracle-based system.  As
+such, no public release of the tool has been made, and the sheer existence or a detailed feature list is not available.  More
+details were not available at the time this document was written.
+
+\subsection{Quattor}
+Being developed in a collaboration of several mostly French sited, the Quattor tool is certainly an impressive piece of HEP
+Unix-like infrastructure.  The following analysis is based on a quick narrative conducted by one FZU's employee which might not be
+accurate, and therefore can not serve as a basis for thorough evaluation of the system.  However, the memebers of the FZU's
+infrastructure team believe that it is close enough to the reality.
+
+Quattor tasks include a wide range of responsibilities, from problems like system installation and deployment to configuration of
+the respective components.  Thus, the main issue with Quattor is related to this conception -- it might be implied that its
+infrastructure encourages doing certain tasks in an independent and therefore non-standard way, hindering the process of migration
+to an industrial-standard tool for centra; policy-based system administration like Cfengine or Puppet.  In contrast, the proposed
+project goals of Deska put a heavy emphasis on re-use of existing, already deployed setups and well-known technologies.  The team
+recognizes Quaotr's strengths and conditions which lead to the design, but are lead to believe by experience that Quator's design
+choices would not fit nicely to the anticipated behavior of the Deska project.  Last but not least, the times required to perform
+a change are in fact more than compatible with the 10Gb/s  Ethernet.
+
+\section{Other non-HEP software}
+Quite a lot of software pieces come from outside of the HPC/WLCG community, too.  After all, the LHC accelerator and the HEP
+physics in overall is just one of the many most intensive users of grids and clouds.  Perhaps the most prominent piece of HW
+inventory management is OCS Inventory.  Based on aquial collaboration, the accident happened in a 
+
+We are currently not aware of any competitive project with similar aims, and therefore believe that Deska could be successfully
+offered to other sites in the WLCG and EGEE/EGI Grid, therefore establishing the reputation of the Institute and CESNET as leading
+players in the international collaboration scene.
 
 \section{Proposed Solution}
 

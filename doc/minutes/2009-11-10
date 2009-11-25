@@ -1,0 +1,19 @@
+Schuzka resitelu projektu Deska, 2009-11-10 FZU
+
+Pritomni: vsi
+
+Diskutovali jsme ukoly, ktere je potreba udelat na splneni SWI* predmetu, a
+vhodnou formu architektury systemu. Druhe jeste neni rozhodnuto.
+
+Ukoly:
+
+- Lukas udela Plan pro projekt v MS Project
+- Honza: stakeholders: osoby, co maji pravomoc do projektu mluvit
+- Lukas: zakomponovat do SRS info o tom, ze to chceme udat v zahranici
+- latex tabulky: neplavat, utopit se, sirka tabulek a wrapping textu
+- Honza: missed opportunity do vize (casova uspora, statistiky chybovosti)
+- Tomas: upravit stranky v Redmine
+- Honza: doplnit Actors etc
+- Honza: system context *SE SVN*
+- Martina: linoryt stale NESPLNENO, ukol trva dale
+- vsi: studovat Python

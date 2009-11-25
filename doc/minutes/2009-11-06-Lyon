@@ -1,0 +1,25 @@
+Discussion about a database for managing resources at CC-IN2P3
+
+Some suggestions by the database guy, Fabien Wernli:
+
+- use proper API for abstracting away the DB (SQL) stuff
+- don't put everything to the DB, keep it lean enough
+- their system uses Perl stuff and DBIx ORM for abstraction
+- lot of command line tools for querying the DB for various stuff:
+    - is the host up?
+    - gimme a list of all Sun Thor nodes which are up
+    - in which rack is the Foo machine?
+    - get pwr status of all Thumpers
+- web view for administrative employees (inventory, accounting,...)
+- unified IPMI tool which uses the info form the DB to automatically pick up the
+right IPMP cli tool
+- relation database allows you to be pretty flexible, especially in querying
+- in the end, it doesn't really matter (sql/plaintext) as long as you have a
+proper API abstracting away the low-level stuff
+- plain text files might prove hard to synchronise
+- otoh, DB has to be realiable enough and you need to have a local cache anyway
+
+Stuff from Yannik (?), the system administrator from Thursday:
+
+- use the DB heavily for Puppet (for example, integrating the up/down state of a
+host to Puppet as a "builtin" field)
