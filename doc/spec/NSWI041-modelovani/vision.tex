@@ -25,11 +25,11 @@
 
 \vspace{0.2in}
 
-{\large Version 1.2}
+{\large Version 1.3}
 
 \vspace{0.2in}
 
-{\large Date 2009-Nov-12}
+{\large Date 2009-Nov-26}
 
 \vspace{0.5in}
 
@@ -42,6 +42,8 @@
 		2009-Oct-27 & V1.1 & Tomáš Hubík & Features specified \\
 		2009-Nov-12 & V1.2 & Jan Kundrát & Changed the scope to aim at the
         Dashboard \\
+		2009-Nov-26 & V1.3 & Jan Kundrát & Further clarifications for the
+        motivation
 	\end{tabular}
 	\label{tab:RevisionHistory}
 \end{table}
@@ -137,7 +139,7 @@ one matching the criteria specified in this text, would have mitigated the risk 
 Due to the nature of the grid site and the WLCG funding model, there are no financial loses associated with the unexpected
 troubles.  The only damage which the site had suffered from was confined on the ``political'' and reputation level, as all
 resource pledges were still fulfilled throughout the month.  Therefore, the management of the Institute refused to give any
-estimate on possible financial risk associated with the missed opportunity, should the system not be put in place.
+estimate on possible financial risk associated with the missed opportunity, should the Deska system not be put in place.
 
 Even more beneficial is the Dashboard, a system for aggregating monitoring and performance data from various places, both local
 and from throughout the Grid.  The EGEE and WLCG projects have been successful in developing a number of monitoring tools, which
@@ -148,18 +150,26 @@ significantly.  All of the staff at the Institute, both administrators and manag
 aggregating all the monitoring metrics will {\bf significantly reduce the latency between the discovery of a problem} by an
 automated tool and {\bf the fix}.
 
+Finally, another big reason is the effectiveness of the Unix system administrators.  Having a usable and convenient tools is
+without any doubt a significant contributor towards increasing the employees' productivity.  Today's highly changing demands
+combined with shortage of staffers' funding put high stress on the personnel, which might subsequently lead to the risk of
+introducing subtle errors to the system.  Needless to say, de-duplication of data is crucial in order to prevent inconsistencies,
+as keeping the same information at several places is tedious and error-prone.  Both the management and technical peronnel of the
+Institute firmly believe that the Deska Database will therefore significantly mitigate the risk of systematic errors and thus
+increase the site's availability and reliability.
+
 Should the system not be put in place, it is expected that the grid site of the Institute will not cope with increased demands at
 data processing, typically introduced by the scheduled start of the LHC accelerator and subsequent sudden increase in processed
 jobs and managed data.
 
 \section{Alternative solutions}
-Most of the sites involved in the WLCG collaboration has either already developed, or is actively developing, a system, usually
+Most of the sites involved in the WLCG collaboration have either already developed, or are actively developing, a system, usually
 database-based, for keeping track of the HW resources.  Such systems might involve just a pretty straightforward web application
-with a bunch of forms providing an interface for the underlying data, or even a complex system with well-defined API for accessing
-the information stored therein.  However, no such project has been completed to a state where it is usable by more than one grid
-site.  In fact, most of the systems involve a home-made, strictly locally-coupled, and their respective authors have expressed
-their uncertainty about the future release of their products.  Therefore, no well-established products are available for general
-consumption.
+with a bunch of forms providing an interface for the underlying data, or even a complex solution with well-defined API for
+accessing the information stored therein.  However, no such project has been completed to a state where it is usable by more than
+one grid site.  In fact, most of the systems involve a home-made, strictly locally-coupled approach, and their respective authors
+have expressed their uncertainty about the future release of their products.  Therefore, no well-established products are
+available for general consumption.
 
 The FZU employees have conducted an evaluation of the possible solutions nonetheless.  Based on a feedback mostly obtained by
 personal meetings, they have gathered information about three different solutions whose aim and scope might at least partially
@@ -167,46 +177,48 @@ overlap with the proposed Deska project.
 
 \subsection{CC-IN2P3}
 The scientists at the CC-IN2P3 institute in Lyon, France have developed an in-house project which is currently being refactored in
-preparation to possible future release.  It is based on a MySQL setup, parts of the system communicate with the database directly,
+preparation to possible future release.  It is based on a MySQL setup, parts of the system communicate with the database directly
 using a Perl library.  The system is tightly coupled with their instance of Puppet, a configuration and policy-based system
 similar to FZU's cfengine.
 
 While the sheer power of the tool is doubtlessly impressive, certain obstacles would have to be overcome if the decision was to go
 with this particular project.  The main obstacle is the rather tight integration with the Puppet tool and subsequent design
 choices.  While outside of scope of this document, certain properties of the database layout are likely not compatible with the
-setuo being deployed in Prague.  Another disadvantage is the lack of an enforced API (the database is still directly-available
+setup being deployed in Prague.  Another disadvantage is the lack of an enforced API (the database is still directly-available
 after all) and the choice of the implementation language, as nobody in Prague wants to maintain yet another Perl-based tool.
 Finally, system which has not been released (neither formally nor in an intermediate form suitable for testing) is not really a
 sustainable tool.
 
 \subsection{INFN}
 The scientific collaboration in Italy (several cities) is currently attempting to heavily refit their Oracle-based system.  As
-such, no public release of the tool has been made, and the sheer existence or a detailed feature list is not available.  More
-details were not available at the time this document was written.
+of late November 2009, no public release of the tool has been made, and the team has not been able to provide a detailed feature
+list.  More details were not available at the time this document was written.
 
 \subsection{Quattor}
-Being developed in a collaboration of several mostly French sited, the Quattor tool is certainly an impressive piece of HEP
-Unix-like infrastructure.  The following analysis is based on a quick narrative conducted by one FZU's employee which might not be
-accurate, and therefore can not serve as a basis for thorough evaluation of the system.  However, the memebers of the FZU's
-infrastructure team believe that it is close enough to the reality.
+Being developed in a collaboration of several sites, mostly from France, the Quattor tool is certainly an impressive piece of tool
+originating in the HPC environment.  The following analysis is based on a quick narrative conducted by one FZU's employee which
+might not be accurate, and therefore can not serve as a basis for thorough evaluation of the system.  However, the members of the
+FZU's infrastructure team believe that it is close enough to the reality to suit well in this document.
 
 Quattor tasks include a wide range of responsibilities, from problems like system installation and deployment to configuration of
 the respective components.  Thus, the main issue with Quattor is related to this conception -- it might be implied that its
 infrastructure encourages doing certain tasks in an independent and therefore non-standard way, hindering the process of migration
-to an industrial-standard tool for centra; policy-based system administration like Cfengine or Puppet.  In contrast, the proposed
+to an industrial-standard tool for central policy-based system administration like Cfengine or Puppet.  In contrast, the proposed
 project goals of Deska put a heavy emphasis on re-use of existing, already deployed setups and well-known technologies.  The team
-recognizes Quaotr's strengths and conditions which lead to the design, but are lead to believe by experience that Quator's design
-choices would not fit nicely to the anticipated behavior of the Deska project.  Last but not least, the times required to perform
-a change are in fact more than compatible with the 10Gb/s  Ethernet.
+recognizes Quattor's strengths and conditions which lead to the design, but are lead to believe by experience that Quattor's
+design choices would not fit nicely to the anticipated behavior of the Deska project.  Last but not least, reports say that
+Quattor tends to impose unacceptably high latencies to each change being performed.
 
 \section{Other non-HEP software}
 Quite a lot of software pieces come from outside of the HPC/WLCG community, too.  After all, the LHC accelerator and the HEP
 physics in overall is just one of the many most intensive users of grids and clouds.  Perhaps the most prominent piece of HW
-inventory management is OCS Inventory.  Based on aquial collaboration, the accident happened in a 
+inventory management is OCS Inventory.  However, its purpose is mainly targeted at people in charge of the physical hardware and
+related housekeeping, and therefore does not fits the planned purpose of the Deska Database.
 
-We are currently not aware of any competitive project with similar aims, and therefore believe that Deska could be successfully
-offered to other sites in the WLCG and EGEE/EGI Grid, therefore establishing the reputation of the Institute and CESNET as leading
-players in the international collaboration scene.
+Another example of a tool which might seem similar at a quick glance is the Rack Monkey.  However, it supports only keeping track
+of the physical location of the HW in the physical racks, and does not even support hardware in different cases than traditional
+pizza-boxes like blade servers or other dense solutions.  Therefore, this system is not usable at FZU's environment which puts
+emphasis on high space efficiency.
 
 \section{Proposed Solution}
 
