@@ -80,7 +80,10 @@ Scenario:
 \begin{itemize}
     \item{The whole snapshot, both in the database and in the generated
         configuration, is thrown away}
-    \item{System moves to the initial state}
+    \item{If the Administrator wants to fix changes, system moves to the initial
+        state}
+    \item{If the Administrator does not want to try to perform changes again,
+        the system moves to the {\em Final2} state}
 \end{itemize}
 
 \subsubsection{Commit}
@@ -92,7 +95,7 @@ Scenario:
         backend, both are committed in the same step and in an atomic manner}
     \item{Otherwise, the DB gets committed and new configuration files are
         pushed to the repository}
-    \item{System moves to the final state}
+    \item{System moves to the {\em Final1} state}
 \end{itemize}
 
 \subsubsection{Configuring machines}
