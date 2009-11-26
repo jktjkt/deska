@@ -1,0 +1,32 @@
+Schuzka 2009-11-24
+
+Pritomni: Martina, Tomas, Honza
+Omluveni: Lukas
+
+Vize:
+- "soucasna situace je neunosna, protoze..."
+- administratori jsou unhappy
+
+
+Co budeme delat:
+- DB:
+    - poskytuje API, co vraci seznam objektu nejakeho typu vyhovujicich nejake podmince
+    - editace DB je resena nejakym toolem, *neni* predmetem API
+- generovani souboru z DB
+    - pouziva API
+- monitoring - dashboard
+    - sbira data z vice mist (Nagios, ganglia, externi monitoringy se silenym API)
+    - uchovavat historii hodnot (RRD?)
+    - kresli grafy, nejen nezavisle, ale i vic hodnot pres sebe
+        - normalizace hodnot v grafech
+    - alerty: event se propaguje dal volitelnym zpusobem (zpet do Nagiosu, alert
+            po jabberu,...)
+    - statisticka analyza
+
+
+Navic:
+    - sledovatko PBSka (bezi joby hned, dobre, rychle?)
+    - analyzovat trendy ruznych skupin velicin (grupa atlas ma mit takovy a
+      takovy pomer cputime/walltime)
+    - histogram delky behu uloh
+    - neco podobneho pro DPM
