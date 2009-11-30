@@ -91,11 +91,30 @@ Furthermore, due to a strong pressure to deploy Nagios as {\em the} monitoring s
 integral component of the design\footnote{For example, it shall be used for gathering data where possible, and detected alerts
 shall be pushed back to Nagios for evaluation and passing them to the administrators}.
 
+\section{Problems to Solve}
+
+Monitoring hundreds or thousand of machines is a difficult task.  Problems that the team will have to solve are therefore mostly
+related to scalability.  The RRDTool toolkit puts high load to the disk subsystem with its constant scattered writes.  The team
+will have to investigate current solutions and come up with a solution which allows collecting data often enough that it is still
+usable.  Care has to be taken to handle hosts suddenly not responding in a graceful way, so that they do not block the program
+execution.
+
+Another expected issue is developing pluggable modules for querying third-party monitoring systems.  It is to be explored if they
+provide a reasonable API or if the team will have to resort to suboptimal means like parsing the HTML pages with overview.
+
 \section{Future Improvements}
 
 The system shall be extensible enough to be used outside of the Institute's computing infrastructure.  Areas for further
 improvements include providing a plugin for analysis of the batch system controller, tracking data transfers from the disk
 servers, improved visualization etc.
+
+\section{TODO}
+
+\begin{itemize}
+    \item{lepe popsat, co vsechno bude dashboard delat}
+    \item{zamyslet se nad ``ukladanim generovane konfigurace blizko databaze''}
+    \item{jeste vic zduraznit mozne problemy?}
+\end{itemize}
 
 \begin{thebibliography}{9}
     \bibitem{fzu}Institute of Physics of the AS CR home page, {\tt http://www.fzu.cz/}
