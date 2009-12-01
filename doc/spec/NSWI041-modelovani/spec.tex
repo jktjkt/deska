@@ -16,8 +16,8 @@
 \section{Background}
 
 One of the activities taking at the Institute of Physics of the AS CR (FZU) \cite{fzu} is running a local Tier-2 computing center
-connected to an international WLCG computing grid \cite{wlcg}, running user programs from various scientific communities from the
-whole world, including the D-0 experiment in Fermilab \cite{d0} and the famous LHC accelerator from CERN \cite{lhc}.
+connected to an international WLCG computing grid \cite{wlcg}, supporting user programs from various scientific communities from
+the whole world including the D-0 experiment in Fermilab \cite{d0} and the famous LHC accelerator from CERN \cite{lhc}.
 
 \section{Motivation}
 
@@ -31,7 +31,12 @@ Over the years, certain monitoring and management systems were deployed at the I
 Nagios \cite{nagios}, Ganglia \cite{ganglia}, Munin \cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
 check if she wants to make sure the infrastructure works as expected, and, in addition, each new tool has to be configured
-separately.  In addition, each site in the WLCG Grid is also being monitored and checked by third parties.  Number of systems
+separately.  In addition, each site in the WLCG Grid is also being monitored and checked by third parties.\footnote{Monitoring from
+outside provides a highly needed perspective about site's availability from throughout the Grid.  Such external tools come in
+variety of flavours, from simple tools checking whether certain values published in a global information system are sane to
+complex solutions like automated job-submitting robots which monitor whether the site in question is in fact accepting jobs and if
+these jobs terminate successfully in a timely manner.  Jobs running on site's worker nodes also have the ability to check for
+various local settings like having fresh enough packages and fixed security vulnerabilities.}  Number of systems
 monitoring a typical site from outside grows each year, introducing yet another burden on the Institute's staffers.  Therefore, it
 has been decided that the Institute shall fund a development of a tool which will:
 
