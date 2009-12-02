@@ -1,0 +1,18 @@
+Schuzka deska
+
+pritomni: vsichni
+
+- dohadovani o DB
+- specifikace: jako priklad uvest to, ze v DB je napsano, na jakem switchi je
+ktery stroj, to pak dat i do dashboardu
+- API:
+    - zacit od veci, ktere vraci flat listy objektu danych vlastnosti (event.
+    filtr podle hodnoty jednoho atributu), pak pridavat dalsi (treba ze to u
+    hostu resolvne a joinne i sluzby, co na nem bezi) -- pridavat dle potreby
+    - je dobry napad delat "API" i mezi DB samotnou a vrstvou, co poskytuje API
+    do normalniho programovaciho jazyka
+
+diagram trid:
+- Honza doda seznam trid a atributu k nim, Lukas & Martina vyklikaji obrazky
+
+- rozmyslet si, jake UI k databazovemu reseni databaze
