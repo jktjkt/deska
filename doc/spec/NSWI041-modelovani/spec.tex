@@ -15,9 +15,9 @@
 
 \section{Background}
 
-One of the activities taking at the Institute of Physics of the AS CR (FZU) \cite{fzu} is running a local Tier-2 computing center
-connected to an international WLCG computing grid \cite{wlcg}, supporting user programs from various scientific communities from
-the whole world including the D-0 experiment in Fermilab \cite{d0} and the famous LHC accelerator from CERN \cite{lhc}.
+One of the activities taking at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing center
+connected to an international WLCG computing grid~\cite{wlcg}, supporting user programs from various scientific communities from
+the whole world including the D-0 experiment in Fermilab~\cite{d0} and the famous LHC accelerator from CERN~\cite{lhc}.
 
 \section{Motivation}
 
@@ -27,8 +27,8 @@ administrators (currently slightly more than three full time employees).  Due to
 heavy emphasis is put in tasks aiming at increasing the effectiveness of certain processes and generally making the system
 administrators' life easier and less error prone.
 
-Over the years, certain monitoring and management systems were deployed at the Institute, including Cfengine \cite{cfengine},
-Nagios \cite{nagios}, Ganglia \cite{ganglia}, Munin \cite{munin} and various in-house monitoring appliances.  While these tools
+Over the years, certain monitoring and management systems were deployed at the Institute, including Cfengine~\cite{cfengine},
+Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
 check if she wants to make sure the infrastructure works as expected, and, in addition, each new tool has to be configured
 separately.  In addition, each site in the WLCG Grid is also being monitored and checked by third parties.\footnote{Monitoring from
@@ -81,7 +81,7 @@ local and remote.
 The system shall be capable of storing the data provided by each monitoring system, performing a mapping from their naming
 convention to an intermediate form, and grouping related sensors together.  Exploring ways in which to query various monitoring
 systems for data is part of the design phase of the system.  The data shall be stored in format which makes it possible to view
-history of each value up to a configurable age.  An example of such a backing store is the Round Robin Database (RRD) \cite{rrd}.
+history of each value up to a configurable age.  An example of such a backing store is the Round Robin Database (RRD)~\cite{rrd}.
 
 The dashboard will aggregate and keep an archive of data coming from all the currently deployed monitoring systems.  A web portal
 shall be developed depicting the health and the present state of a system in an intuitive way.  In addition to that, it shall be
