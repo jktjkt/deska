@@ -62,12 +62,18 @@ reasons\footnote{A classic example of such a system are network switches}.
 Due to the Institute's administrators strong Unix background and on their explicit request, it is expected that the interface to
 this database will be provided via text files instead of using a traditional web-based solutions.  The main reason for this design
 choice is their familiarity with text-based configuration and good experience with text-processing tools in general.  Another
-request of the staffers is the willing to store the generated configuration as close to the database as possible in order to
-guarantee the smallest deviation between the two sets possible.
+request of the staffers is the willing to store the generated configuration ``as close to the database as possible'' (for example
+in the same revision control system) in order to guarantee the smallest deviation between the two sets possible.
 
 The Database shall provide an API for read-only access to the data contained therein.  Modifications shall be performed only
 through the developed user interface and not through the API for security reasons.  The whole system shall be able to scale up to
 thousands of nodes on a commodity x86\_64 server hardware.
+
+Furthermore, additional components for generating configuration on basis of actual system state, as retrieved through the
+read-only database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND
+name service demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any
+data center to allow eventual deployment of new components, should the need arise.  The API will also be used as a source of
+information for the second part of the project, the Dashboard.
 
 \section{System Requirements: Dashboard}
 
@@ -121,7 +127,6 @@ servers, improved visualization etc.
     \item{jeste vic zduraznit mozne problemy?}
     \item{nezapomenout na vztah db -> dashboard a roli db pro vizualizaci}
     \item{priklady externich monitoringu -- clovek zvenku nevi, oc jde}
-    \item{db neni jen DB, ale i generovatko}
 \end{itemize}
 
 \begin{thebibliography}{9}
