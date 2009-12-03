@@ -79,17 +79,33 @@ information for the second part of the project, the Dashboard.
 
 The second part of the system is the Dashboard, a tool whose purpose is to provide an accurate and up-to-date overview of the
 state of the system.  The main philosophy behind this component is that there are already plenty of monitoring systems checking
-the health and performance metrics of a grid site, yet no central place to look for troubles.  Therefore, it is pretty common that
-a minor issue which is detected by only a single monitoring system gets unnoticed by the system administrators for several months.
-The goal of the dashboard is, therefore, to provide a central view aggregating data from {\em all} the monitoring systems, both
-local and remote.
+the health and performance metrics of a grid site, yet no central place for the administrators to look for troubles.  Therefore,
+it is pretty common that a minor issue which is detected by only a single monitoring system gets unnoticed by the system
+administrators for several months.  The goal of the dashboard is, therefore, to provide a central view aggregating data from {\em
+all} the monitoring systems, both local and remote.
 
-The system shall be capable of storing the data provided by each monitoring system, performing a mapping from their naming
+The system shall be capable of storing the data provided by each monitoring tool, performing a mapping from their naming
 convention to an intermediate form, and grouping related sensors together.  Exploring ways in which to query various monitoring
 systems for data is part of the design phase of the system.  The data shall be stored in format which makes it possible to view
 history of each value up to a configurable age.  An example of such a backing store is the Round Robin Database (RRD)~\cite{rrd}.
 
-The dashboard will aggregate and keep an archive of data coming from all the currently deployed monitoring systems.  A web portal
+The dashboard will aggregate and keep an archive of data coming from all the currently deployed monitoring systems.  Examples of
+{\em local} appliances whose results should be aggregated are Nagios, Munin and Ganglia (for monitoring metrics like CPU
+utilization, available memory, local disk space, network response times etc.), network infrastructure through
+SNMP\footnote{The network monitoring is actually a prime example of the usefulness of the Database and Dashboard integration --
+having an up-to-date, reliable mapping between a hostname and a particular port on some switch is crucial for this task},
+environment data like air temperature, CRAC units power or UPS utilization and also values like number of jobs in the queue or
+number of currently running jobs -- in short, the data sources are generally speaking deployed and managed by the Institute's own
+staffers and could thus be slightly modified, both in terms of configuration and output format, for interoperability purposes.  In
+contrast, the {\em remote} systems are typically more complicated partially autonomous systems developed and managed by third
+parties, and usually provide an executive-oriented visualization of a particular site's performance.  A typical example of such a
+tool are the SAM tests\footnote{SAM tests are a complex framework submitting jobs to sites in a fully automatic way with additional
+autonomous agents checking that the test jobs actually hit the target worker node.  The executed jobs themselves then perform
+variety of tests right on the site's computational resources, from checking particular software packages' versions to initiating
+file transfers in order to test the Grid disk servers.  This approach proved to be extremely valuable and successful at catching
+many errors.} or various web-based monitors like GStat~\cite{gstat}.
+
+A web portal
 shall be developed depicting the health and the present state of a system in an intuitive way.  In addition to that, it shall be
 possible for the user of the dashboard to view graphs depicting the history of various sensors, both in isolation and overlaid in
 order to provide a way of figuring out correlations between different metrics\footnote{For example, system administrators might be
@@ -139,6 +155,7 @@ servers, improved visualization etc.
     \bibitem{ganglia}Ganglia, {\tt http://ganglia.sourceforge.net/}
     \bibitem{munin}Munin, {\tt http://munin.projects.linpro.no/}
     \bibitem{rrd}RRDTool, {\tt http://oss.oetiker.ch/rrdtool/}
+    \bibitem{gstat}GStat, {\tt http://goc.grid.sinica.edu.tw/gstat/}
 \end{thebibliography}
 
 \end{document}
