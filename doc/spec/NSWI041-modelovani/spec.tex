@@ -15,7 +15,7 @@
 
 \section{Background}
 
-One of the activities taking at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing center
+One of the activities taking place at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing center
 connected to an international WLCG computing grid~\cite{wlcg}, supporting user programs from various scientific communities from
 the whole world including the D-0 experiment in Fermilab~\cite{d0} and the famous LHC accelerator from CERN~\cite{lhc}.
 
@@ -24,13 +24,12 @@ the whole world including the D-0 experiment in Fermilab~\cite{d0} and the famou
 In November 2009, the total installed computing capacity available to users was about 2000~CPU cores with more than 250~TB of
 disk storage, which translates to several hundreds of physical machines.  All the resources are managed by just a few system
 administrators (currently slightly more than three full time employees).  Due to the impressive machines-per-administrator ratio,
-heavy emphasis is put in tasks aiming at increasing the effectiveness of certain processes and generally making the system
-administrators' life easier and less error prone.
+the staffers are exploring ways about how to make the system administrators' life easier and less error prone.
 
 Over the years, certain monitoring and management systems were deployed at the Institute, including Cfengine~\cite{cfengine},
 Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
-check if she wants to make sure the infrastructure works as expected, and, in addition, each new tool has to be configured
+check if she wants to make sure the infrastructure works as expected, and each new tool has to be configured
 separately.  In addition, each site in the WLCG Grid is also being monitored and checked by third parties.\footnote{Monitoring from
 outside provides a highly needed perspective about site's availability from throughout the Grid.  Such external tools come in
 variety of flavours, from simple tools checking whether certain values published in a global information system are sane to
@@ -60,7 +59,7 @@ state recorded in the database and the actual system shape when the automatic co
 reasons\footnote{A classic example of such a system are network switches}.
 
 Due to the Institute's administrators strong Unix background and on their explicit request, it is expected that the interface to
-this database will be provided via text files instead of using a traditional web-based solutions.  The main reason for this design
+this database will be provided via text files instead of using a traditional web-based approach.  The main reason for this design
 choice is their familiarity with text-based configuration and good experience with text-processing tools in general.  Another
 request of the staffers is the willing to store the generated configuration ``as close to the database as possible'' (for example
 in the same revision control system) in order to guarantee the smallest deviation between the two sets possible.
@@ -73,7 +72,9 @@ Furthermore, additional components for generating configuration on basis of actu
 read-only database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND
 name service demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any
 data center to allow eventual deployment of new components, should the need arise.  The API will also be used as a source of
-information for the second part of the project, the Dashboard.
+information for the second part of the project, the Dashboard -- the information available through the API will make it possible
+to generate an accurate visualization of the data center and all deployed systems, from the physical view showing racks of servers
+to a high-level view depicting logical dependencies between services and machines.
 
 \section{System Requirements: Dashboard}
 
@@ -93,7 +94,8 @@ The dashboard will aggregate and keep an archive of data coming from all the cur
 {\em local} appliances whose results should be aggregated are Nagios, Munin and Ganglia (for monitoring metrics like CPU
 utilization, available memory, local disk space, network response times etc.), network infrastructure through
 SNMP\footnote{The network monitoring is actually a prime example of the usefulness of the Database and Dashboard integration --
-having an up-to-date, reliable mapping between a hostname and a particular port on some switch is crucial for this task},
+having an up-to-date, reliable mapping between a hostname and a particular port on some switch is crucial for this task and will
+enable accurate and reliable visualization of network utilization},
 environment data like air temperature, CRAC units power or UPS utilization and also values like number of jobs in the queue or
 number of currently running jobs -- in short, the data sources are generally speaking deployed and managed by the Institute's own
 staffers and could thus be slightly modified, both in terms of configuration and output format, for interoperability purposes.  In
@@ -107,10 +109,10 @@ many errors.} or various web-based monitors like GStat~\cite{gstat}.
 
 A web portal
 shall be developed depicting the health and the present state of a system in an intuitive way.  In addition to that, it shall be
-possible for the user of the dashboard to view graphs depicting the history of various sensors, both in isolation and overlaid in
-order to provide a way of figuring out correlations between different metrics\footnote{For example, system administrators might be
+possible for the user of the dashboard to view graphs showing the history of various sensors, both in isolation and overlaid in
+order to provide a way of figuring out correlations between different metrics -- for example, system administrators might be
 interested in figuring out if the network utilisation and the number of jobs currently running in the job system matches in order
-to provide an infrastructure with balanced disk and CPU throughput}.  All the data shall be exportable to a format which makes it
+to provide an infrastructure with balanced disk and CPU throughput.  All the data shall be exportable to a format which makes it
 easy to explore the data using a third-party statistical tool, but an elementary form of statistical analysis shall be integrated
 into the core system.
 
@@ -121,29 +123,26 @@ shall be pushed back to Nagios for evaluation and passing them to the administra
 \section{Problems to Solve}
 
 Monitoring hundreds or thousand of machines is a difficult task.  Problems that the team will have to solve are therefore mostly
-related to scalability.  The RRDTool toolkit puts high load to the disk subsystem with its constant scattered writes.  The team
-will have to investigate current solutions and come up with a solution which allows collecting data often enough that it is still
-usable.  Care has to be taken to handle hosts suddenly not responding in a graceful way, so that they do not block the program
-execution.
+related to scalability and efficiency in using limited resources.  The RRDTool toolkit puts high load to the disk subsystem with
+its constant scattered writes.  The team will have to investigate current approaches and come up with a solution which allows
+collecting data often enough that it is still usable, yet does not overload the monitoring machine with too many IO requests.
+Care has to be taken to handle hosts suddenly not responding in a graceful way, so that they do not block the program
+execution, and to fault tolerance in general.
 
-Another expected issue is developing pluggable modules for querying third-party monitoring systems.  It is to be explored if they
-provide a reasonable API or if the team will have to resort to suboptimal means like parsing the HTML pages with overview.
+Another expected issue is in developing pluggable modules for querying third-party monitoring systems.  It is to be explored if
+they provide a reasonable API or if the team will have to resort to suboptimal means like parsing the HTML pages with overview.
+
+The structure of the Database shall be thoroughly planned, too.  The team will have to balance the complexity needed for accurate
+representation of the real infrastructure with the required level of usability.  The interface should be intuitive enough so that
+the administrator will actually notice the improvements and start to like the system in favor of manual hacks.
 
 \section{Future Improvements}
 
 The system shall be extensible enough to be used outside of the Institute's computing infrastructure.  Areas for further
 improvements include providing a plugin for analysis of the batch system controller, tracking data transfers from the disk
-servers, improved visualization etc.
+servers, improved visualization etc.  A nice feature would be also a ``one-click'' tool for fully automated deployment of new
+machines, handling everything from setting up PXE environment for installation to actual system configuration.
 
-\section{TODO}
-
-\begin{itemize}
-    \item{lepe popsat, co vsechno bude dashboard delat}
-    \item{zamyslet se nad ``ukladanim generovane konfigurace blizko databaze''}
-    \item{jeste vic zduraznit mozne problemy?}
-    \item{nezapomenout na vztah db -> dashboard a roli db pro vizualizaci}
-    \item{priklady externich monitoringu -- clovek zvenku nevi, oc jde}
-\end{itemize}
 
 \begin{thebibliography}{9}
     \bibitem{fzu}Institute of Physics of the AS CR home page, {\tt http://www.fzu.cz/}
