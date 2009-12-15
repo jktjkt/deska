@@ -56,7 +56,8 @@ must therefore be capable of storing such complex information.} as well as a his
 This database shall then act as the single authoritative source of information for generating configuration of all components of
 the system, including the monitoring appliances.  In addition, tools shall be written to perform consistency checks between the
 state recorded in the database and the actual system shape when the automatic configuration generation is not feasible for safety
-reasons\footnote{A classic example of such a system are network switches}.
+reasons\footnote{A classic example of such a system are network switches -- system administrators are rather leery when it comes
+to automated configuration as a single error can cause large network segments to separate.}.
 
 Due to the Institute's administrators strong Unix background and on their explicit request, it is expected that the interface to
 this database will be provided via text files instead of using a traditional web-based approach.  The main reason for this design
