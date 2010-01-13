@@ -1,17 +1,35 @@
 \documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[english,czech]{babel}
+\usepackage[czech,english]{babel}
 \usepackage{a4wide}
 \author{Jan Kundrát}
-\title{Deska Scope Document}
+\title{Deska Specification}
 
 
 
 \begin{document}
 
-{\huge \textbf{Deska: Tool for Central Administration and Monitoring of a Grid Site}}
+{\Huge \textbf{Deska}}
+
+\vspace{0.2in}
+
+{\large \textbf{Tool for Central Administration and Monitoring of a Grid Site}}
 
 \vspace{0.5in}
+
+{\large \textbf{Project team}}
+\begin{itemize}
+	\item Jan Kundrát
+	\item Martina Krejčová
+	\item Tomáš Hubík
+	\item Lukáš Kerpl
+\end{itemize}
+
+\vspace{0.1in}
+
+\tableofcontents
+
+\vspace{0.3in}
 
 \section{Background}
 
@@ -44,7 +62,9 @@ Institute shall fund a development of a tool which will:
     \item{aggregate the monitoring data at one place}
 \end{itemize}
 
-\section{System Requirements: Database}
+\section{System Requirements}
+
+\subsection{Database}
 
 The aim of the first part of the project is to develop a database storing generic description of all the resources that the Grid
 site is using; such a database should be capable of describing hardware infrastructure of the data center\footnote{That is all
@@ -77,7 +97,8 @@ information for the second part of the project, the Dashboard -- the information
 to generate an accurate visualization of the data center and all deployed systems, from the physical view showing racks of servers
 to a high-level view depicting logical dependencies between services and machines.
 
-\section{System Requirements: Dashboard}
+
+\subsection{Dashboard}
 
 The second part of the system is the Dashboard, a tool whose purpose is to provide an accurate and up-to-date overview of the
 state of the system.  The main philosophy behind this component is that there are already plenty of monitoring systems checking
