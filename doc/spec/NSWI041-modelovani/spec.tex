@@ -63,7 +63,8 @@ Due to the Institute's administrators' strong Unix background and on their expli
 this database will be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
 application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches.  The format shall
-enable storing of plaintext dumps of the database in a version control system.
+enable storing of plaintext dumps of the database in a version control system.  It is expected that the CLI application will
+include ``wizards'' for common tasks like deploying a new machine in order to make the user's job as smooth as possible.
 
 The Database shall provide an API for access to the data contained therein.  User authentication and authorization shall be
 handled by already existing operating system facilities (PAM, SSH).  The whole system shall be able to scale up to thousands of
