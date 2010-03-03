@@ -1,0 +1,45 @@
+Schuze projektu Deska
+---------------------
+
+2010-03-03, FZU
+
+Pritomni: Martina, Lukas, Honza
+Omluveni: Tomas lyzuje
+
+Program:
+--------
+
+- skola
+- architektura
+- rozvrzeni prace
+
+Skola:
+------
+
+Pouze IS2
+
+Architektura:
+-------------
+
+- opoustime ideu textaku
+- DB: v PostgreSQL dle verze v RHEL 5.4 (8.1.8), implementuji Lukas & Martina 
+- API k DB: na zacatku v Pythonu, podle potreby Ruby, C++ (vetsina funkci stejne
+  dela DB sama, API v libovolnem jazyce ma byt trivialni wrapper)
+- Generovatka: Python, zatim ne
+- CLI - velka neznama
+- DB potrebuje i API pro "jednoduchy zapis" (vytvoreni/smazani/naharzeni
+  jednoznacne urceneho objektu) -- kvuli CLI nastroji
+
+
+Ukoly:
+------
+
+Honza - poslat strukturu DB, udelat virtualni stroj, premyslet nad Nagiosem,
+      prepsat specifikaci pro CLI/SQL
+Lukas & Martina - navrh DB, idealne i API v Pythonu
+Tomas - CLI, az se vrati a zapoji se
+
+Pristi schuze:
+--------------
+
+Streda 10. brezna "po seminari Navrhove vzory", predbezne 15.40 MFF
