@@ -62,8 +62,8 @@ to automated configuration as a single error can cause large network segments to
 Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
 this database will be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
-application interface shall be similar to traditional CLI-oriented interface used on enterprise-grade Ethernet switches.  Such a
-format shall enable storing of plaintext dumps of the database in a version control system.
+application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches.  The format shall
+enable storing of plaintext dumps of the database in a version control system.
 
 The Database shall provide an API for read-only access to the data contained therein.  Modifications shall be performed only
 through the developed user interface and not through the API for security reasons.  The whole system shall be able to scale up to
