@@ -1,0 +1,374 @@
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Aliases]    Script Date: 10/13/2009 15:38:40 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Aliases](
+	[AliasUID] [char](36) NOT NULL,
+	[AliasInterfaceUID] [char](36) NOT NULL,
+	[AliasName] [varchar](30) NULL,
+ CONSTRAINT [PK_Aliases] PRIMARY KEY CLUSTERED 
+(
+	[AliasUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_AliasesUID] UNIQUE NONCLUSTERED 
+(
+	[AliasUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[Aliases]  WITH CHECK ADD  CONSTRAINT [FK_Aliases_Interfaces] FOREIGN KEY([AliasInterfaceUID])
+REFERENCES [dbo].[Interfaces] ([InterfaceUID])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Aliases] CHECK CONSTRAINT [FK_Aliases_Interfaces]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[DeletedItems]    Script Date: 10/13/2009 15:38:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[DeletedItems](
+	[DeletedItemUID] [char](36) NOT NULL,
+	[DeletedItemUIDType] [varchar](30) NOT NULL,
+	[DeletedItemDetails] [text] NULL,
+	[DeletedItemDate] [datetime] NOT NULL,
+ CONSTRAINT [PK_DeletedItems] PRIMARY KEY CLUSTERED 
+(
+	[DeletedItemUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Faults]    Script Date: 10/13/2009 15:38:51 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Faults](
+	[FaultUID] [char](36) NOT NULL,
+	[FaultMachineUID] [char](36) NOT NULL,
+	[FaultDate] [datetime] NOT NULL,
+	[FaultSolvedDate] [datetime] NULL,
+	[FaultShort] [nvarchar](50) NOT NULL,
+	[FaultDescription] [ntext] NULL,
+	[FaultSolution] [ntext] NULL,
+	[FaultSeverity] [tinyint] NOT NULL,
+ CONSTRAINT [PK_Faults] PRIMARY KEY CLUSTERED 
+(
+	[FaultUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_FaultsUID] UNIQUE NONCLUSTERED 
+(
+	[FaultUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[Faults]  WITH CHECK ADD  CONSTRAINT [FK_Faults_Machines] FOREIGN KEY([FaultMachineUID])
+REFERENCES [dbo].[Machines] ([MachineUID])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Faults] CHECK CONSTRAINT [FK_Faults_Machines]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Hardware]    Script Date: 10/13/2009 15:38:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Hardware](
+	[HardwareUID] [char](36) NOT NULL,
+	[HardwareVendorUID] [char](36) NOT NULL CONSTRAINT [DF_Hardware_HardwareVendorUID]  DEFAULT ('3355d4bd-0ff0-488c-8c31-53dcdd5cd51d'),
+	[HardwareVendorID] [varchar](20) NULL,
+	[HardwareTypeDescription] [varchar](50) NOT NULL,
+	[HardwareCPUDescription] [varchar](50) NULL,
+	[HardwareCPUCount] [tinyint] NULL,
+	[HardwareCPUCoreCount] [tinyint] NULL,
+	[HardwareCPUHT] [bit] NULL,
+	[HardwareCPUPerformance] [smallint] NULL,
+	[HardwareRAMSize] [smallint] NULL,
+	[HardwareHDDSize] [smallint] NULL,
+	[HardwareHDDDescription] [varchar](50) NULL,
+	[HardwareWeight] [tinyint] NULL,
+	[HardwareHeight] [tinyint] NULL,
+	[HardwareWidth] [tinyint] NULL,
+	[HardwarePower] [smallint] NULL,
+	[HardwareNote] [ntext] NULL,
+ CONSTRAINT [PK_Hardware] PRIMARY KEY CLUSTERED 
+(
+	[HardwareUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_HardwareUID] UNIQUE NONCLUSTERED 
+(
+	[HardwareUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[Hardware]  WITH CHECK ADD  CONSTRAINT [FK_Vendors_Hardware] FOREIGN KEY([HardwareVendorUID])
+REFERENCES [dbo].[Vendors] ([VendorUID])
+ON DELETE SET DEFAULT
+GO
+ALTER TABLE [dbo].[Hardware] CHECK CONSTRAINT [FK_Vendors_Hardware]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[HistoryEvents]    Script Date: 10/13/2009 15:39:02 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[HistoryEvents](
+	[HistoryEventUID] [char](36) NOT NULL,
+	[HistoryEventItemUID] [char](36) NOT NULL,
+	[HistoryEventDate] [datetime] NOT NULL,
+	[HistoryEventText] [ntext] NOT NULL,
+	[HistoryEventUserUID] [char](36) NOT NULL,
+ CONSTRAINT [PK_HistoryEvents] PRIMARY KEY CLUSTERED 
+(
+	[HistoryEventUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_HistoryEventsUID] UNIQUE NONCLUSTERED 
+(
+	[HistoryEventUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Interfaces]    Script Date: 10/13/2009 15:39:08 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Interfaces](
+	[InterfaceUID] [char](36) NOT NULL,
+	[InterfaceParentInterfaceUID] [char](36) NULL,
+	[InterfaceMachineUID] [char](36) NOT NULL,
+	[InterfaceIP] [varchar](15) NULL,
+	[InterfaceMAC] [char](17) NOT NULL,
+	[InterfaceNetworkUID] [char](36) NOT NULL,
+	[InterfaceDNSName] [varchar](30) NULL,
+	[InterfaceSwitchNumber] [varchar](15) NULL,
+	[InterfaceSwitchPosition] [varchar](4) NULL,
+	[InterfaceNote] [ntext] NULL,
+	[InterfacePreffered] [bit] NULL,
+ CONSTRAINT [PK_Interfaces] PRIMARY KEY CLUSTERED 
+(
+	[InterfaceUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_InterfacesUID] UNIQUE NONCLUSTERED 
+(
+	[InterfaceUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[Interfaces]  WITH CHECK ADD  CONSTRAINT [FK_Interfaces_Machines] FOREIGN KEY([InterfaceMachineUID])
+REFERENCES [dbo].[Machines] ([MachineUID])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[Interfaces] CHECK CONSTRAINT [FK_Interfaces_Machines]
+GO
+ALTER TABLE [dbo].[Interfaces]  WITH CHECK ADD  CONSTRAINT [FK_Interfaces_Networks] FOREIGN KEY([InterfaceNetworkUID])
+REFERENCES [dbo].[Networks] ([NetworkUID])
+GO
+ALTER TABLE [dbo].[Interfaces] CHECK CONSTRAINT [FK_Interfaces_Networks]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Machines]    Script Date: 10/13/2009 15:39:13 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Machines](
+	[MachineUID] [char](36) NOT NULL,
+	[MachineParentMachineUID] [char](36) NULL,
+	[MachineSerialNumber] [varchar](20) NULL,
+	[MachineWarrantyNumber] [varchar](20) NULL,
+	[MachineInvNo] [varchar](50) NULL,
+	[MachineHardwareUID] [char](36) NOT NULL CONSTRAINT [DF_Machines_MachineHardwareUID]  DEFAULT ('73bb0cc2-ade8-4ed3-8ba6-b485f452dbff'),
+	[MachineCPUHT] [bit] NULL,
+	[MachinePurchaseDate] [datetime] NULL,
+	[MachineWarrantyEndDate] [datetime] NULL,
+	[MachineKVMNumber] [tinyint] NULL,
+	[MachineKVMPosition] [tinyint] NULL,
+	[MachineRackNumber] [varchar](3) NULL,
+	[MachineRackPosition] [tinyint] NULL,
+	[MachineRackHPosition] [tinyint] NULL,
+	[MachineSoftwareOS] [varchar](20) NULL,
+	[MachineNote] [ntext] NULL,
+	[MachineObsolete] [bit] NULL CONSTRAINT [DF_Machines_MachineObsolete]  DEFAULT ((0)),
+ CONSTRAINT [PK_Machines] PRIMARY KEY CLUSTERED 
+(
+	[MachineUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_MachinesUID] UNIQUE NONCLUSTERED 
+(
+	[MachineUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'Hlavni tabulka stroju' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Machines'
+GO
+ALTER TABLE [dbo].[Machines]  WITH CHECK ADD  CONSTRAINT [FK_Machines_Hardware] FOREIGN KEY([MachineHardwareUID])
+REFERENCES [dbo].[Hardware] ([HardwareUID])
+ON DELETE SET DEFAULT
+GO
+ALTER TABLE [dbo].[Machines] CHECK CONSTRAINT [FK_Machines_Hardware]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Networks]    Script Date: 10/13/2009 15:39:18 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Networks](
+	[NetworkUID] [char](36) NOT NULL,
+	[NetworkName] [varchar](30) NULL,
+	[NetworkIP] [varchar](50) NULL,
+	[NetworkVLAN] [tinyint] NULL,
+	[NetworkMask] [varchar](15) NULL,
+	[NetworkNote] [ntext] NULL,
+ CONSTRAINT [PK_Networks] PRIMARY KEY CLUSTERED 
+(
+	[NetworkUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Services]    Script Date: 10/13/2009 15:39:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Services](
+	[ServiceUID] [char](36) NOT NULL,
+	[ServiceParentServiceUID] [char](36) NULL,
+	[ServiceName] [varchar](30) NOT NULL,
+ CONSTRAINT [PK_Functions] PRIMARY KEY CLUSTERED 
+(
+	[ServiceUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_FunctionsUID] UNIQUE NONCLUSTERED 
+(
+	[ServiceUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[ServicesToMachines]    Script Date: 10/13/2009 15:39:28 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[ServicesToMachines](
+	[ServicesToMachinesMachineUID] [char](36) NOT NULL,
+	[ServicesToMachinesServiceUID] [char](36) NOT NULL,
+	[ServicesToMachinesServiceParameter] [varchar](50) NULL
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[ServicesToMachines]  WITH CHECK ADD  CONSTRAINT [FK_FunctionsToMachines_Functions] FOREIGN KEY([ServicesToMachinesServiceUID])
+REFERENCES [dbo].[Services] ([ServiceUID])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[ServicesToMachines] CHECK CONSTRAINT [FK_FunctionsToMachines_Functions]
+GO
+ALTER TABLE [dbo].[ServicesToMachines]  WITH CHECK ADD  CONSTRAINT [FK_FunctionsToMachines_Machines] FOREIGN KEY([ServicesToMachinesMachineUID])
+REFERENCES [dbo].[Machines] ([MachineUID])
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[ServicesToMachines] CHECK CONSTRAINT [FK_FunctionsToMachines_Machines]
+
+
+USE [FarmDBv2]
+GO
+/****** Object:  Table [dbo].[Vendors]    Script Date: 10/13/2009 15:39:33 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Vendors](
+	[VendorUID] [char](36) NOT NULL CONSTRAINT [DF_Vendors_VendorUID]  DEFAULT ('335d83bd-0ff0-488c-8c31-66dbdd5cd51d'),
+	[VendorName] [varchar](50) NULL,
+ CONSTRAINT [PK_Vendors] PRIMARY KEY CLUSTERED 
+(
+	[VendorUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+ CONSTRAINT [IX_VendorsUID] UNIQUE NONCLUSTERED 
+(
+	[VendorUID] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
