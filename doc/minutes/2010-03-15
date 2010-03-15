@@ -1,0 +1,30 @@
+Schuzka Deska, 2010-03-15 FZU
+
+Pritomni: vsi
+
+Program:
+--------
+
+- informacni systemy II
+- specifikace
+- diskuse o DB
+
+
+Poznamky k DB & CLI:
+--------------------
+
+- templaty v DB ano/ne?
+- ukazkova konfigurace nedodrzuje "typy" objektu -- definuju host, ale pisu k
+nemu serial# stroje?
+- rozsah IP adres vs VLANy
+- doplnovani tabama
+- konstrukce novych instanci prikazy typu "host hpv2" -- diskuse, jestli se ma
+    automaticky vytvorit ci ne; reseni: dva mody konzole, interaktivni/batch,
+    interaktivni se pta, batch kona; pokud jsem v kontextu prave vytvroeneho
+    objektu, uz se neptam dal (docasne jsem v batch modu)
+- readline-5.1 (-3.el5)
+- shortcuty?
+    napr. v kontextu "host foo" napisu "ip xyz", coz znamena
+    "int eth0 ip xyz"; mozna k tomu v ramci templatu mit "default VLAN",...
+- dedeni templatu?
+- s auth/auth neni problem
