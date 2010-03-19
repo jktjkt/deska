@@ -1,0 +1,148 @@
+################################################################################
+#
+# Start by defining models of physical objects containing other physical boxes
+#
+################################################################################
+
+
+# At first, we define a physical machine room
+enclosure room
+    outer width 1000000
+    outer height 1000000
+    outer depth 1000000
+end
+
+# A generic rack
+enclosure generic-rack
+    # ...is supposed to be placed in a room
+    in room
+
+    # has some dimensions
+    outer width 700
+    outer depth 1300
+    outer height 2000
+
+    # and some inner units
+    bay width 600
+    bay height 51.2
+    bay depth 1200
+
+    # FIXME: how to assign bays and bay# to an enclosure?
+    # issues: spatial organization, different sizes, different organization...
+end
+
+enclosure hp-blade-p-chassis
+    # can be placed only in anything derived from a rack
+    in generic-rack
+   
+    # therefore we can specify its dimensions in "bay units"
+    occupies
+        width 1
+        depth 1
+        height 5
+    end
+
+    # FIXME: provided bays
+end
+
+enclosure APC-rack
+    template generic-rack
+
+    outer height 2300 # it's a tall rack
+    # FIXME: bays
+end
+
+
+
+################################################################################
+#
+# Define instances of physical objects
+#
+################################################################################
+
+rack serverovna
+    model room
+end
+
+rack L01
+    model APC-rack
+    in serverovna
+
+    # "serverovna" is of instance "room" which does not provide any bays, therefore
+    # we have to fall back to absolute positioning in milimeters
+    position x 10 y 20 z 0
+end
+
+rack L02
+    model APC-rack
+    in serverovna
+    position x 710 y 20 z 0
+end
+
+rack hp-enc-p-1
+    model hp-blade-p-chassis
+    in L01
+
+    # This instance is a blade enclosure which fits to a rack. We also know its
+    # dimension in rack units (ie. we know the number of occupied "bays" in a
+    # rack" at this point, we only have to place it somewhere). The placement is
+    # done via a "significant edge", which is the bay# of the lowest, left-most
+    # and front-most bay occupied by the box.
+    position 10
+end
+
+rack hp-enc-p-2
+    model hp-blade-p-chassis
+    in L01
+    position 15
+end
+
+
+
+################################################################################
+#
+# HW model definitions
+#
+################################################################################
+
+hw 1u
+    in generic-rack
+    # no bay occupation indicated -> default to "1 bay"
+end
+
+hw 2u
+    in generic-rack
+    # no indication of occupied depth/width -> default to 1
+    occupies height 2
+end
+
+hw dl360g5
+    template 1u
+end
+
+hw dl380g5
+    template 2u
+end
+
+hw bl20p
+    in hp-blade-p-chassis
+end
+
+
+
+
+################################################################################
+#
+# HW model definitions
+#
+################################################################################
+
+
+host ha1
+    hw dl360g5
+    serial 1234567890
+    rack 
+
+
+
+
