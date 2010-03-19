@@ -17,18 +17,27 @@ enclosure generic-rack
     # ...is supposed to be placed in a room
     in room
 
-    # has some dimensions
+    # Because the outer element does not define any bays, we specify physical dimensions
     outer width 700
     outer depth 1300
     outer height 2000
-
-    # and some inner units
-    bay width 600
-    bay height 51.2
-    bay depth 1200
-
-    # FIXME: how to assign bays and bay# to an enclosure?
-    # issues: spatial organization, different sizes, different organization...
+    
+    # Inner bay organization
+    bay height 44 order bottom-up start-at 1
+    # ...which is syntactically equivalent to:
+    # bay
+    #    height 44
+    #    order bottom-up
+    #    start-at 1
+    # end
+    # ...and after adding default values, to this:
+    # bay
+    #    height 44
+    #    width 1
+    #    depth 1
+    #    order bottom-up
+    #    start-at 1
+    # end
 end
 
 enclosure hp-blade-p-chassis
@@ -42,16 +51,37 @@ enclosure hp-blade-p-chassis
         height 5
     end
 
-    # FIXME: provided bays
+    bay width 16 height 2 order bottom-up start-at 1
 end
 
 enclosure APC-rack
     template generic-rack
 
     outer height 2300 # it's a tall rack
-    # FIXME: bays
+
+    bay height 48 # all other bay-related values, including ordering and start#, are inherited from generic-rack
 end
 
+enclosure idataplex-rack
+    in room
+
+    outer
+        width 1300
+        depth 670
+        height 2000
+    end
+
+    bay
+        width 2
+        # implicit "depth 1"
+        height 44
+        order bottom-up-left-right
+        start-at 1
+        # This means that we have two columns of bays, the left bottom is bay#1,
+        # one to the right is bay#45, one on the top of bay#1 is bay#2, and at
+        # the top of the left-most column is bay#44
+    end
+end
 
 
 ################################################################################
@@ -141,8 +171,5 @@ end
 host ha1
     hw dl360g5
     serial 1234567890
-    rack 
-
-
-
-
+    rack L01 bay 0
+end
