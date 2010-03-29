@@ -1,0 +1,22 @@
+Schuzka Deska, 2010-03-29 FZU
+-----------------------------
+
+Pritomni: Tomas & Honza od drive, Martina & Lukas od pozdeji (dle planu)
+
+
+Ukoly na priste:
+----------------
+
+Tomas: zdrojaky + patche do gitu, pohrat si s demem, napsat Kralovi
+Lukas: naucit se spravovat PostgreSQL
+Martina: udelat schemata DB atd
+Honza: poslat specifikaci Zavoralovi, pracovat na dumpu/syntaxi CLI
+
+Lukasovo vyhrady ke CLI:
+- upozornit na rozdily mezi pozicovanim v mm a v "bayich"
+- pozor na vnorovani vice bloku do jedne radky ("enclosure XXX occupies XXX bays XXXX")
+- Lukas pridela verbose mod konzole, ktera bude *ihned* ukazovat, co se udalo (a
+  nebo si to do proste sam rozmysli a prohlasi, ze je to zbytecny)
+
+Jine vyhrady & poznamky:
+- v jednoradkovem zapisu *nesmi* byt end, zanorovnani muze byt jenom na konci
