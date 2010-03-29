@@ -1,0 +1,33 @@
+1) login to deska-dev
+2) su - postgres
+3) users & roles:
+
+postgres=# CREATE USER kundratj;
+CREATE ROLE
+postgres=# create user hubik;
+CREATE ROLE
+postgres=# create user krejcova;
+CREATE ROLE
+postgres=# create user kerpl;
+CREATE ROLE
+postgres=# create role deska_team;
+CREATE ROLE
+postgres=# grant deska_team to hubik, kerpl, krejcova, kundratj;
+GRANT ROLE
+postgres=# \du
+                                 List of roles
+ Role name  | Superuser | Create role | Create DB | Connections |  Member of
+------------+-----------+-------------+-----------+-------------+--------------
+ deska_team | no        | no          | no        | no limit    |
+ hubik      | no        | no          | no        | no limit    | {deska_team}
+ kerpl      | no        | no          | no        | no limit    | {deska_team}
+ krejcova   | no        | no          | no        | no limit    | {deska_team}
+ kundratj   | no        | no          | no        | no limit    | {deska_team}
+ postgres   | yes       | yes         | yes       | no limit    |
+(6 rows)
+postgres=# create DATABASE deska_dev OWNER deska_team;
+CREATE DATABASE
+
+
+Stuff below was done as kundratj:
+deska_dev=> create schema deska_dev authorization deska_team;
