@@ -32,6 +32,7 @@
 #ifndef _READLINE_H_
 # include <readline/readline.h>
 #endif 
+#include <stdlib.h>
 
 namespace rlmm 
 {
