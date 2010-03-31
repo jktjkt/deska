@@ -1,0 +1,8 @@
+Typy atributů text,char... Proměnlivá délka id?
+Všechny cpu stejný v jednom hw?
+K čemu je u disku a dalšího hw popis/poznámka?
+RAM - jednotky?
+
+A nainstalovat nám tcpsocket, nebo jak se to jmenuje...
+
+Osobně se pak budeme ptát, jak je to přesně s těmi interfacy.
