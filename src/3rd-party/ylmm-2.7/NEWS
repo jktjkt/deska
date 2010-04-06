@@ -1,0 +1,70 @@
+Changes in version 2.6
+
+  2004-04-30
+	 - New NEWS format 
+
+Changes in version 2.5
+
+  2004-02-19
+	 - 
+
+Changes in version 2.4
+
+  2003-06-29
+	 - 
+
+Changes in version 2.3
+
+  2003-06-21
+	 - 
+
+Changes in version 2.2
+
+  2003-01-30
+	 - 
+
+Changes in version 2.1
+
+  2003-01-04
+	 - Instead of _using_ the macros YLMM_PARSE_INTERFACE,
+	   YLMM_PARSE_INTERFACE_NAMESPACE, YLMM_SCAN_INTERFACE,
+	   YLMM_SCAN_INTERFACE_NAMESPACE, YLMM_LEX_STATIC, and
+	   YLMM_LEX_STATIC_LOCATION, the user should _define_ the
+	   macros  YLMM_PARSER_CLASS, YLMM_SCANNER_CLASS,
+	   YLMM_LEX_STATIC, and YLMM_LEX_STATIC_LOCATION. 
+	 - ylmm::basic_parser now derives from ylmm::parser_base, and
+	   ylmm::basic_scanner from ylmm::scanner_base, such that it's
+	   easier to have a common interface to the parsers and
+	   scanners, and so that they can be stored in a container of
+	   sorts.  
+	 - The file yaccmm.hh now takes care of defining all that is 
+	   needed, including YYSTYPE if it isn't defined previously. 
+	 - The classes ylmm::basic_parser, and ylmm::basic_scanner has
+	   an additional template argument, that allows unique
+	   identification and implementation.  
+
+Changes in version 2.0
+
+  2002-10-30
+	- The classes now all live in the namespace `ylmm' to not
+	  confuse things further.   
+	- basic_scanner is now a template, and the argument are like
+	  for basic_parser.  This is so that the parser is now pulling 
+	  things from the scanner, rather than the scanner pushing to
+	  the parser. That makes it easier to make a pre-parser in the
+	  scanner - for example to lookup typedefs, class names, and
+	  templates.   
+	- The documentation has been revisited. 
+	- Stuff for making a Debian package has been included. 
+
+  2002-12-14
+	 - Autotest test-suite 
+
+Changes in version 1.6
+
+  2002-10-23
+	 - Changed `set_...' and `get_...' to `...'
+
+Local Variables:
+	mode: text
+End:
