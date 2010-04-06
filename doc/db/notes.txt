@@ -1,11 +1,13 @@
 Typy atributů text,char... Proměnlivá délka id?
 díky dědění, můžou být některý věci unikátní v celé db...
+Dá se vynutit integritní omezení potomků?
 Co bude v typu hw? Zvlášní tabulka...
 vytvořit tabulku na cpu...
 Všechny cpu stejný v jednom hw?
-RAM - jednotky?
+RAM - jednotlivé kusy, nebo celkem?
 HD - může se přendat disk z jednoho do druhýho? Nebo jen prostě číslo kapacitu?
 K čemu je u disku popis?
+Otázky na interface!
 
 HW by mohl být i rack...
 Mít v db záruku do kdy, nebo počet měsíců?
