@@ -35,6 +35,7 @@
 #endif
 #ifdef HAVE_CONFIG_H
 # include "config.hh"
+#include <stdlib.h>
 #else
 # define PACKAGE_STRING "FILE-- ???"
 #endif

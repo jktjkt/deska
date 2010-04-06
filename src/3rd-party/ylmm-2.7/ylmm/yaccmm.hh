@@ -78,11 +78,12 @@ int yyparse();
 static int yyparse(void*) { return yyparse(); }
 #endif
 
+namespace ylmm{
 //____________________________________________________________________
 /** Specialisation of some basic_parser methods for this grammar. */
 template <>
 bool 
-ylmm::basic_parser<YLMM_PARSER_CLASS::token_type, 
+basic_parser<YLMM_PARSER_CLASS::token_type, 
 		   YLMM_PARSER_CLASS::location_type, 
 		   YLMM_PARSER_CLASS::parser_id,
 		   YLMM_PARSER_CLASS::lock_type>::tracing() const 
@@ -98,7 +99,7 @@ ylmm::basic_parser<YLMM_PARSER_CLASS::token_type,
 /** Specialisation of some basic_parser methods for this grammar. */
 template <>
 bool
-ylmm::basic_parser<YLMM_PARSER_CLASS::token_type, 
+basic_parser<YLMM_PARSER_CLASS::token_type, 
 		   YLMM_PARSER_CLASS::location_type, 
 		   YLMM_PARSER_CLASS::parser_id,
 		   YLMM_PARSER_CLASS::lock_type>::tracing(bool t)
@@ -113,7 +114,7 @@ ylmm::basic_parser<YLMM_PARSER_CLASS::token_type,
 /** Specialisation of some basic_parser methods for this grammar. */
 template <>
 int
-ylmm::basic_parser<YLMM_PARSER_CLASS::token_type, 
+basic_parser<YLMM_PARSER_CLASS::token_type, 
 		   YLMM_PARSER_CLASS::location_type, 
 		   YLMM_PARSER_CLASS::parser_id,
 		   YLMM_PARSER_CLASS::lock_type>::parse(void* arg)
@@ -121,7 +122,7 @@ ylmm::basic_parser<YLMM_PARSER_CLASS::token_type,
   _parser = static_cast<YLMM_PARSER_CLASS*>(this);
   return yyparse(arg);
 }
-
+}
 //____________________________________________________________________
 /** (Re)define YYPRINT to call parser member function print.
     @param f FILE argument, which is ignored. 
