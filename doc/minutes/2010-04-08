@@ -1,0 +1,38 @@
+Schuzka Deska, 2010-04-08 MS
+-----------------------------
+
+Pritomni: Tomas, Martina & Lukas
+Honza omluven.
+
+Ukoly na priste:
+----------------
+
+Honza: poslat specifikaci Zavoralovi, pracovat na dumpu/syntaxi CLI - úkol zůstává.
+Všichni:
+
+Jak na interface CLI-DB. Používat ORM, vymyslet jaké, nebo udělat vlastní, dle schématu db.
+(DTL, Wt::Dbo, litesql)
+
+Vymyslet zachycení stavu promptu pro komunikaci s db (Posílání cesty/ vektor(klíč-hodnota)?)
+> hw encA
+        hw ecn1
+		rack bla
+	end
+end
+
+> hw ecnB
+	hw ecn1
+		rack xxx
+	end
+end
+
+getlist("rack","encB/ecn1");
+
+// kdyby eth se jmenoval enc1
+getlist("ip","encB/ecn1");
+
+
+
+Příkaz show - ukázat nastavené hodnoty v zanoření.
+Show-all vypíše všechny podúrovně.
+
