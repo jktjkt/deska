@@ -173,3 +173,7 @@ host ha1
     serial 1234567890
     rack L01 bay 0
 end
+
+
+host golias110
+    interface eth0 mac XYZ net golias-prod ip 147.231.25.110 switch sw253 port 12
