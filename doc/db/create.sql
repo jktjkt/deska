@@ -2,8 +2,15 @@
 SET search_path TO deska_dev,public;
 
 -- cut here: destroy script
+DROP TABLE os;
+DROP TABLE machine;
+DROP TABLE rack;
+DROP TABLE switch;
+DROP TABLE trunk;
 DROP TABLE lan_adapter;
+DROP TABLE interface;
 DROP TABLE cpu;
+DROP TABLE cpu_type;
 DROP TABLE hdd;
 DROP TABLE ram;
 DROP TABLE hardware;
@@ -69,24 +76,68 @@ CREATE TABLE cpu_type (
 		CONSTRAINT cpu_frequency_positive
 			CHECK (frequency > 0),
 	hypert BOOLEAN NOT NULL
-)
+);
 GRANT ALL ON cpu_type TO deska_team;
 
 -- cpu
 CREATE TABLE cpu (
 	uid char(36) PRIMARY KEY,
-	type char(36) references cpu_type(uid),
+	type char(36) references cpu_type(uid)
 --	machine char(36) references machine(uid),
 ) INHERITS (hardware);
 GRANT ALL ON cpu TO deska_team;
 
+
+-- interface
+CREATE TABLE interface (
+	uid int PRIMARY KEY,
+	name text NOT NULL,
+	ip INET UNIQUE,
+	-- svázat s lan_adapter, nebo trunk, nebo jinej interface?
+	dns_name text
+);
+GRANT ALL ON interface TO deska_team;
+
 -- lan_adapter
 CREATE TABLE lan_adapter (
 	uid char(36) PRIMARY KEY,
-	mac MACADDR UNIQUE
+	mac TEXT UNIQUE,
 	--	CONSTRAINT lan_adapter_mac_ok
+	-- od jakého portu a do jakýho switche, nebo port identifikuje switch?
+	-- rychlost drátu, jednotky?
+	rate int
+		CONSTRAINT lan_adapter_rate_positive
+			CHECK (rate > 0),
+	-- číslo trunku nebo 0 pokud není
+	trunk int DEFAULT 0
+		CONSTRAINT lan_adapter_trunk_not_negative
+			CHECK (trunk >= 0)
 ) INHERITS (hardware);
 GRANT ALL ON lan_adapter TO deska_team;
+
+-- trunk
+CREATE TABLE trunk (
+	uid int PRIMARY KEY
+	-- možná se bude hodit
+);
+GRANT ALL ON trunk TO deska_team;
+
+-- switch
+CREATE TABLE switch (
+	uid char(36) PRIMARY KEY,
+	-- number of ports
+	ports int
+		CONSTRAINT switch_ports_positive
+			CHECK (ports > 0)
+) INHERITS (hardware);
+GRANT ALL ON switch TO deska_team;
+
+-- rack
+CREATE TABLE rack (
+	uid int PRIMARY KEY
+	-- nějaká velikost, počet pozic, umístění
+);
+GRANT ALL ON rack TO deska_team;
 
 -- machine
 CREATE TABLE machine (
@@ -100,7 +151,7 @@ CREATE TABLE machine (
 			CHECK (cpu_number > 0),
 	ram char(36) references ram(uid),
 	hdd char(36) references hdd(uid),
-	lan_adapter char(36) references lan_adapter(uid),
+	lan_adapter char(36) references lan_adapter(uid)
 	-- rack position...
 ) INHERITS (hardware);
 GRANT ALL ON machine TO deska_team;
@@ -110,7 +161,7 @@ CREATE TABLE os (
 	uid char(36) PRIMARY KEY,
 	name text NOT NULL,
 	version text NOT NULL,
-	version note
+	note text
 	-- software?
 	-- virtual/ref machine
 	-- machine char(36) references machine(uid),
@@ -118,15 +169,3 @@ CREATE TABLE os (
 	-- interface(s)
 );
 GRANT ALL ON os TO deska_team;
-
--- interface
-CREATE TABLE interface (
-	uid int PRIMARY KEY,
-	name text NOT NULL,
-	ip INET UNIQUE,
-	-- svázat s lan_adapter
-	dns_name text
-);
-GRANT ALL ON interface TO deska_team;
-
-

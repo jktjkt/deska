@@ -6,3 +6,5 @@ RAM - jednotky?
 A nainstalovat nám tcpsocket, nebo jak se to jmenuje...
 
 Osobně se pak budeme ptát, jak je to přesně s těmi interfacy.
+
+Je port ve switchi nějak globálně identifikován?
