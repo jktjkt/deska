@@ -1,0 +1,11 @@
+Document: ylmm
+Title: Yacc/Lex-- Reference Manual
+Author: Christian Holm Christensen
+Abstract:Reference manual of the Yacc/Lex-- classes. 
+Section: Apps/Programming
+
+Format: HTML
+Index: /usr/share/doc/ylmm/html/index.html
+Files: /usr/share/doc/ylmm/html/*.html
+
+  

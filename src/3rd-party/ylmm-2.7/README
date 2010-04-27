@@ -1,0 +1,17 @@
+
+	Yacc/Lex-- for wrapping Yacc/Lex output in C++ classes
+	======================================================
+
+This is a set of headers to wrap the output of Yacc and/or Lex in C++
+classes. 
+
+For some class documentation, please do (currently disabled)
+
+    make doc 
+
+and browse the generated html directory.  The code is really simple,
+so read that too. 
+
+Christian Holm Christensen
+<cholm@nbi.dk>
+

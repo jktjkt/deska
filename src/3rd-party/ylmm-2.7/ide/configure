@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# $Id: configure,v 1.1 2003/06/21 23:45:21 cholm Exp $
+#
+# Dummy configure for KDevelop that configures the source tree in
+# sub-directory  `build'
+#
+mkdir -p build
+cd build && ../../configure $*
+
+
+#
+# EOF 
+#
