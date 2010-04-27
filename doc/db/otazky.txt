@@ -1,10 +1,7 @@
 Typy atributů text,char... Proměnlivá délka id?
-Všechny cpu stejný v jednom hw?
+Všechny cpu stejný v jednom hw? ANO
 K čemu je u disku a dalšího hw popis/poznámka?
-RAM - jednotky?
-
-A nainstalovat nám tcpsocket, nebo jak se to jmenuje...
-
-Osobně se pak budeme ptát, jak je to přesně s těmi interfacy.
+RAM - jednotky? GB
 
 Je port ve switchi nějak globálně identifikován?
+Stačí vědět do kterého switche vede kabel, nebo chceme i do jakého portu?

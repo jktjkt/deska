@@ -4,10 +4,10 @@ SET search_path TO deska_dev,public;
 -- cut here: destroy script
 DROP TABLE os;
 DROP TABLE machine;
-DROP TABLE rack;
-DROP TABLE switch;
+DROP TABLE enclosure;
 DROP TABLE trunk;
 DROP TABLE lan_adapter;
+DROP TABLE switch;
 DROP TABLE interface;
 DROP TABLE cpu;
 DROP TABLE cpu_type;
@@ -98,6 +98,16 @@ CREATE TABLE interface (
 );
 GRANT ALL ON interface TO deska_team;
 
+-- switch
+CREATE TABLE switch (
+	uid char(36) PRIMARY KEY,
+	-- number of ports
+	ports int
+		CONSTRAINT switch_ports_positive
+			CHECK (ports > 0)
+) INHERITS (hardware);
+GRANT ALL ON switch TO deska_team;
+
 -- lan_adapter
 CREATE TABLE lan_adapter (
 	uid char(36) PRIMARY KEY,
@@ -111,7 +121,8 @@ CREATE TABLE lan_adapter (
 	-- číslo trunku nebo 0 pokud není
 	trunk int DEFAULT 0
 		CONSTRAINT lan_adapter_trunk_not_negative
-			CHECK (trunk >= 0)
+			CHECK (trunk >= 0),
+	switch char(36) references switch(uid)
 ) INHERITS (hardware);
 GRANT ALL ON lan_adapter TO deska_team;
 
@@ -122,22 +133,18 @@ CREATE TABLE trunk (
 );
 GRANT ALL ON trunk TO deska_team;
 
--- switch
-CREATE TABLE switch (
-	uid char(36) PRIMARY KEY,
-	-- number of ports
-	ports int
-		CONSTRAINT switch_ports_positive
-			CHECK (ports > 0)
-) INHERITS (hardware);
-GRANT ALL ON switch TO deska_team;
 
--- rack
-CREATE TABLE rack (
-	uid int PRIMARY KEY
+-- enclosure, rack a další ...
+CREATE TABLE enclosure (
+	uid int PRIMARY KEY,
 	-- nějaká velikost, počet pozic, umístění
+	capacity int 
+		CONSTRAINT enclosure_capacity_positive
+			CHECK (capacity > 0),
+	-- enclosure position or speciální enclosure room.
+	placement int references enclosure(uid)
 );
-GRANT ALL ON rack TO deska_team;
+GRANT ALL ON enclosure TO deska_team;
 
 -- machine
 CREATE TABLE machine (
@@ -151,8 +158,9 @@ CREATE TABLE machine (
 			CHECK (cpu_number > 0),
 	ram char(36) references ram(uid),
 	hdd char(36) references hdd(uid),
-	lan_adapter char(36) references lan_adapter(uid)
-	-- rack position...
+	lan_adapter char(36) references lan_adapter(uid),
+	-- enclosure position...
+	placement int references enclosure(uid)
 ) INHERITS (hardware);
 GRANT ALL ON machine TO deska_team;
 
