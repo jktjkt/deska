@@ -5,3 +5,5 @@ RAM - jednotky? GB
 
 Je port ve switchi nějak globálně identifikován?
 Stačí vědět do kterého switche vede kabel, nebo chceme i do jakého portu?
+Co leze z trunku, interface a z něj další interfacy, nebo rovnou víc
+interfaců?
