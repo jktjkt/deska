@@ -1,0 +1,61 @@
+db> dump
+
+hardware dl140
+    manufacturer HP
+    model DL 140
+    chassis 1U
+    weight 10kg
+end
+
+---
+
+template host golias-wn
+    hardware dl140
+    role wn
+end
+
+host golias120
+    template golias-wn
+    ip 147.231.25.120
+    mac xyz
+    serial 1234567890
+end
+
+---
+
+host golias120
+    hardware dl140
+    role wn
+    ip 147.231.25.120
+    mac xyz
+    serial 123456789
+end
+
+---
+
+host ui5
+    role ui
+    model xen-hvm-accel
+    ip 147.231.25.xyz
+    mac xyz
+end
+
+---
+
+host hpv2
+    int eth0 ip ABC/24 mac XYZ vlan 25 switch sw253 port ge4-15
+    int eth0
+        ip ABC/24
+        mac XYZ
+        vlan 25
+        switch sw253
+        port ge4-15
+    end
+    int eth1
+		ip EWRT/24
+		mac XYZ2
+		vlan tagged 172
+    hw xen
+end
+
+db>
