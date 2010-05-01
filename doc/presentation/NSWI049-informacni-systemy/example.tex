@@ -24,23 +24,25 @@ IS II, MFF UK Prague, \today
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
-db> 
+db>
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
 db> host hpv2
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
 db> host hpv2
 Add host "hpv2"? [y]/n
-
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -49,6 +51,7 @@ Add host "hpv2"? [y]/n
 y
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -56,11 +59,10 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> 
-
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -68,10 +70,10 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -79,12 +81,11 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
-
-db> 
+db>
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -92,12 +93,11 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
-
 db> host hpv3
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -105,14 +105,12 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
-
 db> host hpv3
 Add host "hpv3"? [y]/n
-
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -120,14 +118,13 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
-
 db> host hpv3
 Add host "hpv3"? [y]/n
 n
 \end{lstlisting}
 \end{frame}
+
 \begin{frame}[fragile]
 \frametitle{Add host}
 \begin{lstlisting}
@@ -135,30 +132,990 @@ db> host hpv2
 Add host "hpv2"? [y]/n
 y
 Host "hpv2" added.
-
 db host hpv2> end
-
 db> host hpv3
 Add host "hpv3"? [y]/n
 n
 Cancelling.
+db>
 \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Add host}
+\frametitle{Edit host}
 \begin{lstlisting}
-
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host             
 \end{lstlisting}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host                 tab pressed
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+Add host "hpv2"? [y]/n
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+y
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+Host "hpv2" added.
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2> end
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv3
+Add host "hpv3"? [y]/n
+n
+Cancelling.
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+golias10    golias13    hpv2    ui5
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> rolw wn
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+ui6         ui7         zr4     zr8
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host hpv2
+db host hpv2> int eth0
+Add int "eth0"? [y]/n
+y
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2 int eth0> ip 192.168.1.5/24
+db host hpv2 int eth0> mac 00:15:48:ef:a1:55
+db host hpv2 int eth0> vlan 25
+db host hpv2 int eth0> show
+ip 192.168.1.5/24
+mac 00:15:48:ef:a1:55
+vlan 25
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2> show-all
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2> show-all
+int eth0
+    ip 192.168.1.5/24
+    mac 00:15:48:ef:a1:55
+    vlan 25
+role wn
+serial 123456789
+db host hpv2>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2 int eth0> end
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2> show-all
+int eth0
+    ip 192.168.1.5/24
+    mac 00:15:48:ef:a1:55
+    vlan 25
+role wn
+serial 123456789
+db host hpv2> end
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2> show-all
+int eth0
+    ip 192.168.1.5/24
+    mac 00:15:48:ef:a1:55
+    vlan 25
+role wn
+serial 123456789
+db host hpv2> end
+db>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db host hpv2> role wn
+db host hpv2> serial 123456789
+db host hpv2> show
+int eth0
+role wn
+serial 123456789
+db host hpv2> show-all
+int eth0
+    ip 192.168.1.5/24
+    mac 00:15:48:ef:a1:55
+    vlan 25
+role wn
+serial 123456789
+db host hpv2> end
+db> commit
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+    mac 00:15:48:ef:a1:55
+    vlan 25
+role wn
+serial 123456789
+db host hpv2> end
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+    vlan 25
+role wn
+serial 123456789
+db host hpv2> end
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+serial 123456789
+db host hpv2> end
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+serial 123456789
+db host hpv2> end
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> commit
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+Changes:
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+host hpv2
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+    int eth0
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+        ip 192.168.1.5/24
+        mac 00:15:48:ef:a1:55
+        vlan 25
+    role wn
+    serial 123456789
+Commit changes? [y]/n
+y
+Changes committed successfully.
+db> hsot hpv4
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db> commit
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+Unknown type "hsot".
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db> commit
+Changes:
+host golias10
+    int eth0
+        ip 128.15.24.189/24
+        mac 11:15:48:ef:a1:55
+        vlan 25
+        switch sw253
+        port ge4-15
+Commit changes? [y]/n
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db> host golias10
+db golias10> int eth0 ip 128.15.24.189/24 mac 11:
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db> commit
+Changes:
+host golias10
+    int eth0
+        ip 128.15.24.189/24
+        mac 11:15:48:ef:a1:55
+        vlan 25
+        switch sw253
+        port ge4-15
+Commit changes? [y]/n
+n
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db> commit
+Changes:
+host golias10
+    int eth0
+        ip 128.15.24.189/24
+        mac 11:15:48:ef:a1:55
+        vlan 25
+        switch sw253
+        port ge4-15
+Commit changes? [y]/n
+n
+Changes discarted.
+db>
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+15:48:ef:a1:55 vlan 25 switch sw253 port ge4-15
+db golias10> end
+db> commit
+Changes:
+host golias10
+    int eth0
+        ip 128.15.24.189/24
+        mac 11:15:48:ef:a1:55
+        vlan 25
+        switch sw253
+        port ge4-15
+Commit changes? [y]/n
+n
+Changes discarted.
+db> exit
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Edit host}
+\begin{lstlisting}
+db golias10> end
+db> commit
+Changes:
+host golias10
+    int eth0
+        ip 128.15.24.189/24
+        mac 11:15:48:ef:a1:55
+        vlan 25
+        switch sw253
+        port ge4-15
+Commit changes? [y]/n
+n
+Changes discarted.
+db> exit
+Bye!
+\end{lstlisting}
+\end{frame}
 
 \begin{frame}
 \frametitle{Thank you}
-
 \center
 {\Large Thanks for your attention!}
-
 \end{frame}
 
 \end{document}
