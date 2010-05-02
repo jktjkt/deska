@@ -85,7 +85,7 @@ host golias10
         port ge4-15
 Commit changes? [y]/n
 n
-Changes discarted.
+Changes discarded.
 
 db> exit
 Bye!
