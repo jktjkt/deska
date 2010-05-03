@@ -158,7 +158,16 @@ hw bl20p
     in hp-blade-p-chassis
 end
 
-
+hw dl140
+    template 1u
+    benchmark hepspec 8
+    cpu "Intel Xeon 3.06 GHz"
+    sockets 2
+    cores-per-socket 1
+    logical-cores-per-physical-core 2
+    disk "ATA 80GB"
+    power 110W
+end
 
 
 ################################################################################
@@ -178,6 +187,10 @@ network golias-prod
     nameservers 147.231.25.14 147.231.25.16 147.231.27.173
 end
 
+network wn-nat
+    vlan 172
+    ip 172.16.0.0/16
+end
 
 
 ################################################################################
@@ -195,4 +208,41 @@ end
 
 
 host golias110
+    # an ordinary network
     interface eth0 mac XYZ net golias-prod ip 147.231.25.110 switch sw253 port 12
+    # a management interface
+    interface ilo mac XYZ net monitoring ip 192.168.66.110 switch swL01 port 1
+    warranty purchased 2006-10-01 ends 2008-10-01 number KE1421851007
+    serial J00HMF6C2J
+end
+
+host hypericum10
+    # Housekeeping records
+    # Serial No. of the whole box
+    serial J019MF6C2J
+    # Warranty No. & expiration date; FIXME: multiple contracts?
+    warranty KE1421631007 expires 2006-12-12
+    purchased 2004-05-03
+
+    # Physical dymension, architecture, location and interconnects
+    hw dl140
+    rack L04 bay 40
+    kvm unit 4 port 7
+    interface eth0 mac 00:0f:20:7a:e7:9c net wn-nat ip 172.16.4.10 switch swL041 port 5
+
+    # Logical roles
+    role wn
+end
+
+# The following demonstrates a box with one used physical network interface
+# which is shared by the host's eth0 and the integrated BMC controller
+host salix01
+    interface eth0 mac XYZ net wn-nat ip 172.16.1.1 switch swXYZ port 666
+    interface bmc shared-port eth0 net monitoring ip 192.168.10.1
+end
+
+# The next host has two distinct interfaces
+host saltix10
+    interface eth0 ...
+    interface bmc mac XYZ net monitoring ...
+end
