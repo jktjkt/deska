@@ -118,26 +118,23 @@ end
 
 rack hp-enc-p-1
     model hp-blade-p-chassis
-    in L01
 
     # This instance is a blade enclosure which fits to a rack. We also know its
     # dimension in rack units (ie. we know the number of occupied "bays" in a
     # rack" at this point, we only have to place it somewhere). The placement is
     # done via a "significant edge", which is the bay# of the lowest, left-most
     # and front-most bay occupied by the box.
-    position 10
+    in L01 bay 10
 end
 
 rack hp-enc-p-2
     model hp-blade-p-chassis
-    in L01
-    position 15
+    in L01 bay 15
 end
 
 rack salix01_02
     model sgi-twin
-    in L05
-    position 25
+    in L05 bay 25
 end
 
 
