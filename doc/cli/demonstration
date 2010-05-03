@@ -83,6 +83,13 @@ enclosure idataplex-rack
     end
 end
 
+# A simple SGI "twin" enclosure -- has two bays, one on the left, on on the right
+enclosure sgi-twin
+    in generic-rack
+    bay width 2
+end
+
+
 
 ################################################################################
 #
@@ -127,6 +134,11 @@ rack hp-enc-p-2
     position 15
 end
 
+rack salix01_02
+    model sgi-twin
+    in L05
+    position 25
+end
 
 
 ################################################################################
@@ -167,6 +179,21 @@ hw dl140
     logical-cores-per-physical-core 2
     disk "ATA 80GB"
     power 110W
+end
+
+# Note that we're using the same name here
+hw sgi-twin
+    in sgi-twin
+end
+
+hw xe310
+    template sgi-twin
+    benchmark hepspec 68
+    cpu E5420
+    ram 16GB
+    sockets 2
+    cores-per-socket 4
+    disk "SAS 300GB"
 end
 
 
@@ -234,11 +261,19 @@ host hypericum10
     role wn
 end
 
-# The following demonstrates a box with one used physical network interface
-# which is shared by the host's eth0 and the integrated BMC controller
 host salix01
-    interface eth0 mac XYZ net wn-nat ip 172.16.1.1 switch swXYZ port 666
+    serial X0008274
+    # FIXME: another serial S615TGT18A09655
+    # FIXME: "belongs to UJF"
+
+    rack salix01_02 bay 0
+
+    # The following demonstrates a box with one used physical network interface
+    # which is shared by the host's eth0 and the integrated BMC controller
+    interface eth0 mac 00:30:48:C5:42:BE net wn-nat ip 172.16.1.1 switch swL051 port 1
     interface bmc shared-port eth0 net monitoring ip 192.168.10.1
+
+    role wn
 end
 
 # The next host has two distinct interfaces
