@@ -11,8 +11,8 @@
 
 \section{Introduction}
 
-A meetings was held on May 4th 2010 at FZU.  The purpose was to present the
-current ideas about how to design the CLI portion of the deska-db and to gather
+A meeting was held on May 4th 2010 at FZU.  The purpose was to present the
+current ideas about how to design the CLI portion of the Deska DB and to gather
 ideas of real users-to-be.  The meeting was organized by Jan Kundrát of the
 Deska team with three participants from the FZU: Jan Švec, Tomáš Kouba and Čeněk
 Zach.
@@ -37,9 +37,9 @@ several depths of nesting objects into each other.  The main motivation and a
 perfect example at the same time is a physical location of a particular machine.
 A HW box is usually located in a rack, which is itself placed in a room, which
 usually belongs to a certain building.  The problem is that this approach gets
-into trouble (consult the RackMonkey tool) when dealing with different HW than
-rack-mount pizza boxes.  Almost all of the new and energy efficient HW are
-nowadays being built in a smaller form factor, be it blade servers, the twin
+into trouble (consult the RackMonkey tool) when dealing with other HW than
+rack-mount pizza boxes.  Almost all of the new and energy efficient HW is
+nowadays built in a smaller form factor, be it blade servers, the twin
 cases as pioneered by SGI or at least sharing of power supplies as seen in IBM's
 xServer iDataPlex solution.  The Deska DB should anticipate future extensions
 and evolution in the industrial design, and therefore it has to support
@@ -50,7 +50,7 @@ arbitrary nesting of components.
 One way to express such a nesting is to emulate it closely in the database dump.
 Such an approach is widely used in scripting languages like Python, where
 indentation determines the scope of the code and variables.  Similar approach
-could be then used with Deska, as indicated in the following code snippet:
+could then be used with Deska, as indicated in the following code snippet:
 
 \begin{listing}{1}
 rack serverovna
@@ -125,7 +125,8 @@ end
 \end{listing}
 
 Please note the difference in using the explicit {\tt in} statements on lines 7
-and 12 and via the {\tt rack \ldots bay \ldots} statement on line 19.
+and 12 and via the {\tt rack \ldots bay \ldots} statement on line 19 in contrast
+to implicit nesting from the previous example.
 
 \subsection{Decision about the Format}
 
@@ -146,8 +147,8 @@ background voted for {\em nesting}.
 
 A similar decision had to be made with regard to network interfaces and their
 {\em bonding} together.  Again, an interface could have multiple {\em child}
-interfaces associated with, and one has to agree about which way to express such
-a situation to choose.  The following three concepts were mentioned:
+interfaces associated with, and one has to choose which way to express such
+a situation.  The following three concepts were mentioned:
 
 \subsection{Nesting}
 \begin{listing}{1}
@@ -180,7 +181,7 @@ end
 \subsection{Decision}
 
 For the sake of consistency with the rest of the system, the attendees ruled out
-the second option, the {\em enumeration} altogether.  Preferences about {\em
+the second option ({\em enumeration}) altogether.  Preferences about {\em
 nesting} and {\em referring} were similar to the physical nesting of HW
 components with the eventual result to go with {\em referring} again, especially
 due to the way the Cisco IOS works when using Etherchannel.
@@ -189,7 +190,7 @@ due to the way the Cisco IOS works when using Etherchannel.
 
 The meeting was well-received by all parties overal.  It was suggested to
 consider adding a ``tree-view'' dump format to the DB which would provide a
-structured view of its structure (essentially similar to the {\em nesting}
+structured view of its contents (essentially similar to the {\em nesting}
 format).  However, such a dump format should be {\bf complementary} to the
 regular dumps, and the database won't support restoring from such formats.  The
 purpose of such a dump, or rather an {\em extra view}, is to assist the users in
@@ -199,7 +200,7 @@ using for example the Python bindings for the DB and not via the main CLI tool.
 
 The employees of the Institute who were present at the meeting expressed their
 content with the direction the Deska project is heading to.  They very much
-welcomed that the Deska team was willing to revisit the decision to go with
+welcomed that the Deska team was willing to revisit its decision to go with
 nesting when the users expressed their concern with such an interface.
 
 \end{document}
