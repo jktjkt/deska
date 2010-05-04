@@ -1,0 +1,207 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{a4wide}
+\usepackage{moreverb}
+\author{Jan Kundrát}
+\title{Minutes from the GUI demonstration at FZU}
+
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+A meetings was held on May 4th 2010 at FZU.  The purpose was to present the
+current ideas about how to design the CLI portion of the deska-db and to gather
+ideas of real users-to-be.  The meeting was organized by Jan Kundrát of the
+Deska team with three participants from the FZU: Jan Švec, Tomáš Kouba and Čeněk
+Zach.
+
+\section{The Concept of the CLI}
+
+All attendees stated that they indeed welcome the overal design concepts of the
+CLI interface.  It was stressed out that the CLI is generally able to provide
+cleaner and more user-friendly experience to the end user.  A comparison to the
+already existing web-based tool being used at the Institute was quickly
+undergone with the result that the CLI is expected to be much more usable.
+
+\section{Nesting and Scoping}
+
+The general way to use the deska CLI, as demonstrated by the presentation
+performed by Kerpl and Hubík the other day, was found to be acceptable and
+probably the best one.  Most of the time was spent evaluating the two concepts,
+the {\em nesting} one and the {\em referring} one.
+
+These concepts refer to different ways in which one can express the concept of
+several depths of nesting objects into each other.  The main motivation and a
+perfect example at the same time is a physical location of a particular machine.
+A HW box is usually located in a rack, which is itself placed in a room, which
+usually belongs to a certain building.  The problem is that this approach gets
+into trouble (consult the RackMonkey tool) when dealing with different HW than
+rack-mount pizza boxes.  Almost all of the new and energy efficient HW are
+nowadays being built in a smaller form factor, be it blade servers, the twin
+cases as pioneered by SGI or at least sharing of power supplies as seen in IBM's
+xServer iDataPlex solution.  The Deska DB should anticipate future extensions
+and evolution in the industrial design, and therefore it has to support
+arbitrary nesting of components.
+
+\subsection{Nesting}
+
+One way to express such a nesting is to emulate it closely in the database dump.
+Such an approach is widely used in scripting languages like Python, where
+indentation determines the scope of the code and variables.  Similar approach
+could be then used with Deska, as indicated in the following code snippet:
+
+\begin{listing}{1}
+rack serverovna
+    rack L01
+        hw golias110
+            bay 9
+            model dl140
+        end
+
+        rack salix01_02
+            inherit sgi-twin
+            bay 10
+
+            hw salix01
+                bay 0
+                model xe310
+                interface eth0 switch ... port ...
+                disk "2x 300GB SAS"
+            end
+
+            hw salix02
+                bay 1
+                model xe310
+            end
+        end
+
+        hw blabla
+            ...
+        end
+    end
+end
+\end{listing}
+
+The main motivation for indication of nesting in such a way was to avoid the
+need for explicit naming of ``anonymous containers'' like the chassis for a twin
+server (see line 8 above).  However, it turned out that one cannot really use
+unnamed objects in an effective way, and that trying to mask that fact would
+only need to confusion.  It was also observed that the names of such objects
+should be kept unique in the global scope.
+
+\subsection{Referring}
+
+On the other hand, {\em referring} simply creates a set of named objects in a
+flat, global namespace and adds relations among them in an explicit way, as
+demonstrated in the following example:
+
+\begin{listing}{1}
+rack serverovna
+    model room
+end
+
+rack L01
+    model APC-rack
+    in serverovna
+end
+
+rack saltix05_06
+    model sgi-twin
+    in L05 bay 3
+end
+
+...
+
+host saltix06
+    serial X0011212
+    rack saltix05_06 bay 1
+
+    interface eth0 mac ... net wn-nat ip ... switch swL051 port 46
+
+    role wn
+end
+\end{listing}
+
+Please note the difference in using the explicit {\tt in} statements on lines 7
+and 12 and via the {\tt rack \ldots bay \ldots} statement on line 19.
+
+\subsection{Decision about the Format}
+
+All attendees came to an agreement that the decision cannot be made on a purely
+objective bases, as they recognize benefits associated with each of the formats.
+Therefore, a decision had to be made mostly on personal subjective choice while
+keeping a professional background and familiarity with similar tools (like the
+Cisco IOS) in mind.
+
+The outcome of the meeting was to go with the {\em referring} approach.  All
+attendees unanimously voted for such a way, despite the fact that $\frac{3}{4}$
+of the Deska developers voted for the {\em nesting} way.  An interesting
+observation is that all people who had certain familiarity with managing a data
+center voted for {\em referring}, while those of the purely academical
+background voted for {\em nesting}.
+
+\section{Network Interfaces}
+
+A similar decision had to be made with regard to network interfaces and their
+{\em bonding} together.  Again, an interface could have multiple {\em child}
+interfaces associated with, and one has to agree about which way to express such
+a situation to choose.  The following three concepts were mentioned:
+
+\subsection{Nesting}
+\begin{listing}{1}
+host xxx
+    interface bond0
+        physical eth0 mac ...
+        physical eth1 mac ...
+    end
+end
+\end{listing}
+
+\subsection{Enumeration}
+\begin{listing}{1}
+host xxx
+    interface bond0 ip ... physical eth0,eth1
+    interface eth0 ...
+    interface eth1 ...
+end
+\end{listing}
+
+\subsection{Referring}
+\begin{listing}{1}
+host xxx
+    interface bond0 ip ...
+    interface eth0 in bond0
+    interface eth1 in bond0
+end
+\end{listing}
+
+\subsection{Decision}
+
+For the sake of consistency with the rest of the system, the attendees ruled out
+the second option, the {\em enumeration} altogether.  Preferences about {\em
+nesting} and {\em referring} were similar to the physical nesting of HW
+components with the eventual result to go with {\em referring} again, especially
+due to the way the Cisco IOS works when using Etherchannel.
+
+\section{Closing Remarks}
+
+The meeting was well-received by all parties overal.  It was suggested to
+consider adding a ``tree-view'' dump format to the DB which would provide a
+structured view of its structure (essentially similar to the {\em nesting}
+format).  However, such a dump format should be {\bf complementary} to the
+regular dumps, and the database won't support restoring from such formats.  The
+purpose of such a dump, or rather an {\em extra view}, is to assist the users in
+visualizing the data center, not to allow two distinct ways to use the
+application.  It was also noted that such a view format could be implemented
+using for example the Python bindings for the DB and not via the main CLI tool.
+
+The employees of the Institute who were present at the meeting expressed their
+content with the direction the Deska project is heading to.  They very much
+welcomed that the Deska team was willing to revisit the decision to go with
+nesting when the users expressed their concern with such an interface.
+
+\end{document}
