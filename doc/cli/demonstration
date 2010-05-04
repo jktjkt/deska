@@ -304,3 +304,74 @@ host saltix10
     interface eth0 ...
     interface bmc mac XYZ net monitoring ...
 end
+
+
+host xxx
+    interface bond0
+        physical eth0 mac ...
+        physical eth1 mac ...
+    end
+
+    interface bond0 ip ... physical eth0,eth1
+    interface eth0 ...
+    interface eth1 ...
+
+    interface bond0 ip ...
+    interface eth0 in bond0
+    interface eth1 in bond0
+end
+
+host xxx
+    ...
+end
+
+inetrface host_xxx_eth0
+    in xxx
+end
+
+
+
+
+
+
+
+
+rack serverovna
+    rack L01
+        hw golias110
+            bay 9
+            model dl140
+        end
+
+        rack salix01_02
+            inherit sgi-twin
+            bay 10
+
+            hw salix01
+                bay 0
+                model xe310
+                interface eth0 switch ... port ...
+                disk "2x 300GB SAS"
+            end
+
+            hw salix02
+                bay 1
+                model xe310
+            end
+        end
+
+        hw blabla
+            ...
+        end
+    end
+end
+
+# rack serverovna L01 salix01-02 hw salix01 > disk "2x 300GB..."
+
+
+host golias110
+    hw golias110
+    interface bond0 ip ...
+        physical eth0 mac ... network golias ip ...
+        physical eth1
+    end
