@@ -1,0 +1,22 @@
+Schuze Deska, 2010-05-17 FZU
+
+Pritomni: vsi
+
+Program: mocna diskuse nad dumpem, databazi a API
+
+Poznamky z diskuse:
+
+templaty/sablony: cena zjistovani varovani "modifikujete sablonu, vlivni X
+polozek" je (log n)^k; n = pocet templatu, k = hloubka zanoreni
+
+prejmenovat "enclosure" a "rack" na neco
+
+pozor na pouziti enclosure/rack pro hw/host
+
+boxmodel, rack
+
+hwmodel, machine, host <- v databazi
+
+CLI "host" = kombinace "machine" a "host" v DB
+CLI "virtual host" = "host" v DB
+(a nebo "role xen-pool-1" a "vhost xen-pool-1")
