@@ -1,5 +1,5 @@
-#ifndef DESKA_DB_ENCLOSURE_H
-#define DESKA_DB_ENCLOSURE_H
+#ifndef DESKA_DB_BOXMODEL_H
+#define DESKA_DB_BOXMODEL_H
 
 #include <string>
 #include "../Flags.h"
@@ -8,7 +8,7 @@ namespace Deska {
 
 namespace DB {
 
-/** @short Flags for ordering of bays inside an enclosure */
+/** @short Flags for ordering of bays inside a boxmodel */
 typedef enum {
     BOTTOM_TO_UP=1, /**< @short Number one at the bottom */
     UP_TO_BOTTOM=2, /**< @short No. 1 at the top */
@@ -20,19 +20,19 @@ typedef enum {
 
 DESKA_DECLARE_FLAGS(BayOrderingFlags, BayOrdering)
 
-/** @short Representation of the "enclosure" statement from the CLI
+/** @short Representation of the "boxmodel" statement from the CLI
  *
- * Instances of the Enclosure class are managed by the Database object. Users
+ * Instances of the BoxModel class are managed by the Database object. Users
  * are not permitted to create, copy or destroy them.  The Database will create
  * them when needed and won't destroy them until the database itself ceases to
  * exist.
  * */
-class Enclosure {
+class BoxModel {
 public:
-    /** @short Returns the name of the enclosure kind */
+    /** @short Returns the name of the boxmodel kind */
     std::string name() const;
-    /** @short Returns a pointer to an enclosure into which this one fits */
-    const Enclosure* fitsIn() const;
+    /** @short Returns a pointer to an boxmodel into which this one fits */
+    const BoxModel* fitsIn() const;
 
     /** @short Returns true if the enclosure dimensions are specified in absolute values */
     bool hasAbsoluteDimensions() const;
@@ -63,7 +63,7 @@ public:
     /** @short Returns number of occupied bays in the "depth" direction of the parent rack */
     int occupiedBaysDepth() const;
 
-    /** @short Returns true if this enclosure has inner bay structure */
+    /** @short Returns true if this boxmodel has inner bay structure */
     bool hasInnerBays() const;
     /** @short Number of bays in the "width" direction or -1 if hasInnerBays() is false */
     int baysWidth() const;
@@ -74,15 +74,25 @@ public:
     /** @short Order for the bay numbering */
     BayOrderingFlags bayOrdering() const;
 
+    void setFitsIn( const BoxModel* const where );
+    void setAbsoluteDimensions( const bool areAbsolute );
+    void setWidth( const int num );
+    void setHeight( const int num );
+    void setDepth( const int num );
+    void setOccupiedBaysWidth( const int num );
+    void setOccupiedBaysHeight( const int num );
+    void setOccupiedBaysDepth( const int num );
+    void setBayOrdering( const BayOrderingFlags ordering );
+
 private:
     // we want to control the lifetime of these objects
-    Enclosure();
-    Enclosure( const Enclosure& );
-    ~Enclosure();
+    BoxModel();
+    BoxModel( const BoxModel& );
+    ~BoxModel();
 };
 
 }
 
 }
 
-#endif // DESKA_DB_ENCLOSURE_H
+#endif // DESKA_DB_BOXMODEL_H
