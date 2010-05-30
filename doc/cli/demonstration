@@ -149,30 +149,30 @@ end
 #
 ################################################################################
 
-hw 1u
+hwmodel 1u
     in generic-rack
     # no bay occupation indicated -> default to "1 bay"
 end
 
-hw 2u
+hwmodel 2u
     in generic-rack
     # no indication of occupied depth/width -> default to 1
     occupies height 2
 end
 
-hw dl360g5
+hwmodel dl360g5
     template 1u
 end
 
-hw dl380g5
+hwmodel dl380g5
     template 2u
 end
 
-hw bl20p
+hwmodel bl20p
     in hp-blade-p-chassis
 end
 
-hw dl140
+hwmodel dl140
     template 1u
     benchmark hepspec 8
     cpu "Intel Xeon 3.06 GHz"
@@ -184,11 +184,11 @@ hw dl140
 end
 
 # Note that we're using the same name here
-hw sgi-twin
+hwmodel sgi-twin
     in sgi-twin
 end
 
-hw xe310
+hwmodel xe310
     template sgi-twin
     benchmark hepspec 68
     cpu E5420
@@ -198,7 +198,7 @@ hw xe310
     disk "SAS 300GB"
 end
 
-hw xe340
+hwmodel xe340
     template sgi-twin
     benchmark hepspec 95
     cpu E5520
