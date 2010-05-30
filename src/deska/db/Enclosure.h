@@ -2,13 +2,14 @@
 #define DESKA_DB_ENCLOSURE_H
 
 #include <string>
+#include "../Flags.h"
 
 namespace Deska {
 
 namespace DB {
 
 /** @short Flags for ordering of bays inside an enclosure */
-enum {
+typedef enum {
     BOTTOM_TO_UP=1, /**< @short Number one at the bottom */
     UP_TO_BOTTOM=2, /**< @short No. 1 at the top */
     LEFT_TO_RIGHT=4, /**< @short No. 1 on left */
@@ -16,6 +17,8 @@ enum {
     FRONT_TO_BACK=16, /**< @short No. 1 at the front side */
     BACK_TO_FRONT=32 /**< @short No. 1 at the bottom of the box */
 } BayOrdering;
+
+DESKA_DECLARE_FLAGS(BayOrderingFlags, BayOrdering)
 
 /** @short Representation of the "enclosure" statement from the CLI
  *
@@ -68,8 +71,8 @@ public:
     int baysHeight() const;
     /** @short Number of bays in the "width" direction or -1 if hasInnerBays() is false */
     int baysDepth() const;
-    /** @short Order for the bay numbering, a logical OR of BayOrdering */
-    int bayOrdering() const;
+    /** @short Order for the bay numbering */
+    BayOrderingFlags bayOrdering() const;
 
 private:
     // we want to control the lifetime of these objects
