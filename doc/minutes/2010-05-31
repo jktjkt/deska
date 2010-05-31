@@ -1,0 +1,33 @@
+Schuze Deska, 31. kvetna 2010 FZU
+---------------------------------
+
+Pritomni vsi.
+
+API
+---
+
+- pure virtual classes as an interface
+    - class PostgreDB: public Database...
+    - class PostgreBasicHwModel: public BasicHwModel...
+
+Database* db = ...
+
+db->begin();
+BoxModel* newItem = db->createBoxModel("foo");
+newItem->setExtends( db->getBoxModel("generic-rack") );
+newItem->setOccupiedBaysHeight(10);
+debug << db->diff();
+db->createMachine("golias100")->setHw( db->getHwModel("dl140") )->setCpu("...");
+db->commit();
+
+
+----
+- generovatko musi zmrazit svuj pohled do DB
+- kolize mezi editama
+- pouzivani databazove historie
+- zmeny revize jsou globalne pres celou DB
+- konflikty budeme resit pres export do formatu dumpu a jeho zpracovenim pres
+diff3 a otevrenim $EDITOR spravci
+- potrebujeme metodu, jak zajistit, aby se DB s daty dostala do stavu, ktery
+ukazeme novym dumpem (=porovnavani "radku po radce" mezi soucasnym stavem DB a
+        novou "fake" DB coby reprezentaci dumpu)
