@@ -16,17 +16,30 @@
 
 \newpage
 
-
-
-
 \section{Quattor}
-Text
 
+Quattor is an integrated system developed especially for use in the W-LCG
+computing grid.  Therefore, it should provide the most obvious and persuading
+benefits of all the mentioned platforms and systems.  Unfortunately, it has
+grown to a rather complex apliance over time, and it is difficult nowadays to
+use only the ``system inventory'' part of the project.  Because the Institute
+does not want to abandon its existing systems, for example the Cfengine, using
+Quattor is not an option in the long run, simply because isolating the required
+parts would essentially lead to a fork of the project.  The Institute clearly
+lacks the resources and commitment which would be required for maintaining such
+a fork.
 
 
 \section{Lemon}
-Text
 
+Lemon is a full-blown monitoring system written and maintained by CERN.  Again,
+a platform closely integrated with the grid should, in theory, provide clear
+benefits.  However, Lemon has its disadvantages, like a design assumption that
+it works on top of Oracle.  Personal experience with a large-scale deployment of
+the system also suggests that performance issues are likely to emerge during
+heavy use.  In addition to these problems, Lemon is attempting many problems
+which are already being handled by the Institute's staffers, which would again
+mean a need to manually extract the required parts.
 
 
 \section{OCS Inventory}
@@ -72,9 +85,13 @@ The bad ones:
 
 
 \section{Smurf}
-Text
 
-
+Smurf, a database layer being used by the CC-IN2P3 computing facility in Lyon,
+France, is certainly a promising project.  The author has spent considerable
+time coordinating the effort with the Smurf's developers, and they have been a
+valuable source of comments and information.  However, the Smurf is currently
+undergoing a major rewrite during production use, and is therefore not usable in
+its present form.
 
 
 \end{document}
