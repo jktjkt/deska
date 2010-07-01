@@ -1,0 +1,319 @@
+\documentclass{beamer}
+
+\usetheme{egee}
+\usepackage[utf8]{inputenc}
+%\usepackage{ucs}
+%\usepackage[utf8x]{inputenc}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Deska: Tool for Central Administration of a Grid Site}
+\author{Jan Kundrát \and Lukáš Kerpl \and Martina Krejčová \and Tomáš Hubík}
+\date{
+   {EGEE-III INFSO-RI-222667}  
+   4{\textsuperscript th} International Conference Distributed Computing and Grid-Technologies in
+Science and Education
+}
+\begin{frame}
+\maketitle
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Outline}
+\begin{itemize}
+    \item The Prague site
+    \item Problems we are facing
+    \item Partial Solutions
+    \item The Deska project
+    \item Future work
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivation}
+\begin{itemize}
+    \item Growing number of machines and resources to manage
+        \begin{itemize}
+            \item 2630 CPUs
+            \item 336 WNs, tens of auxiliary hosts
+            \item 520~TBs of raw disk space on disk servers
+            \item NEO~8000 tape library
+            \item 3 independent FC fabrics
+            \item 19 managed Ethernet switches
+            \item 10G Ethernet infrastructure
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Motivation (cont.)}
+\begin{itemize}
+    \item No retirement of old HW until very recently
+    \item Number of employees remains stagnant
+        \begin{itemize}
+            \item 2~FTE
+            \item $3\times$~students, 0.25-0.5 FTE each
+            \item Some assistance from other sections of the Institute
+            \item Roughly 3~FTEs in total for system administrators
+            \item 6 people in total
+        \end{itemize}
+    \item Overworked system administrators
+    \item No free capacity to handle unexpected problems
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The First Steps Towards a Solution}
+\begin{itemize}
+    \item In-house scripts
+        \begin{itemize}
+            \item Shell {\tt for \ldots} loop
+            \item Forgotten nodes -- temporarily offline, powered down,\ldots
+        \end{itemize}
+    \item Yet more in-house scripts checking the above scripts' execution
+    \item Move from in-house scripts to an Intelligent Solution™
+        \begin{itemize}
+            \item Cfengine
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Ad-hoc Scripts vs.\ Cfengine Example}
+\begin{itemize}
+    \item Switching to LDAP for user management
+        \begin{itemize}
+            \item {\tt sed} magic
+            \item Or a proper solution with all the benefits
+        \end{itemize}
+\end{itemize}
+
+{\scriptsize
+\begin{verbatim}
+{ /etc/nsswitch.conf
+    BeginGroupIfNoLineMatching ^passwd:([[:space:]])+files([[:space:]])+ldap$"
+      HashCommentLinesStarting "passwd:"
+      Append "passwd: files ldap"
+    EndGroup
+}
+\end{verbatim}
+}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Cfengine: Adv.\ and Disadv.}
+\begin{itemize}
+    \item Disadvantages
+        \begin{itemize}
+            \item Steep learning curve
+            \item Fixes tend to be longer and take more effort
+        \end{itemize}
+    \item Advantages
+        \begin{itemize}
+            \item Fixes are there for the eternity
+            \item Version control extremely easy to do
+            \item All nodes are finally configured in the same way
+        \end{itemize}
+    \item \textbf{But that still doesn't solve the problem of information duplication}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The Duplicate Information}
+    An example: delivery of new machines
+\begin{itemize}
+    \item Supplier installs the machines into racks, racks into the machine room
+    \item We have to keep track of part numbers, warranty,\ldots
+    \item Network connectivity, switch port management
+    \item MAC addresses, IP addresses
+    \item OS installation
+    \item Configuring the service
+    \item Configuring the monitoring boxes
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The Duplicate Information (cont.)}
+\begin{itemize}
+    \item Information about one host is scattered among many places
+        \begin{itemize}
+            \item HW inventory DB
+            \item Warranty \& issue tracking
+            \item Switch port configuration
+            \item DHCP server
+            \item DNS
+            \item Cfengine roles
+            \item Torque's CPU multipliers
+            \item MRTG \& RRD network graphs
+            \item Nagios
+            \item Ganglia
+            \item Munin
+            \item \ldots
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bringing them back together}
+\begin{itemize}
+    \item We {\em really} want to move the pieces back together
+        \begin{itemize}
+            \item How to do that in a sane way, though
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bringing them back together (cont.)}
+\begin{itemize}
+    \item Patch the systems to query the DB
+        \begin{itemize}
+            \item Does not scale
+            \item Too much work -- have to maintain the patches ourselves
+            \item No propagation delay
+        \end{itemize}
+    \item Use the DB to generate services' configuration
+        \begin{itemize}
+            \item Distribute the configuration files via an existing mechanism
+            \item No need to patch/maintain stuff
+            \item Slight propagation delay, though
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Analysis of Existing Systems}
+\begin{itemize}
+    \item OCS Inventory
+        \begin{itemize}
+            \item Different design goals
+            \item Auto-discovery of nodes
+        \end{itemize}
+    \item RackMonkey
+        \begin{itemize}
+            \item Just HW tracking
+            \item No support for different sizes than a pizza box
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Analysis of Existing Systems: Grid}
+\begin{itemize}
+    \item Quattor
+        \begin{itemize}
+            \item Widely used in WLCG
+            \item Handles even stuff which we already do in a different way
+            \item Problematic to use just the ``interesting'' parts
+        \end{itemize}
+    \item Smurf
+        \begin{itemize}
+            \item Nice design
+            \item No publicly available documentation
+            \item Undergoing a major rewrite
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{System Requirements}
+\begin{itemize}
+    \item Console UI
+    \item Delayed changes, two-phase commit
+    \item Version control
+    \item Textual DB dumps
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{The Deska Project}
+\center{\includegraphics[width=5cm]{deska_logo.pdf}}
+\begin{itemize}
+    \item Developed by the students of the Faculty of Mathematics and Physics, Charles University in Prague
+    \item Bc.~Martina~Krejčová, Bc.~Lukáš~Kerpl, Bc.~Tomáš~Hubík, Bc.~Jan~Kundrát,
+        supervised by RNDr.~Filip~Zavoral,~Ph.D.
+    \item Close collaboration with the Institute of Physics of the AS CR
+        \begin{itemize}
+            \item Administrators are involved in all design decisions
+            \item We are building a system for real use, one that \em{they will like to use}
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska's Design}
+\begin{itemize}
+    \item Central database
+    \item Object-oriented C++ library for access to the DB
+    \item CLI application which is designed to be (power) user-friendly
+        \begin{itemize}
+            \item Changes are not performed on a live DB
+            \item Propagation to the real DB only after an explicit commit; atomic commits
+            \item Showing nice diffs, history browsing
+        \end{itemize}
+    \item SSH-based authentication/authorization
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska's Implementation}
+\begin{itemize}
+    \item PostgreSQL for the DB, heavy use of PL/pgSQL
+    \item C++ API
+    \item Python for most configuration-generating modules
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska's Timeline}
+\begin{itemize}
+    \item A lot of time invested into the design
+    \item Initial ideas got scrapped, current design is a 3\textsuperscript{rd} iteration
+    \item DB structure is ready, API pending final changes
+    \item CLI not usable yet
+        \begin{itemize}
+            \item No online demo at this time, sorry
+        \end{itemize}
+    \item Should be ready for production use next summer at the latest
+    \item A demo is expected to be available at CHEP'10, Taiwan
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska: Future Work}
+\begin{itemize}
+    \item Use the DB for visualization of the machine room
+    \item Make use of the data for periodical checks of system's health
+    \item Automatic ``one-click'' deployment of new machines
+        \begin{itemize}
+            \item And in general, better integration with existing procedures
+        \end{itemize}
+    \item Finding out a meaning to put behind the acronym
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Conclusion}
+\begin{itemize}
+    \item Use proper tools, if available
+    \item Don't be shy to develop new ones if needed
+        \begin{itemize}
+            \item Especially when they are going to be much more effective
+        \end{itemize}
+    \item Information duplication is evil and will bite, sooner or later
+    \item The Deska project is our answer to the need we perceive
+    \item \url{http://projects.flaska.net/projects/show/deska}
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Questions}
+\begin{center}
+%Спасибо за Ваше внимание!
+Thank you for your attention!
+\end{center}
+\end{frame}
+
+\end{document}

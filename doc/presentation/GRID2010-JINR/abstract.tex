@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{a4wide}
+\usepackage{url}
+\usepackage[auth-sc]{authblk}
+
+\title{\sc Deska: Tool for Central Administration of a Grid Site}
+\author[1,2,*]{Kundrát, J.}
+\affil[1]{Institute of Physics of the AS CR, Prague, Czech Republic}
+\author[2]{Kerpl, L.}
+\author[2]{Krejčová, M.}
+\author[2]{Hubík, T.}
+\affil[2]{Faculty of Mathematics and Physics, Charles University in Prague, Czech Republic}
+
+\date{May 20, 2010}
+
+\begin{document}
+
+\let\oldthefootnote\thefootnote
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[1]{To whom correspondence should be addressed. Email:
+    \url{kundratj@fzu.cz}}
+\let\thefootnote\oldthefootnote
+
+\maketitle
+ 
+\begin{abstract}
+Recent developments at the Prague Tier-2 W-LCG site certainly put the system
+administrators into a difficult position: the total amount of available hardware
+increases along with the available computing capacity, yet the size of the team
+of system administrators remains constant.
+
+Careful analysis of the problem at hand indicated that most troublesome was the
+sheer amount of information that the administrators had to manage about each
+piece of infrastructure, from the mission-critical hosts to mere worker nodes.
+Furthermore, many pieces of information were replicated to multiple places,
+tremendously increasing the risk of whole system running in an inconsistent
+state for a while.
+
+Given the situation, the staffers began to investigate usability of various
+existing applications, from the OCS Inventory and Rackmonkey to Smurf and vastly
+popular Quattor.  Unfortunately, none of these solution proved to fit the
+particular needs of the Institute.  A group of students was therefore assembled
+and set forth to develop a system for central evidence of the hardware for a
+typical Tier-2 grid site, along with proper infrastructure for employing the
+data contained in the information system for generating configuration for
+various monitoring and managing tools, from the Nagios and Cfengine to the DHCP
+and DNS servers.
+
+In the proposed talk, we discuss design choices of the system as well as reasons
+for certain decisions we took, such as the preference of the CLI interface over
+the web-based UI.  An overview of the current state of the implementation is
+given, along with a proposed roadmap and features which are still missing.  In
+addition, we discuss a typical component using the data from the database in
+order to configure a production service in a fully autonomous way.
+
+Finally, we present the ongoing work on a general monitoring appliance
+aggregating the data from various sources, both on-site sensors and remote
+monitoring infrastructure, using the data from the inventory system.
+Integration of diverse range of monitoring tools is paramount for proper running
+of the data center, and the data from the database is valuable in depicting
+actual relations between groups of networked hosts.
+
+\end{abstract}
+
+\end{document}
+
