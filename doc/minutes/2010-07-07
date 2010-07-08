@@ -1,0 +1,91 @@
+Schuze Deska, 2010-07-07 15:50 :) FZU
+
+Pritomni: Lukas, Tomas, Honza
+Omluveni: Martina (cestuje)
+
+
+Diskuse:
+--------
+
+- Lukas povidal o vysledku koverzace s Kopeckym; ten doporucuje pouzit tabulku
+historie k postupnemu vytvareni docasnych verzi, ktere se pak "mergnou" do
+produkcni tabulky
+
+- shodli jsme se na tom, ze zmeny probihaji tak, ze:
+    1) uzivatel konfa, konfa
+    2) Existuje atomicka operace "save", ktera vezme stav od uzivatele, o kterem
+    uzivatel prohlasi, ze je zalozen na verzi A; tento stav se jmenuje A'. Pokud
+    se v DB jako posledni produkcni verze vyskytuje A, operace "save" probehne
+    uspesne, pokud je v DB jako posledni verze B, operace ihned selze. "save" je
+    rychla vec, ktera nevyzaduje interakci s uzivatelem.
+    3) Pokud nastaly v DB nejake zmeny, zatimco uzivatel konfal, pozna to
+    nejpozdeji pri "save", jelikoz ho DB odmitne s tim, ze A != B. Uzivatel se
+    tedy musi pokusit udelat "rebase", tedy prevest sve zmeny udelane oproti
+    revizi A na revizi B, tim vznika revize B' (jako puvodne A' obsahovala A +
+    jeho zmeny, ted B' obsahuje B a "tytez" zmeny); tento merge je ukol pro
+    cloveka.
+    4) Po mergi (ktery provedl clovek) mame tedy B' a opet se pokusime DB primet
+    k tomu, aby toto prohlasila za finalni stav. Pokud to pujde (= neexistuje
+    hotova verze C novejsi nez B), "save" uspeje, pokud to nepujde, provadime
+    merge z B, B" a C na C'...
+
+- DB by mela umet ukazat diff jak svuj, tak vygenerovane konfigurace
+
+- ke vsem objektum je potreba umet pridat libovolny pocet klic-hodnota paru;
+klic je neco jako ASCII identifikator, hodnota je libovolny BLOB; DB nehlida
+zadna integritni omezeni, klice je potreba pred pouzitim zaregistrovat, viz API
+
+
+Co je potreba udelat:
+---------------------
+
+- sepsat pamflet pro komisi: pracovni sila zatim nepridelena
+- pracovat na API
+
+
+Konkretni ukoly:
+----------------
+
+- ucinit ukazkovy dump konzistentni a pridat do nej vsechny mozne
+identifikatory: Honza
+
+- C++ API databaze: kompletni implementace pro jednu tridu objektu (tj. neco
+jako existujici src/deska/db/BoxModel.h, pouze v tom reflektovat zmeny provedene
+v API), k tomu API "primo pro databazi" (viz dale): Honza
+
+- pracovat na aplikaci: Tomas
+
+- udelat DB podle dumpu a API: Lukas
+
+
+Jak ma vypadat API:
+-------------------
+
+"XYZ" znaci, ze takova funkce ma existovat pro vsechny tridy objektu, se kterymi
+pracujeme, tedy BoxModel, Host, Rack,...
+
+class DB:
+    vector<string> namesOfXYZ();
+    XYZObj getXYZ( string name );
+    XYZObj addXYZ( string name );
+    renameXYZ( string old, string new );
+    removeXYZ( string name );
+    beginTxn();
+    save();
+    rebaseTxn( revision new ); // pouze deklaruje novy stav jako "zalozeny na
+                               // revizi X", merge dela CLI "rucne", pouziva k tomu setXXX() metody
+    vector<string> getChangedXYZNames( revision changedIn );
+    vector<string> dataKeysXYZ();
+    setDataKeysXYZ( vector<string> allowedKeys );
+
+    setCurrentRevision( revisin r ); // aby treba getXYZ() vedelo, co vracet
+
+class ObjXYZ:
+    setData( DataKey key, Blob value );
+    Blob getData( DataKey key );
+    dropData( DataKey key );
+
+    // a pro kazdy atribut:
+    setHostName( string host );
+    string hostName();
+    ...
