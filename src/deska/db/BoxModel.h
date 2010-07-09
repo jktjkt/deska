@@ -20,94 +20,86 @@ typedef enum {
 
 DESKA_DECLARE_FLAGS(BayOrderingFlags, BayOrdering)
 
-class BoxModel;
-
-/** @short Storage container for the "boxmodel" statement without templating support
+/** @short Representation of a "boxmodel" statement
  *
- * This class should only store and return information which are explicitly
- * known at this particular level of template derivation.  All inherited data
- * shall be requested via the BoxModel class.
+ * This class serves as a wrapper around the database's idea about data stored
+ * for a particular boxmodel statement. Modifications of this object shall be
+ * propagated to the underlying database.
+ *
+ * FIXME: we should decide about how to deal with templates and inherited
+ * values. Basically, each getter method should be able to indicate whether the
+ * value is modified on this level or if it is inherited from upper objects. We
+ * also have to provide a way to explicitly unset any attribute given on this
+ * level (so the object will inherit the parent's value for the attribute in
+ * question).
  * */
-class BasicBoxModel {
+class BoxModel {
 public:
     /** @short Returns the name of the boxmodel kind */
-    virtual std::string name() const;
-    /** @short Returns a pointer to an boxmodel into which this one fits */
-    virtual const BoxModel* fitsIn() const;
+    std::string name() const;
+
+    /** @short Returns a name of a boxmodel into which this one fits */
+    const std::string fitsIn() const;
+
+    /** @short Specify a boxmodel to which this one physically fits */
+    void setFitsIn( const std::string& what );
 
     /** @short Returns true if the enclosure dimensions are specified in absolute values */
-    virtual bool hasAbsoluteDimensions() const;
+    bool hasAbsoluteDimensions() const;
     /** @short Returns width of the enclosure in milimeters
      *
      * Should the dimension be specified in "bay units", the
      * hasAbsoluteDimensions() returns false, the hasRelativeDimensions()
      * returns true and functions width(), height() and depth() return -1.
      */
-    virtual int width() const;
+    int width() const;
     /** @short Returns height of the enclosure in milimeters
      *
      * @see width()
      * */
-    virtual int height() const;
+    int height() const;
     /** @short Returns depth of the enclosure in milimeters
      *
      * @see width()
      * */
-    virtual int depth() const;
+    int depth() const;
 
     /** @short Returns true if the outer dimensions of an enclosure are specified in bay units */
-    virtual bool hasRelativeDimensions() const;
+    bool hasRelativeDimensions() const;
     /** @short Returns number of occupied bays in the "width" direction of the parent rack */
-    virtual int occupiedBaysWidth() const;
+    int occupiedBaysWidth() const;
     /** @short Returns number of occupied bays in the "height" direction of the parent rack */
-    virtual int occupiedBaysHeight() const;
+    int occupiedBaysHeight() const;
     /** @short Returns number of occupied bays in the "depth" direction of the parent rack */
-    virtual int occupiedBaysDepth() const;
+    int occupiedBaysDepth() const;
 
     /** @short Returns true if this boxmodel has inner bay structure */
-    virtual bool hasInnerBays() const;
+    bool hasInnerBays() const;
     /** @short Number of bays in the "width" direction or -1 if hasInnerBays() is false */
-    virtual int baysWidth() const;
+    int baysWidth() const;
     /** @short Number of bays in the "height" direction or -1 if hasInnerBays() is false */
-    virtual int baysHeight() const;
+    int baysHeight() const;
     /** @short Number of bays in the "width" direction or -1 if hasInnerBays() is false */
-    virtual int baysDepth() const;
+    int baysDepth() const;
     /** @short Order for the bay numbering */
-    virtual BayOrderingFlags bayOrdering() const;
+    BayOrderingFlags bayOrdering() const;
 
-    virtual void setFitsIn( const BoxModel* const where );
-    virtual void setAbsoluteDimensions( const bool areAbsolute );
-    virtual void setWidth( const int num );
-    virtual void setHeight( const int num );
-    virtual void setDepth( const int num );
-    virtual void setOccupiedBaysWidth( const int num );
-    virtual void setOccupiedBaysHeight( const int num );
-    virtual void setOccupiedBaysDepth( const int num );
-    virtual void setBayOrdering( const BayOrderingFlags ordering );
+    void setFitsIn( const BoxModel* const where );
+    void setAbsoluteDimensions( const bool areAbsolute );
+    void setWidth( const int num );
+    void setHeight( const int num );
+    void setDepth( const int num );
+    void setOccupiedBaysWidth( const int num );
+    void setOccupiedBaysHeight( const int num );
+    void setOccupiedBaysDepth( const int num );
+    void setBayOrdering( const BayOrderingFlags ordering );
 
 private:
-    // we want to control the lifetime of these objects
+    // The lifetime of these objects is controlled by the DB
     BasicBoxModel();
     BasicBoxModel( const BasicBoxModel& );
+    BasicBoxModel& operator=( const BasicBoxModel& );
     ~BasicBoxModel();
-};
-
-/** @short Representation of the "boxmodel" statement from the CLI
- *
- * Instances of the BoxModel class are managed by the Database object. Users
- * are not permitted to create, copy or destroy them.  The Database will create
- * them when needed and won't destroy them until the database itself ceases to
- * exist.
- * */
-class BoxModel: public BasicBoxModel {
-public:
-    BoxModel* extends() const;
-    void setExtends( const BoxModel* const what );
-private:
-    // we want to control the lifetime of these objects
-    BoxModel();
-    BoxModel( const BoxModel& );
-    ~BoxModel();
 };
 
 }

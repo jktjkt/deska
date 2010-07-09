@@ -15,44 +15,60 @@ class HwModel;
 class Network;
 class Rack;
 
+typedef unsigned int Revision;
+
 class Database {
 public:
-    virtual ~Database();
+    ~Database();
+
+    // Transaction control functions and global modifiers
 
     /** @short Start a new transaction for modfying the DB */
-    virtual void startTransaction();
+    void startTransaction();
+
     /** @short Commit the changes to the DB */
-    virtual void commit();
+    void save();
 
-    /** @short Get an informal diff between the upstream and local DB state */
-    virtual std::string diff() const;
+    /** @short Mark the current change set as a derived of reviison rev */
+    void rebaseTransaction( const Revision rev );
+
+    /** @short Change the notion of a current revision for acessor methods */
+    void setCurrentRevision( const Revision rev );
 
 
 
+    // Accessors: BoxModel
 
-    /** @short Returns a list of all valid "boxmodel" identifiers */
-    virtual std::vector<std::string> getBoxModelNames() const;
+    /** @short Get a list of names of all BoxModels which got changed in a particular revision */
+    std::vector<std::string> changedBoxModelNames( const Revision rev ) const;
+
+    /** @short Get a list of all registered data keys for a BoxModel */
+    std::vector<std::string> dataKeysBoxModel() const;
+
+    /** @short Set allowed data keys for a BoxModel */
+    void setDataKeysBoxModel( const std::vector<std::string>& allowedKeys );
+
+    /** @short Returns a list of all valid "BoxModel" identifiers */
+    std::vector<std::string> boxModelNames() const;
 
     /** @short Retreive a BoxModel instance for a specified identifier */
-    virtual BoxModel* getBoxModel( const std::string& name ) const;
+    BoxModel getBoxModel( const std::string& name ) const;
 
     /** @short Create a new, empty BoxModel with the specified name */
-    virtual BoxModel* createBoxModel( const std::string& name );
+    BoxModel addBoxModel( const std::string& name );
+
+    /** @short Change a BoxModel's name */
+    void renameBoxModel( const std::string& oldName, const std::string& newName );
+
+    /** @short Remove a BoxModel from the database */
+    void removeBoxModel( const std::string& name );
 
     /** @short Return a list of all boxmodels which inherit from a particular BoxModel template */
-    virtual std::vector<std::string> getInheritedBoxModels( const std::string& name ) const;
+    std::vector<std::string> getInheritedBoxModels( const std::string& name ) const;
 
 
-    virtual std::vector<std::string> getHwModelNames() const;
-    virtual HwModel* getHwModel( const std::string& name ) const;
-    virtual HwModel* createHwModel( const std::string& name );
-    virtual std::vector<std::string> getInheritedHwModels( const std::string& name ) const;
 
-    virtual std::vector<std::string> getNetworkNames() const;
-    virtual Network* getNetwork( const std::string& name ) const;
-    virtual Network* createNetwork( const std::string& name );
-
-
+    // FIXME: repeat all of the above for each Object class (BoxModel, Host,...)
 };
 
 }
