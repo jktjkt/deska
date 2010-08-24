@@ -1,4 +1,4 @@
--- switch to deska_dev SCHEMA
+﻿-- switch to deska_dev SCHEMA
 SET search_path TO deska_dev,public;
 
 -- cut here: destroy script
@@ -177,3 +177,36 @@ CREATE TABLE os (
 	-- interface(s)
 );
 GRANT ALL ON os TO deska_team;
+
+CREATE TABLE boxmodel (
+	uid int PRIMARY KEY,
+	name varchar(20),
+
+	--outer size
+	--dimension_type - bay-units(FALSE) / absolute number(TRUE)
+	dimension_type boolean,
+	--in milimeters
+	width int
+		CONSTRAINT boxmodel_width_positive CHECK (width > 0),
+	height int
+		CONSTRAINT boxmodel_height_positive CHECK (height > 0),	
+	depth int
+		CONSTRAINT boxmodel_depth_positive CHECK (depth > 0),
+	--number of bays that occupies in parent rack
+
+	--inner size
+	--in bay units
+	--number of bay units in the width/height/depth direction
+	bay_width int
+		CONSTRAINT boxmodel_bay_width CHECK (bay_width > 0),
+	bay_height int
+		CONSTRAINT boxmodel_bay_height CHECK (bay_height > 0),
+	bay_depth int
+		CONSTRAINT boxmodel_bay_depth CHECK (bay_depth > 0),
+
+	--BOTTOM_TO_UP=1, UP_TO_BOTTOM=2, LEFT_TO_RIGHT=4, RIGHT_TO_LEFT=8, FRONT_TO_BACK=16, BACK_TO_FRONT=32 
+	--!!!!!! TODO control by trigger
+	bay_ordering_type int,
+	parent_box int references boxmodel(uid)
+);
+GRANT ALL ON boxmodel TO deska_team;
