@@ -1,7 +1,7 @@
 %{
 #include "CLIScanner.h"
 #ifdef HAVE_CONFIG_H
-# include "Config.h"
+  #include "Config.h"
 #endif
 #define YLMM_SCANNER_CLASS CLI::Scanner
 #include <ylmm/lexmm.hh>
@@ -47,15 +47,14 @@ FLOAT                  (({FRAC_CONST}{EXPO_PART}?)|([0-9]+{EXPO_PART}?))
 
 IPV4_ADDR              ({INTEGER}\.{INTEGER}\.{INTEGER}\.{INTEGER})
 IPV4_ADDR_WITH_MASK    ({IPV4_ADDR}/{INTEGER})
-IPV6_ADDR              (({HEX_NUMBER}\:){0-7}{HEX_NUMBER})
-MAC                    (({HEX_DIGIT}{2}\:){5}{HEX_DIGIT})
-ETH_INTERFACE_NAME     ({E}{T}{H}{INTEGER})
+IPV6_ADDR              (({HEX_NUMBER}?\:){0-7}{HEX_NUMBER})
+MAC_ADDR               (({HEX_DIGIT}{2}\:){5}{HEX_DIGIT})
+ETH_INT_NAME           ({E}{T}{H}{INTEGER})
 
 
 %%
 
-/* skip whitespaces */
-WHITESPACE+
+{WHITESPACE}+                             /* skip whitespaces */
 
 {H}{A}{R}{D}{W}{A}{R}{E}                  { return 0; }
 {M}{A}{N}{U}{F}{A}{C}{T}{U}{R}{E}{R}      { return 0; }
