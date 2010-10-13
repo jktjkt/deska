@@ -1,0 +1,237 @@
+\documentclass{beamer}
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{listings}
+
+\newcommand{\Heading}[1]{\hskip1cm\textbf{#1}\\}
+
+\mode<presentation> {
+	\usetheme{FZU}
+}
+
+%\usepackage[orientation=landscape,size=custom,width=200,height=120,scale=1.9]{beamerposter}
+\usepackage[orientation=portrait,size=a0,scale=1.4]{beamerposter}
+%\usepackage{times}
+
+\title{\Huge Deska: Tool for Central Administration of a Grid Site}
+\author{\textbf{Jan Kundrát}, Martina~Krejčová, Lukáš~Kerpl, Tomáš~Hubík}
+\institute[Institute of Physics]{Institute of Physics, AS CR, Prague, Czech
+Republic}
+\def\Email{kundratj@fzu.cz}
+
+\lstset{
+basicstyle=\ttfamily\scriptsize,
+xleftmargin=1cm
+}
+
+\begin{document}
+\begin{frame}[fragile]
+
+\begin{columns}[t]
+
+\begin{column}{.48\linewidth}
+\begin{block}{Introduction}
+Recent developments in hardware density brought unmatched \alert{challenges} to
+the shoulders of system administrators.  Number of CPUs and machines to be
+managed \alert{grows rapidly}, yet the number of staffers tends to remain
+\alert{stagnant}.  Some attempts at making the infrastructure work reliably,
+like adding more monitoring tools, could actually make people's life harder due
+to the need to \alert{duplicate information} about hosts even more.
+\end{block}
+
+\begin{block}{The Duplicated Information}
+Let's check where data for each machine deployed in the network have to be stored
+and maintained:
+\begin{columns}[T]
+\begin{column}{.4\linewidth}
+\begin{itemize}
+    \item HW inventory DB
+    \item Warranty \& issue tracking
+    \item Switch port configuration
+    \item DHCP server
+    \item DNS
+    \item Cfengine roles
+\end{itemize}
+\end{column}
+\begin{column}{.5\linewidth}
+\begin{itemize}
+    \item Torque's CPU multipliers
+    \item MRTG \& RRD network graphs
+    \item Nagios
+    \item Ganglia
+    \item Munin
+    \item \ldots
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{1em}
+
+Clearly, we should manage that information from one \alert{central place}.
+\end{block}
+
+\begin{block}{The CLI approach}
+
+\Heading{Web GUIs}
+The institute's staffers have used an in-house web-based tool for HW management.
+It has serious limitations like the lack of \alert{bulk operations} which make
+working with the application an unpleasant experience.  In contrast, such
+operations are best dealt with using \alert{CLI interfaces} and \alert{version
+control systems}.
+
+\Heading{The CLI solution}
+The idea is to develop a system controlled in a similar way to how one
+configures Cisco IOS, ie. using a nice \alert{shell} with friendly
+\alert{tab-completion}.
+
+\Heading{Backup and Change Management}
+The \alert{textual structure} of the database also allows for extremely easy
+backups.  In addition, keeping track of changes, even in an external system, is
+trivial.
+\end{block}
+
+\begin{block}{Database Structure}
+\Heading{List of Objects}
+Similar to how the IOS works, we define \alert{lists} of \alert{top-level
+objects}.  A good candidate for top-level objects are \alert{machines},
+\alert{different HW models}, \alert{racks} etc.
+
+\Heading{Assigning Properties}
+For each object, a well-defined set of \alert{properties} or \alert{attributes}
+is supported.
+
+For example, for any given \alert{host}, it makes sense to store its \alert{rack
+location}, \alert{warranty number}, \alert{HW-specific information} etc.
+\end{block}
+
+\begin{block}{Abstract and Concrete Objects}
+Intuitively, two kinds of objects should be managed, the \alert{physical}
+entities like a {\tt host} or a {\tt rack}, and \alert{abstract} elements like
+\alert{hardware model} ({\tt hwmodel}) or a {\tt network}.
+\end{block}
+
+\begin{block}{Inheritance and Templates}
+It makes a lot of sense to try to re-use existing definitions as much as
+possible.  Consider the racks -- most of them are very similar and one can
+exchange machines between them freely, yet the racks differ in number of
+available bays.  This is how we do that in Deska:
+
+\begin{lstlisting}
+boxmodel generic-rack
+    outer width 700
+    outer depth 1300
+    outer height 2000
+
+    bay height 44 order bottom-up start-at 1
+end
+
+boxmodel APC-rack
+    template generic-rack
+
+    outer height 2300
+
+    bay height 48
+end
+\end{lstlisting}
+
+In this case, the {\tt APC-rack} is \alert{derived} from the {\tt generic-rack}.
+Nothing prevents us from using the {\tt generic-rack} directly, and all
+equipment that fits into a {\tt generic-rack} could be put into the {\tt
+APC-rack} without any problem -- it's just a \alert{special case} of a rack
+after all.
+\end{block}
+
+\end{column}
+
+\begin{column}{.48\linewidth}
+
+\begin{block}{Using the Data}
+A set of \alert{generators} is used for converting data from the database into
+anything from \alert{configuration files} to \alert{switch configuration}.
+Using Deska's API, generators retrieve identifiers of objects matching certain
+\alert{criteria} and process them appropriately.
+
+This is used for generating DNS \alert{ zone files}, \alert{DHCP} configuration
+and even \alert{cfengine} classes.
+\end{block}
+
+\begin{block}{Versioning and Atomicity}
+\Heading{Sandbox}
+Performed changes are not instantly applied to live data.  Each CLI session
+lives in a sandboxed environment, and only an explicit \alert{commit} operation
+propagates the changes into the production version.
+
+\Heading{Version Control}
+Administrators are presented a textual \alert{diff-like} changeset upon each
+commit attempt.  The output indicates both \alert{DB changes} and modifications
+to the \alert{generated files}.  The intention is to operate as safely as
+possible by clearly showing the \alert{impact of the change}.
+\end{block}
+
+\begin{block}{Implementation Details}
+\begin{columns}[T]
+\begin{column}{.4\linewidth}
+\Heading{Choice of Tools}
+\begin{itemize}
+    \item C++, STL, TR1,\ldots
+    \item PostgreSQL
+    \item SSH and PAM for authentication, authorization and the transport
+        channel
+\end{itemize}
+\end{column}
+
+\begin{column}{.6\linewidth}
+\Heading{Target Platform}
+\begin{itemize}
+    \item The goal is to remain cross-platform; a reasonable target for
+        production are both 32bit and 64bit RHEL5 clones
+    \item The client should work on any recent Linux desktop distribution.
+\end{itemize}
+\end{column}
+\end{columns}
+
+\end{block}
+
+\begin{block}{Extensibility}
+The only \alert{hard-coded assumption} is that the database consists of a list
+of objects with well-defined \alert{structure}.  Each kind of objects has a set
+of allowed \alert{attributes} of a specified \alert{data type}.
+
+Predefined types of objects are shipped with Deska.  These objects allow a
+full and \alert{complete description} of all the equipment used at Prague site.
+However, we recognize the need for \alert{runtime configuration} of what is to
+be stored in the database, such as keeping detailed track of the Infiniband
+infrastructure.
+
+Therefore, it is possible to define new \alert{kinds} of objects by a simple
+plugin mechanism, as well as to \alert{extend} the properties of existing
+objects.  The database structure is augmented upon plugin activation.
+\end{block}
+
+\begin{block}{Defining Plugins}
+Trying to be consistent with the ``don't duplicate information'' motto, we are
+investigating ways to further \alert{automate} plugin definitions.  The most
+likely option to follow is using Postgres' code for extracting table structure
+from the \alert{SQL} definitions.  Re-using SQL would allow us to retain the
+ability to use native triggers for ensuring \alert{data consistency}, as well as
+avoid having to invent yet another constraint syntax.
+\end{block}
+
+\begin{block}{Links}
+\begin{itemize}
+    \item \url{http://projects.flaska.net/projects/show/deska}
+    \item \url{http://www.farm.particle.cz/}
+    \item Mailing list \url{deska@lists.flaska.net}
+\end{itemize}
+\includegraphics[width=\linewidth,trim=0 5.8mm 0 0]{deska_logo.pdf}
+\end{block}
+
+
+\end{column}
+
+\end{columns}
+\vfill
+\end{frame}
+
+\end{document}
