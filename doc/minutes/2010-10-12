@@ -1,0 +1,25 @@
+Schuze deska, 2010-10-12 FZU
+
+Pritomni: vsi
+
+Zkuste prosim priste dorazit presneji.
+
+
+Co jsme delali:
+---------------
+
+Diskuse nad tim, ze jsme ve fatalnim skluzu.
+
+Diskuse nad univerzalnosti nasi databaze, dosli jsme ke kompromisni podobe.
+Shodli jsme se, ze se pokusime zadratovat pouze "databaze je nekolik seznamu
+objektu, kazdy objekt ma atributy popsane v pluginech". Do pristi schuze se bude
+premyslet, jak to rozumne realizovat.
+
+
+Ukoly:
+------
+
+Tomas: dynamicke delani AST za behu
+Lukas: prevod SQL DDL -> seznam atributu
+Martina: reprezentace stromu :) mezi casti T a L
+Honza: sepisovani tuny dokumentu, clanku a posteru
