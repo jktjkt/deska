@@ -25,3 +25,11 @@ select * from pg_attribute where attrelid = 24583 and attnum = 2
 -- so now we only need to join it
 -- this is only to see what we can get from the db ...
 --
+
+--joint information about tables
+select relname,attname,typname 
+from 	pg_class as cl 
+	join pg_tables as tab on (schemaname='deska_dev' and cl.relname = tab.tablename) 
+	join pg_attribute as att on (att.attrelid = cl.oid )
+	join pg_type as typ on (typ.oid = att.atttypid)
+where  att.attname not in ('tableoid','cmax','xmax','cmin','xmin','ctid');
