@@ -1,0 +1,491 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{a4wide}
+\usepackage{url}
+\usepackage[auth-sc]{authblk}
+
+\title{\sc Deska: Tool for Central Administration of a Grid Site}
+\author[1,2,*]{Kundrát, J.}
+\affil[1]{Institute of Physics of the AS CR, Prague, Czech Republic}
+\author[2]{Kerpl, L.}
+\author[2]{Krejčová, M.}
+\author[2]{Hubík, T.}
+\affil[2]{Faculty of Mathematics and Physics, Charles University in Prague, Czech Republic}
+
+\date{October 1, 2010}
+
+\begin{document}
+
+\let\oldthefootnote\thefootnote
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[1]{To whom correspondence should be addressed. Email:
+    \url{kundratj@fzu.cz}}
+\let\thefootnote\oldthefootnote
+
+\maketitle
+ 
+\begin{abstract}
+Running a Tier-2 WLCG site is a demanding task, especially given the ever
+increasing number of machines, auxiliary hardware and accompanying software
+packages.  System administrators have always tried to find ways to reduce their
+efforts while not compromising systems' security and reliability.  In this
+paper, we focus on reducing the duplication of information describing a complete
+datacenter, including the relations between various components.  We provide
+details about the Deska project, an in-house CLI appliance for managing these
+metadata.
+\end{abstract}
+
+
+\section{Introduction}
+
+Recent developments in the hardware area are bringing unmatched challenges to
+datacenter operators.  The ever increasing computational power density, along
+with advancements in semiconductor engineering and mass production, enables
+integrating many hundreds of CPU cores into a single rack while maintaining
+reasonable TCOs.  Machines which formerly occupied several rack units are now
+produced in tiny blade form factors.  That all leads to a rapid rise of the
+number of services which have to be managed and taken care of.
+
+This rapid rise is, however, usually unmatched by a corresponding grew in the
+size of the IT department.  A concrete example about the situation in Prague is
+presented in FIXME. Therefore, system administrators seek ways to mitigate much
+of the common problems they are facing.  One way of possible problem mitigation
+scenario is making sure that all information one might need is conveniently
+accessible, kept up to date and actually used in production.
+
+Design of such a system has to fulfil certain requirements, from being easy to
+use to scaling well with growing number of nodes.  Most of the existing hardware
+inventory systems were deemed unusable for production use at Prague, for reasons
+why provide later in the article.  Therefore, a new tool called Deska was
+designed, and its architecture and design considerations are provided in chapter
+FIXME.  The goal was to provide a tool which would integrate with the existing
+infrastructure as smoothly as possible, yet be universal enough to keep up with
+future demands.  We have to merge best practices form traditional relational
+database design with data versioning, conflict resolution and changeset merging.
+
+When the Deska project is mature and tried in production, we have to focus on
+possible ways to further integrate it with day-to-day operation.  As an example,
+a reasonable way of putting the data to good use is enabling a one-command
+deployment or re-installation of new machines or using the Deska's knowledge of
+physical features of the machines to visualize the server room and provide power
+usage estimates.
+
+
+\section{The way to automation}
+
+Since its establishment in FIXME, the Prague Tier-2 WLCG site grew from 32
+single-core machines into the 2010's biggest site in the Central Europe,
+offering their users more than 2600 modern CPU cores.  This capacity, hosted by
+the Institute of Physics of the AS CR, is nowadays dedicated to performing
+heavy-duty HPC computations, supporting both in-house users from particle and
+solid-state physics, as well as for taking part in international collaboration
+for experiments in FNAL, USA and CERN.
+
+Such a rapid rise in computing capacity wasn't achieved just by hardware
+advancements, but is also a result of deploying more and more machines. In fact,
+the Prague data center occupation was risen more than three times, from the
+original 32 machines to its current status of 336 computing nodes and tens of
+auxiliary or service nodes.
+
+This increase in the computing capacity was not, however, compensated by a
+matching grow in staffing operators.  While the original size was handled by
+three full-time employees, the current situation is actually a bit worse.  The
+total contracted capacity is slightly more than three full-time-equivalents
+(FTE), but only two people are dedicated to day-to-day operations, and the rest
+consists of three students, each with 0.25 to 0.5 FTE employments.  Some
+assistance is provided by other section from the Institute, but it should be
+obvious that the amount of work and responsibility that each of the employees
+has to bear has risen considerably over the years.
+
+A naive manager might consider such situation a pleasant one -- the people
+should not be slacking while at work, after all.  However, due to the nature of
+the IT industry, it is in fact desired not to operate the staffers at full
+utilization levels all the time.  When they do not have time for reading
+newspapers and are kept busy with day-to-day operation, these duties will
+inevitably suffer when an emergency arises.  Therefore, the administrators
+simply {\em have} to have free time in order to handle unexpected situations.
+
+In their quest to make their life easier, people at the Institute have deployed
+many tools which were supposed to automate the day-to-day operation.  At first,
+in-house scripts were used for performing changes to the nodes, typically in the
+form of a shell {\tt for} loop.  This approach did not scale at all, and
+required manual supervision for completion.  It also caused trouble when some
+nodes were offline at the time of the change, perhaps because of a hardware
+trouble.  When such host got powered up again, the change wasn't performed on
+it, and there was nothing to remind the responsible people about that.
+
+Therefore, yet more in-house scripts were written to look after the above
+mentioned scripts' execution.  The scalability problems were not mitigated at
+all, and there were many corner cases not really fully understood, nor properly
+addressed.  Therefore, a way to migrate to an ``intelligent solution'' was
+clearly needed.
+
+We evaluated numerous tools, from Cfengine version 2 and Puppet to specialized
+applications developed inside the HEP community like Quattor.  Ultimately, we
+decided that Cfengine would fit our goals in the best way, and therefore chose
+it.  A proper tool for automation should ideally deal with random host changes
+and just check the final state to see if it matches the specified contract.  For
+example, a correct way of converting a machine to use an LDAP database for user
+accounts, as done by Cfengine, is the following:
+
+{\scriptsize
+\begin{verbatim}
+{ /etc/nsswitch.conf
+    BeginGroupIfNoLineMatching ^passwd:([[:space:]])+files([[:space:]])+ldap$"
+      HashCommentLinesStarting "passwd:"
+      Append "passwd: files ldap"
+    EndGroup
+}
+\end{verbatim}
+}
+
+When compared to a more-usual {\tt sed} magic, it is obviously more verbatim,
+but also arguably much more readable.  Using Cfengine properly certainly takes
+some time and effort, but the results should pay off pretty soon -- the
+configuration can be stored in a single place which could easily be put under a
+version control system (VCS) like Subversion or Git, and Cfengine's design
+ensures that a change, or rather a description of a desired {\em state}
+specified once will be verified for eternity, and if it can't be reached, an
+alarm would be risen.
+
+Using Cfengine along with LDAP for centralized management of user accounts and
+Kickstart/Anaconda for new host deployment cut a big part of the burden from the
+sysadmins' shoulders, but still left much to be dealt with.  The most annoying
+problem, as perceived by the Institute's staffers, is the need to specify the
+same thing on several places.
+
+\section{Information duplication}
+
+In order to better illustrate what we mean with duplication of information,
+let's consider a typical use case of new machine deployment.  After a
+procurement is finished, the technicians of the owner of the winning bid arrive
+on site along with the actual hardware.  The machines and supporting technology
+get physically installed, cables are laid out and the electricity is switched
+on.  Staffers have to write down certain information, from rack locations to
+part numbers and warranty information.  After that is done, the network switches
+have to be properly configured, the MAC addresses previously gathered have to be
+entered into the DHCP server's database, IP addresses and matching hostnames
+have to be assigned and registered in the DNS system etc.  When the machines are
+turned on for the first time, a proper Kickstart file has to be delivered over
+the PXE environment, which has to be set up properly.  When the operating system
+is installed, a configuration management system, Cfengine in our case, has to be
+told which role the machine is going to fulfill, so that it can configure
+everything accordingly.  Last but not least, various monitoring appliances have
+to be made aware of the new machine's existence, so we get to know about
+possible problems before we suffer availability or reliability loss, or our
+users notice.
+
+Therefore, the information about a host's existence is needlessly duplicated
+into several places.  In the case of the Prague's Tier-2 site, some of these
+places are the following:
+
+\begin{itemize}
+    \item HW inventory DB
+    \item Warranty \& issue tracking
+    \item Switch port configuration
+    \item DHCP server
+    \item DNS
+    \item Cfengine roles
+    \item Torque's CPU multipliers
+    \item MRTG \& RRD network graphs
+    \item Nagios
+    \item Ganglia
+    \item Munin
+    \item \ldots
+\end{itemize}
+
+It is clear that this duplication will only lead to troubles over time.  It
+isn't entirely obvious that an innocent operation like warranty replacement of a
+motherboard shall result in changing HW inventory database, warranty database,
+switch configuration, the DHCP server, and also network intrusion detection
+system.  What is needed here is a {\em central place} to store all host
+metainformation.
+
+When such a place is ready, we have to put it to real use, too.  Patching
+existing services to query this place, or a database, is likely not an option,
+so tools have to be written for pushing this information to places like network
+switches or DHCP servers' configuration.  A slight delay has to be anticipated,
+but in reality doesn't complicate things much.
+
+\section{Requirements}
+
+Based on their experience with another in-house attempt at a central inventory
+database, a web-based tool, the staffers decided to assign the biggest
+importance on the ease of use of the new tool.  As all of the staffers are also
+heavy Linux users, they tend to prefer the command-line interface to more
+traditional web-based ones.
+
+Numerous situations have shown that having a textual dump of a database is of
+much experience.  There are simply times when everything is down, perhaps as a
+result of fatal electricity incident or on-location fire.  When the network is
+offline, having a full copy of the database, perhaps without much history, but
+at least with all the data, is a hard requirement.  If such a dump resides on
+each administrator's laptop's hard drive, chances are that people will be able
+to consult up-to-date information when performing critical services recovery.
+
+The Cfengine experience illustrated, among other things, the usefulness of
+keeping track of history of changes.  When it is possible to identify what
+changes got performed by whom and what was their reason, people tend to make
+less mistakes, and, what is most important, they are less likely to repeat them.
+
+Finally, while most web-based tools would work in an ``online'' mode where all
+changes get pushed to the production repository immediately, or perhaps after
+pressing the ``go live'' button, a two-phase commit with manual review of
+changes is much more common in the realm of version control systems like
+Subversion or Git.  Under such system, changes are permanently copied only after
+you have seen them one more time, usually as a {\tt diff}, a difference report
+between the former and the new version.  In the case of the inventory database,
+it is worthwhile to display changes in the database along changes in various
+services' configuration.
+
+\section{Deska design and operation}
+
+The design of the Deska's UI was inspired by the way datacenter Ethernet
+switches are configured, most notably by the Cisco IOS shell.  Therefore, the
+user is presented with a command line interface sporting intelligent
+tab-completion, and they are supposed to navigate through a hierarchy of
+objects, similar to what she would do when configuring a port of the switch.
+
+These objects model a real-world entities which are found in a typical machine
+room, as well as abstract entities representing concepts like a ``brand'' or a
+``model'' of a particular machine.  A general rule of thumb is that before one
+can instantiate a ``physical object'', a matching ``type'' has to be defined --
+for example, before one adds fifty Altix XE320 WNs, the {\tt xe320} hardware
+model has to be defined.
+
+To date, the following {\em abstract} entities are supported:
+
+\begin{description}
+    \item[boxmodel] A type of a physical box, like a room, universal rack, blade
+        enclosure or a twin server chassis
+    \item[hwmodel] A type of a HW box, from generic types like a 1U server to
+        well-specified entities like ``HP DL360''
+\end{description}
+
+Matching the above, the corresponding {\em instances} of a specified kind are:
+
+\begin{description}
+    \item[rack] An instance of a {\tt boxmodel}.  Contrary to what the name
+        might suggest, this statement could represents anything from a machine
+        room to physical rack, one concrete instance of a blade enclosure or
+        even one of many twin server chassis which are deployed in a real-world
+        rack.
+    \item[host] An instance of a physical computer.  This computer is always a
+        physical device, and runs exactly one operating system image.  Support
+        for virtualized machines is discussed later in this document.
+\end{description}
+
+In order to better illustrate the above concepts, and to provide a real-life
+example about how they are used, consider the following snippet of the
+configuration of the Prague site:
+
+{\scriptsize
+\begin{verbatim}
+# At first, we define a type representing plain room in a building
+boxmodel room
+    outer width 1000000
+    outer height 1000000
+    outer depth 1000000
+end
+
+# Next, we define a template for a regular rack:
+boxmodel generic-rack
+    # ...it is supposed to be placed in a room defined above
+    in room
+
+    # Because the outer element, ie. ``room'' in this case, does not define any bays,
+    # we specify physical dimensions:
+    outer width 700
+    outer depth 1300
+    outer height 2000
+
+    # Contrary to ordinary rooms, a rack is usually divided into areas with well-defined boundaries.
+    # Let's call them ``bays'' here and specify how they are organized:
+    bay height 44 order bottom-up start-at 1
+    # ...which is syntactically equivalent to:
+    # bay
+    #    height 44
+    #    order bottom-up
+    #    start-at 1
+    # end
+    # ...and after adding default values, to this:
+    # bay
+    #    height 44
+    #    width 1
+    #    depth 1
+    #    order bottom-up
+    #    start-at 1
+    # end
+end
+\end{verbatim}
+}
+
+We have seen that there are many syntactic ways to express the same concept; we
+hope that such an approach is not confusing.
+
+In real world, certain models are a {\em specialization} of other items.  We
+have already defined a generic rack with some default dimensions.  Suppose a new
+delivery comes in racks with slightly different dimensions:
+
+{\scriptsize
+\begin{verbatim}
+# A slightly bigger rack...
+boxmodel APC-rack
+    # ...is a specialization of the generic-rack...
+    template generic-rack
+
+    # ...slightly taller...
+    outer height 2300
+
+    # ...and all other properties, including the bay organization, are inherited from
+    # its parent, the ``generic-rack''
+    bay height 48
+end
+\end{verbatim}
+}
+
+This specialization is called a {\tt template}.  A template works simply by
+inheriting all properties from the parent item, with the possibility to override
+each and every property.
+
+The reason for differentiating between a {\em type} of an object and {\em
+properties} of one particular instance is to force some consistency to how the
+operators work with the database.  If it was allowed to change arbitrary
+properties on the {\em instance} level, people would likely abuse that
+possibility to avoid using constructs like the {\tt boxmodel} altogether.
+
+Now that we have defined our abstract building blocks, let's see how to
+instantiate real objects which are to be found in the machine room:
+
+{\scriptsize
+\begin{verbatim}
+# Start with the ``room'', which is not derived from anything
+rack serverovna
+    model room
+end
+
+# Add real racks now
+rack L01
+    model APC-rack
+    in serverovna # a reference to a ``real object'' defined above
+
+    # ``serverovna'' is of instance ``room'' which does not provide any bays,
+    # therefore we have to fall back to absolute positioning:
+    position x 10 y 20 z 0
+end
+
+# As a further example of enclosure nesting, suppose this blade chasses:
+rack hp-enc-p-1
+    model hp-blade-p-chassis # ...this would have to be defined somewhere
+
+    # This instance is a blade enclosure which fits to a rack. We also know its
+    # dimension in rack units (ie. we know the number of occupied ``bays in a
+    # rack'' at this point, we only have to place it somewhere). The placement is
+    # done via a ``significant edge'', which is the bay number of the lowest,
+    # left-most and front-most bay occupied by the box.
+    in L01 bay 10
+end
+\end{verbatim}
+}
+
+We have already demonstrated how to define a {\tt boxmodel} and a {\tt rack}.
+Matching counterparts for the physical machines are {\tt hwmodel} and a {\tt
+host}.  We'll start with showing how to use {\tt hwmodel}, along with yet
+another template demonstration, and follow by {\tt host} definition:
+
+{\scriptsize
+\begin{verbatim}
+hwmodel 1u
+    in generic-rack
+    # no bay occupation indicated -> default to "1 bay"
+end
+
+hwmodel dl360g5
+    template 1u
+end
+
+hwmodel dl140
+    template 1u
+    benchmark hepspec 8
+    cpu ``Intel Xeon 3.06 GHz''
+    sockets 2
+    cores-per-socket 1
+    logical-cores-per-physical-core 2
+    disk ``ATA 80GB``
+    power 110W
+end
+
+host ha1
+    hw dl360g5
+    serial 1234567890
+    rack L01 bay 0
+end
+\end{verbatim}
+}
+
+As we can see, even though certain vital information, like the network layout,
+is still missing from the table, we already have all the data needed for drawing
+a ``map'' of where machines are located.
+
+In order for the database to be more valuable and to be able to be used as a
+source of data for various services, it is crucial to introduce netowrk
+definitions, too.  It is done in the following way:
+
+{\scriptsize
+\begin{verbatim}
+network wn-nat
+    vlan 172
+    ip 172.16.0.0/16
+end
+\end{verbatim}
+}
+
+The purpose of maintaining these data is to be able to perform certain checks on
+data validity, like verifying that a host's IP address belongs to the assigned
+range.  Now let's introduce a first real server:
+
+{\scriptsize
+\begin{verbatim}
+host hypericum10
+    # Housekeeping records
+    # Serial No. of the whole box
+    serial J019MF6C2J
+    # Warranty No. & expiration date
+    warranty KE1421631007 expires 2006-12-12
+    purchased 2004-05-03
+
+    # Physical dimension, architecture, location and interconnects
+    hw dl140
+    rack L04 bay 40
+    kvm unit 4 port 7
+    interface eth0 mac 00:0f:20:7a:e7:9c net wn-nat ip 172.16.4.10 switch swL041 port 5
+
+    # Logical roles
+    role wn
+end
+\end{verbatim}
+}
+
+Blah blah blah.
+
+{\scriptsize
+\begin{verbatim}
+\end{verbatim}
+}
+
+{\scriptsize
+\begin{verbatim}
+\end{verbatim}
+}
+
+{\scriptsize
+\begin{verbatim}
+\end{verbatim}
+}
+
+\section{Comparison to existing tools}
+
+
+\end{document}
+
