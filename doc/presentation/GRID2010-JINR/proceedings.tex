@@ -49,24 +49,25 @@ number of services which have to be managed and taken care of.
 
 This rapid rise is, however, usually unmatched by a corresponding grew in the
 size of the IT department.  A concrete example about the situation in Prague is
-presented in FIXME. Therefore, system administrators seek ways to mitigate much
-of the common problems they are facing.  One way of possible problem mitigation
+presented in a site report given by Tomas Kouba \cite{kouba}. Therefore, system
+administrators seek ways to mitigate much of the common problems they are
+facing.  One way of possible problem mitigation
 scenario is making sure that all information one might need is conveniently
 accessible, kept up to date and actually used in production.
 
 Design of such a system has to fulfil certain requirements, from being easy to
 use to scaling well with growing number of nodes.  Most of the existing hardware
 inventory systems were deemed unusable for production use at Prague, for reasons
-why provide later in the article.  Therefore, a new tool called Deska was
-designed, and its architecture and design considerations are provided in chapter
-FIXME.  The goal was to provide a tool which would integrate with the existing
+provided later in the article.  Therefore, a new tool called Deska was
+designed, and its architecture and design considerations are provided in this
+document.  The goal was to provide a tool which would integrate with the existing
 infrastructure as smoothly as possible, yet be universal enough to keep up with
-future demands.  We have to merge best practices form traditional relational
+future demands.  We have to merge best practices from traditional relational
 database design with data versioning, conflict resolution and changeset merging.
 
 When the Deska project is mature and tried in production, we have to focus on
 possible ways to further integrate it with day-to-day operation.  As an example,
-a reasonable way of putting the data to good use is enabling a one-command
+a reasonable way of putting the data to good use is enabling a one-action
 deployment or re-installation of new machines or using the Deska's knowledge of
 physical features of the machines to visualize the server room and provide power
 usage estimates.
@@ -74,17 +75,17 @@ usage estimates.
 
 \section{The way to automation}
 
-Since its establishment in FIXME, the Prague Tier-2 WLCG site grew from 32
+Since its establishment in 2002, the Prague Tier-2 WLCG site grew from 32
 single-core machines into the 2010's biggest site in the Central Europe,
 offering their users more than 2600 modern CPU cores.  This capacity, hosted by
 the Institute of Physics of the AS CR, is nowadays dedicated to performing
 heavy-duty HPC computations, supporting both in-house users from particle and
-solid-state physics, as well as for taking part in international collaboration
+solid-state physics, as well as to taking part in international collaboration
 for experiments in FNAL, USA and CERN.
 
 Such a rapid rise in computing capacity wasn't achieved just by hardware
 advancements, but is also a result of deploying more and more machines. In fact,
-the Prague data center occupation was risen more than three times, from the
+the Prague data center occupation was risen several times, from the
 original 32 machines to its current status of 336 computing nodes and tens of
 auxiliary or service nodes.
 
@@ -212,7 +213,7 @@ but in reality doesn't complicate things much.
 
 Based on their experience with another in-house attempt at a central inventory
 database, a web-based tool, the staffers decided to assign the biggest
-importance on the ease of use of the new tool.  As all of the staffers are also
+importance to the ease of use of the new tool.  As all of the staffers are also
 heavy Linux users, they tend to prefer the command-line interface to more
 traditional web-based ones.
 
@@ -222,7 +223,9 @@ result of fatal electricity incident or on-location fire.  When the network is
 offline, having a full copy of the database, perhaps without much history, but
 at least with all the data, is a hard requirement.  If such a dump resides on
 each administrator's laptop's hard drive, chances are that people will be able
-to consult up-to-date information when performing critical services recovery.
+to consult up-to-date information when performing critical services recovery,
+reducing the possibility of making fatal mistakes and causing more damage by
+accident.
 
 The Cfengine experience illustrated, among other things, the usefulness of
 keeping track of history of changes.  When it is possible to identify what
@@ -267,13 +270,14 @@ Matching the above, the corresponding {\em instances} of a specified kind are:
 
 \begin{description}
     \item[rack] An instance of a {\tt boxmodel}.  Contrary to what the name
-        might suggest, this statement could represents anything from a machine
+        might suggest, this statement could represent anything from a machine
         room to physical rack, one concrete instance of a blade enclosure or
         even one of many twin server chassis which are deployed in a real-world
         rack.
     \item[host] An instance of a physical computer.  This computer is always a
         physical device, and runs exactly one operating system image.  Support
-        for virtualized machines is discussed later in this document.
+        for virtualized machines is available, but not discussed in this
+        document.
 \end{description}
 
 In order to better illustrate the above concepts, and to provide a real-life
@@ -347,16 +351,16 @@ end
 
 This specialization is called a {\tt template}.  A template works simply by
 inheriting all properties from the parent item, with the possibility to override
-each and every property.
+each and every one of them.
 
 The reason for differentiating between a {\em type} of an object and {\em
-properties} of one particular instance is to force some consistency to how the
+properties} of one particular instance is to force some consistency on how the
 operators work with the database.  If it was allowed to change arbitrary
 properties on the {\em instance} level, people would likely abuse that
 possibility to avoid using constructs like the {\tt boxmodel} altogether.
 
 Now that we have defined our abstract building blocks, let's see how to
-instantiate real objects which are to be found in the machine room:
+instantiate real objects which are found in the machine room:
 
 {\scriptsize
 \begin{verbatim}
@@ -381,8 +385,8 @@ rack hp-enc-p-1
 
     # This instance is a blade enclosure which fits to a rack. We also know its
     # dimension in rack units (ie. we know the number of occupied ``bays in a
-    # rack'' at this point, we only have to place it somewhere). The placement is
-    # done via a ``significant edge'', which is the bay number of the lowest,
+    # rack'' at this point), we only have to place it somewhere. The placement is
+    # done via a ``significant corner'', which is the bay number of the lowest,
     # left-most and front-most bay occupied by the box.
     in L01 bay 10
 end
@@ -391,8 +395,8 @@ end
 
 We have already demonstrated how to define a {\tt boxmodel} and a {\tt rack}.
 Matching counterparts for the physical machines are {\tt hwmodel} and a {\tt
-host}.  We'll start with showing how to use {\tt hwmodel}, along with yet
-another template demonstration, and follow by {\tt host} definition:
+host}.  We'll start by showing how to use the {\tt hwmodel}, along with yet
+another template demonstration, and follow by a {\tt host} definition:
 
 {\scriptsize
 \begin{verbatim}
@@ -467,25 +471,90 @@ end
 \end{verbatim}
 }
 
-Blah blah blah.
-
-{\scriptsize
-\begin{verbatim}
-\end{verbatim}
-}
-
-{\scriptsize
-\begin{verbatim}
-\end{verbatim}
-}
-
-{\scriptsize
-\begin{verbatim}
-\end{verbatim}
-}
+This concept of lists of object of well-known types can be extended to include
+other entities commonly found in a datacenter, should the need arise.
 
 \section{Comparison to existing tools}
 
+To the best of our knowledge, the Deska project is the only tool which focuses on
+a CLI interface.  There are indeed numerous other applications, from the
+``industrial standard'' OCS Inventory to less known projects like the
+RackMonkey, as well as appliances developed inside the WLCG community, like
+Quattor fabric management tool or the Smurf database.
+
+In addition to a missing CLI, the mainstream way of tackling the inventory
+management problem is usually focused on automatic discovery of existing
+properties.  This is a very useful approach when working with desktop computers,
+which often change outside of the network manager's approval, but could be less
+optimal when working in a well-controlled datacenter environment.  In addition,
+while it could be desirable to automatically pick certain changes in the
+environment and propagate them to the database, at least under certain
+conditions, the Deska tool is meant to provide an {\em authoritative source} of
+information -- what is in the database is the desired situation, representing
+the sysadmins' decisions, and should be implemented in the real world and not
+vice versa.
+
+\section{Future work}
+
+The design described so far presented the database scheme which was pretty much
+set in stone.  We recognize that each site's requirements are different, and
+have ourselves struggled with providing a good approximation of the real
+situation in Prague and translating it to the database structure.  An
+intermediate solution for a request for the possibility of customization is to
+allow the administrator to specify certain additional attributes to attach to
+existing types of entities in the database.  However, such an approach would
+make expressing constraints rather difficult, at least due to the extension
+fields' unspecified structure.
+
+The considerations above led us to another approach within the Deska
+application.  In future versions, we are going to make the DB structure
+modifiable by the administrator.  We will retain the basic idea that the
+database consists of lists of objects of a well-defined type, and that each such
+object has a list of attributes, or properties, of one of a few predefined
+types.  Such objects are entities like the {\tt rack} or a {\tt boxmodel}
+defined above.  The definitions of such objects, along with a list of supported
+attributes and their data types, should be easily provided by the administrator.
+The Deska project will of course ship with a predefined set of objects which are
+common in the datacenter.
+
+In consistency with the Deska's motto of reducing duplication of information, we
+are seeking ways to define the DB scheme at exactly one place, along with all
+possible constraints.  We do not have any motivation to invent yet another
+language for describing the database, but plan to use SQL DDL as the way to
+define the DB structure, along with some rules for coding conventions.  Our goal
+is not to create an ``über Database'' capable of describing each and every
+situation, but to come up with reasonable limits allowing the administrators to
+describe their infrastructure accurately.
+
+\section{Conclusion}
+
+We have described some of the current griefs which the staffers at the Institute
+of Physics of the AS CR are going through, along with a proposed solution which
+could reduce this burden.  We have learned valuable lessons when trying to
+design a proper database structure, using the Prague Tier-2 WLCG site as an
+example.  The database structure which we picked is centered on lists of objects
+of a few predefined types.
+
+During the implementation works, we have discovered that it makes a lot of sense
+to allow the administrators to extend the database structure.  Therefore, most
+of the hard-coded limitations of the original Deska design were lifted.  The
+Deska will now read the database structure at the startup and attempt to
+reconstruct the valid object types and their attributes.  In practise, such an
+approach to the problem helps to eliminate a lot of boiler-plate code.  What
+needs to be done, however, is defining a reasonable set of constraints for the
+administrators to follow.
+
+
+\subsection{Acknowledgement}
+
+The work on the Deska project was partially funded by the Institute of Physics
+of the~AS~CR,~v.v.i.
+
+\begin{thebibliography}{9}
+    \addcontentsline{toc}{chapter}{References}
+    \bibitem{kouba}Kouba, T. et al: The Prague WLCG Tier-2 Site Report. November
+        2010.
+\end{thebibliography}
 
 \end{document}
 
