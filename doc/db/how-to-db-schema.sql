@@ -4,6 +4,8 @@
 
 -- tables in our schema
 select * from pg_tables where schemaname = 'deska_dev';
+-- and xml output
+select query_to_xml('select * from pg_tables where schemaname = \'deska_dev\'',true,false,'');
 
 -- more info for one table, see column oid
 select * from pg_class where relname = 'vendor';
