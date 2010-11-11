@@ -6,22 +6,15 @@
 \usepackage[auth-sc]{authblk}
 
 \title{\sc Deska: Tool for Central Administration of a Grid Site}
-\author[1,2,*]{Kundrát, J.}
-\affil[1]{Institute of Physics of the AS CR, Prague, Czech Republic}
-\author[2]{Kerpl, L.}
-\author[2]{Krejčová, M.}
-\author[2]{Hubík, T.}
-\affil[2]{Faculty of Mathematics and Physics, Charles University in Prague, Czech Republic}
+\author{Kundrát, J.}
+\author{Kerpl, L.}
+\author{Krejčová, M.}
+\author{Hubík, T.}
+\affil{Institute of Physics of the AS CR, Prague, Czech Republic}
 
 \date{October 1, 2010}
 
 \begin{document}
-
-\let\oldthefootnote\thefootnote
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-\footnotetext[1]{To whom correspondence should be addressed. Email:
-    \url{kundratj@fzu.cz}}
-\let\thefootnote\oldthefootnote
 
 \maketitle
  
@@ -47,10 +40,10 @@ reasonable TCOs.  Machines which formerly occupied several rack units are now
 produced in tiny blade form factors.  That all leads to a rapid rise of the
 number of services which have to be managed and taken care of.
 
-This rapid rise is, however, usually unmatched by a corresponding grew in the
+This rapid rise is, however, usually unmatched by a corresponding growth in the
 size of the IT department.  A concrete example about the situation in Prague is
 presented in a site report given by Tomas Kouba \cite{kouba}. Therefore, system
-administrators seek ways to mitigate much of the common problems they are
+administrators seek ways to mitigate many of the common problems they are
 facing.  One way of possible problem mitigation
 scenario is making sure that all information one might need is conveniently
 accessible, kept up to date and actually used in production.
@@ -75,7 +68,7 @@ usage estimates.
 
 \section{The way to automation}
 
-Since its establishment in 2002, the Prague Tier-2 WLCG site grew from 32
+Since its establishment in 2002, the Prague Tier-2 WLCG site has grown from 32
 single-core machines into the 2010's biggest site in the Central Europe,
 offering their users more than 2600 modern CPU cores.  This capacity, hosted by
 the Institute of Physics of the AS CR, is nowadays dedicated to performing
@@ -83,7 +76,7 @@ heavy-duty HPC computations, supporting both in-house users from particle and
 solid-state physics, as well as to taking part in international collaboration
 for experiments in FNAL, USA and CERN.
 
-Such a rapid rise in computing capacity wasn't achieved just by hardware
+Such a rapid rise in computing capacity was not achieved just by hardware
 advancements, but is also a result of deploying more and more machines. In fact,
 the Prague data center occupation was risen several times, from the
 original 32 machines to its current status of 336 computing nodes and tens of
@@ -151,7 +144,7 @@ specified once will be verified for eternity, and if it can't be reached, an
 alarm would be risen.
 
 Using Cfengine along with LDAP for centralized management of user accounts and
-Kickstart/Anaconda for new host deployment cut a big part of the burden from the
+Kickstart/Anaconda for new hosts deployment cut a big part of the burden from the
 sysadmins' shoulders, but still left much to be dealt with.  The most annoying
 problem, as perceived by the Institute's staffers, is the need to specify the
 same thing on several places.
@@ -160,7 +153,7 @@ same thing on several places.
 
 In order to better illustrate what we mean with duplication of information,
 let's consider a typical use case of new machine deployment.  After a
-procurement is finished, the technicians of the owner of the winning bid arrive
+procurement is finished, the technicians from the winning bidder arrive
 on site along with the actual hardware.  The machines and supporting technology
 get physically installed, cables are laid out and the electricity is switched
 on.  Staffers have to write down certain information, from rack locations to
@@ -207,7 +200,9 @@ When such a place is ready, we have to put it to real use, too.  Patching
 existing services to query this place, or a database, is likely not an option,
 so tools have to be written for pushing this information to places like network
 switches or DHCP servers' configuration.  A slight delay has to be anticipated,
-but in reality doesn't complicate things much.
+but in reality it does not complicate things much.  Distribution of these
+configuration files is outside of scope of the Deska project, and will usually
+be handled by standard tools like Puppet or Cfengine.
 
 \section{Requirements}
 
@@ -365,16 +360,16 @@ instantiate real objects which are found in the machine room:
 {\scriptsize
 \begin{verbatim}
 # Start with the ``room'', which is not derived from anything
-rack serverovna
+rack machine-room
     model room
 end
 
 # Add real racks now
 rack L01
     model APC-rack
-    in serverovna # a reference to a ``real object'' defined above
+    in machine-room # a reference to a ``real object'' defined above
 
-    # ``serverovna'' is of instance ``room'' which does not provide any bays,
+    # ``machine-room'' is of instance ``room'' which does not provide any bays,
     # therefore we have to fall back to absolute positioning:
     position x 10 y 20 z 0
 end
@@ -433,7 +428,7 @@ is still missing from the table, we already have all the data needed for drawing
 a ``map'' of where machines are located.
 
 In order for the database to be more valuable and to be able to be used as a
-source of data for various services, it is crucial to introduce netowrk
+source of data for various services, it is crucial to introduce network
 definitions, too.  It is done in the following way:
 
 {\scriptsize
@@ -548,7 +543,8 @@ administrators to follow.
 \subsection{Acknowledgement}
 
 The work on the Deska project was partially funded by the Institute of Physics
-of the~AS~CR,~v.v.i.
+of the~AS~CR,~v.v.i.  The author of this poster can be reached at {\tt
+kundratj@fzu.cz}.
 
 \begin{thebibliography}{9}
     \addcontentsline{toc}{chapter}{References}
