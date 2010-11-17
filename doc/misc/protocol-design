@@ -1,0 +1,67 @@
+Consideration for the Deska protocol design
+-------------------------------------------
+
+We start with the following assumptions:
+
+- the CLI is dumb enough to not talk to the DB directly (ie. it doesn't require
+  the PgSQL library)
+- therefore, we need a process on the server for translating our "commands"
+  (whatever it could be) into SQL stanzas
+- also, certain commands involve things which aren't easily expressed by means
+  of SQL (like having a look at the diff in the generated configuration files
+  along with DB differences)
+- the administrators already have a way to manage unix accounts, along with
+  passwords and setting up the SSH infrastructure properly, so the protocol is
+  going to be "protected" by SSH
+
+There are basically two ways about how to tackle this down:
+
+- make the "CLI" extremely dumb, ie. only forward lines back and forth (thus
+  letting even the trivial stuff like tab completion be handled by the "server")
+- have CLI communicate with the server process in more high-level ways like
+  "please create a new session for me", "I'm modifying object foo, setting the
+  bar value to baz", "I'd like to commit the data" etc
+
+Arguably, modularization is good, so it makes sense to go for the second option
+-- even if the CLI was going to be made dumb in the end, there are still
+benefits from separating the "UI-like" part of the program isolated from the
+actual DB-talking part.
+
+Here's a bunch of links to interesting articles, blog posts and projects about
+how to design a protocol, as well as some related implementations:
+
+- http://gpsd.berlios.de/protocol-evolution.html -- a nice article about how the
+  GPSd wire protocol evolved from character-based implementation to JSON,
+  including a nice summary of well-based arguments against using XML
+- boost::property_tree -- includes JSON parser, among other things, and is
+  implemented with Spirit -- see
+  https://svn.boost.org/trac/boost/browser/trunk/boost/property_tree/detail/json_parser_read.hpp?rev=66498
+  for details
+- http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx is another Spirit-based
+  JSON parser
+- ZMQ doesn't really look like a proper tool for this case (wrong layer, IMHO)
+- BEEP is interesting, too -- http://beepcore.org/index.html 
+- Google has got Protocol Buffers, --
+  http://code.google.com/intl/cs/apis/protocolbuffers/docs/cpptutorial.html
+
+
+Now about the SSH integration.  Again, we have two options here, either we can
+simply launch a subprocess and exec `ssh deska.farm.particle.cz deska-server`,
+or we can find a usable SSH library (which is one of libssh or libssh2, or
+possibly reusing the PuTTY's code). In my opinion, we should simply use
+openssh's binary and be done with it -- talking to a subprocess is in fact
+pretty easy and certainly less work than setting up an extra library.
+
+We should also settle on a library to use for handling the IO. I'm afraid using
+Qt, which we already know, is out of-options due to its rather big size, so we
+should look for something else (but I'm clearly open to other opinions here).
+Boost aio looks promising.
+
+So, we've got the following problems to solve:
+
+- verify that the above mentioned assumptions and analysis are sane and reflect
+  reality
+- determine which "commands" do we need
+- design a wire protocol implementing the commands and their responses defined
+  just above
+- select technologies which would make implementing all of that easy enough
