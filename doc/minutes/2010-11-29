@@ -1,0 +1,109 @@
+Schuzka Deska, 2010-11-29 16.00 FZU
+
+Pritomni: cely tym
+
+Program:
+--------
+
+- Honza popsal, jak vidi architekturu Desky, nakrleslil obrazek, popis viz extra
+  sekce
+- k architekture nebyly zadne pripominky (prosim o opravu, pokud byly ci jsou)
+- nikdo neprisel s konkurencnim navrhem architektury
+- coding style, viz extra sekce
+- implementacni jazyk pro deska server: na vyber z pohledu FZU C++ a nebo
+  Python, Ruby neumime a Perl nemame radi
+- rozdeleni odpovednosti, viz dal
+- Lukas (?) se ptal, zda je dobry napad, ze Deska serveru je vic (jeden pro
+  session), odpoved je, ze konzistence a logika pro potencialne konfliktni
+  stavy, napr. commit do DB, maji resit stored procedures v DB
+- build system pro C++: cmake, Honza resi problemy
+- build system pro Python, bude-li: standardni distutils (to se setup.py)
+- obecne: co neni v gitu, to zbytek tymu nevidi a tak vznika dojem, ze se nekdo
+  flaka, commitujte tedy prosim co nejdriv
+
+
+Popis protokolu a architektury:
+-------------------------------
+- Deska klient komunikuje po SSH kanalu (protokolem "klient posle prikaz, server
+  posle odpoved", implementace zrejme JSONem, prikazy typu "zmen atribut X
+  objektu Y na hodnotu Z" nebo "vrat mi seznam jmen objektu typu X" ci "dej mi
+  seznam typu objektu") s Deska serverem. Deska server komunikuje s DB, zrejme
+  je dobry napad, aby stored procedures od DB odpovidaly vicemene 1:1 prikazum
+  protokolu. Generovatka komunikuji s Deska serverem. Deska server tez spousti
+  generovani konfigurace.
+- V zasade je teda Deska server jenom pomerne hloupy prevodnik JSON -> PgSQL s
+  doplnenymi par funkcemi, napr. pro generovani konfigurace, pousteni diffu atd
+- Prehled o databazovem schematu (typy top-level objektu, typy a jmena atributu
+  u kazdeho z nich atd) si deska server obstara z DB)
+  POZNAMKA neprobirana na schuzi: prijde mi dobre nejak omezit strukturu DB,
+  motivace je takova, ze aby mohl Deska server ze jmen DB sloupcu atd odvodit
+  atributy objektu a podobne high-level informace, musi tabulka mit nejakou
+  "rozumnou strukturu".
+
+Codign style:
+-------------
+
+- Lukas zminil http://geosoft.no/development/cppstyle.html
+- Honza dava linky na coding style KDE a Qt:
+    http://techbase.kde.org/Policies/Kdelibs_Coding_Style
+    http://qt.gitorious.org/qt/pages/QtCodingStyle
+    (zvazit tez prijeti rozumnych rad z
+     http://qt.gitorious.org/qt/pages/CodingConventions, nektere jsou pro nas
+     irelevantni, napr. podpora memeber function templates v ruznych
+     kompilatorech, RTTI se tez nemusime vyhybat, D-pointery zatim nepotrebujeme
+     atd atd)
+- konsenzus je vybrat si jeden existujici coding style a toho se drzet, lepsi
+  nez vytvareni dalsich nekompatibilit; styl odpovidajici zhruba KDE ci Qt
+  vypada u me (Honza) jako favorit
+- shodneme se na class Foo; void methodNameIsThis(), enum {FOO, BAR}
+- taby ci mezery: vybrat jedno a pouzivat vylucne
+- vsechno v gitu krome zapisu ze schuzi bude v anglictine
+
+
+Rozdeleni odpovednosti:
+-----------------------
+
+Kdo je primarne zodpovedny za jakou cast desky.
+
+Honza:
+- protokol client-server
+- generovatka
+- clanky, specifikace atd
+- podpora cmake
+
+Tomas:
+- udrzovani dokumentace ucinenych rozhodnuti v gitu (anglicky)
+- CLI
+
+Lukas, Martina:
+- DB
+- zbyva rozhodnout, kdo dostane na triko deska server
+
+
+Ukoly a prace:
+--------------
+
+- Honza: prioritne narvh protokolu, textovy v gitu ci .h soubor tamtez
+- Honza: bude-li chut, specifikace pro Z. a komisi
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci (nejsem si jisty,
+  zda jsme to rekli na schuzi, ale ja bych sem radil i zvoleni technologie pro
+  event loop a IO pro klienta) -- a zase by melo byt poznat, co se udelalo, a to
+  z gitu
+- Tomas: regexpy, ktere podporuje PgSQL i Spirit pro uzivatelske omezeni
+  datovych typu
+- Lukas a Martina: DB -- bohuzel je to takto rozvlacne, na schuzce jsme
+  nedohodli nic konkretniho, nicmene vysledek podle Honzova pochopeni je
+  "vyprodokuji neco, z cehoz bude v gitu poznat, ze to dalo praci"
+- L & M: overeni, jestli PgSQL umi overovat referencni integritu az pri commitu
+  transakce (viz priklad na unique parametr IP adresa a jeji prohozeni mezi
+  dvema pocitaci)
+
+K tomu jeste dodavam (Honza), ze jsem zmaten z ukolu pro dva lidi, myslim, ze by
+priste bylo lepsi se dohodnout na jednoznacnem zadani pro kazdeho -- moje chyba
+:).
+
+Pristi schuzka:
+---------------
+
+pondeli 6. prosince, 16.00 FZU
