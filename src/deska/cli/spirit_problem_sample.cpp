@@ -33,24 +33,26 @@ namespace DeskaCLI
 
 			//This works fine. Accepts permutation of subset of
 			//<hardware, par1, par2, par3, end> and returns id of last item.
+			/*
 			start = lit("hardware") [ _val = 0 ]
 				  ^ lit( "par1" ) [ _val = 1 ]
 				  ^ lit( "par2" ) [ _val = 2 ]
 				  ^ lit( "par3" ) [ _val = 3 ]
 				  ^ lit( "end" ) [ _val = -1 ];
-			
-			//This crashes
-			/*
-			start = lit("hardware") [ _val = 0 ];
-            start = start ^ lit( "par1" ) [ _val = 1 ];
-            start = start ^ lit( "par2" ) [ _val = 2 ];
-            start = start ^ lit( "par3" ) [ _val = 3 ];
-            start = start ^ lit( "end" ) [ _val = -1 ];
 			*/
+			//This crashes
+			hw = lit("hardware") [ _val = 0 ];
+		        pars = lit( "par1" ) [ _val = 1 ]
+				  ^ lit( "par2" ) [ _val = 2 ]
+				  ^ lit( "par3" ) [ _val = 3 ]
+				  ^ lit( "end" ) [ _val = -1 ];
+			start = hw ^ pars [ _val = _1 ];
 
         }
 
         qi::rule<Iterator, int(), ascii::space_type> start;
+        qi::rule<Iterator, int(), ascii::space_type> hw;
+        qi::rule<Iterator, int(), ascii::space_type> pars;
     };
 }
 
