@@ -1,0 +1,98 @@
+Schuzka Deska, 2010-12-06 FZU
+
+Pritomni: v 16.15 vsichni, schuzky tedy posouvame na 16.15
+
+
+Od minula se neudelalo temer nic, jelikoz vsichni meli prilis busy tyden; nalada
+pro tento tyden je optimisticka a schuzi provazelo bourlive nadseni "tento tyden
+uz budeme orpavdu pracovat".
+
+
+Ukoly z minula:
+---------------
+
+- Honza: prioritne narvh protokolu, textovy v gitu ci .h soubor tamtez
+    - je, ale je potreba dokoncit
+- Honza: bude-li chut, specifikace pro Z. a komisi
+    - neni
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+    - neni
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci (nejsem si jisty,
+  zda jsme to rekli na schuzi, ale ja bych sem radil i zvoleni technologie pro
+  event loop a IO pro klienta) -- a zase by melo byt poznat, co se udelalo, a to
+  z gitu
+    - neni
+- Tomas: regexpy, ktere podporuje PgSQL i Spirit pro uzivatelske omezeni
+  datovych typu
+    - neni, Honza vygooglil za pul minuty -- PgSQL i boost.regex umi POSIX
+    regexp
+- Lukas a Martina: DB -- bohuzel je to takto rozvlacne, na schuzce jsme
+  nedohodli nic konkretniho, nicmene vysledek podle Honzova pochopeni je
+  "vyprodokuji neco, z cehoz bude v gitu poznat, ze to dalo praci"
+    - v gitu nic neni
+- L & M: overeni, jestli PgSQL umi overovat referencni integritu az pri commitu
+  transakce (viz priklad na unique parametr IP adresa a jeji prohozeni mezi
+  dvema pocitaci)
+    - hotovo, viz mail
+
+
+Jak resit verzovani pri zmene schematu
+--------------------------------------
+
+- funkce zjistujici "schema" DB nesmi zaviset na revizi
+- co delat, kdyz update schematu smaze tabulku?
+- rozhodnuto, ze modifikace schematu by nemely verzovani ovlivnit; jde o zmenu
+  na konceptualne jine urovni
+- napr. pridani novych prvku = nova tabulka + jeji naplneni, v historii se bude
+  tvarit jako spousta insertu; mazani = delete + oznaceni tabulky jako
+  "nepouzivat"
+
+
+API:
+----
+
+- jak predat dalsi referencni omezeni (priklad s dratem od switche) -- potrebuje
+  to CLI vubec mit? nakonec zrejme pouze kvuli zanorovani
+- co s templaty?
+- bohuzel opet problem vnorovani, klasicky pripad s interfacem (mame
+  strukturovane typy, to je resitelne prefixem interface_{ip,mac,...}, ale
+  neresi to 1:n relace, jelikoz stroj muze jiste mit vic interfacu)
+
+- Kontrolu constraintu resime pomoci fake merge, tedy pokusu o preliti docasneho
+  changesetu do produkcni verze, akorat na konci nezavolame commit, ale abort;
+  nevyhoda je, ze to muze fungovat pouze pokud neexistuje novejsi revize v
+  produkcni db (jelikoz pak by zfailovala kontrola na "v DB jsou nova data")
+- informace o foreign keys CLI potrebuje zrejme pouze pro tab completion a jako
+  jeden ze zdroju informaci pro rozhodnuti zanoreni, ne pro kontrolu
+  konzistence, jelikoz tu skoro zadarmo dela nakonec DB, a to rozumnou formou
+
+
+
+Ukoly:
+------
+
+- Honza: pokracovat s protokolem
+- Honza: prijit s resenim pro vnorovani
+- Honza: bude-li chut, specifikace pro Z. a komisi
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+- Tomas: protokolovat rozhodnuti
+- Martina: implementace API z .h pres ulozene procedury, cili SQL kod, ktery na
+  jedne strane da k dispozici implementaci API a na dnruhe strane bude volat
+  Lukasovy stored proc pro manipulaci s tabulkami; patri sem i implementace
+  "cteni schematu", tedy metody kindNames() a kindAttributes()
+- Lukas: implementace ukazkoveho "pluginu", cili SQL kod pro smysleny objekt a
+  la host se stored procedures pro verzovani
+- Lukas: zjistit vic o deferred triggers -- jde pri zfailovanem pokusu o commit
+  postupovat bez rollbacku?
+- Lukas: moznost vice varovani pri vec failing contraints? (Honzovo napad po
+  schuzi: dalo by se to obejit, ze se udela fake pokus o merge a constrainty se
+  budou aktivovat jeden po druhem, prvni failujici -> abort a zacatek od znova s
+  tim, ze se tento constraint preskoci; je otazka, kolik to da prace v SQL)
+- Lukas: moznost pridavani nejakych metadat k tabulkam/constraintum (motivace:
+  lidsky citelny popis constraintu, aby uzivatel videl "Duplicate IP address in
+  the table", dale pouziti pro specifikaci smeru vnorovani pri vztazich
+  {0,1}:{0,1} atd)
+
+Dalsi schuzka: 13. prosince od 16.15 na FZU
