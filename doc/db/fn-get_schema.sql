@@ -1,4 +1,4 @@
---
+﻿--
 -- function(s) to get the database schema
 --
 
@@ -75,3 +75,53 @@ begin
 end;
 $$
 LANGUAGE plpgsql;
+
+--
+-- function returns list of names of tables from deska_dev = Top-level Kinds like enclosure etc
+--
+create or replace function get_kindNames() returns setof text as
+$$
+declare
+r text;
+begin
+for r in select distinct cl.relname 
+		from 	pg_class as cl 
+			join pg_tables as tab on (schemaname='deska_dev' and cl.relname = tab.tablename) 
+			join pg_attribute as att on (att.attrelid = cl.oid )
+			join pg_type as typ on (typ.oid = att.atttypid)
+		loop
+return next r;
+end loop;
+return;
+end
+$$
+language plpgsql;
+
+--select get_kindNames();
+
+--
+-- function returns list of attributes' names and types = attributes of tables from deska_dev
+--
+create or replace function get_kindAttributes(
+	tabname name
+) returns setof KindAttributeDataType as
+$$
+declare
+r KindAttributeDataType%rowtype;
+begin
+for r in select attname,typname
+		from 	pg_class as cl 
+			join pg_tables as tab on (schemaname='deska_dev' and cl.relname = tab.tablename) 
+			join pg_attribute as att on (att.attrelid = cl.oid )
+			join pg_type as typ on (typ.oid = att.atttypid)
+		where cl.relname = tabname and  att.attname not in ('tableoid','cmax','xmax','cmin','xmin','ctid')
+		loop
+return next r;
+end loop;
+return;
+end
+$$
+language plpgsql;
+
+--select get_kindAttributes('hardware');
+
