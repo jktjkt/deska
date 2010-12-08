@@ -125,3 +125,23 @@ language plpgsql;
 
 --select get_kindAttributes('hardware');
 
+
+--this function is needed for selecting identifiers of all concrete objects of a given Kind
+--returns name of column that is primary key in table tabname
+create or replace function get_primary_key_column(tabname name) returns name as
+$$
+declare
+pkname name;
+begin
+
+select conname into pkname
+from 	pg_constraint as constr
+	--join with table which the contraint is on
+	join pg_class as class on (constr.conrelid = class.oid)
+where relname = tabname and contype='p';
+return pkname;
+end
+$$
+language plpgsql;
+
+--select get_primary_key_column('vendor');
