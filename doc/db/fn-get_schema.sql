@@ -1,4 +1,6 @@
-﻿--
+﻿set search_path to deska_dev;
+
+--
 -- function(s) to get the database schema
 --
 
@@ -65,7 +67,7 @@ as
 $$
 begin
 	return select conname, class1.relname as tableon, concat_atts_name(class1.oid, constr.conkey) as colson,
-		class2.relname as tableref, concat_atts_name(class1.oid, constr.conkey) as colsref
+		class2.relname as tableref, concat_atts_name(class2.oid, constr.confkey) as colsref
 		from	pg_constraint as constr
 			--join with table which the contraint is on
 			join pg_class as class1 on (constr.conrelid = class1.oid)	
@@ -126,6 +128,24 @@ language plpgsql;
 --select get_kindAttributes('hardware');
 
 
+--from table oid and attnum find column name
+create or replace function att_name(classoid oid, id smallint)
+returns name
+as
+$$
+declare
+ result name;
+begin
+	select attname into result
+	from pg_attribute as att 
+	where att.attrelid = classoid and att.attnum = id;		
+
+	return result;
+end;
+$$
+LANGUAGE plpgsql;	
+
+
 --this function is needed for selecting identifiers of all concrete objects of a given Kind
 --returns name of column that is primary key in table tabname
 create or replace function get_primary_key_column(tabname name) returns name as
@@ -133,15 +153,36 @@ $$
 declare
 pkname name;
 begin
+--conkey[1] = 1st item from conkey, its for one column PK
+select att_name(class1.oid, constr.conkey[1]) into pkname
+		from	pg_constraint as constr
+			--join with table which the contraint is on
+			join pg_class as class1 on (constr.conrelid = class1.oid)	
+		where contype='p' ;
 
-select conname into pkname
-from 	pg_constraint as constr
-	--join with table which the contraint is on
-	join pg_class as class on (constr.conrelid = class.oid)
-where relname = tabname and contype='p';
 return pkname;
 end
 $$
 language plpgsql;
 
 --select get_primary_key_column('vendor');
+
+--drop function get_kindInstances(name);
+CREATE or REPLACE FUNCTION get_kindInstances(tabname name) RETURNS setof text AS $$
+DECLARE 
+r text;
+BEGIN 
+	for r in EXECUTE 'select ' ||   (get_primary_key_column(tabname)) || ' from ' || tabname
+	loop
+	return next r;
+	end loop;
+return;
+END;
+$$ LANGUAGE plpgsql;
+
+
+--insert into vendor(uid,name) values (2,'IBM');
+--insert into vendor(uid,name) values (14,'Intel');
+--insert into vendor(uid,name) values (25,'AMD');
+--select * from vendor;
+--select get_kindInstances('vendor');
