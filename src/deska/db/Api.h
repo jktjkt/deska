@@ -32,6 +32,8 @@ typedef unisgned int Revision;
  *
  * This struct is a tuple of <name,datatype>, representing one attribute of a Kind object. Each Kind
  * will typically have multiple attributes.
+ *
+ * FIXME: rename to AttributeScheme?
  * */
 struct KindAttributeDataType {
     Identifier name;
