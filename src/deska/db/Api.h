@@ -133,9 +133,30 @@ public:
     /** @short Get identifiers of all concrete objects of a given Kind */
     virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const = 0;
 
-    /** @short Get all attributes for a named object of a particular kind */
+    /** @short Get all attributes for a named object of a particular kind
+     *
+     * Templates: this function should not have any knowledge of "templates"; see the
+     * resolvedObjectData() for template support.
+     * */
     virtual std::map<Identifier, Value> objectData( const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
 
+    /** @short Get all attributes, including the inherited ones
+     *
+     * This function walks through the template hierarchy (@see RELATION_TEMPLATE's documentation)
+     * from the bottom up and if a value of an attribute is not explicitly set at the current level,
+     * it shall continue upwards until a match for all values is known.
+     *
+     * The return value is a map indexed by the attribute name, with values being a pair; the second
+     * value in this pair is the actual attribute value, while the first one is the identifier of an
+     * object which defined said attribute. Example:
+     *
+     * Requesting data for the "hw DL360":
+     *      power_consumption: (DL360, 500W)
+     *      height: (template-1U, 1)
+     *      ...
+     * */
+    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
+            const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
 
 
     // Manipulating objects
