@@ -170,6 +170,9 @@ public:
     /** @short Create new object */
     virtual void createObject( const Identifier &kindName, const Identifier &objectname ) = 0;
 
+    /** @short Change object's name */
+    virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;
+
     /** @short Remove an attribute from one instance of an object */
     virtual void removeAttribute( const Identifier &kindName, const Identifier &objectName,
             const Identifier &attributeName ) = 0;
