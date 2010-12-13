@@ -40,6 +40,61 @@ struct KindAttributeDataType {
     Type type;
 };
 
+/** @short Table relations -- are these objects somehow related, and should their representation be merged in the CLI? */
+typedef enum {
+    /** @short This object should be merged with the other one, if one exists
+     *
+     * This object and the one referred are closely related, and would typically have a {0,1}:{0,1}
+     * mapping, and therefore it makes sense to deal with both of them as if they were just one, at
+     * least from the CLI.
+     *
+     * An example of such objects is "host" and "hw" -- on most machines, there would be a 1:1
+     * mapping, and it makes much sense to group them together in the CLI.
+     * */
+    RELATION_MERGE_WITH,
+
+    /** @short This object should be embeddedable into the other one
+     *
+     * This object doesn't make much sense alone, it really has to "belong" into another one, but
+     * the "parent" object could very well exist withtout the embedded thing.
+     *
+     * A typical example is a network interface.
+     * */
+    RELATION_EMBED_INTO,
+
+    /** @short This object's values should be combined from its parent's values to derive a full set
+     *
+     * This objects supports incremental setting of values, that is, data which are not defined at
+     * this level shall be looked up at the parent.
+     * */
+    RELATION_TEMPLATE,
+
+    RELATION_INVALID /**< Last, invalid item */
+} ObjectRelationKind;
+
+
+/** @short A pair of (kind-of-relation, table)
+ *
+ * Examples for a "host" would be:
+ * (RELATION_MERGE_WITH, "hw", "hw", "host")
+ *
+ * Examples for a "hw":
+ * (RELATION_MERGE_WITH, "host", "host", "hw")
+ * (RELATION_TEMPLATE, "hw", "template", "name")
+ *
+ * Whereas for the "interface":
+ * (RELATION_EMBED_INTO, "host")
+ * */
+struct ObjectRelation {
+    /** @short Kind of relation */
+    ObjectRelationKind kind;
+    /** @short Name of a table this relation refers to */
+    Identifier tableName;
+    /** @short From which attribute shall we match */
+    Identifier sourceAttribute;
+    /** @short To which attribute shall we match */
+    Indetifier destinationAttribute;
+};
 
 /** @short Class representing the database API
  *
@@ -64,6 +119,13 @@ public:
      * */
     virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const = 0;
 
+
+    /** @short Retrieve relations between different Kinds
+     *
+     * This function returns a list of relations for the specified kind of entities -- for more
+     * details and examples, see the ObjectRelation struct.
+     * */
+    virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const = 0;
 
 
     // Returning data for existing objects
