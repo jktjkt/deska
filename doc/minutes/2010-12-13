@@ -1,0 +1,134 @@
+Schuzka Deska, 2010-12-13 FZU
+
+Pritomni: Martina, Lukas, Honza
+Tomas se omlouva, je nekde pryc.
+
+Ukoly z minula:
+---------------
+
+- Honza: pokracovat s protokolem
+    - pokracujici ukol
+- Honza: prijit s resenim pro vnorovani
+    - je, podobne jako templaty
+- Honza: bude-li chut, specifikace pro Z. a komisi
+    - neni
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+    - neni
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+    - aktivita bezi
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+    - neni
+- Tomas: protokolovat rozhodnuti
+    - neni
+- Martina: implementace API z .h pres ulozene procedury, cili SQL kod, ktery na
+  jedne strane da k dispozici implementaci API a na dnruhe strane bude volat
+  Lukasovy stored proc pro manipulaci s tabulkami; patri sem i implementace
+  "cteni schematu", tedy metody kindNames() a kindAttributes()
+    - aktivita bezi, cast je, cast neni
+- Lukas: implementace ukazkoveho "pluginu", cili SQL kod pro smysleny objekt a
+  la host se stored procedures pro verzovani
+    - je, verzovani bude chtit zmeny
+- Lukas: zjistit vic o deferred triggers -- jde pri zfailovanem pokusu o commit
+  postupovat bez rollbacku?
+    - je, viz mail
+- Lukas: moznost vice varovani pri vec failing contraints? (Honzovo napad po
+  schuzi: dalo by se to obejit, ze se udela fake pokus o merge a constrainty se
+  budou aktivovat jeden po druhem, prvni failujici -> abort a zacatek od znova s
+  tim, ze se tento constraint preskoci; je otazka, kolik to da prace v SQL)
+    - je, viz mail
+- Lukas: moznost pridavani nejakych metadat k tabulkam/constraintum (motivace:
+  lidsky citelny popis constraintu, aby uzivatel videl "Duplicate IP address in
+  the table", dale pouziti pro specifikaci smeru vnorovani pri vztazich
+  {0,1}:{0,1} atd)
+    - je, viz mail, rozhodnuto drzet globalni tabulku metadat
+
+
+
+Prehled duvodu, proc je Deska tezky projekt:
+--------------------------------------------
+
+- verzovani DB
+- CLI pristup
+- univerzalnost klienta, "genericka struktura"
+
+
+Diskuse:
+--------
+
+Proc je v API createObject()? Co kdyby mel nejaky objekt nejake parametry
+definovane jako NOT NULL? To by prece znamenalo, ze se musi jejich hodnoty
+pridat uz pri create. Ma cenu ty constrainty vynucovat i v docasne tabulce pro
+revize?
+
+Jinymi slovy, pristup a) zvany Honza, vs. pristup b) zvany databazisti:
+
+a) skoro kazdy radek ukonceny enterem v CLI vede k interakci s DB (bud vytvoreni
+  neceho, nebo zmena atributu -- pouze "host blabla" nic nedela, pokud uz
+  existuje, jelikoz je to pouze zmena kontextu, podobne "end"), tedy:
+
+"host blabla" -- neexistuje => INSERT INTO host_history (NULL, NULL, ... NULL);
+"  color red" => UPDATE host_history SET color = red WHERE identifier = blabla;
+"  foo bar" => UPDATE host_history SET foo = bar WHERE identifier = blabla;
+"end" => nic
+
+
+b) zmeny mezi "host blabla" a "end" si lokalne pamatuje CLI, vubec je neodesila
+  do DB, odeslou se az najednou pri "end"
+
+"host blabla" => nic
+"  ..." => nic
+"end" => "INSERT INTO host_history (blabla, red, bar, NULL, NULL, ... NULL);
+
+Argumenty pro reseni b):
+- takhle se to dela
+- constarinty jsou obecne dobra vec
+- prilis mnoho insertu
+
+Argumenty proti reseni b):
+- komplikuje to CLI, jelikoz si musi pamatovat zmeny
+- nebude to umet `diff` uprostred editovani (priklad: mam rozpracovany
+  changeset, neco delam, zacnu pridavat stroj blabla, ktery potrebuje dva
+  povinne parametry, takze napisu "hw blabla", "arg1 foo", "arg2 bar", ale tohle
+  jeste do DB nedoslo; napisu `diff`, uvidim, co se zmenilo od zacatku, ale
+  vubec v tom nebude videt zmena argumentu (a vytvoreni) blabla).
+- neodpovida to modelovemu chovani konzoly, ve kterem se v interaktivnim modu
+  prubezne vytvareji zmeny, a ty se pak zkontroluji, zda odpovidaji realite
+- stejne bude nutne mnoho constraintu relaxovat (napr. UNIQUE, aby sla prohodit
+  IP adresa)
+
+
+Uvaha nakonec: jelikoz budeme podporovat templaty, vypada to, ze NOT NULL na
+nejakem sloupecku nebude zas az tak pouzivana featura, jelikoz je jiste platny
+pozadavek "tahle hodnota musi byt vyplnena", ale dava dobry smysl ji hlidat az
+na "leaf nodes", cili ne u templatu. Napr. u HW je dobry napad mit vyplnenou
+spotrebu i seriove cislo, da se ale cekat, ze spotreba bude specifikovana u
+modelu HW (cili v nejakem template), zatimco seriove cislo az u konkretniho
+stroje; navic budou existovat templaty jako napr. generic-1u-rackmount-server,
+ktere budou urcovat prostor zabrany v racku, ale uz ne spotrebu.  Cili, v DB je
+nutno rozlisovat, jestli je zaznam finalni ci template, a constrainty vynucovat
+pouze u instanci realnych stroju. Pozor ale, neda se to hlidat logikou "kdyz nic
+nededi zaznam X, je to finalni stroj a ne template", jelikoz by se pak nedaly
+zadefinovat zadne templaty (na pocatku z nich jiste vubec nic nededi).
+
+
+Ukoly:
+------
+
+vsichni: urgentne se zamyslet nad otazkou "co je v Desce tezke", at muzeme
+  udelat specifikaci
+vsichni: s prioritou premyslet nad tim, jestli zvolime variantu a) ci b)
+
+- Honza: pokracovat s protokolem
+- Honza: pridat do API metody pro zjistovani dopadu zmen nejake polozky do
+  odvodenych (pres templaty)
+- Honza: bude-li chut, specifikace pro Z. a komisi
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+- Martina: overit, jestli PgSQL umi zabranit primym updatum tabulky, ale povolit
+  pristup jen pres stored procedures
+- Martina: doimplementovat chybejici funkcnost od API do SQL
+- Martina: globalni tabulka ukladajici relace (ObjectRelation z Api.h)
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+- Tomas: protokolovat rozhodnuti
+
