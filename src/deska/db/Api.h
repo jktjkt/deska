@@ -1,7 +1,10 @@
 #ifndef DESKA_API_H
 #define DESKA_API_H
 
+#include <map>
 #include <string>
+#include <vector>
+
 /*
  * TODO items for the DB API:
  *
@@ -26,7 +29,7 @@ typedef std::string Type; // FIXME: something like an extensible enum?
 typedef std::string Identifier;
 
 /** @short An identification of a persistent revision in the DB */
-typedef unisgned int Revision;
+typedef unsigned int Revision;
 
 /** @short Description of an attribute of a Kind object 
  *
@@ -53,10 +56,10 @@ typedef enum {
      * */
     RELATION_MERGE_WITH,
 
-    /** @short This object should be embeddedable into the other one
+    /** @short This object should be embeddable into the other one
      *
      * This object doesn't make much sense alone, it really has to "belong" into another one, but
-     * the "parent" object could very well exist withtout the embedded thing.
+     * the "parent" object could very well exist without the embedded thing.
      *
      * A typical example is a network interface.
      * */
@@ -93,7 +96,7 @@ struct ObjectRelation {
     /** @short From which attribute shall we match */
     Identifier sourceAttribute;
     /** @short To which attribute shall we match */
-    Indetifier destinationAttribute;
+    Identifier destinationAttribute;
 };
 
 /** @short Class representing the database API
