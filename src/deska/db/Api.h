@@ -56,13 +56,13 @@ public:
      * Top-level Kinds are entities like enclosure etc, that is, object representing types.  These
      * Kinds could then be instantiated.
      * */
-    virtual std::vector<Identifier> kindNames( const Revision=0 ) const = 0;
+    virtual std::vector<Identifier> kindNames() const = 0;
 
     /** @short Return Attributes which are defined for a particular Kind 
      *
      * The returned data is a list of <name, datatype> pairs.
      * */
-    virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName, const Revision=0 ) const = 0;
+    virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const = 0;
 
 
 
