@@ -13,7 +13,10 @@ GRANT ALL ON vendor TO deska_team;
 CREATE TABLE vendor_version (
 	uid char(36) NOT NULL,
 	name text NOT NULL,
-	version int NOT NULL
+	-- version id
+	version int NOT NULL,
+	-- destroyed in actual version ?
+	dest_bit bit(1) NOT NULL DEFAULT B'0'
 );
 GRANT ALL ON vendor_version TO deska_team;
 
@@ -36,6 +39,21 @@ END
 $$
 language plpgsql;
 
+-- delete
+CREATE or REPLACE FUNCTION 
+vendor_del(IN id char(36), IN name text, IN ver int)
+RETURNS int
+AS
+$$
+--	DECLARE ver int;
+BEGIN
+	INSERT INTO vendor_version (uid, name, version, dest_bit)
+		VALUES (id, name, ver, '1');
+	RETURN 1;
+END
+$$
+language plpgsql;
+
 -- commit
 CREATE or REPLACE FUNCTION
 vendor_commit(IN ver int)
@@ -49,6 +67,9 @@ BEGIN
 	INSERT INTO vendor (uid,name)
 		SELECT uid,name FROM vendor_version
 			WHERE version = ver AND uid NOT IN ( SELECT uid FROM vendor );
+	DELETE FROM vendor
+		WHERE uid IN (SELECT uid FROM vendor_version
+				WHERE version = ver AND dest_bit = '1');
 	RETURN 1;
 END
 $$

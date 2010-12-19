@@ -92,7 +92,8 @@ GRANT ALL ON cpu TO deska_team;
 CREATE TABLE interface (
 	uid int PRIMARY KEY,
 	name text NOT NULL,
-	ip INET UNIQUE,
+	ip INET 
+		constraint interface_ip_unique UNIQUE,
 	-- svázat s lan_adapter, nebo trunk, nebo jinej interface?
 	dns_name text
 );

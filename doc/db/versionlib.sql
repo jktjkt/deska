@@ -5,8 +5,12 @@ DROP TABLE version;
 
 -- vendors of hw -- versioning table
 CREATE TABLE version (
-	number int
+	-- internal id
+	id int
 		CONSTRAINT version_pk PRIMARY KEY,
+	-- human readable id
+	number int
+		CONSTRAINT version_number_unique UNIQUE,
 	name text
 );
 GRANT ALL ON version TO deska_team;
