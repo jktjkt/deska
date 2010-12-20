@@ -16,7 +16,9 @@ CREATE TABLE vendor_version (
 	-- version id
 	version int NOT NULL,
 	-- destroyed in actual version ?
-	dest_bit bit(1) NOT NULL DEFAULT B'0'
+	dest_bit bit(1) NOT NULL DEFAULT B'0',
+	-- uid and version number is pk
+	CONSTRAINT vendor_version_pk PRIMARY KEY (uid,version)
 );
 GRANT ALL ON vendor_version TO deska_team;
 
