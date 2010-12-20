@@ -33,3 +33,18 @@ END
 $$
 language plpgsql;
 
+-- create record
+CREATE or REPLACE FUNCTION 
+create_record(IN tbl text, IN attr text, IN value text, IN ver int)
+RETURNS int
+AS
+$$
+--	DECLARE ver int;
+BEGIN	
+	plan = plpy.prepare("INSERT INTO $1 ($2,version) VALUES ($3,$4)", [ "text", "text", "text", "int" ];
+	rv = plpy.execute(plan, tbl, attr, value, ver);
+	return rv;
+END
+$$
+language plpythonu;
+
