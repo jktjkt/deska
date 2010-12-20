@@ -19,28 +19,18 @@ from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the 
 
 \section{Motivation}
 
-In February 2010, the total installed computing capacity available to users was about 3000~CPU cores with more than 500~TB of disk
-storage, which translates to several hundreds of physical machines.  All the resources are managed by just a few system
-administrators (currently slightly more than three full time employees).  Due to the impressive machines-per-administrator ratio,
-the staffers are exploring ways about how to make the system administrators' life easier and less error prone.
+In December 2010, the total installed computing capacity available to users was about 3000~CPU cores with more than 500~TB of disk
+storage, which translates to several hundreds of physical machines, with more hardware to arrive in early 2011.  All the resources
+are managed by just a few system administrators (currently slightly more than three full time employees).  Due to the impressive
+machines-per-administrator ratio, the staffers are exploring ways about how to make the system administrators' life easier and
+less error prone.
 
 Over the years, certain monitoring and management systems were deployed at the Institute, including Cfengine~\cite{cfengine},
 Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
-check if she wants to make sure the infrastructure works as expected, and each new tool has to be configured separately.  In
-addition, each site in the WLCG Grid is also being monitored and checked by third parties.\footnote{Monitoring from outside
-provides a highly needed perspective about site's availability from throughout the Grid.  Such external tools come in variety of
-flavours, from simple tools checking whether certain values published in a global information system are sane to complex solutions
-like automated job-submitting robots which monitor whether the site in question is in fact accepting jobs and if these jobs
-terminate successfully in a timely manner.  Jobs running on site's worker nodes also have the ability to check for various local
-settings like having fresh enough packages and fixed security vulnerabilities.}  Number of systems monitoring a typical site from
-outside grows each year, introducing yet another burden on the Institute's staffers.  Therefore, it has been decided that the
-Institute shall fund a development of a tool which will:
-
-\begin{itemize}
-    \item{automate the configuration process,}
-    \item{aggregate the monitoring data at one place}
-\end{itemize}
+check if she wants to make sure the infrastructure works as expected, and each new tool has to be configured separately.
+Therefore, it has been decided that the Institute shall fund a development of a tool which will {\em automate the configuration
+process}.
 
 \section{System Requirements}
 
@@ -52,7 +42,7 @@ physical machines, their hardware models, part numbers, rack locations, network 
 couplings of operating system instances (aka ``hosts'') to physical machines, logical relations between various
 services\footnote{For example, each {\em subcluster} has one or more {\em gateways} called Computing Elements.  Failure of the CE,
 as detected by upstream monitoring, might be actually caused by a dying hard drive on one single node in the cluster.  The system
-must therefore be capable of storing such complex information.} as well as a history of issues encountered by each component.
+must therefore be capable of storing such complex information.}.
 This database shall then act as the single authoritative source of information for generating configuration of all components of
 the system, including the monitoring appliances.  In addition, tools shall be written to perform consistency checks between the
 state recorded in the database and the actual system shape when the automatic configuration generation is not feasible for safety
@@ -62,7 +52,8 @@ to automated configuration as a single error can cause large network segments to
 Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
 this database will be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
-application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches.  The format shall
+application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notable to the
+Cisco IOS shell.  The format shall
 enable storing of plaintext dumps of the database in a version control system.  It is expected that the CLI application will
 include ``wizards'' for common tasks like deploying a new machine in order to make the user's job as smooth as possible.
 
@@ -73,66 +64,14 @@ nodes on a commodity x86\_64 server hardware.
 Furthermore, additional components for generating configuration on basis of actual system state, as retrieved through the
 read-only database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND
 name service demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any
-data center to allow eventual deployment of new components, should the need arise.  The API will also be used as a source of
-information for the second part of the project, the Dashboard -- the information available through the API will make it possible
+data center to allow eventual deployment of new components, should the need arise.  The information available through the API
+shall make it possible
 to generate an accurate visualization of the data center and all deployed systems, from the physical view showing racks of servers
 to a high-level view depicting logical dependencies between services and machines.
 
-
-\subsection{Dashboard}
-
-The second part of the system is the Dashboard, a tool whose purpose is to provide an accurate and up-to-date overview of the
-state of the system.  The main philosophy behind this component is that there are already plenty of monitoring systems checking
-the health and performance metrics of a grid site, yet no central place for the administrators to look for troubles.  Therefore,
-it is pretty common that a minor issue which is detected by only a single monitoring system gets unnoticed by the system
-administrators for several months.  The goal of the dashboard is, therefore, to provide a central view aggregating data from {\em
-all} the monitoring systems, both local and remote.
-
-The system shall be capable of storing the data provided by each monitoring tool, performing a mapping from their naming
-convention to an intermediate form, and grouping related sensors together.  Exploring ways in which to query various monitoring
-systems for data is part of the design phase of the system.  The data shall be stored in format which makes it possible to view
-history of each value up to a configurable age.  An example of such a backing store is the Round Robin Database (RRD)~\cite{rrd}.
-
-The dashboard will aggregate and keep an archive of data coming from all the currently deployed monitoring systems.  Examples of
-{\em local} appliances whose results should be aggregated are Nagios, Munin and Ganglia (for monitoring metrics like CPU
-utilization, available memory, local disk space, network response times etc.), network infrastructure through SNMP\footnote{The
-network monitoring is actually a prime example of the usefulness of the Database and Dashboard integration -- having an
-up-to-date, reliable mapping between a hostname and a particular port on some switch is crucial for this task and will enable
-accurate and reliable visualization of network utilization}, environment data like air temperature, CRAC units power or UPS
-utilization and also values like number of jobs in the queue or number of currently running jobs -- in short, the data sources are
-generally speaking deployed and managed by the Institute's own staffers and could thus be slightly modified, both in terms of
-configuration and output format, for interoperability purposes.  In contrast, the {\em remote} systems are typically more
-complicated partially autonomous systems developed and managed by third parties, and usually provide an executive-oriented
-visualization of a particular site's performance.  A typical example of such a tool are the SAM tests\footnote{SAM tests are a
-complex framework submitting jobs to sites in a fully automatic way with additional autonomous agents checking that the test jobs
-actually hit the target worker node.  The executed jobs themselves then perform variety of tests right on the site's computational
-resources, from checking particular software packages' versions to initiating file transfers in order to test the Grid disk
-servers.  This approach proved to be extremely valuable and successful at catching many errors.} or various web-based monitors
-like GStat~\cite{gstat}.
-
-A web portal shall be developed depicting the health and the present state of a system in an intuitive way.  In addition to that,
-it shall be possible for the user of the dashboard to view graphs showing the history of various sensors, both in isolation and
-overlaid in order to provide a way of figuring out correlations between different metrics -- for example, system administrators
-might be interested in figuring out if the network utilisation and the number of jobs currently running in the job system matches
-in order to provide an infrastructure with balanced disk and CPU throughput.  All the data shall be exportable to a format which
-makes it easy to explore the data using a third-party statistical tool, but an elementary form of statistical analysis shall be
-integrated into the core system.
-
-Furthermore, due to a strong pressure to deploy Nagios as {\em the} monitoring solutions in the Grid, Nagios shall indeed be an
-integral component of the design\footnote{For example, it shall be used for gathering data where possible, or the detected alerts
-shall be pushed back to Nagios for evaluation and passing them to the administrators, etc.}.
-
 \section{Problems to Solve}
 
-Monitoring hundreds or thousand of machines is a difficult task.  Problems that the team will have to solve are therefore mostly
-related to scalability and efficiency in using limited resources.  The RRDTool toolkit puts high load to the disk subsystem with
-its constant scattered writes.  The team will have to investigate current approaches and come up with a solution which allows
-collecting data often enough that it is still usable, yet does not overload the monitoring machine with too many IO requests.
-Care has to be taken to handle hosts suddenly not responding in a graceful way, so that they do not block the program execution,
-and to fault tolerance in general.
-
-Another expected issue is in developing pluggable modules for querying third-party monitoring systems.  It is to be explored if
-they provide a reasonable API or if the team will have to resort to suboptimal means like parsing the HTML pages with overview.
+FIXME, FIXME, FIXME.
 
 The structure of the Database shall be thoroughly planned, too.  The team will have to balance the complexity needed for accurate
 representation of the real infrastructure with the required level of usability.  The interface should be intuitive enough so that
@@ -140,10 +79,9 @@ the administrator will actually notice the improvements and start to like the sy
 
 \section{Future Improvements}
 
-The system shall be extensible enough to be used outside of the Institute's computing infrastructure.  Areas for further
-improvements include providing a plugin for analysis of the batch system controller, tracking data transfers from the disk
-servers, improved visualization etc.  A nice feature would be also a ``one-click'' tool for fully automated deployment of new
-machines, handling everything from setting up PXE environment for installation to actual system configuration.
+The system shall be extensible enough to be used outside of the Institute's computing infrastructure.  A nice feature would be
+also a ``one-click'' tool for fully automated deployment of new machines, handling everything from setting up PXE environment for
+installation to actual system configuration.
 
 
 \begin{thebibliography}{9}
@@ -155,8 +93,6 @@ machines, handling everything from setting up PXE environment for installation t
     \bibitem{nagios}Nagios, {\tt http://www.nagios.org/}
     \bibitem{ganglia}Ganglia, {\tt http://ganglia.sourceforge.net/}
     \bibitem{munin}Munin, {\tt http://munin.projects.linpro.no/}
-    \bibitem{rrd}RRDTool, {\tt http://oss.oetiker.ch/rrdtool/}
-    \bibitem{gstat}GStat, {\tt http://goc.grid.sinica.edu.tw/gstat/}
 \end{thebibliography}
 
 \end{document}
