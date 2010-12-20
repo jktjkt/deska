@@ -154,11 +154,13 @@ declare
 pkname name;
 begin
 --conkey[1] = 1st item from conkey, its for one column PK
-select att_name(class1.oid, constr.conkey[1]) into pkname
+  execute 'select att_name(class1.oid, constr.conkey[1])
 		from	pg_constraint as constr
 			--join with table which the contraint is on
 			join pg_class as class1 on (constr.conrelid = class1.oid)	
-		where contype='p' ;
+		where contype=''p'' and relname = $1'
+  into pkname
+  using tabname;
 
 return pkname;
 end
@@ -180,6 +182,13 @@ return;
 END;
 $$ LANGUAGE plpgsql;
 
+create sequence version_seq;
+select * from version_seq;
+select last_value from version_seq;
+--increments value and returns the new value of sequence
+select nextval('version_seq');
+--selects current value of sequence
+select currval('version_seq');
 
 --insert into vendor(uid,name) values (2,'IBM');
 --insert into vendor(uid,name) values (14,'Intel');
