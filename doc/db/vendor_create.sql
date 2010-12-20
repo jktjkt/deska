@@ -10,10 +10,7 @@ CREATE TABLE vendor (
 GRANT ALL ON vendor TO deska_team;
 
 -- vendors of hw -- versioning table
-CREATE TABLE vendor_version (
-	uid char(36) NOT NULL,
-	name text NOT NULL,
-	-- version id
+CREATE TABLE vendor_version ( LIKE vendor ,
 	version int NOT NULL,
 	-- destroyed in actual version ?
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
