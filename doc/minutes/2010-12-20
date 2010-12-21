@@ -1,0 +1,77 @@
+Schuzka Deska, 2010-12-13 FZU
+
+Pritomni: vsichni
+
+Ukoly z minula:
+---------------
+
+vsichni: urgentne se zamyslet nad otazkou "co je v Desce tezke", at muzeme
+  udelat specifikaci
+
+  - Napady predneseny na schuzce:
+    - Lukas: verzovani neznamych struktur
+    - Martina: templaty
+    - Tomas: "dynamicnost", skladani z neznama,...
+
+vsichni: s prioritou premyslet nad tim, jestli zvolime variantu a) ci b)
+    - diskuse, shoda na tom, ze cachovani v urcitych pripadech, ktere delaji
+    starosti potencialnim poctem dotazu (update vsech IP adres...) zbytecne;
+    rozhodnuto dat cache v pripade potreby na deska server, jelikoz, jak Lukas
+    spravne tvrdi, je to vlastne jedno, kde bude
+
+- Honza: pokracovat s protokolem
+    - nic noveho
+- Honza: pridat do API metody pro zjistovani dopadu zmen nejake polozky do
+  odvodenych (pres templaty)
+    - neni
+- Honza: bude-li chut, specifikace pro Z. a komisi
+    - zatim pouze marginalni zmeny
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+    - neni
+- Martina: overit, jestli PgSQL umi zabranit primym updatum tabulky, ale povolit
+  pristup jen pres stored procedures
+    - jde omezit i jen na SELECT + procedury, coz nam snad staci
+- Martina: doimplementovat chybejici funkcnost od API do SQL
+    - pokracuje se
+- Martina: globalni tabulka ukladajici relace (ObjectRelation z Api.h)
+    - neni (nejake zmatky?)
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+    - pokracuje se
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+    - neni
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+    - neni, byl pryc
+- Tomas: protokolovat rozhodnuti
+    - neni
+
+
+Poznamky z diskuse:
+-------------------
+
+Martina: updatovaci funkce a typy slopucu -- co s tim?
+Martina: uprava tabulek, jelikoz identifikator je ted "name" a ne PK
+
++ projednavani bodu z minula, viz vyse, a ukoly pres Vanoce, viz nize.
+
+
+Ukoly na priste:
+----------------
+
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+- Honza: pokracovat s protokolem
+- Honza: pridat do API metody pro zjistovani dopadu zmen nejake polozky do
+  odvodenych (pres templaty)
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+- Martina: dalsi prace na implemntaci API (podpora pro zmeny sloupcu s ruznymi datovymi
+  typy), zmena PK -> "name", API pro relace, doplnovani dalsich funkci API
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+- Lukas: dalsi prace na historii
+- Lukas: bude-li cas a chut, automatizovane testy
+- Tomas: error reporting od Spiritu
+- Tomas: vytahovani vyparsovanych informaci
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+- Tomas: protokolovat rozhodnuti
+
+Pristi schuzka: 3. ledna 2011, tradicni misto/cas
+
