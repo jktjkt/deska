@@ -175,3 +175,107 @@ select currval('version_seq');
 --select * from vendor;
 --select get_kindInstances('vendor');
 --select get_primary_key_column('vendor');
+
+--createObject( const Identifier &kindName, const Identifier &objectname )
+--creates new object if doesn't exist that one
+--postgresql 9.1 execute format('insert into %I ( %I ) values ( $1 )',tabname, get_primary_key_column(tabname))
+create or replace function create_object(tabname name, id text) returns void
+as
+$$
+begin
+	execute 'insert into ' || tabname || ' (' || (get_primary_key_column(tabname)) ') values ( $1 )'
+	using id;
+end;
+$$LANGUAGE plpgsql;
+
+--drop table testtabstr;
+--create table testtabstr(textid text primary key, col1 text, col2 int);
+--select create_object('testtabstr', 'hoj');
+
+--select get_primary_key_column('testtabstr');
+
+--att_name(class1.oid, constr.conkey[1])
+
+--drop table testtab;
+--create table testtab (uid int primary key, description text, col1 int);
+--insert into testtab values(1);
+--select * from testtab;
+--select description from testtab;
+--insert into testtab values(2,NULL,NULL);
+--select create_object('testtab','12');
+
+--select create_object('testtabstr','12');
+--select create_object('testtabstr','ahoj');
+--select * from testtabstr;
+--select create_object('testtab', '10');
+
+
+--renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
+create or replace function rename_object(tabname name, oldval varchar, newval varchar)
+returns void as $$
+begin
+	execute 'update ' || tabname || ' set ' || (get_primary_key_column(tabname)) || '=$1 where ' || (get_primary_key_column(tabname)) || '=$2'
+	using newval, oldval;
+end;
+$$
+language plpgsql;
+
+create or replace function rename_object(tabname name, oldval int, newval int)
+returns void as $$
+begin
+	execute 'update ' || tabname || ' set ' || (get_primary_key_column(tabname)) || '=$1 where ' || (get_primary_key_column(tabname)) || '=$2'
+	using newval, oldval;
+end;
+$$
+language plpgsql;
+
+
+--select rename_object('vendor',1,21);
+
+
+--removeAttribute( const Identifier &kindName, const Identifier &objectName,const Identifier &attributeName )
+create or replace function remove_attribute(tabname name, id varchar, colname name) returns void
+as $$
+begin
+	execute 'update ' || tabname || ' set ' || colname || '=NULL where ' || (get_primary_key_column(tabname)) || '=$1'
+	using id;
+end;
+$$ language plpgsql;
+
+--select remove_attribute('testtabstr','prvni','col1');
+--select * from testtabstr;
+--insert into testtabstr values('prvni','ahoj',1);
+
+--setAttribute( const Identifier &kindName, const Identifier &objectName,const Identifier &attributeName, const Value &value )
+create or replace function set_attribute(tabname name, id varchar, colname name, newval varchar)
+returns void as $$
+begin
+	execute 'update ' || tabname || ' set ' || colname || '=$1 where ' || (get_primary_key_column(tabname)) || '=$2'
+	using newval, id;
+end;
+$$ language plpgsql;
+
+--select set_attribute('testtabstr', 'prvni', 'col1', 'ahoj 2');
+--select * from testtabstr;
+
+create table objectRelationKind(
+	uid smallint PRIMARY KEY,
+	description varchar
+);
+
+insert into objectRelationKind values (0,'relation merge with');
+insert into objectRelationKind values (1,'relation embended into');
+insert into objectRelationKind values (2,'relation template');
+insert into objectRelationKind values (3,'relation invalid');
+
+
+--drop table objectRelation;
+create table objectRelation(
+	tablename name,
+	col name,
+	kind smallint REFERENCES objectRelationKind(uid),
+	refedtab name,	
+	refedcol name
+);
+
+
