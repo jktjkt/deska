@@ -1,0 +1,5 @@
+* CODE STYLE
+	- sql keywords case - may be, some script will help;)
+	- naming files
+	- we don't want api in fn-get-schema.sql file, really confusing
+
