@@ -1,0 +1,9 @@
+Slots/signals
+Boost::Signals
+* signal je objekt emitovany volanim jako funkce
+* slot je funkce
+* signal muze vracet hodnoty posbirane ze slotu
+* synchronni, neni thread safe !!!!!
+* funkce auto-disconnect
+* podpora rekurze
+* podpora templatu
