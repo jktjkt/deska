@@ -1,4 +1,4 @@
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
 
@@ -9,8 +9,8 @@ class ClassA
 {
 public:
 
-    signal< void () >    SignalA;
-    signal< void ( int ) > SignalB;
+    signals2::signal< void () >    SignalA;
+    signals2::signal< void ( int ) > SignalB;
 };
 
 class ClassB
