@@ -61,16 +61,54 @@ The Database shall provide an API for access to the data contained therein.  Use
 handled by already existing operating system facilities (PAM, SSH).  The whole system shall be able to scale up to thousands of
 nodes on a commodity x86\_64 server hardware.
 
-Furthermore, additional components for generating configuration on basis of actual system state, as retrieved through the
+\subsection{Add-on modules}
+
+Additional components for generating configuration on basis of actual system state, as retrieved through the
 read-only database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND
 name service demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any
 data center to allow eventual deployment of new components, should the need arise.  The information available through the API
 shall make it possible to generate an accurate visualization of the data center and all deployed systems, from the physical view
 showing racks of servers to a high-level view depicting logical dependencies between services and machines.
 
+Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
+in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
+well documented sample modules.
+
+\subsection{Management Utilities}
+
+The information contained in the database shall be used for variety of other tasks, besides generating configuration files.  One
+practical use case is creating a unified interface for console access to the physical machines.  This interface shall build on the
+existing tools for handling the actual access (likely a SSH tunnel, a standard KVM access or perhaps a Java-based browser method),
+but encapsulate all the details like physical location from the user.
+
+A similar application is controlling the host power state; again, the goal here is not to reimplement the OpenIPMI implementation,
+but hide various differences in the protocol spoken by various machines, automatically using correct credentials for access etc
+etc.
+
 \section{Problems to Solve}
 
+On a first sight, the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not
+the case.  The biggest complication of the whole design is finding a right balance between usability and completeness.  The
+Institute has had a web-based inventory management application capable of tracking various pieces of data for years, but the
+staffers were hesitant to use it and, more importantly, depend on it for day-to-day operation.  As per an explicit request given
+by the staffers, this project shall develop a console-based tool with strong focus on scripting, ease of function and the general
+feeling of {\em helping} with getting things done instead of building artificial obstructions.
+
+Given the always-changing nature of the data center operations, it is unlikely that a static database structure would accommodate
+future developments{\footnote Indeed, many competing modules were struggling when servers with sizes different than several rack
+units arrived}.  Therefore, the structure of the database shall not hard code any current assumptions about how a datacenter looks
+like, but shall rather provide a way to describe generic collections of objects and their hierarchies.  Needless to say, such an
+approach puts even bigger pressure on designing the system (and the database structure implemented at the Institute), as finding a
+balance between being ``generic enough'' and ``usable enough'' is extremely complicated.
+
+FIXME: versioning\ldots
+
+The problem of database versioning and associated accounting is far from trivial, too, especially when combined with the fact that
+the database structure is not set in stone in advance, but\ldots FIXME maybe talk about the dynamic stuff before?
+
 FIXME, FIXME, FIXME.
+
+FIXME: talk about security, reliability, scalability :),\ldots
 
 The structure of the Database shall be thoroughly planned, too.  The team will have to balance the complexity needed for accurate
 representation of the real infrastructure with the required level of usability.  The interface should be intuitive enough so that
