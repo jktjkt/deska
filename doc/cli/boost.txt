@@ -17,3 +17,10 @@ JSON Spirit
 * http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx
 * umi i pekne detekovat chyby a to radek, sloupec a stringove duvod
 * da se napojit na streamy
+ 
+Sitove spojeni
+Boost::Asio
+* Streamy po siti (std::iostream interface)
+* podpora asynchronnosti -> non-blocking spojeni
+* podpora SSL
+* Pekny examply: http://www.boost.org/doc/libs/1_39_0/doc/html/boost_asio/examples.html
