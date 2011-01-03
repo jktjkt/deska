@@ -16,7 +16,7 @@ JSON Spirit
 * JSON parser postavenej na Boost::Spirit, vyuziva CMake
 * http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx
 * umi i pekne detekovat chyby a to radek, sloupec a stringove duvod
-* da se napojit na streamy
+* da se napojit na streamy (std::istream a std::ostream)
  
 Sitove spojeni
 Boost::Asio
