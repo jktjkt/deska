@@ -7,3 +7,10 @@ Boost::Signals
 * funkce auto-disconnect
 * podpora rekurze
 * podpora templatu
+
+JSON
+JSON Spirit 
+* JSON parser postavenej na Boost::Spirit, vyuziva CMake
+* http://www.codeproject.com/KB/recipes/JSON_Spirit.aspx
+* umi i pekne detekovat chyby a to radek, sloupec a stringove duvod
+* da se napojit na streamy
