@@ -83,24 +83,17 @@ namespace DeskaCLI
             using qi::_val;
             using ascii::char_;
 
-            predefined = new PredefinedRules< Iterator >();
-
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined->t_string );
-            keyword.add( "id", predefined->t_int );
-            keyword.add( "ip", predefined->t_string );
+            keyword.add( "name", predefined.t_string );
+            keyword.add( "id", predefined.t_int );
+            keyword.add( "ip", predefined.t_string );
 
             // Head of top-level grammar
-            cat_start %= lit( "interface" ) >> predefined->identifier;
+            cat_start %= lit( "interface" ) >> predefined.identifier;
 
             // Trick for building the parser during parse time
             start = cat_start >> +( keyword[ _a = _1 ] >> lazy( _a ) ) >> lit( "end" );
         }
-
-        ~IfaceGrammar()
-        {
-            delete predefined;
-        };
 
         qi::symbols< char, qi::rule< Iterator, ascii::space_type > > keyword;
         qi::symbols< char, qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > > nested;
@@ -108,7 +101,7 @@ namespace DeskaCLI
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
         qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
 
-        PredefinedRules< Iterator >* predefined;
+        PredefinedRules< Iterator > predefined;
     };
 
     template <typename Iterator>
@@ -132,13 +125,10 @@ namespace DeskaCLI
             using ascii::char_;
             using ascii::string;
 
-            predefined = new PredefinedRules< Iterator >();
-            errHandler = new ErrorHandler< Iterator >();
-
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined->t_string );
-            keyword.add( "id", predefined->t_int );
-            keyword.add( "price", predefined->t_double );
+            keyword.add( "name", predefined.t_string );
+            keyword.add( "id", predefined.t_int );
+            keyword.add( "price", predefined.t_double );
 
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
             //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > iface = IfaceGrammar< Iterator >();
@@ -146,7 +136,7 @@ namespace DeskaCLI
             //nested.add( "interface", iface );
 
             // Head of top-level grammar
-            cat_start %= lit( "hardware" ) > predefined->identifier;
+            cat_start %= lit( "hardware" ) > predefined.identifier;
             cat_start.name("cathegory start");
 
             // Trick for building the parser during parse time
@@ -162,20 +152,14 @@ namespace DeskaCLI
             //on_error< fail >( start, *errHandler( _1, _2, _3, _4 ) );
         }
 
-        ~MainGrammar()
-        {
-            delete predefined;
-            delete errHandler;
-        };
-
         qi::symbols< char, qi::rule< Iterator, ascii::space_type > > keyword;
         qi::symbols< char, qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > > nested;
         
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
         qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
 
-        PredefinedRules< Iterator >* predefined;
-        ErrorHandler< Iterator >* errHandler;
+        PredefinedRules< Iterator > predefined;
+        ErrorHandler< Iterator > errHandler;
     };
 }
 
