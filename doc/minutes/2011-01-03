@@ -1,0 +1,65 @@
+Schuzka Deska, 2011-01-03 FZU
+
+Pritomni: Honza, Lukas, Tomas
+Omluveni: Martina - nemoc
+
+Ukoly z minula:
+---------------
+
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+    - zmeny jsou, stale je potreba delat dal :(
+    - zacal jsem psat cosi o skriptech nabalenych nad DB, je otazkou, jestli je
+      dobry napad to napsat uz do dokumentace
+- Honza: pokracovat s protokolem
+    - nic noveho
+- Honza: pridat do API metody pro zjistovani dopadu zmen nejake polozky do
+  odvodenych (pres templaty)
+    - hotovo
+- Honza: vyhledove clanek na CHEP (pekna publikace pro vsechny)
+    - neni
+- Martina: dalsi prace na implemntaci API (podpora pro zmeny sloupcu s ruznymi datovymi
+  typy), zmena PK -> "name", API pro relace, doplnovani dalsich funkci API
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+- Lukas: dalsi prace na historii
+- Lukas: bude-li cas a chut, automatizovane testy
+- Tomas: error reporting od Spiritu
+    - pracuje, neni
+- Tomas: vytahovani vyparsovanych informaci
+    - neni
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: podivat se na event loop a moznosti IO pro klienta
+    - poznamky v gitu
+- Tomas: protokolovat rozhodnuti
+    - neni
+
+
+Poznamky z diskuse:
+-------------------
+
+Pomerne dost problemu dela dynamicnost databaze, generovani SQL dotazu on-the-fly z kazde stored
+procedure neni elegantni; dohodnuto, ze se predgeneruji nejakym skriptem pri upgradu schematu DB (je
+to kriticky krok, je dobre chyby odchytit prave v tomto okamziku, kdy je clovek - spravce DB
+struktury jeste po ruce).
+
+Ukoly na priste:
+----------------
+
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+- Honza: pokracovat s protokolem
+- Honza: clanek na CHEP (pekna publikace pro vsechny)
+- Martina: dalsi prace na implemntaci API (podpora pro zmeny sloupcu s ruznymi datovymi
+  typy), zmena PK -> "name", API pro relace, doplnovani dalsich funkci API
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+- Lukas: dalsi prace na historii
+- Lukas: bude-li cas a chut, automatizovane testy
+- Tomas: error reporting od Spiritu
+- Tomas: vytahovani vyparsovanych informaci
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: protokolovat rozhodnuti
+
+
+Pristi schuzka:
+---------------
+
+10. ledna 2011, tradicni misto/cas
+
