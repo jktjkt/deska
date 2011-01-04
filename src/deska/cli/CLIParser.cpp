@@ -30,7 +30,10 @@ namespace DeskaCLI
     class ErrorHandler
     {
     public:
-        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what )
+        template <typename, typename, typename, typename>
+            struct result { typedef void type; };
+
+        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const
         {
             std::cout
                 << "Error! Expecting " << what
@@ -143,13 +146,8 @@ namespace DeskaCLI
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
             start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( _a ) ) /*|| ( nested[ _a = _1 ] >> lazy( _a ) )*/ ) >> lit( "end" ) );
 
-            on_error< fail >( start, std::cout
-                << phoenix::val( "Error! Expecting " ) << _4
-                << phoenix::val( " here: \"" ) << phoenix::construct< std::string >( _3, _2 ) << phoenix::val( "\"" )
-                << std::endl );
-            
-            //Failed to compile when trying to delegate error handling to separate class
-            //on_error< fail >( start, *errHandler( _1, _2, _3, _4 ) );
+            boost::phoenix::function<ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
+            on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
         }
 
         qi::symbols< char, qi::rule< Iterator, ascii::space_type > > keyword;
