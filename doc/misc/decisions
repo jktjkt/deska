@@ -2,16 +2,9 @@ GENERAL
 
 - build system: CMake
 - coding style:
-   http://geosoft.no/development/cppstyle.html
-   http://techbase.kde.org/Policies/Kdelibs_Coding_Style
    http://qt.gitorious.org/qt/pages/QtCodingStyle
-   http://qt.gitorious.org/qt/pages/CodingConventions, nektere jsou pro nas
-     irelevantni, napr. podpora memeber function templates v ruznych
-     kompilatorech, RTTI se tez nemusime vyhybat, D-pointery zatim nepotrebujeme
-     atd atd)
-   - konsenzus je vybrat si jeden existujici coding style a toho se drzet, lepsi
-     nez vytvareni dalsich nekompatibilit; styl odpovidajici zhruba KDE ci Qt
-     vypada u me (Honza) jako favorit
+   http://qt.gitorious.org/qt/pages/CodingConventions
+   http://techbase.kde.org/Policies/Kdelibs_Coding_Style
    - class Foo; void methodNameIsThis(), enum {FOO, BAR}
    - spaces for aligning
 
