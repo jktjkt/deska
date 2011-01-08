@@ -1,0 +1,96 @@
+GENERAL
+
+- build system: CMake
+- coding style:
+   http://geosoft.no/development/cppstyle.html
+   http://techbase.kde.org/Policies/Kdelibs_Coding_Style
+   http://qt.gitorious.org/qt/pages/QtCodingStyle
+   http://qt.gitorious.org/qt/pages/CodingConventions, nektere jsou pro nas
+     irelevantni, napr. podpora memeber function templates v ruznych
+     kompilatorech, RTTI se tez nemusime vyhybat, D-pointery zatim nepotrebujeme
+     atd atd)
+   - konsenzus je vybrat si jeden existujici coding style a toho se drzet, lepsi
+     nez vytvareni dalsich nekompatibilit; styl odpovidajici zhruba KDE ci Qt
+     vypada u me (Honza) jako favorit
+   - class Foo; void methodNameIsThis(), enum {FOO, BAR}
+   - spaces for aligning
+
+
+--------------------------------------------------------------------------------
+ARCHITECTURE
+
+Client |    Server 
+ part  |     part
+CLI <-> SERVER <-> DB
+               <-> GENERATORS
+			   
+Communication using JSON over SSH.
+JSON Spirit as JSON parser
+		    
+
+--------------------------------------------------------------------------------
+DUMP
+
+- groups can be virtually nested
+
+host golias120
+    template golias-wn
+    serial 1234567890
+    interface int_golias120
+end
+
+interface int_golias123  //this have to be unique
+    belongs golias120    
+    ip 147.231.25.120
+    mac xyz
+end
+
+can be written like:
+
+host golias120
+    template golias-wn
+    serial 1234567890
+    interface int_golias120
+        ip 147.231.25.120
+        mac xyz
+    end
+end
+
+
+--------------------------------------------------------------------------------
+CLI
+
+C++, Boost::Spirit
+
+Building grammar based on:
+- list of top-level objects (interface,host...)
+- list of argumenst types for each top level object (name-type)
+- list of nested object for each top level object
+    - something like getNestedObjects( objectName )
+
+- types are hard-coded (integer, string, quoted string, mac, ip,...)
+
+- conflicts will be solved by some diff3 of potential dumps
+
+--------------------------------------------------------------------------------
+SERVER
+
+ Python, C++
+
+- in the fact only transfers requests and answers between CLI and DB, runs
+  generators and creates diffs
+
+
+--------------------------------------------------------------------------------
+DB
+
+PgSQL
+
+- db schema change will not be versioned
+- deleting of an entity will only mark it as deleted (for history purposes)
+- templates: only one per entity
+- constraints check using "fake merge" and abort
+
+
+--------------------------------------------------------------------------------
+GENERATORS
