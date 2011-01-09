@@ -1,8 +1,14 @@
+#ifndef PARSER_H
+#define PARSER_H
+
+
+
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+#include<boost/lambda/lambda.hpp>
 #include <boost/fusion/include/io.hpp>
 
 #include <iostream>
@@ -10,20 +16,15 @@
 #include <vector>
 
 
-/* Now this parses:
-*
-*  hardware <name> name <quoted string> id <integer> price <double> end
-*
-*  Its only an example how this can be handled.
-*/
-
 
 namespace DeskaCLI
 {
-    namespace qi = boost::spirit::qi;
+
     namespace spirit = boost::spirit;
     namespace phoenix = boost::phoenix;
     namespace ascii = boost::spirit::ascii;
+    namespace qi = boost::spirit::qi;
+
 
 
     template < typename Iterator >
@@ -33,14 +34,9 @@ namespace DeskaCLI
         template <typename, typename, typename, typename>
             struct result { typedef void type; };
 
-        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const
-        {
-            std::cout
-                << "Error! Expecting " << what
-                << " here: \"" << phoenix::construct< std::string >( errorPos, end ) << "\""
-                << std::endl ;
-        }
+        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const;
     };
+
 
 
     /* Predefined rules for parsing single parameters
@@ -50,26 +46,15 @@ namespace DeskaCLI
     class PredefinedRules
     {
     public:
-        PredefinedRules()
-        {
-            t_int %= qi::int_;
-            t_int.name( "integer" );
-            
-            t_string %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
-            t_string.name( "quoted string" );
-            
-            t_double %= qi::double_;
-            t_double.name( "double" );
-
-            identifier %= qi::lexeme[ *( ascii::alnum | '_' ) ];
-            identifier.name( "identifier (alphanumerical letters and _)" );
-        }
+        PredefinedRules();
 
         qi::rule< Iterator, int(), ascii::space_type > t_int;
         qi::rule< Iterator, std::string(), ascii::space_type > t_string;
         qi::rule< Iterator, double(), ascii::space_type > t_double;
         qi::rule< Iterator, std::string(), ascii::space_type > identifier;
     };
+
+
 
     template < typename Iterator >
     class IfaceGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
@@ -144,7 +129,7 @@ namespace DeskaCLI
 
             // Trick for building the parser during parse time
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-            start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( _a ) ) /*|| ( nested[ _a = _1 ] >> lazy( _a ) )*/ ) >> lit( "end" ) );
+            start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( _a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( _a ) )*/ ) > lit( "end" ) );
 
             phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
             on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
@@ -162,33 +147,4 @@ namespace DeskaCLI
 
 
 
-int main()
-{
-    using boost::spirit::ascii::space;
-    typedef std::string::const_iterator iteratorType;
-    typedef DeskaCLI::MainGrammar< iteratorType > MainGrammar;
-
-    std::cout << "hardware <name> name <quoted string> id <integer> price <double> end" << std::endl;
-
-    MainGrammar g;
-    std::string str;
-    while ( getline( std::cin, str ) )
-    {
-        if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )
-            break;
-
-        std::string::const_iterator iter = str.begin();
-        std::string::const_iterator end = str.end();
-        bool r = phrase_parse( iter, end, g, space );
-
-        if ( r && iter == end )
-        {
-            std::cout << "Parsing succeeded" << std::endl;
-        }
-        else
-        {
-            std::cout << "Parsing failed" << std::endl;
-        }
-    }
-    return 0;
-}
+#endif
