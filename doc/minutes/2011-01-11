@@ -1,0 +1,64 @@
+Schuzka Deska, 2011-01-10 FZU
+
+Pritomni: Honza, Martina, Lukas
+Pozde: Tomas
+
+Ukoly z minula:
+---------------
+
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+    - pracuje, ale malo
+- Honza: pokracovat s protokolem
+    - neni
+- Honza: clanek na CHEP (pekna publikace pro vsechny)
+    - neni
+- Martina: dalsi prace na implemntaci API (podpora pro zmeny sloupcu s ruznymi datovymi
+  typy), zmena PK -> "name", API pro relace, doplnovani dalsich funkci API
+    - neni, navic se bude delat jinak, viz zapis z minula
+- Lukas: doimplementovat v SQL veci, ktere jsou potreba pro Martinu
+- Lukas: dalsi prace na historii
+- Lukas: bude-li cas a chut, automatizovane testy
+    - neni
+- Tomas: error reporting od Spiritu
+    - zatim neumi vratit pojmenovani pravidel
+- Tomas: vytahovani vyparsovanych informaci
+    - pracuje na tom, problem s lazy()
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+    - pracuje na tom
+- Tomas: protokolovat rozhodnuti
+    - je
+
+Diskuse:
+---------
+
+- Tomas: rozdeleni .cpp a .h a templaty, resp. instanciace metod
+- Tomas: Lukas souhlasi s decisions, Honza taky, viz mail
+- rozdeleni prace na DB, Lukas - Martina
+- mame dva druhy stored procedur, jedny pisou lidi a druhy se generujou skriptem pri zmene schematu
+- Martina: Oracle neumi replace funkci pri zmene signatury
+- skript zahodi vsechny predgenerovane procedury, udela nove
+
+
+Ukoly na priste:
+----------------
+
+- Honza: clanek na CHEP
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+- Honza: CMake
+- Honza: ODR templatovanych trid, resp. jejich funkci
+- Honza: pokracovat s protokolem, overit JSON a streamovani
+- Lukas: ruci za rozdeleni fci pro zjistovani schematu
+- Lukas: zacne funkce pouzivat pro delani generovani ulozenych procedur (pro implementaci API)
+- Lukas: udela mazani starych predgenerovanych procedur
+- Martina: unit testy k funkcim pro praci se schematem
+- Tomas: error reporting od Spiritu
+- Tomas: vytahovani vyparsovanych informaci
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+- Tomas: kod, co pouzije API a udela z nej gramatiku
+- Tomas: implementace FakeDatabase, ktera implementuje API a vraci nejaka hard-coded data
+
+Pristi schuzka:
+---------------
+
+17. ledna 2011, tradicni misto/cas
+
