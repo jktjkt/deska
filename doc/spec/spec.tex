@@ -43,16 +43,12 @@ couplings of operating system instances (aka ``hosts'') to physical machines, lo
 services\footnote{For example, each {\em subcluster} has one or more {\em gateways} called Computing Elements.  Failure of the CE,
 as detected by upstream monitoring, might be actually caused by a dying hard drive on one single node in the cluster.  The system
 must therefore be capable of storing such complex information.}.  This database shall then act as the single authoritative source
-of information for generating configuration of all components of the system, including the monitoring appliances.  In addition,
-tools shall be written to perform consistency checks between the state recorded in the database and the actual system shape when
-the automatic configuration generation is not feasible for safety reasons\footnote{A classic example of such a system are network
-switches -- system administrators are rather leery when it comes to automated configuration as a single error can cause large
-network segments to separate.}.
+of information for generating configuration of all components of the system, including the monitoring appliances.
 
 Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
 this database will be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
-application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notable to the
+application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the
 Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system.  It is expected
 that the CLI application will include ``wizards'' for common tasks like deploying a new machine in order to make the user's job as
 smooth as possible.
@@ -60,6 +56,20 @@ smooth as possible.
 The Database shall provide an API for access to the data contained therein.  User authentication and authorization shall be
 handled by already existing operating system facilities (PAM, SSH).  The whole system shall be able to scale up to thousands of
 nodes on a commodity x86\_64 server hardware.
+
+History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
+contemporary inventory management tools are severely limited by constraints from the past.  Even though that the whole concept of
+virtualization predates turning computers into commodity, it is still common to stumble upon tools which cannot keep track of
+virtual machines or that do not support the ``blade'' form factor.  Therefore, the Deska DB shall not impose similar restrictions
+to its data model, and the core DB code should only assume that it is working with collections of objects and some relations
+between them.  Actually defining the {\em scheme} of the database is a separate problem to be solved on a different layer.
+
+The team shall design a schema suitable for describing the whole IT infrastructure of the WLCG part of the Institute.  This scheme
+should be extensible to allow installing future pieces of equipment without large-scale code changes.
+
+FIXME: versioning
+
+FIXME: maybe split this section into two, the DB and the scheme?
 
 \subsection{Add-on modules}
 
@@ -70,13 +80,23 @@ data center to allow eventual deployment of new components, should the need aris
 shall make it possible to generate an accurate visualization of the data center and all deployed systems, from the physical view
 showing racks of servers to a high-level view depicting logical dependencies between services and machines.
 
+In addition, tools shall be written to perform consistency checks between the state recorded in the database and the actual system
+shape when the automatic configuration generation is not feasible for safety reasons\footnote{A classic example of such a system
+are network switches -- system administrators are rather leery when it comes to automated configuration as a single error can
+cause large network segments to separate.}.
+
 Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
 in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
 well documented sample modules.
 
+\subsection{Visualization of the datacenter layout}
+
+A graphical visualization of all computer rooms and all equipment managed by the database shall be offered, including a proper
+integration with monitoring tools.
+
 \subsection{Management Utilities}
 
-The information contained in the database shall be used for variety of other tasks, besides generating configuration files.  One
+The information contained in the database could be used for variety of other tasks, besides generating configuration files.  One
 practical use case is creating a unified interface for console access to the physical machines.  This interface shall build on the
 existing tools for handling the actual access (likely a SSH tunnel, a standard KVM access or perhaps a Java-based browser method),
 but encapsulate all the details like physical location from the user.
@@ -95,11 +115,11 @@ by the staffers, this project shall develop a console-based tool with strong foc
 feeling of {\em helping} with getting things done instead of building artificial obstructions.
 
 Given the always-changing nature of the data center operations, it is unlikely that a static database structure would accommodate
-future developments{\footnote Indeed, many competing modules were struggling when servers with sizes different than several rack
-units arrived}.  Therefore, the structure of the database shall not hard code any current assumptions about how a datacenter looks
-like, but shall rather provide a way to describe generic collections of objects and their hierarchies.  Needless to say, such an
-approach puts even bigger pressure on designing the system (and the database structure implemented at the Institute), as finding a
-balance between being ``generic enough'' and ``usable enough'' is extremely complicated.
+future developments\footnote{Indeed, many competing modules were struggling when servers with sizes different than several rack
+units arrived}.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter looks
+like, but shall rather provide a way to describe generic {\em collections of objects and their hierarchies}.  Needless to say,
+such an approach puts even bigger pressure on designing the system (and the database structure implemented at the Institute), as
+finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.
 
 FIXME: versioning\ldots
 
