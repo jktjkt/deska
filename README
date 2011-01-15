@@ -1,0 +1,10 @@
+This is Deska, a tool for central administration of a grid site; for details,
+please see http://projects.flaska.net/projects/show/deska .
+
+This is free software, dual-licensed under FIXME.
+
+Build instructions:
+
+1) mkdir _build && cd _build
+2) cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+3) make -j4

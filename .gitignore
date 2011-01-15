@@ -8,3 +8,5 @@
 *.pdf
 # vim
 .*.swp
+# build directory
+_build
