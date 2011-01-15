@@ -33,7 +33,7 @@ set(libDeskaCliParser_SRCS
 )
 
 set(deskaCliParserDemo_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
