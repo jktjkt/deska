@@ -21,7 +21,7 @@ from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the 
 
 In December 2010, the total installed computing capacity available to users was about 3000~CPU cores with more than 500~TB of disk
 storage, which translates to several hundreds of physical machines, with more hardware to arrive in early 2011.  All the resources
-are managed by just a few system administrators (currently slightly more than three full time employees).  Due to the impressive
+are managed by just a few system administrators (currently slightly more than three full time equivalents).  Due to the impressive
 machines-per-administrator ratio, the staffers are exploring ways about how to make the system administrators' life easier and
 less error prone.
 
@@ -30,13 +30,11 @@ Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
 check if she wants to make sure the infrastructure works as expected, and each new tool has to be configured separately.
 Therefore, it has been decided that the Institute shall fund a development of a tool which will {\em automate the configuration
-process}.
+process} and focus on bringing the control back to one central place.
 
 \section{System Requirements}
 
-\subsection{Database}
-
-The aim of the first part of the project is to develop a database storing generic description of all the resources that the Grid
+The first goal of the project is to develop a database storing generic description of all the resources that the Grid
 site is using; such a database should be capable of describing hardware infrastructure of the data center\footnote{That is all
 physical machines, their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc},
 couplings of operating system instances (aka ``hosts'') to physical machines, logical relations between various
@@ -45,43 +43,51 @@ as detected by upstream monitoring, might be actually caused by a dying hard dri
 must therefore be capable of storing such complex information.}.  This database shall then act as the single authoritative source
 of information for generating configuration of all components of the system, including the monitoring appliances.
 
+\subsection{Generic Database}
+
 Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
-this database will be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
+the database shall be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
 application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the
-Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system.  It is expected
-that the CLI application will include ``wizards'' for common tasks like deploying a new machine in order to make the user's job as
-smooth as possible.
+Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system.
+
+As has been demonstrated numerous times during the Institute's operation history, keeping track of all modifications is crucial
+for finding out what caused a particular outage.  Therefore, the database shall support {\em versioning} of the records contained
+therein.  We do not expect a need to support non-linear history (especially branching and merging).
 
 The Database shall provide an API for access to the data contained therein.  User authentication and authorization shall be
 handled by already existing operating system facilities (PAM, SSH).  The whole system shall be able to scale up to thousands of
-nodes on a commodity x86\_64 server hardware.
+managed objects on a commodity x86\_64 server hardware.
+
+\subsection{Database Scheme}
 
 History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
-contemporary inventory management tools are severely limited by constraints from the past.  Even though that the whole concept of
-virtualization predates turning computers into commodity, it is still common to stumble upon tools which cannot keep track of
-virtual machines or that do not support the ``blade'' form factor.  Therefore, the Deska DB shall not impose similar restrictions
-to its data model, and the core DB code should only assume that it is working with collections of objects and some relations
-between them.  Actually defining the {\em scheme} of the database is a separate problem to be solved on a different layer.
+contemporary inventory management tools are severely limited by constraints from the past.  Even though the whole concept of
+virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools which cannot
+keep track of virtual machines or do not support the ``blade'' form factor of physical servers.  Therefore, the Deska DB shall not
+impose similar restrictions to its data model, and the core DB code should only assume that it is working with collections of
+objects and some relations between them -- actually defining a usable {\em scheme} of the database is a separate problem from the
+general database design.
 
-The team shall design a schema suitable for describing the whole IT infrastructure of the WLCG part of the Institute.  This scheme
-should be extensible to allow installing future pieces of equipment without large-scale code changes.
+That said, the team shall design a scheme suitable for describing the whole IT infrastructure of the WLCG part of the Institute.
+This scheme should be extensible to allow installing future pieces of equipment without large-scale code changes, and shall try to
+anticipate future trends in hardware development, as well as account for more exotic hardware which could be found at Institute's
+partners' sites.
 
-FIXME: versioning
-
-FIXME: maybe split this section into two, the DB and the scheme?
+The database should nonetheless offer as much assistance with updating the DB scheme as possible, and work hard to minimize the
+effort required for making reasonable changes.
 
 \subsection{Add-on modules}
 
-Additional components for generating configuration on basis of actual system state, as retrieved through the
-read-only database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND
-name service demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any
-data center to allow eventual deployment of new components, should the need arise.  The information available through the API
-shall make it possible to generate an accurate visualization of the data center and all deployed systems, from the physical view
-showing racks of servers to a high-level view depicting logical dependencies between services and machines.
+Additional components for generating configuration on basis of the actual system state, as retrieved through the read-only
+database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND name service
+demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any data center to
+allow eventual deployment of new components, should the need arise.  The information available through the API shall make it
+possible to generate an accurate visualization of the data center and all deployed systems, from the physical view showing racks
+of servers to a high-level view depicting logical dependencies between services and machines.
 
 In addition, tools shall be written to perform consistency checks between the state recorded in the database and the actual system
-shape when the automatic configuration generation is not feasible for safety reasons\footnote{A classic example of such a system
+shape where the automatic configuration generation is not feasible for safety reasons\footnote{A classic example of such a system
 are network switches -- system administrators are rather leery when it comes to automated configuration as a single error can
 cause large network segments to separate.}.
 
@@ -89,14 +95,19 @@ Bindings to scripting languages like Python shall be introduced, as the staffers
 in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
 well documented sample modules.
 
+Furthermore, in order to streamline the day-to-day operation of the Institute, the CLI application shall include ``wizards'' for
+common tasks like deploying a new machine.
+
 \subsection{Visualization of the datacenter layout}
 
-A graphical visualization of all computer rooms and all equipment managed by the database shall be offered, including a proper
-integration with monitoring tools.
+The database API shall be used to employ the contained data for providing a graphical visualization of all computer rooms and all
+other equipment.  These views shall be integrated with the pre-existing monitoring tools to provide more intuitive overview of
+possible issues encountered during operation.  It has not been decided yet whether these tools are going to be web-based or
+implemented as a desktop application.
 
 \subsection{Management Utilities}
 
-The information contained in the database could be used for variety of other tasks, besides generating configuration files.  One
+The information contained in the database could be used for variety of other tasks besides generating configuration files.  One
 practical use case is creating a unified interface for console access to the physical machines.  This interface shall build on the
 existing tools for handling the actual access (likely a SSH tunnel, a standard KVM access or perhaps a Java-based browser method),
 but encapsulate all the details like physical location from the user.
@@ -104,6 +115,9 @@ but encapsulate all the details like physical location from the user.
 A similar application is controlling the host power state; again, the goal here is not to reimplement the OpenIPMI implementation,
 but hide various differences in the protocol spoken by various machines, automatically using correct credentials for access etc
 etc.
+
+These management utilities are likely going to be very site-specific, but effort shall be taken to attempt to properly separate
+local assumptions about concrete access method from the rest of the utility.
 
 \section{Problems to Solve}
 
