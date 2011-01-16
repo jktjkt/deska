@@ -35,13 +35,13 @@ process} and focus on bringing the control back to one central place.
 \section{System Requirements}
 
 The first goal of the project is to develop a database storing generic description of all the resources that the Grid
-site is using; such a database should be capable of describing hardware infrastructure of the data center\footnote{That is all
+site is using; such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all
 physical machines, their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc},
-couplings of operating system instances (aka ``hosts'') to physical machines, logical relations between various
-services\footnote{For example, each {\em subcluster} has one or more {\em gateways} called Computing Elements.  Failure of the CE,
-as detected by upstream monitoring, might be actually caused by a dying hard drive on one single node in the cluster.  The system
-must therefore be capable of storing such complex information.}.  This database shall then act as the single authoritative source
-of information for generating configuration of all components of the system, including the monitoring appliances.
+coupling of operating system instances (aka ``hosts'') to physical machines as well as logical relations between various
+services and their dependencies.  This database shall then act as the single authoritative source
+of information for generating configuration of all components of the system.
+
+FIXME: data scattered among several places... 
 
 \subsection{Generic Database}
 
@@ -49,56 +49,64 @@ Due to the Institute's administrators' strong Unix background and on their expli
 the database shall be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
 design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
 application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the
-Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system.
-
-As has been demonstrated numerous times during the Institute's operation history, keeping track of all modifications is crucial
-for finding out what caused a particular outage.  Therefore, the database shall support {\em versioning} of the records contained
-therein.  We do not expect a need to support non-linear history (especially branching and merging).
-
-The Database shall provide an API for access to the data contained therein.  User authentication and authorization shall be
-handled by already existing operating system facilities (PAM, SSH).  The whole system shall be able to scale up to thousands of
-managed objects on a commodity x86\_64 server hardware.
-
-\subsection{Database Scheme}
+Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system for auditing
+purposes.
 
 History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
 contemporary inventory management tools are severely limited by constraints from the past.  Even though the whole concept of
 virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools which cannot
 keep track of virtual machines or do not support the ``blade'' form factor of physical servers.  Therefore, the Deska DB shall not
-impose similar restrictions to its data model, and the core DB code should only assume that it is working with collections of
-objects and some relations between them -- actually defining a usable {\em scheme} of the database is a separate problem from the
-general database design.
+impose similar restrictions to its data model, and the core DB code should only assume that it is working with {\em collections of
+objects} and some {\em relations between them} -- actually defining a usable {\em scheme} of the database is a separate problem
+from the general database design.
 
-That said, the team shall design a scheme suitable for describing the whole IT infrastructure of the WLCG part of the Institute.
+As has been demonstrated numerous times during the Institute's course of operation, keeping track of all modifications is crucial
+for finding out what caused a particular outage.  Therefore, the database shall support {\em versioning} of the records contained
+therein.  We do not expect a need to support non-linear history (especially branching and merging), though.
+
+User authentication and authorization shall be handled by already existing operating system facilities (PAM, SSH) and provisions
+for future ACL-checking hooks shall be considered.  The whole system shall be able to scale up to thousands of managed objects on
+a commodity x86\_64 server hardware.
+
+\subsection{Database Scheme}
+
+In addition to the general-purpose database described above,
+the team shall design a scheme suitable for describing the whole IT infrastructure of the WLCG part of the Institute.
 This scheme should be extensible to allow installing future pieces of equipment without large-scale code changes, and shall try to
 anticipate future trends in hardware development, as well as account for more exotic hardware which could be found at Institute's
 partners' sites.
 
-The database should nonetheless offer as much assistance with updating the DB scheme as possible, and work hard to minimize the
-effort required for making reasonable changes.
+Nonetheless, the design of the general database shall be influenced by the real-world DB scheme, and shall offer reasonable
+assistance for administrators willing to extend the structure.  The goal here is not to achieve purity by all means, but implement
+a solution which is easy to deploy, use and maintain. An example of such assistance could be a script for converting the
+user-supplied database scheme into one directly usable in the Deska database. 
 
-\subsection{Add-on modules}
+\subsection{Database API and Add-on Modules}
+
+The Database shall provide an API for access to the data contained therein. The first, read-only part of the API shall be complete
+enough to offer all functionality required by various modules and utilities described below.  The second part of the API shall
+be used by the CLI interface for performing actual modifications to the data.  It is up for the implementors to decide on the
+technical means of the API's "on-the-wire" protocol.
+
+Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
+in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
+well documented sample modules.
 
 Additional components for generating configuration on basis of the actual system state, as retrieved through the read-only
 database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND name service
 demon, DHCP server and Ganglia and Munin master servers.  The design of the API should reflect generic needs of any data center to
-allow eventual deployment of new components, should the need arise.  The information available through the API shall make it
-possible to generate an accurate visualization of the data center and all deployed systems, from the physical view showing racks
-of servers to a high-level view depicting logical dependencies between services and machines.
+allow eventual deployment of new components, should the need arise.  All modules should use only the public and documented API for
+retrieving all of the data they need.
 
 In addition, tools shall be written to perform consistency checks between the state recorded in the database and the actual system
 shape where the automatic configuration generation is not feasible for safety reasons\footnote{A classic example of such a system
 are network switches -- system administrators are rather leery when it comes to automated configuration as a single error can
 cause large network segments to separate.}.
 
-Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
-in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
-well documented sample modules.
-
 Furthermore, in order to streamline the day-to-day operation of the Institute, the CLI application shall include ``wizards'' for
 common tasks like deploying a new machine.
 
-\subsection{Visualization of the datacenter layout}
+\subsection{Visualization of the Datacenter Layout}
 
 The database API shall be used to employ the contained data for providing a graphical visualization of all computer rooms and all
 other equipment.  These views shall be integrated with the pre-existing monitoring tools to provide more intuitive overview of
@@ -113,40 +121,36 @@ existing tools for handling the actual access (likely a SSH tunnel, a standard K
 but encapsulate all the details like physical location from the user.
 
 A similar application is controlling the host power state; again, the goal here is not to reimplement the OpenIPMI implementation,
-but hide various differences in the protocol spoken by various machines, automatically using correct credentials for access etc
-etc.
+but hide various differences in the protocol spoken by various machines, automatically using correct credentials for access etc.
 
 These management utilities are likely going to be very site-specific, but effort shall be taken to attempt to properly separate
 local assumptions about concrete access method from the rest of the utility.
 
 \section{Problems to Solve}
 
-On a first sight, the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not
+While the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not
 the case.  The biggest complication of the whole design is finding a right balance between usability and completeness.  The
 Institute has had a web-based inventory management application capable of tracking various pieces of data for years, but the
-staffers were hesitant to use it and, more importantly, depend on it for day-to-day operation.  As per an explicit request given
+staffers were hesitant to use it and, more importantly, to {\em depend} on it for day-to-day operation.  As per an explicit request given
 by the staffers, this project shall develop a console-based tool with strong focus on scripting, ease of function and the general
-feeling of {\em helping} with getting things done instead of building artificial obstructions.
+feel of {\em helping} them with getting things done instead of building artificial obstructions to their work for the sake of "evidence".
 
 Given the always-changing nature of the data center operations, it is unlikely that a static database structure would accommodate
-future developments\footnote{Indeed, many competing modules were struggling when servers with sizes different than several rack
-units arrived}.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter looks
+future developments.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter looks
 like, but shall rather provide a way to describe generic {\em collections of objects and their hierarchies}.  Needless to say,
-such an approach puts even bigger pressure on designing the system (and the database structure implemented at the Institute), as
-finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.
+such an approach puts even bigger pressure on proper design of the system (and the database structure implemented at the Institute), as
+finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.  This neccessary complexity, which
+is required in the DB level, shall not be obvious to the users when working with the UI -- indeed, the interface should be
+intuitive enough so that the administrator will actually notice the improvements and start to like the system in favor of
+manual hacks. 
 
-FIXME: versioning\ldots
+The requirement of a dynamic database structure also makes the issue of versioning a rather complex problem, as it is now required
+to implement history management of almost arbitrary data. 
 
-The problem of database versioning and associated accounting is far from trivial, too, especially when combined with the fact that
-the database structure is not set in stone in advance, but\ldots FIXME maybe talk about the dynamic stuff before?
-
-FIXME, FIXME, FIXME.
-
-FIXME: talk about security, reliability, scalability :),\ldots
-
-The structure of the Database shall be thoroughly planned, too.  The team will have to balance the complexity needed for accurate
-representation of the real infrastructure with the required level of usability.  The interface should be intuitive enough so that
-the administrator will actually notice the improvements and start to like the system in favor of manual hacks.
+The database shall offer demonstratable strength when faced with mallicious input.  It shall employ industry-standard means of
+defying security threats, and be friendly to firewall.  The Institute is going to depend on the availability of the Database for
+its core operation, so it means that it should be more reliable than typical gLite middleware service.  The database should also
+scale to tens of thousands of managed nodes on contemporary server hardware.  
 
 \section{Future Improvements}
 
@@ -154,6 +158,9 @@ The system shall be extensible enough to be used outside of the Institute's comp
 also a ``one-click'' tool for fully automated deployment of new machines, handling everything from setting up PXE environment for
 installation to actual system configuration.
 
+Portability should be a concern, too, but it is expected that the target platform will be Linux on x86\_64 systems.  The Institute
+is a heavy user of a custom Linux distribution based on Red Hat Enterprise Linux 5, which is going to be the platform of choice
+for running the server.  The clients shall be reasonably easy to install on modern desktop Linux distributions.
 
 \begin{thebibliography}{9}
     \bibitem{fzu}Institute of Physics of the AS CR home page, {\tt http://www.fzu.cz/}
