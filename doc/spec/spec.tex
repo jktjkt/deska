@@ -21,16 +21,17 @@ from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the 
 
 In December 2010, the total installed computing capacity available to users was about 3000~CPU cores with more than 500~TB of disk
 storage, which translates to several hundreds of physical machines, with more hardware to arrive in early 2011.  All the resources
-are managed by just a few system administrators (currently slightly more than three full time equivalents).  Due to the impressive
-machines-per-administrator ratio, the staffers are exploring ways about how to make the system administrators' life easier and
+were managed by just a few system administrators (slightly more than three full time equivalents at the time of writing).  Due to the impressive
+machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators' life easier and
 less error prone.
 
-Over the years, certain monitoring and management systems were deployed at the Institute, including Cfengine~\cite{cfengine},
+Over the years, certain management and monitoring systems have been deployed at the Institute, including Cfengine~\cite{cfengine},
 Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
-check if she wants to make sure the infrastructure works as expected, and each new tool has to be configured separately.
-Therefore, it has been decided that the Institute shall fund a development of a tool which will {\em automate the configuration
-process} and focus on bringing the control back to one central place.
+go to when she wants to do any maintenance work.  In practice, information about each particular machine or service is
+usually scattered among at least a dozen of places, some of which are notoriously prone to omission from the update process,
+leading to eventual inconsistencies.  Therefore, it has been decided that the Institute shall fund a development of a tool which
+will {\em automate the configuration process} and focus on bringing the control back to one central place.
 
 \section{System Requirements}
 
@@ -38,10 +39,8 @@ The first goal of the project is to develop a database storing generic descripti
 site is using; such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all
 physical machines, their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc},
 coupling of operating system instances (aka ``hosts'') to physical machines as well as logical relations between various
-services and their dependencies.  This database shall then act as the single authoritative source
-of information for generating configuration of all components of the system.
-
-FIXME: data scattered among several places... 
+services and their dependencies.  This database shall then act as the single authoritative source of information for generating
+configuration of all components of the system.
 
 \subsection{Generic Database}
 
