@@ -37,7 +37,7 @@ automate the configuration process} and focus on bringing the control back to on
 
 The goal of the project is to develop a database storing generic description of all the resources that the Grid site is using;
 such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all physical machines,
-their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc}, coupling of
+their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc.}, coupling of
 operating system instances (aka ``hosts'') to physical machines as well as logical relations between various services and their
 dependencies.  This database shall then act as the single authoritative source of information for generating configuration of all
 components in the system.
@@ -137,7 +137,7 @@ Given the always-changing nature of the data center operations, it is unlikely t
 future developments.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter
 looks like, but shall rather provide a way to describe generic {\em collections of objects and their hierarchies}.  Needless to
 say, such an approach puts even bigger pressure on proper design of the system (and the database structure implemented at the
-Institute), as finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.  This neccessary
+Institute), as finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.  This necessary
 complexity, which is required in the DB level, shall not be obvious to the users when working with the UI -- indeed, the interface
 should be intuitive enough so that the administrator will actually notice the improvements and start to like the system in favor
 of manual hacks.
@@ -145,7 +145,7 @@ of manual hacks.
 The requirement of a dynamic database structure also makes the issue of versioning a rather complex problem, as it is now required
 to implement history management of almost arbitrary data. 
 
-The database shall offer demonstratable strength when faced with mallicious input.  It shall employ industry-standard means of
+The database shall offer demonstrable strength when faced with malicious input.  It shall employ industry-standard means of
 defying security threats, and be friendly to firewall.  The Institute is going to depend on the availability of the Database for
 its core operation, so it means that it should be more reliable than a typical gLite middleware service.  The database should also
 scale to tens of thousands managed objects on contemporary server hardware.
