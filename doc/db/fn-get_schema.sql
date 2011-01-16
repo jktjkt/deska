@@ -1,4 +1,4 @@
---
+﻿--
 -- function(s) to get the database schema
 --
 
@@ -99,7 +99,9 @@ language plpgsql;
 
 --select get_kindNames();
 
---
+--return type
+CREATE TYPE KindAttributeDataType AS (attname name, typename name);
+
 -- function returns list of attributes' names and types = attributes of tables from deska_dev
 --
 create or replace function get_kindAttributes(
