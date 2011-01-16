@@ -1,13 +1,9 @@
 #ifndef DESKA_API_H
 #define DESKA_API_H
 
-
-
 #include <map>
 #include <string>
 #include <vector>
-
-
 
 /*
  * TODO items for the DB API:
@@ -43,7 +39,9 @@ typedef unsigned int Revision;
  * FIXME: rename to AttributeScheme?
  * */
 struct KindAttributeDataType {
-	KindAttributeDataType( Identifier _name, Type _type ): name(_name), type(_type) {};
+    KindAttributeDataType( Identifier _name, Type _type ): name(_name), type(_type)
+    {
+    }
 
     Identifier name;
     Type type;
