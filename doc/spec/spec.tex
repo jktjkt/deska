@@ -21,26 +21,26 @@ from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the 
 
 In December 2010, the total installed computing capacity available to users was about 3000~CPU cores with more than 500~TB of disk
 storage, which translates to several hundreds of physical machines, with more hardware to arrive in early 2011.  All the resources
-were managed by just a few system administrators (slightly more than three full time equivalents at the time of writing).  Due to the impressive
-machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators' life easier and
-less error prone.
+were managed by just a few system administrators (slightly more than three full time equivalents at the time of writing).  Due to
+the impressive machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators'
+life easier and less error prone.
 
 Over the years, certain management and monitoring systems have been deployed at the Institute, including Cfengine~\cite{cfengine},
 Nagios~\cite{nagios}, Ganglia~\cite{ganglia}, Munin~\cite{munin} and various in-house monitoring appliances.  While these tools
 certainly aim to make the sysadmin's life easier, introduction of each new tool also adds one more place for the administrator to
-go to when she wants to do any maintenance work.  In practice, information about each particular machine or service is
-usually scattered among at least a dozen of places, some of which are notoriously prone to omission from the update process,
-leading to eventual inconsistencies.  Therefore, it has been decided that the Institute shall fund a development of a tool which
-will {\em automate the configuration process} and focus on bringing the control back to one central place.
+go to when she wants to do any maintenance work.  In practice, information about each particular machine or service is usually
+scattered among at least a dozen of places, some of which are notoriously prone to omission from the update process, leading to
+eventual inconsistencies.  Therefore, it has been decided that the Institute shall fund a development of a tool which will {\em
+automate the configuration process} and focus on bringing the control back to one central place.
 
 \section{System Requirements}
 
-The goal of the project is to develop a database storing generic description of all the resources that the Grid
-site is using; such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all
-physical machines, their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc},
-coupling of operating system instances (aka ``hosts'') to physical machines as well as logical relations between various
-services and their dependencies.  This database shall then act as the single authoritative source of information for generating
-configuration of all components in the system.
+The goal of the project is to develop a database storing generic description of all the resources that the Grid site is using;
+such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all physical machines,
+their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc}, coupling of
+operating system instances (aka ``hosts'') to physical machines as well as logical relations between various services and their
+dependencies.  This database shall then act as the single authoritative source of information for generating configuration of all
+components in the system.
 
 \subsection{Generic Database}
 
@@ -52,12 +52,12 @@ Cisco IOS shell.  The format shall enable storing of plaintext dumps of the data
 purposes.
 
 History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
-contemporary inventory management tools are severely limited by constraints from the past.  For example, even though the whole concept of
-virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools which cannot
-keep track of virtual machines or do not support the ``blade'' form factor of physical servers.  Therefore, the Deska DB shall not
-impose similar restrictions to its data model, and the core DB code should only assume that it is working with {\em collections of
-objects} and some {\em relations between them} -- actually defining a usable {\em scheme} of the database is a separate problem
-from the general database design.
+contemporary inventory management tools are severely limited by constraints from the past.  For example, even though the whole
+concept of virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools
+which cannot keep track of virtual machines or do not support the ``blade'' form factor of physical servers.  Therefore, the Deska
+DB shall not impose similar restrictions to its data model, and the core DB code should only assume that it is working with {\em
+collections of objects} and some {\em relations between them} -- actually defining a usable {\em scheme} of the database is a
+separate problem from the general database design.
 
 As has been demonstrated numerous times during the Institute's course of operation, keeping track of all modifications is crucial
 for finding out what caused a particular outage.  Therefore, the database shall support {\em versioning} of the records contained
@@ -69,11 +69,10 @@ a commodity x86\_64 server hardware.
 
 \subsection{Database Scheme}
 
-In addition to the general-purpose database described above,
-the team shall design a scheme suitable for describing the whole IT infrastructure of the WLCG part of the Institute.
-This scheme should be extensible to allow installing future pieces of equipment without large-scale code changes, and shall try to
-anticipate future trends in hardware development, as well as account for more exotic hardware which could be found at Institute's
-partners' sites.
+In addition to the general-purpose database described above, the team shall design a scheme suitable for describing the whole IT
+infrastructure of the WLCG part of the Institute.  This scheme should be extensible to allow installing future pieces of equipment
+without large-scale code changes, and shall try to anticipate future trends in hardware development, as well as account for more
+exotic hardware which could be found at Institute's partners' sites.
 
 Nonetheless, the design of the general database shall be influenced by the real-world DB scheme, and shall offer reasonable
 assistance for administrators willing to extend the structure.  The goal here is not to achieve purity at any cost, but implement
@@ -83,8 +82,8 @@ user-supplied database scheme into one directly usable in the Deska database.
 \subsection{Database API and Add-on Modules}
 
 The Database shall provide an API for access to the data contained therein. The first, read-only part of the API shall be complete
-enough to offer all functionality required by various modules and utilities described below.  The second part of the API shall
-be used by the CLI interface for performing actual modifications to the data.  It is up for the implementors to decide on the
+enough to offer all functionality required by various modules and utilities described below.  The second part of the API shall be
+used by the CLI interface for performing actual modifications to the data.  It is up for the implementors to decide on the
 technical means of the API's "on-the-wire" protocol.
 
 Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
@@ -127,21 +126,21 @@ local assumptions about concrete access method from the rest of the utility.
 
 \section{Problems to Solve}
 
-While the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not
-the case.  The biggest complication of the whole design is finding a right balance between usability and completeness.  The
-Institute has had a web-based inventory management application capable of tracking various pieces of data for years, but the
-staffers were hesitant to use it and, more importantly, to {\em depend} on it for their day-to-day operation.  As per an explicit request given
-by the staffers, this project shall develop a console-based tool with strong focus on scripting, ease of function and the general
-feel of {\em helping} them with getting things done instead of building artificial obstructions to their work for the sake of "evidence".
+While the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not the case.
+The biggest complication of the whole design is finding a right balance between usability and completeness.  The Institute has had
+a web-based inventory management application capable of tracking various pieces of data for years, but the staffers were hesitant
+to use it and, more importantly, to {\em depend} on it for their day-to-day operation.  As per an explicit request given by the
+staffers, this project shall develop a console-based tool with strong focus on scripting, ease of function and the general feel of
+{\em helping} them with getting things done instead of building artificial obstructions to their work for the sake of "evidence".
 
 Given the always-changing nature of the data center operations, it is unlikely that a static database structure would accommodate
-future developments.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter looks
-like, but shall rather provide a way to describe generic {\em collections of objects and their hierarchies}.  Needless to say,
-such an approach puts even bigger pressure on proper design of the system (and the database structure implemented at the Institute), as
-finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.  This neccessary complexity, which
-is required in the DB level, shall not be obvious to the users when working with the UI -- indeed, the interface should be
-intuitive enough so that the administrator will actually notice the improvements and start to like the system in favor of
-manual hacks. 
+future developments.  Therefore, the structure of the database shall not hard-code any current assumptions about how a datacenter
+looks like, but shall rather provide a way to describe generic {\em collections of objects and their hierarchies}.  Needless to
+say, such an approach puts even bigger pressure on proper design of the system (and the database structure implemented at the
+Institute), as finding a balance between being ``generic enough'' and ``usable enough'' is extremely complicated.  This neccessary
+complexity, which is required in the DB level, shall not be obvious to the users when working with the UI -- indeed, the interface
+should be intuitive enough so that the administrator will actually notice the improvements and start to like the system in favor
+of manual hacks.
 
 The requirement of a dynamic database structure also makes the issue of versioning a rather complex problem, as it is now required
 to implement history management of almost arbitrary data. 
