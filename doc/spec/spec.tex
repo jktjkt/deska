@@ -35,12 +35,12 @@ will {\em automate the configuration process} and focus on bringing the control 
 
 \section{System Requirements}
 
-The first goal of the project is to develop a database storing generic description of all the resources that the Grid
+The goal of the project is to develop a database storing generic description of all the resources that the Grid
 site is using; such a database should be capable of describing hardware infrastructure of a data center\footnote{That is all
 physical machines, their hardware models, part numbers, rack locations, network interconnects, history of hardware failures etc},
 coupling of operating system instances (aka ``hosts'') to physical machines as well as logical relations between various
 services and their dependencies.  This database shall then act as the single authoritative source of information for generating
-configuration of all components of the system.
+configuration of all components in the system.
 
 \subsection{Generic Database}
 
@@ -52,7 +52,7 @@ Cisco IOS shell.  The format shall enable storing of plaintext dumps of the data
 purposes.
 
 History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
-contemporary inventory management tools are severely limited by constraints from the past.  Even though the whole concept of
+contemporary inventory management tools are severely limited by constraints from the past.  For example, even though the whole concept of
 virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools which cannot
 keep track of virtual machines or do not support the ``blade'' form factor of physical servers.  Therefore, the Deska DB shall not
 impose similar restrictions to its data model, and the core DB code should only assume that it is working with {\em collections of
@@ -76,7 +76,7 @@ anticipate future trends in hardware development, as well as account for more ex
 partners' sites.
 
 Nonetheless, the design of the general database shall be influenced by the real-world DB scheme, and shall offer reasonable
-assistance for administrators willing to extend the structure.  The goal here is not to achieve purity by all means, but implement
+assistance for administrators willing to extend the structure.  The goal here is not to achieve purity at any cost, but implement
 a solution which is easy to deploy, use and maintain. An example of such assistance could be a script for converting the
 user-supplied database scheme into one directly usable in the Deska database. 
 
@@ -110,7 +110,7 @@ common tasks like deploying a new machine.
 The database API shall be used to employ the contained data for providing a graphical visualization of all computer rooms and all
 other equipment.  These views shall be integrated with the pre-existing monitoring tools to provide more intuitive overview of
 possible issues encountered during operation.  It has not been decided yet whether these tools are going to be web-based or
-implemented as a desktop application.
+implemented as a desktop application.  Re-use of existing tools and frameworks is expected.
 
 \subsection{Management Utilities}
 
@@ -130,7 +130,7 @@ local assumptions about concrete access method from the rest of the utility.
 While the specification of an ``inventory management tool'' could be perceived as an easy task; that is, however, not
 the case.  The biggest complication of the whole design is finding a right balance between usability and completeness.  The
 Institute has had a web-based inventory management application capable of tracking various pieces of data for years, but the
-staffers were hesitant to use it and, more importantly, to {\em depend} on it for day-to-day operation.  As per an explicit request given
+staffers were hesitant to use it and, more importantly, to {\em depend} on it for their day-to-day operation.  As per an explicit request given
 by the staffers, this project shall develop a console-based tool with strong focus on scripting, ease of function and the general
 feel of {\em helping} them with getting things done instead of building artificial obstructions to their work for the sake of "evidence".
 
@@ -148,8 +148,8 @@ to implement history management of almost arbitrary data.
 
 The database shall offer demonstratable strength when faced with mallicious input.  It shall employ industry-standard means of
 defying security threats, and be friendly to firewall.  The Institute is going to depend on the availability of the Database for
-its core operation, so it means that it should be more reliable than typical gLite middleware service.  The database should also
-scale to tens of thousands of managed nodes on contemporary server hardware.  
+its core operation, so it means that it should be more reliable than a typical gLite middleware service.  The database should also
+scale to tens of thousands managed objects on contemporary server hardware.
 
 \section{Future Improvements}
 
@@ -160,7 +160,7 @@ installation to actual system configuration.
 \section{Target Platform}
 
 The Institute is a heavy user of a custom Linux distribution based on Red Hat Enterprise Linux 5, which is going to be the
-platform of choice for running the server.  The clients shall be reasonably easy to install on various modern desktop Linux
+platform of choice for running the server.  The clients shall be reasonably easy to install on various Linux desktop
 distributions.  All parts of the system should be written in a portable manner.
 
 \begin{thebibliography}{9}
