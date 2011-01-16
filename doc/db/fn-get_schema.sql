@@ -102,6 +102,9 @@ language plpgsql;
 --
 -- function returns list of attributes' names and types = attributes of tables from deska_dev
 --
+--return type
+CREATE TYPE KindAttributeDataType AS (attname name, typename name);
+
 create or replace function get_kindAttributes(
 	tabname name
 ) returns setof KindAttributeDataType as
