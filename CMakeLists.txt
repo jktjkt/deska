@@ -28,7 +28,9 @@ SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
