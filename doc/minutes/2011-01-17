@@ -1,0 +1,76 @@
+Schuzka Deska, 2011-01-17 FZU
+
+Pritomni: Honza, Martina, Tomas
+Ommluveni: Lukas - nemoc
+
+Ukoly z minula:
+---------------
+
+- Honza: clanek na CHEP
+    - neni, prodlouzena deadline
+- Honza: s prioritou budovat specifikaci pro Z. a komisi
+    - hotovo
+- Honza: CMake
+    - hotovo
+- Honza: ODR templatovanych trid, resp. jejich funkci
+    - hotovo, viz mail
+- Honza: pokracovat s protokolem, overit JSON a streamovani
+    - neni
+- Lukas: ruci za rozdeleni fci pro zjistovani schematu
+    - rozpracovano
+- Lukas: zacne funkce pouzivat pro delani generovani ulozenych procedur (pro implementaci API)
+    - castecne
+- Lukas: udela mazani starych predgenerovanych procedur
+    - neni
+- Martina: unit testy k funkcim pro praci se schematem
+    - hotovo
+- Tomas: error reporting od Spiritu
+    - neni, zrejme problem ve spiritu, nefunguje i jinym
+- Tomas: vytahovani vyparsovanych informaci
+    - neni
+- Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+    - nic
+- Tomas: kod, co pouzije API a udela z nej gramatiku
+    - neni
+- Tomas: implementace FakeDatabase, ktera implementuje API a vraci nejaka hard-coded data
+    - hotovo
+
+Pripominky ke specifikaci:
+--------------------------
+
+- Lukasovo mail (CLI, templaty,...)
+- Martina: zvazit, jestli nenapsat, ze se API da pouzit pro web verzi
+
+Diskuse:
+--------
+
+- Martininy unit testy predelat do podoby, kdy bude ocekavano podoba popsana
+  nejakou "kompaktni formou", tedy ne kontrolo na 5 radku pro kazdy relevantni
+  radek vystupu, ale napr. stylem, kdy se naplni docasna tabulka a pak se
+  projede a zkontroluje, ze vracene radky odpovidaji ocekavanym radkum. Motivace
+  je takova, ze kdyz budeme pridavat dalsi "test case", probehne zmena prave na
+  dvou dobre oddelenych mistech, a to sice v CREATE TABLE ... casti skriptu a
+  dale v casti INSERT INTO temporary_table_blabla..., kde se definuje ocekavany
+  vypis.
+
+Na priste:
+----------
+
+Martina: unit testy kontrolujici oproti necemu jako tabulka
+Martina: unit testy i pro zbytek procedur od API
+Tomas: error reporting od Spiritu
+Tomas: vytahovani vyparsovanych informaci
+Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+Tomas: kod, co pouzije API a udela z nej gramatiku
+Honza: zapracovat pripominky do specifikace
+Honza: doplneni FakeApi + kostra unit testu pro parser
+Honza: bude-li cas, clanek na CHEP
+Honza: pokracovat s protokolem, overit JSON a streamovani
+Lukas: ruci za rozdeleni fci pro zjistovani schematu
+Lukas: zacne funkce pouzivat pro delani generovani ulozenych procedur (pro implementaci API)
+Lukas: udela mazani starych predgenerovanych procedur
+
+Pristi schuzka:
+---------------
+
+24. ledna 2011, 16:15 FZU, pokud bude potreba hybat s terminem kvuli zkouskam, dejte vedet.
