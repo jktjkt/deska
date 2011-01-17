@@ -18,31 +18,13 @@
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
-project(deska)
+macro(deska_test fname)
+    set(test_${fname}_SRCS test_${fname}.cpp)
+    add_executable(test_${fname} ${test_${fname}_SRCS})
+    target_link_libraries(test_${fname} DeskaCliParser)
+    add_test(test_${fname} test_${fname})
+endmacro(deska_test)
 
-cmake_minimum_required(VERSION 2.6)
-
-SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
-#SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
-#SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
-
-INCLUDE_DIRECTORIES(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
-set(libDeskaCliParser_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
-)
-
-set(deskaCliParserDemo_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
-)
-
-add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
-
-add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
-target_link_libraries(deska-cli-parser-demo DeskaCliParser)
-
-enable_testing()
-add_subdirectory(tests)
+deska_test(trivial-ok)
