@@ -7,23 +7,23 @@ class Table:
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
 	CONSTRAINT {0[name]}_history_pk PRIMARY KEY (uid,version)
-	)'''
+	);'''
 	# template string for set function's
-	set_string = '''CREATE FUNCITION
+	set_string = '''CREATE FUNCTION
 	{0[name]}_set_{1}(IN id integer,IN value {2},IN ver integer)
-	RETURNS interger
+	RETURNS integer
 	AS
 	$$
 	BEGIN
-		UPDATE TABLE {0[name]}_history SET {1} = value
+		UPDATE {0[name]}_history SET {1} = value
 			WHERE uid = id;
 		RETURN 1;
 	END
 	$$
-	LAGUAGE plpsql;
+	LANGUAGE plpgsql;
 	'''
 	# template string for add function
-	add_string = '''CREATE FUNCITION
+	add_string = '''CREATE FUNCTION
 	{0[name]}_add(IN name text,IN ver integer)
 	RETURNS integer
 	AS
@@ -34,42 +34,42 @@ class Table:
 		RETURN 1;
 	END
 	$$
-	LAGUAGE plpsql;
+	LANGUAGE plpgsql;
 	'''
 	# template string for del function
-	del_string = '''CREATE FUNCITION
+	del_string = '''CREATE FUNCTION
 	{0[name]}_del(IN id integer,IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
-		INSERT INTO vendor_version (uid, version, dest_bit)
+		INSERT INTO vendor_history (uid, version, dest_bit)
 			VALUES (id, name, ver, '1');
 		RETURN 1;
 	END
 	$$
-	LAGUAGE plpsql;
+	LANGUAGE plpgsql;
 	'''
 	# template string for commit function
-	commit_string = '''CREATE FUNCITION
+	commit_string = '''CREATE FUNCTION
 	{0[name]}_commit(IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
 		UPDATE {0[name]} as v SET name = new.name
-			FROM {0[name]}_version as new
+			FROM {0[name]}_history as new
 				WHERE version = ver AND v.uid = new.uid;
 		INSERT INTO {0[name]} (uid,name)
-			SELECT uid,name FROM {0[name]}_version
+			SELECT uid,name FROM {0[name]}_history
 				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {0[name]} );
 		DELETE FROM {0[name]}
-			WHERE uid IN (SELECT uid FROM {0[name]}_version
+			WHERE uid IN (SELECT uid FROM {0[name]}_history
 				WHERE version = ver AND dest_bit = '1');
 		RETURN 1;
 	END
 	$$
-	LAGUAGE plpsql;
+	LANGUAGE plpgsql;
 	'''
 	def __init__(self,name):
 		self.data = dict()
