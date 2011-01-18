@@ -13,8 +13,6 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 
-#include "deska/db/ApiTest.h"
-
 namespace DeskaCLI
 {
 
