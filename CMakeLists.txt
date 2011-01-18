@@ -31,6 +31,10 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+set(libDeskaDb_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/FakeApi.cpp
+)
+
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
 )
@@ -39,6 +43,7 @@ set(deskaCliParserDemo_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
+add_library(DeskaDb ${libDeskaDb_SRCS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})

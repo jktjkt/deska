@@ -23,7 +23,7 @@ set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} DeskaCliParser)
+    target_link_libraries(test_${fname} DeskaCliParser DeskaDb)
     add_test(test_${fname} test_${fname})
 endmacro(deska_test)
 
