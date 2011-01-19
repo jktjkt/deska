@@ -29,13 +29,21 @@ LANGUAGE plpgsql;
 -- function returns info about dependencies between data - foreign keys
 -- TODO: get rid of concat 
 --
+CREATE TYPE table_dependency_info AS(
+conname	name,
+relname	name,
+attnames	text,
+refrelname	name,
+refattnames	text
+);
+
 CREATE OR REPLACE FUNCTION get_dependency_info()
-RETURNS SETOF table_info
+RETURNS SETOF table_dependency_info
 AS
 $$
 BEGIN
 	RETURN QUERY SELECT conname, class1.relname AS tableon, concat_atts_name(class1.oid, constr.conkey) AS colson,
-		class2.relname AS tableref, concat_atts_name(class1.oid, constr.conkey) AS colsref
+		class2.relname AS tableref, concat_atts_name(class2.oid, constr.confkey) AS colsref
 		FROM	pg_constraint AS constr
 			--join with TABLE which the contraint is ON
 			join pg_class AS class1 ON (constr.conrelid = class1.oid)	
@@ -66,7 +74,7 @@ LANGUAGE plpgsql;
 --
 -- function returns list of attributes' names and types = attributes of tables from deska_dev
 --
-CREATE TYPE KindAttributeDataType AS (attname name, typename name);
+CREATE TYPE attr_info AS (attname name, typename name);
 
 CREATE OR REPLACE FUNCTION get_kind_attributes(tabname name)
 RETURNS SETOF attr_info

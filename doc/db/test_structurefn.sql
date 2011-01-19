@@ -1,4 +1,4 @@
-﻿CREATE SCHEMA test;
+CREATE SCHEMA test;
 SET search_path TO test, public, deska_dev;
 
 /* ************************************************
