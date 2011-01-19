@@ -67,6 +67,17 @@ User authentication and authorization shall be handled by already existing opera
 for future ACL-checking hooks shall be considered.  The whole system shall be able to scale up to thousands of managed objects on
 a commodity x86\_64 server hardware.
 
+\subsection{Database API}
+
+The Database shall provide an API for access to the data contained therein. The first, read-only part of the API shall be complete
+enough to offer all functionality required by various modules and utilities described below.  The second part of the API shall be
+used by the CLI interface for performing actual modifications to the data.  It is up for the implementors to decide on the
+technical means of the API's "on-the-wire" protocol.
+
+Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
+in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
+well documented sample modules.
+
 \subsection{Database Scheme}
 
 In addition to the general-purpose database described above, the team shall design a scheme suitable for describing the whole IT
@@ -79,16 +90,11 @@ assistance for administrators willing to extend the structure.  The goal here is
 a solution which is easy to deploy, use and maintain. An example of such assistance could be a script for converting the
 user-supplied database scheme into one directly usable in the Deska database. 
 
-\subsection{Database API and Add-on Modules}
+\subsection{CLI interface}
 
-The Database shall provide an API for access to the data contained therein. The first, read-only part of the API shall be complete
-enough to offer all functionality required by various modules and utilities described below.  The second part of the API shall be
-used by the CLI interface for performing actual modifications to the data.  It is up for the implementors to decide on the
-technical means of the API's "on-the-wire" protocol.
+FIXME.
 
-Bindings to scripting languages like Python shall be introduced, as the staffers prefer writing their own configuration backends
-in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
-well documented sample modules.
+\subsection{Add-on Modules}
 
 Additional components for generating configuration on basis of the actual system state, as retrieved through the read-only
 database API, shall be developed for all systems which are currently deployed at FZU's site, namely for Nagios, BIND name service
