@@ -64,25 +64,82 @@ vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) cons
         return it->second;
 }
 
-/*vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Revision=0 ) const;
-map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const Revision=0 );
+vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Revision ) const
+{
+    vector<Identifier> empty;
+    return empty;
+}
+
+map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const Revision )
+{
+    map<Identifier, Value> empty;
+    return empty;
+}
+
 map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(
-const Identifier &kindName, const Identifier &objectName, const Revision=0 );
-vector<Identifier> FakeApi::findOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-const Identifier &attrName );
-vector<Identifier> FakeApi::findNonOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-const Identifier &attrName );
+    const Identifier &kindName,
+    const Identifier &objectName,
+    const Revision )
+{
+    map<Identifier, pair<Identifier, Value> > empty;
+    return empty;
+}
 
-void FakeApi::deleteObject( const Identifier &kindName, const Identifier &objectName );
-void FakeApi::createObject( const Identifier &kindName, const Identifier &objectname );
-void FakeApi::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName );
-void FakeApi::removeAttribute( const Identifier &kindName, const Identifier &objectName,
-const Identifier &attributeName );
-void FakeApi::setAttribute( const Identifier &kindName, const Identifier &objectName,
-const Identifier &attributeName, const Value &value );
+vector<Identifier> FakeApi::findOverriddenAttrs(
+    const Identifier &kindName,
+    const Identifier &objectName,
+    const Identifier &attrName )
+{
+    vector<Identifier> empty;
+    return empty;
+}
 
-void FakeApi::startChangeset();
-void FakeApi::commit();
-void FakeApi::rebaseTransaction( const Revision rev );*/
+vector<Identifier> FakeApi::findNonOverriddenAttrs(
+    const Identifier &kindName,
+    const Identifier &objectName,
+    const Identifier &attrName )
+{
+    vector<Identifier> empty;
+    return empty;
+}
+
+void FakeApi::deleteObject( const Identifier &kindName, const Identifier &objectName )
+{
+}
+
+void FakeApi::createObject( const Identifier &kindName, const Identifier &objectname )
+{
+}
+
+void FakeApi::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
+{
+}
+
+void FakeApi::removeAttribute(
+    const Identifier &kindName,
+    const Identifier &objectName,
+    const Identifier &attributeName )
+{
+}
+
+void FakeApi::setAttribute(
+    const Identifier &kindName,
+    const Identifier &objectName,
+    const Identifier &attributeName,
+    const Value &value )
+{
+}
+
+void FakeApi::startChangeset()
+{
+}
+
+void FakeApi::commit()
+{
+}
+
+void FakeApi::rebaseTransaction( const Revision rev )
+{
+}
 
 }

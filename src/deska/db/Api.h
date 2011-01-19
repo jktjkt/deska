@@ -109,7 +109,9 @@ struct ObjectRelation {
  * */
 class Api {
 public:
-    virtual ~Api();
+    virtual ~Api()
+    {
+    };
 
     // Querying schema definition
 
