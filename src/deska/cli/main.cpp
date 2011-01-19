@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include "../db/FakeApi.h"
 
 
 
@@ -15,7 +16,7 @@ int main()
 {
     using boost::spirit::ascii::space;
     typedef std::string::const_iterator iteratorType;
-    typedef DeskaCLI::MainGrammar< iteratorType > MainGrammar;
+    typedef Deska::CLI::MainGrammar< iteratorType > MainGrammar;
 
     std::cout << "hardware <name> name <quoted string> id <integer> price <double> end" << std::endl;
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/fusion/include/io.hpp>
@@ -13,7 +14,9 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 
-namespace DeskaCLI
+namespace Deska
+{
+namespace CLI
 {
 
     namespace spirit = boost::spirit;
@@ -36,18 +39,16 @@ namespace DeskaCLI
 
 
     /* Predefined rules for parsing single parameters
-    *  TODO: Rewrite to some singleton or something.
     */
     template < typename Iterator >
     class PredefinedRules
     {
     public:
         PredefinedRules();
+        qi::rule< Iterator, ascii::space_type > getRule( const std::string typeName );
 
-        qi::rule< Iterator, int(), ascii::space_type > t_int;
-        qi::rule< Iterator, std::string(), ascii::space_type > t_string;
-        qi::rule< Iterator, double(), ascii::space_type > t_double;
-        qi::rule< Iterator, std::string(), ascii::space_type > identifier;
+    private:
+        std::map< std::string, qi::rule< Iterator, ascii::space_type > > rulesMap;
     };
 
 
@@ -68,12 +69,12 @@ namespace DeskaCLI
             using ascii::char_;
 
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined.t_string );
-            keyword.add( "id", predefined.t_int );
-            keyword.add( "ip", predefined.t_string );
+            keyword.add( "name", predefined.getRule( "string" ) );
+            keyword.add( "id", predefined.getRule( "integer" ) );
+            keyword.add( "ip", predefined.getRule( "string" ) );
 
             // Head of top-level grammar
-            cat_start %= lit( "interface" ) >> predefined.identifier;
+            cat_start %= lit( "interface" ) >> predefined.getRule( "identifier" );
 
             // Trick for building the parser during parse time
             start = cat_start >> +( keyword[ _a = _1 ] >> lazy( _a ) ) >> lit( "end" );
@@ -110,9 +111,9 @@ namespace DeskaCLI
             using ascii::string;
 
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined.t_string );
-            keyword.add( "id", predefined.t_int );
-            keyword.add( "price", predefined.t_double );
+            keyword.add( "name", predefined.getRule( "string" ) );
+            keyword.add( "id", predefined.getRule( "integer" ) );
+            keyword.add( "price", predefined.getRule( "double" ) );
 
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
             //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > iface = IfaceGrammar< Iterator >();
@@ -120,7 +121,7 @@ namespace DeskaCLI
             //nested.add( "interface", iface );
 
             // Head of top-level grammar
-            cat_start %= lit( "hardware" ) > predefined.identifier;
+            cat_start %= lit( "hardware" ) > predefined.getRule( "identifier" );
             cat_start.name("cathegory start");
 
             // Trick for building the parser during parse time
@@ -139,6 +140,7 @@ namespace DeskaCLI
 
         PredefinedRules< Iterator > predefined;
     };
+}
 }
 
 
