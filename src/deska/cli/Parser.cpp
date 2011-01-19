@@ -50,6 +50,66 @@ boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type > Deska::CLI
 
 
 
+template < typename Iterator >
+Deska::CLI::KindGrammar< Iterator >::KindGrammar(
+    const std::string kindName,
+    boost::spirit::qi::rule< Iterator, std::string(), boost::spirit::ascii::space_type > identifierParser ): KindGrammar< Iterator >::base_type( start )
+{ 
+    using qi::int_;
+    using qi::lit;
+    using qi::double_;
+    using qi::lexeme;
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::_val;
+    using qi::on_error;
+    using qi::fail;
+    using ascii::char_;
+    using ascii::string;
+
+    name = kindName;
+
+    identifierP = identifierParser;
+    identifierP.name("kind name");
+
+    // Trick for building the parser during parse time
+    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
+    start = ( identifierParser > +(
+        ( attributes[ _a = _1 ] > lazy( _a )[ std::cout << "Parsed: " << _1 << "\n" ] ) ||
+        ( nestedGrammars[ _a = _1 ] > lazy( _a ) ) ) > lit( "end" ) );
+
+    phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
+    on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
+}
+
+
+
+template < typename Iterator >
+void Deska::CLI::KindGrammar< Iterator >::addAtrribute(
+    const std::string attributeName,
+    boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type > attributeParser )
+{
+    attributes.add( attributeName, attributeParser );
+}
+
+
+
+template < typename Iterator >
+void Deska::CLI::KindGrammar< Iterator >::addNestedKind(
+    const std::string kindName,
+    qi::grammar<
+        Iterator,
+        ascii::space_type,
+        qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser )
+{
+    nestedGrammars.add( kindName, kindParser );
+}
+
+
+
 template void Deska::CLI::ErrorHandler< std::string::const_iterator >::operator()(
     std::string::const_iterator start,
     std::string::const_iterator end,
@@ -59,3 +119,18 @@ template void Deska::CLI::ErrorHandler< std::string::const_iterator >::operator(
 template Deska::CLI::PredefinedRules< std::string::const_iterator >::PredefinedRules();
 
 template boost::spirit::qi::rule< std::string::const_iterator, boost::spirit::ascii::space_type > Deska::CLI::PredefinedRules< std::string::const_iterator >::getRule( const std::string typeName );
+
+template Deska::CLI::KindGrammar< std::string::const_iterator >::KindGrammar(
+    const std::string kindName,
+    boost::spirit::qi::rule< std::string::const_iterator, std::string(), boost::spirit::ascii::space_type > identifierParser );
+
+template void Deska::CLI::KindGrammar< std::string::const_iterator >::addAtrribute(
+    const std::string attributeName,
+    boost::spirit::qi::rule< std::string::const_iterator, boost::spirit::ascii::space_type > attributeParser );
+
+template void Deska::CLI::KindGrammar< std::string::const_iterator >::addNestedKind(
+    const std::string kindName,
+    qi::grammar<
+        std::string::const_iterator,
+        ascii::space_type,
+        qi::locals< qi::rule< std::string::const_iterator, ascii::space_type > > > kindParser );

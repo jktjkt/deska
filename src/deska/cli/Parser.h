@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef DESKA_PARSER_H
+#define DESKA_PARSER_H
 
 #include <iostream>
 #include <string>
@@ -140,9 +140,43 @@ namespace CLI
 
         PredefinedRules< Iterator > predefined;
     };
+
+
+    template <typename Iterator>
+    class KindGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    {
+    public:
+        KindGrammar( const std::string kindName, qi::rule< Iterator, std::string(), ascii::space_type > identifierParser );
+
+        void addAtrribute(
+            const std::string attributeName,
+            qi::rule< Iterator, ascii::space_type > attributeParser );
+        void addNestedKind(
+            const std::string kindName,
+            qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser );
+
+    private:
+        qi::symbols<
+            char,
+            qi::rule< Iterator, ascii::space_type > > attributes;
+
+        qi::symbols<
+            char,
+            qi::rule<
+                Iterator,
+                ascii::space_type,
+                qi::locals< qi::rule< Iterator, ascii::space_type > > > > nestedGrammars;
+        
+        qi::rule< Iterator, std::string(), std::string(), ascii::space_type > identifierP;
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
+
+        std::string name;
+
+    };
+
 }
 }
 
 
 
-#endif
+#endif  //DESKA_PARSER_H
