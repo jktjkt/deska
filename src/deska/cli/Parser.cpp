@@ -22,22 +22,22 @@ Deska::CLI::PredefinedRules< Iterator >::PredefinedRules()
     qi::rule< Iterator, int(), ascii::space_type > t_int;
     t_int %= boost::spirit::qi::int_;
     t_int.name( "integer" );
-    rulesMap[ "integer" ] = t_int;
+    rulesMap[ "integer" ] = t_int.alias();
     
     qi::rule< Iterator, std::string(), ascii::space_type > t_string;
     t_string %= boost::spirit::qi::lexeme[ '"' >> +( boost::spirit::ascii::char_ - '"' ) >> '"' ];
     t_string.name( "quoted string" );
-    rulesMap[ "quoted_string" ] = t_string;
+    rulesMap[ "quoted_string" ] = t_string.alias();
     
     qi::rule< Iterator, double(), ascii::space_type > t_double;
     t_double %= boost::spirit::qi::double_;
     t_double.name( "double" );
-    rulesMap[ "double" ] = t_double;
+    rulesMap[ "double" ] = t_double.alias();
 
     qi::rule< Iterator, std::string(), ascii::space_type > identifier;
     identifier %= boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ];
     identifier.name( "identifier (alphanumerical letters and _)" );
-    rulesMap[ "identifier" ] = identifier;
+    rulesMap[ "identifier" ] = identifier.alias();
 }
 
 
@@ -45,7 +45,7 @@ Deska::CLI::PredefinedRules< Iterator >::PredefinedRules()
 template < typename Iterator >
 boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type > Deska::CLI::PredefinedRules< Iterator >::getRule( const std::string typeName )
 {
-    return rulesMap[ typeName ];
+    return rulesMap[ typeName ].alias();
 }
 
 
