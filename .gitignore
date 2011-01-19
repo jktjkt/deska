@@ -10,3 +10,5 @@
 .*.swp
 # build directory
 _build
+# QtCreator's stuff
+CMakeLists.txt.*
