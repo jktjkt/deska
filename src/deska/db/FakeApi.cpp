@@ -30,6 +30,15 @@ namespace Deska {
 
 FakeApi::FakeApi()
 {
+    attrs["hardware"].push_back( KindAttributeDataType( "id", "integer" ) );
+    attrs["hardware"].push_back( KindAttributeDataType( "name", "string" ) );
+    attrs["hardware"].push_back( KindAttributeDataType( "price", "integer" ) );
+    attrs["interface"].push_back( KindAttributeDataType( "ip", "string" ) );
+    attrs["interface"].push_back( KindAttributeDataType( "mac", "string" ) );
+    attrs["host"].push_back( KindAttributeDataType( "hardware", "identifier" ) );
+    attrs["host"].push_back( KindAttributeDataType( "name", "string" ) );
+
+    relations["interface"].push_back( ObjectRelation( RELATION_EMBED_INTO, "host", "", "" ) );   
 }
 
 FakeApi::~FakeApi()
