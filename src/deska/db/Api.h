@@ -93,6 +93,19 @@ typedef enum {
  * (RELATION_EMBED_INTO, "host")
  * */
 struct ObjectRelation {
+
+    ObjectRelation(
+        ObjectRelationKind _kind,
+        Identifier _tableName,
+        Identifier _sourceAttribute,
+        Identifier _destinationAttribute ):
+        kind(_kind),
+        tableName(_tableName),
+        sourceAttribute(_sourceAttribute),
+        destinationAttribute(_destinationAttribute) 
+    {
+    }
+
     /** @short Kind of relation */
     ObjectRelationKind kind;
     /** @short Name of a table this relation refers to */
