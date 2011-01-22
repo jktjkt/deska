@@ -55,10 +55,6 @@ Deska::CLI::KindGrammar< Iterator >::KindGrammar(
     const std::string kindName,
     boost::spirit::qi::rule< Iterator, std::string(), boost::spirit::ascii::space_type > identifierParser ): KindGrammar< Iterator >::base_type( start )
 { 
-    using qi::int_;
-    using qi::lit;
-    using qi::double_;
-    using qi::lexeme;
     using qi::_1;
     using qi::_2;
     using qi::_3;
@@ -67,8 +63,7 @@ Deska::CLI::KindGrammar< Iterator >::KindGrammar(
     using qi::_val;
     using qi::on_error;
     using qi::fail;
-    using ascii::char_;
-    using ascii::string;
+    using qi::lit;
 
     name = kindName;
 
@@ -110,6 +105,45 @@ void Deska::CLI::KindGrammar< Iterator >::addNestedKind(
 
 
 
+template < typename Iterator >
+std::string Deska::CLI::KindGrammar< Iterator >::getName() const
+{
+   return name;
+}
+
+
+
+template < typename Iterator >
+Deska::CLI::MainGrammar< Iterator >::MainGrammar(): MainGrammar< Iterator >::base_type( start )
+{
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::_val;
+    using qi::on_error;
+    using qi::fail;
+
+    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
+    start = +( kindGrammars[ _a = _1 ] > lazy( _a )[ std::cout << "Parsed: " << _1 << "\n" ] );
+
+    phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
+    on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
+}
+
+
+
+template < typename Iterator >
+void Deska::CLI::MainGrammar< Iterator >::addKindGrammar( KindGrammar< Iterator > grammar )
+{
+    kindGrammars.add( grammar.getName(), grammar );
+}
+
+
+
+//TEMPLATE INSTANCES FOR LINKER
+
 template void Deska::CLI::ErrorHandler< std::string::const_iterator >::operator()(
     std::string::const_iterator start,
     std::string::const_iterator end,
@@ -134,3 +168,9 @@ template void Deska::CLI::KindGrammar< std::string::const_iterator >::addNestedK
         std::string::const_iterator,
         ascii::space_type,
         qi::locals< qi::rule< std::string::const_iterator, ascii::space_type > > > kindParser );
+
+template std::string Deska::CLI::KindGrammar< std::string::const_iterator >::getName() const;
+
+template Deska::CLI::MainGrammar< std::string::const_iterator >::MainGrammar();
+
+template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGrammar( KindGrammar< std::string::const_iterator > grammar );

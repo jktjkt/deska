@@ -90,10 +90,10 @@ namespace CLI
     };
 
     template <typename Iterator>
-    class MainGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    class HardwareGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
     {
     public:
-        MainGrammar() : MainGrammar::base_type( start )
+        HardwareGrammar() : HardwareGrammar::base_type( start )
         {
             using qi::int_;
             using qi::lit;
@@ -142,6 +142,7 @@ namespace CLI
     };
 
 
+
     template <typename Iterator>
     class KindGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
     {
@@ -154,6 +155,8 @@ namespace CLI
         void addNestedKind(
             const std::string kindName,
             qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser );
+
+        std::string getName() const;
 
     private:
         qi::symbols<
@@ -172,6 +175,27 @@ namespace CLI
 
         std::string name;
 
+    };
+
+
+
+    template <typename Iterator>
+    class MainGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    {
+    public:
+        MainGrammar();
+
+        void addKindGrammar( KindGrammar< Iterator > grammar );
+
+    private:
+        qi::symbols<
+            char,
+            qi::rule<
+                Iterator,
+                ascii::space_type,
+                qi::locals< qi::rule< Iterator, ascii::space_type > > > > kindGrammars;
+
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
     };
 
 }

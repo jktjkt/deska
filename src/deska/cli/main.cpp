@@ -16,11 +16,11 @@ int main()
 {
     using boost::spirit::ascii::space;
     typedef std::string::const_iterator iteratorType;
-    typedef Deska::CLI::MainGrammar< iteratorType > MainGrammar;
+    typedef Deska::CLI::HardwareGrammar< iteratorType > HardwareGrammar;
 
     std::cout << "hardware <name> name <quoted string> id <integer> price <double> end" << std::endl;
 
-    MainGrammar g;
+    HardwareGrammar g;
     std::string str;
     while ( getline( std::cin, str ) )
     {
