@@ -2,13 +2,19 @@
 	- sql keywords case - may be, some script will help;)
 	- naming files
 	- we don't want api in fn-get-schema.sql file, really confusing
+	
+	= mostly done
 
 * DROPing created tables and function
 	- temporary workaround: grep "vendor_.*(IN" vendor_other.sql | sed 's/\(.*\)/drop function \1;/'
+	= mostly solved - drop schema generated...
+	- need to create the schema...
 
 * REPLACE LIKE in creating history table
 	- it doesn't copy uid's bigserial type
 
 * module_DEL function repair
 	- it need name - not null constraint...
-	- or get rir of not nulls?
+	- or get rid of not nulls?
+
+* creating version number, storeing it for session
