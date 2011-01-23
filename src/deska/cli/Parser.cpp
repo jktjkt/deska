@@ -95,10 +95,11 @@ void Deska::CLI::KindGrammar< Iterator >::addAtrribute(
 template < typename Iterator >
 void Deska::CLI::KindGrammar< Iterator >::addNestedKind(
     const std::string kindName,
-    qi::grammar<
-        Iterator,
-        ascii::space_type,
-        qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser )
+//    qi::grammar<
+//        Iterator,
+//        ascii::space_type,
+//        qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser )
+    Deska::CLI::KindGrammar< Iterator > kindParser )
 {
     nestedGrammars.add( kindName, kindParser );
 }
@@ -142,6 +143,69 @@ void Deska::CLI::MainGrammar< Iterator >::addKindGrammar( KindGrammar< Iterator 
 
 
 
+template < typename Iterator >
+Deska::CLI::ParserBuilder< Iterator >::ParserBuilder( Api* DBApi )
+{
+    predefined = PredefinedRules< Iterator >();
+    api = DBApi;
+}
+
+
+
+template < typename Iterator >
+Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::buildParser()
+{
+    
+    std::map< std::string, KindGrammar< Iterator > > kindGrammars;
+    
+    // Build signle parsers with arrtibutes
+    std::vector< std::string > kinds = api->kindNames();
+    
+    for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
+    {
+        //FIXME Again problem with copying or referenciong on grammars
+        //kindGrammars[ *it ] = KindGrammar< Iterator >( *it, predefined.getRule( "identifier" ) );
+
+        std::vector< KindAttributeDataType > attributes = api->kindAttributes( *it );
+        for( std::vector< KindAttributeDataType >::iterator it2 = attributes.begin(); it2 != attributes.end(); ++it2 )
+        {
+            //FIXME Again problem with copying or referenciong on grammars
+            //kindGrammars[ *it ].addAtrribute( it2->name, predefined.getRule( it2->type ) );
+        }
+    }
+
+    // Embed parsers, that should be embedded
+    for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
+    {
+        std::vector< ObjectRelation > relations = api->kindRelations( *it );
+        for( std::vector< ObjectRelation >::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
+        {
+            if( itRel->kind == RELATION_EMBED_INTO )
+            {
+                std::map< std::string, KindGrammar< Iterator > >::iterator itEmb = kindGrammars.find( itRel->tableName );
+                if( itEmb != kindGrammars.end() )
+                {
+                    //FIXME Again problem with copying or referenciong on grammars
+                    //itEmb->second.addNestedKind( *it, kindGrammars[ *it ] );
+                }
+            }
+        }
+    }
+
+    // Build main grammar
+    //FIXME Again problem with copying or referenciong on grammars
+    Deska::CLI::MainGrammar< Iterator > grammar;// = Deska::CLI::MainGrammar< Iterator >();
+    for( std::map< std::string, KindGrammar< Iterator > >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
+    {
+        //FIXME Again problem with copying or referenciong on grammars
+        //grammar.addKindGrammar( it->second );
+    }
+    //FIXME Again problem with copying or referenciong on grammars
+    return Deska::CLI::MainGrammar< Iterator >();//grammar;
+}
+
+
+
 //TEMPLATE INSTANCES FOR LINKER
 
 template void Deska::CLI::ErrorHandler< std::string::const_iterator >::operator()(
@@ -164,13 +228,18 @@ template void Deska::CLI::KindGrammar< std::string::const_iterator >::addAtrribu
 
 template void Deska::CLI::KindGrammar< std::string::const_iterator >::addNestedKind(
     const std::string kindName,
-    qi::grammar<
-        std::string::const_iterator,
-        ascii::space_type,
-        qi::locals< qi::rule< std::string::const_iterator, ascii::space_type > > > kindParser );
+//    qi::grammar<
+//        std::string::const_iterator,
+//        ascii::space_type,
+//        qi::locals< qi::rule< std::string::const_iterator, ascii::space_type > > > kindParser );
+    Deska::CLI::KindGrammar< std::string::const_iterator > kindParser );
 
 template std::string Deska::CLI::KindGrammar< std::string::const_iterator >::getName() const;
 
 template Deska::CLI::MainGrammar< std::string::const_iterator >::MainGrammar();
 
 template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGrammar( KindGrammar< std::string::const_iterator > grammar );
+
+template Deska::CLI::ParserBuilder< std::string::const_iterator >::ParserBuilder( Api* DBApi );
+
+template Deska::CLI::MainGrammar< std::string::const_iterator > Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();

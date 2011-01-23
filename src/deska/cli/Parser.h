@@ -14,6 +14,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
 
+#include "deska/db/Api.h"
+
 namespace Deska
 {
 namespace CLI
@@ -110,10 +112,26 @@ namespace CLI
             using ascii::char_;
             using ascii::string;
 
+            qi::rule< Iterator, int(), ascii::space_type > t_int;
+            t_int %= boost::spirit::qi::int_;
+            t_int.name( "integer" );
+        
+            qi::rule< Iterator, std::string(), ascii::space_type > t_string;
+            t_string %= boost::spirit::qi::lexeme[ '"' >> +( boost::spirit::ascii::char_ - '"' ) >> '"' ];
+            t_string.name( "quoted string" );
+        
+            qi::rule< Iterator, double(), ascii::space_type > t_double;
+            t_double %= boost::spirit::qi::double_;
+            t_double.name( "double" );
+
+            qi::rule< Iterator, std::string(), ascii::space_type > identifier;
+            identifier %= boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ];
+            identifier.name( "identifier (alphanumerical letters and _)" );
+
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined.getRule( "string" ) );
-            keyword.add( "id", predefined.getRule( "integer" ) );
-            keyword.add( "price", predefined.getRule( "double" ) );
+            keyword.add( "name", t_string );
+            keyword.add( "id", t_int );
+            keyword.add( "price", t_double );
 
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
             //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > iface = IfaceGrammar< Iterator >();
@@ -121,7 +139,7 @@ namespace CLI
             //nested.add( "interface", iface );
 
             // Head of top-level grammar
-            cat_start %= lit( "hardware" ) > predefined.getRule( "identifier" );
+            cat_start %= lit( "hardware" ) > identifier[ std::cout << "Parsed: " << _1 << "\n" ] ;
             cat_start.name("cathegory start");
 
             // Trick for building the parser during parse time
@@ -138,7 +156,7 @@ namespace CLI
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
         qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
 
-        PredefinedRules< Iterator > predefined;
+        //PredefinedRules< Iterator > predefined;
     };
 
 
@@ -154,7 +172,8 @@ namespace CLI
             qi::rule< Iterator, ascii::space_type > attributeParser );
         void addNestedKind(
             const std::string kindName,
-            qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser );
+            //qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser );
+            KindGrammar kindParser );
 
         std::string getName() const;
 
@@ -197,6 +216,21 @@ namespace CLI
 
         qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
     };
+
+
+
+    template <typename Iterator>
+    class ParserBuilder
+    {
+    public:
+        ParserBuilder( Api* DBApi );
+        MainGrammar< Iterator > buildParser();
+
+    private:
+        PredefinedRules< Iterator > predefined;
+        Api* api;
+    };
+
 
 }
 }
