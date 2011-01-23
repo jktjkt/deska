@@ -95,12 +95,13 @@ class Table:
 		#TODO if there is more columns...
 		return self.commit_string.format(self.data)
 
+#
 # just testing it
-vendor = Table('vendor')
-vendor.add_column('name','text')
-print vendor.gen_hist()
-print vendor.gen_set('name')
-print vendor.gen_add()
-print vendor.gen_del()
-print vendor.gen_commit()
+#vendor = Table('vendor')
+#vendor.add_column('name','text')
+#print vendor.gen_hist()
+#print vendor.gen_set('name')
+#print vendor.gen_add()
+#print vendor.gen_del()
+#print vendor.gen_commit()
 

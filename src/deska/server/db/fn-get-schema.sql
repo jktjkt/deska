@@ -25,6 +25,15 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+-- and here is also view
+CREATE VIEW table_info_view AS SELECT relname::text,attname::text,typname::text
+	FROM	pg_class AS cl
+		join pg_tables AS tab ON (schemaname='deska_dev' and cl.relname = tab.tablename)
+		join pg_attribute AS att ON (att.attrelid = cl.oid )
+		join pg_type AS typ ON (typ.oid = att.atttypid)
+	WHERE  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
+
 --
 -- function returns info about dependencies between data - foreign keys
 -- TODO: get rid of concat 
