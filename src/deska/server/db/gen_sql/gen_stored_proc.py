@@ -9,7 +9,7 @@ from table import Table
 class Plpy:
 	def __init__(self):
 		try:
-			conn = psycopg2.connect("dbname='deska_dev' user='luke' host='localhost' password='Schu-18-mi'");
+			conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
 			self.mark = conn.cursor()
 
 		except:
@@ -26,10 +26,10 @@ class Plpy:
 plpy = Plpy()
 
 class Schema:
-	table_str = "SELECT DISTINCT relname from table_info_view"
-	column_str = "SELECT attname,typname from table_info_view where relname='{0}'"
+	table_str = "SELECT DISTINCT relname from deska.table_info_view"
+	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	def __init__(self):
-		plpy.execute("SET search_path TO deska_dev,public")
+		plpy.execute("SET search_path TO deska,production")
 
 		# init set of tables
 		self.tables = set()

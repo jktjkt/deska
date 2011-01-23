@@ -1,8 +1,9 @@
 --
 -- This is example of deska plug-in
 --
--- 
+-- every module must be place in schema production
 --
+SET search_path TO production;
 
 -- vendors of hw
 CREATE TABLE vendor (
