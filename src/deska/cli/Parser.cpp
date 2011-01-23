@@ -182,7 +182,7 @@ Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::build
         {
             if( itRel->kind == RELATION_EMBED_INTO )
             {
-                std::map< std::string, KindGrammar< Iterator > >::iterator itEmb = kindGrammars.find( itRel->tableName );
+                typename std::map< std::string, KindGrammar< Iterator > >::iterator itEmb = kindGrammars.find( itRel->tableName );
                 if( itEmb != kindGrammars.end() )
                 {
                     //FIXME Again problem with copying or referenciong on grammars
@@ -195,7 +195,7 @@ Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::build
     // Build main grammar
     //FIXME Again problem with copying or referenciong on grammars
     Deska::CLI::MainGrammar< Iterator > grammar;// = Deska::CLI::MainGrammar< Iterator >();
-    for( std::map< std::string, KindGrammar< Iterator > >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
+    for( typename std::map< std::string, KindGrammar< Iterator > >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
     {
         //FIXME Again problem with copying or referenciong on grammars
         //grammar.addKindGrammar( it->second );
