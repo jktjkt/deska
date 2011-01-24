@@ -28,10 +28,11 @@ END
 $$
 LANGUAGE plpgsql;
 
+DROP VIEW table_info_view;
 -- and here is also view
 CREATE VIEW table_info_view AS SELECT relname::text,attname::text,typname::text
 	FROM	pg_class AS cl
-		join pg_tables AS tab ON (schemaname='deska_dev' and cl.relname = tab.tablename)
+		join pg_tables AS tab ON (schemaname='production' and cl.relname = tab.tablename)
 		join pg_attribute AS att ON (att.attrelid = cl.oid )
 		join pg_type AS typ ON (typ.oid = att.atttypid)
 	WHERE  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');

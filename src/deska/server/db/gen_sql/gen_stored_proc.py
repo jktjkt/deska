@@ -42,7 +42,7 @@ class Schema:
 	# generate sql for all tables
 	def gen_all(self):
 		for tbl in self.tables:
-			self.get_columns(tbl)
+			self.gen_for_table(tbl)
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
@@ -68,4 +68,5 @@ class Schema:
 # just testing it
 schema = Schema()
 
-schema.gen_for_table('vendor')
+#schema.gen_for_table('vendor')
+schema.gen_all()
