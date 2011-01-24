@@ -1,9 +1,14 @@
 #!/usr/bin/python2
 
 class Table:
+	# template uid sequence
+	uidseq_string = '''CREATE SEQUENCE history.{0[name]}_uid START 1;
+'''
 	# template string for generate historic table
-	hist_string = '''CREATE TABLE history.{0[name]}_history (
-	LIKE {0[name]},
+	hist_string = uidseq_string + '''CREATE TABLE history.{0[name]}_history (
+	--LIKE {0[name]},
+	uid bigint NOT NULL default nextval('{0[name]}_uid'),
+	name TEXT NOT NULL,
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
 	CONSTRAINT {0[name]}_history_pk PRIMARY KEY (uid,version)
@@ -15,7 +20,7 @@ class Table:
 	AS
 	$$
 	BEGIN
-		UPDATE {0[name]}_history SET {1} = value
+		UPDATE {0[name]}_history SET {1} = value, version = ver
 			WHERE uid = id;
 		RETURN 1;
 	END
@@ -38,16 +43,16 @@ class Table:
 	'''
 	# template string for del function
 	del_string = '''CREATE FUNCTION
-	{0[name]}_del(IN id integer,IN ver integer)
+	{0[name]}_del(IN name_ text,IN ver integer)
 	RETURNS integer
 	AS
 	$$
-	DECLARE name text;
+	DECLARE id bigint;
 	BEGIN	
-		SELECT DISTINCT name INTO name FROM vendor_history
-			WHERE uid = id;
-		INSERT INTO vendor_history (uid, version, dest_bit)
-			VALUES (id, name, ver, '1');
+		SELECT max(uid) INTO id FROM vendor_history
+			WHERE name = name_;
+		INSERT INTO vendor_history (uid, name, version, dest_bit)
+			VALUES (id, name_, ver, '1');
 		RETURN 1;
 	END
 	$$
@@ -62,7 +67,7 @@ class Table:
 	BEGIN
 		UPDATE {0[name]} as v SET name = new.name
 			FROM {0[name]}_history as new
-				WHERE version = ver AND v.uid = new.uid;
+				WHERE new.version = ver AND v.uid = new.uid;
 		INSERT INTO {0[name]} (uid,name)
 			SELECT uid,name FROM {0[name]}_history
 				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {0[name]} );

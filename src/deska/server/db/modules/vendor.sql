@@ -7,7 +7,7 @@ SET search_path TO production;
 
 -- vendors of hw
 CREATE TABLE vendor (
-	uid bigserial
+	uid bigint
 		constraint vendor_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name text NOT NULL

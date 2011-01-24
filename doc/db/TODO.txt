@@ -7,8 +7,7 @@
 
 * DROPing created tables and function
 	- temporary workaround: grep "vendor_.*(IN" vendor_other.sql | sed 's/\(.*\)/drop function \1;/'
-	= mostly solved - drop schema generated...
-	- need to create the schema...
+	= solved - drop schema genproc...
 
 * REPLACE LIKE in creating history table
 	- it doesn't copy uid's bigserial type
