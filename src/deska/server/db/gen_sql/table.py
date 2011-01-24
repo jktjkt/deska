@@ -24,13 +24,13 @@ class Table:
 	'''
 	# template string for add function
 	add_string = '''CREATE FUNCTION
-	{0[name]}_add(IN name text,IN ver integer)
+	{0[name]}_add(IN name_ text,IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
 		INSERT INTO {0[name]}_history (name,version)
-			VALUES (value,ver);
+			VALUES (name_,ver);
 		RETURN 1;
 	END
 	$$
@@ -42,7 +42,10 @@ class Table:
 	RETURNS integer
 	AS
 	$$
-	BEGIN
+	DECLARE name text;
+	BEGIN	
+		SELECT DISTINCT name INTO name FROM vendor_history
+			WHERE uid = id;
 		INSERT INTO vendor_history (uid, version, dest_bit)
 			VALUES (id, name, ver, '1');
 		RETURN 1;
