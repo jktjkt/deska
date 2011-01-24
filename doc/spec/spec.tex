@@ -44,13 +44,6 @@ components in the system.
 
 \subsection{Generic Database}
 
-Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
-the database shall be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
-design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
-application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the
-Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system for auditing
-purposes.
-
 History has proven that it is extremely hard to give accurate predictions about future developments and trends in computing.  Many
 contemporary inventory management tools are severely limited by constraints from the past.  For example, even though the whole
 concept of virtualization predates the moment when personal computers became commodity, it is still common to stumble upon tools
@@ -78,6 +71,15 @@ Bindings to scripting languages like Python shall be introduced, as the staffers
 in a language which allows faster prototyping than C++.  Therefore, the API shall offer a complete bindings for Python, along with
 well documented sample modules.
 
+\subsection{CLI interface}
+
+Due to the Institute's administrators' strong Unix background and on their explicit request, it is expected that the interface to
+the database shall be provided via a CLI application instead of using a traditional web-based approach.  The main reason for this
+design choice is their familiarity with text-based configuration tools and bad experience with web applications in general.  The
+application interface shall be similar to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the
+Cisco IOS shell.  The format shall enable storing of plaintext dumps of the database in a version control system for auditing
+purposes.
+
 \subsection{Database Scheme}
 
 In addition to the general-purpose database described above, the team shall design a scheme suitable for describing the whole IT
@@ -89,10 +91,6 @@ Nonetheless, the design of the general database shall be influenced by the real-
 assistance for administrators willing to extend the structure.  The goal here is not to achieve purity at any cost, but implement
 a solution which is easy to deploy, use and maintain. An example of such assistance could be a script for converting the
 user-supplied database scheme into one directly usable in the Deska database. 
-
-\subsection{CLI interface}
-
-FIXME.
 
 \subsection{Add-on Modules}
 
