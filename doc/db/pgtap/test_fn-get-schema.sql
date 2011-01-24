@@ -155,7 +155,7 @@ DECLARE
 BEGIN
 	PREPARE expkindsti  AS SELECT relname FROM pgtap.results_get_table_info;
 	PREPARE retkindsti AS SELECT relname FROM deska_dev.get_table_info();
-	RETURN NEXT set_has( 'expkindsti', 'retkindsti', 'all kinds/tables are present' );	
+	RETURN NEXT set_has( 'retkindsti', 'expkindsti', 'all kinds/tables are present' );	
 
 	FOR tabname IN SELECT DISTINCT relname FROM results_get_table_info LOOP
 		EXECUTE 'CREATE TEMP TABLE tempretatts AS 
@@ -166,12 +166,17 @@ BEGIN
 
 		PREPARE expattsti AS SELECT attname FROM tempexpatts;
 		PREPARE retattsti AS SELECT attname FROM tempretatts;
-		RETURN NEXT set_eq( 'retattsti', 'expattsti', 'all attributes in this kind/table are present' );	
+		RETURN NEXT set_eq( 'retattsti', 'expattsti', 'all attributes in this kind/table are present' );
 
+		DROP TABLE tempexpatts;
+		DROP TABLE tempretatts;
+
+		DEALLOCATE expattsti;
+		DEALLOCATE retattsti;
 		
 		FOR attname, exptype IN EXECUTE 'SELECT attname, typename FROM results_get_table_info WHERE relname = $1' USING tabname LOOP	  				
 			EXECUTE 'SELECT typname FROM deska_dev.get_table_info() WHERE relname = $1 AND attname = $2'
-			INTO exptype
+			INTO rettype
 			USING tabname, attname;
 
 			RETURN NEXT matches(rettype, exptype, 'attribute type is ok');
