@@ -2,6 +2,7 @@
 
 DROP SCHEMA production CASCADE;
 DROP SCHEMA history CASCADE;
+DROP SCHEMA genproc CASCADE;
 DROP SCHEMA deska CASCADE;
 --
 -- schema for production tables
@@ -10,10 +11,15 @@ DROP SCHEMA deska CASCADE;
 CREATE SCHEMA production AUTHORIZATION deska_team;
 
 --
--- schema for historic tables and procedures
--- this is where generated things are placed
+-- schema for history tables
 --
 CREATE SCHEMA history AUTHORIZATION deska_team;
+
+--
+-- schema for generated procedures
+-- this is where generated things are placed
+--
+CREATE SCHEMA genproc AUTHORIZATION deska_team;
 
 --
 -- schema for other functions

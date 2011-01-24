@@ -68,5 +68,7 @@ class Schema:
 # just testing it
 schema = Schema()
 
+# print this to add proc into genproc schema
+print "SET search_path TO genproc,history,deska,production"
 #schema.gen_for_table('vendor')
 schema.gen_all()

@@ -2,7 +2,7 @@
 
 class Table:
 	# template string for generate historic table
-	hist_string = '''CREATE TABLE {0[name]}_history (
+	hist_string = '''CREATE TABLE history.{0[name]}_history (
 	LIKE {0[name]},
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
