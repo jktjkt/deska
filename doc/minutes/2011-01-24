@@ -1,0 +1,71 @@
+Schuze Deska, 2011-01-24 FZU
+----------------------------
+
+Pritomni: vsi
+
+Ukoly z minula:
+---------------
+
+Martina: unit testy kontrolujici oproti necemu jako tabulka
+    - hotovo
+Martina: unit testy i pro zbytek procedur od API
+    - hotovo
+Tomas: error reporting od Spiritu
+    - neni
+Tomas: vytahovani vyparsovanych informaci
+    - neni
+Tomas: kod, co pouzije API a udela z nej gramatiku
+    - je, stoji to na kopirovani gramatik/pravidel
+Tomas: dalsi aktivita s parserem a vubec klientskou aplikaci
+    - pracuje
+Honza: zapracovat pripominky do specifikace
+    - hotovo
+Honza: doplneni FakeApi
+    - hotovo
+Honza: kostra unit testu pro parser
+    - neni
+Honza: bude-li cas, clanek na CHEP
+    - neni
+Honza: pokracovat s protokolem, overit JSON a streamovani
+    - neni
+Lukas: ruci za rozdeleni fci pro zjistovani schematu
+    - jsou ty, co jsou zatim potreba
+Lukas: zacne funkce pouzivat pro delani generovani ulozenych procedur (pro implementaci API)
+    - funkcni generovani procedur pro zjistovani schematu
+Lukas: udela mazani starych predgenerovanych procedur
+    - hotovo
+
+Diskuse:
+--------
+
+Transakce a co se deje, kdyz mam dlouhotrvacjici (protoze bug) transakci, kterou
+neco generuju, a zatimco tohle bezi, tak neco do tabulky, kterou pouzivam sahne.
+DIskuse o isolation level a o tom, jestli muze obecne selhat commit read-only
+transakce.
+
+Ukoly na priste:
+----------------
+
+vsichni: precist specifikaci, po ok od kazdeho posle Honza specifikaci vedoucimu
+Martina: implementovat casti API pro relace pres operace nad contrainty, ne extra tabulkou
+Martina: implementace testu ^^^
+Lukas: vymyslet unit testu pro ^^^
+Lukas: wrapper procedura, ktera udela "rozsok" do odpovidajici vygenerovane procedury
+Lukas: implementace sveho TODO
+Tomas: odstraneni compile erroru (kopirovani gramatik/referenci)
+Tomas: error reporting od Spiritu
+Tomas: vytahovani vyparsovanych informaci
+Honza: az se ostatni vyjadri, poslat specifikaci Zavoralovi
+Honza: nastudovat qi::rule
+Honza: kostra unit testu pro parser
+Honza: pokracovat s protokolem, overit JSON a streamovani
+Honza: bude-li cas, clanek na CHEP
+
+Pristi schuzka:
+---------------
+
+Dve alternativy, utery 1. unora od 16.00 ci streda 2. unora od 14.00, FZU.
+
+Tomas se vyjadri, jestli muze v utery od 16.00, Lukas se vyjadri, jestli muze ve
+stredu od 14.00. Pokud se neshodnou, sejde se DB tym v uternim a CLI tym ve
+stredecnim terminu.
