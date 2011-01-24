@@ -5,16 +5,16 @@
 	
 	= mostly done
 
-* DROPing created tables and function
-	- temporary workaround: grep "vendor_.*(IN" vendor_other.sql | sed 's/\(.*\)/drop function \1;/'
-	= solved - drop schema genproc...
-
 * REPLACE LIKE in creating history table
 	- it doesn't copy uid's bigserial type
+	= mostly done - testing now
 
 * module_DEL function repair
 	- it need name - not null constraint...
+	= done, calling with name, not uid
 	- or get rid of not nulls?
 
 * creating version number, storeing it for session
 	- why this is not working :-)?
+
+
