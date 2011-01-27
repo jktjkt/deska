@@ -15,6 +15,6 @@
 	- or get rid of not nulls?
 
 * creating version number, storeing it for session
-	- why this is not working :-)?
+	= DONE
 
 

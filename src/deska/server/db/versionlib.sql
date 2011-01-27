@@ -11,7 +11,7 @@ CREATE TABLE version (
 	-- human readable id
 	number int
 		CONSTRAINT version_number_unique UNIQUE,
-	created timestamp without time zone NOT NULL default 'now',
+	created timestamp without time zone NOT NULL DEFAULT now(),
 	note text
 );
 GRANT ALL ON version TO deska_team;
