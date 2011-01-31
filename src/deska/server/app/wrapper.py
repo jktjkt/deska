@@ -26,9 +26,9 @@ def setAttribute(kindName,objectName,attributeName,value):
 	fn= getfn("set",kindName,attributeName)
 	return fn(objectName, value)
 
-def removeAttribute(kindName,objectName,attributeName,value):
+def removeAttribute(kindName,objectName,attributeName):
 	fn= getfn("rem",kindName,attributeName)
-	return fn(objectName, value)
+	return fn(objectName)
 
 def changeObjectName(kindName,oldName,newName):
 	fn = getfn("set",kindName,"name")
@@ -44,6 +44,7 @@ def deleteObject(kindName,objectName):
 
 # pre-test ...
 print setAttribute("vendor","DELL","note","this is note")
+print removeAttribute("vendor","DELL","note")
 print changeObjectName("vendor","DELL","Dell")
 print createObject("vendor","DELL")
 print deleteObject("vendor","DELL")
