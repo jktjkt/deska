@@ -74,6 +74,46 @@ template<typename Iterator> Deska::CLI::IfaceGrammar<Iterator>::IfaceGrammar(): 
     start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
 }
 
+template<typename Iterator> Deska::CLI::HardwareGrammar<Iterator>::HardwareGrammar(): HardwareGrammar::base_type( start )
+{
+    using qi::int_;
+    using qi::lit;
+    using qi::double_;
+    using qi::lexeme;
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::_val;
+    using qi::on_error;
+    using qi::fail;
+    using ascii::char_;
+    using ascii::string;
+
+
+    // Keyword table for matching keywords to parameter types (parser)
+    keyword.add( "name", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
+    keyword.add( "id", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "integer" ) ) );
+    keyword.add( "price", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "double" ) ) );
+
+    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
+    //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > iface = IfaceGrammar< Iterator >();
+    //IfaceGrammar< Iterator > iface = IfaceGrammar< Iterator >();
+   // nested.add( "interface", &iface );
+
+    // Head of top-level grammar
+    cat_start %= lit( "hardware" ) > predefined.getRule( "identifier" )[ std::cout << "Parsed: " << _1 << "\n" ] ;
+    cat_start.name("cathegory start");
+
+    // Trick for building the parser during parse time
+    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
+    start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( *_a ) )*/ ) > lit( "end" ) );
+
+    phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
+    on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
+}
+
 
 template < typename Iterator >
 Deska::CLI::KindGrammar< Iterator >::KindGrammar(
