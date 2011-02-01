@@ -28,4 +28,20 @@ Api::~Api()
 {
 }
 
+ObjectRelation ObjectRelation::embedInto(const Identifier &into)
+{
+    ObjectRelation res;
+    res.kind = RELATION_EMBED_INTO;
+    res.tableName = into;
+    return res;
+}
+
+/** @short Private constructor for creating a half-baked object
+
+This is very much needed for ObjectRelation::embedInto.
+*/
+ObjectRelation::ObjectRelation()
+{
+}
+
 }

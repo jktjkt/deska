@@ -28,3 +28,4 @@ macro(deska_test fname)
 endmacro(deska_test)
 
 deska_test(trivial-ok)
+deska_test(parser-top-level-objects)

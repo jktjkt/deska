@@ -95,16 +95,18 @@ typedef enum {
 struct ObjectRelation {
 
     ObjectRelation(
-        ObjectRelationKind _kind,
-        Identifier _tableName,
-        Identifier _sourceAttribute,
-        Identifier _destinationAttribute ):
+        const ObjectRelationKind _kind,
+        const Identifier &_tableName,
+        const Identifier &_sourceAttribute,
+        const Identifier &_destinationAttribute ):
         kind(_kind),
         tableName(_tableName),
         sourceAttribute(_sourceAttribute),
         destinationAttribute(_destinationAttribute) 
     {
     }
+
+    static ObjectRelation embedInto(const Identifier &into);
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
@@ -114,6 +116,8 @@ struct ObjectRelation {
     Identifier sourceAttribute;
     /** @short To which attribute shall we match */
     Identifier destinationAttribute;
+private:
+    ObjectRelation();
 };
 
 /** @short Class representing the database API
