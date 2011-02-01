@@ -73,9 +73,9 @@ Deska::CLI::KindGrammar< Iterator >::KindGrammar(
 
     // Trick for building the parser during parse time
     // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-    start = ( identifierP > +(
+  /*  start = ( identifierP > +(
         ( attributes[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) ||
-        ( nestedGrammars[ _a = _1 ] > lazy( *_a ) ) ) > lit( "end" ) );
+        ( nestedGrammars[ _a = _1 ] > lazy( *_a ) ) ) > lit( "end" ) );*/
 
     phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
     on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
