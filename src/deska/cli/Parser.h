@@ -218,7 +218,7 @@ namespace CLI
     {
     public:
         ParserBuilder( Api* DBApi );
-        MainGrammar< Iterator > buildParser();
+        // FIXME (kundratj): won't build MainGrammar< Iterator > buildParser();
 
     private:
         PredefinedRules< Iterator > predefined;

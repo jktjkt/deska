@@ -153,7 +153,7 @@ Deska::CLI::ParserBuilder< Iterator >::ParserBuilder( Api* DBApi )
 }
 
 
-
+#if 0 // FIXME (kundratj): won't build
 template < typename Iterator >
 Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::buildParser()
 {
@@ -205,6 +205,7 @@ Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::build
     //FIXME Again problem with copying or referenciong on grammars
     return Deska::CLI::MainGrammar< Iterator >();//grammar;
 }
+#endif
 
 
 
@@ -244,4 +245,4 @@ template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGra
 
 template Deska::CLI::ParserBuilder< std::string::const_iterator >::ParserBuilder( Api* DBApi );
 
-template Deska::CLI::MainGrammar< std::string::const_iterator > Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();
+// FIXME (kundratj): won't build template Deska::CLI::MainGrammar< std::string::const_iterator > Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();
