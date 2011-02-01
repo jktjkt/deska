@@ -36,6 +36,17 @@ Honza: bude-li cas, clanek na CHEP
     - neni
 
 
+Poradek v gitu:
+---------------
+
+Konfliktni pozadavky na "davejte praci do gitu co nejdriv" a "master by nemel
+obsahovat nezkompilovatelny/... kod".  Vyresime to tak, ze "vyvoj novych veci"
+bude kazdy delat ve svem branchi, pripadne v branchi specifickem pro konkretni
+novou featuru. Tento docasny branch bude kazdy pravidelne pushovat do
+centralniho repozitare, ovsem ne do masteru, ale opet do sveho branche. Jak se
+zmeny dostanou do masteru je otazka, zatim bych to nechal na individualnim
+uvazeni (na schuzi jsme neprobrali).
+
 Ukoly na priste:
 ----------------
 
