@@ -4,7 +4,7 @@
 #
 
 import psycopg2
-from table import Table
+from table import Table,Api
   
 class Plpy:
 	def __init__(self):
@@ -40,9 +40,11 @@ class Schema:
 			self.tables.add(tbl[0])
 
 	# generate sql for all tables
-	def gen_all(self):
+	def gen_schema(self):
+		ret = ""
 		for tbl in self.tables:
-			self.gen_for_table(tbl)
+			ret = ret + '\n' + self.gen_for_table(tbl)
+		return 
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
@@ -57,12 +59,41 @@ class Schema:
 			table.add_column(col[0],col[1])
 
 		# generate sql
-		print table.gen_hist()
+		ret = table.gen_hist()
 		for col in record[:]:
-			print table.gen_set(col[0])
-		print table.gen_add()
-		print table.gen_del()
-		print table.gen_commit()
+			ret = ret + '\n' + table.gen_set(col[0])
+		ret = ret + '\n' + table.gen_add()
+		ret = ret + '\n' + table.gen_del()
+		ret = ret + '\n' + table.gen_commit()
+		return ret + '\n'
+
+	# generate python for all tables
+	def gen_db_api(self):
+		ret = ""
+		for tbl in self.tables:
+			ret = ret + '\n' + self.gen_api_table(tbl)
+		return 
+
+	# generate python for one table
+	def gen_api_table(self,tbl):
+		# select col info
+		record = plpy.execute(self.column_str.format(tbl))
+
+		# create table obj
+		table = Api(tbl)
+		
+		# add columns
+		for col in record[:]:
+			table.add_column(col[0],col[1])
+
+		# generate sql
+		ret = table.gen_hist()
+		for col in record[:]:
+			ret = ret + '\n' + table.gen_set(col[0])
+		ret = ret + '\n' + table.gen_add()
+		ret = ret + '\n' + table.gen_del()
+		ret = ret + '\n' + table.gen_commit()
+		return ret + '\n'
 
 
 # just testing it
@@ -71,4 +102,10 @@ schema = Schema()
 # print this to add proc into genproc schema
 print "SET search_path TO genproc,history,deska,production;"
 #schema.gen_for_table('vendor')
-schema.gen_all()
+f = open('gen_schema.sql','w')
+f.write(schema.gen_schema())
+f.close()
+
+f = open('db.py','w')
+f.write(schema.gen_db_api())
+f.close()

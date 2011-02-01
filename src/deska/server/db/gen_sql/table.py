@@ -2,25 +2,25 @@
 
 class Table:
 	# template uid sequence
-	uidseq_string = '''CREATE SEQUENCE history.{0[name]}_uid START 1;
+	uidseq_string = '''CREATE SEQUENCE history.{name}_uid START 1;
 '''
 	# template string for generate historic table
-	hist_string = uidseq_string + '''CREATE TABLE history.{0[name]}_history (
-	--LIKE {0[name]},
-	uid bigint NOT NULL default nextval('{0[name]}_uid'),
+	hist_string = uidseq_string + '''CREATE TABLE history.{name}_history (
+	--LIKE {name},
+	uid bigint NOT NULL default nextval('{name}_uid'),
 	name TEXT NOT NULL,
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
-	CONSTRAINT {0[name]}_history_pk PRIMARY KEY (uid,version)
+	CONSTRAINT {name}_history_pk PRIMARY KEY (uid,version)
 	);'''
 	# template string for set function's
 	set_string = '''CREATE FUNCTION
-	{0[name]}_set_{1}(IN id integer,IN value {2},IN ver integer)
+	{name}_set_{colname}(IN id integer,IN value {coltype},IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
-		UPDATE {0[name]}_history SET {1} = value, version = ver
+		UPDATE {name}_history SET {colname} = value, version = ver
 			WHERE uid = id;
 		RETURN 1;
 	END
@@ -29,12 +29,12 @@ class Table:
 	'''
 	# template string for add function
 	add_string = '''CREATE FUNCTION
-	{0[name]}_add(IN name_ text,IN ver integer)
+	{name}_add(IN name_ text,IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
-		INSERT INTO {0[name]}_history (name,version)
+		INSERT INTO {name}_history (name,version)
 			VALUES (name_,ver);
 		RETURN 1;
 	END
@@ -43,7 +43,7 @@ class Table:
 	'''
 	# template string for del function
 	del_string = '''CREATE FUNCTION
-	{0[name]}_del(IN name_ text,IN ver integer)
+	{name}_del(IN name_ text,IN ver integer)
 	RETURNS integer
 	AS
 	$$
@@ -60,24 +60,66 @@ class Table:
 	'''
 	# template string for commit function
 	commit_string = '''CREATE FUNCTION
-	{0[name]}_commit(IN ver integer)
+	{name}_commit(IN ver integer)
 	RETURNS integer
 	AS
 	$$
 	BEGIN
-		UPDATE {0[name]} as v SET name = new.name
-			FROM {0[name]}_history as new
+		UPDATE {name} as v SET name = new.name
+			FROM {name}_history as new
 				WHERE new.version = ver AND v.uid = new.uid;
-		INSERT INTO {0[name]} (uid,name)
-			SELECT uid,name FROM {0[name]}_history
-				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {0[name]} );
-		DELETE FROM {0[name]}
-			WHERE uid IN (SELECT uid FROM {0[name]}_history
+		INSERT INTO {name} (uid,name)
+			SELECT uid,name FROM {name}_history
+				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {name} );
+		DELETE FROM {name}
+			WHERE uid IN (SELECT uid FROM {name}_history
 				WHERE version = ver AND dest_bit = '1');
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql;
+	'''
+	def __init__(self,name):
+		self.data = dict()
+		self.col = dict()
+		self.name= name
+
+	def add_column(self,col_name,col_type):
+		self.col[col_name] = col_type
+
+	def gen_hist(self):
+		return self.hist_string.format(name = self.name)
+
+	def gen_add(self):
+		return self.add_string.format(name = self.name)
+
+	def gen_del(self):
+		return self.del_string.format(name = self.name)
+
+	def gen_set(self,col_name):
+		return self.set_string.format(name = self.name,colname = col_name, coltype = self.col[col_name])
+
+	def gen_commit(self):
+		#TODO if there is more columns...
+		return self.commit_string.format(self.name)
+
+
+class Api:
+	# template string for set function's
+	set_string = '''def {tbl}_set_{col}(objectName,value):
+	return db.call("{tbl}_set_{col}({{0}},{{1}})".format(objectName, value))
+	'''
+	# template string for add function
+	add_string = '''def {tbl}_add(objectName):
+	return db.call("{tbl}_add({{0}})".format(objectName))
+	'''
+	# template string for del function
+	del_string = '''def {tbl}_del(objectName):
+	return db.call("{tbl}_del({{0}})".format(objectName))
+	'''
+	# template string for commit function
+	commit_string = '''def {tbl}_commit(ver):
+	return db.call("{tbl}_commit".format(ver))
 	'''
 	def __init__(self,name):
 		self.data = dict()
