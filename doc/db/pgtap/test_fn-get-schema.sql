@@ -126,7 +126,7 @@ CREATE TABLE production.tabinfo1(
 );
 
 CREATE TABLE production.tabinfo2(
-	textcol int,
+	textcol text,
 	boolcol boolean,
 	namecol name
 );
@@ -141,7 +141,7 @@ CREATE TABLE pgtap.results_get_table_info(
 INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo1','intcol','int4');
 INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo1','namecol','name');
 INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo2','textcol','text');
-INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo2','boolcol','boolean');
+INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo2','boolcol','bool');
 INSERT INTO pgtap.results_get_table_info VALUES ('tabinfo2','namecol','name');
 
 CREATE OR REPLACE FUNCTION pgtap.test_get_table_info()
@@ -182,6 +182,112 @@ BEGIN
 			RETURN NEXT matches(rettype, exptype, 'attribute type is ok');
 		END LOOP;
 
+	END LOOP;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
+/* ************************************************
+*			 testing get_relations				***
+************************************************ */
+CREATE TABLE pgtap.results_get_relations(
+relname name,
+relkind text,
+attname	text,
+refkind	name,
+refattname	text
+);
+
+
+INSERT INTO pgtap.results_get_relations VALUES ('mergedkind','MERGE','mergecol','kind2','model');
+INSERT INTO pgtap.results_get_relations VALUES ('templatedkind','TEMPLATE','templatecol','kind2','model');
+INSERT INTO pgtap.results_get_relations VALUES ('embedkind','EMBED','embedcol','kind2','model');
+INSERT INTO pgtap.results_get_relations VALUES ('badkind','INVALID','col','kind2','model');
+
+
+--kind2 is referenced table
+CREATE TABLE deska_dev.kind2(
+model name primary key
+);
+
+CREATE TABLE deska_dev.mergedkind(
+kindname name, 
+mergecol name,
+CONSTRAINT rmerge_mergedkind_kind2 FOREIGN KEY (mergecol) REFERENCES deska_dev.kind2(model)
+);
+
+CREATE TABLE deska_dev.templatedkind(
+kindname name, 
+templatecol name,
+CONSTRAINT rtempl_templatedkind_kind2 FOREIGN KEY (templatecol) REFERENCES deska_dev.kind2(model)
+);
+
+CREATE TABLE deska_dev.embedkind(
+kindname name, 
+embedcol name,
+CONSTRAINT rembed_embedkind_kind2 FOREIGN KEY (embedcol) REFERENCES deska_dev.kind2(model)
+);
+
+--table with invalid relation = reference
+CREATE TABLE deska_dev.badkind(
+kindname name, 
+col name,
+CONSTRAINT rbad_kind1_kind2 FOREIGN KEY (col) REFERENCES deska_dev.kind2(model)
+);
+
+CREATE OR REPLACE FUNCTION pgtap.test_get_relations_merge()
+RETURNS SETOF TEXT AS
+$$
+DECLARE
+	exprelation pgtap.results_get_relations%ROWTYPE;
+	retrelation deska_dev.kind_relation;
+BEGIN
+	FOR exprelation IN SELECT relname,relkind,attname,refkind,refattname FROM pgtap.results_get_relations LOOP
+		EXECUTE 'SELECT relkind, attname, refkind, refattname FROM deska_dev.get_relations($1) WHERE attname LIKE $2'
+		INTO retrelation
+		USING exprelation.relname, exprelation.attname;				
+		
+		RETURN NEXT matches( retrelation.relkind, exprelation.relkind, 'relation type is OK' );
+		RETURN NEXT matches( retrelation.refkind, exprelation.refkind, 'referenced kind is OK' );
+		RETURN NEXT matches( retrelation.refattname, exprelation.refattname, 'referenced columns are OK' );
+	END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+DELETE FROM pgtap.results_get_relations;
+
+INSERT INTO pgtap.results_get_relations VALUES ('kind1','MERGE','related','kind2','model');
+INSERT INTO pgtap.results_get_relations VALUES ('kind1','TEMPLATE','template','kind1','kindname');
+
+
+CREATE TABLE deska_dev.kind1(
+kindname name UNIQUE, 
+related name,
+template name,
+CONSTRAINT rmerge_kind1_kind2 FOREIGN KEY (related) REFERENCES deska_dev.kind2(model),
+CONSTRAINT rtempl_kind1_kind2 FOREIGN KEY (template) REFERENCES deska_dev.kind1(kindname)
+);
+
+CREATE OR REPLACE FUNCTION pgtap.test_get_relations2()
+RETURNS SETOF TEXT AS
+$$
+DECLARE
+	exprelation pgtap.results_get_relations%ROWTYPE;
+	retrelation deska_dev.kind_relation;
+BEGIN
+    FOR exprelation IN SELECT relname,relkind,attname,refkind,refattname FROM pgtap.results_get_relations LOOP
+		EXECUTE 'SELECT relkind, attname, refkind, refattname FROM deska_dev.get_relations($1) WHERE attname LIKE $2'
+		INTO retrelation
+		USING exprelation.relname, exprelation.attname;				
+		
+		RETURN NEXT matches( retrelation.relkind, exprelation.relkind, 'relation type is OK' );
+		RETURN NEXT matches( retrelation.refkind, exprelation.refkind, 'referenced kind is OK' );
+		RETURN NEXT matches( retrelation.refattname, exprelation.refattname, 'referenced columns are OK' );
 	END LOOP;
 
 END;
