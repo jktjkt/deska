@@ -1,0 +1,60 @@
+Schuze Deska, 2011-02-01 FZU
+----------------------------
+
+Pritomni: vsi
+
+Ukoly z minula:
+---------------
+
+vsichni: precist specifikaci, po ok od kazdeho posle Honza specifikaci vedoucimu
+    - done
+Martina: implementovat casti API pro relace pres operace nad contrainty, ne extra tabulkou
+    - done
+Martina: implementace testu ^^^
+    - done
+Lukas: vymyslet unit testu pro ^^^
+    - done
+Lukas: wrapper procedura, ktera udela "rozsok" do odpovidajici vygenerovane procedury
+    - done
+Lukas: implementace sveho TODO
+    - done
+Tomas: odstraneni compile erroru (kopirovani gramatik/referenci)
+    - neni
+Tomas: error reporting od Spiritu
+    - neni
+Tomas: vytahovani vyparsovanych informaci
+    - neni
+Honza: az se ostatni vyjadri, poslat specifikaci Zavoralovi
+    - done
+Honza: nastudovat qi::rule
+    - 5%
+Honza: kostra unit testu pro parser
+    - kostra
+Honza: pokracovat s protokolem, overit JSON a streamovani
+    - neni
+Honza: bude-li cas, clanek na CHEP
+    - neni
+
+
+Ukoly na priste:
+----------------
+
+- Lukas: zkrasleni kodu, sjednoceni,...
+- Martina: napsani funkci pro verzovani, co jsou v API, a co budou pouzivat uz
+  existujici kod z DB
+- Lukas: nahradit substituce stringu pri volani user-supplied veci do SQLka klasickym
+  predanim zvlast SQL stringu a zvlast hodnot (tj. nahrazeni placeholderu udela
+  az SQL knihovna a ne rovnou Python)
+- Lukas: zbude-li cas, resit osetrovani chyb
+- Honza: nastudovat qi::rule
+- Honza: dal testy pro parser
+- Honza: protokol, JSON,...
+- Honza: bude-li cas, clanek na CHEP
+- Tomas: odstraneni compile erroru (kopirovani gramatik/referenci)
+- Tomas: error reporting od Spiritu
+- Tomas: vytahovani vyparsovanych informaci
+
+Pristi schuzka:
+---------------
+
+7. unora 2010, 16.00 FZU
