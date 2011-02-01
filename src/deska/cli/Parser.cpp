@@ -104,7 +104,7 @@ template<typename Iterator> Deska::CLI::HardwareGrammar<Iterator>::HardwareGramm
 
     // Head of top-level grammar
     cat_start %= lit( "hardware" ) > predefined.getRule( "identifier" )[ std::cout << "Parsed: " << _1 << "\n" ] ;
-    cat_start.name("cathegory start");
+    cat_start.name("category start");
 
     // Trick for building the parser during parse time
     // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
@@ -228,18 +228,18 @@ Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buil
     
     std::map< std::string, KindGrammar< Iterator > > kindGrammars;
     
-    // Build signle parsers with arrtibutes
+    // Build single parsers with attributes
     std::vector< std::string > kinds = api->kindNames();
     
     for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
     {
-        //FIXME Again problem with copying or referenciong on grammars
+        //FIXME Again problem with copying or referencing on grammars
         //kindGrammars[ *it ] = KindGrammar< Iterator >( *it, predefined.getRule( "identifier" ) );
 
         std::vector< KindAttributeDataType > attributes = api->kindAttributes( *it );
         for( std::vector< KindAttributeDataType >::iterator it2 = attributes.begin(); it2 != attributes.end(); ++it2 )
         {
-            //FIXME Again problem with copying or referenciong on grammars
+            //FIXME Again problem with copying or referencing on grammars
             //kindGrammars[ *it ].addAtrribute( it2->name, predefined.getRule( it2->type ) );
         }
     }
@@ -255,7 +255,7 @@ Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buil
                 typename std::map< std::string, KindGrammar< Iterator > >::iterator itEmb = kindGrammars.find( itRel->tableName );
                 if( itEmb != kindGrammars.end() )
                 {
-                    //FIXME Again problem with copying or referenciong on grammars
+                    //FIXME Again problem with copying or referencing on grammars
                     //itEmb->second.addNestedKind( *it, kindGrammars[ *it ] );
                 }
             }
@@ -263,14 +263,14 @@ Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buil
     }
 
     // Build main grammar
-    //FIXME Again problem with copying or referenciong on grammars
+    //FIXME Again problem with copying or referencing on grammars
     Deska::CLI::MainGrammar< Iterator > grammar;// = Deska::CLI::MainGrammar< Iterator >();
     for( typename std::map< std::string, KindGrammar< Iterator > >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
     {
-        //FIXME Again problem with copying or referenciong on grammars
+        //FIXME Again problem with copying or referencing on grammars
         //grammar.addKindGrammar( it->second );
     }
-    //FIXME Again problem with copying or referenciong on grammars
+    //FIXME Again problem with copying or referencing on grammars
     return new Deska::CLI::MainGrammar< Iterator >();//grammar;
 }
 
