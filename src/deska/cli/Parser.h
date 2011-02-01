@@ -56,7 +56,7 @@ namespace CLI
 
 
     template < typename Iterator >
-    class IfaceGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    class IfaceGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
     {
     public:
         IfaceGrammar() : IfaceGrammar::base_type( start )
@@ -71,28 +71,29 @@ namespace CLI
             using ascii::char_;
 
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", predefined.getRule( "string" ) );
-            keyword.add( "id", predefined.getRule( "integer" ) );
-            keyword.add( "ip", predefined.getRule( "string" ) );
+            // This hell is here only for testing of the concept. The whole class will be deleted soon.
+            keyword.add( "name", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
+            keyword.add( "id", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "integer" ) ) );
+            keyword.add( "ip", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
 
             // Head of top-level grammar
-            cat_start %= lit( "interface" ) >> predefined.getRule( "identifier" );
+            cat_start %= lit( "interface" ) > predefined.getRule( "identifier" );
 
             // Trick for building the parser during parse time
-            start = cat_start >> +( keyword[ _a = _1 ] >> lazy( _a ) ) >> lit( "end" );
+            start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
         }
 
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type > > keyword;
-        qi::symbols< char, qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > > nested;
+        qi::symbols< char, qi::rule< Iterator, ascii::space_type >* > keyword;
+        qi::symbols< char, qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nested;
 
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
 
         PredefinedRules< Iterator > predefined;
     };
 
     template <typename Iterator>
-    class HardwareGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    class HardwareGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
     {
     public:
         HardwareGrammar() : HardwareGrammar::base_type( start )
@@ -112,57 +113,42 @@ namespace CLI
             using ascii::char_;
             using ascii::string;
 
-            qi::rule< Iterator, int(), ascii::space_type > t_int;
-            t_int %= boost::spirit::qi::int_;
-            t_int.name( "integer" );
-        
-            qi::rule< Iterator, std::string(), ascii::space_type > t_string;
-            t_string %= boost::spirit::qi::lexeme[ '"' >> +( boost::spirit::ascii::char_ - '"' ) >> '"' ];
-            t_string.name( "quoted string" );
-        
-            qi::rule< Iterator, double(), ascii::space_type > t_double;
-            t_double %= boost::spirit::qi::double_;
-            t_double.name( "double" );
-
-            qi::rule< Iterator, std::string(), ascii::space_type > identifier;
-            identifier %= boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ];
-            identifier.name( "identifier (alphanumerical letters and _)" );
 
             // Keyword table for matching keywords to parameter types (parser)
-            keyword.add( "name", t_string );
-            keyword.add( "id", t_int );
-            keyword.add( "price", t_double );
+            keyword.add( "name", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
+            keyword.add( "id", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "integer" ) ) );
+            keyword.add( "price", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "double" ) ) );
 
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-            //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > iface = IfaceGrammar< Iterator >();
+            //qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > iface = IfaceGrammar< Iterator >();
             //IfaceGrammar< Iterator > iface = IfaceGrammar< Iterator >();
-            //nested.add( "interface", iface );
+           // nested.add( "interface", &iface );
 
             // Head of top-level grammar
-            cat_start %= lit( "hardware" ) > identifier[ std::cout << "Parsed: " << _1 << "\n" ] ;
+            cat_start %= lit( "hardware" ) > predefined.getRule( "identifier" )[ std::cout << "Parsed: " << _1 << "\n" ] ;
             cat_start.name("cathegory start");
 
             // Trick for building the parser during parse time
             // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-            start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( _a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( _a ) )*/ ) > lit( "end" ) );
+            start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( *_a ) )*/ ) > lit( "end" ) );
 
             phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
             on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
         }
 
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type > > keyword;
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > > nested;
+        qi::symbols< char, qi::rule< Iterator, ascii::space_type >* > keyword;
+        qi::symbols< char, qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nested;
         
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
 
-        //PredefinedRules< Iterator > predefined;
+        PredefinedRules< Iterator > predefined;
     };
 
 
 
     template <typename Iterator>
-    class KindGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    class KindGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
     {
     public:
         KindGrammar( const std::string kindName, qi::rule< Iterator, std::string(), ascii::space_type > identifierParser );
@@ -172,28 +158,36 @@ namespace CLI
             qi::rule< Iterator, ascii::space_type > attributeParser );
         void addNestedKind(
             const std::string kindName,
-            //qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > kindParser );
-            KindGrammar kindParser );
+            qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* kindParser );
+            //const KindGrammar* kindParser );
 
         std::string getName() const;
 
     private:
         qi::symbols<
             char,
-            qi::rule< Iterator, ascii::space_type > > attributes;
+            qi::rule< Iterator, ascii::space_type >* > attributes;
+
+//        qi::symbols<
+//            char,
+//            qi::rule<
+//                Iterator,
+//                ascii::space_type,
+//                qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nestedGrammars;
 
         qi::symbols<
             char,
-            qi::rule<
-                Iterator,
-                ascii::space_type,
-                qi::locals< qi::rule< Iterator, ascii::space_type > > > > nestedGrammars;
+            qi::grammar<
+            Iterator,
+            ascii::space_type,
+            qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nestedGrammars;
         
         qi::rule< Iterator, std::string(), std::string(), ascii::space_type > identifierP;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
 
         std::string name;
 
+        std::vector< qi::rule< Iterator, ascii::space_type > > attributesArray;
     };
 
 
