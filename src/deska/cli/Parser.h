@@ -193,22 +193,22 @@ namespace CLI
 
 
     template <typename Iterator>
-    class MainGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > >
+    class MainGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
     {
     public:
         MainGrammar();
 
-        void addKindGrammar( KindGrammar< Iterator > grammar );
+        void addKindGrammar( KindGrammar< Iterator >* grammar );
 
     private:
         qi::symbols<
             char,
-            qi::rule<
+            qi::grammar<
                 Iterator,
                 ascii::space_type,
-                qi::locals< qi::rule< Iterator, ascii::space_type > > > > kindGrammars;
+                qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > kindGrammars;
 
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type > > > start;
+        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
     };
 
 
@@ -218,7 +218,7 @@ namespace CLI
     {
     public:
         ParserBuilder( Api* DBApi );
-        // FIXME (kundratj): won't build MainGrammar< Iterator > buildParser();
+        MainGrammar< Iterator >* buildParser();
 
     private:
         PredefinedRules< Iterator > predefined;

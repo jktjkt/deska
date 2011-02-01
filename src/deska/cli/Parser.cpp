@@ -73,7 +73,12 @@ Deska::CLI::KindGrammar< Iterator >::KindGrammar(
 
     // Trick for building the parser during parse time
     // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-  /*  start = ( identifierP > +(
+
+    KindGrammar neco( "bla" , boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ] );
+    qi::rule< Iterator, ascii::space_type > neco2;
+    neco2 = neco;
+
+   /* start = ( identifierP > +(
         ( attributes[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) ||
         ( nestedGrammars[ _a = _1 ] > lazy( *_a ) ) ) > lit( "end" ) );*/
 
@@ -129,7 +134,7 @@ Deska::CLI::MainGrammar< Iterator >::MainGrammar(): MainGrammar< Iterator >::bas
     using qi::fail;
 
     // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-    start = +( kindGrammars[ _a = _1 ] > lazy( _a )[ std::cout << "Parsed: " << _1 << "\n" ] );
+   // start = +( kindGrammars[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] );
 
     phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
     on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
@@ -138,9 +143,9 @@ Deska::CLI::MainGrammar< Iterator >::MainGrammar(): MainGrammar< Iterator >::bas
 
 
 template < typename Iterator >
-void Deska::CLI::MainGrammar< Iterator >::addKindGrammar( KindGrammar< Iterator > grammar )
+void Deska::CLI::MainGrammar< Iterator >::addKindGrammar( KindGrammar< Iterator >* grammar )
 {
-    kindGrammars.add( grammar.getName(), grammar );
+    kindGrammars.add( grammar->getName(), grammar );
 }
 
 
@@ -153,9 +158,8 @@ Deska::CLI::ParserBuilder< Iterator >::ParserBuilder( Api* DBApi )
 }
 
 
-#if 0 // FIXME (kundratj): won't build
 template < typename Iterator >
-Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::buildParser()
+Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buildParser()
 {
     
     std::map< std::string, KindGrammar< Iterator > > kindGrammars;
@@ -203,9 +207,8 @@ Deska::CLI::MainGrammar< Iterator > Deska::CLI::ParserBuilder< Iterator >::build
         //grammar.addKindGrammar( it->second );
     }
     //FIXME Again problem with copying or referenciong on grammars
-    return Deska::CLI::MainGrammar< Iterator >();//grammar;
+    return new Deska::CLI::MainGrammar< Iterator >();//grammar;
 }
-#endif
 
 
 
@@ -241,8 +244,8 @@ template std::string Deska::CLI::KindGrammar< std::string::const_iterator >::get
 
 template Deska::CLI::MainGrammar< std::string::const_iterator >::MainGrammar();
 
-template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGrammar( KindGrammar< std::string::const_iterator > grammar );
+template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGrammar( KindGrammar< std::string::const_iterator >* grammar );
 
 template Deska::CLI::ParserBuilder< std::string::const_iterator >::ParserBuilder( Api* DBApi );
 
-// FIXME (kundratj): won't build template Deska::CLI::MainGrammar< std::string::const_iterator > Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();
+template Deska::CLI::MainGrammar< std::string::const_iterator >* Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();
