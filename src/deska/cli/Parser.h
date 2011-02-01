@@ -59,29 +59,7 @@ namespace CLI
     class IfaceGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
     {
     public:
-        IfaceGrammar() : IfaceGrammar::base_type( start )
-        {
-            using qi::int_;
-            using qi::lit;
-            using qi::double_;
-            using qi::lexeme;
-            using qi::_1;
-            using qi::_a;
-            using qi::_val;
-            using ascii::char_;
-
-            // Keyword table for matching keywords to parameter types (parser)
-            // This hell is here only for testing of the concept. The whole class will be deleted soon.
-            keyword.add( "name", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
-            keyword.add( "id", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "integer" ) ) );
-            keyword.add( "ip", new boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type >( predefined.getRule( "string" ) ) );
-
-            // Head of top-level grammar
-            cat_start %= lit( "interface" ) > predefined.getRule( "identifier" );
-
-            // Trick for building the parser during parse time
-            start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
-        }
+        IfaceGrammar();
 
         qi::symbols< char, qi::rule< Iterator, ascii::space_type >* > keyword;
         qi::symbols< char, qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nested;
