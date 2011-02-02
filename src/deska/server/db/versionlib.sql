@@ -1,8 +1,6 @@
 -- switch to deska_dev SCHEMA
 SET search_path TO deska,production;
 
-DROP TABLE version;
-
 -- vendors of hw -- versioning table
 CREATE TABLE version (
 	-- internal id

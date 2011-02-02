@@ -28,7 +28,6 @@ END
 $$
 LANGUAGE plpgsql;
 
-DROP VIEW table_info_view;
 -- and here is also view
 CREATE VIEW table_info_view AS SELECT relname::text,attname::text,typname::text
 	FROM	pg_class AS cl
@@ -103,20 +102,20 @@ END
 $$
 LANGUAGE plpgsql;
 
---DROP TYPE deska_dev.kind_relation;
+--DROP TYPE kind_relation;
 
 --type for relations of a kind
-CREATE TYPE deska_dev.kind_relation AS(
+CREATE TYPE kind_relation AS(
 relkind text,
 attname	text,
 refkind	name,
 refattname	text
 );
 
---DROP FUNCTION deska_dev.get_relations(name);
+--DROP FUNCTION get_relations(name);
 
 --function returns relations of a given kind
-CREATE OR REPLACE FUNCTION deska_dev.get_relations(kindname name)
+CREATE FUNCTION get_relations(kindname name)
 RETURNS SETOF kind_relation
 AS $$
 DECLARE
