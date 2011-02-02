@@ -1,9 +1,5 @@
 -- what schemas we are using
 
-DROP SCHEMA production CASCADE;
-DROP SCHEMA history CASCADE;
-DROP SCHEMA genproc CASCADE;
-DROP SCHEMA deska CASCADE;
 --
 -- schema for production tables
 -- here place the modules
