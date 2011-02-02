@@ -107,43 +107,43 @@ class Table:
 class Api:
 	# template string for set function's
 	set_string = '''def {tbl}_set_{col}(objectName,value):
-	return db.call("{tbl}_set_{col}({{0}},{{1}})".format(objectName, value))
-	'''
+	return db.callproc("{tbl}_set_{col}",[objectName, value])
+'''
 	# template string for add function
 	add_string = '''def {tbl}_add(objectName):
-	return db.call("{tbl}_add({{0}})".format(objectName))
-	'''
+	return db.callproc("{tbl}_add",[objectName])
+'''
 	# template string for del function
 	del_string = '''def {tbl}_del(objectName):
-	return db.call("{tbl}_del({{0}})".format(objectName))
-	'''
+	return db.callproc("{tbl}_del",[objectName])
+'''
 	# template string for commit function
 	commit_string = '''def {tbl}_commit(ver):
-	return db.call("{tbl}_commit".format(ver))
-	'''
+	return db.callproc("{tbl}_commit",[ver])
+'''
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
-		self.data['name'] = name
+		self.name = name
 
 	def add_column(self,col_name,col_type):
 		self.col[col_name] = col_type
 
 	def gen_hist(self):
-		return self.hist_string.format(self.data)
+		return self.hist_string.format(tbl = self.name)
 
 	def gen_add(self):
-		return self.add_string.format(self.data)
+		return self.add_string.format(tbl = self.name)
 
 	def gen_del(self):
-		return self.del_string.format(self.data)
+		return self.del_string.format(tbl = self.name)
 
 	def gen_set(self,col_name):
-		return self.set_string.format(self.data,col_name,self.col[col_name])
+		return self.set_string.format(tbl = self.name, col = col_name)
 
 	def gen_commit(self):
 		#TODO if there is more columns...
-		return self.commit_string.format(self.data)
+		return self.commit_string.format(tbl = self.name)
 
 #
 # just testing it

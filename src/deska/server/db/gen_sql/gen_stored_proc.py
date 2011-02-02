@@ -9,6 +9,7 @@ from table import Table,Api
 class Plpy:
 	def __init__(self):
 		try:
+			#conn = psycopg2.connect("dbname='deska_dev' user='kerpl' host='localhost' port=6666");
 			conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
 			self.mark = conn.cursor()
 
@@ -41,9 +42,17 @@ class Schema:
 
 	# generate sql for all tables
 	def gen_schema(self):
-		ret = ""
+		self.sql = open('gen_schema.sql','w')
+		self.py = open('db.py','w')
+
+		# print this to add proc into genproc schema
+		self.sql.write("SET search_path TO genproc,history,deska,production;")
+
 		for tbl in self.tables:
-			ret = ret + '\n' + self.gen_for_table(tbl)
+			self.gen_for_table(tbl)
+
+		self.py.close()
+		self.sql.close()
 		return 
 
 	# generate sql for one table
@@ -53,59 +62,28 @@ class Schema:
 
 		# create table obj
 		table = Table(tbl)
+		# create Api obj
+		api = Api(tbl)
 		
 		# add columns
 		for col in record[:]:
 			table.add_column(col[0],col[1])
 
 		# generate sql
-		ret = table.gen_hist()
+		self.sql.write(table.gen_hist())
 		for col in record[:]:
-			ret = ret + '\n' + table.gen_set(col[0])
-		ret = ret + '\n' + table.gen_add()
-		ret = ret + '\n' + table.gen_del()
-		ret = ret + '\n' + table.gen_commit()
-		return ret + '\n'
-
-	# generate python for all tables
-	def gen_db_api(self):
-		ret = ""
-		for tbl in self.tables:
-			ret = ret + '\n' + self.gen_api_table(tbl)
+			 self.sql.write(table.gen_set(col[0]))
+			 self.py.write(api.gen_set(col[0]))
+		self.sql.write(table.gen_add())
+		self.py.write(api.gen_add())
+		self.sql.write(table.gen_del())
+		self.py.write(api.gen_del())
+		#self.sql.write(table.gen_commit())
+		#self.py.write(api.gen_commit())
 		return 
-
-	# generate python for one table
-	def gen_api_table(self,tbl):
-		# select col info
-		record = plpy.execute(self.column_str.format(tbl))
-
-		# create table obj
-		table = Api(tbl)
-		
-		# add columns
-		for col in record[:]:
-			table.add_column(col[0],col[1])
-
-		# generate sql
-		ret = table.gen_hist()
-		for col in record[:]:
-			ret = ret + '\n' + table.gen_set(col[0])
-		ret = ret + '\n' + table.gen_add()
-		ret = ret + '\n' + table.gen_del()
-		ret = ret + '\n' + table.gen_commit()
-		return ret + '\n'
-
 
 # just testing it
 schema = Schema()
 
-# print this to add proc into genproc schema
-print "SET search_path TO genproc,history,deska,production;"
 #schema.gen_for_table('vendor')
-f = open('gen_schema.sql','w')
-f.write(schema.gen_schema())
-f.close()
-
-f = open('db.py','w')
-f.write(schema.gen_db_api())
-f.close()
+schema.gen_schema()
