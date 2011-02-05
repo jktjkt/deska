@@ -19,7 +19,7 @@ void Deska::CLI::ErrorHandler< Iterator >::operator()(
 template < typename Iterator >
 Deska::CLI::PredefinedRules< Iterator >::PredefinedRules()
 {
-    /*qi::rule< Iterator, int(), ascii::space_type > t_int;
+    qi::rule< Iterator, int(), ascii::space_type > t_int;
     t_int %= boost::spirit::qi::int_;
     t_int.name( "integer" );
     rulesMap[ "integer" ] = t_int;
@@ -30,15 +30,14 @@ Deska::CLI::PredefinedRules< Iterator >::PredefinedRules()
     rulesMap[ "quoted_string" ] = t_string;
     
     qi::rule< Iterator, double(), ascii::space_type > t_double;
-    t_double = new  qi::rule< Iterator, int(), ascii::space_type >();
-    t_double %=( boost::spirit::qi::double_ );
+    t_double %= boost::spirit::qi::double_;
     t_double.name( "double" );
     rulesMap[ "double" ] = t_double;
 
     qi::rule< Iterator, std::string(), ascii::space_type > identifier;
     identifier %= boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ];
     identifier.name( "identifier (alphanumerical letters and _)" );
-    rulesMap[ "identifier" ] = identifier;*/
+    rulesMap[ "identifier" ] = identifier;
 }
 
 
@@ -135,15 +134,15 @@ Deska::CLI::KindGrammar< Iterator >::KindGrammar(
     name = kindName;
 
     identifierP = identifierParser;
-    identifierP.name("kind name");
+    identifierP.name("kind name"); 
 
-    // Trick for building the parser during parse time
-    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-
+    //TODO only test - will be deleted
     KindGrammar neco( "bla" , boost::spirit::qi::lexeme[ *( boost::spirit::ascii::alnum | '_' ) ] );
     qi::rule< Iterator, ascii::space_type > neco2;
     neco2 = neco;
 
+    // Trick for building the parser during parse time
+    // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
    /* start = ( identifierP > +(
         ( attributes[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) ||
         ( nestedGrammars[ _a = _1 ] > lazy( *_a ) ) ) > lit( "end" ) );*/
