@@ -50,7 +50,8 @@ boost::spirit::qi::rule< Iterator, boost::spirit::ascii::space_type > Deska::CLI
 }
 
 
-template<typename Iterator> Deska::CLI::IfaceGrammar<Iterator>::IfaceGrammar(): IfaceGrammar::base_type( start )
+template<typename Iterator>
+Deska::CLI::IfaceGrammar<Iterator>::IfaceGrammar(): IfaceGrammar::base_type( start )
 {
     using qi::int_;
     using qi::lit;
@@ -74,7 +75,8 @@ template<typename Iterator> Deska::CLI::IfaceGrammar<Iterator>::IfaceGrammar(): 
     start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
 }
 
-template<typename Iterator> Deska::CLI::HardwareGrammar<Iterator>::HardwareGrammar(): HardwareGrammar::base_type( start )
+template<typename Iterator>
+Deska::CLI::HardwareGrammar<Iterator>::HardwareGrammar(): HardwareGrammar::base_type( start )
 {
     using qi::int_;
     using qi::lit;
@@ -313,3 +315,7 @@ template void Deska::CLI::MainGrammar< std::string::const_iterator >::addKindGra
 template Deska::CLI::ParserBuilder< std::string::const_iterator >::ParserBuilder( Api* DBApi );
 
 template Deska::CLI::MainGrammar< std::string::const_iterator >* Deska::CLI::ParserBuilder< std::string::const_iterator >::buildParser();
+
+template Deska::CLI::IfaceGrammar< std::string::const_iterator >::IfaceGrammar();
+
+template Deska::CLI::HardwareGrammar< std::string::const_iterator >::HardwareGrammar();
