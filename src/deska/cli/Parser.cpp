@@ -210,7 +210,7 @@ Deska::CLI::MainGrammar< Iterator >::MainGrammar(): MainGrammar< Iterator >::bas
 template < typename Iterator >
 Deska::CLI::MainGrammar< Iterator >::~MainGrammar()
 {
-    for( std::vector< KindGrammar< Iterator >* >::iterator it = kindGrammarsArray.begin(); it != kindGrammarsArray.end(); ++it )
+    for( typename std::vector< KindGrammar< Iterator >* >::iterator it = kindGrammarsArray.begin(); it != kindGrammarsArray.end(); ++it )
         delete *it;
 }
 
