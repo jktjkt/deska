@@ -137,6 +137,7 @@ namespace CLI
     {
     public:
         MainGrammar();
+        ~MainGrammar();
 
         void addKindGrammar( KindGrammar< Iterator >* grammar );
 
@@ -149,6 +150,8 @@ namespace CLI
                 qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > kindGrammars;
 
         qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
+
+        std::vector< KindGrammar< Iterator >* > kindGrammarsArray;
     };
 
 
@@ -166,7 +169,23 @@ namespace CLI
     };
 
 
+
+    template <typename Iterator>
+    class Parser
+    {
+    public:
+        Parser();
+        ~Parser();
+
+        void initParser( Api* DBApi );
+        bool parse( Iterator iter, Iterator end );
+        
+    private:
+        MainGrammar< Iterator >* grammar;
+    };
+
 }
+
 }
 
 

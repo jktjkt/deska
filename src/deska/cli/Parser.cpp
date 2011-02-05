@@ -209,9 +209,19 @@ Deska::CLI::MainGrammar< Iterator >::MainGrammar(): MainGrammar< Iterator >::bas
 
 
 template < typename Iterator >
+Deska::CLI::MainGrammar< Iterator >::~MainGrammar()
+{
+    for( std::vector< KindGrammar< Iterator >* >::iterator it = kindGrammarsArray.begin(); it != kindGrammarsArray.end(); ++it )
+        delete *it;
+}
+
+
+
+template < typename Iterator >
 void Deska::CLI::MainGrammar< Iterator >::addKindGrammar( KindGrammar< Iterator >* grammar )
 {
     kindGrammars.add( grammar->getName(), grammar );
+    kindGrammarsArray.push_back( grammar );
 }
 
 
@@ -228,21 +238,19 @@ template < typename Iterator >
 Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buildParser()
 {
     
-    std::map< std::string, KindGrammar< Iterator > > kindGrammars;
+    std::map< std::string, KindGrammar< Iterator >* > kindGrammars;
     
     // Build single parsers with attributes
     std::vector< std::string > kinds = api->kindNames();
     
     for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
     {
-        //FIXME Again problem with copying or referencing on grammars
-        //kindGrammars[ *it ] = KindGrammar< Iterator >( *it, predefined.getRule( "identifier" ) );
+        kindGrammars[ *it ] = new KindGrammar< Iterator >( *it, predefined.getRule( "identifier" ) );
 
         std::vector< KindAttributeDataType > attributes = api->kindAttributes( *it );
         for( std::vector< KindAttributeDataType >::iterator it2 = attributes.begin(); it2 != attributes.end(); ++it2 )
         {
-            //FIXME Again problem with copying or referencing on grammars
-            //kindGrammars[ *it ].addAtrribute( it2->name, predefined.getRule( it2->type ) );
+            kindGrammars[ *it ]->addAtrribute( it2->name, predefined.getRule( it2->type ) );
         }
     }
 
@@ -254,26 +262,58 @@ Deska::CLI::MainGrammar< Iterator >* Deska::CLI::ParserBuilder< Iterator >::buil
         {
             if( itRel->kind == RELATION_EMBED_INTO )
             {
-                typename std::map< std::string, KindGrammar< Iterator > >::iterator itEmb = kindGrammars.find( itRel->tableName );
+                typename std::map< std::string, KindGrammar< Iterator >* >::iterator itEmb = kindGrammars.find( itRel->tableName );
                 if( itEmb != kindGrammars.end() )
                 {
-                    //FIXME Again problem with copying or referencing on grammars
-                    //itEmb->second.addNestedKind( *it, kindGrammars[ *it ] );
+                    itEmb->second->addNestedKind( *it, kindGrammars[ *it ] );
                 }
             }
         }
     }
 
     // Build main grammar
-    //FIXME Again problem with copying or referencing on grammars
-    Deska::CLI::MainGrammar< Iterator > grammar;// = Deska::CLI::MainGrammar< Iterator >();
-    for( typename std::map< std::string, KindGrammar< Iterator > >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
+    Deska::CLI::MainGrammar< Iterator >* grammar = new Deska::CLI::MainGrammar< Iterator >();
+    for( typename std::map< std::string, KindGrammar< Iterator >* >::iterator it = kindGrammars.begin(); it != kindGrammars.end(); ++it )
     {
-        //FIXME Again problem with copying or referencing on grammars
-        //grammar.addKindGrammar( it->second );
+        grammar->addKindGrammar( it->second );
     }
-    //FIXME Again problem with copying or referencing on grammars
-    return new Deska::CLI::MainGrammar< Iterator >();//grammar;
+
+    return grammar;
+}
+
+
+
+template < typename Iterator >
+Deska::CLI::Parser< Iterator >::Parser()
+{
+    grammar = 0;
+}
+
+
+
+template < typename Iterator >
+Deska::CLI::Parser< Iterator >::~Parser()
+{
+    if ( grammar != 0 )
+        delete grammar;
+}
+
+
+
+template < typename Iterator >
+void Deska::CLI::Parser< Iterator >::initParser( Api* DBApi )
+{
+    ParserBuilder< Iterator > builder( DBApi );
+    grammar = builder.buildParser();
+}
+
+
+
+template < typename Iterator >
+bool Deska::CLI::Parser< Iterator >::parse( Iterator iter, Iterator end )
+{
+    bool r = phrase_parse( iter, end, *grammar, boost::spirit::ascii::space );
+    return r;
 }
 
 
@@ -319,3 +359,11 @@ template Deska::CLI::MainGrammar< std::string::const_iterator >* Deska::CLI::Par
 template Deska::CLI::IfaceGrammar< std::string::const_iterator >::IfaceGrammar();
 
 template Deska::CLI::HardwareGrammar< std::string::const_iterator >::HardwareGrammar();
+
+template Deska::CLI::Parser< std::string::const_iterator >::Parser();
+
+template Deska::CLI::Parser< std::string::const_iterator >::~Parser();
+
+template void Deska::CLI::Parser< std::string::const_iterator >::initParser( Api* DBApi );
+
+template bool Deska::CLI::Parser< std::string::const_iterator >::parse( std::string::const_iterator iter, std::string::const_iterator end );
