@@ -1,3 +1,4 @@
+begin;
 -- create schemas
 \i create_schemas.sql
 
@@ -10,4 +11,9 @@
 -- add modules
 \i modules/vendor.sql
 
+-- add generated files from modules
+--\i gen_schema.sql
 
+SET search_path TO genproc,history,deska,production;
+
+end;

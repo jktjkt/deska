@@ -2,53 +2,62 @@
 
 class Table:
 	# template uid sequence
-	uidseq_string = '''CREATE SEQUENCE history.{name}_uid START 1;
+	uidseq_string = '''CREATE SEQUENCE history.{tbl}_uid START 1;
 '''
 	# template string for generate historic table
-	hist_string = uidseq_string + '''CREATE TABLE history.{name}_history (
-	--LIKE {name},
-	uid bigint NOT NULL default nextval('{name}_uid'),
+	hist_string = uidseq_string + '''CREATE TABLE history.{tbl}_history (
+	--LIKE {tbl},
+	uid bigint NOT NULL default nextval('{tbl}_uid'),
 	name TEXT NOT NULL,
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
-	CONSTRAINT {name}_history_pk PRIMARY KEY (uid,version)
-	);'''
+	CONSTRAINT {tbl}_history_pk PRIMARY KEY (uid,version)
+);
+'''
 	# template string for set function's
 	set_string = '''CREATE FUNCTION
-	{name}_set_{colname}(IN id integer,IN value {coltype},IN ver integer)
+	{tbl}_set_{colname}(IN id integer,IN value {coltype})
 	RETURNS integer
 	AS
 	$$
+	DECLARE	ver bigint;
 	BEGIN
-		UPDATE {name}_history SET {colname} = value, version = ver
+		SELECT my_version() INTO ver;
+		UPDATE {tbl}_history SET {colname} = value, version = ver
 			WHERE uid = id;
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql;
-	'''
+
+'''
 	# template string for add function
 	add_string = '''CREATE FUNCTION
-	{name}_add(IN name_ text,IN ver integer)
+	{tbl}_add(IN name_ text)
 	RETURNS integer
 	AS
 	$$
+	DECLARE	ver bigint;
 	BEGIN
-		INSERT INTO {name}_history (name,version)
+		SELECT my_version() INTO ver;
+		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql;
-	'''
+
+'''
 	# template string for del function
 	del_string = '''CREATE FUNCTION
-	{name}_del(IN name_ text,IN ver integer)
+	{tbl}_del(IN name_ text)
 	RETURNS integer
 	AS
 	$$
 	DECLARE id bigint;
+		ver bigint;
 	BEGIN	
+		SELECT my_version() INTO ver;
 		SELECT max(uid) INTO id FROM vendor_history
 			WHERE name = name_;
 		INSERT INTO vendor_history (uid, name, version, dest_bit)
@@ -57,28 +66,32 @@ class Table:
 	END
 	$$
 	LANGUAGE plpgsql;
-	'''
+
+'''
 	# template string for commit function
 	commit_string = '''CREATE FUNCTION
-	{name}_commit(IN ver integer)
+	{tbl}_commit()
 	RETURNS integer
 	AS
 	$$
+	DECLARE	ver bigint;
 	BEGIN
-		UPDATE {name} as v SET name = new.name
-			FROM {name}_history as new
+		SELECT my_version() INTO ver;
+		UPDATE {tbl} as v SET name = new.name
+			FROM {tbl}_history as new
 				WHERE new.version = ver AND v.uid = new.uid;
-		INSERT INTO {name} (uid,name)
-			SELECT uid,name FROM {name}_history
-				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {name} );
-		DELETE FROM {name}
-			WHERE uid IN (SELECT uid FROM {name}_history
+		INSERT INTO {tbl} (uid,name)
+			SELECT uid,name FROM {tbl}_history
+				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {tbl} );
+		DELETE FROM {tbl}
+			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql;
-	'''
+
+'''
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
@@ -88,20 +101,20 @@ class Table:
 		self.col[col_name] = col_type
 
 	def gen_hist(self):
-		return self.hist_string.format(name = self.name)
+		return self.hist_string.format(tbl = self.name)
 
 	def gen_add(self):
-		return self.add_string.format(name = self.name)
+		return self.add_string.format(tbl = self.name)
 
 	def gen_del(self):
-		return self.del_string.format(name = self.name)
+		return self.del_string.format(tbl = self.name)
 
 	def gen_set(self,col_name):
-		return self.set_string.format(name = self.name,colname = col_name, coltype = self.col[col_name])
+		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
 
 	def gen_commit(self):
 		#TODO if there is more columns...
-		return self.commit_string.format(self.name)
+		return self.commit_string.format(tbl = self.name)
 
 
 class Api:

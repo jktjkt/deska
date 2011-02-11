@@ -7,8 +7,10 @@ CREATE TABLE version (
 	id bigserial
 		CONSTRAINT version_pk PRIMARY KEY,
 	-- human readable id
-	number int
+	num int
 		CONSTRAINT version_number_unique UNIQUE,
+	-- who a whet created
+	username text,
 	created timestamp without time zone NOT NULL DEFAULT now(),
 	note text
 );
@@ -37,11 +39,32 @@ CREATE FUNCTION add_version()
 RETURNS integer
 AS
 $$
-DECLARE ret integer;
+DECLARE ver integer;
 BEGIN
 	INSERT INTO version (note)
 		VALUES ('');
-	SELECT max(id) INTO ret FROM version;
+	SELECT max(id) INTO ver FROM version;
+	RETURN ver;
+END
+$$
+LANGUAGE plpgsql;
+
+-- fuction for commit version and return human readable number
+--
+CREATE FUNCTION version_commit()
+RETURNS integer
+AS
+$$
+DECLARE ver integer;
+	ret integer;
+BEGIN
+	SELECT my_version() INTO ver;
+	--TODO: set number
+	UPDATE version SET username = current_user
+		WHERE id = ver; 
+	SELECT num INTO ret FROM version
+		WHERE id = ver;
+	PERFORM close_changeset();
 	RETURN ret;
 END
 $$
@@ -65,6 +88,21 @@ $$
 LANGUAGE plpgsql;
 
 --
+-- close changeset
+--
+CREATE FUNCTION close_changeset()
+RETURNS integer
+AS
+$$
+BEGIN
+	DELETE FROM changeset
+		WHERE username = current_user;
+	RETURN 1;
+END
+$$
+LANGUAGE plpgsql;
+
+--
 -- get my version id
 --
 CREATE FUNCTION my_version()
@@ -79,3 +117,4 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+

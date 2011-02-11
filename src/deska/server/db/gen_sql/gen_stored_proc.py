@@ -78,8 +78,8 @@ class Schema:
 		self.py.write(api.gen_add())
 		self.sql.write(table.gen_del())
 		self.py.write(api.gen_del())
-		#self.sql.write(table.gen_commit())
-		#self.py.write(api.gen_commit())
+		self.sql.write(table.gen_commit())
+		self.py.write(api.gen_commit())
 		return 
 
 # just testing it
