@@ -13,6 +13,7 @@ begin;
 
 -- add generated files from modules
 --\i gen_schema.sql
+--\i usage_scenario.sql
 
 SET search_path TO genproc,history,deska,production;
 
