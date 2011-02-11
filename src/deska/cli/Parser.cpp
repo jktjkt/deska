@@ -71,7 +71,7 @@ Deska::CLI::IfaceGrammar<Iterator>::IfaceGrammar(): IfaceGrammar::base_type( sta
     cat_start %= lit( "interface" ) > predefined.getRule( "identifier" );
 
     // Trick for building the parser during parse time
-    start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
+    // FIXME: won't build, hits static assert: start = cat_start >> +( keyword[ _a = _1 ] >> lazy( *_a ) ) >> lit( "end" );
 }
 
 template<typename Iterator>
@@ -109,7 +109,7 @@ Deska::CLI::HardwareGrammar<Iterator>::HardwareGrammar(): HardwareGrammar::base_
 
     // Trick for building the parser during parse time
     // TODO: Problem, that grammars are non-copyable objects -> wrapping to phoenix::ref() or something
-    start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( *_a ) )*/ ) > lit( "end" ) );
+    // FIXME: won't build, hits static assert: start = ( cat_start > +( ( keyword[ _a = _1 ] > lazy( *_a )[ std::cout << "Parsed: " << _1 << "\n" ] ) /*|| ( nested[ _a = _1 ] >> lazy( *_a ) )*/ ) > lit( "end" ) );
 
     phoenix::function< ErrorHandler< Iterator> > wrappedError = ErrorHandler< Iterator >();
     on_error< fail >( start, wrappedError( _1, _2, _3, _4 ) );
