@@ -62,7 +62,6 @@ DECLARE ver integer;
 BEGIN
 	SELECT my_version() INTO ver;
 	SELECT nextval('version_num') INTO ret;
-	--TODO: set number
 	UPDATE version SET username = current_user,
 			num = ret
 		WHERE id = ver; 
