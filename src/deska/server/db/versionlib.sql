@@ -1,6 +1,8 @@
 -- switch to deska_dev SCHEMA
 SET search_path TO deska,production;
 
+CREATE SEQUENCE version_num;
+
 -- vendors of hw -- versioning table
 CREATE TABLE version (
 	-- internal id
@@ -59,11 +61,11 @@ DECLARE ver integer;
 	ret integer;
 BEGIN
 	SELECT my_version() INTO ver;
+	SELECT nextval('version_num') INTO ret;
 	--TODO: set number
-	UPDATE version SET username = current_user
+	UPDATE version SET username = current_user,
+			num = ret
 		WHERE id = ver; 
-	SELECT num INTO ret FROM version
-		WHERE id = ver;
 	PERFORM close_changeset();
 	RETURN ret;
 END

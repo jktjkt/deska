@@ -43,8 +43,8 @@ def deleteObject(kindName,objectName):
 	return fn(objectName)
 
 # pre-test ...
-print setAttribute("vendor","DELL","note","this is note")
-print removeAttribute("vendor","DELL","note")
+#print setAttribute("vendor","DELL","note","this is note")
+#print removeAttribute("vendor","DELL","note")
 print changeObjectName("vendor","DELL","Dell")
 print createObject("vendor","DELL")
 print deleteObject("vendor","DELL")
