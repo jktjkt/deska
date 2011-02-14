@@ -1,0 +1,67 @@
+Schuze Deska, 2011-02-01 FZU
+----------------------------
+
+Pritomni: Honza
+Pozde: Lukas, Martina
+Nemohl: Tomas
+
+Ukoly z minula:
+---------------
+
+- Lukas: zkrasleni kodu, sjednoceni,...
+    - ?
+- Martina: napsani funkci pro verzovani, co jsou v API, a co budou pouzivat uz
+  existujici kod z DB
+    - neni, testovala, testovani bohuzel neni reprodukovatelne
+- Lukas: nahradit substituce stringu pri volani user-supplied veci do SQLka klasickym
+  predanim zvlast SQL stringu a zvlast hodnot (tj. nahrazeni placeholderu udela
+  az SQL knihovna a ne rovnou Python)
+    - je
+- Lukas: zbude-li cas, resit osetrovani chyb
+    - delal verzovani a testoval
+- Honza: nastudovat qi::rule
+    - studoval, hral si, vysledek neni
+- Honza: dal testy pro parser
+    - neni
+- Honza: protokol, JSON,...
+    - neni
+- Honza: bude-li cas, clanek na CHEP
+    - rozpracovano, viz git
+- Tomas: odstraneni compile erroru (kopirovani gramatik/referenci)
+    - neni
+- Tomas: error reporting od Spiritu
+    - neni
+- Tomas: vytahovani vyparsovanych informaci
+    - neni
+
+Diskuse:
+--------
+
+- rozpracovavani sessions, jejich cisteni a moznost napojeni na rozpracovanou
+session
+- ma smysl indexovat tabulky intem? nema, zkusime string fixni delky (do API
+  samozrejme variabilni delku, shora omezenou)
+- prehled git branchu, aby bylo videt, co je kam pushnuto, alias `git lola`:
+    jkt@velbloud ~/work/fzu/deska/doc/minutes $ git config alias.lola
+    log --graph --decorate --pretty=oneline --abbrev-commit --all
+
+Ukoly na priste:
+----------------
+
+- Lukas: verzovani pres vice ruznych tabulek
+- Martina: reprodukovatelne testy (=spustitelny skript)
+- Honza: clanek na CHEP
+- Honza: vyhozeni spirit-specific veci + definice metod, co budou od Parseru
+  skutecne potreba, + dokumentace
+- Honza: testovani
+- Honza: v pripade zbytku casu protokol, JSON,...
+- Tomas; *gcc prelozitelne* pouzitit spiritu pro implementaci funkci od Honzy,
+  tento ukol ma vyssi prioritu nez jine ukoly
+- Tomas: error reporting od Spiritu
+- Tomas: vytahovani vyparsovanych informaci
+
+
+Pristi schuzka:
+---------------
+
+21. unora 2010, 16.00 FZU
