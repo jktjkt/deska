@@ -1,4 +1,5 @@
 begin;
+set role deska_team;
 -- create schemas
 \i create_schemas.sql
 
