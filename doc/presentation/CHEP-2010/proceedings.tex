@@ -1,0 +1,165 @@
+\documentclass[a4paper]{jpconf}
+\usepackage[czech,english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage[pdfborder="0 0 0"]{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{Deska: Tool for Central Administration of a Grid Site}
+\author{Jan Kundrát, Martina Krejčová, Tomáš Hubík, Lukáš Kerpl}
+\ead{kundratj@fzu.cz}
+\address{Institute of Physics, AS CR, Na Slovance 22, 182 21, Prague, Czech
+Republic}
+
+\begin{abstract}
+    \ldots
+\end{abstract}
+
+\section{Background}
+
+One of the activities taking place at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing
+center connected to an international WLCG computing grid~\cite{wlcg}, supporting user programs from various scientific communities
+from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the famous LHC accelerator from CERN~\cite{lhc}.
+In December 2010, the data center consisted of roughly 350 machines, with more hardware to arrive in early 2011.  All these resources
+were managed by just a handful of system administrators.  Additional hardware procurements were in the process and the overal installed
+capacity had been steadily growing over the years, but the capacity of the administration team stagnated at roughly three full-time
+equivalents, with no matching increase in the number of staffers were planned in the intermediate future.
+
+Given the impressive machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators'
+life easier and less error prone.  Duplication of information was identified as a problem significantly contributing to the stress
+levels and occasional operational issues.
+
+\section{Duplication of Information}
+
+Consider the typical scenario of what has to happen when a new machines arrive to the data center and have to be installed and put into
+production.  The information about each node has to be scattered into smaller chunks and stored in the configuration of core networking
+services; the machines have to be configured and added into various monitoring appliances.  In the end, a record for each machine has
+to be kept in at least the following places:
+
+\begin{itemize}
+    \item HW inventory DB
+    \item Warranty \& issue tracking
+    \item Switch port configuration
+    \item DHCP server
+    \item DNS
+    \item Cfengine roles
+    \item Torque's CPU multipliers
+    \item MRTG \& RRD network graphs
+    \item Nagios
+    \item Ganglia
+    \item Munin
+    \item \ldots
+\end{itemize}
+
+Some of these places are notoriously prone to omission from the update process, leading to eventual inconsistencies.  It can also be
+frustrating for the staffers to duplicate work over and over again by iterating over a (usually under-documented) checklist.  A central
+place storing information about all machines in the network is clearly missing; none of the existing tools marketed as inventory
+managers were deemed suitable for this task.  Therefore, it has been decided that the Institute shall fund a development of a tool
+which will {\em automate the configuration process} and focus on bringing the control back to one central place.
+
+\section{Analysis of Existing Tools}
+
+The Institute has been using an internal web application for general hardware inventory management, but without any integration with
+the rest of the management stack.  The database contained information about IP addresses, hostnames and network topology, but these
+pieces of information weren't actually utilized throughout the network.  The staffers were reportedly having issues with the user
+interface provided by the web application.  Being accustomed to the Unix way of doing things over a command line interface, using a web
+application felt like a step backwards.
+
+Most of the existing third-party tools, proprietary or free software, again focus on the web side of affairs; it is rare to find an
+appliance which offers a scripting API.  It's also rather surprising to routinely come across tools which cannot deal with machines
+with different form factors than traditional ``pizza boxes'', such as blade servers or SGI twins.  Furthermore, most of the inventory
+management applications are aimed mainly at automatic discovery of very heterogeneous environment, which is not the most serious issue
+the Institute is facing.
+
+Finally, even the proprietary solutions, like the System Director from IBM, offer only a limited subset of desired functionality.
+While it's clear that certain features like automatic discovery and tight integration with vendor's low-level fabric management tools
+are a clear benefit, these advantages are of little value when the basic functionality is simply lacking.
+
+Considering all points mentioned above, we maintain that a new tool is indeed needed at this point, simply because no already existing
+system offers all key features we require.  Therefore, the Deska suite shall focus on general usability, shall offer a CLI access,
+integrated revision control for all records stored in the database, support scripting and be generic enough to allow future extensions.
+
+\section{Architecture of Deska}
+
+The goal of the project is to develop a database storing generic description of all the resources that the Grid site is using;
+such a database should be capable of describing hardware infrastructure of a whole data center, from physical machines with
+corresponding part numbers and rack locations to the network interconnects, coupling of operating system instances (aka ``hosts'') to
+physical machines as well as logical relations between various services and their dependencies.  This database will then act as the
+single authoritative source of information for generating configuration of all components in the system.
+
+\subsection{Generic Database}
+
+As the history has proven that it is extremely hard to give accurate predictions about future developments and trends in computing,
+the database does not impose arbitrary restrictions to its data model.  The core DB code only assumes that it is working with {\em
+collections of objects} and some {\em relations between them}. Actually defining a usable {\em scheme} of the database is a separate
+problem from the general database design.  The database supports linear {\em version control} of the records contained therein.
+
+This component of Deska is based on a PostgreSQL server along with an interface implementing a Deska-specific JSON-based API.
+Additional business logic for interactively providing a feedback of the impact of performed changes to the administrator is implemented
+on this level, too.
+
+\subsection{Management Interface}
+
+Being the first part of Deska which is actually visible to the regular Unix system administrator, the application interface is similar
+to a CLI-oriented interface used on enterprise-grade Ethernet switches, notably to the Cisco IOS shell.  Such a format allows storing
+of plaintext dumps of the database in a version control system for auditing purposes.
+
+The CLI interface works on the same level of abstraction as the generic database, that is, it does not contain any specific knowledge
+of the database scheme being used.  All information required for the operation of the CLI is retrieved via the Deska's database API,
+and no changes to the CLI source code are needed when the database scheme changes.
+
+In future, the CLI interface will include ``wizards'' for accelerating common tasks like deploying a new machine.  A strong emphasis is
+given on usability, and the CLI will support a non-interactive mode of operation suitable for scripting and batched operations.
+
+\subsection{Database Scheme}
+
+The database scheme is a rather abstract part of the Deska DB, but an important one nonetheless.  This scheme must be extensible to
+allow installing future pieces of equipment without large-scale code changes, shall try to anticipate future trends in hardware
+development, but also attain a reasonable simplicity allowing people to use it without significant pain.  The goal here is not to
+achieve purity at any cost, but implement a solution which is easy to deploy, use and maintain.
+
+\subsection{Add-on Modules}
+
+The information contained in the database shall be actually put into real use.  Towards that goal, a set of components generating
+configuration will be provided.  These modules will use the Deska API and will be used for templating configuration for all core
+network services currently deployed at the Institute, namely for Nagios, BIND name service demon, DHCP server and Ganglia and Munin
+master servers.  The design of the API should reflect generic needs of any data center to allow eventual deployment of new components,
+should the need arise.  All modules should use only the public and documented API for retrieving all of the data they need.
+
+These modules will be invoked when the administrator decides to push her changes to the central database.  The Deska server will
+present her with a list of changes performed by herself along with the proposed new variant of the generated files.  This way, she can
+assess the scope of changes she has just performed, greatly reducing the potential of a configuration error knocking down the whole
+infrastructure.
+
+In addition, tools shall be written to perform consistency checks between the state recorded in the database and the actual system
+shape where the automatic configuration generation is not feasible for safety reasons.  A classic example of such a system are network
+switches -- system administrators are rather leery when it comes to automated configuration as a single error can cause large network
+segments to separate.
+
+\section{Conclusion}
+
+\ldots
+
+\ack
+This work was supported by the Academy of Sciences of the Czech Republic.
+
+\section*{References}
+\bibliography{references}
+\bibliographystyle{iopart-num}
+
+
+%\begin{thebibliography}{9}
+%    \bibitem{fzu}Institute of Physics of the AS CR home page, {\tt http://www.fzu.cz/}
+%    \bibitem{wlcg}The WLCG LHC Computing Grid, {\tt http://lcg.web.cern.ch/LCG/}
+%    \bibitem{d0}The DZero Experiment, {\tt http://www-d0.fnal.gov/}
+%    \bibitem{lhc}The Large Hadron Collider, {\tt http://lhc.web.cern.ch/lhc/}
+%    \bibitem{cfengine}Cfengine, {\tt http://www.cfengine.org/}
+%    \bibitem{nagios}Nagios, {\tt http://www.nagios.org/}
+%    \bibitem{ganglia}Ganglia, {\tt http://ganglia.sourceforge.net/}
+%    \bibitem{munin}Munin, {\tt http://munin.projects.linpro.no/}
+%\end{thebibliography}
+
+\end{document}
