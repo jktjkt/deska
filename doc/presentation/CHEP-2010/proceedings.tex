@@ -20,13 +20,13 @@ Republic}
 
 \section{Background}
 
-One of the activities taking place at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing
-center connected to an international WLCG computing grid~\cite{wlcg}, supporting user programs from various scientific communities
-from the whole world including the D-0 experiment in Fermilab~\cite{d0} and the famous LHC accelerator from CERN~\cite{lhc}.
-In December 2010, the data center consisted of roughly 350 machines, with more hardware to arrive in early 2011.  All these resources
-were managed by just a handful of system administrators.  Additional hardware procurements were in the process and the overal installed
-capacity had been steadily growing over the years, but the capacity of the administration team stagnated at roughly three full-time
-equivalents, with no matching increase in the number of staffers were planned in the intermediate future.
+One of the activities taking place at the Institute of Physics of the~AS~CR (FZU)~\cite{fzu} is running a local Tier-2 computing center
+connected to an international WLCG computing grid, supporting user programs from various scientific communities from the whole world
+including the D-0 experiment in Fermilab and the famous LHC accelerator from CERN.  In December 2010, the data center consisted of
+roughly 350 machines, with more hardware to arrive in early 2011.  All these resources were managed by just a handful of system
+administrators.  Additional hardware procurements were in the process and the overal installed capacity had been steadily growing over
+the years, but the capacity of the administration team stagnated at roughly three full-time equivalents, with no matching increase in
+the number of staffers were planned in the intermediate future~\cite{dubna-kundrat}.
 
 Given the impressive machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators'
 life easier and less error prone.  Duplication of information was identified as a problem significantly contributing to the stress
@@ -139,9 +139,84 @@ shape where the automatic configuration generation is not feasible for safety re
 switches -- system administrators are rather leery when it comes to automated configuration as a single error can cause large network
 segments to separate.
 
+\section{Database Structure}
+
+The core Deska database deals exclusively with flat lists of objects sharing a common type.  An object in this case refers simply to an
+equivalent of the C language {\tt struct}, that is, a data structure containing list of attributes.  Each attribute has a name and an
+associated primitive data type like a string, an integer, a floating point number or an IP address.  Defining additional ``primitive
+types'' is possible, but requires modifying the Deska's source code.  This way, the database layer which is responsible for rather
+low-level tasks like maintaining proper revision control does not have to deal with complicated inter-relations between objects.  The
+only methods implemented at the lowest layer are querying for the list of known object types, iterating over a list of all objects of a
+certain type, retrieving and setting individual values for an attribute of a named object, as well as object creation, deletion and
+renaming.
+
+\subsection{Abstract and Concrete Objects, Inheritance and Templates}
+
+Suppose a typical database scheme for a data center.  It should certainly keep track of individual machines (the physical objects in
+the racks), but also abstract away certain features which are defined by the brand or model of each machine.  For example, it would be
+a waste of time having to specify rack height of 1U for each server instead of simply stating that it's a HP~DL-360.  Therefore, the
+database has to offer a way of {\em referencing} an object of a different kind, and it makes sense to describe hardware models in a
+separate object pool than the physical machines.  In the default database scheme, the hardware models are of type {\tt hwmodel} while
+the physical machines are of the type {\tt host}.
+
+Further down this road, it's obvious that some models share certain properties, like their form factor.  It could therefore be
+interesting for the database to support {\em specialization} of entries, where objects of the same kind have the ability to inherit
+certain properties from a {\em template} and override values which have to differ.  Again, the lower layer of the database abstraction
+does not have to deal with actually interpreting these values, it just has to offer a way to report this information to the upper
+layers.  The Deska DB supports this specialization by the keyword {\tt template}.
+
+\subsection{Building Friendly Scheme}
+
+While the design described so far is without any doubt beneficial for the database implementation, it leaves much to be desired when
+human users come into play.  Therefore, we have to build on these foundations and offer a rich, scalable layer allowing users to work
+with these records without undertaking extra pain.  One example of such an extension can be well illustrated with network interfaces.
+For brevity, this article simplifies matters a bit and assumes that there is a one-to-one mapping between network addresses and network
+interfaces, which is not true, especially in a modern data center.
+
+Clearly, any machine can trivially have multiple network interfaces, maybe one connected to a public network and one to a management
+one.  Because the underlying database manages only flat lists of objects, one would have to explicitly create a brand new object for
+each interface of each machine, greatly inflating the effort needed when deploying new machines.  That's when the upper layers of Deska
+come into play.  While the dedicated object for an interface indeed gets created, this complexity is hidden by the UI and the interface
+is {\em embedded} into the host to which it logically belongs.  This is a natural concept which corresponds to the real world we are
+modelling.
+
+When querying the database scheme, the API shall therefore inform the upper layers that there is a logical link between the instances
+of the {\tt host} type and an {\tt interface} type, and the relation is of a special kind which allows embedding the interface
+definition to the host section.  Similar relations for one-to-one mapping, as commonly found between physical machines and the running
+OS image when not using virtualization, are also supported.
+
+\subsection{Defining and Extending the Scheme}
+
+The Deska's motto is a meme {\em don't repeat yourself} and it proclaims to reduce the information duplicity.  It would be rather
+hypocrite to propose a yet another domain-specific language for describing the real database scheme, because there already is a
+ubiquitous language for describing tabular layouts, the SQL.  Deska is therefore shipped as a set of stored procedures and accompanying
+scripts which merely look at the pre-existing structure of an SQL database, use PostgreSQL's facilities for run-time scheme inspection,
+and pre-generate the database code for dealing with individual scheme being used on-site.
+
+It is clear that the table layout cannot be arbitrary, simply because of the sheer complexity of such a design.  We therefore have to
+impose a set of restrictions on the database scheme.  We start with defining a primary key to always act as a ``name'' of an item.  All
+other columns have to be of one of a pre-defined set of types, and their name will directly correspond to the name of the attribute
+they are modelling.
+
+Database integrity constraints are fully supported; the only requirement is that they have an explicitly assigned name which encodes
+the type of the modelled relation.  When the constraints have these names, Deska can automatically extract the relationship information
+and pass it further via the API.
+
+\section{Current Status}
+
+As of January 2011, the core database prototype is ready and passes the initial round of rudimentary unit tests.  The API design has
+been completed, and the CLI interface is currently in the works. We expect to have an instance of Deska in production by the end of
+2011.
+
 \section{Conclusion}
 
-\ldots
+We have described the general structure of the Deska database, along with an explanation about our design choices.  Our approach is
+believed to be future-proof and enable further extension to accommodate new, emerging paradigms which come into usage at today's data
+centers.  We recognize that there is a delicate border between designing an overly generic system which is hard to use by the target
+users and proposing an application which is too much tailored towards today's needs that it risks obsolescence in just a few years.
+Some of the Deska's features, like the powerful CLI interface along with support for version control and integration of various helper
+features, are, to our best knowledge, unique in this class of tools.  We are looking forward to having a usable prototype later this
+year, along with the first deployment in production at the Institute of Physics in Prague.
 
 \ack
 This work was supported by the Academy of Sciences of the Czech Republic.
@@ -149,17 +224,5 @@ This work was supported by the Academy of Sciences of the Czech Republic.
 \section*{References}
 \bibliography{references}
 \bibliographystyle{iopart-num}
-
-
-%\begin{thebibliography}{9}
-%    \bibitem{fzu}Institute of Physics of the AS CR home page, {\tt http://www.fzu.cz/}
-%    \bibitem{wlcg}The WLCG LHC Computing Grid, {\tt http://lcg.web.cern.ch/LCG/}
-%    \bibitem{d0}The DZero Experiment, {\tt http://www-d0.fnal.gov/}
-%    \bibitem{lhc}The Large Hadron Collider, {\tt http://lhc.web.cern.ch/lhc/}
-%    \bibitem{cfengine}Cfengine, {\tt http://www.cfengine.org/}
-%    \bibitem{nagios}Nagios, {\tt http://www.nagios.org/}
-%    \bibitem{ganglia}Ganglia, {\tt http://ganglia.sourceforge.net/}
-%    \bibitem{munin}Munin, {\tt http://munin.projects.linpro.no/}
-%\end{thebibliography}
 
 \end{document}
