@@ -20,7 +20,7 @@ machines, their roles and detailed information, from IP addresses to rack locati
 applications ranging from simple spreadsheets to web applications. Such solutions, whose documentation usually leaves much to be
 desired, typically do not prevent a significant duplication of information, and therefore the data therein quickly become obsolete.
 
-After having deployed Cfengine as one of a few sites in the W-LCG environment, the Prague Tier-2 site set forth to further automate the
+After having deployed Cfengine as one of a few sites in the WLCG environment, the Prague Tier-2 site set forth to further automate the
 fabric management, developing the Deska project. The aim of the system is to provide a central place to perform changes, from adding
 new machines or moving them between racks to changing their assigned service roles and additional metadata. The database provides an
 authoritative source of information from which all other systems and services (like DHCP servers, Ethernet switches or the Cfengine
@@ -39,15 +39,15 @@ including the D-0 experiment in Fermilab and the famous LHC accelerator from CER
 roughly 350 machines, with more hardware to arrive in early 2011.  All these resources were managed by just a handful of system
 administrators.  Additional hardware procurements were in the process and the overal installed capacity had been steadily growing over
 the years, but the capacity of the administration team stagnated at roughly three full-time equivalents, with no matching increase in
-the number of staffers were planned in the intermediate future~\cite{dubna-kundrat}.
+the number of staffers planned in the intermediate future~\cite{dubna-kundrat}.
 
-Given the impressive machines-per-administrator ratio, the staffers were exploring ways about how to make the system administrators'
-life easier and less error prone.  Duplication of information was identified as a problem significantly contributing to the stress
-levels and occasional operational issues.
+Given the impressive machines-per-administrator ratio, the staffers were exploring how to make the system administrators' life easier
+and less error prone.  Duplication of information was identified as a problem significantly contributing to the stress levels and
+occasional operational issues.
 
 \section{Duplication of Information}
 
-Consider the typical scenario of what has to happen when a new machines arrive to the data center and have to be installed and put into
+Consider the typical scenario when new machines arrive to the data center and have to be installed and put into
 production.  The information about each node has to be scattered into smaller chunks and stored in the configuration of core networking
 services; the machines have to be configured and added into various monitoring appliances.  In the end, a record for each machine has
 to be kept in at least the following places:
@@ -69,9 +69,9 @@ to be kept in at least the following places:
 
 Some of these places are notoriously prone to omission from the update process, leading to eventual inconsistencies.  It can also be
 frustrating for the staffers to duplicate work over and over again by iterating over a (usually under-documented) checklist.  A central
-place storing information about all machines in the network is clearly missing; none of the existing tools marketed as inventory
+place storing information about all machines in the network is clearly missing and none of the existing tools marketed as inventory
 managers were deemed suitable for this task.  Therefore, it has been decided that the Institute shall fund a development of a tool
-which will {\em automate the configuration process} and focus on bringing the control back to one central place.
+which will {\em automate the configuration process} and focus on bringing the control back to a central place.
 
 \section{Analysis of Existing Tools}
 
@@ -97,10 +97,10 @@ integrated revision control for all records stored in the database, support scri
 
 \section{Architecture of Deska}
 
-The goal of the project is to develop a database storing generic description of all the resources that the Grid site is using;
+The goal of the project is to develop a database storing generic description of all the resources that a Grid site is using;
 such a database should be capable of describing hardware infrastructure of a whole data center, from physical machines with
 corresponding part numbers and rack locations to the network interconnects, coupling of operating system instances (aka ``hosts'') to
-physical machines as well as logical relations between various services and their dependencies.  This database will then act as the
+physical machines as well as logical relations between various services and their dependencies.  This database then acts as the
 single authoritative source of information for generating configuration of all components in the system.
 
 \subsection{Generic Database}
@@ -110,7 +110,7 @@ the database does not impose arbitrary restrictions to its data model.  The core
 collections of objects} and some {\em relations between them}. Actually defining a usable {\em scheme} of the database is a separate
 problem from the general database design.  The database supports linear {\em version control} of the records contained therein.
 
-This component of Deska is based on a PostgreSQL server along with an interface implementing a Deska-specific JSON-based API.
+This component of Deska is based on a PostgreSQL server wrapped with an interface implementing a Deska-specific JSON-based API.
 Additional business logic for interactively providing a feedback of the impact of performed changes to the administrator is implemented
 on this level, too.
 
@@ -125,7 +125,7 @@ of the database scheme being used.  All information required for the operation o
 and no changes to the CLI source code are needed when the database scheme changes.
 
 In future, the CLI interface will include ``wizards'' for accelerating common tasks like deploying a new machine.  A strong emphasis is
-given on usability, and the CLI will support a non-interactive mode of operation suitable for scripting and batched operations.
+given on usability, and the CLI will support a non-interactive mode of operation suitable for scripting and batched updates.
 
 \subsection{Database Scheme}
 
@@ -137,31 +137,30 @@ achieve purity at any cost, but implement a solution which is easy to deploy, us
 \subsection{Add-on Modules}
 
 The information contained in the database shall be actually put into real use.  Towards that goal, a set of components generating
-configuration will be provided.  These modules will use the Deska API and will be used for templating configuration for all core
-network services currently deployed at the Institute, namely for Nagios, BIND name service demon, DHCP server and Ganglia and Munin
-master servers.  The design of the API should reflect generic needs of any data center to allow eventual deployment of new components,
-should the need arise.  All modules should use only the public and documented API for retrieving all of the data they need.
+configuration will be provided.  These modules will consult the Deska API and will be used for templating configuration for all core
+network services currently deployed at the Institute, namely for Nagios, the BIND name service demon, DHCP server and Ganglia and Munin
+master servers.  The design of the API reflects generic needs of any data center to allow eventual deployment of new components,
+should the need arise.  All modules will use only the public and documented API for retrieving all the data they need.
 
-These modules will be invoked when the administrator decides to push her changes to the central database.  The Deska server will
+These modules will be invoked when an administrator decides to push her changes to the central database.  The Deska server will
 present her with a list of changes performed by herself along with the proposed new variant of the generated files.  This way, she can
 assess the scope of changes she has just performed, greatly reducing the potential of a configuration error knocking down the whole
 infrastructure.
 
-In addition, tools shall be written to perform consistency checks between the state recorded in the database and the actual system
+In addition, tools will be written to perform consistency checks between the state recorded in the database and the actual system
 shape where the automatic configuration generation is not feasible for safety reasons.  A classic example of such a system are network
-switches -- system administrators are rather leery when it comes to automated configuration as a single error can cause large network
+switches where network administrators are rather leery of automated configuration because a single error can cause large network
 segments to separate.
 
 \section{Database Structure}
 
-The core Deska database deals exclusively with flat lists of objects sharing a common type.  An object in this case refers simply to an
+The core Deska database deals exclusively with flat lists of objects, with each list sharing objects of a common type.  An object in this case refers simply to an
 equivalent of the C language {\tt struct}, that is, a data structure containing list of attributes.  Each attribute has a name and an
 associated primitive data type like a string, an integer, a floating point number or an IP address.  Defining additional ``primitive
 types'' is possible, but requires modifying the Deska's source code.  This way, the database layer which is responsible for rather
 low-level tasks like maintaining proper revision control does not have to deal with complicated inter-relations between objects.  The
-only methods implemented at the lowest layer are querying for the list of known object types, iterating over a list of all objects of a
-certain type, retrieving and setting individual values for an attribute of a named object, as well as object creation, deletion and
-renaming.
+only methods implemented at the lowest layer are targeted at manipulating individua objects in the lists and performing queries against
+them.  An overview of the implemented methods is available at {\tt src/deska/db/Api.h} in the Deska distribution~\cite{deska-project}.
 
 \subsection{Abstract and Concrete Objects, Inheritance and Templates}
 
@@ -169,8 +168,8 @@ Suppose a typical database scheme for a data center.  It should certainly keep t
 the racks), but also abstract away certain features which are defined by the brand or model of each machine.  For example, it would be
 a waste of time having to specify rack height of 1U for each server instead of simply stating that it's a HP~DL-360.  Therefore, the
 database has to offer a way of {\em referencing} an object of a different kind, and it makes sense to describe hardware models in a
-separate object pool than the physical machines.  In the default database scheme, the hardware models are of type {\tt hwmodel} while
-the physical machines are of the type {\tt host}.
+separate object pool than the physical machines.  In the default database scheme shipped with Deska, the hardware models are of type
+{\tt hwmodel} while the physical machines are of the type {\tt host}.
 
 Further down this road, it's obvious that some models share certain properties, like their form factor.  It could therefore be
 interesting for the database to support {\em specialization} of entries, where objects of the same kind have the ability to inherit
@@ -189,7 +188,7 @@ interfaces, which is not true, especially in a modern data center.
 Clearly, any machine can trivially have multiple network interfaces, maybe one connected to a public network and one to a management
 one.  Because the underlying database manages only flat lists of objects, one would have to explicitly create a brand new object for
 each interface of each machine, greatly inflating the effort needed when deploying new machines.  That's when the upper layers of Deska
-come into play.  While the dedicated object for an interface indeed gets created, this complexity is hidden by the UI and the interface
+come into play.  While the dedicated object for an interface indeed gets created under the hood, this complexity is hidden by the UI and the interface
 is {\em embedded} into the host to which it logically belongs.  This is a natural concept which corresponds to the real world we are
 modelling.
 
@@ -201,9 +200,9 @@ OS image when not using virtualization, are also supported.
 \subsection{Defining and Extending the Scheme}
 
 The Deska's motto is a meme {\em don't repeat yourself} and it proclaims to reduce the information duplicity.  It would be rather
-hypocrite to propose a yet another domain-specific language for describing the real database scheme, because there already is a
+hypocrite to propose yet another domain-specific language for describing the real database scheme, as there already is a perfectly
 ubiquitous language for describing tabular layouts, the SQL.  Deska is therefore shipped as a set of stored procedures and accompanying
-scripts which merely look at the pre-existing structure of an SQL database, use PostgreSQL's facilities for run-time scheme inspection,
+scripts which merely look at the pre-existing structure of an SQL database, using PostgreSQL's facilities for run-time scheme inspection,
 and pre-generate the database code for dealing with individual scheme being used on-site.
 
 It is clear that the table layout cannot be arbitrary, simply because of the sheer complexity of such a design.  We therefore have to
@@ -213,7 +212,7 @@ they are modelling.
 
 Database integrity constraints are fully supported; the only requirement is that they have an explicitly assigned name which encodes
 the type of the modelled relation.  When the constraints have these names, Deska can automatically extract the relationship information
-and pass it further via the API.
+and pass it further via its API.
 
 \section{Current Status}
 
@@ -225,14 +224,16 @@ been completed, and the CLI interface is currently in the works. We expect to ha
 
 We have described the general structure of the Deska database, along with an explanation about our design choices.  Our approach is
 believed to be future-proof and enable further extension to accommodate new, emerging paradigms which come into usage at today's data
-centers.  We recognize that there is a delicate border between designing an overly generic system which is hard to use by the target
-users and proposing an application which is too much tailored towards today's needs that it risks obsolescence in just a few years.
+centers.  We recognize that there is a delicate border between designing an overly generic system which is hard to use by the real
+users and proposing an application which is too much tailored towards today's needs that it risks obsolescence in just a few years,
+essentially blocking a sustainable development.
+
 Some of the Deska's features, like the powerful CLI interface along with support for version control and integration of various helper
-features, are, to our best knowledge, unique in this class of tools.  We are looking forward to having a usable prototype later this
+features, are, to our best knowledge, unique in its class of tools.  We are looking forward to having a usable prototype later this
 year, along with the first deployment in production at the Institute of Physics in Prague.
 
 \ack
-This work was supported by the Academy of Sciences of the Czech Republic.
+This work was supported by the Institute of Physics of the Academy of Sciences of the Czech Republic.
 
 \section*{References}
 \bibliography{references}
