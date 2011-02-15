@@ -5,6 +5,7 @@
 \usepackage[pdfborder="0 0 0"]{hyperref}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{listings}
 
 \begin{document}
 
@@ -176,6 +177,44 @@ interesting for the database to support {\em specialization} of entries, where o
 certain properties from a {\em template} and override values which have to differ.  Again, the lower layer of the database abstraction
 does not have to deal with actually interpreting these values, it just has to offer a way to report this information to the upper
 layers.  The Deska DB supports this specialization by the keyword {\tt template}.
+
+The following is an example of how the textual dump of the database could look like.  We demonstrate all of the advanced concepts, like
+using the {\tt template} keyword for specializing a generic definition on line 7, referencing a foreign object kind on line 17 and
+embedding an additional object on lines 20 and 21.
+
+\lstset{numbers=left}
+\noindent\begin{minipage}{\textwidth}
+\begin{lstlisting}
+hwmodel sgi-twin
+    in generic-rack
+    occupies height 1
+end
+
+hwmodel xe310
+    template sgi-twin
+    benchmark hepspec 68
+    cpu ``E5420''
+    ram 16GB
+    sockets 2
+    cores-per-socket 4
+    disk "SAS 300GB"
+end
+
+host salix01
+    hw xe310
+    serial X0008274
+
+    interface eth0 mac 00:30:48:C5:42:BE net wn-nat ip 172.16.1.1
+    interface bmc shared-port eth0 net monitoring ip 192.168.10.1
+
+    role wn
+end
+\end{lstlisting}
+\end{minipage}
+
+Please note that the above example is rather limited and not self-contained; it is intended merely as a demonstration of how the
+configuration looks like.  A much more detailed example is available in the Deska source repository~\cite{deska-project} in file {\tt
+doc/cli/demonstration}.
 
 \subsection{Building Friendly Scheme}
 
