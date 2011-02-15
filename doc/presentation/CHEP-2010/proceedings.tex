@@ -15,7 +15,20 @@
 Republic}
 
 \begin{abstract}
-    \ldots
+Running a typical Tier-2 site requires mastering quite a few tools for fabric management. Keeping an inventory of installed HW
+machines, their roles and detailed information, from IP addresses to rack locations, is typically done using various in-house
+applications ranging from simple spreadsheets to web applications. Such solutions, whose documentation usually leaves much to be
+desired, typically do not prevent a significant duplication of information, and therefore the data therein quickly become obsolete.
+
+After having deployed Cfengine as one of a few sites in the W-LCG environment, the Prague Tier-2 site set forth to further automate the
+fabric management, developing the Deska project. The aim of the system is to provide a central place to perform changes, from adding
+new machines or moving them between racks to changing their assigned service roles and additional metadata. The database provides an
+authoritative source of information from which all other systems and services (like DHCP servers, Ethernet switches or the Cfengine
+system) pull their data, using newly developed configuration adaptors. An easy-to-use command line interface modelled after the Cisco
+IOS-based switches was developed, enabling the data center administrators to easily change any information in an intuitive way.
+
+We provide an overview of the current status of the implementation and describe our design choices aimed at further reducing the system
+engineers' workload.
 \end{abstract}
 
 \section{Background}
