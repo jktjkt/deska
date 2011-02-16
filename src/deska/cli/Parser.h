@@ -87,7 +87,7 @@ This signal is emitted whenever the parsed text indicates that we should enter a
 reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
 and the second one is the object's identifier ("hpv2").
 */
-    boost::signal<void (Identifier, Identifier)> categoryEntered;
+    boost::signal<void (const Identifier &kind, const Identifier &name)> categoryEntered;
 
     /** @short Leaving a context
 
@@ -101,7 +101,7 @@ The Parser hit a line indicating that the current block hsould be left. This cou
 This signal is triggered whenever an attribute definition is encountered. The first argument is the name
 of the attribute and the second one the attribute value.
  */
-    boost::signal<void (Identifier, Value)> attributeSet;
+    boost::signal<void (const Identifier &name, const Value &value)> attributeSet;
 
     /** @short True if the parser is currently nested in some block
 
