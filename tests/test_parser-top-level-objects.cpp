@@ -23,6 +23,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include "deska/db/FakeApi.h"
+#include "deska/cli/Parser.h"
 
 struct F {
     F()
@@ -51,5 +52,5 @@ struct F {
 
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
 {
-
+    Deska::CLI::Parser parser(db);
 }

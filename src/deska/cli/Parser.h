@@ -115,6 +115,10 @@ The return value is a vector of items where each item indicates one level of con
 of the pair represents the object kind and the second one contains the object's identifier.
 */
     std::vector<std::pair<Identifier,Identifier> > currentContextStack() const;
+
+
+private:
+    Api *m_dbApi;
 };
 
 }

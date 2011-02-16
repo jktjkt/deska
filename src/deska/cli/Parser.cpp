@@ -19,10 +19,17 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/assert.hpp>
 #include "Parser.h"
 
 namespace Deska {
 namespace CLI {
+
+Parser::Parser(Api *dbApi)
+{
+    m_dbApi = dbApi;
+    BOOST_ASSERT(m_dbApi);
+}
 
 Parser::~Parser()
 {
