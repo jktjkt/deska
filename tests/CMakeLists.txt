@@ -27,5 +27,4 @@ macro(deska_test fname)
     add_test(test_${fname} test_${fname})
 endmacro(deska_test)
 
-deska_test(trivial-ok)
 deska_test(parser-top-level-objects)
