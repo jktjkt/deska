@@ -67,6 +67,25 @@ Example: suppose we read the following input; the comments indicate the signals 
     end
     # categoryLeft() gets signalled, isNestedInContext() is false and the currentContextStack() is empty
 
+
+The following example demonstrates statements "inlined" to just a single line; we can see that the terminate
+"end" is not required in these cases. The time goes from left to right. The whole line, ie. ("host hpv2 color blue\n")
+is passed to the parser as a single unit, without any further structure.
+
+    host hpv2 color blue
+             ^          ^-- (2) Here it emits setAttribute("color", "blue") immediately followed by categoryLeft()
+             |              the Parser returns to the initial state
+             +-- (1) Here it emits the categoryEntered("host", "hpv2")
+
+And another example, showing that it's possible to set multiple attributes at once:
+
+    host hpv2 color blue depth 1
+             ^          ^       ^+-- (3) setAttribute("depth", 1) immediately followed by categoryLeft()
+             |          |
+             |          +-- (2) setAttribute("color", "blue")
+             |
+             +-- (1) categoryEntered("host", "hpv2")
+
 */
 class Parser: boost::noncopyable
 {
