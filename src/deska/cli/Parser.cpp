@@ -35,6 +35,11 @@ Parser::~Parser()
 {
 }
 
+void Parser::parseLine(const std::string &line)
+{
+    // FIXME: implement me
+}
+
 }
 
 }

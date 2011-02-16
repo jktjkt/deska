@@ -56,6 +56,12 @@ public:
         return res;
     }
 
+    /** @short An empty event for debug printing */
+    static MockParserEvent invalid()
+    {
+        return MockParserEvent(EVENT_INVALID);
+    }
+
     bool operator==(const MockParserEvent &other) const
     {
         return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
@@ -70,7 +76,9 @@ private:
         /** @short handler for categoryLeft() */
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
-        EVENT_SET_ATTR
+        EVENT_SET_ATTR,
+        /** @short Fake, invalid event */
+        EVENT_INVALID
     } Event;
 
     MockParserEvent(Event e): eventKind(e) {}
@@ -91,6 +99,9 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_SET_ATTR:
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
+        break;
+    case MockParserEvent::EVENT_INVALID:
+        out << "[no event]";
         break;
     }
     return out;
@@ -177,10 +188,14 @@ struct F: public boost::signals::trackable
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e)
     {
-        BOOST_REQUIRE( ! parserEvents.empty() );
-        MockParserEvent other = parserEvents.front();
+        // We would like to continue with the test suite after hitting the first error, and
+        // BOOST_REQUIRE doesn't allow masking via BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES...
+        BOOST_CHECK( ! parserEvents.empty() );
+        bool shouldPop = ! parserEvents.empty();
+        MockParserEvent other = shouldPop ? parserEvents.front() : MockParserEvent::invalid();
         BOOST_CHECK_EQUAL(e, other);
-        parserEvents.pop();
+        if ( shouldPop )
+            parserEvents.pop();
     }
 
     Deska::Api *db;
@@ -211,14 +226,19 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
     expectNothingElse();
 }
 
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_objects, 4)
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
 {
     Deska::CLI::Parser parser(db);
     connectSignalsFromParser(parser);
 
-    // FIXME: the following will be replaced with real data for the test...
+    // start a new context
+    parser.parseLine("hardware \"hov2\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
-    parser.categoryLeft();
+
+    parser.parseLine("end\r\n");
     expectCategoryLeft();
     expectNothingElse();
+
 }
