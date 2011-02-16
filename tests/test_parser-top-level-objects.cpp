@@ -22,6 +22,8 @@
 #include <queue>
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
+#include <boost/signals/trackable.hpp>
+#include <boost/bind.hpp>
 
 #include "deska/db/FakeApi.h"
 #include "deska/cli/Parser.h"
@@ -94,7 +96,7 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
     return out;
 }
 
-struct F
+struct F: public boost::signals::trackable
 {
     F()
     {
@@ -114,6 +116,14 @@ struct F
     ~F()
     {
         delete db;
+    }
+
+    /** @short Connect Parser's signals to slots in F */
+    void connectSignalsFromParser(Deska::CLI::Parser &parser)
+    {
+        parser.categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
+        parser.categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
+        parser.attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
     }
 
     /** @short Handler for Parser's categoryEntered signal */
@@ -204,6 +214,11 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
 {
     Deska::CLI::Parser parser(db);
+    connectSignalsFromParser(parser);
 
-    // FIXME: real test goes here
+    // FIXME: the following will be replaced with real data for the test...
+    expectNothingElse();
+    parser.categoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
 }
