@@ -149,7 +149,7 @@ private:
 
 
 //! @short Parser for set of attributes of specific top-level grammar.
-template <typename Iterator>
+template < typename Iterator >
 class AttributesParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > >
 {
 
@@ -200,6 +200,7 @@ private:
 
 
 
+template < typename Iterator >
 class Parser: boost::noncopyable
 {
 public:
@@ -253,6 +254,8 @@ public:
 private:
 
     Api *m_dbApi;
+
+    std::map< std::string, AttributesParser< Iterator >* > attributesParsers;
 
 };
 

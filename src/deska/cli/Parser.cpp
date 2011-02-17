@@ -122,19 +122,50 @@ void AttributesParser< Iterator >::parsedAttribute( const char* parameter, boost
 
 
 
-Parser::Parser( Api *dbApi )
+template < typename Iterator >
+Parser< Iterator >::Parser( Api *dbApi )
 {
     m_dbApi = dbApi;
     BOOST_ASSERT( m_dbApi );
+
+
+
 }
 
-Parser::~Parser()
+
+
+template < typename Iterator >
+Parser< Iterator >::~Parser()
 {
+    for( typename std::map< std::string, AttributesParser< Iterator >* >::iterator
+        it = attributesParsers.begin();
+        it != attributesParsers.end();
+        ++it )
+        delete it->second;
 }
 
-void Parser::parseLine( const std::string &line )
+
+
+template < typename Iterator >
+void Parser< Iterator >::parseLine( const std::string &line )
 {
     // FIXME: implement me
+}
+
+
+
+template < typename Iterator >
+bool Parser< Iterator >::isNestedInContext() const
+{
+    return false;
+}
+
+
+
+template < typename Iterator >
+std::vector< std::pair< Identifier, Identifier > > Parser< Iterator >::currentContextStack() const
+{
+    return std::vector< std::pair< Identifier, Identifier > >();
 }
 
 
@@ -165,6 +196,16 @@ template void AttributesParser< std::string::const_iterator >::addAtrribute(
         ascii::space_type > attributeParser );
 
 template std::string AttributesParser< std::string::const_iterator >::getKindName() const;
+
+template Parser< std::string::const_iterator >::Parser( Api* dbApi );
+
+template Parser< std::string::const_iterator >::~Parser();
+
+template void Parser< std::string::const_iterator >::parseLine( const std::string &line );
+
+template bool Parser< std::string::const_iterator >::isNestedInContext() const;
+
+template std::vector< std::pair< Identifier, Identifier > > Parser< std::string::const_iterator >::currentContextStack() const;
 
 }
 }
