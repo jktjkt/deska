@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <vector>
 #include <boost/assert.hpp>
 #include "Parser.h"
 
@@ -128,8 +129,23 @@ Parser< Iterator >::Parser( Api *dbApi )
     m_dbApi = dbApi;
     BOOST_ASSERT( m_dbApi );
 
+    //Filling the AttributesParsers map
+    std::vector< std::string > kinds = m_dbApi->kindNames();
 
-
+    for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
+    {
+        attributesParsers[ *it ] = new AttributesParser< Iterator >( *it );
+        addKindAttributes( *it, attributesParsers[ *it ] );
+        
+        std::vector< ObjectRelation > relations = m_dbApi->kindRelations( *it );
+        for( std::vector< ObjectRelation >::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
+        {
+            if( itRel->kind == RELATION_MERGE_WITH )
+            {
+                addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
+            }
+        }
+    }
 }
 
 
@@ -170,6 +186,22 @@ std::vector< std::pair< Identifier, Identifier > > Parser< Iterator >::currentCo
 
 
 
+template < typename Iterator >
+void Parser< Iterator >::addKindAttributes(
+    std::string &kindName,
+    AttributesParser< Iterator >* attributeParser )
+{
+    PredefinedRules< Iterator > predefined = PredefinedRules< Iterator >();
+
+    std::vector< KindAttributeDataType > attributes = m_dbApi->kindAttributes( kindName );
+    for( std::vector< KindAttributeDataType >::iterator it = attributes.begin(); it != attributes.end(); ++it )
+    {
+        attributeParser->addAtrribute( it->name, predefined.getRule( it->type ) );
+    }
+}
+
+
+
 //TEMPLATE INSTANCES FOR LINKER
 
 template void ErrorHandler< std::string::const_iterator >::operator()(
@@ -206,6 +238,10 @@ template void Parser< std::string::const_iterator >::parseLine( const std::strin
 template bool Parser< std::string::const_iterator >::isNestedInContext() const;
 
 template std::vector< std::pair< Identifier, Identifier > > Parser< std::string::const_iterator >::currentContextStack() const;
+
+template void Parser< std::string::const_iterator >::addKindAttributes(
+    std::string &kindName,
+    AttributesParser< std::string::const_iterator >* attributeParser );
 
 }
 }

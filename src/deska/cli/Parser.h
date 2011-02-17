@@ -253,6 +253,11 @@ public:
 
 private:
 
+    //! @short Fills symbols table of specific attribute parser with all attributes of given kind
+    void addKindAttributes(
+        std::string &kindName,
+        AttributesParser< Iterator >* attributeParser );
+
     Api *m_dbApi;
 
     std::map< std::string, AttributesParser< Iterator >* > attributesParsers;
