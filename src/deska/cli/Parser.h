@@ -22,10 +22,19 @@
 #ifndef DESKA_PARSER_H
 #define DESKA_PARSER_H
 
+
 #include <string>
+#include <map>
+
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
+
 #include "deska/db/Api.h"
+
 
 namespace Deska {
 namespace CLI {
@@ -87,18 +96,50 @@ And another example, showing that it's possible to set multiple attributes at on
              +-- (1) categoryEntered("host", "hpv2")
 
 */
+
+
+namespace spirit = boost::spirit;
+namespace phoenix = boost::phoenix;
+namespace ascii = boost::spirit::ascii;
+namespace qi = boost::spirit::qi;
+
+
+
+//! @short Predefined rules for parsing single parameters
+template < typename Iterator >
+class PredefinedRules
+{
+
+public:
+
+    //! @short Fills internal map with predefined rules, that can be used to parse attributes of top-level objects
+    PredefinedRules();
+
+    /** @short Function for getting single rules, that can be used in attributes grammar.
+    *   @param typeName Supported rules are: integer, quoted_string, double, identifier
+    *   @return Rule that parses specific type of attribute
+    */
+    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > getRule( const std::string &typeName );
+
+private:
+
+    std::map< std::string, qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > rulesMap;
+
+};
+
+
 class Parser: boost::noncopyable
 {
 public:
     /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
-    Parser( Api* dbApi);
+    Parser( Api* dbApi );
     virtual ~Parser();
 
     /** @short Parse a full line of user's input
 
 As a result of this parsing, events could get triggered and the state may change.
  */
-    void parseLine(const std::string &line);
+    void parseLine( const std::string &line );
 
     /** @short The input indicates that the following signals will be related to a particular object
 
@@ -106,21 +147,21 @@ This signal is emitted whenever the parsed text indicates that we should enter a
 reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
 and the second one is the object's identifier ("hpv2").
 */
-    boost::signals2::signal<void (const Identifier &kind, const Identifier &name)> categoryEntered;
+    boost::signals2::signal< void ( const Identifier &kind, const Identifier &name ) > categoryEntered;
 
     /** @short Leaving a context
 
 The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
 "end" line, or a side effect of a standalone, self-contained line.
 */
-    boost::signals2::signal<void ()> categoryLeft;
+    boost::signals2::signal< void () > categoryLeft;
 
     /** @short Set an object's attribute
 
 This signal is triggered whenever an attribute definition is encountered. The first argument is the name
 of the attribute and the second one the attribute value.
  */
-    boost::signals2::signal<void (const Identifier &name, const Value &value)> attributeSet;
+    boost::signals2::signal< void ( const Identifier &name, const Value &value ) > attributeSet;
 
     /** @short True if the parser is currently nested in some block
 
@@ -133,7 +174,7 @@ The return value is false iff the currentContextStack() would return an empty ve
 The return value is a vector of items where each item indicates one level of context nesting. The first member
 of the pair represents the object kind and the second one contains the object's identifier.
 */
-    std::vector<std::pair<Identifier,Identifier> > currentContextStack() const;
+    std::vector< std::pair< Identifier, Identifier > > currentContextStack() const;
 
 
 private:

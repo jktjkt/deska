@@ -22,24 +22,66 @@
 #include <boost/assert.hpp>
 #include "Parser.h"
 
+
 namespace Deska {
 namespace CLI {
 
-Parser::Parser(Api *dbApi)
+
+template < typename Iterator >
+PredefinedRules< Iterator >::PredefinedRules()
+{
+    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > t_int;
+    t_int %= qi::attr( int() ) >> qi::int_;
+    t_int.name( "integer" );
+    rulesMap[ "integer" ] = t_int;
+   
+    qi::rule< Iterator, boost::variant< int, std::string, double>(), ascii::space_type > t_string;
+    t_string %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    t_string.name( "quoted string" );
+    rulesMap[ "quoted_string" ] = t_string;
+    
+    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > t_double;
+    t_double %= qi::attr( double() ) >> qi::double_;
+    t_double.name( "double" );
+    rulesMap[ "double" ] = t_double;
+
+    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > identifier;
+    identifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
+    identifier.name( "identifier (alphanumerical letters and _)" );
+    rulesMap[ "identifier" ] = identifier;
+}
+
+
+
+template < typename Iterator >
+qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > PredefinedRules< Iterator >::getRule( const std::string &typeName )
+{
+    return rulesMap[ typeName ];
+}
+
+
+Parser::Parser( Api *dbApi )
 {
     m_dbApi = dbApi;
-    BOOST_ASSERT(m_dbApi);
+    BOOST_ASSERT( m_dbApi );
 }
 
 Parser::~Parser()
 {
 }
 
-void Parser::parseLine(const std::string &line)
+void Parser::parseLine( const std::string &line )
 {
     // FIXME: implement me
 }
 
-}
 
+
+//TEMPLATE INSTANCES FOR LINKER
+
+template PredefinedRules< std::string::const_iterator >::PredefinedRules();
+
+template qi::rule< std::string::const_iterator, boost::variant< int, std::string, double >(), ascii::space_type > PredefinedRules< std::string::const_iterator >::getRule( const std::string &typeName );
+
+}
 }
