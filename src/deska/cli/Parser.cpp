@@ -124,6 +124,42 @@ void AttributesParser< Iterator >::parsedAttribute( const char* parameter, boost
 
 
 template < typename Iterator >
+TopLevelParser< Iterator >::TopLevelParser(): TopLevelParser< Iterator >::base_type( start )
+{ 
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::on_error;
+    using qi::fail;
+
+    start = ( kinds[ _a = _1 ] > lazy( _a ) );//[ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
+
+    phoenix::function< ErrorHandler< Iterator > > errorHandler = ErrorHandler< Iterator >();
+    on_error< fail >( start, errorHandler( _1, _2, _3, _4 ) );
+}
+
+
+
+template < typename Iterator >
+void TopLevelParser< Iterator >::addKind( const std::string &kindName )
+{
+    PredefinedRules< Iterator > predefined = PredefinedRules< Iterator >();
+   // kinds.add( kindName, predefined.getRule( "identifier" ) );
+}
+
+
+
+template < typename Iterator >
+void TopLevelParser< Iterator >::parsedKind( const char* kindName, const std::string &objectName )
+{
+    std::cout << "Parsed kind: " << kindName << " " << objectName << std::endl;
+}
+
+
+
+template < typename Iterator >
 Parser< Iterator >::Parser( Api *dbApi )
 {
     m_dbApi = dbApi;
@@ -228,6 +264,18 @@ template void AttributesParser< std::string::const_iterator >::addAtrribute(
         ascii::space_type > attributeParser );
 
 template std::string AttributesParser< std::string::const_iterator >::getKindName() const;
+
+template void AttributesParser< std::string::const_iterator >::parsedAttribute(
+    const char* parameter,
+    boost::variant< int, std::string, double > value );
+
+template TopLevelParser< std::string::const_iterator >::TopLevelParser();
+
+template void TopLevelParser< std::string::const_iterator >::addKind( const std::string &kindName );
+
+template void TopLevelParser< std::string::const_iterator >::parsedKind(
+    const char* kindName,
+    const std::string &objectName );
 
 template Parser< std::string::const_iterator >::Parser( Api* dbApi );
 

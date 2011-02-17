@@ -105,7 +105,7 @@ namespace qi = boost::spirit::qi;
 
 
 
-//! @short Class for reporting errors of input while parsing single attributes of some top-level object
+//! @short Class for reporting parsing errors of input
 template < typename Iterator >
 class ErrorHandler
 {
@@ -175,7 +175,7 @@ private:
 
     /** @short Function used as semantic action for each parsed attribute
     *   @param parameter Name of the attribute
-    *   @param vale Parsed value of the attribute
+    *   @param value Parsed value of the attribute
     */
     void parsedAttribute( const char* parameter, boost::variant< int, std::string, double > value );
 
@@ -196,6 +196,47 @@ private:
 
     std::string name;
 
+};
+
+
+
+//! @short Parser for set of attributes of specific top-level grammar.
+template < typename Iterator >
+class TopLevelParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, std::string(), ascii::space_type > > >
+{
+
+public:
+
+    //! @short Constructor only initializes the grammar with empty symbols table
+    TopLevelParser();
+
+    /** @short Function used for filling of symbols table of the parser
+    *   @param kindName Name of the kind
+    */
+    void addKind( const std::string &kindName );
+
+private:
+
+    /** @short Function used as semantic action for parsed kind
+    *   @param kindName Name of the kind
+    *   @param objectName Parsed name of the object
+    */
+    void parsedKind( const char* kindName, const std::string &objectName );
+
+    qi::symbols<
+        char,
+        qi::rule<
+            Iterator,
+            std::string(),
+            ascii::space_type > > kinds;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
+        qi::locals< qi::rule<
+            Iterator,
+            std::string(),
+            ascii::space_type > > > start;
 };
 
 
