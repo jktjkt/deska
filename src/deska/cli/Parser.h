@@ -205,52 +205,55 @@ class Parser: boost::noncopyable
 public:
     /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
     Parser( Api* dbApi );
+
     virtual ~Parser();
 
     /** @short Parse a full line of user's input
-
-As a result of this parsing, events could get triggered and the state may change.
- */
+    *
+    *   As a result of this parsing, events could get triggered and the state may change.
+    */
     void parseLine( const std::string &line );
 
     /** @short The input indicates that the following signals will be related to a particular object
-
-This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
-reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
-and the second one is the object's identifier ("hpv2").
-*/
+    *
+    *   This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
+    *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
+    *   and the second one is the object's identifier ("hpv2").
+    */
     boost::signals2::signal< void ( const Identifier &kind, const Identifier &name ) > categoryEntered;
 
     /** @short Leaving a context
-
-The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
-"end" line, or a side effect of a standalone, self-contained line.
-*/
+    *
+    *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
+    *   "end" line, or a side effect of a standalone, self-contained line.
+    */
     boost::signals2::signal< void () > categoryLeft;
 
     /** @short Set an object's attribute
-
-This signal is triggered whenever an attribute definition is encountered. The first argument is the name
-of the attribute and the second one the attribute value.
- */
+    *
+    *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
+    *   of the attribute and the second one the attribute value.
+    */
     boost::signals2::signal< void ( const Identifier &name, const Value &value ) > attributeSet;
 
     /** @short True if the parser is currently nested in some block
-
-The return value is false iff the currentContextStack() would return an empty vector.
-*/
+    *
+    *   The return value is false iff the currentContextStack() would return an empty vector.
+    */
     bool isNestedInContext() const;
 
     /** @short Return current nesting of the contexts
-
-The return value is a vector of items where each item indicates one level of context nesting. The first member
-of the pair represents the object kind and the second one contains the object's identifier.
-*/
+    *
+    *   The return value is a vector of items where each item indicates one level of context nesting. The first member
+    *   of the pair represents the object kind and the second one contains the object's identifier.
+    */
     std::vector< std::pair< Identifier, Identifier > > currentContextStack() const;
 
 
 private:
+
     Api *m_dbApi;
+
 };
 
 }
