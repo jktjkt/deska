@@ -105,6 +105,25 @@ namespace qi = boost::spirit::qi;
 
 
 
+//! @short Class for reporting errors of input while parsing single attributes of some top-level object
+template < typename Iterator >
+class ErrorHandler
+{
+public:
+    template < typename, typename, typename, typename >
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error occures. Prints information about the error.
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const;
+};
+
+
+
 //! @short Predefined rules for parsing single parameters
 template < typename Iterator >
 class PredefinedRules
@@ -129,21 +148,37 @@ private:
 
 
 
+//! @short Parser for set of attributes of specific top-level grammar.
 template <typename Iterator>
 class AttributesParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > >
 {
 
 public:
 
+    /** @short Constructor only initializes the grammar with empty symbols table
+    *   @param kindName Name of top-level object type, to which the attributes belong
+    */
     AttributesParser( const std::string &kindName );
 
+    /** @short Function used for filling of symbols table of the parser
+    *   @param attributeName Name of the attribute
+    *   @param attributeParser  Attribute parser obtained from PredefinedRules class.
+    *   @see PredefinedRules
+    */
     void addAtrribute(
         const std::string &attributeName,
         qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > attributeParser );
     
-    std::string getName() const;
+    std::string getKindName() const;
 
 private:
+
+    /** @short Function used as semantic action for each parsed attribute
+    *   @param parameter Name of the attribute
+    *   @param vale Parsed value of the attribute
+    */
+    void parsedAttribute( const char* parameter, boost::variant< int, std::string, double > value );
+
     qi::symbols<
         char,
         qi::rule<
@@ -160,6 +195,7 @@ private:
             ascii::space_type > > > start;
 
     std::string name;
+
 };
 
 

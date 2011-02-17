@@ -28,6 +28,20 @@ namespace CLI {
 
 
 template < typename Iterator >
+void ErrorHandler< Iterator >::operator()(
+    Iterator start,
+    Iterator end,
+    Iterator errorPos,
+    const spirit::info& what ) const
+{
+    std::cout
+        << "Error! Expecting " << what
+        << " here: \"" << std::string( errorPos, end ) << "\""
+        << std::endl;
+}
+
+
+template < typename Iterator >
 PredefinedRules< Iterator >::PredefinedRules()
 {
     qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > t_int;
@@ -69,13 +83,15 @@ AttributesParser< Iterator >::AttributesParser(
     using qi::_3;
     using qi::_4;
     using qi::_a;
-    using qi::_val;
     using qi::on_error;
     using qi::fail;
-    using qi::lit;
 
     name = kindName;
 
+    start = +( attributes[ _a = _1 ] > lazy( _a ) );//[ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
+
+    phoenix::function< ErrorHandler< Iterator > > errorHandler = ErrorHandler< Iterator >();
+    on_error< fail >( start, errorHandler( _1, _2, _3, _4 ) );
 }
 
 
@@ -91,9 +107,17 @@ void AttributesParser< Iterator >::addAtrribute(
 
 
 template < typename Iterator >
-std::string AttributesParser< Iterator >::getName() const
+std::string AttributesParser< Iterator >::getKindName() const
 {
    return name;
+}
+
+
+
+template < typename Iterator >
+void AttributesParser< Iterator >::parsedAttribute( const char* parameter, boost::variant< int, std::string, double > value )
+{
+    std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
 }
 
 
@@ -117,6 +141,12 @@ void Parser::parseLine( const std::string &line )
 
 //TEMPLATE INSTANCES FOR LINKER
 
+template void ErrorHandler< std::string::const_iterator >::operator()(
+    std::string::const_iterator start,
+    std::string::const_iterator end,
+    std::string::const_iterator errorPos,
+    const spirit::info& what ) const;
+
 template PredefinedRules< std::string::const_iterator >::PredefinedRules();
 
 template qi::rule<
@@ -134,7 +164,7 @@ template void AttributesParser< std::string::const_iterator >::addAtrribute(
         boost::variant< int, std::string, double >(),
         ascii::space_type > attributeParser );
 
-template std::string AttributesParser< std::string::const_iterator >::getName() const;
+template std::string AttributesParser< std::string::const_iterator >::getKindName() const;
 
 }
 }
