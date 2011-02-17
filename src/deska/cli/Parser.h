@@ -128,6 +128,42 @@ private:
 };
 
 
+
+template <typename Iterator>
+class AttributesParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > >
+{
+
+public:
+
+    AttributesParser( const std::string &kindName );
+
+    void addAtrribute(
+        const std::string &attributeName,
+        qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > attributeParser );
+    
+    std::string getName() const;
+
+private:
+    qi::symbols<
+        char,
+        qi::rule<
+            Iterator,
+            boost::variant< int, std::string, double >(),
+            ascii::space_type > > attributes;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
+        qi::locals< qi::rule<
+            Iterator,
+            boost::variant< int, std::string, double >(),
+            ascii::space_type > > > start;
+
+    std::string name;
+};
+
+
+
 class Parser: boost::noncopyable
 {
 public:

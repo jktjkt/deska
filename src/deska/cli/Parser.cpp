@@ -60,6 +60,44 @@ qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_t
 }
 
 
+template < typename Iterator >
+AttributesParser< Iterator >::AttributesParser(
+    const std::string &kindName ): AttributesParser< Iterator >::base_type( start )
+{ 
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::_val;
+    using qi::on_error;
+    using qi::fail;
+    using qi::lit;
+
+    name = kindName;
+
+}
+
+
+
+template < typename Iterator >
+void AttributesParser< Iterator >::addAtrribute(
+    const std::string &attributeName,
+    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > attributeParser )
+{
+    attributes.add( attributeName, attributeParser );
+}
+
+
+
+template < typename Iterator >
+std::string AttributesParser< Iterator >::getName() const
+{
+   return name;
+}
+
+
+
 Parser::Parser( Api *dbApi )
 {
     m_dbApi = dbApi;
@@ -81,7 +119,22 @@ void Parser::parseLine( const std::string &line )
 
 template PredefinedRules< std::string::const_iterator >::PredefinedRules();
 
-template qi::rule< std::string::const_iterator, boost::variant< int, std::string, double >(), ascii::space_type > PredefinedRules< std::string::const_iterator >::getRule( const std::string &typeName );
+template qi::rule<
+    std::string::const_iterator,
+    boost::variant< int, std::string, double >(),
+    ascii::space_type > PredefinedRules< std::string::const_iterator >::getRule( const std::string &typeName );
+
+template AttributesParser< std::string::const_iterator >::AttributesParser(
+    const std::string &kindName );
+
+template void AttributesParser< std::string::const_iterator >::addAtrribute(
+    const std::string &attributeName,
+    qi::rule<
+        std::string::const_iterator,
+        boost::variant< int, std::string, double >(),
+        ascii::space_type > attributeParser );
+
+template std::string AttributesParser< std::string::const_iterator >::getName() const;
 
 }
 }
