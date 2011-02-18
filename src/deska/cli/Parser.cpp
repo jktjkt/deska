@@ -241,56 +241,56 @@ void Parser<Iterator>::addKindAttributes(
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template void ErrorHandler<std::string::const_iterator>::operator()(
-    std::string::const_iterator start,
-    std::string::const_iterator end,
-    std::string::const_iterator errorPos,
+template void ErrorHandler<iterator_type>::operator()(
+    iterator_type start,
+    iterator_type end,
+    iterator_type errorPos,
     const spirit::info& what ) const;
 
-template PredefinedRules<std::string::const_iterator>::PredefinedRules();
+template PredefinedRules<iterator_type>::PredefinedRules();
 
 template qi::rule<
-    std::string::const_iterator,
+    iterator_type,
     Value(),
-    ascii::space_type> PredefinedRules<std::string::const_iterator>::getRule( const std::string &typeName );
+    ascii::space_type> PredefinedRules<iterator_type>::getRule( const std::string &typeName );
 
-template AttributesParser<std::string::const_iterator>::AttributesParser(
+template AttributesParser<iterator_type>::AttributesParser(
     const std::string &kindName );
 
-template void AttributesParser<std::string::const_iterator>::addAtrribute(
+template void AttributesParser<iterator_type>::addAtrribute(
     const std::string &attributeName,
     qi::rule<
-        std::string::const_iterator,
+        iterator_type,
         Value(),
         ascii::space_type> attributeParser );
 
-template std::string AttributesParser<std::string::const_iterator>::getKindName() const;
+template std::string AttributesParser<iterator_type>::getKindName() const;
 
-template void AttributesParser<std::string::const_iterator>::parsedAttribute(
+template void AttributesParser<iterator_type>::parsedAttribute(
     const char* parameter,
     Value value );
 
-template TopLevelParser<std::string::const_iterator>::TopLevelParser();
+template TopLevelParser<iterator_type>::TopLevelParser();
 
-template void TopLevelParser<std::string::const_iterator>::addKind( const std::string &kindName );
+template void TopLevelParser<iterator_type>::addKind( const std::string &kindName );
 
-template void TopLevelParser<std::string::const_iterator>::parsedKind(
+template void TopLevelParser<iterator_type>::parsedKind(
     const char* kindName,
     const std::string &objectName );
 
-template Parser<std::string::const_iterator>::Parser( Api* dbApi );
+template Parser<iterator_type>::Parser( Api* dbApi );
 
-template Parser<std::string::const_iterator>::~Parser();
+template Parser<iterator_type>::~Parser();
 
-template void Parser<std::string::const_iterator>::parseLine( const std::string &line );
+template void Parser<iterator_type>::parseLine( const std::string &line );
 
-template bool Parser<std::string::const_iterator>::isNestedInContext() const;
+template bool Parser<iterator_type>::isNestedInContext() const;
 
-template std::vector<AttributeDefinition> Parser<std::string::const_iterator>::currentContextStack() const;
+template std::vector<AttributeDefinition> Parser<iterator_type>::currentContextStack() const;
 
-template void Parser<std::string::const_iterator>::addKindAttributes(
+template void Parser<iterator_type>::addKindAttributes(
     std::string &kindName,
-    AttributesParser<std::string::const_iterator>* attributeParser );
+    AttributesParser<iterator_type>* attributeParser );
 
 }
 }

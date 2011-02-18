@@ -104,6 +104,9 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
+/** @short Iterator for parser input */
+typedef std::string::const_iterator iterator_type;
+
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
