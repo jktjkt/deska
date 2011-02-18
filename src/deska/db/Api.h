@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <boost/variant.hpp>
 
 /*
  * TODO items for the DB API:
@@ -42,7 +43,12 @@
 
 namespace Deska {
 
-typedef std::string Value; // FIXME: should probably be a Variant of some kind?
+/** @short @short Value of an object's attribute
+ *
+ * This is the definition that should be extended when adding more supported
+ * formats for attribute values.
+ * */
+typedef boost::variant<int,double,std::string> Value;
 
 typedef std::string Type; // FIXME: something like an extensible enum?
 
