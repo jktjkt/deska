@@ -55,6 +55,9 @@ typedef std::string Type; // FIXME: something like an extensible enum?
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
 
+/** @short Typedef for attribute-value pairs */
+typedef std::pair<Identifier, Identifier> AttributeDefinition;
+
 /** @short An identification of a persistent revision in the DB */
 typedef unsigned int Revision;
 

@@ -104,9 +104,6 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
-/** @short A type returned by parser when parsing attributes */
-typedef boost::variant<int, std::string, double> Variant;
-
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
@@ -143,11 +140,11 @@ public:
     *   @param typeName Supported rules are: integer, quoted_string, double, identifier
     *   @return Rule that parses specific type of attribute
     */
-    qi::rule<Iterator, Variant(), ascii::space_type> getRule( const std::string &typeName );
+    qi::rule<Iterator, Value(), ascii::space_type> getRule( const std::string &typeName );
 
 private:
 
-    std::map<std::string, qi::rule<Iterator, Variant(), ascii::space_type> > rulesMap;
+    std::map<std::string, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
 
 };
 
@@ -155,7 +152,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Variant(), ascii::space_type> > >
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type> > >
 {
 
 public:
@@ -174,7 +171,7 @@ public:
     */
     void addAtrribute(
         const std::string &attributeName,
-        qi::rule<Iterator, Variant(), ascii::space_type> attributeParser );
+        qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
     
     std::string getKindName() const;
 
@@ -185,13 +182,13 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const char* parameter, Variant value );
+    void parsedAttribute( const char* parameter, Value value );
 
     qi::symbols<
         char,
         qi::rule<
             Iterator,
-            Variant(),
+            Value(),
             ascii::space_type> > attributes;
 
     qi::rule<
@@ -199,7 +196,7 @@ private:
         ascii::space_type,
         qi::locals<qi::rule<
             Iterator,
-            Variant(),
+            Value(),
             ascii::space_type> > > start;
 
     std::string name;
@@ -299,7 +296,7 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector<std::pair<Identifier, Identifier> > currentContextStack() const;
+    std::vector<AttributeDefinition> currentContextStack() const;
 
 
 private:

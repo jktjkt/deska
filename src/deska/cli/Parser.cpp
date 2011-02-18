@@ -45,22 +45,22 @@ void ErrorHandler<Iterator>::operator()(
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    qi::rule<Iterator, Variant(), ascii::space_type> t_int;
+    qi::rule<Iterator, Value(), ascii::space_type> t_int;
     t_int %= qi::attr( int() ) >> qi::int_;
     t_int.name( "integer" );
     rulesMap[ "integer" ] = t_int;
    
-    qi::rule<Iterator, Variant(), ascii::space_type> t_string;
+    qi::rule<Iterator, Value(), ascii::space_type> t_string;
     t_string %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
     t_string.name( "quoted string" );
     rulesMap[ "quoted_string" ] = t_string;
     
-    qi::rule<Iterator, Variant(), ascii::space_type> t_double;
+    qi::rule<Iterator, Value(), ascii::space_type> t_double;
     t_double %= qi::attr( double() ) >> qi::double_;
     t_double.name( "double" );
     rulesMap[ "double" ] = t_double;
 
-    qi::rule<Iterator, Variant(), ascii::space_type> identifier;
+    qi::rule<Iterator, Value(), ascii::space_type> identifier;
     identifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
     identifier.name( "identifier (alphanumerical letters and _)" );
     rulesMap[ "identifier" ] = identifier;
@@ -69,7 +69,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 
 
 template <typename Iterator>
-qi::rule<Iterator, Variant(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
+qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
 {
     return rulesMap[ typeName ];
 }
@@ -89,7 +89,8 @@ AttributesParser<Iterator>::AttributesParser(
 
     name = kindName;
 
-    start = +( attributes[ _a = _1 ] > lazy( _a ) );// FIXME [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
+    start = +( attributes[ _a = _1 ] > lazy( _a ) );
+    // FIXME: [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -100,7 +101,7 @@ AttributesParser<Iterator>::AttributesParser(
 template <typename Iterator>
 void AttributesParser<Iterator>::addAtrribute(
     const std::string &attributeName,
-    qi::rule<Iterator, Variant(), ascii::space_type> attributeParser )
+    qi::rule<Iterator, Value(), ascii::space_type> attributeParser )
 {
     attributes.add( attributeName, attributeParser );
 }
@@ -116,7 +117,7 @@ std::string AttributesParser<Iterator>::getKindName() const
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute( const char* parameter, Variant value )
+void AttributesParser<Iterator>::parsedAttribute( const char* parameter, Value value )
 {
     std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
 }
@@ -134,7 +135,8 @@ TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type(
     using qi::on_error;
     using qi::fail;
 
-    start = ( kinds[ _a = _1 ] > lazy( _a ) );//FIXME [ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
+    start = ( kinds[ _a = _1 ] > lazy( _a ) );
+    // FIXME: [ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -216,9 +218,9 @@ bool Parser<Iterator>::isNestedInContext() const
 
 
 template <typename Iterator>
-std::vector<std::pair<Identifier, Identifier> > Parser<Iterator>::currentContextStack() const
+std::vector<AttributeDefinition> Parser<Iterator>::currentContextStack() const
 {
-    return std::vector<std::pair<Identifier, Identifier> >();
+    return std::vector<AttributeDefinition>();
 }
 
 
@@ -249,7 +251,7 @@ template PredefinedRules<std::string::const_iterator>::PredefinedRules();
 
 template qi::rule<
     std::string::const_iterator,
-    Variant(),
+    Value(),
     ascii::space_type> PredefinedRules<std::string::const_iterator>::getRule( const std::string &typeName );
 
 template AttributesParser<std::string::const_iterator>::AttributesParser(
@@ -259,14 +261,14 @@ template void AttributesParser<std::string::const_iterator>::addAtrribute(
     const std::string &attributeName,
     qi::rule<
         std::string::const_iterator,
-        Variant(),
+        Value(),
         ascii::space_type> attributeParser );
 
 template std::string AttributesParser<std::string::const_iterator>::getKindName() const;
 
 template void AttributesParser<std::string::const_iterator>::parsedAttribute(
     const char* parameter,
-    Variant value );
+    Value value );
 
 template TopLevelParser<std::string::const_iterator>::TopLevelParser();
 
@@ -284,7 +286,7 @@ template void Parser<std::string::const_iterator>::parseLine( const std::string 
 
 template bool Parser<std::string::const_iterator>::isNestedInContext() const;
 
-template std::vector<std::pair<Identifier, Identifier> > Parser<std::string::const_iterator>::currentContextStack() const;
+template std::vector<AttributeDefinition> Parser<std::string::const_iterator>::currentContextStack() const;
 
 template void Parser<std::string::const_iterator>::addKindAttributes(
     std::string &kindName,
