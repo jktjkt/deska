@@ -106,11 +106,11 @@ namespace qi = boost::spirit::qi;
 
 
 //! @short Class for reporting parsing errors of input
-template < typename Iterator >
+template <typename Iterator>
 class ErrorHandler
 {
 public:
-    template < typename, typename, typename, typename >
+    template <typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short Function executed when some error occures. Prints information about the error.
@@ -125,7 +125,7 @@ public:
 
 
 //! @short Predefined rules for parsing single parameters
-template < typename Iterator >
+template <typename Iterator>
 class PredefinedRules
 {
 
@@ -138,19 +138,19 @@ public:
     *   @param typeName Supported rules are: integer, quoted_string, double, identifier
     *   @return Rule that parses specific type of attribute
     */
-    qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > getRule( const std::string &typeName );
+    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> getRule( const std::string &typeName );
 
 private:
 
-    std::map< std::string, qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > rulesMap;
+    std::map<std::string, qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> > rulesMap;
 
 };
 
 
 
 //! @short Parser for set of attributes of specific top-level grammar.
-template < typename Iterator >
-class AttributesParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > > >
+template <typename Iterator>
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> > >
 {
 
 public:
@@ -167,7 +167,7 @@ public:
     */
     void addAtrribute(
         const std::string &attributeName,
-        qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type > attributeParser );
+        qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> attributeParser );
     
     std::string getKindName() const;
 
@@ -177,22 +177,22 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const char* parameter, boost::variant< int, std::string, double > value );
+    void parsedAttribute( const char* parameter, boost::variant<int, std::string, double> value );
 
     qi::symbols<
         char,
         qi::rule<
             Iterator,
-            boost::variant< int, std::string, double >(),
-            ascii::space_type > > attributes;
+            boost::variant<int, std::string, double>(),
+            ascii::space_type> > attributes;
 
     qi::rule<
         Iterator,
         ascii::space_type,
-        qi::locals< qi::rule<
+        qi::locals<qi::rule<
             Iterator,
-            boost::variant< int, std::string, double >(),
-            ascii::space_type > > > start;
+            boost::variant<int, std::string, double>(),
+            ascii::space_type> > > start;
 
     std::string name;
 
@@ -201,8 +201,8 @@ private:
 
 
 //! @short Parser for set of attributes of specific top-level grammar.
-template < typename Iterator >
-class TopLevelParser: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, std::string(), ascii::space_type > > >
+template <typename Iterator>
+class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > >
 {
 
 public:
@@ -228,20 +228,20 @@ private:
         qi::rule<
             Iterator,
             std::string(),
-            ascii::space_type > > kinds;
+            ascii::space_type> > kinds;
 
     qi::rule<
         Iterator,
         ascii::space_type,
-        qi::locals< qi::rule<
+        qi::locals<qi::rule<
             Iterator,
             std::string(),
-            ascii::space_type > > > start;
+            ascii::space_type> > > start;
 };
 
 
 
-template < typename Iterator >
+template <typename Iterator>
 class Parser: boost::noncopyable
 {
 public:
@@ -262,21 +262,21 @@ public:
     *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
     *   and the second one is the object's identifier ("hpv2").
     */
-    boost::signals2::signal< void ( const Identifier &kind, const Identifier &name ) > categoryEntered;
+    boost::signals2::signal<void ( const Identifier &kind, const Identifier &name )> categoryEntered;
 
     /** @short Leaving a context
     *
     *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
     *   "end" line, or a side effect of a standalone, self-contained line.
     */
-    boost::signals2::signal< void () > categoryLeft;
+    boost::signals2::signal<void ()> categoryLeft;
 
     /** @short Set an object's attribute
     *
     *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
     *   of the attribute and the second one the attribute value.
     */
-    boost::signals2::signal< void ( const Identifier &name, const Value &value ) > attributeSet;
+    boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
 
     /** @short True if the parser is currently nested in some block
     *
@@ -289,7 +289,7 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector< std::pair< Identifier, Identifier > > currentContextStack() const;
+    std::vector<std::pair<Identifier, Identifier> > currentContextStack() const;
 
 
 private:
@@ -297,13 +297,13 @@ private:
     //! @short Fills symbols table of specific attribute parser with all attributes of given kind
     void addKindAttributes(
         std::string &kindName,
-        AttributesParser< Iterator >* attributeParser );
+        AttributesParser<Iterator>* attributeParser );
 
     Api *m_dbApi;
 
-    std::map< std::string, AttributesParser< Iterator >* > attributesParsers;
+    std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
 
-    TopLevelParser< Iterator >* topLevelParser;
+    TopLevelParser<Iterator>* topLevelParser;
 
 };
 
