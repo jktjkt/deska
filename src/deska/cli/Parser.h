@@ -104,6 +104,9 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
+/** @short A type returned by parser when parsing attributes */
+typedef boost::variant<int, std::string, double> Variant;
+
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
@@ -140,11 +143,11 @@ public:
     *   @param typeName Supported rules are: integer, quoted_string, double, identifier
     *   @return Rule that parses specific type of attribute
     */
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> getRule( const std::string &typeName );
+    qi::rule<Iterator, Variant(), ascii::space_type> getRule( const std::string &typeName );
 
 private:
 
-    std::map<std::string, qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> > rulesMap;
+    std::map<std::string, qi::rule<Iterator, Variant(), ascii::space_type> > rulesMap;
 
 };
 
@@ -152,7 +155,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> > >
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Variant(), ascii::space_type> > >
 {
 
 public:
@@ -171,7 +174,7 @@ public:
     */
     void addAtrribute(
         const std::string &attributeName,
-        qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> attributeParser );
+        qi::rule<Iterator, Variant(), ascii::space_type> attributeParser );
     
     std::string getKindName() const;
 
@@ -182,13 +185,13 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const char* parameter, boost::variant<int, std::string, double> value );
+    void parsedAttribute( const char* parameter, Variant value );
 
     qi::symbols<
         char,
         qi::rule<
             Iterator,
-            boost::variant<int, std::string, double>(),
+            Variant(),
             ascii::space_type> > attributes;
 
     qi::rule<
@@ -196,7 +199,7 @@ private:
         ascii::space_type,
         qi::locals<qi::rule<
             Iterator,
-            boost::variant<int, std::string, double>(),
+            Variant(),
             ascii::space_type> > > start;
 
     std::string name;

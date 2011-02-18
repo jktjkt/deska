@@ -45,22 +45,22 @@ void ErrorHandler<Iterator>::operator()(
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> t_int;
+    qi::rule<Iterator, Variant(), ascii::space_type> t_int;
     t_int %= qi::attr( int() ) >> qi::int_;
     t_int.name( "integer" );
     rulesMap[ "integer" ] = t_int;
    
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> t_string;
+    qi::rule<Iterator, Variant(), ascii::space_type> t_string;
     t_string %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
     t_string.name( "quoted string" );
     rulesMap[ "quoted_string" ] = t_string;
     
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> t_double;
+    qi::rule<Iterator, Variant(), ascii::space_type> t_double;
     t_double %= qi::attr( double() ) >> qi::double_;
     t_double.name( "double" );
     rulesMap[ "double" ] = t_double;
 
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> identifier;
+    qi::rule<Iterator, Variant(), ascii::space_type> identifier;
     identifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
     identifier.name( "identifier (alphanumerical letters and _)" );
     rulesMap[ "identifier" ] = identifier;
@@ -69,7 +69,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 
 
 template <typename Iterator>
-qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
+qi::rule<Iterator, Variant(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
 {
     return rulesMap[ typeName ];
 }
@@ -100,7 +100,7 @@ AttributesParser<Iterator>::AttributesParser(
 template <typename Iterator>
 void AttributesParser<Iterator>::addAtrribute(
     const std::string &attributeName,
-    qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> attributeParser )
+    qi::rule<Iterator, Variant(), ascii::space_type> attributeParser )
 {
     attributes.add( attributeName, attributeParser );
 }
@@ -116,7 +116,7 @@ std::string AttributesParser<Iterator>::getKindName() const
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute( const char* parameter, boost::variant<int, std::string, double> value )
+void AttributesParser<Iterator>::parsedAttribute( const char* parameter, Variant value )
 {
     std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
 }
@@ -249,7 +249,7 @@ template PredefinedRules<std::string::const_iterator>::PredefinedRules();
 
 template qi::rule<
     std::string::const_iterator,
-    boost::variant<int, std::string, double>(),
+    Variant(),
     ascii::space_type> PredefinedRules<std::string::const_iterator>::getRule( const std::string &typeName );
 
 template AttributesParser<std::string::const_iterator>::AttributesParser(
@@ -259,14 +259,14 @@ template void AttributesParser<std::string::const_iterator>::addAtrribute(
     const std::string &attributeName,
     qi::rule<
         std::string::const_iterator,
-        boost::variant<int, std::string, double>(),
+        Variant(),
         ascii::space_type> attributeParser );
 
 template std::string AttributesParser<std::string::const_iterator>::getKindName() const;
 
 template void AttributesParser<std::string::const_iterator>::parsedAttribute(
     const char* parameter,
-    boost::variant<int, std::string, double> value );
+    Variant value );
 
 template TopLevelParser<std::string::const_iterator>::TopLevelParser();
 
