@@ -1,1 +1,4 @@
 Spravnost naplnovani merged atributu do attributesParser
+Konverze z qi::rule< Iterator, boost::variant< int, std::string, double >(), ascii::space_type >
+    na qi::rule< Iterator, std::string(), ascii::space_type >
+Volani semantickych akci s qi::_a

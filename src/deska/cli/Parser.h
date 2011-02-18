@@ -303,6 +303,8 @@ private:
 
     std::map< std::string, AttributesParser< Iterator >* > attributesParsers;
 
+    TopLevelParser< Iterator >* topLevelParser;
+
 };
 
 }

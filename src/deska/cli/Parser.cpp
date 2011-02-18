@@ -89,7 +89,7 @@ AttributesParser< Iterator >::AttributesParser(
 
     name = kindName;
 
-    start = +( attributes[ _a = _1 ] > lazy( _a ) );//[ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
+    start = +( attributes[ _a = _1 ] > lazy( _a ) );//FIXME [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
 
     phoenix::function< ErrorHandler< Iterator > > errorHandler = ErrorHandler< Iterator >();
     on_error< fail >( start, errorHandler( _1, _2, _3, _4 ) );
@@ -134,7 +134,7 @@ TopLevelParser< Iterator >::TopLevelParser(): TopLevelParser< Iterator >::base_t
     using qi::on_error;
     using qi::fail;
 
-    start = ( kinds[ _a = _1 ] > lazy( _a ) );//[ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
+    start = ( kinds[ _a = _1 ] > lazy( _a ) );//FIXME [ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
 
     phoenix::function< ErrorHandler< Iterator > > errorHandler = ErrorHandler< Iterator >();
     on_error< fail >( start, errorHandler( _1, _2, _3, _4 ) );
@@ -146,7 +146,7 @@ template < typename Iterator >
 void TopLevelParser< Iterator >::addKind( const std::string &kindName )
 {
     PredefinedRules< Iterator > predefined = PredefinedRules< Iterator >();
-   // kinds.add( kindName, predefined.getRule( "identifier" ) );
+   //FIXME kinds.add( kindName, predefined.getRule( "identifier" ) );
 }
 
 
@@ -165,11 +165,15 @@ Parser< Iterator >::Parser( Api *dbApi )
     m_dbApi = dbApi;
     BOOST_ASSERT( m_dbApi );
 
+    topLevelParser = new TopLevelParser< Iterator >();
+
     //Filling the AttributesParsers map
     std::vector< std::string > kinds = m_dbApi->kindNames();
 
     for( std::vector< std::string >::iterator it = kinds.begin(); it != kinds.end(); ++it )
     {
+        topLevelParser->addKind( *it );
+
         attributesParsers[ *it ] = new AttributesParser< Iterator >( *it );
         addKindAttributes( *it, attributesParsers[ *it ] );
         
@@ -194,6 +198,8 @@ Parser< Iterator >::~Parser()
         it != attributesParsers.end();
         ++it )
         delete it->second;
+
+    delete topLevelParser;
 }
 
 
