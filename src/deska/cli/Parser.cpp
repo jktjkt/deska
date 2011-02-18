@@ -170,8 +170,7 @@ Parser<Iterator>::Parser( Api *dbApi )
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_dbApi->kindNames();
 
-    for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it )
-    {
+    for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         topLevelParser->addKind( *it );
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it );
@@ -179,12 +178,8 @@ Parser<Iterator>::Parser( Api *dbApi )
         
         std::vector<ObjectRelation> relations = m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-        {
             if( itRel->kind == RELATION_MERGE_WITH )
-            {
                 addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
-            }
-        }
     }
 }
 
@@ -237,9 +232,7 @@ void Parser<Iterator>::addKindAttributes(
 
     std::vector<KindAttributeDataType> attributes = m_dbApi->kindAttributes( kindName );
     for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it )
-    {
         attributeParser->addAtrribute( it->name, predefined.getRule( it->type ) );
-    }
 }
 
 
