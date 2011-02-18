@@ -89,7 +89,7 @@ AttributesParser<Iterator>::AttributesParser(
 
     name = kindName;
 
-    start = +( attributes[ _a = _1 ] > lazy( _a ) );//FIXME [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
+    start = +( attributes[ _a = _1 ] > lazy( _a ) );// FIXME [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -146,7 +146,7 @@ template <typename Iterator>
 void TopLevelParser<Iterator>::addKind( const std::string &kindName )
 {
     PredefinedRules<Iterator> predefined = PredefinedRules<Iterator>();
-   //FIXME kinds.add( kindName, predefined.getRule( "identifier" ) );
+   // FIXME kinds.add( kindName, predefined.getRule( "identifier" ) );
 }
 
 
@@ -167,7 +167,7 @@ Parser<Iterator>::Parser( Api *dbApi )
 
     topLevelParser = new TopLevelParser<Iterator>();
 
-    //Filling the AttributesParsers map
+    // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_dbApi->kindNames();
 
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it )
@@ -244,7 +244,7 @@ void Parser<Iterator>::addKindAttributes(
 
 
 
-//TEMPLATE INSTANCES FOR LINKER
+/////////////////////////Template instances for linker//////////////////////////
 
 template void ErrorHandler<std::string::const_iterator>::operator()(
     std::string::const_iterator start,

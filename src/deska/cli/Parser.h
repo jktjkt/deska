@@ -105,7 +105,7 @@ namespace qi = boost::spirit::qi;
 
 
 
-//! @short Class for reporting parsing errors of input
+/** @short Class for reporting parsing errors of input */
 template <typename Iterator>
 class ErrorHandler
 {
@@ -113,7 +113,8 @@ public:
     template <typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error occures. Prints information about the error.
+    /** @short Function executed when some error occures. Prints information about the error
+    *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
@@ -124,17 +125,18 @@ public:
 
 
 
-//! @short Predefined rules for parsing single parameters
+/** @short Predefined rules for parsing single parameters */
 template <typename Iterator>
 class PredefinedRules
 {
 
 public:
 
-    //! @short Fills internal map with predefined rules, that can be used to parse attributes of top-level objects
+    /** @short Fills internal map with predefined rules, that can be used to parse attributes of top-level objects */
     PredefinedRules();
 
-    /** @short Function for getting single rules, that can be used in attributes grammar.
+    /** @short Function for getting single rules, that can be used in attributes grammar
+    *
     *   @param typeName Supported rules are: integer, quoted_string, double, identifier
     *   @return Rule that parses specific type of attribute
     */
@@ -148,7 +150,7 @@ private:
 
 
 
-//! @short Parser for set of attributes of specific top-level grammar.
+/** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
 class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, boost::variant<int, std::string, double>(), ascii::space_type> > >
 {
@@ -156,13 +158,15 @@ class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::loca
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table
+    *
     *   @param kindName Name of top-level object type, to which the attributes belong
     */
     AttributesParser( const std::string &kindName );
 
     /** @short Function used for filling of symbols table of the parser
+    *
     *   @param attributeName Name of the attribute
-    *   @param attributeParser  Attribute parser obtained from PredefinedRules class.
+    *   @param attributeParser  Attribute parser obtained from PredefinedRules class
     *   @see PredefinedRules
     */
     void addAtrribute(
@@ -174,6 +178,7 @@ public:
 private:
 
     /** @short Function used as semantic action for each parsed attribute
+    *
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
@@ -200,17 +205,18 @@ private:
 
 
 
-//! @short Parser for set of attributes of specific top-level grammar.
+/** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
 class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > >
 {
 
 public:
 
-    //! @short Constructor only initializes the grammar with empty symbols table
+    /** @short Constructor only initializes the grammar with empty symbols table */
     TopLevelParser();
 
     /** @short Function used for filling of symbols table of the parser
+    *
     *   @param kindName Name of the kind
     */
     void addKind( const std::string &kindName );
@@ -218,6 +224,7 @@ public:
 private:
 
     /** @short Function used as semantic action for parsed kind
+    *
     *   @param kindName Name of the kind
     *   @param objectName Parsed name of the object
     */
@@ -294,7 +301,7 @@ public:
 
 private:
 
-    //! @short Fills symbols table of specific attribute parser with all attributes of given kind
+    /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
     void addKindAttributes(
         std::string &kindName,
         AttributesParser<Iterator>* attributeParser );
@@ -313,4 +320,4 @@ private:
 
 
 
-#endif  //DESKA_PARSER_H
+#endif  // DESKA_PARSER_H
