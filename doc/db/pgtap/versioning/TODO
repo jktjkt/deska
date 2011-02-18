@@ -1,0 +1,4 @@
+Test twousers fails with : deleting nonexisting data - exception was expected.
+vendor_del('bla') throws exception when vendor with name bla does not exist
+vendor_del('bla') does not throw exception in case vendor with name bla does not exist in production but in vendor_history exists. - I expected same reaction
+
