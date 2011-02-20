@@ -29,7 +29,7 @@ namespace CLI {
 
 
 template <typename Iterator>
-void RangeToString<Iterator>::operator()( boost::iterator_range<Iterator> const& rng, std::string &str ) const
+void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const
 {
     str.assign( rng.begin(), rng.end() );
 }
@@ -82,6 +82,15 @@ qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRul
 }
 
 
+
+template <typename Iterator>
+qi::rule<Iterator, std::string(), ascii::space_type> PredefinedRules<Iterator>::getObjectIdentifier()
+{
+    return objectIdentifier;
+}
+
+
+
 template <typename Iterator>
 AttributesParser<Iterator>::AttributesParser(
     const std::string &kindName ): AttributesParser<Iterator>::base_type( start )
@@ -98,14 +107,11 @@ AttributesParser<Iterator>::AttributesParser(
     using qi::fail;
 
     name = kindName;
-//    this->name( kindName );
+    //this->name( kindName );
 
-    //start = +( ( attributes[ _a = _1 ] > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] ) );
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
     start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ] > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
-        //[ boost::bind( &AttributesParser::parsedAttribute, this, _val ) ] );
-    // FIXME: [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -132,11 +138,9 @@ std::string AttributesParser<Iterator>::getKindName() const
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute( std::string const& parameter, Value value )
-//void AttributesParser<Iterator>::parsedAttribute( boost::tuple< const char*, Value > parameter )
+void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, Value &value )
 {
     std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
-    //std::cout << "Parsed parameter: " << boost::get<0>( parameter ) << "=" << boost::get<1>( parameter ) << std::endl;
 }
 
 
@@ -149,11 +153,16 @@ TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type(
     using qi::_3;
     using qi::_4;
     using qi::_a;
+    using qi::_b;
+    using qi::raw;
     using qi::on_error;
     using qi::fail;
 
+    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
+
     start = ( kinds[ _a = _1 ] > lazy( _a ) );
-    // FIXME: [ boost::bind( &TopLevelParser::parsedKind, this, _a, _1 ) ] );
+
+    start = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ] > lazy( _a )[ phoenix::bind( &TopLevelParser::parsedKind, this, _b, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -165,13 +174,13 @@ template <typename Iterator>
 void TopLevelParser<Iterator>::addKind( const std::string &kindName )
 {
     PredefinedRules<Iterator> predefined = PredefinedRules<Iterator>();
-   // FIXME kinds.add( kindName, predefined.getRule( "identifier" ) );
+    kinds.add( kindName, predefined.getObjectIdentifier() );
 }
 
 
 
 template <typename Iterator>
-void TopLevelParser<Iterator>::parsedKind( const char* kindName, const std::string &objectName )
+void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
     std::cout << "Parsed kind: " << kindName << " " << objectName << std::endl;
 }
@@ -259,13 +268,13 @@ void Parser<Iterator>::addKindAttributes(
 /////////////////////////Template instances for linker//////////////////////////
 
 template void RangeToString<iterator_type>::operator()(
-    boost::iterator_range<iterator_type> const& rng, std::string &str ) const;
+    const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
 
 template void ErrorHandler<iterator_type>::operator()(
     iterator_type start,
     iterator_type end,
     iterator_type errorPos,
-    const spirit::info& what ) const;
+    const spirit::info &what ) const;
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 
@@ -273,6 +282,11 @@ template qi::rule<
     iterator_type,
     Value(),
     ascii::space_type> PredefinedRules<iterator_type>::getRule( const std::string &typeName );
+
+template qi::rule<
+    iterator_type,
+    std::string(),
+    ascii::space_type> PredefinedRules<iterator_type>::getObjectIdentifier();
 
 template AttributesParser<iterator_type>::AttributesParser(
     const std::string &kindName );
@@ -287,17 +301,15 @@ template void AttributesParser<iterator_type>::addAtrribute(
 template std::string AttributesParser<iterator_type>::getKindName() const;
 
 template void AttributesParser<iterator_type>::parsedAttribute(
-    std::string const& parameter,
-    Value value );
-/*template void AttributesParser<iterator_type>::parsedAttribute(
-    boost::tuple< const char*, Value > parameter );*/
+    const std::string &parameter,
+    Value &value );
 
 template TopLevelParser<iterator_type>::TopLevelParser();
 
 template void TopLevelParser<iterator_type>::addKind( const std::string &kindName );
 
 template void TopLevelParser<iterator_type>::parsedKind(
-    const char* kindName,
+    const std::string &kindName,
     const std::string &objectName );
 
 template Parser<iterator_type>::Parser( Api* dbApi );

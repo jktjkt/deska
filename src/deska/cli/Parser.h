@@ -28,7 +28,6 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -106,6 +105,7 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
+
 /** @short Iterator for parser input */
 typedef std::string::const_iterator iterator_type;
 
@@ -118,7 +118,7 @@ public:
     template <typename, typename>
         struct result { typedef void type; };
 
-    void operator()( boost::iterator_range<Iterator> const& rng, std::string &str ) const;
+    void operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const;
 };
 
 
@@ -138,7 +138,7 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const;
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
 };
 
 
@@ -160,9 +160,13 @@ public:
     */
     qi::rule<Iterator, Value(), ascii::space_type> getRule( const std::string &typeName );
 
+    /** @short Function for getting rule used to parse identifier of top-level objects */
+    qi::rule<Iterator, std::string(), ascii::space_type> getObjectIdentifier();
+
 private:
 
     std::map<std::string, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
+    qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
 
 };
 
@@ -200,8 +204,7 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( std::string const& parameter, Value value );
-    //void parsedAttribute( boost::tuple< const char*, Value > parameter );
+    void parsedAttribute( const std::string &parameter, Value &value );
     
 
     qi::symbols<
@@ -214,10 +217,9 @@ private:
     qi::rule<
         Iterator,
         ascii::space_type,
-        qi::locals<qi::rule<
-            Iterator,
-            Value(),
-            ascii::space_type>, std::string> > start;
+        qi::locals<
+            qi::rule<Iterator, Value(), ascii::space_type>,
+            std::string> > start;
 
     std::string name;
 
@@ -227,7 +229,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > >
+class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
 {
 
 public:
@@ -248,7 +250,7 @@ private:
     *   @param kindName Name of the kind
     *   @param objectName Parsed name of the object
     */
-    void parsedKind( const char* kindName, const std::string &objectName );
+    void parsedKind( const std::string &kindName, const std::string &objectName );
 
     qi::symbols<
         char,
@@ -260,10 +262,9 @@ private:
     qi::rule<
         Iterator,
         ascii::space_type,
-        qi::locals<qi::rule<
-            Iterator,
-            std::string(),
-            ascii::space_type> > > start;
+        qi::locals<
+            qi::rule<Iterator, std::string(), ascii::space_type>,
+            std::string> > start;
 };
 
 
