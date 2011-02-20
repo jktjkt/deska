@@ -20,8 +20,6 @@
 * */
 
 #include <vector>
-#include <iostream>
-#include <boost/lambda/lambda.hpp>
 #include <boost/assert.hpp>
 #include "Parser.h"
 
@@ -109,8 +107,7 @@ AttributesParser<Iterator>::AttributesParser(
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
     start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
-        > lazy( _a )[ phoenix::ref( std::cout ) << "Parsed parameter: " << _b << "=" << _1 << "\n" ] ) );
-        //> lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
+        > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
