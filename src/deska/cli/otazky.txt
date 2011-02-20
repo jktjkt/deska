@@ -1,0 +1,1 @@
+myslenka ukazatele na api uvnitr class Parser
