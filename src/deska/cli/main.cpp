@@ -1,24 +1,22 @@
 #include <string>
-#include "Parser.h"
-#include "deska/db/Api.h"
 #include "deska/db/FakeApi.h"
+#include "Parser.h"
+
+
 
 int main()
 {
-    using namespace Deska;
-    using namespace CLI;
+    Deska::FakeApi *dbApi = new Deska::FakeApi();
 
-    FakeApi* dbApi = new FakeApi();
+    dbApi->attrs["hardware"].push_back( Deska::KindAttributeDataType( "id", "integer" ) );
+    dbApi->attrs["hardware"].push_back( Deska::KindAttributeDataType( "name", "quoted_string" ) );
+    dbApi->attrs["hardware"].push_back( Deska::KindAttributeDataType( "price", "double" ) );
+    dbApi->attrs["interface"].push_back( Deska::KindAttributeDataType( "ip", "quoted_string" ) );
+    dbApi->attrs["interface"].push_back( Deska::KindAttributeDataType( "mac", "quoted_string" ) );
+    dbApi->attrs["host"].push_back( Deska::KindAttributeDataType( "hardware", "identifier" ) );
+    dbApi->attrs["host"].push_back( Deska::KindAttributeDataType( "name", "quoted_string" ) );
 
-    dbApi->attrs["hardware"].push_back( KindAttributeDataType( "id", "integer" ) );
-    dbApi->attrs["hardware"].push_back( KindAttributeDataType( "name", "quoted_string" ) );
-    dbApi->attrs["hardware"].push_back( KindAttributeDataType( "price", "double" ) );
-    dbApi->attrs["interface"].push_back( KindAttributeDataType( "ip", "quoted_string" ) );
-    dbApi->attrs["interface"].push_back( KindAttributeDataType( "mac", "quoted_string" ) );
-    dbApi->attrs["host"].push_back( KindAttributeDataType( "hardware", "identifier" ) );
-    dbApi->attrs["host"].push_back( KindAttributeDataType( "name", "quoted_string" ) );
-
-    Parser<iterator_type> parser( dbApi );
+    Deska::CLI::Parser<Deska::CLI::iterator_type> parser( dbApi );
 
     std::string test = "hardware abcde id 123 name \"jmeno\" price 1234.5";
 

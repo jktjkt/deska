@@ -20,6 +20,8 @@
 * */
 
 #include <vector>
+#include <iostream>
+#include <boost/lambda/lambda.hpp>
 #include <boost/assert.hpp>
 #include "Parser.h"
 
@@ -52,25 +54,20 @@ void ErrorHandler<Iterator>::operator()(
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    qi::rule<Iterator, Value(), ascii::space_type> t_int;
-    t_int %= qi::attr( int() ) >> qi::int_;
-    t_int.name( "integer" );
-    rulesMap[ "integer" ] = t_int;
+    rulesMap[ "integer" ] %= qi::attr( int() ) >> qi::int_;
+    rulesMap[ "integer" ].name( "integer" );
    
-    qi::rule<Iterator, Value(), ascii::space_type> t_string;
-    t_string %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
-    t_string.name( "quoted string" );
-    rulesMap[ "quoted_string" ] = t_string;
+    rulesMap[ "quoted_string" ] %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    rulesMap[ "quoted_string" ].name( "quoted string" );
     
-    qi::rule<Iterator, Value(), ascii::space_type> t_double;
-    t_double %= qi::attr( double() ) >> qi::double_;
-    t_double.name( "double" );
-    rulesMap[ "double" ] = t_double;
+    rulesMap[ "double" ] %= qi::attr( double() ) >> qi::double_;
+    rulesMap[ "double" ].name( "double" );
 
-    qi::rule<Iterator, Value(), ascii::space_type> identifier;
-    identifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
-    identifier.name( "identifier (alphanumerical letters and _)" );
-    rulesMap[ "identifier" ] = identifier;
+    rulesMap[ "identifier" ] %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
+    rulesMap[ "identifier" ].name( "identifier (alphanumerical letters and _)" );
+
+    objectIdentifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
+    objectIdentifier.name( "identifier (alphanumerical letters and _)" );
 }
 
 
@@ -78,7 +75,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 template <typename Iterator>
 qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
 {
-    return rulesMap[ typeName ];
+    return rulesMap[ typeName ].alias();
 }
 
 
@@ -86,7 +83,7 @@ qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRul
 template <typename Iterator>
 qi::rule<Iterator, std::string(), ascii::space_type> PredefinedRules<Iterator>::getObjectIdentifier()
 {
-    return objectIdentifier;
+    return objectIdentifier.alias();
 }
 
 
@@ -112,7 +109,8 @@ AttributesParser<Iterator>::AttributesParser(
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
     start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
-        > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
+        > lazy( _a )[ phoenix::ref( std::cout ) << "Parsed parameter: " << _b << "=" << _1 << "\n" ] ) );
+        //> lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -171,10 +169,11 @@ TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type(
 
 
 template <typename Iterator>
-void TopLevelParser<Iterator>::addKind( const std::string &kindName )
+void TopLevelParser<Iterator>::addKind(
+    const std::string &kindName,
+    qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
 {
-    PredefinedRules<Iterator> predefined = PredefinedRules<Iterator>();
-    kinds.add( kindName, predefined.getObjectIdentifier() );
+    kinds.add( kindName, identifierParser );
 }
 
 
@@ -182,8 +181,8 @@ void TopLevelParser<Iterator>::addKind( const std::string &kindName )
 template <typename Iterator>
 void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
-    std::cout << "Parsed kind: " << kindName << " " << objectName << std::endl;
-    kindParsed = objectName;
+    std::cout << "Parsed kind: " << kindName << ": " << objectName << std::endl;
+    kindParsed = kindName;
 }
 
 
@@ -194,13 +193,14 @@ Parser<Iterator>::Parser( Api *dbApi )
     m_dbApi = dbApi;
     BOOST_ASSERT( m_dbApi );
 
+    predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new TopLevelParser<Iterator>();
 
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_dbApi->kindNames();
 
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
-        topLevelParser->addKind( *it );
+        topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it );
         addKindAttributes( *it, attributesParsers[ *it ] );
@@ -225,6 +225,8 @@ Parser<Iterator>::~Parser()
 
     delete topLevelParser;
 
+    delete predefinedRules;
+
     // ????????
     delete m_dbApi;
 }
@@ -237,6 +239,7 @@ void Parser<Iterator>::parseLine( const std::string &line )
     // TODO: Only testing implementation. Reimplement.
     Iterator iter = line.begin();
     Iterator end = line.end();
+    std::cout << "Parse line: " << std::string( iter, end ) << std::endl;
     std::cout << "Parsing top level object..." << std::endl;
     bool r = phrase_parse( iter, end, *topLevelParser, ascii::space );
 
@@ -247,7 +250,7 @@ void Parser<Iterator>::parseLine( const std::string &line )
         else {
             std::cout << "Parsing succeeded. Partial match." << std::endl;
             std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-            std::cout << "Parsing attributes..." << std::endl;
+            std::cout << "Parsing attributes for \"" << kindParsed << "\"..." << std::endl;
             bool r2 = phrase_parse( iter, end, *( attributesParsers[ kindParsed ] ), ascii::space );
             if ( r2 ) {
                 if ( iter == end ) {
@@ -291,11 +294,9 @@ void Parser<Iterator>::addKindAttributes(
     std::string &kindName,
     AttributesParser<Iterator>* attributeParser )
 {
-    PredefinedRules<Iterator> predefined = PredefinedRules<Iterator>();
-
     std::vector<KindAttributeDataType> attributes = m_dbApi->kindAttributes( kindName );
     for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it )
-        attributeParser->addAtrribute( it->name, predefined.getRule( it->type ) );
+        attributeParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
 }
 
 
@@ -341,7 +342,9 @@ template void AttributesParser<iterator_type>::parsedAttribute(
 
 template TopLevelParser<iterator_type>::TopLevelParser();
 
-template void TopLevelParser<iterator_type>::addKind( const std::string &kindName );
+template void TopLevelParser<iterator_type>::addKind(
+    const std::string &kindName,
+    qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
 
 template void TopLevelParser<iterator_type>::parsedKind(
     const std::string &kindName,

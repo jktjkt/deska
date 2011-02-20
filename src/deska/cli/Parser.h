@@ -253,7 +253,7 @@ public:
     *
     *   @param kindName Name of the kind
     */
-    void addKind( const std::string &kindName );
+    void addKind( const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser );
 
 private:
 
@@ -344,6 +344,8 @@ private:
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
 
     TopLevelParser<Iterator>* topLevelParser;
+
+    PredefinedRules<Iterator>* predefinedRules;
 
 };
 
