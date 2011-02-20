@@ -111,6 +111,7 @@ typedef std::string::const_iterator iterator_type;
 
 
 
+/** @short Class used for conversion from boost::iterator_range<class> to std::string */
 template <typename Iterator>
 class RangeToString
 {
@@ -174,7 +175,11 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
+class AttributesParser:
+    public qi::grammar<
+        Iterator,
+        ascii::space_type,
+        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
 {
 
 public:
@@ -221,7 +226,7 @@ private:
             qi::rule<Iterator, Value(), ascii::space_type>,
             std::string> > start;
 
-    std::string name;
+    std::string objectKindName;
 
 };
 
@@ -229,7 +234,11 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
+class TopLevelParser:
+    public qi::grammar<
+        Iterator,
+        ascii::space_type,
+        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
 {
 
 public:

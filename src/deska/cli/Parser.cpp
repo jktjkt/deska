@@ -106,12 +106,13 @@ AttributesParser<Iterator>::AttributesParser(
     using qi::on_error;
     using qi::fail;
 
-    name = kindName;
+    objectKindName = kindName;
     //this->name( kindName );
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ] > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
+    start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
+        > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
@@ -132,7 +133,7 @@ void AttributesParser<Iterator>::addAtrribute(
 template <typename Iterator>
 std::string AttributesParser<Iterator>::getKindName() const
 {
-   return name;
+   return objectKindName;
 }
 
 
@@ -160,9 +161,8 @@ TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type(
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = ( kinds[ _a = _1 ] > lazy( _a ) );
-
-    start = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ] > lazy( _a )[ phoenix::bind( &TopLevelParser::parsedKind, this, _b, _1 ) ] );
+    start = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ]
+        > lazy( _a )[ phoenix::bind( &TopLevelParser::parsedKind, this, _b, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
     on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
