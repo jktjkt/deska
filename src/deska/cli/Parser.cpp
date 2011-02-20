@@ -29,6 +29,13 @@ namespace CLI {
 
 
 template <typename Iterator>
+void RangeToString<Iterator>::operator()( boost::iterator_range<Iterator> const& rng, std::string &str ) const
+{
+    str.assign( rng.begin(), rng.end() );
+}
+
+
+template <typename Iterator>
 void ErrorHandler<Iterator>::operator()(
     Iterator start,
     Iterator end,
@@ -84,12 +91,20 @@ AttributesParser<Iterator>::AttributesParser(
     using qi::_3;
     using qi::_4;
     using qi::_a;
+    using qi::_b;
+    using qi::_val;
+    using qi::raw;
     using qi::on_error;
     using qi::fail;
 
     name = kindName;
+//    this->name( kindName );
 
-    start = +( attributes[ _a = _1 ] > lazy( _a ) );
+    //start = +( ( attributes[ _a = _1 ] > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] ) );
+    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
+
+    start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ] > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
+        //[ boost::bind( &AttributesParser::parsedAttribute, this, _val ) ] );
     // FIXME: [ boost::bind( &AttributesParser::parsedAttribute, this, _a, _1 ) ] );
 
     phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
@@ -117,9 +132,11 @@ std::string AttributesParser<Iterator>::getKindName() const
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute( const char* parameter, Value value )
+void AttributesParser<Iterator>::parsedAttribute( std::string const& parameter, Value value )
+//void AttributesParser<Iterator>::parsedAttribute( boost::tuple< const char*, Value > parameter )
 {
     std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
+    //std::cout << "Parsed parameter: " << boost::get<0>( parameter ) << "=" << boost::get<1>( parameter ) << std::endl;
 }
 
 
@@ -241,6 +258,9 @@ void Parser<Iterator>::addKindAttributes(
 
 /////////////////////////Template instances for linker//////////////////////////
 
+template void RangeToString<iterator_type>::operator()(
+    boost::iterator_range<iterator_type> const& rng, std::string &str ) const;
+
 template void ErrorHandler<iterator_type>::operator()(
     iterator_type start,
     iterator_type end,
@@ -267,8 +287,10 @@ template void AttributesParser<iterator_type>::addAtrribute(
 template std::string AttributesParser<iterator_type>::getKindName() const;
 
 template void AttributesParser<iterator_type>::parsedAttribute(
-    const char* parameter,
+    std::string const& parameter,
     Value value );
+/*template void AttributesParser<iterator_type>::parsedAttribute(
+    boost::tuple< const char*, Value > parameter );*/
 
 template TopLevelParser<iterator_type>::TopLevelParser();
 

@@ -28,10 +28,12 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "deska/db/Api.h"
 
@@ -108,6 +110,19 @@ namespace qi = boost::spirit::qi;
 typedef std::string::const_iterator iterator_type;
 
 
+
+template <typename Iterator>
+class RangeToString
+{
+public:
+    template <typename, typename>
+        struct result { typedef void type; };
+
+    void operator()( boost::iterator_range<Iterator> const& rng, std::string &str ) const;
+};
+
+
+
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
 class ErrorHandler
@@ -155,7 +170,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type> > >
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
 {
 
 public:
@@ -185,7 +200,9 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const char* parameter, Value value );
+    void parsedAttribute( std::string const& parameter, Value value );
+    //void parsedAttribute( boost::tuple< const char*, Value > parameter );
+    
 
     qi::symbols<
         char,
@@ -200,7 +217,7 @@ private:
         qi::locals<qi::rule<
             Iterator,
             Value(),
-            ascii::space_type> > > start;
+            ascii::space_type>, std::string> > start;
 
     std::string name;
 
