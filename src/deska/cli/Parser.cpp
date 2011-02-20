@@ -107,7 +107,7 @@ AttributesParser<Iterator>::AttributesParser(
     using qi::fail;
 
     objectKindName = kindName;
-    //this->name( kindName );
+    this->name( kindName );
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
