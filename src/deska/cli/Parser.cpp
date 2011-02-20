@@ -183,6 +183,7 @@ template <typename Iterator>
 void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
     std::cout << "Parsed kind: " << kindName << " " << objectName << std::endl;
+    kindParsed = objectName;
 }
 
 
@@ -223,6 +224,9 @@ Parser<Iterator>::~Parser()
         delete it->second;
 
     delete topLevelParser;
+
+    // ????????
+    delete m_dbApi;
 }
 
 
@@ -230,7 +234,38 @@ Parser<Iterator>::~Parser()
 template <typename Iterator>
 void Parser<Iterator>::parseLine( const std::string &line )
 {
-    // FIXME: implement me
+    // TODO: Only testing implementation. Reimplement.
+    Iterator iter = line.begin();
+    Iterator end = line.end();
+    std::cout << "Parsing top level object..." << std::endl;
+    bool r = phrase_parse( iter, end, *topLevelParser, ascii::space );
+
+    if ( r ) {
+        if ( iter == end ) {
+            std::cout << "Parsing succeeded. Full match." << std::endl;
+        }
+        else {
+            std::cout << "Parsing succeeded. Partial match." << std::endl;
+            std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
+            std::cout << "Parsing attributes..." << std::endl;
+            bool r2 = phrase_parse( iter, end, *( attributesParsers[ kindParsed ] ), ascii::space );
+            if ( r2 ) {
+                if ( iter == end ) {
+                    std::cout << "Parsing succeeded. Full match." << std::endl;
+                }
+                else {
+                    std::cout << "Parsing succeeded. Partial match." << std::endl;
+                    std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
+                }
+            }
+            else {
+                std::cout << "Parsing failed." << std::endl;
+            }
+        }
+    }
+    else {
+        std::cout << "Parsing failed." << std::endl;
+    }
 }
 
 

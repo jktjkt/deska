@@ -105,6 +105,9 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
+// TODO: Only for testing. Delete this.
+static std::string kindParsed;
+
 
 /** @short Iterator for parser input */
 typedef std::string::const_iterator iterator_type;
