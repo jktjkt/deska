@@ -44,6 +44,7 @@ Ukoly na priste:
 - Tomas: implementovat signaly
 - Tomas: implementovat kontext, jak drzeni informace o tom, kde jsem, tak povolovani
   ruznych atributut atd atd
+- Honza: enum pro Api::Type
 - Honza: vic testu
 - Honza: d-pointer pro Parser
 - Honza: mergnout Tomasovo branch + ucesat
