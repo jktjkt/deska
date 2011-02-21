@@ -1,0 +1,58 @@
+Schuze Deska, 2011-02-21 FZU
+----------------------------
+
+Pritomni: Honza, Tomas, Lukas
+Predem omluveni: Martina
+
+Ukoly z minula:
+---------------
+
+- Lukas: verzovani pres vice ruznych tabulek
+    - rozpracovano, delal na jinych veceh
+- Martina: reprodukovatelne testy (=spustitelny skript)
+    - je? mailem nic neprislo
+- Honza: clanek na CHEP
+    - je
+- Honza: vyhozeni spirit-specific veci + definice metod, co budou od Parseru
+  skutecne potreba, + dokumentace
+    - je
+- Honza: testovani
+    - je
+- Honza: v pripade zbytku casu protokol, JSON,...
+    - neni
+- Tomas; *gcc prelozitelne* pouzitit spiritu pro implementaci funkci od Honzy,
+  tento ukol ma vyssi prioritu nez jine ukoly
+    - je, neni napojene na signaly, neimplementuej API, nema stack (=nedrzi si
+    kontext,...), ale i tak je to pekny progress :)
+- Tomas: error reporting od Spiritu
+    - nefunguje pojmenovani pravidel
+- Tomas: vytahovani vyparsovanych informaci
+    - je
+
+Diskuse:
+-------
+
+Jak se ma pristupovat k historii objektu, prerusuje ji smazani? Da se povolit
+smazani & vytvoreni tehoz objektu v jedne relaci?
+
+Unikatnost zanorovanych jmen, bude to resit jenom CLI, nebo DB sama?
+
+Ukoly na priste:
+----------------
+
+- Tomas: getRule nema vracet defaultne zkontruovanou instanci pri nenalezenem klici
+- Tomas: implementovat signaly
+- Tomas: implementovat kontext, jak drzeni informace o tom, kde jsem, tak povolovani
+  ruznych atributut atd atd
+- Honza: vic testu
+- Honza: d-pointer pro Parser
+- Honza: mergnout Tomasovo branch + ucesat
+- Honza: protokol, JSON,...
+- Lukas: jak pristupovat k jmenum EMBED_INTO objektu
+- Lukas: vyklikat hodiny za minuly tyden
+- Martina je na malinach
+
+Pristi schuzka:
+---------------
+
+28. unora 2010, FZU (cas upresnime podle rozvrhu)
