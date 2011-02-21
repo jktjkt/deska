@@ -59,7 +59,6 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[ "integer" ].name( "integer" );
    
     rulesMap[ "quoted_string" ] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
-        //[ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[ "quoted_string" ].name( "quoted string" );
     
     rulesMap[ "double" ] = qi::double_
@@ -67,7 +66,6 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[ "double" ].name( "double" );
 
     rulesMap[ "identifier" ] %= qi::lexeme[ *( ascii::alnum | '_' ) ];
-        //[ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[ "identifier" ].name( "identifier (alphanumerical letters and _)" );
 
     objectIdentifier %= qi::lexeme[ *( ascii::alnum | '_' ) ];
