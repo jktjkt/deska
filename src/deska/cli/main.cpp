@@ -6,7 +6,6 @@
 
 int main()
 {
-    /* FIXME: undefined reference to `Deska::FakeApi::FakeApi()' in gcc
     using namespace Deska;
 
     FakeApi *fake = new FakeApi();
@@ -21,14 +20,16 @@ int main()
 
     Deska::CLI::Parser<CLI::iterator_type> parser( fake );
 
-    std::string test = "hardware abcde id 123 name \"jmeno\" price 1234.5";
-
+    std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
-    */
+
+    std::cout << std::endl;
+
+    test = "hardware abcde id xx name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
     
     /*
-    while ( getline( std::cin, str ) )
-    {
+    while ( getline( std::cin, str ) ) {
         if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )
             break;
         
