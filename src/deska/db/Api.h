@@ -30,8 +30,6 @@
 /*
  * TODO items for the DB API:
  *
- * - Decide on proper Value data type -- boost::variant?
- * - Good representation of the Type thing -- enum?
  * - Think about how to retrieve older revisions from the DB (is the default Revision=0
  *   enough/suitable?)
  * - Exceptions -- current idea is that all Deska::Api operations throw an exception upon any error
