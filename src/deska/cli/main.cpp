@@ -37,5 +37,7 @@ int main()
     }
     */
 
+    delete fake;
+
     return 0;
 }
