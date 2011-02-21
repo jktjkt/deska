@@ -229,9 +229,6 @@ Parser<Iterator>::~Parser()
     delete topLevelParser;
 
     delete predefinedRules;
-
-    // ????????
-    delete m_dbApi;
 }
 
 
