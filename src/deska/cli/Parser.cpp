@@ -19,7 +19,6 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <vector>
 #include <boost/assert.hpp>
 #include "Parser.h"
 
