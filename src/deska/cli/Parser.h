@@ -22,10 +22,20 @@
 #ifndef DESKA_PARSER_H
 #define DESKA_PARSER_H
 
+
 #include <string>
+#include <map>
+
 #include <boost/noncopyable.hpp>
-#include <boost/signal.hpp>
+#include <boost/signals2.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
+
 #include "deska/db/Api.h"
+
 
 namespace Deska {
 namespace CLI {
@@ -87,57 +97,256 @@ And another example, showing that it's possible to set multiple attributes at on
              +-- (1) categoryEntered("host", "hpv2")
 
 */
+
+
+namespace spirit = boost::spirit;
+namespace phoenix = boost::phoenix;
+namespace ascii = boost::spirit::ascii;
+namespace qi = boost::spirit::qi;
+
+
+// TODO: Only for testing. Delete this.
+static std::string kindParsed;
+
+
+/** @short Iterator for parser input */
+typedef std::string::const_iterator iterator_type;
+
+
+
+/** @short Class used for conversion from boost::iterator_range<class> to std::string */
+template <typename Iterator>
+class RangeToString
+{
+public:
+    template <typename, typename>
+        struct result { typedef void type; };
+
+    void operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const;
+};
+
+
+
+/** @short Class for reporting parsing errors of input */
+template <typename Iterator>
+class ErrorHandler
+{
+public:
+    template <typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error occures. Prints information about the error
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
+};
+
+
+
+/** @short Predefined rules for parsing single parameters */
+template <typename Iterator>
+class PredefinedRules
+{
+
+public:
+
+    /** @short Fills internal map with predefined rules, that can be used to parse attributes of top-level objects */
+    PredefinedRules();
+
+    /** @short Function for getting single rules, that can be used in attributes grammar
+    *
+    *   @param typeName Supported rules are: integer, quoted_string, double, identifier
+    *   @return Rule that parses specific type of attribute
+    */
+    qi::rule<Iterator, Value(), ascii::space_type> getRule( const std::string &typeName );
+
+    /** @short Function for getting rule used to parse identifier of top-level objects */
+    qi::rule<Iterator, std::string(), ascii::space_type> getObjectIdentifier();
+
+private:
+
+    std::map<std::string, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
+    qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
+
+};
+
+
+
+/** @short Parser for set of attributes of specific top-level grammar */
+template <typename Iterator>
+class AttributesParser:
+    public qi::grammar<
+        Iterator,
+        ascii::space_type,
+        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
+{
+
+public:
+
+    /** @short Constructor only initializes the grammar with empty symbols table
+    *
+    *   @param kindName Name of top-level object type, to which the attributes belong
+    */
+    AttributesParser( const std::string &kindName );
+
+    /** @short Function used for filling of symbols table of the parser
+    *
+    *   @param attributeName Name of the attribute
+    *   @param attributeParser  Attribute parser obtained from PredefinedRules class
+    *   @see PredefinedRules
+    */
+    void addAtrribute(
+        const std::string &attributeName,
+        qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
+    
+    std::string getKindName() const;
+
+private:
+
+    /** @short Function used as semantic action for each parsed attribute
+    *
+    *   @param parameter Name of the attribute
+    *   @param value Parsed value of the attribute
+    */
+    void parsedAttribute( const std::string &parameter, Value &value );
+    
+
+    qi::symbols<
+        char,
+        qi::rule<
+            Iterator,
+            Value(),
+            ascii::space_type> > attributes;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
+        qi::locals<
+            qi::rule<Iterator, Value(), ascii::space_type>,
+            std::string> > start;
+
+    std::string objectKindName;
+
+};
+
+
+
+/** @short Parser for set of attributes of specific top-level grammar */
+template <typename Iterator>
+class TopLevelParser:
+    public qi::grammar<
+        Iterator,
+        ascii::space_type,
+        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
+{
+
+public:
+
+    /** @short Constructor only initializes the grammar with empty symbols table */
+    TopLevelParser();
+
+    /** @short Function used for filling of symbols table of the parser
+    *
+    *   @param kindName Name of the kind
+    */
+    void addKind( const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser );
+
+private:
+
+    /** @short Function used as semantic action for parsed kind
+    *
+    *   @param kindName Name of the kind
+    *   @param objectName Parsed name of the object
+    */
+    void parsedKind( const std::string &kindName, const std::string &objectName );
+
+    qi::symbols<
+        char,
+        qi::rule<
+            Iterator,
+            std::string(),
+            ascii::space_type> > kinds;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
+        qi::locals<
+            qi::rule<Iterator, std::string(), ascii::space_type>,
+            std::string> > start;
+};
+
+
+
+template <typename Iterator>
 class Parser: boost::noncopyable
 {
 public:
     /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
-    Parser( Api* dbApi);
+    Parser( Api* dbApi );
+
     virtual ~Parser();
 
     /** @short Parse a full line of user's input
-
-As a result of this parsing, events could get triggered and the state may change.
- */
-    void parseLine(const std::string &line);
+    *
+    *   As a result of this parsing, events could get triggered and the state may change.
+    */
+    void parseLine( const std::string &line );
 
     /** @short The input indicates that the following signals will be related to a particular object
-
-This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
-reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
-and the second one is the object's identifier ("hpv2").
-*/
-    boost::signal<void (const Identifier &kind, const Identifier &name)> categoryEntered;
+    *
+    *   This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
+    *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
+    *   and the second one is the object's identifier ("hpv2").
+    */
+    boost::signals2::signal<void ( const Identifier &kind, const Identifier &name )> categoryEntered;
 
     /** @short Leaving a context
-
-The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
-"end" line, or a side effect of a standalone, self-contained line.
-*/
-    boost::signal<void ()> categoryLeft;
+    *
+    *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
+    *   "end" line, or a side effect of a standalone, self-contained line.
+    */
+    boost::signals2::signal<void ()> categoryLeft;
 
     /** @short Set an object's attribute
-
-This signal is triggered whenever an attribute definition is encountered. The first argument is the name
-of the attribute and the second one the attribute value.
- */
-    boost::signal<void (const Identifier &name, const Value &value)> attributeSet;
+    *
+    *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
+    *   of the attribute and the second one the attribute value.
+    */
+    boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
 
     /** @short True if the parser is currently nested in some block
-
-The return value is false iff the currentContextStack() would return an empty vector.
-*/
+    *
+    *   The return value is false iff the currentContextStack() would return an empty vector.
+    */
     bool isNestedInContext() const;
 
     /** @short Return current nesting of the contexts
-
-The return value is a vector of items where each item indicates one level of context nesting. The first member
-of the pair represents the object kind and the second one contains the object's identifier.
-*/
-    std::vector<std::pair<Identifier,Identifier> > currentContextStack() const;
+    *
+    *   The return value is a vector of items where each item indicates one level of context nesting. The first member
+    *   of the pair represents the object kind and the second one contains the object's identifier.
+    */
+    std::vector<AttributeDefinition> currentContextStack() const;
 
 
 private:
+
+    /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
+    void addKindAttributes(
+        std::string &kindName,
+        AttributesParser<Iterator>* attributeParser );
+
     Api *m_dbApi;
+
+    std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
+
+    TopLevelParser<Iterator>* topLevelParser;
+
+    PredefinedRules<Iterator>* predefinedRules;
+
 };
 
 }
@@ -146,4 +355,4 @@ private:
 
 
 
-#endif  //DESKA_PARSER_H
+#endif  // DESKA_PARSER_H

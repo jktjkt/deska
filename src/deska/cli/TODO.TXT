@@ -1,0 +1,2 @@
+Correctness of merged attributes filling to attributesParser
+Rule naming for error reporting

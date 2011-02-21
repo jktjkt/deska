@@ -48,7 +48,7 @@ namespace Deska {
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-typedef boost::variant<int,double,std::string> Value;
+typedef boost::variant<std::string,double,int> Value;
 
 /** @short Type of an object's attribute */
 typedef enum {
@@ -64,6 +64,9 @@ typedef enum {
 
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
+
+/** @short Typedef for attribute-value pairs */
+typedef std::pair<Identifier, Identifier> AttributeDefinition;
 
 /** @short An identification of a persistent revision in the DB */
 typedef unsigned int Revision;
