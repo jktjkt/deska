@@ -22,7 +22,7 @@
 #include <queue>
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
-#include <boost/signals/trackable.hpp>
+#include <boost/signals2/trackable.hpp>
 #include <boost/bind.hpp>
 
 #include "deska/db/FakeApi.h"
@@ -107,7 +107,7 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
     return out;
 }
 
-struct F: public boost::signals::trackable
+struct F: public boost::signals2::trackable
 {
     F()
     {
