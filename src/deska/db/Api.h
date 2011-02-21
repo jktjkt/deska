@@ -48,7 +48,7 @@ namespace Deska {
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-typedef boost::variant<int,double,std::string> Value;
+typedef boost::variant<std::string,double,int> Value;
 
 typedef std::string Type; // FIXME: something like an extensible enum?
 
