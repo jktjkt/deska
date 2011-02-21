@@ -48,7 +48,7 @@ add_library(DeskaDb ${libDeskaDb_SRCS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
-target_link_libraries(deska-cli-parser-demo DeskaCliParser)
+target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
 
 target_link_libraries(DeskaCliParser boost_signals)
 
