@@ -159,17 +159,17 @@ public:
 
     /** @short Function for getting single rules, that can be used in attributes grammar
     *
-    *   @param typeName Supported rules are: integer, quoted_string, double, identifier
+    *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    qi::rule<Iterator, Value(), ascii::space_type> getRule( const std::string &typeName );
+    qi::rule<Iterator, Value(), ascii::space_type> getRule(const Type attrType);
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
     qi::rule<Iterator, std::string(), ascii::space_type> getObjectIdentifier();
 
 private:
 
-    std::map<std::string, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
+    std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
     qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
 
 };

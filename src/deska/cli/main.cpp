@@ -10,13 +10,13 @@ int main()
 
     FakeApi *fake = new FakeApi();
 
-    fake->attrs["hardware"].push_back( KindAttributeDataType( "id", "integer" ) );
-    fake->attrs["hardware"].push_back( KindAttributeDataType( "name", "quoted_string" ) );
-    fake->attrs["hardware"].push_back( KindAttributeDataType( "price", "double" ) );
-    fake->attrs["interface"].push_back( KindAttributeDataType( "ip", "quoted_string" ) );
-    fake->attrs["interface"].push_back( KindAttributeDataType( "mac", "quoted_string" ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "hardware", "identifier" ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "name", "quoted_string" ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
 
     Deska::CLI::Parser<CLI::iterator_type> parser( fake );
 

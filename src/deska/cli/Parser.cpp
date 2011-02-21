@@ -54,19 +54,20 @@ void ErrorHandler<Iterator>::operator()(
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    rulesMap[ "integer" ] = qi::int_
+    rulesMap[TYPE_INT] = qi::int_
         [ qi::_val = phoenix::static_cast_<int>( qi::_1 ) ];
-    rulesMap[ "integer" ].name( "integer" );
+    rulesMap[TYPE_INT].name( "integer" );
    
-    rulesMap[ "quoted_string" ] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
-    rulesMap[ "quoted_string" ].name( "quoted string" );
+    // FIXME: consider allowing trivial words without quotes
+    rulesMap[TYPE_STRING] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    rulesMap[TYPE_STRING].name( "quoted string" );
     
-    rulesMap[ "double" ] = qi::double_
+    rulesMap[TYPE_DOUBLE] = qi::double_
         [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
-    rulesMap[ "double" ].name( "double" );
+    rulesMap[TYPE_DOUBLE].name( "double" );
 
-    rulesMap[ "identifier" ] %= qi::lexeme[ *( ascii::alnum | '_' ) ];
-    rulesMap[ "identifier" ].name( "identifier (alphanumerical letters and _)" );
+    rulesMap[TYPE_IDENTIFIER] %= qi::lexeme[ *( ascii::alnum | '_' ) ];
+    rulesMap[TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
     objectIdentifier %= qi::lexeme[ *( ascii::alnum | '_' ) ];
     objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
@@ -75,9 +76,9 @@ PredefinedRules<Iterator>::PredefinedRules()
 
 
 template <typename Iterator>
-qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRule( const std::string &typeName )
+qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRule(const Type attrType)
 {
-    return rulesMap[ typeName ].alias();
+    return rulesMap[ attrType ].alias();
 }
 
 
@@ -315,7 +316,7 @@ template PredefinedRules<iterator_type>::PredefinedRules();
 template qi::rule<
     iterator_type,
     Value(),
-    ascii::space_type> PredefinedRules<iterator_type>::getRule( const std::string &typeName );
+    ascii::space_type> PredefinedRules<iterator_type>::getRule(const Type attrType);
 
 template qi::rule<
     iterator_type,
