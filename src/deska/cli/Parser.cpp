@@ -35,6 +35,7 @@ void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> 
 }
 
 
+
 template <typename Iterator>
 void ErrorHandler<Iterator>::operator()(
     Iterator start,
@@ -49,23 +50,28 @@ void ErrorHandler<Iterator>::operator()(
 }
 
 
+
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    rulesMap[ "integer" ] %= qi::attr( int() ) >> qi::int_;
+    rulesMap[ "integer" ] = qi::int_
+        [ qi::_val = phoenix::static_cast_<int>( qi::_1 ) ];
     rulesMap[ "integer" ].name( "integer" );
    
-    rulesMap[ "quoted_string" ] %= qi::attr( std::string() ) >> qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    rulesMap[ "quoted_string" ] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+        //[ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[ "quoted_string" ].name( "quoted string" );
     
-    rulesMap[ "double" ] %= qi::attr( double() ) >> qi::double_;
+    rulesMap[ "double" ] = qi::double_
+        [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
     rulesMap[ "double" ].name( "double" );
 
-    rulesMap[ "identifier" ] %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
+    rulesMap[ "identifier" ] %= qi::lexeme[ *( ascii::alnum | '_' ) ];
+        //[ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[ "identifier" ].name( "identifier (alphanumerical letters and _)" );
 
-    objectIdentifier %= qi::attr( std::string() ) >> qi::lexeme[ *( ascii::alnum | '_' ) ];
-    objectIdentifier.name( "identifier (alphanumerical letters and _)" );
+    objectIdentifier %= qi::lexeme[ *( ascii::alnum | '_' ) ];
+    objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
 }
 
 
