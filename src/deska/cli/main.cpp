@@ -6,7 +6,6 @@
 
 int main()
 {
-    /* FIXME: undefined reference to `Deska::FakeApi::FakeApi()' in gcc
     using namespace Deska;
 
     FakeApi *fake = new FakeApi();
@@ -24,7 +23,6 @@ int main()
     std::string test = "hardware abcde id 123 name \"jmeno\" price 1234.5";
 
     parser.parseLine( test );
-    */
     
     /*
     while ( getline( std::cin, str ) )
