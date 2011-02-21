@@ -113,13 +113,13 @@ struct F: public boost::signals::trackable
     {
         using namespace Deska;
         Deska::FakeApi *fake = new FakeApi();
-        fake->attrs["hardware"].push_back( KindAttributeDataType( "id", "integer" ) );
-        fake->attrs["hardware"].push_back( KindAttributeDataType( "name", "string" ) );
-        fake->attrs["hardware"].push_back( KindAttributeDataType( "price", "integer" ) );
-        fake->attrs["interface"].push_back( KindAttributeDataType( "ip", "string" ) );
-        fake->attrs["interface"].push_back( KindAttributeDataType( "mac", "string" ) );
-        fake->attrs["host"].push_back( KindAttributeDataType( "hardware", "identifier" ) );
-        fake->attrs["host"].push_back( KindAttributeDataType( "name", "string" ) );
+        fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
+        fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+        fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_INT ) );
+        fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
+        fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
+        fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
+        fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
 
         fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
         db = fake;

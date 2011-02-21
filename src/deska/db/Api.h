@@ -50,7 +50,17 @@ namespace Deska {
  * */
 typedef boost::variant<int,double,std::string> Value;
 
-typedef std::string Type; // FIXME: something like an extensible enum?
+/** @short Type of an object's attribute */
+typedef enum {
+    /** @short An identifier */
+    TYPE_IDENTIFIER,
+    /** @short A string of any form */
+    TYPE_STRING,
+    /** @short Integer */
+    TYPE_INT,
+    /** @short Double */
+    TYPE_DOUBLE
+} Type;
 
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
