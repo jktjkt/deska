@@ -130,7 +130,7 @@ struct F: public boost::signals2::trackable
     }
 
     /** @short Connect Parser's signals to slots in F */
-    void connectSignalsFromParser(Deska::CLI::Parser< std::string::const_iterator > &parser)
+    void connectSignalsFromParser(Deska::CLI::Parser &parser)
     {
         parser.categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
         parser.categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
@@ -229,7 +229,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_objects, 4)
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
 {
-    Deska::CLI::Parser< std::string::const_iterator > parser(db);
+    Deska::CLI::Parser parser(db);
     connectSignalsFromParser(parser);
 
     // start a new context

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include "deska/db/FakeApi.h"
 #include "Parser.h"
@@ -18,7 +19,7 @@ int main()
     fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
 
-    Deska::CLI::Parser<CLI::iterator_type> parser( fake );
+    Deska::CLI::Parser parser( fake );
 
     std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
