@@ -1,2 +1,0 @@
-myslenka ukazatele na api uvnitr class Parser
-using namespace std??
