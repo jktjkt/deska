@@ -202,7 +202,7 @@ public:
     void addAtrribute(
         const std::string &attributeName,
         qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
-    
+
     std::string getKindName() const;
 
 private:
@@ -213,7 +213,7 @@ private:
     *   @param value Parsed value of the attribute
     */
     void parsedAttribute( const std::string &parameter, Value &value );
-    
+
 
     qi::symbols<
         char,

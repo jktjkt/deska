@@ -56,11 +56,11 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[TYPE_INT] = qi::int_
         [ qi::_val = phoenix::static_cast_<int>( qi::_1 ) ];
     rulesMap[TYPE_INT].name( "integer" );
-   
+
     // FIXME: consider allowing trivial words without quotes
     rulesMap[TYPE_STRING] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
     rulesMap[TYPE_STRING].name( "quoted string" );
-    
+
     rulesMap[TYPE_DOUBLE] = qi::double_
         [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
     rulesMap[TYPE_DOUBLE].name( "double" );
@@ -93,7 +93,7 @@ qi::rule<Iterator, std::string(), ascii::space_type> PredefinedRules<Iterator>::
 template <typename Iterator>
 AttributesParser<Iterator>::AttributesParser(
     const std::string &kindName ): AttributesParser<Iterator>::base_type( start )
-{ 
+{
     using qi::_1;
     using qi::_2;
     using qi::_3;
@@ -147,7 +147,7 @@ void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, 
 
 template <typename Iterator>
 TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type( start )
-{ 
+{
     using qi::_1;
     using qi::_2;
     using qi::_3;
@@ -205,7 +205,7 @@ Parser<Iterator>::Parser( Api *dbApi )
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it );
         addKindAttributes( *it, attributesParsers[ *it ] );
-        
+
         std::vector<ObjectRelation> relations = m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
             if( itRel->kind == RELATION_MERGE_WITH )
