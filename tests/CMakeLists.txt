@@ -22,10 +22,10 @@ set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
 macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
+    add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} DeskaCliParser DeskaDb)
+    target_link_libraries(test_${fname} DeskaCliParser DeskaDb boost_unit_test_framework)
     add_test(test_${fname} test_${fname})
 endmacro(deska_test)
 
-deska_test(trivial-ok)
 deska_test(parser-top-level-objects)

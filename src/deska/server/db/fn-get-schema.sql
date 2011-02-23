@@ -120,24 +120,23 @@ RETURNS SETOF kind_relation
 AS $$
 DECLARE
 BEGIN
-	RETURN QUERY 
-		EXECUTE 'SELECT 
-				CASE 
-				WHEN conname LIKE ''rmerge_%'' THEN ''MERGE''
-				WHEN conname LIKE ''rtempl_%'' THEN ''TEMPLATE''
-				WHEN conname LIKE ''rembed_%'' THEN ''EMBED''				
-				ELSE ''INVALID''
-				END,
-				concat_atts_name(class1.oid, constr.conkey),
-				class2.relname, concat_atts_name(class2.oid, constr.confkey)
+	RETURN QUERY SELECT 
+			CASE 
+				WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
+				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATE'
+				WHEN conname LIKE 'rembed_%' THEN 'EMBED'
+				ELSE 'INVALID'
+			END,
+			concat_atts_name(class1.oid, constr.conkey),
+			class2.relname, concat_atts_name(class2.oid, constr.confkey)
 			FROM	pg_constraint AS constr
 				--join with TABLE which the contraint is ON
 				join pg_class AS class1 ON (constr.conrelid = class1.oid)	
 				--join with referenced TABLE
 				join pg_class AS class2 ON (constr.confrelid = class2.oid)
-			WHERE contype=''f'' AND class1.relname = $1'			
-		USING kindname;
+			WHERE contype='f' AND class1.relname = kindname;
 END
 $$
 LANGUAGE plpgsql;
+
 

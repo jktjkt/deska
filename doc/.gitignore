@@ -1,0 +1,9 @@
+# latex stuff
+*.aux
+*.dvi
+*.log
+*.toc
+*.bbl
+*.blg
+*.pdf
+*.out

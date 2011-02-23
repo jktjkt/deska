@@ -38,6 +38,7 @@ set(libDeskaDb_SRCS
 
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
 )
 
 set(deskaCliParserDemo_SRCS
@@ -48,7 +49,7 @@ add_library(DeskaDb ${libDeskaDb_SRCS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
-target_link_libraries(deska-cli-parser-demo DeskaCliParser)
+target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
 
 enable_testing()
 add_subdirectory(tests)
