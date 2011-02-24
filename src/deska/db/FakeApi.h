@@ -27,7 +27,8 @@
 namespace Deska {
 
 /** @short A fake implementation of the DB API for testing purposes */
-class FakeApi: public Api {
+class FakeApi: public Api
+{
 public:
     FakeApi();
     virtual ~FakeApi();

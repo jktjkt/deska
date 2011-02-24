@@ -86,7 +86,7 @@ public:
     *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    const qi::rule<Iterator, Value(), ascii::space_type>& getRule(const Type attrType);
+    const qi::rule<Iterator, Value(), ascii::space_type>& getRule( const Type attrType );
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
     const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
@@ -106,7 +106,7 @@ class AttributesParser:
     public qi::grammar<
         Iterator,
         ascii::space_type,
-        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
+        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string> >
 {
 
 public:
@@ -165,7 +165,7 @@ class TopLevelParser:
     public qi::grammar<
         Iterator,
         ascii::space_type,
-        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
+        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string> >
 {
 
 public:
