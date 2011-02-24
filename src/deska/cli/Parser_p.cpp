@@ -77,7 +77,11 @@ PredefinedRules<Iterator>::PredefinedRules()
 template <typename Iterator>
 const qi::rule<Iterator, Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule(const Type attrType)
 {
-    return rulesMap[ attrType ];
+    std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
+    if ( it == rulesMap.end() )
+        throw 123;
+    else
+        return it->second;
 }
 
 
