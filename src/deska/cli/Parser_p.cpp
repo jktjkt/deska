@@ -193,7 +193,7 @@ void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const st
 
 
 template <typename Iterator>
-ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
+ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 {
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new TopLevelParser<Iterator>();
