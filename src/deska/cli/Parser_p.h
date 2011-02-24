@@ -86,10 +86,10 @@ public:
     *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    qi::rule<Iterator, Value(), ascii::space_type> getRule(const Type attrType);
+    const qi::rule<Iterator, Value(), ascii::space_type>& getRule(const Type attrType);
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
-    qi::rule<Iterator, std::string(), ascii::space_type> getObjectIdentifier();
+    const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
 
 private:
 

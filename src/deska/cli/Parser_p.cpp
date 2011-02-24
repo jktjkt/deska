@@ -75,17 +75,21 @@ PredefinedRules<Iterator>::PredefinedRules()
 
 
 template <typename Iterator>
-qi::rule<Iterator, Value(), ascii::space_type> PredefinedRules<Iterator>::getRule(const Type attrType)
+const qi::rule<Iterator, Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule(const Type attrType)
 {
-    return rulesMap[ attrType ].alias();
+    std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
+    if ( it == rulesMap.end() )
+        throw 123;
+    else
+        return it->second;
 }
 
 
 
 template <typename Iterator>
-qi::rule<Iterator, std::string(), ascii::space_type> PredefinedRules<Iterator>::getObjectIdentifier()
+const qi::rule<Iterator, std::string(), ascii::space_type>& PredefinedRules<Iterator>::getObjectIdentifier()
 {
-    return objectIdentifier.alias();
+    return objectIdentifier;
 }
 
 
@@ -308,15 +312,15 @@ template void ErrorHandler<iterator_type>::operator()(
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 
-template qi::rule<
+template const qi::rule<
     iterator_type,
     Value(),
-    ascii::space_type> PredefinedRules<iterator_type>::getRule(const Type attrType);
+    ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Type attrType);
 
-template qi::rule<
+template const qi::rule<
     iterator_type,
     std::string(),
-    ascii::space_type> PredefinedRules<iterator_type>::getObjectIdentifier();
+    ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
 template AttributesParser<iterator_type>::AttributesParser(
     const std::string &kindName );
