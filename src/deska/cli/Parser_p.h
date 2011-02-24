@@ -209,7 +209,7 @@ template <typename Iterator>
 class ParserImpl: boost::noncopyable
 {
 public:
-    ParserImpl(Parser *parent);
+    ParserImpl( Parser *parent );
     virtual ~ParserImpl();
 
     void parseLine( const std::string &line );
@@ -225,8 +225,8 @@ private:
         AttributesParser<Iterator>* attributeParser );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
-    TopLevelParser<Iterator>* topLevelParser;
-    PredefinedRules<Iterator>* predefinedRules;
+    TopLevelParser<Iterator> *topLevelParser;
+    PredefinedRules<Iterator> *predefinedRules;
 };
 
 }
