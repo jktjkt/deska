@@ -121,10 +121,10 @@ PredefinedRules<Iterator>::PredefinedRules()
         [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
     rulesMap[TYPE_DOUBLE].name( "double" );
 
-    rulesMap[TYPE_IDENTIFIER] %= qi::lexeme[ *( ascii::alnum | '_' ) ];
+    rulesMap[TYPE_IDENTIFIER] %= qi::lexeme[ +( ascii::alnum | '_' ) ];
     rulesMap[TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
-    objectIdentifier %= qi::lexeme[ *( ascii::alnum | '_' ) ];
+    objectIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
     objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
 }
 
