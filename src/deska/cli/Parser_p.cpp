@@ -133,7 +133,8 @@ const qi::rule<Iterator, Value(), ascii::space_type>& PredefinedRules<Iterator>:
 {
     typename std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
     if ( it == rulesMap.end() )
-        throw 123;
+        // TODO: Create some exceptions hierarchy
+        throw std::domain_error( "Unknown type" );
     else
         return it->second;
 }
