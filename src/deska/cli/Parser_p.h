@@ -31,16 +31,22 @@
 #include "Parser.h"
 
 
-namespace Deska {
-namespace CLI {
+namespace Deska
+{
+namespace CLI
+{
 
 namespace spirit = boost::spirit;
 namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
+
+
 // TODO: Only for testing. Delete this.
 static std::string kindParsed;
+
+
 
 /** @short Class used for conversion from boost::iterator_range<class> to std::string */
 template <typename Iterator>
@@ -52,6 +58,8 @@ public:
 
     void operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const;
 };
+
+
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
@@ -81,6 +89,8 @@ public:
         const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
 };
 
+
+
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
 class KeyErrorHandler
@@ -109,6 +119,8 @@ public:
         const qi::rule<Iterator, Value(), ascii::space_type> &rule );
 };
 
+
+
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
 class ValueErrorHandler
@@ -127,6 +139,8 @@ public:
     */
     void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
 };
+
+
 
 /** @short Predefined rules for parsing single parameters */
 template <typename Iterator>

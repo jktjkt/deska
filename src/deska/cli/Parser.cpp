@@ -24,8 +24,10 @@
 #include "Parser_p.h"
 
 
-namespace Deska {
-namespace CLI {
+namespace Deska
+{
+namespace CLI
+{
 
 
 Parser::Parser( Api *dbApi )

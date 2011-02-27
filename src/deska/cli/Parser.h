@@ -27,8 +27,10 @@
 
 #include "deska/db/Api.h"
 
-namespace Deska {
-namespace CLI {
+namespace Deska
+{
+namespace CLI
+{
 
 /** @short INTERNAL; Iterator for parser input */
 typedef std::string::const_iterator iterator_type;

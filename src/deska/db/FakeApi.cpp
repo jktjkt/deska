@@ -26,15 +26,20 @@
 
 using namespace std;
 
-namespace Deska {
+namespace Deska
+{
 
 FakeApi::FakeApi()
 {
 }
 
+
+
 FakeApi::~FakeApi()
 {
 }
+
+
 
 vector<Identifier> FakeApi::kindNames() const
 {
@@ -46,6 +51,8 @@ vector<Identifier> FakeApi::kindNames() const
     return res;
 }
 
+
+
 vector<KindAttributeDataType> FakeApi::kindAttributes( const Identifier &kindName ) const
 {
     map<string, vector<KindAttributeDataType> >::const_iterator it = attrs.find( kindName );
@@ -54,6 +61,8 @@ vector<KindAttributeDataType> FakeApi::kindAttributes( const Identifier &kindNam
     else
         return it->second;
 }
+
+
 
 vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) const
 {
@@ -64,17 +73,23 @@ vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) cons
         return it->second;
 }
 
+
+
 vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Revision ) const
 {
     vector<Identifier> empty;
     return empty;
 }
 
+
+
 map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const Revision )
 {
     map<Identifier, Value> empty;
     return empty;
 }
+
+
 
 map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(
     const Identifier &kindName,
@@ -85,6 +100,8 @@ map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(
     return empty;
 }
 
+
+
 vector<Identifier> FakeApi::findOverriddenAttrs(
     const Identifier &kindName,
     const Identifier &objectName,
@@ -93,6 +110,8 @@ vector<Identifier> FakeApi::findOverriddenAttrs(
     vector<Identifier> empty;
     return empty;
 }
+
+
 
 vector<Identifier> FakeApi::findNonOverriddenAttrs(
     const Identifier &kindName,
@@ -103,13 +122,19 @@ vector<Identifier> FakeApi::findNonOverriddenAttrs(
     return empty;
 }
 
+
+
 void FakeApi::deleteObject( const Identifier &kindName, const Identifier &objectName )
 {
 }
 
+
+
 void FakeApi::createObject( const Identifier &kindName, const Identifier &objectname )
 {
 }
+
+
 
 void FakeApi::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
 {
@@ -122,6 +147,8 @@ void FakeApi::removeAttribute(
 {
 }
 
+
+
 void FakeApi::setAttribute(
     const Identifier &kindName,
     const Identifier &objectName,
@@ -130,16 +157,24 @@ void FakeApi::setAttribute(
 {
 }
 
+
+
 void FakeApi::startChangeset()
 {
 }
+
+
 
 void FakeApi::commit()
 {
 }
 
+
+
 void FakeApi::rebaseTransaction( const Revision rev )
 {
 }
+
+
 
 }
