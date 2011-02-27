@@ -28,6 +28,16 @@ int main()
 
     test = "hardware abcde id xx name \"jmeno\" price 1234.5";
     parser.parseLine( test );
+
+    std::cout << std::endl;
+
+    test = "hardware abcde isd 123 name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
+
+    std::cout << std::endl;
+
+    test = "haware abcde id 123 name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
     
     /*
     while ( getline( std::cin, str ) ) {
