@@ -1,0 +1,19 @@
+-- Primary key
+normal: a is PK
+history: (a,version) is PK
+
+-- Unique
+normal: a is UNIQUE
+history: (a,version) is UNIQUE
+
+-- not null
+keep (deferred)?
+
+-- check
+keep (deferred)?
+
+-- refs
+normal: a references b(a)
+history: (a,version) references b_history(a,version)
+
+-- some of these maybe should be user specified?
