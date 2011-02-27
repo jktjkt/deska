@@ -10,7 +10,7 @@ CREATE TABLE vendor (
 	uid bigint
 		constraint vendor_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text NOT NULL
+	name text UNIQUE NOT NULL
 );
 GRANT ALL ON vendor TO deska_team;
 
