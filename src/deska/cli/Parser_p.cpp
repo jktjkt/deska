@@ -152,8 +152,8 @@ const qi::rule<Iterator, std::string(), ascii::space_type>& PredefinedRules<Iter
 
 
 template <typename Iterator>
-AttributesParser<Iterator>::AttributesParser(
-    const std::string &kindName ): AttributesParser<Iterator>::base_type( start )
+AttributesParser<Iterator>::AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent ):
+    AttributesParser<Iterator>::base_type( start ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -197,13 +197,14 @@ void AttributesParser<Iterator>::addAtrribute(
 template <typename Iterator>
 void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, Value &value )
 {
-    std::cout << "Parsed parameter: " << parameter << "=" << value << std::endl;
+    m_parent->attributeSet( parameter, value );
 }
 
 
 
 template <typename Iterator>
-TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type( start )
+TopLevelParser<Iterator>::TopLevelParser( ParserImpl<Iterator> *parent):
+    TopLevelParser<Iterator>::base_type( start ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -245,8 +246,7 @@ void TopLevelParser<Iterator>::addKind(
 template <typename Iterator>
 void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
-    std::cout << "Parsed kind: " << kindName << ": " << objectName << std::endl;
-    kindParsed = kindName;
+    m_parent->categoryEntered( kindName, objectName );
 }
 
 
@@ -255,7 +255,7 @@ template <typename Iterator>
 ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 {
     predefinedRules = new PredefinedRules<Iterator>();
-    topLevelParser = new TopLevelParser<Iterator>();
+    topLevelParser = new TopLevelParser<Iterator>( this );
 
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
@@ -263,7 +263,7 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 
-        attributesParsers[ *it ] = new AttributesParser<Iterator>( *it );
+        attributesParsers[ *it ] = new AttributesParser<Iterator>( *it, this );
         addKindAttributes( *it, attributesParsers[ *it ] );
 
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
@@ -308,8 +308,8 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
         else {
             std::cout << "Parsing succeeded. Partial match." << std::endl;
             std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-            std::cout << "Parsing attributes for \"" << kindParsed << "\"..." << std::endl;
-            bool r2 = phrase_parse( iter, end, *( attributesParsers[ kindParsed ] ), ascii::space );
+            std::cout << "Parsing attributes for \"" << contextStack.back().first << "\"..." << std::endl;
+            bool r2 = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().first ] ), ascii::space );
             if ( r2 ) {
                 if ( iter == end ) {
                     std::cout << "Parsing succeeded. Full match." << std::endl;
@@ -334,7 +334,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 template <typename Iterator>
 bool ParserImpl<Iterator>::isNestedInContext() const
 {
-    return false;
+    return ( contextStack.size() > 1 );
 }
 
 
@@ -342,7 +342,37 @@ bool ParserImpl<Iterator>::isNestedInContext() const
 template <typename Iterator>
 std::vector<AttributeDefinition> ParserImpl<Iterator>::currentContextStack() const
 {
-    return std::vector<AttributeDefinition>();
+    return contextStack;
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identifier &name )
+{
+    contextStack.push_back( std::make_pair<Identifier, Identifier>( kind, name ) );
+    m_parser->categoryEntered( kind, name );
+    // TODO: Delete this
+    std::cout << "Parsed kind: " << kind << ": " << name << std::endl;
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::categoryLeft()
+{
+    contextStack.pop_back();
+    m_parser->categoryLeft();
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &value )
+{
+    m_parser->attributeSet( name, value );
+    // TODO: Delete this
+    std::cout << "Parsed parameter: " << name << "=" << value << std::endl;
 }
 
 
@@ -404,7 +434,8 @@ template const qi::rule<
     ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
 template AttributesParser<iterator_type>::AttributesParser(
-    const std::string &kindName );
+    const std::string &kindName,
+    ParserImpl<iterator_type> *parent );
 
 template void AttributesParser<iterator_type>::addAtrribute(
     const std::string &attributeName,
@@ -417,7 +448,7 @@ template void AttributesParser<iterator_type>::parsedAttribute(
     const std::string &parameter,
     Value &value );
 
-template TopLevelParser<iterator_type>::TopLevelParser();
+template TopLevelParser<iterator_type>::TopLevelParser( ParserImpl<iterator_type> *parent );
 
 template void TopLevelParser<iterator_type>::addKind(
     const std::string &kindName,
@@ -436,6 +467,12 @@ template void ParserImpl<iterator_type>::parseLine( const std::string &line );
 template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
 template std::vector<AttributeDefinition> ParserImpl<iterator_type>::currentContextStack() const;
+
+template void ParserImpl<iterator_type>::categoryEntered( const Identifier &kind, const Identifier &name );
+
+template void ParserImpl<iterator_type>::categoryLeft();
+
+template void ParserImpl<iterator_type>::attributeSet( const Identifier &name, const Value &value );
 
 template void ParserImpl<iterator_type>::addKindAttributes(
     std::string &kindName,

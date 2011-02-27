@@ -43,11 +43,6 @@ namespace qi = boost::spirit::qi;
 
 
 
-// TODO: Only for testing. Delete this.
-static std::string kindParsed;
-
-
-
 /** @short Class used for conversion from boost::iterator_range<class> to std::string */
 template <typename Iterator>
 class RangeToString
@@ -182,7 +177,7 @@ public:
     *
     *   @param kindName Name of top-level object type, to which the attributes belong
     */
-    AttributesParser( const std::string &kindName );
+    AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -223,7 +218,7 @@ private:
             qi::rule<Iterator, Value(), ascii::space_type>,
             std::string> > dispatch;
 
-    Parser* parser;
+    ParserImpl<Iterator> *m_parent;
 };
 
 
@@ -236,7 +231,7 @@ class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table */
-    TopLevelParser();
+    TopLevelParser( ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -272,7 +267,7 @@ private:
             qi::rule<Iterator, std::string(), ascii::space_type>,
             std::string> > dispatch;
 
-    Parser* parser;
+    ParserImpl<Iterator> *m_parent;
 };
 
 
@@ -288,6 +283,11 @@ public:
     bool isNestedInContext() const;
     std::vector<AttributeDefinition> currentContextStack() const;
 
+    void categoryEntered( const Identifier &kind, const Identifier &name );
+    void categoryLeft();
+    void attributeSet( const Identifier &name, const Value &value );
+
+
 private:
     Parser *m_parser;
 
@@ -299,6 +299,8 @@ private:
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     TopLevelParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
+
+    std::vector<AttributeDefinition> contextStack;
 };
 
 }
