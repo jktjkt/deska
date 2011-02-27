@@ -233,7 +233,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
     connectSignalsFromParser(parser);
 
     // start a new context
-    parser.parseLine("hardware \"hov2\"\r\n");
+    parser.parseLine("hardware \"hpv2\"\r\n");
     expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
 
