@@ -36,14 +36,68 @@ void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> 
 
 
 template <typename Iterator>
-void ErrorHandler<Iterator>::operator()(
+void ObjectErrorHandler<Iterator>::operator()(
+    Iterator start,
+    Iterator end,
+    Iterator errorPos,
+    const spirit::info& what,
+    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const
+{
+    std::cout << "Error in object type parsing! Expecting ";
+    // FIXME: Resolve problem with calling of for_each
+    // kinds.for_each( printKindName );
+    std::cout << "<here will be list of kinds names> ";
+    std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
+}
+
+
+
+template <typename Iterator>
+void ObjectErrorHandler<Iterator>::printKindName(
+    const std::string &name,
+    const qi::rule<Iterator, std::string(), ascii::space_type> &rule )
+{
+    std::cout << name << " ";
+}
+
+
+
+template <typename Iterator>
+void KeyErrorHandler<Iterator>::operator()(
+    Iterator start,
+    Iterator end,
+    Iterator errorPos,
+    const spirit::info& what,
+    qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const
+{
+    std::cout << "Error in attribute name parsing! Expecting ";
+    // FIXME: Resolve problem with calling of for_each
+    // attributes.for_each( printAttributeName );
+    std::cout << "<here will be list of attributes names> ";
+    std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
+}
+
+
+
+template <typename Iterator>
+void KeyErrorHandler<Iterator>::printAttributeName(
+    const std::string &name,
+    const qi::rule<Iterator, Value(), ascii::space_type> &rule )
+{
+    std::cout << name << " ";
+}
+
+
+
+template <typename Iterator>
+void ValueErrorHandler<Iterator>::operator()(
     Iterator start,
     Iterator end,
     Iterator errorPos,
     const spirit::info& what ) const
 {
     std::cout
-        << "Error! Expecting " << what
+        << "Error in value parsing! Expecting " << what
         << " here: \"" << std::string( errorPos, end ) << "\""
         << std::endl;
 }
@@ -104,21 +158,25 @@ AttributesParser<Iterator>::AttributesParser(
     using qi::_4;
     using qi::_a;
     using qi::_b;
-    using qi::_val;
+    using qi::eps;
     using qi::raw;
+    using qi::eoi;
     using qi::on_error;
     using qi::fail;
 
-    objectKindName = kindName;
     this->name( kindName );
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = +( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
+    start = +( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
+
+    dispatch = ( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
         > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
 
-    phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
-    on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
+    phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
+    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
+    on_error<fail>( start, keyErrorHandler( _1, _2, _3, _4, phoenix::ref( attributes ) ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4 ) );
 }
 
 
@@ -129,14 +187,6 @@ void AttributesParser<Iterator>::addAtrribute(
     qi::rule<Iterator, Value(), ascii::space_type> attributeParser )
 {
     attributes.add( attributeName, attributeParser );
-}
-
-
-
-template <typename Iterator>
-std::string AttributesParser<Iterator>::getKindName() const
-{
-   return objectKindName;
 }
 
 
@@ -158,17 +208,23 @@ TopLevelParser<Iterator>::TopLevelParser(): TopLevelParser<Iterator>::base_type(
     using qi::_4;
     using qi::_a;
     using qi::_b;
+    using qi::eps;
     using qi::raw;
+    using qi::eoi;
     using qi::on_error;
     using qi::fail;
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ]
+    start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
+
+    dispatch = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ]
         > lazy( _a )[ phoenix::bind( &TopLevelParser::parsedKind, this, _b, _1 ) ] );
 
-    phoenix::function<ErrorHandler<Iterator> > errorHandler = ErrorHandler<Iterator>();
-    on_error<fail>( start, errorHandler( _1, _2, _3, _4 ) );
+    phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
+    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
+    on_error<fail>( start, objectErrorHandler( _1, _2, _3, _4, phoenix::ref( kinds ) ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4 ) );
 }
 
 
@@ -304,7 +360,29 @@ void ParserImpl<Iterator>::addKindAttributes(
 template void RangeToString<iterator_type>::operator()(
     const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
 
-template void ErrorHandler<iterator_type>::operator()(
+template void ObjectErrorHandler<iterator_type>::operator()(
+    iterator_type start,
+    iterator_type end,
+    iterator_type errorPos,
+    const spirit::info &what,
+    qi::symbols<char, qi::rule<iterator_type, std::string(), ascii::space_type> > kinds ) const;
+
+template void ObjectErrorHandler<iterator_type>::printKindName(
+    const std::string &name,
+    const qi::rule<iterator_type, std::string(), ascii::space_type> &rule );
+
+template void KeyErrorHandler<iterator_type>::operator()(
+    iterator_type start,
+    iterator_type end,
+    iterator_type errorPos,
+    const spirit::info &what,
+    qi::symbols<char, qi::rule<iterator_type, Value(), ascii::space_type> > attributes ) const;
+
+template void KeyErrorHandler<iterator_type>::printAttributeName(
+    const std::string &name,
+    const qi::rule<iterator_type, Value(), ascii::space_type> &rule );
+
+template void ValueErrorHandler<iterator_type>::operator()(
     iterator_type start,
     iterator_type end,
     iterator_type errorPos,
@@ -331,8 +409,6 @@ template void AttributesParser<iterator_type>::addAtrribute(
         iterator_type,
         Value(),
         ascii::space_type> attributeParser );
-
-template std::string AttributesParser<iterator_type>::getKindName() const;
 
 template void AttributesParser<iterator_type>::parsedAttribute(
     const std::string &parameter,

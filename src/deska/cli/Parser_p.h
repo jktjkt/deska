@@ -55,13 +55,70 @@ public:
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
-class ErrorHandler
+class ObjectErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error while parsing a top-level object type occures.
+    *          Prints information about the error
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()(
+        Iterator start,
+        Iterator end,
+        Iterator errorPos,
+        const spirit::info &what,
+        qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
+
+    void printKindName(
+        const std::string &name,
+        const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
+};
+
+/** @short Class for reporting parsing errors of input */
+template <typename Iterator>
+class KeyErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error while parsing a name of an attribute occures.
+    *          Prints information about the error
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()(
+        Iterator start,
+        Iterator end,
+        Iterator errorPos,
+        const spirit::info &what,
+        qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
+
+    void printAttributeName(
+        const std::string &name,
+        const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+};
+
+/** @short Class for reporting parsing errors of input */
+template <typename Iterator>
+class ValueErrorHandler
 {
 public:
     template <typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error occures. Prints information about the error
+    /** @short Function executed when some error while parsing a value of an attribute occures.
+    *          Prints information about the error
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -102,11 +159,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser:
-    public qi::grammar<
-        Iterator,
-        ascii::space_type,
-        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string> >
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
@@ -126,8 +179,6 @@ public:
     void addAtrribute(
         const std::string &attributeName,
         qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
-
-    std::string getKindName() const;
 
 private:
 
@@ -149,23 +200,23 @@ private:
     qi::rule<
         Iterator,
         ascii::space_type,
+        qi::locals<bool> > start;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
         qi::locals<
             qi::rule<Iterator, Value(), ascii::space_type>,
-            std::string> > start;
+            std::string> > dispatch;
 
-    std::string objectKindName;
-
+    Parser* parser;
 };
 
 
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class TopLevelParser:
-    public qi::grammar<
-        Iterator,
-        ascii::space_type,
-        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string> >
+class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
@@ -198,9 +249,16 @@ private:
     qi::rule<
         Iterator,
         ascii::space_type,
+        qi::locals<bool> > start;
+
+    qi::rule<
+        Iterator,
+        ascii::space_type,
         qi::locals<
             qi::rule<Iterator, std::string(), ascii::space_type>,
-            std::string> > start;
+            std::string> > dispatch;
+
+    Parser* parser;
 };
 
 
