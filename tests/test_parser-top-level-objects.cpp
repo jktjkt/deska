@@ -124,6 +124,7 @@ struct F: public boost::signals2::trackable
         fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
         db = fake;
     }
+
     ~F()
     {
         delete db;
