@@ -22,6 +22,7 @@
 #ifndef DESKA_PARSER_H
 #define DESKA_PARSER_H
 
+#include <iosfwd>
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
 
@@ -36,11 +37,19 @@ namespace CLI
 typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
 
-/** @short Typedef for context nesting
+/** @short Context nesting */
+struct ContextStackItem
+{
+    ContextStackItem(const Identifier &_kind, const Identifier &_name);
+    ContextStackItem();
 
-First item is the type name, second its identifier.
-*/
-typedef std::pair<Identifier, Identifier> ContextStackItem;
+    Identifier kind;
+    Identifier name;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
+bool operator==(const ContextStackItem &a, const ContextStackItem &b);
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
 
 /** @short Process the CLI input and generate events based on the parsed data
 

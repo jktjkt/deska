@@ -297,8 +297,8 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     }
     else {
         // Context -> parse attributes
-        std::cout << "Parsing attributes for \"" << contextStack.back().first << "\"..." << std::endl;
-        parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().first ] ), ascii::space );
+        std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
+        parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().kind ] ), ascii::space );
         parsingTopLevel = false;
     }
 
@@ -351,7 +351,7 @@ std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
 template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identifier &name )
 {
-    contextStack.push_back( std::make_pair<Identifier, Identifier>( kind, name ) );
+    contextStack.push_back( ContextStackItem( kind, name ) );
     m_parser->categoryEntered( kind, name );
     // TODO: Delete this
     std::cout << "Parsed kind: " << kind << ": " << name << std::endl;

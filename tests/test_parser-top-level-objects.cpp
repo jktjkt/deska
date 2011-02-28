@@ -197,6 +197,15 @@ struct F: public boost::signals2::trackable
             parserEvents.pop();
     }
 
+    void verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name)
+    {
+        const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
+        std::vector<Deska::CLI::ContextStackItem> specimen;
+        specimen.push_back(Deska::CLI::ContextStackItem(kind, name));
+        BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
+        BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+    }
+
     Deska::Api *db;
     Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
@@ -247,6 +256,9 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, F )
     parser->parseLine("hardware hpv2\r\n");
     expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
+
+    // Verify stack nesting
+    verifyStackOneLevel("hardware", "hpv2");
 
     // Set the attribute
     parser->parseLine("name \"foo bar baz\"\r\n");

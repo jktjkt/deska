@@ -57,5 +57,28 @@ std::vector<ContextStackItem> Parser::currentContextStack() const
     return d_ptr->currentContextStack();
 }
 
+ContextStackItem::ContextStackItem(const Identifier &_kind, const Identifier &_name): kind(_kind), name(_name)
+{
+}
+
+ContextStackItem::ContextStackItem()
+{
+}
+
+bool operator==(const ContextStackItem &a, const ContextStackItem &b)
+{
+    return a.kind == b.kind && a.name == b.name;
+}
+
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b)
+{
+    return ! (a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
+{
+    return stream << i.kind << "(" << i.name << ")";
+}
+
 }
 }
