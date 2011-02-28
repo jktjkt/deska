@@ -157,6 +157,9 @@ public:
     */
     std::vector<ContextStackItem> currentContextStack() const;
 
+    /** @short Moves context to top level */
+    void clearContextStack();
+
 
 private:
     friend class ParserImpl<iterator_type>;

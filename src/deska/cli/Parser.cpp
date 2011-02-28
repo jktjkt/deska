@@ -57,6 +57,11 @@ std::vector<ContextStackItem> Parser::currentContextStack() const
     return d_ptr->currentContextStack();
 }
 
+void Parser::clearContextStack()
+{
+    d_ptr->clearContextStack();
+}
+
 ContextStackItem::ContextStackItem(const Identifier &_kind, const Identifier &_name): kind(_kind), name(_name)
 {
 }

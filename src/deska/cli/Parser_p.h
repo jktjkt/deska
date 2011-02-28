@@ -75,7 +75,7 @@ public:
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
 
-    void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
+    static void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
 };
 
 
@@ -99,7 +99,7 @@ public:
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
 
-    void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+    static void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
 };
 
 
@@ -242,6 +242,7 @@ public:
     void parseLine( const std::string &line );
     bool isNestedInContext() const;
     std::vector<ContextStackItem> currentContextStack() const;
+    void clearContextStack();
 
     void categoryEntered( const Identifier &kind, const Identifier &name );
     void categoryLeft();

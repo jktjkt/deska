@@ -23,21 +23,25 @@ int main()
 
     std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
+    parser.clearContextStack();
 
     std::cout << std::endl;
 
     test = "hardware abcde id xx name \"jmeno\" price 1234.5";
     parser.parseLine( test );
+    parser.clearContextStack();
 
     std::cout << std::endl;
 
     test = "hardware abcde isd 123 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
+    parser.clearContextStack();
 
     std::cout << std::endl;
 
     test = "haware abcde id 123 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
+    parser.clearContextStack();
     
     /*
     while ( getline( std::cin, str ) ) {

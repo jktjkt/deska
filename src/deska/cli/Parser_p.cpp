@@ -43,9 +43,7 @@ void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iter
     qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const
 {
     std::cout << "Error in object type parsing! Expecting ";
-    // FIXME: Resolve problem with calling of for_each
-    // kinds.for_each( printKindName );
-    std::cout << "<here will be list of kinds names> ";
+    kinds.for_each( printKindName );
     std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
 }
 
@@ -66,9 +64,7 @@ void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterato
     qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const
 {
     std::cout << "Error in attribute name parsing! Expecting ";
-    // FIXME: Resolve problem with calling of for_each
-    // attributes.for_each( printAttributeName );
-    std::cout << "<here will be list of attributes names> ";
+    attributes.for_each( printAttributeName );
     std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
 }
 
@@ -349,6 +345,14 @@ std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
 
 
 template <typename Iterator>
+void ParserImpl<Iterator>::clearContextStack()
+{
+    contextStack.clear();
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identifier &name )
 {
     contextStack.push_back( ContextStackItem( kind, name ) );
@@ -452,6 +456,8 @@ template void ParserImpl<iterator_type>::parseLine( const std::string &line );
 template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
 template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContextStack() const;
+
+template void ParserImpl<iterator_type>::clearContextStack();
 
 template void ParserImpl<iterator_type>::categoryEntered( const Identifier &kind, const Identifier &name );
 
