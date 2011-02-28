@@ -31,9 +31,9 @@ namespace CLI
 
 
 template <typename Iterator>
-void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const
+void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const
 {
-    str.assign( rng.begin(), rng.end() );
+    str.assign( range.begin(), range.end() );
 }
 
 

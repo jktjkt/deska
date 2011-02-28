@@ -51,7 +51,7 @@ public:
     template <typename, typename>
         struct result { typedef void type; };
 
-    void operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const;
+    void operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const;
 };
 
 
