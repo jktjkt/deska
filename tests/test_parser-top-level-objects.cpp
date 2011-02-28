@@ -128,6 +128,7 @@ struct F: public boost::signals2::trackable
         parser->categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
         parser->categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
         parser->attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
+        attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&F::slotParserSetAttrCheckContext, this));
     }
 
     ~F()
@@ -206,9 +207,15 @@ struct F: public boost::signals2::trackable
         BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
     }
 
+    void slotParserSetAttrCheckContext()
+    {
+        BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+    }
+
     Deska::Api *db;
     Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
+    boost::signals2::connection attrCheckContextConnection;
 };
 
 
@@ -218,6 +225,9 @@ In this test case, we check our mock facility for obvious errors.
 */
 BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 {
+    // There's no parser, so we have to skip testing of the proper nesting
+    boost::signals2::shared_connection_block(attrCheckContextConnection);
+
     // At first, nothing should be present in there
     expectNothingElse();
 
