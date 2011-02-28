@@ -39,7 +39,8 @@
  * */
 
 
-namespace Deska {
+namespace Deska
+{
 
 /** @short @short Value of an object's attribute
  *
@@ -63,9 +64,6 @@ typedef enum {
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
 
-/** @short Typedef for attribute-value pairs */
-typedef std::pair<Identifier, Identifier> AttributeDefinition;
-
 /** @short An identification of a persistent revision in the DB */
 typedef unsigned int Revision;
 
@@ -76,7 +74,8 @@ typedef unsigned int Revision;
  *
  * FIXME: rename to AttributeScheme?
  * */
-struct KindAttributeDataType {
+struct KindAttributeDataType
+{
     KindAttributeDataType( Identifier _name, Type _type ): name(_name), type(_type)
     {
     }
@@ -130,7 +129,8 @@ typedef enum {
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
  * */
-struct ObjectRelation {
+struct ObjectRelation
+{
 
     ObjectRelation(
         const ObjectRelationKind _kind,
@@ -154,6 +154,7 @@ struct ObjectRelation {
     Identifier sourceAttribute;
     /** @short To which attribute shall we match */
     Identifier destinationAttribute;
+
 private:
     ObjectRelation();
 };
@@ -162,7 +163,8 @@ private:
  *
  * This class should contain all functionality required for working with the Deska DB.
  * */
-class Api {
+class Api
+{
 public:
     virtual ~Api();
 
@@ -193,14 +195,15 @@ public:
     // Returning data for existing objects
 
     /** @short Get identifiers of all concrete objects of a given Kind */
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const = 0;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision = 0 ) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
      * Templates: this function should not have any knowledge of "templates"; see the
      * resolvedObjectData() for template support.
      * */
-    virtual std::map<Identifier, Value> objectData( const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
+    virtual std::map<Identifier, Value> objectData(
+        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -218,7 +221,7 @@ public:
      *      ...
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
 
     /** @short Get a list of identifiers of objects which explicitly override a given attribute 
      *
@@ -235,8 +238,8 @@ public:
      * @see findNonOverriddenAttrs()
      *
      * */
-    virtual std::vector<Identifier> findOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName ) = 0;
+    virtual std::vector<Identifier> findOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
 
     /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
      *
@@ -247,8 +250,8 @@ public:
      *
      * @see findOverriddenAttrs()
      * */
-    virtual std::vector<Identifier> findNonOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName ) = 0;
+    virtual std::vector<Identifier> findNonOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
 
     // Manipulating objects
 
@@ -262,12 +265,12 @@ public:
     virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;
 
     /** @short Remove an attribute from one instance of an object */
-    virtual void removeAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName ) = 0;
+    virtual void removeAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     /** @short Set an attribute that belongs to some object to a new value */
-    virtual void setAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName, const Value &value ) = 0;
+    virtual void setAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value ) = 0;
 
 
 

@@ -31,16 +31,17 @@
 #include "Parser.h"
 
 
-namespace Deska {
-namespace CLI {
+namespace Deska
+{
+namespace CLI
+{
 
 namespace spirit = boost::spirit;
 namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
-// TODO: Only for testing. Delete this.
-static std::string kindParsed;
+
 
 /** @short Class used for conversion from boost::iterator_range<class> to std::string */
 template <typename Iterator>
@@ -50,18 +51,69 @@ public:
     template <typename, typename>
         struct result { typedef void type; };
 
-    void operator()( const boost::iterator_range<Iterator> &rng, std::string &str ) const;
+    void operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const;
 };
+
+
 
 /** @short Class for reporting parsing errors of input */
 template <typename Iterator>
-class ErrorHandler
+class ObjectErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error while parsing a top-level object type occures.
+    *          Prints information about the error
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
+
+    static void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
+};
+
+
+
+/** @short Class for reporting parsing errors of input */
+template <typename Iterator>
+class KeyErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function executed when some error while parsing a name of an attribute occures.
+    *          Prints information about the error
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
+
+    static void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+};
+
+
+
+/** @short Class for reporting parsing errors of input */
+template <typename Iterator>
+class ValueErrorHandler
 {
 public:
     template <typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error occures. Prints information about the error
+    /** @short Function executed when some error while parsing a value of an attribute occures.
+    *          Prints information about the error
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -70,6 +122,8 @@ public:
     */
     void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
 };
+
+
 
 /** @short Predefined rules for parsing single parameters */
 template <typename Iterator>
@@ -86,7 +140,7 @@ public:
     *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    const qi::rule<Iterator, Value(), ascii::space_type>& getRule(const Type attrType);
+    const qi::rule<Iterator, Value(), ascii::space_type>& getRule( const Type attrType );
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
     const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
@@ -102,11 +156,7 @@ private:
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class AttributesParser:
-    public qi::grammar<
-        Iterator,
-        ascii::space_type,
-        qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string > >
+class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
@@ -115,7 +165,7 @@ public:
     *
     *   @param kindName Name of top-level object type, to which the attributes belong
     */
-    AttributesParser( const std::string &kindName );
+    AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -123,11 +173,7 @@ public:
     *   @param attributeParser  Attribute parser obtained from PredefinedRules class
     *   @see PredefinedRules
     */
-    void addAtrribute(
-        const std::string &attributeName,
-        qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
-
-    std::string getKindName() const;
+    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
 
 private:
 
@@ -139,39 +185,26 @@ private:
     void parsedAttribute( const std::string &parameter, Value &value );
 
 
-    qi::symbols<
-        char,
-        qi::rule<
-            Iterator,
-            Value(),
-            ascii::space_type> > attributes;
+    qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<
-            qi::rule<Iterator, Value(), ascii::space_type>,
-            std::string> > start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
 
-    std::string objectKindName;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string> > dispatch;
 
+    ParserImpl<Iterator> *m_parent;
 };
 
 
 
 /** @short Parser for set of attributes of specific top-level grammar */
 template <typename Iterator>
-class TopLevelParser:
-    public qi::grammar<
-        Iterator,
-        ascii::space_type,
-        qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string > >
+class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table */
-    TopLevelParser();
+    TopLevelParser( ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -188,19 +221,13 @@ private:
     */
     void parsedKind( const std::string &kindName, const std::string &objectName );
 
-    qi::symbols<
-        char,
-        qi::rule<
-            Iterator,
-            std::string(),
-            ascii::space_type> > kinds;
+    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<
-            qi::rule<Iterator, std::string(), ascii::space_type>,
-            std::string> > start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
+
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string> > dispatch;
+
+    ParserImpl<Iterator> *m_parent;
 };
 
 
@@ -209,24 +236,34 @@ template <typename Iterator>
 class ParserImpl: boost::noncopyable
 {
 public:
-    ParserImpl(Parser *parent);
+    ParserImpl( Parser *parent );
     virtual ~ParserImpl();
 
     void parseLine( const std::string &line );
     bool isNestedInContext() const;
-    std::vector<AttributeDefinition> currentContextStack() const;
+    std::vector<ContextStackItem> currentContextStack() const;
+    void clearContextStack();
+
+    void categoryEntered( const Identifier &kind, const Identifier &name );
+    void categoryLeft();
+    void attributeSet( const Identifier &name, const Value &value );
+
 
 private:
     Parser *m_parser;
 
+    bool leaveCategory;
+
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
-    void addKindAttributes(
-        std::string &kindName,
-        AttributesParser<Iterator>* attributeParser );
+    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributeParser );
+
+    bool matchesEnd( const std::string &word );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
-    TopLevelParser<Iterator>* topLevelParser;
-    PredefinedRules<Iterator>* predefinedRules;
+    TopLevelParser<Iterator> *topLevelParser;
+    PredefinedRules<Iterator> *predefinedRules;
+
+    std::vector<ContextStackItem> contextStack;
 };
 
 }

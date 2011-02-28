@@ -123,18 +123,18 @@ struct F: public boost::signals2::trackable
 
         fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
         db = fake;
-    }
-    ~F()
-    {
-        delete db;
+
+        parser = new Deska::CLI::Parser(db);
+        parser->categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
+        parser->categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
+        parser->attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
+        attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&F::slotParserSetAttrCheckContext, this));
     }
 
-    /** @short Connect Parser's signals to slots in F */
-    void connectSignalsFromParser(Deska::CLI::Parser &parser)
+    ~F()
     {
-        parser.categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
-        parser.categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
-        parser.attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
+        delete parser;
+        delete db;
     }
 
     /** @short Handler for Parser's categoryEntered signal */
@@ -198,8 +198,31 @@ struct F: public boost::signals2::trackable
             parserEvents.pop();
     }
 
+    void verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name)
+    {
+        const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
+        std::vector<Deska::CLI::ContextStackItem> specimen;
+        specimen.push_back(Deska::CLI::ContextStackItem(kind, name));
+        BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
+        BOOST_CHECK(parser->isNestedInContext());
+        BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+    }
+
+    void verifyEmptyStack()
+    {
+        BOOST_CHECK( ! parser->isNestedInContext() );
+        BOOST_CHECK( parser->currentContextStack().empty() );
+    }
+
+    void slotParserSetAttrCheckContext()
+    {
+        BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+    }
+
     Deska::Api *db;
+    Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
+    boost::signals2::connection attrCheckContextConnection;
 };
 
 
@@ -209,6 +232,9 @@ In this test case, we check our mock facility for obvious errors.
 */
 BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 {
+    // There's no parser, so we have to skip testing of the proper nesting
+    boost::signals2::shared_connection_block(attrCheckContextConnection);
+
     // At first, nothing should be present in there
     expectNothingElse();
 
@@ -224,21 +250,126 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 
     // The shouldn't be anything else at this point
     expectNothingElse();
+    verifyEmptyStack();
 }
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_objects, 4)
-BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
+/** @short Verify that we don't fail when leaving a context immediately we've entered it */
+BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, F )
 {
-    Deska::CLI::Parser parser(db);
-    connectSignalsFromParser(parser);
+    // Start a new context with nothing inside
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
 
-    // start a new context
-    parser.parseLine("hardware \"hov2\"\r\n");
+    // ...and leave it immediately
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Assign a simple value to an object using verbose syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
     expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
 
-    parser.parseLine("end\r\n");
+    // Verify stack nesting
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the attribute
+    parser->parseLine("name \"foo bar baz\"\r\n");
+    expectSetAttr("name", "foo bar baz");
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
     expectCategoryLeft();
     expectNothingElse();
+    verifyEmptyStack();
+}
 
+/** @short Assing a simple value to an object using the inline syntax*/
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 name \"foo bar baz\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("name", "foo bar baz");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set two attributes of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the second one
+    parser->parseLine("price 666\r\n");
+    expectSetAttr("price", 666);
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the first attribute
+    parser->parseLine("name \"foo bar baz\"\r\n");
+    expectSetAttr("name", "foo bar baz");
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set two attributes of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("price", 666);
+    expectSetAttr("name", "foo bar baz");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Make sure we can indeed handle multiple top-level objects */
+BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
+{
+    // create hpv2
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // terminate hpv2
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+
+    // create second object
+    parser->parseLine("host hpv2\r\n");
+    expectCategoryEntered("host", "hpv2");
+    expectNothingElse();
+    verifyStackOneLevel("host", "hpv2");
+
+    // terminate the host
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
 }

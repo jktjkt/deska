@@ -22,17 +22,34 @@
 #ifndef DESKA_PARSER_H
 #define DESKA_PARSER_H
 
+#include <iosfwd>
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
 
 #include "deska/db/Api.h"
 
-namespace Deska {
-namespace CLI {
+namespace Deska
+{
+namespace CLI
+{
 
 /** @short INTERNAL; Iterator for parser input */
 typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
+
+/** @short Context nesting */
+struct ContextStackItem
+{
+    ContextStackItem(const Identifier &_kind, const Identifier &_name);
+    ContextStackItem();
+
+    Identifier kind;
+    Identifier name;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
+bool operator==(const ContextStackItem &a, const ContextStackItem &b);
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
 
 /** @short Process the CLI input and generate events based on the parsed data
 
@@ -138,7 +155,10 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector<AttributeDefinition> currentContextStack() const;
+    std::vector<ContextStackItem> currentContextStack() const;
+
+    /** @short Moves context to top level */
+    void clearContextStack();
 
 
 private:
