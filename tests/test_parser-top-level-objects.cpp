@@ -123,19 +123,17 @@ struct F: public boost::signals2::trackable
 
         fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
         db = fake;
+
+        parser = new Deska::CLI::Parser(db);
+        parser->categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
+        parser->categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
+        parser->attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
     }
 
     ~F()
     {
+        delete parser;
         delete db;
-    }
-
-    /** @short Connect Parser's signals to slots in F */
-    void connectSignalsFromParser(Deska::CLI::Parser &parser)
-    {
-        parser.categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
-        parser.categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
-        parser.attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
     }
 
     /** @short Handler for Parser's categoryEntered signal */
@@ -200,6 +198,7 @@ struct F: public boost::signals2::trackable
     }
 
     Deska::Api *db;
+    Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
 };
 
@@ -230,15 +229,12 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_objects, 4)
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
 {
-    Deska::CLI::Parser parser(db);
-    connectSignalsFromParser(parser);
-
     // start a new context
-    parser.parseLine("hardware hpv2\r\n");
+    parser->parseLine("hardware hpv2\r\n");
     expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
 
-    parser.parseLine("end\r\n");
+    parser->parseLine("end\r\n");
     expectCategoryLeft();
     expectNothingElse();
 
