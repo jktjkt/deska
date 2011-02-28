@@ -136,8 +136,7 @@ const qi::rule<Iterator, Value(), ascii::space_type>& PredefinedRules<Iterator>:
 {
     typename std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
     if ( it == rulesMap.end() )
-        // TODO: Create some exceptions hierarchy
-        throw std::domain_error( "Unknown type" );
+        throw std::domain_error( "PredefinedRules::getRule: Internal error: type of the attribute not registered when looking up grammar rule" );
     else
         return it->second;
 }
