@@ -226,16 +226,112 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
     expectNothingElse();
 }
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_objects, 4)
-BOOST_FIXTURE_TEST_CASE( parsing_top_level_objects, F )
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_top_level_object_on_two_lines, 2)
+/** @short Verify that we don't fail when leaving a context immediately we've entered it */
+BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, F )
 {
-    // start a new context
+    // Start a new context with nothing inside
     parser->parseLine("hardware hpv2\r\n");
     expectCategoryEntered("hardware", "hpv2");
     expectNothingElse();
 
+    // ...and leave it immediately
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_trivial_argument, 4)
+/** @short Assign a simple value to an object using verbose syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+
+    // Set the attribute
+    parser->parseLine("name \"foo bar baz\"\r\n");
+    expectSetAttr("name", "foo bar baz");
+    expectNothingElse();
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_trivial_argument_inline, 2)
+/** @short Assing a simple value to an object using the inline syntax*/
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 name \"foo bar baz\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("name", "foo bar baz");
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_two_arguments, 6)
+/** @short Set two attributes of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+
+    // Set the second one
+    parser->parseLine("price 666\r\n");
+    expectSetAttr("price", 666);
+    expectNothingElse();
+
+    // Set the first attribute
+    parser->parseLine("name \"foo bar baz\"\r\n");
+    expectSetAttr("name", "foo bar baz");
+    expectNothingElse();
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_two_arguments_inline, 2)
+/** @short Set two attributes of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("price", 666);
+    expectSetAttr("name", "foo bar baz");
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(parsing_two_toplevel, 4)
+/** @short Make sure we can indeed handle multiple top-level objects */
+BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
+{
+    // create hpv2
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectNothingElse();
+
+    // terminate hpv2
     parser->parseLine("end\r\n");
     expectCategoryLeft();
     expectNothingElse();
 
+    // create second object
+    parser->parseLine("host hpv2\r\n");
+    expectCategoryEntered("host", "hpv2");
+    expectNothingElse();
+
+    // terminate the host
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
 }
