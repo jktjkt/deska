@@ -20,6 +20,7 @@
 * */
 
 #include <boost/assert.hpp>
+#include <boost/regex.hpp>
 #include "Parser_p.h"
 
 
@@ -252,7 +253,7 @@ void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const st
 
 
 template <typename Iterator>
-ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
+ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCategory( false )
 {
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new TopLevelParser<Iterator>( this );
@@ -295,37 +296,59 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine( const std::string &line )
 {
     // TODO: Only testing implementation. Reimplement.
-    Iterator iter = line.begin();
-    Iterator end = line.end();
-    std::cout << "Parse line: " << std::string( iter, end ) << std::endl;
-    std::cout << "Parsing top level object..." << std::endl;
-    bool r = phrase_parse( iter, end, *topLevelParser, ascii::space );
+    std::cout << "Parse line: " << line << std::endl;
 
-    if ( r ) {
-        if ( iter == end ) {
-            std::cout << "Parsing succeeded. Full match." << std::endl;
-        }
-        else {
-            std::cout << "Parsing succeeded. Partial match." << std::endl;
-            std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-            std::cout << "Parsing attributes for \"" << contextStack.back().first << "\"..." << std::endl;
-            bool r2 = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().first ] ), ascii::space );
-            if ( r2 ) {
-                if ( iter == end ) {
-                    std::cout << "Parsing succeeded. Full match." << std::endl;
-                }
-                else {
-                    std::cout << "Parsing succeeded. Partial match." << std::endl;
-                    std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-                }
-            }
-            else {
-                std::cout << "Parsing failed." << std::endl;
-            }
-        }
+    // "end" detected
+    if ( matchesEnd( line ) ) {
+        std::cout << "Leaving category..." << std::endl;
+        categoryLeft();
+        return;
+    }
+
+    Iterator iter = line.begin();
+    Iterator end = line.end(); 
+    
+    bool parsingSucceeded;
+    bool parsingTopLevel;
+
+    if( contextStack.empty() ) {
+        // No context, parse top-level objects
+        std::cout << "Parsing top level object..." << std::endl;
+        parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
+        parsingTopLevel = true;
     }
     else {
+        // Context -> parse attributes
+        std::cout << "Parsing attributes for \"" << contextStack.back().first << "\"..." << std::endl;
+        parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().first ] ), ascii::space );
+        parsingTopLevel = false;
+    }
+
+    // Some bad input
+    if ( !parsingSucceeded )
+    {
         std::cout << "Parsing failed." << std::endl;
+        return;
+    }
+
+    if( iter == end ) {
+        std::cout << "Parsing succeeded. Full match." << std::endl;
+        // Entering category permanently. Only top-level object or attributes definition on line
+        if ( parsingTopLevel )
+            leaveCategory = false;        
+    }
+    else {
+        // Top-level object with attributes definition on line
+        leaveCategory = true;
+        std::cout << "Parsing succeeded. Partial match." << std::endl;
+        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;    
+        
+        parseLine( std::string( iter, end ) );
+    }
+
+    if( leaveCategory && !parsingTopLevel ) {
+        categoryLeft();
+        leaveCategory = false;
     }
 }
 
@@ -334,7 +357,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 template <typename Iterator>
 bool ParserImpl<Iterator>::isNestedInContext() const
 {
-    return ( contextStack.size() > 1 );
+    return !contextStack.empty();
 }
 
 
@@ -385,6 +408,23 @@ void ParserImpl<Iterator>::addKindAttributes(
     std::vector<KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
     for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it )
         attributeParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
+}
+
+
+
+template <typename Iterator>
+bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
+{
+    /* FIXME: Regex has problems with linker
+    boost::regex re( "^end\\s*$}" );
+    return boost::regex_match( word, re );
+    */
+
+    if( word.size() >= 3 ) {
+        if( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
+            return true;
+    }
+    return false;
 }
 
 
@@ -477,6 +517,8 @@ template void ParserImpl<iterator_type>::attributeSet( const Identifier &name, c
 template void ParserImpl<iterator_type>::addKindAttributes(
     std::string &kindName,
     AttributesParser<iterator_type>* attributeParser );
+
+template bool ParserImpl<iterator_type>::matchesEnd( const std::string &word );
 
 }
 }

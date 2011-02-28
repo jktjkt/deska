@@ -291,10 +291,14 @@ public:
 private:
     Parser *m_parser;
 
+    bool leaveCategory;
+
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
     void addKindAttributes(
         std::string &kindName,
         AttributesParser<Iterator>* attributeParser );
+
+    bool matchesEnd( const std::string &word );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     TopLevelParser<Iterator> *topLevelParser;
