@@ -24,8 +24,16 @@ macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
     add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} DeskaCliParser DeskaDb boost_unit_test_framework)
+    target_link_libraries(test_${fname} ParserTestHelpers boost_unit_test_framework)
     add_test(test_${fname} test_${fname})
 endmacro(deska_test)
+
+set(ParserTestHelpers_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
+)
+
+add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
+target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
 deska_test(parser-top-level-objects)
