@@ -39,11 +39,7 @@ void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> 
 
 
 template <typename Iterator>
-void ObjectErrorHandler<Iterator>::operator()(
-    Iterator start,
-    Iterator end,
-    Iterator errorPos,
-    const spirit::info& what,
+void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const
 {
     std::cout << "Error in object type parsing! Expecting ";
@@ -66,11 +62,7 @@ void ObjectErrorHandler<Iterator>::printKindName(
 
 
 template <typename Iterator>
-void KeyErrorHandler<Iterator>::operator()(
-    Iterator start,
-    Iterator end,
-    Iterator errorPos,
-    const spirit::info& what,
+void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const
 {
     std::cout << "Error in attribute name parsing! Expecting ";
@@ -83,9 +75,7 @@ void KeyErrorHandler<Iterator>::operator()(
 
 
 template <typename Iterator>
-void KeyErrorHandler<Iterator>::printAttributeName(
-    const std::string &name,
-    const qi::rule<Iterator, Value(), ascii::space_type> &rule )
+void KeyErrorHandler<Iterator>::printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule )
 {
     std::cout << name << " ";
 }
@@ -93,11 +83,7 @@ void KeyErrorHandler<Iterator>::printAttributeName(
 
 
 template <typename Iterator>
-void ValueErrorHandler<Iterator>::operator()(
-    Iterator start,
-    Iterator end,
-    Iterator errorPos,
-    const spirit::info& what ) const
+void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const
 {
     std::cout
         << "Error in value parsing! Expecting " << what
@@ -185,9 +171,7 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::addAtrribute(
-    const std::string &attributeName,
-    qi::rule<Iterator, Value(), ascii::space_type> attributeParser )
+void AttributesParser<Iterator>::addAtrribute(const std::string &attributeName, qi::rule<Iterator, Value(), ascii::space_type> attributeParser )
 {
     attributes.add( attributeName, attributeParser );
 }
@@ -234,9 +218,7 @@ TopLevelParser<Iterator>::TopLevelParser( ParserImpl<Iterator> *parent):
 
 
 template <typename Iterator>
-void TopLevelParser<Iterator>::addKind(
-    const std::string &kindName,
-    qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
+void TopLevelParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
 {
     kinds.add( kindName, identifierParser );
 }
@@ -278,14 +260,12 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 template <typename Iterator>
 ParserImpl<Iterator>::~ParserImpl()
 {
-    for( typename std::map<std::string, AttributesParser<Iterator>* >::iterator
-        it = attributesParsers.begin();
-        it != attributesParsers.end();
-        ++it )
+    for( typename std::map<std::string, AttributesParser<Iterator>* >::iterator it = attributesParsers.begin();
+        it != attributesParsers.end(); ++it ) {
         delete it->second;
+    }
 
     delete topLevelParser;
-
     delete predefinedRules;
 }
 
@@ -401,9 +381,7 @@ void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &va
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::addKindAttributes(
-    std::string &kindName,
-    AttributesParser<Iterator>* attributeParser )
+void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesParser<Iterator>* attributeParser)
 {
     std::vector<KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
     for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it )
@@ -433,70 +411,37 @@ bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
 template void RangeToString<iterator_type>::operator()(
     const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
 
-template void ObjectErrorHandler<iterator_type>::operator()(
-    iterator_type start,
-    iterator_type end,
-    iterator_type errorPos,
-    const spirit::info &what,
-    qi::symbols<char, qi::rule<iterator_type, std::string(), ascii::space_type> > kinds ) const;
+template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos,
+    const spirit::info &what, qi::symbols<char, qi::rule<iterator_type, std::string(), ascii::space_type> > kinds ) const;
 
-template void ObjectErrorHandler<iterator_type>::printKindName(
-    const std::string &name,
+template void ObjectErrorHandler<iterator_type>::printKindName( const std::string &name,
     const qi::rule<iterator_type, std::string(), ascii::space_type> &rule );
 
-template void KeyErrorHandler<iterator_type>::operator()(
-    iterator_type start,
-    iterator_type end,
-    iterator_type errorPos,
-    const spirit::info &what,
+template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what,
     qi::symbols<char, qi::rule<iterator_type, Value(), ascii::space_type> > attributes ) const;
 
-template void KeyErrorHandler<iterator_type>::printAttributeName(
-    const std::string &name,
+template void KeyErrorHandler<iterator_type>::printAttributeName( const std::string &name,
     const qi::rule<iterator_type, Value(), ascii::space_type> &rule );
 
-template void ValueErrorHandler<iterator_type>::operator()(
-    iterator_type start,
-    iterator_type end,
-    iterator_type errorPos,
-    const spirit::info &what ) const;
+template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what ) const;
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 
-template const qi::rule<
-    iterator_type,
-    Value(),
-    ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Type attrType);
+template const qi::rule<iterator_type, Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Type attrType);
 
-template const qi::rule<
-    iterator_type,
-    std::string(),
-    ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
+template const qi::rule<iterator_type, std::string(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
-template AttributesParser<iterator_type>::AttributesParser(
-    const std::string &kindName,
-    ParserImpl<iterator_type> *parent );
+template AttributesParser<iterator_type>::AttributesParser( const std::string &kindName, ParserImpl<iterator_type> *parent );
 
-template void AttributesParser<iterator_type>::addAtrribute(
-    const std::string &attributeName,
-    qi::rule<
-        iterator_type,
-        Value(),
-        ascii::space_type> attributeParser );
+template void AttributesParser<iterator_type>::addAtrribute( const std::string &attributeName,qi::rule<iterator_type, Value(), ascii::space_type> attributeParser );
 
-template void AttributesParser<iterator_type>::parsedAttribute(
-    const std::string &parameter,
-    Value &value );
+template void AttributesParser<iterator_type>::parsedAttribute(const std::string &parameter, Value &value );
 
 template TopLevelParser<iterator_type>::TopLevelParser( ParserImpl<iterator_type> *parent );
 
-template void TopLevelParser<iterator_type>::addKind(
-    const std::string &kindName,
-    qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
+template void TopLevelParser<iterator_type>::addKind( const std::string &kindName,qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
 
-template void TopLevelParser<iterator_type>::parsedKind(
-    const std::string &kindName,
-    const std::string &objectName );
+template void TopLevelParser<iterator_type>::parsedKind(const std::string &kindName, const std::string &objectName );
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
@@ -514,9 +459,7 @@ template void ParserImpl<iterator_type>::categoryLeft();
 
 template void ParserImpl<iterator_type>::attributeSet( const Identifier &name, const Value &value );
 
-template void ParserImpl<iterator_type>::addKindAttributes(
-    std::string &kindName,
-    AttributesParser<iterator_type>* attributeParser );
+template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindName, AttributesParser<iterator_type>* attributeParser );
 
 template bool ParserImpl<iterator_type>::matchesEnd( const std::string &word );
 

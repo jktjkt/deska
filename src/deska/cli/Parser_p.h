@@ -72,16 +72,10 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()(
-        Iterator start,
-        Iterator end,
-        Iterator errorPos,
-        const spirit::info &what,
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
 
-    void printKindName(
-        const std::string &name,
-        const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
+    void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
 };
 
 
@@ -102,16 +96,10 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()(
-        Iterator start,
-        Iterator end,
-        Iterator errorPos,
-        const spirit::info &what,
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
 
-    void printAttributeName(
-        const std::string &name,
-        const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+    void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
 };
 
 
@@ -185,9 +173,7 @@ public:
     *   @param attributeParser  Attribute parser obtained from PredefinedRules class
     *   @see PredefinedRules
     */
-    void addAtrribute(
-        const std::string &attributeName,
-        qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
+    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
 
 private:
 
@@ -199,24 +185,11 @@ private:
     void parsedAttribute( const std::string &parameter, Value &value );
 
 
-    qi::symbols<
-        char,
-        qi::rule<
-            Iterator,
-            Value(),
-            ascii::space_type> > attributes;
+    qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<bool> > start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<
-            qi::rule<Iterator, Value(), ascii::space_type>,
-            std::string> > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string> > dispatch;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -248,24 +221,11 @@ private:
     */
     void parsedKind( const std::string &kindName, const std::string &objectName );
 
-    qi::symbols<
-        char,
-        qi::rule<
-            Iterator,
-            std::string(),
-            ascii::space_type> > kinds;
+    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<bool> > start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
 
-    qi::rule<
-        Iterator,
-        ascii::space_type,
-        qi::locals<
-            qi::rule<Iterator, std::string(), ascii::space_type>,
-            std::string> > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string> > dispatch;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -294,9 +254,7 @@ private:
     bool leaveCategory;
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
-    void addKindAttributes(
-        std::string &kindName,
-        AttributesParser<Iterator>* attributeParser );
+    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributeParser );
 
     bool matchesEnd( const std::string &word );
 
