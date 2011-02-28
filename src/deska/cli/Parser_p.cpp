@@ -23,6 +23,7 @@
 //#include <boost/regex.hpp>
 #include "Parser_p.h"
 
+//#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -271,7 +272,9 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine( const std::string &line )
 {
     // TODO: Only testing implementation. Reimplement.
+#ifdef PARSER_DEBUG
     std::cout << "Parse line: " << line << std::endl;
+#endif
 
     // "end" detected
     if ( matchesEnd( line ) ) {
@@ -287,13 +290,17 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     if( contextStack.empty() ) {
         // No context, parse top-level objects
+#ifdef PARSER_DEBUG
         std::cout << "Parsing top level object..." << std::endl;
+#endif
         parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
         parsingTopLevel = true;
     }
     else {
         // Context -> parse attributes
+#ifdef PARSER_DEBUG
         std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
+#endif
         parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().kind ] ), ascii::space );
         parsingTopLevel = false;
     }
@@ -301,12 +308,16 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     // Some bad input
     if ( !parsingSucceeded )
     {
+#ifdef PARSER_DEBUG
         std::cout << "Parsing failed." << std::endl;
+#endif
         return;
     }
 
     if( iter == end ) {
+#ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Full match." << std::endl;
+#endif
         // Entering category permanently. Only top-level object or attributes definition on line
         if ( parsingTopLevel )
             leaveCategory = false;        
@@ -314,8 +325,10 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     else {
         // Top-level object with attributes definition on line
         leaveCategory = true;
+#ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Partial match." << std::endl;
-        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;    
+        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
+#endif
         
         parseLine( std::string( iter, end ) );
     }
@@ -357,8 +370,9 @@ void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identi
 {
     contextStack.push_back( ContextStackItem( kind, name ) );
     m_parser->categoryEntered( kind, name );
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Parsed kind: " << kind << ": " << name << std::endl;
+#endif
 }
 
 
@@ -368,8 +382,9 @@ void ParserImpl<Iterator>::categoryLeft()
 {
     contextStack.pop_back();
     m_parser->categoryLeft();
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Category left" << std::endl;
+#endif
 }
 
 
@@ -378,8 +393,9 @@ template <typename Iterator>
 void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &value )
 {
     m_parser->attributeSet( name, value );
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Parsed parameter: " << name << "=" << value << std::endl;
+#endif
 }
 
 
