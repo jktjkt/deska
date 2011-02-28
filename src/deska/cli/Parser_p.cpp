@@ -20,7 +20,7 @@
 * */
 
 #include <boost/assert.hpp>
-#include <boost/regex.hpp>
+//#include <boost/regex.hpp>
 #include "Parser_p.h"
 
 
@@ -300,7 +300,6 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     // "end" detected
     if ( matchesEnd( line ) ) {
-        std::cout << "Leaving category..." << std::endl;
         categoryLeft();
         return;
     }
@@ -386,6 +385,8 @@ void ParserImpl<Iterator>::categoryLeft()
 {
     contextStack.pop_back();
     m_parser->categoryLeft();
+    // TODO: Delete this
+    std::cout << "Category left" << std::endl;
 }
 
 
