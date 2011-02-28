@@ -1,0 +1,69 @@
+Schuze Deska, 2011-02-28 FZU
+----------------------------
+
+Pritomni: vsichni a vcas, dekuji.
+
+Ukoly z minula:
+---------------
+
+- Martina z predminula: reprodukovatelne testy (=spustitelny skript)
+    - je
+- Tomas: getRule nema vracet defaultne zkontruovanou instanci pri nenalezenem klici
+    - je
+- Tomas: implementovat signaly
+    - je
+- Tomas: implementovat kontext, jak drzeni informace o tom, kde jsem, tak povolovani
+  ruznych atributut atd atd
+    - je castecne
+- Honza: enum pro Api::Type
+    - je
+- Honza: vic testu
+    - je
+- Honza: d-pointer pro Parser
+    - je
+- Honza: mergnout Tomasovo branch + ucesat
+    - je
+- Honza: protokol, JSON,...
+    - neni
+- Lukas: jak pristupovat k jmenum EMBED_INTO objektu
+    - je
+- Lukas: vyklikat hodiny za minuly tyden
+    - je, frajer udelal 20 hodin za 10 minut, dobre on!
+
+Diskuse:
+--------
+
+- Vyhled do budoucna: za 14 dni by db mela umet API pres JSON
+- EMBED_INTO: v API skutecne budou vsechny objekty na stejne urovni, jmena jsou
+  tedy fully qualified
+- vymyslet oddelovac pro EMBED_INTO
+- Coding style: kod zalamujeme na 120 sloupcu, vyjimky jiste mozne, mezery za
+zavorku u volani funkce nejsou, tedy foo(bar, baz) a foo(int &bar) atd.
+
+
+Ukoly na priste:
+----------------
+
+- Tomas: embedovane objekty
+- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu
+- Tomas: ucesat end
+- Tomas: event. readline
+- Tomas: precist clanek
+- Honza: Jak se ma pristupovat k historii objektu, prerusuje ji smazani? Da se povolit
+  smazani & vytvoreni tehoz objektu v jedne relaci? (minule nebylo zapsano)
+- Honza: vypsat termin, zacatek dohodnout se Zavoralem
+- Honza: dalsi unit testy
+- Honza: prepsat main.cpp do unit testu
+- Honza: JSON
+- Honza: pusti deska-dev
+- Honza: #ifdef na debugging
+- Lukas: vyklika tasky, dneska, aby Honzik videl
+- Lukas: prace na DB
+- Martina: prace na DB
+- Martina: precist clanek
+
+
+Pristi schuzka:
+---------------
+
+cas opet upresnime, jinak 15.00 pondeli 7. dubna FZU
