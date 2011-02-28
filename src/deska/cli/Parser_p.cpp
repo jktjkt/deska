@@ -183,8 +183,8 @@ void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, 
 
 
 template <typename Iterator>
-TopLevelParser<Iterator>::TopLevelParser( ParserImpl<Iterator> *parent):
-    TopLevelParser<Iterator>::base_type( start ), m_parent( parent )
+KindsParser<Iterator>::KindsParser( ParserImpl<Iterator> *parent):
+    KindsParser<Iterator>::base_type( start ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -203,7 +203,7 @@ TopLevelParser<Iterator>::TopLevelParser( ParserImpl<Iterator> *parent):
     start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
     dispatch = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ]
-        > lazy( _a )[ phoenix::bind( &TopLevelParser::parsedKind, this, _b, _1 ) ] );
+        > lazy( _a )[ phoenix::bind( &KindsParser::parsedKind, this, _b, _1 ) ] );
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
@@ -214,7 +214,7 @@ TopLevelParser<Iterator>::TopLevelParser( ParserImpl<Iterator> *parent):
 
 
 template <typename Iterator>
-void TopLevelParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
+void KindsParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
 {
     kinds.add( kindName, identifierParser );
 }
@@ -222,7 +222,7 @@ void TopLevelParser<Iterator>::addKind(const std::string &kindName, qi::rule<Ite
 
 
 template <typename Iterator>
-void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
+void KindsParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
     m_parent->categoryEntered( kindName, objectName );
 }
@@ -230,10 +230,29 @@ void TopLevelParser<Iterator>::parsedKind( const std::string &kindName, const st
 
 
 template <typename Iterator>
+KindParser<Iterator>::KindParser( AttributesParser<Iterator> *attributesParser,
+    KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
+    KindParser<Iterator>::base_type( start ), m_parent( parent )
+{
+
+}
+
+
+
+template <typename Iterator>
+void KindParser<Iterator>::parsedEnd()
+{
+
+}
+
+
+
+
+template <typename Iterator>
 ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCategory( false )
 {
     predefinedRules = new PredefinedRules<Iterator>();
-    topLevelParser = new TopLevelParser<Iterator>( this );
+    topLevelParser = new KindsParser<Iterator>( this );
 
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
@@ -441,11 +460,15 @@ template void AttributesParser<iterator_type>::addAtrribute( const std::string &
 
 template void AttributesParser<iterator_type>::parsedAttribute(const std::string &parameter, Value &value );
 
-template TopLevelParser<iterator_type>::TopLevelParser( ParserImpl<iterator_type> *parent );
+template KindsParser<iterator_type>::KindsParser( ParserImpl<iterator_type> *parent );
 
-template void TopLevelParser<iterator_type>::addKind( const std::string &kindName,qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
+template void KindsParser<iterator_type>::addKind( const std::string &kindName,qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
 
-template void TopLevelParser<iterator_type>::parsedKind(const std::string &kindName, const std::string &objectName );
+template void KindsParser<iterator_type>::parsedKind(const std::string &kindName, const std::string &objectName );
+
+template KindParser<iterator_type>::KindParser( AttributesParser<iterator_type> *attributesParser, KindsParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent );
+
+template void KindParser<iterator_type>::parsedEnd();
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 

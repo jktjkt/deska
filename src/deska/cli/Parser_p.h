@@ -196,15 +196,15 @@ private:
 
 
 
-/** @short Parser for set of attributes of specific top-level grammar */
+/** @short Parser for kinds definitions */
 template <typename Iterator>
-class TopLevelParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
+class KindsParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table */
-    TopLevelParser( ParserImpl<Iterator> *parent );
+    KindsParser( ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -226,6 +226,29 @@ private:
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
 
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type>, std::string> > dispatch;
+
+    ParserImpl<Iterator> *m_parent;
+};
+
+
+
+/** @short Parser for set of attributes and nested objects of specific top-level grammar */
+template <typename Iterator>
+class KindParser: public qi::grammar<Iterator, ascii::space_type>
+{
+
+public:
+
+    /** @short Constructor initializes the grammar with all rules */
+    KindParser( AttributesParser<Iterator> *attributesParser,
+        KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent );
+
+private:
+
+    /** @short Function used as semantic action for parsed end keyword */
+    void parsedEnd();
+
+    qi::rule<Iterator, ascii::space_type > start;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -260,7 +283,7 @@ private:
     bool matchesEnd( const std::string &word );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
-    TopLevelParser<Iterator> *topLevelParser;
+    KindsParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
 
     std::vector<ContextStackItem> contextStack;
