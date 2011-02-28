@@ -247,7 +247,7 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-            if( itRel->kind == RELATION_MERGE_WITH )
+            if ( itRel->kind == RELATION_MERGE_WITH )
                 addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
     }
 }
@@ -288,15 +288,14 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     bool parsingSucceeded;
     bool parsingTopLevel;
 
-    if( contextStack.empty() ) {
+    if ( contextStack.empty() ) {
         // No context, parse top-level objects
 #ifdef PARSER_DEBUG
         std::cout << "Parsing top level object..." << std::endl;
 #endif
         parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
         parsingTopLevel = true;
-    }
-    else {
+    } else {
         // Context -> parse attributes
 #ifdef PARSER_DEBUG
         std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
@@ -306,34 +305,31 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     }
 
     // Some bad input
-    if ( !parsingSucceeded )
-    {
+    if ( !parsingSucceeded ) {
 #ifdef PARSER_DEBUG
         std::cout << "Parsing failed." << std::endl;
 #endif
         return;
     }
 
-    if( iter == end ) {
+    if ( iter == end ) {
 #ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Full match." << std::endl;
 #endif
         // Entering category permanently. Only top-level object or attributes definition on line
         if ( parsingTopLevel )
             leaveCategory = false;        
-    }
-    else {
+    } else {
         // Top-level object with attributes definition on line
         leaveCategory = true;
 #ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Partial match." << std::endl;
         std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
 #endif
-        
         parseLine( std::string( iter, end ) );
     }
 
-    if( leaveCategory && !parsingTopLevel ) {
+    if ( leaveCategory && !parsingTopLevel ) {
         categoryLeft();
         leaveCategory = false;
     }
@@ -418,8 +414,8 @@ bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
     return boost::regex_match( word, re );
     */
 
-    if( word.size() >= 3 ) {
-        if( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
+    if ( word.size() >= 3 ) {
+        if ( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
             return true;
     }
     return false;
