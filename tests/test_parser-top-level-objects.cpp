@@ -21,37 +21,9 @@
 
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
-#include <boost/bind.hpp>
 #include "deska/cli/Parser.h"
 #include "ParserTestFixture.h"
 
-
-/** @short Verify that the mock object setup works properly
-
-In this test case, we check our mock facility for obvious errors.
-*/
-BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
-{
-    // There's no parser, so we have to skip testing of the proper nesting
-    boost::signals2::shared_connection_block(attrCheckContextConnection);
-
-    // At first, nothing should be present in there
-    expectNothingElse();
-
-    // Simulate slots triggered by the Parser
-    slotParserCategoryEntered("a", "b");
-    slotParserSetAttr("foo", "bar");
-    slotParserCategoryLeft();
-
-    // ...and verify that we indeed received them
-    expectCategoryEntered("a", "b");
-    expectSetAttr("foo", "bar");
-    expectCategoryLeft();
-
-    // The shouldn't be anything else at this point
-    expectNothingElse();
-    verifyEmptyStack();
-}
 
 /** @short Verify that we don't fail when leaving a context immediately we've entered it */
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, F )
