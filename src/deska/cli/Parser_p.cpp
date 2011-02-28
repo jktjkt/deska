@@ -341,7 +341,7 @@ bool ParserImpl<Iterator>::isNestedInContext() const
 
 
 template <typename Iterator>
-std::vector<AttributeDefinition> ParserImpl<Iterator>::currentContextStack() const
+std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
 {
     return contextStack;
 }
@@ -451,7 +451,7 @@ template void ParserImpl<iterator_type>::parseLine( const std::string &line );
 
 template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
-template std::vector<AttributeDefinition> ParserImpl<iterator_type>::currentContextStack() const;
+template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContextStack() const;
 
 template void ParserImpl<iterator_type>::categoryEntered( const Identifier &kind, const Identifier &name );
 

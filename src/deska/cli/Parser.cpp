@@ -52,7 +52,7 @@ bool Parser::isNestedInContext() const
     return d_ptr->isNestedInContext();
 }
 
-std::vector<AttributeDefinition> Parser::currentContextStack() const
+std::vector<ContextStackItem> Parser::currentContextStack() const
 {
     return d_ptr->currentContextStack();
 }

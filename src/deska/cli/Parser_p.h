@@ -241,7 +241,7 @@ public:
 
     void parseLine( const std::string &line );
     bool isNestedInContext() const;
-    std::vector<AttributeDefinition> currentContextStack() const;
+    std::vector<ContextStackItem> currentContextStack() const;
 
     void categoryEntered( const Identifier &kind, const Identifier &name );
     void categoryLeft();
@@ -262,7 +262,7 @@ private:
     TopLevelParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
 
-    std::vector<AttributeDefinition> contextStack;
+    std::vector<ContextStackItem> contextStack;
 };
 
 }

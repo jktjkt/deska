@@ -36,6 +36,12 @@ namespace CLI
 typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
 
+/** @short Typedef for context nesting
+
+First item is the type name, second its identifier.
+*/
+typedef std::pair<Identifier, Identifier> ContextStackItem;
+
 /** @short Process the CLI input and generate events based on the parsed data
 
 This class is fed by individual lines of user input (or the configuration file). It will parse
@@ -140,7 +146,7 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector<AttributeDefinition> currentContextStack() const;
+    std::vector<ContextStackItem> currentContextStack() const;
 
 
 private:
