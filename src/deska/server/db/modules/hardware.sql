@@ -11,8 +11,8 @@ CREATE TABLE hardware (
 	-- this column is required in all plugins
 	name text
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
-	vendor bigint
-		REFERENCES vendor(uid),
+	vendor bigint 
+		CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid),
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	-- GB of RAM
@@ -26,6 +26,4 @@ CREATE TABLE hardware (
 	-- add cpu type, when we have cpu type table
 	note text
 );
-GRANT ALL ON hardware TO deska_team;
-
 
