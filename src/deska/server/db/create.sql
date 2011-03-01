@@ -11,6 +11,9 @@ set role deska_team;
 
 -- add modules
 \i modules/vendor.sql
+\i modules/hardware.sql
+\i modules/host.sql
+\i modules/interface.sql
 
 -- add generated files from modules
 --\i gen_schema.sql
