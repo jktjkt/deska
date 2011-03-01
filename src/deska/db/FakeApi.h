@@ -24,10 +24,12 @@
 
 #include "Api.h"
 
-namespace Deska {
+namespace Deska
+{
 
 /** @short A fake implementation of the DB API for testing purposes */
-class FakeApi: public Api {
+class FakeApi: public Api
+{
 public:
     FakeApi();
     virtual ~FakeApi();
@@ -39,22 +41,23 @@ public:
 
     // Returning data for existing objects
     virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const;
-    virtual std::map<Identifier, Value> objectData( const Identifier &kindName, const Identifier &objectName, const Revision=0 );
+    virtual std::map<Identifier, Value> objectData(
+        const Identifier &kindName, const Identifier &objectName, const Revision = 0 );
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
             const Identifier &kindName, const Identifier &objectName, const Revision=0 );
-    virtual std::vector<Identifier> findOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName );
-    virtual std::vector<Identifier> findNonOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName );
+    virtual std::vector<Identifier> findOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName );
+    virtual std::vector<Identifier> findNonOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName );
 
     // Manipulating objects
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName );
     virtual void createObject( const Identifier &kindName, const Identifier &objectname );
     virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName );
-    virtual void removeAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName );
-    virtual void setAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName, const Value &value );
+    virtual void removeAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
+    virtual void setAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
 
     // SCM-like operation and transaction control
     virtual void startChangeset();

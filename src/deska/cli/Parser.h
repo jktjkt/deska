@@ -1,18 +1,30 @@
+/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+*
+* This file is part of the Deska, a tool for central administration of a grid site
+* http://projects.flaska.net/projects/show/deska
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation; either
+* version 2 of the License, or the version 3 of the License.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; see the file COPYING.  If not, write to
+* the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+* Boston, MA 02110-1301, USA.
+* */
+
 #ifndef DESKA_PARSER_H
 #define DESKA_PARSER_H
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-
-#include <boost/config/warning_disable.hpp>
-#include <boost/fusion/include/io.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
+#include <iosfwd>
+#include <boost/noncopyable.hpp>
+#include <boost/signals2.hpp>
 
 #include "deska/db/Api.h"
 
@@ -21,168 +33,139 @@ namespace Deska
 namespace CLI
 {
 
-    namespace spirit = boost::spirit;
-    namespace phoenix = boost::phoenix;
-    namespace ascii = boost::spirit::ascii;
-    namespace qi = boost::spirit::qi;
+/** @short INTERNAL; Iterator for parser input */
+typedef std::string::const_iterator iterator_type;
+template<typename Iterator> class ParserImpl;
+
+/** @short Context nesting */
+struct ContextStackItem
+{
+    ContextStackItem(const Identifier &_kind, const Identifier &_name);
+    ContextStackItem();
+
+    Identifier kind;
+    Identifier name;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
+bool operator==(const ContextStackItem &a, const ContextStackItem &b);
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
+
+/** @short Process the CLI input and generate events based on the parsed data
+
+This class is fed by individual lines of user input (or the configuration file). It will parse
+these data and emit signals based on their meaning, similar to how a SAX XML parser processes an
+XML file.
+
+Example: suppose we read the following input; the comments indicate the signals which the Parser emits:
+
+    # isNestedInContext() return false
+    host hpv2
+        # categoryEntered("host", "hpv2") gets called
+        # isNestedInContext() would return true
+        # currentContextStack() would return (("host", "hpv2"))
+        color red
+        # attributeSet("color", "red")
+    end
+    # categoryLeft() gets signalled, isNestedInContext() is false and the currentContextStack() is empty
+
+    host hpv2
+        # categoryEntered("host", "hpv2") gets called
+        # isNestedInContext() would return true
+        # currentContextStack() would return (("host", "hpv2"))
+        depth 10
+        # attributeSet("depth", "10")
+        interface eth0
+            # categoryEntered("interface", "eth0") gets called
+            # isNestedInContext() would return true
+            # currentContextStack() would return (("host", "hpv2"), ("interface", "eth0"))
+            ip 1.2.3.4
+            # attributeSet("ip", "1.2.3.4")
+        end
+        # categoryLeft()
+        # isNestedInContext() would return true
+        # currentContextStack() would return (("host", "hpv2"))
+    end
+    # categoryLeft() gets signalled, isNestedInContext() is false and the currentContextStack() is empty
 
 
+The following example demonstrates statements "inlined" to just a single line; we can see that the terminate
+"end" is not required in these cases. The time goes from left to right. The whole line, ie. ("host hpv2 color blue\n")
+is passed to the parser as a single unit, without any further structure.
 
-    template < typename Iterator >
-    class ErrorHandler
-    {
-    public:
-        template <typename, typename, typename, typename>
-            struct result { typedef void type; };
+    host hpv2 color blue
+             ^          ^-- (2) Here it emits setAttribute("color", "blue") immediately followed by categoryLeft()
+             |              the Parser returns to the initial state
+             +-- (1) Here it emits the categoryEntered("host", "hpv2")
 
-        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const;
-    };
+And another example, showing that it's possible to set multiple attributes at once:
 
+    host hpv2 color blue depth 1
+             ^          ^       ^+-- (3) setAttribute("depth", 1) immediately followed by categoryLeft()
+             |          |
+             |          +-- (2) setAttribute("color", "blue")
+             |
+             +-- (1) categoryEntered("host", "hpv2")
 
+*/
+class Parser: boost::noncopyable
+{
+public:
+    /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
+    Parser( Api* dbApi );
 
-    /* Predefined rules for parsing single parameters
+    virtual ~Parser();
+
+    /** @short Parse a full line of user's input
+    *
+    *   As a result of this parsing, events could get triggered and the state may change.
     */
-    template < typename Iterator >
-    class PredefinedRules
-    {
-    public:
-        PredefinedRules();
-        qi::rule< Iterator, ascii::space_type > getRule( const std::string typeName );
+    void parseLine( const std::string &line );
 
-    private:
-        std::map< std::string, qi::rule< Iterator, ascii::space_type > > rulesMap;
-    };
+    /** @short The input indicates that the following signals will be related to a particular object
+    *
+    *   This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
+    *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
+    *   and the second one is the object's identifier ("hpv2").
+    */
+    boost::signals2::signal<void ( const Identifier &kind, const Identifier &name )> categoryEntered;
 
+    /** @short Leaving a context
+    *
+    *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
+    *   "end" line, or a side effect of a standalone, self-contained line.
+    */
+    boost::signals2::signal<void ()> categoryLeft;
 
+    /** @short Set an object's attribute
+    *
+    *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
+    *   of the attribute and the second one the attribute value.
+    */
+    boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
 
-    template < typename Iterator >
-    class IfaceGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
-    {
-    public:
-        IfaceGrammar();
+    /** @short True if the parser is currently nested in some block
+    *
+    *   The return value is false iff the currentContextStack() would return an empty vector.
+    */
+    bool isNestedInContext() const;
 
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type >* > keyword;
-        qi::symbols< char, qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nested;
+    /** @short Return current nesting of the contexts
+    *
+    *   The return value is a vector of items where each item indicates one level of context nesting. The first member
+    *   of the pair represents the object kind and the second one contains the object's identifier.
+    */
+    std::vector<ContextStackItem> currentContextStack() const;
 
-        qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
-
-        PredefinedRules< Iterator > predefined;
-    };
-
-    template <typename Iterator>
-    class HardwareGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
-    {
-    public:
-        HardwareGrammar();
-
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type >* > keyword;
-        qi::symbols< char, qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nested;
-        
-        qi::rule< Iterator, std::string(), std::string(), ascii::space_type > cat_start;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
-
-        PredefinedRules< Iterator > predefined;
-    };
+    /** @short Moves context to top level */
+    void clearContextStack();
 
 
-
-    template <typename Iterator>
-    class KindGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
-    {
-    public:
-        KindGrammar( const std::string kindName, qi::rule< Iterator, std::string(), ascii::space_type > identifierParser );
-
-        void addAtrribute(
-            const std::string attributeName,
-            qi::rule< Iterator, ascii::space_type > attributeParser );
-        void addNestedKind(
-            const std::string kindName,
-            qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >* kindParser );
-            //const KindGrammar* kindParser );
-
-        std::string getName() const;
-
-    private:
-        qi::symbols<
-            char,
-            qi::rule< Iterator, ascii::space_type >* > attributes;
-
-//        qi::symbols<
-//            char,
-//            qi::rule<
-//                Iterator,
-//                ascii::space_type,
-//                qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nestedGrammars;
-
-        qi::symbols<
-            char,
-            qi::grammar<
-            Iterator,
-            ascii::space_type,
-            qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > nestedGrammars;
-        
-        qi::rule< Iterator, std::string(), std::string(), ascii::space_type > identifierP;
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
-
-        std::string name;
-
-        std::vector< qi::rule< Iterator, ascii::space_type > > attributesArray;
-    };
-
-
-
-    template <typename Iterator>
-    class MainGrammar: public qi::grammar< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > >
-    {
-    public:
-        MainGrammar();
-        ~MainGrammar();
-
-        void addKindGrammar( KindGrammar< Iterator >* grammar );
-
-    private:
-        qi::symbols<
-            char,
-            qi::grammar<
-                Iterator,
-                ascii::space_type,
-                qi::locals< qi::rule< Iterator, ascii::space_type >* > >* > kindGrammars;
-
-        qi::rule< Iterator, ascii::space_type, qi::locals< qi::rule< Iterator, ascii::space_type >* > > start;
-
-        std::vector< KindGrammar< Iterator >* > kindGrammarsArray;
-    };
-
-
-
-    template <typename Iterator>
-    class ParserBuilder
-    {
-    public:
-        ParserBuilder( Api* DBApi );
-        MainGrammar< Iterator >* buildParser();
-
-    private:
-        PredefinedRules< Iterator > predefined;
-        Api* api;
-    };
-
-
-
-    template <typename Iterator>
-    class Parser
-    {
-    public:
-        Parser();
-        ~Parser();
-
-        void initParser( Api* DBApi );
-        bool parse( Iterator iter, Iterator end );
-        
-    private:
-        MainGrammar< Iterator >* grammar;
-    };
+private:
+    friend class ParserImpl<iterator_type>;
+    ParserImpl<iterator_type> *d_ptr;
+    Api *m_dbApi;
+};
 
 }
 
@@ -190,4 +173,4 @@ namespace CLI
 
 
 
-#endif  //DESKA_PARSER_H
+#endif  // DESKA_PARSER_H

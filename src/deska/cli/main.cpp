@@ -1,44 +1,58 @@
-#include "Parser.h"
+#include <iostream>
+#include <string>
 #include "deska/db/FakeApi.h"
-
-
-
-/* Now this parses:
-*
-*  hardware <name> name <quoted string> id <integer> price <double> end
-*
-*  Its only an example how this can be handled.
-*/
+#include "Parser.h"
 
 
 
 int main()
 {
-    using boost::spirit::ascii::space;
-    typedef std::string::const_iterator iteratorType;
-    typedef Deska::CLI::HardwareGrammar< iteratorType > HardwareGrammar;
+    using namespace Deska;
 
-    std::cout << "hardware <name> name <quoted string> id <integer> price <double> end" << std::endl;
+    FakeApi *fake = new FakeApi();
 
-    HardwareGrammar g;
-    std::string str;
-    while ( getline( std::cin, str ) )
-    {
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+
+    Deska::CLI::Parser parser( fake );
+
+    std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
+    parser.clearContextStack();
+
+    std::cout << std::endl;
+
+    test = "hardware abcde id xx name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
+    parser.clearContextStack();
+
+    std::cout << std::endl;
+
+    test = "hardware abcde isd 123 name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
+    parser.clearContextStack();
+
+    std::cout << std::endl;
+
+    test = "haware abcde id 123 name \"jmeno\" price 1234.5";
+    parser.parseLine( test );
+    parser.clearContextStack();
+    
+    /*
+    while ( getline( std::cin, str ) ) {
         if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )
             break;
-
-        std::string::const_iterator iter = str.begin();
-        std::string::const_iterator end = str.end();
-        bool r = phrase_parse( iter, end, g, space );
-
-        if ( r && iter == end )
-        {
-            std::cout << "Parsing succeeded" << std::endl;
-        }
-        else
-        {
-            std::cout << "Parsing failed" << std::endl;
-        }
+        
+        parser.parseLine( str );
     }
+    */
+
+    delete fake;
+
     return 0;
 }

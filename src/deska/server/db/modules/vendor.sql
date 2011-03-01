@@ -7,10 +7,12 @@ SET search_path TO production;
 
 -- vendors of hw
 CREATE TABLE vendor (
+	-- this column is required in all plugins
 	uid bigint
 		constraint vendor_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text UNIQUE NOT NULL
+	name text 
+		CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+
 );
-GRANT ALL ON vendor TO deska_team;
 
