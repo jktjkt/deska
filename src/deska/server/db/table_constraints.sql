@@ -3,7 +3,7 @@ conname	name,
 attname	name
 );
 
-CREATE OR REPLACE FUNCTION pk_constraints_on_table(tabname name)
+CREATE FUNCTION pk_constraints_on_table(tabname name)
 RETURNS SETOF pk_constraints_on_table_type
 AS
 $$
@@ -56,7 +56,7 @@ refattname	name
 
 --DROP FUNCTION fk_constraints_on_table(name);
 
-CREATE OR REPLACE FUNCTION fk_constraints_on_table(tabname name)
+CREATE FUNCTION fk_constraints_on_table(tabname name)
 RETURNS SETOF fk_constraints_on_table_type
 AS
 $$
@@ -127,7 +127,7 @@ condition text
 
 --DROP FUNCTION c_constraints_on_table(name);
 
-CREATE OR REPLACE FUNCTION c_constraints_on_table(tabname name)
+CREATE FUNCTION c_constraints_on_table(tabname name)
 RETURNS SETOF c_constraints_on_table_type
 AS
 $$
@@ -181,9 +181,7 @@ conname	name,
 attname	name
 );
 
-DROP FUNCTION u_constraints_on_table(name);
-
-CREATE OR REPLACE FUNCTION u_constraints_on_table(tabname name)
+CREATE FUNCTION u_constraints_on_table(tabname name)
 RETURNS SETOF u_constraints_on_table_type
 AS
 $$
@@ -230,7 +228,7 @@ LANGUAGE plpgsql;
 
 --DROP FUNCTION n_constraints_on_table(name);
 
-CREATE OR REPLACE FUNCTION n_constraints_on_table(tabname name)
+CREATE FUNCTION n_constraints_on_table(tabname name)
 RETURNS SETOF name
 AS
 $$
