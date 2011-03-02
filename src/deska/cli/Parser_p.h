@@ -204,7 +204,7 @@ class KindsParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bo
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table */
-    KindsParser( ParserImpl<Iterator> *parent );
+    KindsParser( const std::string &kindName, ParserImpl<Iterator> *parent );
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -240,13 +240,18 @@ class KindParser: public qi::grammar<Iterator, ascii::space_type>
 public:
 
     /** @short Constructor initializes the grammar with all rules */
-    KindParser( AttributesParser<Iterator> *attributesParser,
+    KindParser( const std::string &kindName, AttributesParser<Iterator> *attributesParser,
         KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent );
 
 private:
 
     /** @short Function used as semantic action for parsed end keyword */
     void parsedEnd();
+
+    /** @short Function used as semantic action when there is only single kind on the line and so parser
+    *          should nest into this kind
+    */
+    void parsedSingleKind();
 
     qi::rule<Iterator, ascii::space_type > start;
 
@@ -271,6 +276,8 @@ public:
     void categoryLeft();
     void attributeSet( const Identifier &name, const Value &value );
 
+    void parsedSingleKind();
+
 
 private:
     Parser *m_parser;
@@ -278,11 +285,16 @@ private:
     bool leaveCategory;
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
-    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributeParser );
+    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributesParser );
+
+    /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
+    void addNestedKinds( std::string &kindName, KindsParser<Iterator>* kindsParser );
 
     bool matchesEnd( const std::string &word );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
+    std::map<std::string, KindsParser<Iterator>* > kindsParsers;
+    std::map<std::string, KindParser<Iterator>* > kindParsers;
     KindsParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
 
