@@ -227,3 +227,21 @@ LANGUAGE plpgsql;
 --SELECT u_constraints_on_table('test');
 
 
+
+--DROP FUNCTION n_constraints_on_table(name);
+
+CREATE OR REPLACE FUNCTION n_constraints_on_table(tabname name)
+RETURNS SETOF name
+AS
+$$
+DECLARE
+BEGIN
+--not null constraint information is marked in pg_attribute
+	RETURN QUERY SELECT att.attname
+		FROM	pg_class AS class join pg_attribute AS att on (att.attrelid = class.oid)		
+		WHERE class.relname = tabname AND att.attnotnull = 't' AND att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT n_constraints_on_table('test');
