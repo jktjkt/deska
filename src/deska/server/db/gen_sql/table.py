@@ -1,5 +1,20 @@
 #!/usr/bin/python2
 
+class ConSet(dict):
+	def __init__(self):
+		dict.__init__(self)
+	
+	def __setitem__(self,name,att):
+		if self.has_key(name):
+			s = dict.__getitem__(self,name)
+			s.add(att)
+			dict.__setitem__(self,name,s)
+		else:
+			s = set()
+			s.add(att)
+			dict.__setitem__(self,name,s)
+	
+
 class Table:
 	# template uid sequence
 	uidseq_string = '''CREATE SEQUENCE history.{tbl}_uid START 1;
@@ -95,10 +110,14 @@ class Table:
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
+		self.conset = ConSet()
 		self.name= name
 
 	def add_column(self,col_name,col_type):
 		self.col[col_name] = col_type
+
+	def add_key(self,con_name,att_name):
+		self.conset[con_name] = att_name
 
 	def gen_hist(self):
 		return self.hist_string.format(tbl = self.name)
