@@ -176,13 +176,8 @@ LANGUAGE plpgsql;
 
 
 
-CREATE TYPE u_constraints_on_table_type AS(
-conname	name,
-attname	name
-);
-
 CREATE FUNCTION u_constraints_on_table(tabname name)
-RETURNS SETOF u_constraints_on_table_type
+RETURNS SETOF pk_constraints_on_table_type
 AS
 $$
 DECLARE
@@ -197,7 +192,7 @@ DECLARE
 	--class oid of table
 	coid int;
 	--one row of result (constraint_name, columns_names, referenced_table_name, referenced_columns_names)
-	r u_constraints_on_table_type;
+	r pk_constraints_on_table_type;
 BEGIN
 	--select primary key constraint on this table
 	FOR cname, coid, idarray IN SELECT constr.conname, class.oid, constr.conkey
@@ -238,6 +233,17 @@ BEGIN
 	RETURN QUERY SELECT att.attname
 		FROM	pg_class AS class join pg_attribute AS att on (att.attrelid = class.oid)		
 		WHERE class.relname = tabname AND att.attnotnull = 't' AND att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION key_constraints_on_table(tabname name)
+RETURNS SETOF pk_constraints_on_table_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT conname,attname FROM pk_constraints_on_table(tabname)
+		UNION SELECT conname,attname FROM u_constraints_on_table(tabname);
 END
 $$
 LANGUAGE plpgsql;
