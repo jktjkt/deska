@@ -9,8 +9,7 @@ CREATE TABLE interface (
 	uid bigint
 		constraint interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text
-		CONSTRAINT interface_name_unique UNIQUE NOT NULL,
+	name text NOT NULL,
 	-- host
 	host bigint
 		CONSTRAINT interface_fk_host REFERENCES host(uid),
@@ -20,7 +19,8 @@ CREATE TABLE interface (
 	-- MAC
 	-- TODO unique constraint
 	mac macaddr,
-	note text
+	note text,
+	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
 );
 
 
