@@ -12,8 +12,9 @@ CREATE TABLE vendor (
 	-- nextval can be used - will aplly to history table
 	uid bigint default nextval('vendor_uid')
 		constraint vendor_pk PRIMARY KEY,
-	-- this column is required in all plugins
-	name text NOT NULL
+-- this column is required in all plugins
+name text 
+	CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+
 );
-GRANT ALL ON vendor TO deska_team;
 

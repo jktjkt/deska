@@ -8,9 +8,13 @@ set role deska_team;
 
 -- create functions
 \i fn-get-schema.sql
+\i table_constraints.sql
 
 -- add modules
 \i modules/vendor.sql
+\i modules/hardware.sql
+\i modules/host.sql
+\i modules/interface.sql
 
 -- add generated files from modules
 --\i gen_schema.sql

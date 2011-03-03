@@ -1,15 +1,35 @@
+/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+*
+* This file is part of the Deska, a tool for central administration of a grid site
+* http://projects.flaska.net/projects/show/deska
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation; either
+* version 2 of the License, or the version 3 of the License.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; see the file COPYING.  If not, write to
+* the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+* Boston, MA 02110-1301, USA.
+* */
+
 #ifndef DESKA_API_H
 #define DESKA_API_H
 
 #include <map>
 #include <string>
 #include <vector>
+#include <boost/variant.hpp>
 
 /*
  * TODO items for the DB API:
  *
- * - Decide on proper Value data type -- boost::variant?
- * - Good representation of the Type thing -- enum?
  * - Think about how to retrieve older revisions from the DB (is the default Revision=0
  *   enough/suitable?)
  * - Exceptions -- current idea is that all Deska::Api operations throw an exception upon any error
@@ -19,11 +39,27 @@
  * */
 
 
-namespace Deska {
+namespace Deska
+{
 
-typedef std::string Value; // FIXME: should probably be a Variant of some kind?
+/** @short @short Value of an object's attribute
+ *
+ * This is the definition that should be extended when adding more supported
+ * formats for attribute values.
+ * */
+typedef boost::variant<std::string,double,int> Value;
 
-typedef std::string Type; // FIXME: something like an extensible enum?
+/** @short Type of an object's attribute */
+typedef enum {
+    /** @short An identifier */
+    TYPE_IDENTIFIER,
+    /** @short A string of any form */
+    TYPE_STRING,
+    /** @short Integer */
+    TYPE_INT,
+    /** @short Double */
+    TYPE_DOUBLE
+} Type;
 
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
@@ -38,7 +74,8 @@ typedef unsigned int Revision;
  *
  * FIXME: rename to AttributeScheme?
  * */
-struct KindAttributeDataType {
+struct KindAttributeDataType
+{
     KindAttributeDataType( Identifier _name, Type _type ): name(_name), type(_type)
     {
     }
@@ -92,7 +129,8 @@ typedef enum {
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
  * */
-struct ObjectRelation {
+struct ObjectRelation
+{
 
     ObjectRelation(
         const ObjectRelationKind _kind,
@@ -116,6 +154,7 @@ struct ObjectRelation {
     Identifier sourceAttribute;
     /** @short To which attribute shall we match */
     Identifier destinationAttribute;
+
 private:
     ObjectRelation();
 };
@@ -124,7 +163,8 @@ private:
  *
  * This class should contain all functionality required for working with the Deska DB.
  * */
-class Api {
+class Api
+{
 public:
     virtual ~Api();
 
@@ -155,14 +195,15 @@ public:
     // Returning data for existing objects
 
     /** @short Get identifiers of all concrete objects of a given Kind */
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const = 0;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision = 0 ) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
      * Templates: this function should not have any knowledge of "templates"; see the
      * resolvedObjectData() for template support.
      * */
-    virtual std::map<Identifier, Value> objectData( const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
+    virtual std::map<Identifier, Value> objectData(
+        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -180,7 +221,7 @@ public:
      *      ...
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const Revision=0 ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
 
     /** @short Get a list of identifiers of objects which explicitly override a given attribute 
      *
@@ -197,8 +238,8 @@ public:
      * @see findNonOverriddenAttrs()
      *
      * */
-    virtual std::vector<Identifier> findOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName ) = 0;
+    virtual std::vector<Identifier> findOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
 
     /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
      *
@@ -209,8 +250,8 @@ public:
      *
      * @see findOverriddenAttrs()
      * */
-    virtual std::vector<Identifier> findNonOverriddenAttrs( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attrName ) = 0;
+    virtual std::vector<Identifier> findNonOverriddenAttrs(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
 
     // Manipulating objects
 
@@ -224,12 +265,12 @@ public:
     virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;
 
     /** @short Remove an attribute from one instance of an object */
-    virtual void removeAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName ) = 0;
+    virtual void removeAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     /** @short Set an attribute that belongs to some object to a new value */
-    virtual void setAttribute( const Identifier &kindName, const Identifier &objectName,
-            const Identifier &attributeName, const Value &value ) = 0;
+    virtual void setAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value ) = 0;
 
 
 

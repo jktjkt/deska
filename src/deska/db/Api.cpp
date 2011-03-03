@@ -22,7 +22,8 @@
 
 using namespace std;
 
-namespace Deska {
+namespace Deska
+{
 
 Api::~Api()
 {
