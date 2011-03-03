@@ -468,7 +468,7 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
     for( std::vector<Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
-            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->tableName == *it ) ) {
+            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->tableName == kindName ) ) {
                 kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
