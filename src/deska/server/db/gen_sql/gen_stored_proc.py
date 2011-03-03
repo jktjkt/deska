@@ -29,6 +29,7 @@ plpy = Plpy()
 class Schema:
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
+	key_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	def __init__(self):
 		plpy.execute("SET search_path TO deska,production")
 
@@ -58,7 +59,7 @@ class Schema:
 	# generate sql for one table
 	def gen_for_table(self,tbl):
 		# select col info
-		record = plpy.execute(self.column_str.format(tbl))
+		tables = plpy.execute(self.column_str.format(tbl))
 
 		# create table obj
 		table = Table(tbl)
@@ -66,12 +67,17 @@ class Schema:
 		api = Api(tbl)
 		
 		# add columns
-		for col in record[:]:
+		for col in tables[:]:
 			table.add_column(col[0],col[1])
+
+		# add key constraints
+		constraints = plpy.execute(self.key_str.format(tbl))
+		for col in constraints[:]:
+			table.add_key(col[0],col[1])
 
 		# generate sql
 		self.sql.write(table.gen_hist())
-		for col in record[:]:
+		for col in tables[:]:
 			 self.sql.write(table.gen_set(col[0]))
 			 self.py.write(api.gen_set(col[0]))
 		self.sql.write(table.gen_add())

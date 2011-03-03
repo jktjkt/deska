@@ -23,6 +23,7 @@
 //#include <boost/regex.hpp>
 #include "Parser_p.h"
 
+//#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -283,7 +284,7 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-            if( itRel->kind == RELATION_MERGE_WITH )
+            if ( itRel->kind == RELATION_MERGE_WITH )
                 addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
 
         kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
@@ -310,7 +311,9 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine( const std::string &line )
 {
     // TODO: Only testing implementation. Reimplement.
+#ifdef PARSER_DEBUG
     std::cout << "Parse line: " << line << std::endl;
+#endif
 
     // "end" detected
     if ( matchesEnd( line ) ) {
@@ -324,42 +327,48 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     bool parsingSucceeded;
     bool parsingTopLevel;
 
-    if( contextStack.empty() ) {
+    if ( contextStack.empty() ) {
         // No context, parse top-level objects
+#ifdef PARSER_DEBUG
         std::cout << "Parsing top level object..." << std::endl;
+#endif
         parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
         parsingTopLevel = true;
-    }
-    else {
+    } else {
         // Context -> parse attributes
+#ifdef PARSER_DEBUG
         std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
+#endif
         parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().kind ] ), ascii::space );
         parsingTopLevel = false;
     }
 
     // Some bad input
-    if ( !parsingSucceeded )
-    {
+    if ( !parsingSucceeded ) {
+#ifdef PARSER_DEBUG
         std::cout << "Parsing failed." << std::endl;
+#endif
         return;
     }
 
-    if( iter == end ) {
+    if ( iter == end ) {
+#ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Full match." << std::endl;
+#endif
         // Entering category permanently. Only top-level object or attributes definition on line
         if ( parsingTopLevel )
             leaveCategory = false;        
-    }
-    else {
+    } else {
         // Top-level object with attributes definition on line
         leaveCategory = true;
+#ifdef PARSER_DEBUG
         std::cout << "Parsing succeeded. Partial match." << std::endl;
-        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;    
-        
+        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
+#endif
         parseLine( std::string( iter, end ) );
     }
 
-    if( leaveCategory && !parsingTopLevel ) {
+    if ( leaveCategory && !parsingTopLevel ) {
         categoryLeft();
         leaveCategory = false;
     }
@@ -396,8 +405,9 @@ void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identi
 {
     contextStack.push_back( ContextStackItem( kind, name ) );
     m_parser->categoryEntered( kind, name );
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Parsed kind: " << kind << ": " << name << std::endl;
+#endif
 }
 
 
@@ -407,8 +417,9 @@ void ParserImpl<Iterator>::categoryLeft()
 {
     contextStack.pop_back();
     m_parser->categoryLeft();
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Category left" << std::endl;
+#endif
 }
 
 
@@ -417,8 +428,9 @@ template <typename Iterator>
 void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &value )
 {
     m_parser->attributeSet( name, value );
-    // TODO: Delete this
+#ifdef PARSER_DEBUG
     std::cout << "Parsed parameter: " << name << "=" << value << std::endl;
+#endif
 }
 
 
@@ -465,8 +477,8 @@ bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
     return boost::regex_match( word, re );
     */
 
-    if( word.size() >= 3 ) {
-        if( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
+    if ( word.size() >= 3 ) {
+        if ( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
             return true;
     }
     return false;

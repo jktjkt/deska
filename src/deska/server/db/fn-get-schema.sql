@@ -66,7 +66,7 @@ $$
 LANGUAGE plpgsql;
 
 --
--- function returns list of names of tables from deska_dev = Top-level Kinds like enclosure etc
+-- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --
 CREATE OR REPLACE FUNCTION get_kind_names()
 RETURNS SETOF name
@@ -75,7 +75,7 @@ $$
 BEGIN
 	RETURN QUERY SELECT distinct cl.relname
 		FROM pg_class AS cl
-			JOIN pg_tables AS tab ON (schemaname='deska_dev' AND cl.relname = tab.tablename)
+			JOIN pg_tables AS tab ON (schemaname='production' AND cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid);
 END
@@ -83,7 +83,7 @@ $$
 LANGUAGE plpgsql;
 
 --
--- function returns list of attributes' names and types = attributes of tables from deska_dev
+-- function returns list of attributes' names and types = attributes of tables from production
 --
 CREATE TYPE attr_info AS (attname name, typename name);
 
@@ -94,7 +94,7 @@ $$
 BEGIN
 RETURN QUERY SELECT attname,typname
 		FROM pg_class AS cl
-			JOIN pg_tables AS tab ON (schemaname='deska_dev' and cl.relname = tab.tablename)
+			JOIN pg_tables AS tab ON (schemaname='production' and cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
 		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
