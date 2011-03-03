@@ -1,17 +1,36 @@
 #!/usr/bin/python2
 
+class ConSet(dict):
+	def __init__(self):
+		dict.__init__(self)
+	
+	def __setitem__(self,name,att):
+		if self.has_key(name):
+			s = dict.__getitem__(self,name)
+			s.add(att)
+			dict.__setitem__(self,name,s)
+		else:
+			s = set()
+			s.add(att)
+			dict.__setitem__(self,name,s)
+	
+
 class Table:
 	# template uid sequence
 	uidseq_string = '''CREATE SEQUENCE history.{tbl}_uid START 1;
 '''
 	# template string for generate historic table
 	hist_string = uidseq_string + '''CREATE TABLE history.{tbl}_history (
-	--LIKE {tbl},
-	uid bigint NOT NULL default nextval('{tbl}_uid'),
-	name TEXT NOT NULL,
+	LIKE {tbl}
+	-- include default values
+	INCLUDING DEFAULTS
+	-- include CHECK constrants !!! only check constraints in postgresql 9
+	INCLUDING CONSTRAINTS
+	-- INCLUDE INDEXES???
+	,
 	version int NOT NULL,
 	dest_bit bit(1) NOT NULL DEFAULT B'0',
-	CONSTRAINT {tbl}_history_pk PRIMARY KEY (uid,version)
+	{constraints}
 );
 '''
 	# template string for set function's
@@ -95,13 +114,18 @@ class Table:
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
+		self.conset = ConSet()
 		self.name= name
 
 	def add_column(self,col_name,col_type):
 		self.col[col_name] = col_type
 
+	def add_key(self,con_name,att_name):
+		self.conset[con_name] = att_name
+
 	def gen_hist(self):
-		return self.hist_string.format(tbl = self.name)
+		constr = "test constraints"
+		return self.hist_string.format(tbl = self.name, constraints = constr)
 
 	def gen_add(self):
 		return self.add_string.format(tbl = self.name)
