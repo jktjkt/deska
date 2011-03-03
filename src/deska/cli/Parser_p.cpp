@@ -20,7 +20,6 @@
 * */
 
 #include <boost/assert.hpp>
-//#include <boost/regex.hpp>
 #include "Parser_p.h"
 
 //#define PARSER_DEBUG
@@ -275,6 +274,9 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
+        #ifdef PARSER_DEBUG
+            std::cout << "Adding top level kind: " << *it << std::endl;
+        #endif
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it, this );
         addKindAttributes( *it, attributesParsers[ *it ] );
@@ -339,7 +341,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 #ifdef PARSER_DEBUG
         std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
 #endif
-        parsingSucceeded = phrase_parse( iter, end, *( attributesParsers[ contextStack.back().kind ] ), ascii::space );
+        parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
         parsingTopLevel = false;
     }
 
@@ -438,7 +440,9 @@ void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &va
 template <typename Iterator>
 void ParserImpl<Iterator>::parsedSingleKind()
 {
-
+#ifdef PARSER_DEBUG
+    std::cout << "Parsed single kind" << std::endl;
+#endif
 }
 
 
@@ -447,8 +451,12 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesParser<Iterator>* attributesParser )
 {
     std::vector<KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
-    for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it )
+    for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
         attributesParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
+#ifdef PARSER_DEBUG
+    std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
+#endif
+    }
 }
 
 
@@ -462,6 +470,9 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
         for( std::vector<ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
             if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->tableName == *it ) ) {
                 kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
+#ifdef PARSER_DEBUG
+                std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
+#endif
             }
         }
     }
