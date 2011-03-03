@@ -16,11 +16,8 @@ class ConSet(dict):
 	
 
 class Table:
-	# template uid sequence
-	uidseq_string = '''CREATE SEQUENCE history.{tbl}_uid START 1;
-'''
 	# template string for generate historic table
-	hist_string = uidseq_string + '''CREATE TABLE history.{tbl}_history (
+	hist_string = '''CREATE TABLE history.{tbl}_history (
 	LIKE {tbl}
 	-- include default values
 	INCLUDING DEFAULTS
@@ -29,7 +26,7 @@ class Table:
 	-- INCLUDE INDEXES???
 	,
 	version int NOT NULL,
-	dest_bit bit(1) NOT NULL DEFAULT B'0',
+	dest_bit bit(1) NOT NULL DEFAULT B'0'
 	{constraints}
 );
 '''
@@ -123,8 +120,22 @@ class Table:
 	def add_key(self,con_name,att_name):
 		self.conset[con_name] = att_name
 
+	def gen_constraint(self,con):
+		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
+		comma = False
+		for att in self.conset[con]:
+			if comma:
+				str = str + "," + att
+			else:
+				comma = True
+				str = str + att
+		return str + ")"
+
 	def gen_hist(self):
-		constr = "test constraints"
+		constr = ""
+		for con in self.conset:
+			constr = constr + ",\n" + self.gen_constraint(con)
+		print self.hist_string.format(tbl = self.name, constraints = constr)
 		return self.hist_string.format(tbl = self.name, constraints = constr)
 
 	def gen_add(self):
