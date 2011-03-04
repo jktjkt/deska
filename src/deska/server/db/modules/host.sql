@@ -15,8 +15,9 @@ CREATE TABLE host (
 		CONSTRAINT host_name_unique UNIQUE NOT NULL,
 	-- hardwere where it runs
 	-- TODO-virtual host
-	hardware bigint
-		CONSTRAINT host_fk_hardware REFERENCES hardware(uid),
+	-- TODO - better use uid
+	hardware text
+		CONSTRAINT host_fk_hardware REFERENCES hardware(name),
 	note text
 );
 

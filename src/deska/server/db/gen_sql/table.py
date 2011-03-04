@@ -32,7 +32,7 @@ class Table:
 '''
 	# template string for set function's
 	set_string = '''CREATE FUNCTION
-	{tbl}_set_{colname}(IN id integer,IN value {coltype})
+	{tbl}_set_{colname}(IN name_ text,IN value {coltype})
 	RETURNS integer
 	AS
 	$$
@@ -40,7 +40,7 @@ class Table:
 	BEGIN
 		SELECT my_version() INTO ver;
 		UPDATE {tbl}_history SET {colname} = value, version = ver
-			WHERE uid = id;
+			WHERE name = name_;
 		RETURN 1;
 	END
 	$$
@@ -130,13 +130,22 @@ class Table:
 				comma = True
 				str = str + att
 		return str + ")"
+	
+	def gen_drop_notnull(self):
+		nncol = self.col.copy()
+		del nncol['uid']
+		del nncol['name']
+		drop = ""
+		for col in nncol:
+			drop = drop + "ALTER TABLE {name}_history ALTER {colname} DROP NOT NULL;\n".format(name = self.name, colname = col)
+		return drop
 
 	def gen_hist(self):
 		constr = ""
 		for con in self.conset:
 			constr = constr + ",\n" + self.gen_constraint(con)
-		print self.hist_string.format(tbl = self.name, constraints = constr)
-		return self.hist_string.format(tbl = self.name, constraints = constr)
+		drop = self.gen_drop_notnull()
+		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
 	def gen_add(self):
 		return self.add_string.format(tbl = self.name)

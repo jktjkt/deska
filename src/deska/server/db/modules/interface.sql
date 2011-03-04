@@ -13,8 +13,9 @@ CREATE TABLE interface (
 	-- this column is required in all plugins
 	name text NOT NULL,
 	-- host
-	host bigint
-		CONSTRAINT interface_fk_host REFERENCES host(uid),
+	-- TODO better use uid
+	host name
+		CONSTRAINT interface_fk_host REFERENCES host(name),
 	-- IP
 	-- TODO unique constraint
 	ip inet,
