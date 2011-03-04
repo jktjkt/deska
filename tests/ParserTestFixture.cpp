@@ -111,6 +111,18 @@ void F::verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifi
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
 
+void F::verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
+                             const Deska::Identifier &kind2, const Deska::Identifier &name2)
+{
+    const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::CLI::ContextStackItem> specimen;
+    specimen.push_back(Deska::CLI::ContextStackItem(kind1, name1));
+    specimen.push_back(Deska::CLI::ContextStackItem(kind2, name2));
+    BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
 void F::verifyEmptyStack()
 {
     BOOST_CHECK( ! parser->isNestedInContext() );

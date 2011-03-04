@@ -72,6 +72,9 @@ struct F: public boost::signals2::trackable
 
     void verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name);
 
+    void verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
+                              const Deska::Identifier &kind2, const Deska::Identifier &name2);
+
     void verifyEmptyStack();
 
     void slotParserSetAttrCheckContext();
