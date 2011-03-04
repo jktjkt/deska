@@ -24,11 +24,7 @@ int main()
 
     Deska::CLI::Parser parser( fake );
 
-    std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
+    std::string test;
 
     test = "hardware abcde id xx name \"jmeno\" price 1234.5";
     parser.parseLine( test );

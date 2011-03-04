@@ -145,3 +145,16 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
     expectNothingElse();
     verifyEmptyStack();
 }
+
+/** @short test correct parsing of multiple arguments, all passed inline */
+BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
+{
+    parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", 1243);
+    expectSetAttr("name", "jmeno");
+    expectSetAttr("price", 1234.5);
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
