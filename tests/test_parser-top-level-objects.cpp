@@ -221,3 +221,67 @@ BOOST_FIXTURE_TEST_CASE(nested_interface, F)
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 }
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_parent, 6);
+/** @short An attribute for parent is listed inline after an embedded object -> fail */
+BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
+{
+    parser->parseLine("host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5");
+    expectCategoryEntered("host", "abcde");
+    expectSetAttr("hardware_id", 123);
+    expectSetAttr("name", "jmeno");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    // FIXME: exception here
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
+/** @short Inline definition of an embedded object given immediately after the parent */
+BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, F)
+{
+    parser->parseLine("host abcde interface eth0 mac \"nejakamac\"\n");
+    expectCategoryEntered("host", "abcde");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_after_parent_attr_inline, 9);
+/** @short Inline definition of an embedded object after a paren't attr */
+BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
+{
+    parser->parseLine("host abcde hardware_id 1 interface eth0 mac \"nejakamac\"\n");
+    expectCategoryEntered("host", "abcde");
+    expectSetAttr("hardware_id", 1);
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+/** @short Embedding incompatible types after a paren't attribute */
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
+{
+    parser->parseLine("hardware abcde id 123 interface eth0");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", 123);
+    // FIXME: exception
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Embedding incompatible types immediately after paren't definition */
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
+{
+    parser->parseLine("hardware abcde interface eth0");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: exception
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
