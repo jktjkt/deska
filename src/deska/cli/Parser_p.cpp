@@ -274,9 +274,9 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
-        #ifdef PARSER_DEBUG
-            std::cout << "Adding top level kind: " << *it << std::endl;
-        #endif
+#ifdef PARSER_DEBUG
+        std::cout << "Adding top level kind: " << *it << std::endl;
+#endif
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it, this );
         addKindAttributes( *it, attributesParsers[ *it ] );
