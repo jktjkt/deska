@@ -355,10 +355,11 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
         // Definition of kind found stand-alone on one line -> nest permanently
     }
     else {
-        // Leave back to previous context state
-        for( int i = 0; i < contextStack.size() - previousContextStackSize; ++i ) {
-            categoryLeft();
-        }
+        int depthDiff = contextStack.size() - previousContextStackSize;
+        if ( depthDiff > 0 )
+            for( int i = 0; i < depthDiff; ++i ) {
+                categoryLeft();
+            }
     }
 }
 
