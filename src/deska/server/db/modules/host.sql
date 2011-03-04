@@ -3,10 +3,12 @@
 --
 SET search_path TO production;
 
+CREATE SEQUENCE host_uid START 1;
+
 -- vendors of hw
 CREATE TABLE host (
 	-- this column is required in all plugins
-	uid bigint
+	uid bigint default nextval('host_uid')
 		constraint host_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name text
