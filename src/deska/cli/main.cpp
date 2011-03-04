@@ -16,8 +16,11 @@ int main()
     fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+
+    fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
+
 
     Deska::CLI::Parser parser( fake );
 
@@ -42,7 +45,25 @@ int main()
     test = "haware abcde id 123 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
     parser.clearContextStack();
+
+    std::cout << std::endl;
+
+    test = "host abcde";
+    parser.parseLine( test );
+    test = "name \"as123\"";
+    parser.parseLine( test );
+    test = "interface eth0";
+    parser.parseLine( test );
+    test = "mac \"nejakamac\"";
+    parser.parseLine( test );
+    parser.clearContextStack();
+
+    std::cout << std::endl;
     
+    test = "hardware abcde id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
+    parser.parseLine( test );
+    parser.clearContextStack();
+
     /*
     while ( getline( std::cin, str ) ) {
         if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )
