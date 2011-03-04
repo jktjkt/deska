@@ -149,7 +149,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
 /** @short test correct parsing of multiple arguments, all passed inline */
 BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
 {
-    parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5");
+    parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5\n");
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 1243);
     expectSetAttr("name", "jmeno");
@@ -166,7 +166,7 @@ The idea here is that the stack should not roll back after the exception.
 */
 BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
 {
-    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5");
+    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5\n");
     expectCategoryEntered("hardware", "abcde");
     // FIXME: add an exception here
     expectNothingElse();
@@ -182,7 +182,7 @@ Similar to error_in_datatype_of_first_inline, but the mistake is not in the valu
 */
 BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 {
-    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5");
+    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5\n");
     expectCategoryEntered("hardware", "abcde");
     // FIXME: add an exception here
     expectNothingElse();
@@ -192,7 +192,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 /** @short Syntax error in the kind of a top-level object */
 BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
 {
-    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5");
+    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5\n");
     // FIXME: add an exception here
     expectNothingElse();
     verifyEmptyStack();
