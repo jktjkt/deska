@@ -8,7 +8,7 @@ CREATE SEQUENCE interface_uid START 1;
 -- interfaces of host
 CREATE TABLE interface (
 	-- this column is required in all plugins
-	uid bigint default nextval('interface_uid')
+	uid bigint DEFAULT nextval('interface_uid')
 		constraint interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name text NOT NULL,

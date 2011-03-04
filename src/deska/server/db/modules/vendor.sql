@@ -10,7 +10,7 @@ CREATE SEQUENCE vendor_uid START 1;
 -- vendors of hw
 CREATE TABLE vendor (
 	-- nextval can be used - will aplly to history table
-	uid bigint default nextval('vendor_uid')
+	uid bigint DEFAULT nextval('vendor_uid')
 		constraint vendor_pk PRIMARY KEY,
 -- this column is required in all plugins
 name text 
