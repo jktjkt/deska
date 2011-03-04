@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
 
     // Set the second one
     parser->parseLine("price 666\r\n");
-    expectSetAttr("price", 666);
+    expectSetAttr("price", 666.0);
     expectNothingElse();
     verifyStackOneLevel("hardware", "hpv2");
 
@@ -111,7 +111,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
     expectCategoryEntered("hardware", "hpv2");
-    expectSetAttr("price", 666);
+    expectSetAttr("price", 666.0);
     expectSetAttr("name", "foo bar baz");
     expectCategoryLeft();
     expectNothingElse();
