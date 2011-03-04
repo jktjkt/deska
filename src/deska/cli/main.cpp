@@ -47,6 +47,7 @@ int main()
 
     std::cout << std::endl;
 
+    // unit test: nested_interface
     test = "host abcde";
     parser.parseLine( test );
     test = "name \"as123\"";

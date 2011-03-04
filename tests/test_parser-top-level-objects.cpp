@@ -197,3 +197,27 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
     expectNothingElse();
     verifyEmptyStack();
 }
+
+/** @short Test parsing of an object nested into the parent one */
+BOOST_FIXTURE_TEST_CASE(nested_interface, F)
+{
+    parser->parseLine("host abcde\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"as123\"\n");
+    expectSetAttr("name", "as123");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("mac \"nejakamac\"\n");
+    expectSetAttr("mac", "nejakamac");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+}
