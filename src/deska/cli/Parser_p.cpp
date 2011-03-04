@@ -317,11 +317,6 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     std::cout << "Parse line: " << line << std::endl;
 #endif
 
-    // "end" detected
-    if ( matchesEnd( line ) ) {
-        categoryLeft();
-        return;
-    }
 
     Iterator iter = line.begin();
     Iterator end = line.end(); 
@@ -480,22 +475,6 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
 
 
 
-template <typename Iterator>
-bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
-{
-    /* FIXME: Regex has problems with linker
-    boost::regex re( "^end\\s*$}" );
-    return boost::regex_match( word, re );
-    */
-
-    if ( word.size() >= 3 ) {
-        if ( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
-            return true;
-    }
-    return false;
-}
-
-
 /////////////////////////Template instances for linker//////////////////////////
 
 template void RangeToString<iterator_type>::operator()(
@@ -562,8 +541,6 @@ template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindNam
 template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsParser<iterator_type>* kindsParser );
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
-
-template bool ParserImpl<iterator_type>::matchesEnd( const std::string &word );
 
 }
 }

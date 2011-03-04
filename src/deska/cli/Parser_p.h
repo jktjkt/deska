@@ -290,8 +290,6 @@ private:
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
     void addNestedKinds( std::string &kindName, KindsParser<Iterator>* kindsParser );
 
-    bool matchesEnd( const std::string &word );
-
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsParser<Iterator>* > kindsParsers;
     std::map<std::string, KindParser<Iterator>* > kindParsers;
