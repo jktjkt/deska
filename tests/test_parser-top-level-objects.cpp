@@ -158,3 +158,42 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
     expectNothingElse();
     verifyEmptyStack();
 }
+
+/** @short Syntax error in the data type of the first attribute
+
+A single-line input which enters a new category and immediately after that encounters an exception.
+The idea here is that the stack should not roll back after the exception.
+*/
+BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
+{
+    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Syntax error in the name of the first attribute
+
+Similar to error_in_datatype_of_first_inline, but the mistake is not in the value, but rather in the attribute identifier.
+
+@see error_in_datatype_of_first_inline
+
+*/
+BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
+{
+    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Syntax error in the kind of a top-level object */
+BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
+{
+    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyEmptyStack();
+}

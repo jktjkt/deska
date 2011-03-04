@@ -26,18 +26,21 @@ int main()
 
     std::string test;
 
+    // unit test: error_in_datatype_of_first_inline
     test = "hardware abcde id xx name \"jmeno\" price 1234.5";
     parser.parseLine( test );
     parser.clearContextStack();
 
     std::cout << std::endl;
 
+    // unit test: error_in_first_attr_name_inline
     test = "hardware abcde isd 123 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
     parser.clearContextStack();
 
     std::cout << std::endl;
 
+    // unit test: error_toplevel_name
     test = "haware abcde id 123 name \"jmeno\" price 1234.5";
     parser.parseLine( test );
     parser.clearContextStack();
