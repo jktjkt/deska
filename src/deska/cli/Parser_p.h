@@ -282,8 +282,6 @@ public:
 private:
     Parser *m_parser;
 
-    bool leaveCategory;
-
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
     void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributesParser );
 

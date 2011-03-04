@@ -264,7 +264,7 @@ void KindParser<Iterator>::parsedSingleKind()
 
 
 template <typename Iterator>
-ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCategory( false )
+ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 {
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsParser<Iterator>( std::string( "" ), this );
@@ -322,52 +322,43 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     Iterator end = line.end(); 
     
     bool parsingSucceeded;
-    bool parsingTopLevel;
+    int parsingIterations = 0;
+    int previousContextStackSize = contextStack.size();
 
-    if ( contextStack.empty() ) {
-        // No context, parse top-level objects
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing top level object..." << std::endl;
-#endif
-        parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
-        parsingTopLevel = true;
-    } else {
-        // Context -> parse attributes
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
-#endif
-        parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
-        parsingTopLevel = false;
+    while( iter != end ) {
+        ++parsingIterations;
+        if ( contextStack.empty() ) {
+            // No context, parse top-level objects
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing top level object..." << std::endl;
+            #endif
+            parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
+        } else {
+            // Context -> parse attributes
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
+            #endif
+            parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
+        }
+
+        // Some bad input
+        if ( !parsingSucceeded ) {
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing failed." << std::endl;
+            #endif
+            break;
+        }
+
     }
 
-    // Some bad input
-    if ( !parsingSucceeded ) {
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing failed." << std::endl;
-#endif
-        return;
+    if( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
+        // Definition of kind found stand-alone on one line -> nest permanently
     }
-
-    if ( iter == end ) {
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing succeeded. Full match." << std::endl;
-#endif
-        // Entering category permanently. Only top-level object or attributes definition on line
-        if ( parsingTopLevel )
-            leaveCategory = false;        
-    } else {
-        // Top-level object with attributes definition on line
-        leaveCategory = true;
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing succeeded. Partial match." << std::endl;
-        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-#endif
-        parseLine( std::string( iter, end ) );
-    }
-
-    if ( leaveCategory && !parsingTopLevel ) {
-        categoryLeft();
-        leaveCategory = false;
+    else {
+        // Leave back to previous context state
+        for( int i = 0; i < contextStack.size() - previousContextStackSize; ++i ) {
+            categoryLeft();
+        }
     }
 }
 
