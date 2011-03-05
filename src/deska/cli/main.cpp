@@ -56,6 +56,10 @@ int main()
     parser.parseLine( test );
     test = "mac \"nejakamac\"";
     parser.parseLine( test );
+    test = "end";
+    parser.parseLine( test );
+    test = "price 34234";
+    parser.parseLine( test );
     parser.clearContextStack();
 
     std::cout << std::endl;
