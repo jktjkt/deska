@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
 
     // Set the second one
     parser->parseLine("price 666\r\n");
-    expectSetAttr("price", 666);
+    expectSetAttr("price", 666.0);
     expectNothingElse();
     verifyStackOneLevel("hardware", "hpv2");
 
@@ -111,7 +111,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
     expectCategoryEntered("hardware", "hpv2");
-    expectSetAttr("price", 666);
+    expectSetAttr("price", 666.0);
     expectSetAttr("name", "foo bar baz");
     expectCategoryLeft();
     expectNothingElse();
@@ -144,4 +144,144 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
+}
+
+/** @short test correct parsing of multiple arguments, all passed inline */
+BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
+{
+    parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5\n");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", 1243);
+    expectSetAttr("name", "jmeno");
+    expectSetAttr("price", 1234.5);
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Syntax error in the data type of the first attribute
+
+A single-line input which enters a new category and immediately after that encounters an exception.
+The idea here is that the stack should not roll back after the exception.
+*/
+BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
+{
+    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5\n");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Syntax error in the name of the first attribute
+
+Similar to error_in_datatype_of_first_inline, but the mistake is not in the value, but rather in the attribute identifier.
+
+@see error_in_datatype_of_first_inline
+
+*/
+BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
+{
+    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5\n");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Syntax error in the kind of a top-level object */
+BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
+{
+    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5\n");
+    // FIXME: add an exception here
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Test parsing of an object nested into the parent one */
+BOOST_FIXTURE_TEST_CASE(nested_interface, F)
+{
+    parser->parseLine("host abcde\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"as123\"\n");
+    expectSetAttr("name", "as123");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("mac \"nejakamac\"\n");
+    expectSetAttr("mac", "nejakamac");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_parent, 6);
+/** @short An attribute for parent is listed inline after an embedded object -> fail */
+BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
+{
+    parser->parseLine("host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5");
+    expectCategoryEntered("host", "abcde");
+    expectSetAttr("hardware_id", 123);
+    expectSetAttr("name", "jmeno");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    // FIXME: exception here
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+}
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
+/** @short Inline definition of an embedded object given immediately after the parent */
+BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, F)
+{
+    parser->parseLine("host abcde interface eth0 mac \"nejakamac\"\n");
+    expectCategoryEntered("host", "abcde");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_after_parent_attr_inline, 9);
+/** @short Inline definition of an embedded object after a paren't attr */
+BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
+{
+    parser->parseLine("host abcde hardware_id 1 interface eth0 mac \"nejakamac\"\n");
+    expectCategoryEntered("host", "abcde");
+    expectSetAttr("hardware_id", 1);
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "nejakamac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+}
+
+/** @short Embedding incompatible types after a paren't attribute */
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
+{
+    parser->parseLine("hardware abcde id 123 interface eth0");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", 123);
+    // FIXME: exception
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
+}
+
+/** @short Embedding incompatible types immediately after paren't definition */
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
+{
+    parser->parseLine("hardware abcde interface eth0");
+    expectCategoryEntered("hardware", "abcde");
+    // FIXME: exception
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "abcde");
 }

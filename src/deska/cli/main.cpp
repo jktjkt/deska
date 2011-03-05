@@ -24,50 +24,10 @@ int main()
 
     Deska::CLI::Parser parser( fake );
 
-    std::string test = "hardware abcde id 1243 name \"jmeno\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
-
-    test = "hardware abcde id xx name \"jmeno\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
-
-    test = "hardware abcde isd 123 name \"jmeno\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
-
-    test = "haware abcde id 123 name \"jmeno\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
-
-    test = "host abcde";
-    parser.parseLine( test );
-    test = "name \"as123\"";
-    parser.parseLine( test );
-    test = "interface eth0";
-    parser.parseLine( test );
-    test = "mac \"nejakamac\"";
-    parser.parseLine( test );
     test = "end";
     parser.parseLine( test );
     test = "price 34234";
     parser.parseLine( test );
-    parser.clearContextStack();
-
-    std::cout << std::endl;
-    
-    test = "hardware abcde id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
-    parser.parseLine( test );
-    parser.clearContextStack();
-
     /*
     while ( getline( std::cin, str ) ) {
         if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )

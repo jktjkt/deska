@@ -32,10 +32,10 @@ F::F()
     Deska::FakeApi *fake = new FakeApi();
     fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
-    fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_INT ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "hardware", TYPE_IDENTIFIER ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
@@ -106,6 +106,18 @@ void F::verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifi
     const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
     std::vector<Deska::CLI::ContextStackItem> specimen;
     specimen.push_back(Deska::CLI::ContextStackItem(kind, name));
+    BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
+void F::verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
+                             const Deska::Identifier &kind2, const Deska::Identifier &name2)
+{
+    const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::CLI::ContextStackItem> specimen;
+    specimen.push_back(Deska::CLI::ContextStackItem(kind1, name1));
+    specimen.push_back(Deska::CLI::ContextStackItem(kind2, name2));
     BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());

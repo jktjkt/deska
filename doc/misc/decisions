@@ -85,5 +85,14 @@ PgSQL
 - constraints check using "fake merge" and abort
 
 
+
+--------------------------------------------------------------------------------
+History Tracking
+
+- When an object gets deleted and is re-created later on, the history shall
+still recognize that it's a "continuation" of the former object. Ie. a command
+for showing history of that particular object shall list its deletion and the
+history of the older instance as well.
+
 --------------------------------------------------------------------------------
 GENERATORS

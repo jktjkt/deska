@@ -3,16 +3,19 @@
 --
 SET search_path TO production;
 
+CREATE SEQUENCE hardware_uid START 1;
+
 -- vendors of hw
 CREATE TABLE hardware (
 	-- this column is required in all plugins
-	uid bigint
+	uid bigint DEFAULT nextval('hardware_uid')
 		constraint hardware_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name text
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
-	vendor bigint 
-		CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid),
+	-- TODO - better use uid
+	vendor text 
+		CONSTRAINT hardware_fk_vendor REFERENCES vendor(name),
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	-- GB of RAM

@@ -5,14 +5,16 @@
 --
 SET search_path TO production;
 
+CREATE SEQUENCE vendor_uid START 1;
+
 -- vendors of hw
 CREATE TABLE vendor (
-	-- this column is required in all plugins
-	uid bigint
+	-- nextval can be used - will aplly to history table
+	uid bigint DEFAULT nextval('vendor_uid')
 		constraint vendor_pk PRIMARY KEY,
-	-- this column is required in all plugins
-	name text 
-		CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+-- this column is required in all plugins
+name text 
+	CONSTRAINT vendor_name_unique UNIQUE NOT NULL
 
 );
 

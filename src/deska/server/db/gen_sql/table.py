@@ -16,22 +16,23 @@ class ConSet(dict):
 	
 
 class Table:
-	# template uid sequence
-	uidseq_string = '''CREATE SEQUENCE history.{tbl}_uid START 1;
-'''
 	# template string for generate historic table
-	hist_string = uidseq_string + '''CREATE TABLE history.{tbl}_history (
-	--LIKE {tbl},
-	uid bigint NOT NULL default nextval('{tbl}_uid'),
-	name TEXT NOT NULL,
+	hist_string = '''CREATE TABLE history.{tbl}_history (
+	LIKE {tbl}
+	-- include default values
+	INCLUDING DEFAULTS
+	-- include CHECK constrants !!! only check constraints in postgresql 9
+	INCLUDING CONSTRAINTS
+	-- INCLUDE INDEXES???
+	,
 	version int NOT NULL,
-	dest_bit bit(1) NOT NULL DEFAULT B'0',
-	CONSTRAINT {tbl}_history_pk PRIMARY KEY (uid,version)
+	dest_bit bit(1) NOT NULL DEFAULT B'0'
+	{constraints}
 );
 '''
 	# template string for set function's
 	set_string = '''CREATE FUNCTION
-	{tbl}_set_{colname}(IN id integer,IN value {coltype})
+	{tbl}_set_{colname}(IN name_ text,IN value {coltype})
 	RETURNS integer
 	AS
 	$$
@@ -39,7 +40,7 @@ class Table:
 	BEGIN
 		SELECT my_version() INTO ver;
 		UPDATE {tbl}_history SET {colname} = value, version = ver
-			WHERE uid = id;
+			WHERE name = name_;
 		RETURN 1;
 	END
 	$$
@@ -119,8 +120,32 @@ class Table:
 	def add_key(self,con_name,att_name):
 		self.conset[con_name] = att_name
 
+	def gen_constraint(self,con):
+		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
+		comma = False
+		for att in self.conset[con]:
+			if comma:
+				str = str + "," + att
+			else:
+				comma = True
+				str = str + att
+		return str + ")"
+	
+	def gen_drop_notnull(self):
+		nncol = self.col.copy()
+		del nncol['uid']
+		del nncol['name']
+		drop = ""
+		for col in nncol:
+			drop = drop + "ALTER TABLE {name}_history ALTER {colname} DROP NOT NULL;\n".format(name = self.name, colname = col)
+		return drop
+
 	def gen_hist(self):
-		return self.hist_string.format(tbl = self.name)
+		constr = ""
+		for con in self.conset:
+			constr = constr + ",\n" + self.gen_constraint(con)
+		drop = self.gen_drop_notnull()
+		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
 	def gen_add(self):
 		return self.add_string.format(tbl = self.name)
