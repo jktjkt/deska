@@ -40,7 +40,8 @@ class Table:
 	BEGIN
 		SELECT my_version() INTO ver;
 		UPDATE {tbl}_history SET {colname} = value, version = ver
-			WHERE name = name_;
+			WHERE name = name_ AND version = ver;
+		--TODO if there is nothing in current version???
 		RETURN 1;
 	END
 	$$
@@ -74,9 +75,9 @@ class Table:
 		ver bigint;
 	BEGIN	
 		SELECT my_version() INTO ver;
-		SELECT max(uid) INTO id FROM vendor_history
+		SELECT max(uid) INTO id FROM {tbl}_history
 			WHERE name = name_;
-		INSERT INTO vendor_history (uid, name, version, dest_bit)
+		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
 			VALUES (id, name_, ver, '1');
 		RETURN 1;
 	END
@@ -93,12 +94,12 @@ class Table:
 	DECLARE	ver bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
-		UPDATE {tbl} as v SET name = new.name
+		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
-				WHERE new.version = ver AND v.uid = new.uid;
-		INSERT INTO {tbl} (uid,name)
-			SELECT uid,name FROM {tbl}_history
-				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {tbl} );
+				WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl} ({columns})
+			SELECT {columns} FROM {tbl}_history
+				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {tbl} ) AND dest_bit = '0';
 		DELETE FROM {tbl}
 			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
@@ -120,15 +121,23 @@ class Table:
 	def add_key(self,con_name,att_name):
 		self.conset[con_name] = att_name
 
+	def gen_assign(self,colname):
+		return "{col} = new.{col}".format(col= colname)
+
+	def gen_cols_assign(self):
+		#TODO remove uid
+		assign = map(self.gen_assign,self.col.keys())
+		return ",".join(assign)
+
+	def get_columns(self):
+		# comma separated list of values
+		return ",".join(self.col.keys())
+
 	def gen_constraint(self,con):
+		# add version column into key constraint
+		self.conset[con] = "version"
 		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
-		comma = False
-		for att in self.conset[con]:
-			if comma:
-				str = str + "," + att
-			else:
-				comma = True
-				str = str + att
+		str = str + ",".join(self.conset[con])
 		return str + ")"
 	
 	def gen_drop_notnull(self):
@@ -158,7 +167,7 @@ class Table:
 
 	def gen_commit(self):
 		#TODO if there is more columns...
-		return self.commit_string.format(tbl = self.name)
+		return self.commit_string.format(tbl = self.name, assign = self.gen_cols_assign(), columns = self.get_columns())
 
 
 class Api:
