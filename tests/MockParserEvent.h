@@ -23,6 +23,7 @@
 #define DESKA_TEST_MOCKPARSEREVENT_H
 
 #include <iosfwd>
+#include "deska/cli/Exceptions.h"
 #include "deska/db/Api.h"
 
 /** @short Helper class representing a signal emitted by the Parser being tested */
@@ -41,6 +42,9 @@ public:
     /** @short An empty event for debug printing */
     static MockParserEvent invalid();
 
+    /** @short Parser error */
+    static MockParserEvent parserError(const Deska::CLI::ParserException &err);
+
     bool operator==(const MockParserEvent &other) const;
 
     friend std::ostream& operator<<(std::ostream &out, const MockParserEvent &m);
@@ -53,6 +57,8 @@ private:
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
         EVENT_SET_ATTR,
+        /** @short Handler for parseError() */
+        EVENT_PARSE_ERROR,
         /** @short Fake, invalid event */
         EVENT_INVALID
     } Event;
@@ -62,6 +68,7 @@ private:
     Event eventKind;
     Deska::Identifier i1, i2;
     Deska::Value v1;
+    Deska::CLI::ParserExceptionPtr e;
 };
 
 std::ostream& operator<<(std::ostream &out, const MockParserEvent &m);

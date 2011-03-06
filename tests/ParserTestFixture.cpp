@@ -46,6 +46,7 @@ F::F()
     parser->categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
     parser->attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
     attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&F::slotParserSetAttrCheckContext, this));
+    parser->parseError.connect(boost::bind(&F::slotParserError, this, _1));
 }
 
 F::~F()
@@ -87,6 +88,11 @@ void F::expectCategoryLeft()
 void F::expectSetAttr(const Deska::Identifier &name, const Deska::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
+}
+
+void F::expectParseError(const Deska::CLI::ParserException &exception)
+{
+    expectHelper(MockParserEvent::parserError(exception));
 }
 
 void F::expectHelper(const MockParserEvent &e)

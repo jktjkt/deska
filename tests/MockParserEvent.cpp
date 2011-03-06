@@ -50,7 +50,14 @@ MockParserEvent MockParserEvent::invalid()
 
 bool MockParserEvent::operator==(const MockParserEvent &other) const
 {
-    return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
+    bool res = eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
+    if ( !res )
+        return false;
+    if ( e == other.e )
+        return true;
+    if ( !e || !other.e )
+        return false;
+    return *e == *(other.e);
 }
 
 
@@ -69,6 +76,10 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_SET_ATTR:
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
+        break;
+    case MockParserEvent::EVENT_PARSE_ERROR:
+        BOOST_ASSERT(m.e);
+        out << "parseError(" << m.e->what() << ")";
         break;
     case MockParserEvent::EVENT_INVALID:
         out << "[no event]";
