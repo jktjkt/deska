@@ -23,6 +23,7 @@
 #define DESKA_CLI_EXCEPTIONS_H
 
 #include <exception>
+#include <tr1/memory>
 #include <string>
 
 namespace Deska {
@@ -55,6 +56,9 @@ DESKA_EXCEPTION(InvalidAttributeDataTypeError, ParserException);
 
 /** @short Attempted to embed objects of incompatible type into each other */
 DESKA_EXCEPTION(NestingError, ParserException);
+
+/** @short Reference-counted ParserException */
+typedef std::tr1::shared_ptr<ParserException> ParserExceptionPtr;
 
 }
 }
