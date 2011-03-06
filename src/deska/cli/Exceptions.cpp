@@ -28,6 +28,12 @@ ParserException::ParserException(const std::string &message): m(message), pos(in
 {
 }
 
+ParserException::ParserException(const std::string &message, const std::string &input_, const std::string::const_iterator &where):
+    m(message), input(input_), pos()
+{
+    // FIXME: fix the iterator!
+}
+
 ParserException::~ParserException() throw ()
 {
 }
