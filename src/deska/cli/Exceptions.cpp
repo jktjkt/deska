@@ -24,6 +24,12 @@
 namespace Deska {
 namespace CLI {
 
+
+bool operator==(const ParserException &a, const ParserException &b)
+{
+    return a.eq(b);
+}
+
 ParserException::ParserException(const std::string &message): m(message), pos(input.end())
 {
 }
@@ -41,7 +47,15 @@ ParserException::~ParserException() throw ()
 #define DESKA_ECBODY(Class, Parent) \
 Class::Class(const std::string &message): Parent(message) {}\
 Class::Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where): \
-        Parent(message, input_, where) {}
+        Parent(message, input_, where) {} \
+bool Class::eq(const std::exception &other) const \
+{ \
+    try { \
+        const Class &e = dynamic_cast<const Class&>(other); \
+        return e.m == m && e.input == input && e.pos - e.input.begin() == pos - input.begin(); \
+    } catch (const std::bad_cast&) { \
+        return false; \
+   } }
 
 
 DESKA_ECBODY(UndefinedAttributeError, ParserException);

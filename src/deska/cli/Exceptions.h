@@ -40,12 +40,15 @@ protected:
     std::string m;
     std::string input;
     std::string::const_iterator pos;
+    friend bool operator==(const ParserException &a, const ParserException &b);
+    virtual bool eq(const std::exception &other) const = 0;
 };
 
 #define DESKA_EXCEPTION(Class, Parent) \
     class Class: public Parent {public: \
     Class(const std::string &message);\
     Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where);\
+    protected: virtual bool eq(const std::exception &other) const; \
 }
 
 /** @short Tried to specify an attribute which is not recognized at this point */
@@ -56,6 +59,9 @@ DESKA_EXCEPTION(InvalidAttributeDataTypeError, ParserException);
 
 /** @short Attempted to embed objects of incompatible type into each other */
 DESKA_EXCEPTION(NestingError, ParserException);
+
+/** @short Compare two exceptions for being equal */
+bool operator==(const ParserException &a, const ParserException &b);
 
 /** @short Reference-counted ParserException */
 typedef std::tr1::shared_ptr<ParserException> ParserExceptionPtr;
