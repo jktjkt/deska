@@ -24,7 +24,7 @@ int main()
 
     Deska::CLI::Parser parser( fake );
 
-    test = "end";
+    std::string test = "end";
     parser.parseLine( test );
     test = "price 34234";
     parser.parseLine( test );
