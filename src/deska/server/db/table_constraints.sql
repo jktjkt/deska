@@ -1,9 +1,21 @@
+/** This type is returning type of function pk_constraints_on_table.
+   * consists of constraint name conname and atribute name attname
+   * @type pk_constraints_on_table_type
+   * @author Martina Krejcova
+   */
 CREATE TYPE pk_constraints_on_table_type AS(
 conname	name,
 attname	name
 );
 
-CREATE FUNCTION pk_constraints_on_table(tabname name)
+
+/** This function finds out which columns of given table are part of the primary key.
+   * @function pk_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return pk_constraints_on_table_type
+   * @author Martina Krejcova
+   */
+CREATE OR REPLACE FUNCTION pk_constraints_on_table(tabname name)
 RETURNS SETOF pk_constraints_on_table_type
 AS
 $$
@@ -56,7 +68,14 @@ refattname	name
 
 --DROP FUNCTION fk_constraints_on_table(name);
 
-CREATE FUNCTION fk_constraints_on_table(tabname name)
+/** This function finds out which columns of given table are part of some foreign key.
+   * Returns tuple constraint name, attribute name, referenced table name, referenced attribute name.
+   * @function fk_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return SETOF fk_constraints_on_table_type
+   * @author Martina Krejcova
+   */
+CREATE OR REPLACE FUNCTION fk_constraints_on_table(tabname name)
 RETURNS SETOF fk_constraints_on_table_type
 AS
 $$
@@ -127,7 +146,14 @@ condition text
 
 --DROP FUNCTION c_constraints_on_table(name);
 
-CREATE FUNCTION c_constraints_on_table(tabname name)
+/** This function finds out on which columns of given table is some check constraint.
+   * Returns tuple constraint name, attribute name, text of check constraint.
+   * @function c_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return SETOF c_constraints_on_table_type
+   * @author Martina Krejcova
+   */
+CREATE OR REPLACE FUNCTION c_constraints_on_table(tabname name)
 RETURNS SETOF c_constraints_on_table_type
 AS
 $$
@@ -176,8 +202,22 @@ LANGUAGE plpgsql;
 
 
 
-CREATE FUNCTION u_constraints_on_table(tabname name)
-RETURNS SETOF pk_constraints_on_table_type
+CREATE TYPE u_constraints_on_table_type AS(
+conname	name,
+attname	name
+);
+
+DROP FUNCTION u_constraints_on_table(name);
+
+/** This function finds out on which columns of given table is some unique constraint.
+   * Returns tuple constraint name, attribute name.
+   * @function u_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return SETOF u_constraints_on_table_type
+   * @author Martina Krejcova
+   */
+CREATE OR REPLACE FUNCTION u_constraints_on_table(tabname name)
+RETURNS SETOF u_constraints_on_table_type
 AS
 $$
 DECLARE
@@ -192,7 +232,7 @@ DECLARE
 	--class oid of table
 	coid int;
 	--one row of result (constraint_name, columns_names, referenced_table_name, referenced_columns_names)
-	r pk_constraints_on_table_type;
+	r u_constraints_on_table_type;
 BEGIN
 	--select primary key constraint on this table
 	FOR cname, coid, idarray IN SELECT constr.conname, class.oid, constr.conkey
@@ -223,7 +263,14 @@ LANGUAGE plpgsql;
 
 --DROP FUNCTION n_constraints_on_table(name);
 
-CREATE FUNCTION n_constraints_on_table(tabname name)
+/** This function finds out which columns are defined as NOT NULL.
+   * Returns set of attribute name.
+   * @function n_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return SETOF name
+   * @author Martina Krejcova
+   */
+CREATE OR REPLACE FUNCTION n_constraints_on_table(tabname name)
 RETURNS SETOF name
 AS
 $$
@@ -233,17 +280,6 @@ BEGIN
 	RETURN QUERY SELECT att.attname
 		FROM	pg_class AS class join pg_attribute AS att on (att.attrelid = class.oid)		
 		WHERE class.relname = tabname AND att.attnotnull = 't' AND att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
-END
-$$
-LANGUAGE plpgsql;
-
-CREATE FUNCTION key_constraints_on_table(tabname name)
-RETURNS SETOF pk_constraints_on_table_type
-AS
-$$
-BEGIN
-	RETURN QUERY SELECT conname,attname FROM pk_constraints_on_table(tabname)
-		UNION SELECT conname,attname FROM u_constraints_on_table(tabname);
 END
 $$
 LANGUAGE plpgsql;
