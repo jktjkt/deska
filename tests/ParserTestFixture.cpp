@@ -70,6 +70,11 @@ void F::slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val
     parserEvents.push(MockParserEvent::setAttr(name, val));
 }
 
+void F::slotParserError(const Deska::CLI::ParserException &exception)
+{
+    parserEvents.push(MockParserEvent::parserError(exception));
+}
+
 void F::expectNothingElse()
 {
     BOOST_CHECK_MESSAGE(parserEvents.empty(), "Expected no more emitted signals");

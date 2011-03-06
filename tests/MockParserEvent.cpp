@@ -48,6 +48,13 @@ MockParserEvent MockParserEvent::invalid()
     return MockParserEvent(EVENT_INVALID);
 }
 
+MockParserEvent MockParserEvent::parserError(const Deska::CLI::ParserException &err)
+{
+    MockParserEvent res(EVENT_PARSE_ERROR);
+    res.e.reset(); // FIXME: copy/clone the exception? That's *very* ugly!
+    return res;
+}
+
 bool MockParserEvent::operator==(const MockParserEvent &other) const
 {
     bool res = eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
