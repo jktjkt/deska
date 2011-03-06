@@ -285,3 +285,22 @@ $$
 LANGUAGE plpgsql;
 
 --SELECT n_constraints_on_table('test');
+
+
+/** This function joins results from pk_constraints_on_table and u_constraints_on_table.
+   * Returns set of constraint name and attribute name.
+   * @function key_constraints_on_table
+   * @param in name tabname is a name of table which we would like to inspect
+   * @return SETOF pk_constraints_on_table_type
+   * @author Lukas Kerpl
+   */
+CREATE FUNCTION key_constraints_on_table(tabname name)
+RETURNS SETOF pk_constraints_on_table_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT conname,attname FROM pk_constraints_on_table(tabname)
+		UNION SELECT conname,attname FROM u_constraints_on_table(tabname);
+END
+$$
+LANGUAGE plpgsql;
