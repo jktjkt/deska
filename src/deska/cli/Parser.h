@@ -27,6 +27,7 @@
 #include <boost/signals2.hpp>
 
 #include "deska/db/Api.h"
+#include "deska/cli/Exceptions.h"
 
 namespace Deska
 {
@@ -143,6 +144,12 @@ public:
     *   of the attribute and the second one the attribute value.
     */
     boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
+
+    /** @short An error during parsing
+    *
+    *   The current user input has triggered an error during parsing.
+    */
+    boost::signals2::signal<void (const ParserException &err)> parseError;
 
     /** @short True if the parser is currently nested in some block
     *
