@@ -20,6 +20,7 @@
 * */
 
 #include "Exceptions.h"
+#include <sstream>
 
 namespace Deska {
 namespace CLI {
@@ -44,6 +45,24 @@ ParserException::~ParserException() throw ()
 {
 }
 
+const char * ParserException::what() const throw ()
+{
+    try {
+        return dump("ParserException").c_str();
+    } catch (...) {
+        return "Out of memory when calling ParserException::what.";
+    }
+}
+
+std::string ParserException::dump(const std::string &className) const
+{
+    std::ostringstream ss;
+    ss << className << ": " << m << " when parsing\n";
+    ss << input << "at offset" << static_cast<int>(pos - input.begin());
+    ss.flush();
+    return ss.str();
+}
+
 #define DESKA_ECBODY(Class, Parent) \
 Class::Class(const std::string &message): Parent(message) {}\
 Class::Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where): \
@@ -55,7 +74,8 @@ bool Class::eq(const std::exception &other) const \
         return e.m == m && e.input == input && e.pos - e.input.begin() == pos - input.begin(); \
     } catch (const std::bad_cast&) { \
         return false; \
-   } }
+   } } \
+const char * Class::what() const throw () { try { return dump(#Class).c_str(); } catch (...) { return "Out of memory in " #Class "::what."; } }
 
 
 DESKA_ECBODY(UndefinedAttributeError, ParserException);

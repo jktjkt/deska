@@ -36,18 +36,21 @@ public:
     ParserException(const std::string &message);
     ParserException(const std::string &message, const std::string &input_, const std::string::const_iterator &where);
     virtual ~ParserException() throw ();
+    virtual const char* what() const throw();
 protected:
     std::string m;
     std::string input;
     std::string::const_iterator pos;
     friend bool operator==(const ParserException &a, const ParserException &b);
     virtual bool eq(const std::exception &other) const = 0;
+    std::string dump(const std::string &className) const;
 };
 
 #define DESKA_EXCEPTION(Class, Parent) \
     class Class: public Parent {public: \
     Class(const std::string &message);\
     Class(const std::string &message, const std::string &input_, const std::string::const_iterator &where);\
+    virtual const char* what() const throw();\
     protected: virtual bool eq(const std::exception &other) const; \
 }
 
