@@ -57,8 +57,11 @@ const char * ParserException::what() const throw ()
 std::string ParserException::dump(const std::string &className) const
 {
     std::ostringstream ss;
-    ss << className << ": " << m << " when parsing\n";
-    ss << input << "at offset" << static_cast<int>(pos - input.begin());
+    ss << className << ": " << m;
+    if ( ! input.empty() ) {
+        ss << " when parsing\n";
+        ss << input << "at offset" << static_cast<int>(pos - input.begin());
+    }
     ss.flush();
     return ss.str();
 }
