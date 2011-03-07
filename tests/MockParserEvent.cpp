@@ -51,20 +51,13 @@ MockParserEvent MockParserEvent::invalid()
 MockParserEvent MockParserEvent::parserError(const Deska::CLI::ParserException &err)
 {
     MockParserEvent res(EVENT_PARSE_ERROR);
-    res.e.reset(); // FIXME: copy/clone the exception? That's *very* ugly!
+    res.message = err.what();
     return res;
 }
 
 bool MockParserEvent::operator==(const MockParserEvent &other) const
 {
-    bool res = eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
-    if ( !res )
-        return false;
-    if ( e == other.e )
-        return true;
-    if ( !e || !other.e )
-        return false;
-    return *e == *(other.e);
+    return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1 && message == other.message;
 }
 
 
@@ -85,8 +78,7 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
         break;
     case MockParserEvent::EVENT_PARSE_ERROR:
-        BOOST_ASSERT(m.e);
-        out << "parseError(" << m.e->what() << ")";
+        out << "parseError(" << m.message << ")";
         break;
     case MockParserEvent::EVENT_INVALID:
         out << "[no event]";

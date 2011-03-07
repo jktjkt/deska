@@ -66,9 +66,6 @@ DESKA_EXCEPTION(NestingError, ParserException);
 /** @short Compare two exceptions for being equal */
 bool operator==(const ParserException &a, const ParserException &b);
 
-/** @short Reference-counted ParserException */
-typedef std::tr1::shared_ptr<ParserException> ParserExceptionPtr;
-
 }
 }
 

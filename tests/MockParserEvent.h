@@ -68,7 +68,7 @@ private:
     Event eventKind;
     Deska::Identifier i1, i2;
     Deska::Value v1;
-    Deska::CLI::ParserExceptionPtr e;
+    std::string message;
 };
 
 std::ostream& operator<<(std::ostream &out, const MockParserEvent &m);
