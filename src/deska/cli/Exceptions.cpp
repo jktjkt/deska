@@ -45,22 +45,18 @@ ParserException::~ParserException() throw ()
 {
 }
 
-const char * ParserException::what() const throw ()
+std::string ParserException::dump() const
 {
-    try {
-        return dump("ParserException").c_str();
-    } catch (...) {
-        return "Out of memory when calling ParserException::what.";
-    }
+    return dumpHelper("ParserException");
 }
 
-std::string ParserException::dump(const std::string &className) const
+std::string ParserException::dumpHelper(const std::string &className) const
 {
     std::ostringstream ss;
     ss << className << ": " << m;
     if ( ! input.empty() ) {
         ss << " when parsing\n";
-        ss << input << "at offset" << static_cast<int>(pos - input.begin());
+        ss << input << "\nat offset " << static_cast<int>(pos - input.begin());
     }
     ss.flush();
     return ss.str();
@@ -78,7 +74,7 @@ bool Class::eq(const std::exception &other) const \
     } catch (const std::bad_cast&) { \
         return false; \
    } } \
-const char * Class::what() const throw () { try { return dump(#Class).c_str(); } catch (...) { return "Out of memory in " #Class "::what."; } }
+std::string Class::dump() const { return Parent::dumpHelper(#Class); }
 
 
 DESKA_ECBODY(UndefinedAttributeError, ParserException);
