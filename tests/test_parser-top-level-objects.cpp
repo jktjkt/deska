@@ -166,9 +166,11 @@ The idea here is that the stack should not roll back after the exception.
 */
 BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
 {
-    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5\n");
+    const std::string input = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = input.begin() + input.find("xx");
+    parser->parseLine(input);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: add an exception here
+    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", input, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
@@ -182,9 +184,11 @@ Similar to error_in_datatype_of_first_inline, but the mistake is not in the valu
 */
 BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 {
-    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5\n");
+    const std::string line = "hardware abcde isd 123 name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = input.begin() + line.find("isd");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: add an exception here
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", input, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
@@ -192,8 +196,10 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 /** @short Syntax error in the kind of a top-level object */
 BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
 {
-    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5\n");
-    // FIXME: add an exception here
+    const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = input.begin() + line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::InvalidObjectKind("Object \"haware\" not recognized.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -226,13 +232,15 @@ BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_par
 /** @short An attribute for parent is listed inline after an embedded object -> fail */
 BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
 {
-    parser->parseLine("host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5");
+    const std::string line ="host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
+    const std::string::const_iterator it = input.begin() + line.find("price");
+    parser->parseLine(line);
     expectCategoryEntered("host", "abcde");
     expectSetAttr("hardware_id", 123);
     expectSetAttr("name", "jmeno");
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
-    // FIXME: exception here
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"price\" not defined for object of type \"interface\".", line, it));
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 }
@@ -268,10 +276,12 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
 /** @short Embedding incompatible types after a paren't attribute */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 {
-    parser->parseLine("hardware abcde id 123 interface eth0");
+    const std::string line = "hardware abcde id 123 interface eth0";
+    const std::string::const_iterator it = input.begin() + line.find("interface");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
-    // FIXME: exception
+    expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
@@ -279,9 +289,11 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 /** @short Embedding incompatible types immediately after paren't definition */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
 {
-    parser->parseLine("hardware abcde interface eth0");
+    const std::string line = "hardware abcde interface eth0";
+    const std::string::const_iterator it = input.begin() + line.find("interface");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: exception
+    expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
