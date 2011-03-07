@@ -80,6 +80,8 @@ std::string Class::dump() const { return Parent::dumpHelper(#Class); }
 DESKA_ECBODY(UndefinedAttributeError, ParserException);
 DESKA_ECBODY(InvalidAttributeDataTypeError, ParserException);
 DESKA_ECBODY(NestingError, ParserException);
+DESKA_ECBODY(InvalidObjectKind, ParserException);
+DESKA_ECBODY(MalformedIdentifier, ParserException);
 
 #undef DESKA_ECBODY
 

@@ -63,6 +63,12 @@ DESKA_EXCEPTION(InvalidAttributeDataTypeError, ParserException);
 /** @short Attempted to embed objects of incompatible type into each other */
 DESKA_EXCEPTION(NestingError, ParserException);
 
+/** @short A top-level object has an invalid type */
+DESKA_EXCEPTION(InvalidObjectKind, ParserException);
+
+/** @short Malformed identifier */
+DESKA_EXCEPTION(MalformedIdentifier, ParserException);
+
 /** @short Compare two exceptions for being equal */
 bool operator==(const ParserException &a, const ParserException &b);
 
