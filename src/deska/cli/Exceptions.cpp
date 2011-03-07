@@ -21,6 +21,7 @@
 
 #include "Exceptions.h"
 #include <sstream>
+#include <typeinfo>
 
 namespace Deska {
 namespace CLI {

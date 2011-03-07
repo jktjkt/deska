@@ -27,12 +27,13 @@
 #include <boost/signals2.hpp>
 
 #include "deska/db/Api.h"
-#include "deska/cli/Exceptions.h"
 
 namespace Deska
 {
 namespace CLI
 {
+
+class ParserException;
 
 /** @short INTERNAL; Iterator for parser input */
 typedef std::string::const_iterator iterator_type;

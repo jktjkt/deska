@@ -23,7 +23,6 @@
 #define DESKA_CLI_EXCEPTIONS_H
 
 #include <exception>
-#include <tr1/memory>
 #include <string>
 
 namespace Deska {
