@@ -166,11 +166,11 @@ The idea here is that the stack should not roll back after the exception.
 */
 BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
 {
-    const std::string input = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
-    const std::string::const_iterator it = input.begin() + input.find("xx");
-    parser->parseLine(input);
+    const std::string line = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find("xx");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", input, it));
+    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
@@ -185,10 +185,10 @@ Similar to error_in_datatype_of_first_inline, but the mistake is not in the valu
 BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 {
     const std::string line = "hardware abcde isd 123 name \"jmeno\" price 1234.5\n";
-    const std::string::const_iterator it = input.begin() + line.find("isd");
+    const std::string::const_iterator it = line.begin() + line.find("isd");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", input, it));
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "abcde");
 }
@@ -197,7 +197,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
 {
     const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
-    const std::string::const_iterator it = input.begin() + line.begin();
+    const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
     expectParseError(Deska::CLI::InvalidObjectKind("Object \"haware\" not recognized.", line, it));
     expectNothingElse();
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_par
 BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
 {
     const std::string line ="host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
-    const std::string::const_iterator it = input.begin() + line.find("price");
+    const std::string::const_iterator it = line.begin() + line.find("price");
     parser->parseLine(line);
     expectCategoryEntered("host", "abcde");
     expectSetAttr("hardware_id", 123);
@@ -277,7 +277,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 {
     const std::string line = "hardware abcde id 123 interface eth0";
-    const std::string::const_iterator it = input.begin() + line.find("interface");
+    const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
@@ -290,7 +290,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
 {
     const std::string line = "hardware abcde interface eth0";
-    const std::string::const_iterator it = input.begin() + line.find("interface");
+    const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
