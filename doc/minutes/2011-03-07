@@ -72,24 +72,24 @@ Diskuse:
 Ukoly na priste:
 ----------------
 
-- Honza: tab completion: premyslet, jak udelat
-- Honza: implementovat JSON
-- Honza: pridat do API jednu funkci pro predani "obecne chyby"
-- Honza: doplnit chybejici funkce pro session management do API, viz diskuse
-- Honza: rozsirit TEMPLATE v API
+- Honza: tab completion: premyslet, jak udelat (#101)
+- Honza: implementovat JSON (#113)
+- Honza: pridat do API jednu funkci pro predani "obecne chyby" (#114)
+- Honza: doplnit chybejici funkce pro session management do API, viz diskuse (#115)
+- Honza: rozsirit TEMPLATE v API (#116)
 - Honza: vykomunikovat s Tomasem jeho stav
-- Tomas: zprovozneni parseru, unit testy hlasi kotel chyb
-- Tomas: embedovane objekty
-- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu
-- Tomas: ucesat end
+- Tomas: zprovozneni parseru, unit testy hlasi kotel chyb (#119)
+- Tomas: embedovane objekty (#98)
+- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu (#99)
+- Tomas: ucesat end (#100)
 - Tomas: event. readline
 - Martina: vyresit commitovani zmen z docasne, rozpracovane revize do produkcni
-  tabulky (diskuse o DEFERRABLE DEFAULT DEFERRED)
-- Martina: sjednoceni datovych typu
-- Martina: zbude-li cas, seznam chyb, ktere muze vratit DB, k zahrnuti do API
+  tabulky (diskuse o DEFERRABLE DEFAULT DEFERRED) (#104)
+- Martina: sjednoceni datovych typu (#105)
+- Martina: zbude-li cas, seznam chyb, ktere muze vratit DB, k zahrnuti do API (#117)
 - Lukas: kompletni funkcnost pro prevod uzivetelem definovanych tabulek do Deska
   tabulek, nebudou templaty
-- Lukas: JSON
+- Lukas: JSON (#118)
 - Lukas vymysli Martine, co ma udelat -- v utery rano
 
 Pristi schuzka:
