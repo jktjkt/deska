@@ -35,6 +35,15 @@ ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier 
 {
 }
 
+ObjectRelation ObjectRelation::mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute)
+{
+    ObjectRelation res;
+    res.kind = RELATION_MERGE_WITH;
+    res.targetTableName = targetTableName;
+    res.sourceAttribute = sourceAttribute;
+    return res;
+}
+
 ObjectRelation ObjectRelation::embedInto(const Identifier &into)
 {
     ObjectRelation res;

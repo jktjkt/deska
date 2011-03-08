@@ -120,10 +120,15 @@ typedef enum {
 /** @short A pair of (kind-of-relation, table)
  *
  * Examples for a "host" would be:
- * (RELATION_MERGE_WITH, "hw", "hw", "host")
+ * (RELATION_MERGE_WITH, "hw", "hw")
+ * ...which means that the "host" records shall contain a reference to the "hw" table, and the reference shall be formed by a
+ * column named "hw" which points to the name of the object in the "hw" table. We do not define the name of the target column,
+ * simply because we always point to its identifier.
  *
- * Examples for a "hw":
- * (RELATION_MERGE_WITH, "host", "host", "hw")
+ * In this situation, the record will be accompanied by the corresponding relation for the "hw" object kind:
+ * (RELATION_MERGE_WITH, "host", "host")
+ *
+ * Another examples for a "hw":
  * (RELATION_TEMPLATE, "hw", "template", "name")
  *
  * Whereas for the "interface":
@@ -131,6 +136,9 @@ typedef enum {
  * */
 struct ObjectRelation
 {
+    /** @short Construct a RELATION_MERGE_WITH */
+    static ObjectRelation mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute);
+
     /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &into);
 
