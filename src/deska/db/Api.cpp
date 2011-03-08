@@ -52,6 +52,23 @@ ObjectRelation ObjectRelation::embedInto(const Identifier &into)
     return res;
 }
 
+ObjectRelation ObjectRelation::isTemplate(const Identifier &toWhichKind)
+{
+    ObjectRelation res;
+    res.kind = RELATION_IS_TEMPLATE;
+    res.targetTableName = toWhichKind;
+    return res;
+}
+
+ObjectRelation ObjectRelation::templatized(const Identifier &byWhichKind, const Identifier &sourceAttribute)
+{
+    ObjectRelation res;
+    res.kind = RELATION_TEMPLATIZED;
+    res.targetTableName = byWhichKind;
+    res.sourceAttribute = sourceAttribute;
+    return res;
+}
+
 /** @short Private constructor for creating a half-baked object
 
 This is very much needed for ObjectRelation::embedInto.
