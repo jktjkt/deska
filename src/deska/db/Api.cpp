@@ -33,7 +33,7 @@ ObjectRelation ObjectRelation::embedInto(const Identifier &into)
 {
     ObjectRelation res;
     res.kind = RELATION_EMBED_INTO;
-    res.tableName = into;
+    res.targetTableName = into;
     return res;
 }
 

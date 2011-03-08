@@ -134,11 +134,11 @@ struct ObjectRelation
 
     ObjectRelation(
         const ObjectRelationKind _kind,
-        const Identifier &_tableName,
+        const Identifier &_targetTableName,
         const Identifier &_sourceAttribute,
         const Identifier &_destinationAttribute ):
         kind(_kind),
-        tableName(_tableName),
+        targetTableName(_targetTableName),
         sourceAttribute(_sourceAttribute),
         destinationAttribute(_destinationAttribute) 
     {
@@ -149,8 +149,8 @@ struct ObjectRelation
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
-    /** @short Name of a table this relation refers to */
-    Identifier tableName;
+    /** @short Name of the target table this relation refers to */
+    Identifier targetTableName;
     /** @short From which attribute shall we match */
     Identifier sourceAttribute;
     /** @short To which attribute shall we match */
