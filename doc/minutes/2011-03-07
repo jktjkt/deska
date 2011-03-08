@@ -1,0 +1,98 @@
+Schuze Deska, 2011-03-07 FZU
+----------------------------
+
+Pritomni: Honza, Martina, Lukas
+Omluveni: Tomas - prace
+
+
+Ukoly z minula:
+---------------
+
+- Tomas: embedovane objekty
+    - nefunguje
+- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu
+    - ?
+- Tomas: ucesat end
+    - ?
+- Tomas: event. readline
+    - neni
+- Tomas: precist clanek
+    - hotovo
+- Honza: Jak se ma pristupovat k historii objektu, prerusuje ji smazani? Da se povolit
+  smazani & vytvoreni tehoz objektu v jedne relaci? (minule nebylo zapsano)
+    - hotovo
+- Honza: vypsat termin, zacatek dohodnout se Zavoralem
+    - napsal Holanovi
+- Honza: dalsi unit testy
+    - hotovo
+- Honza: prepsat main.cpp do unit testu
+    - hotovo
+- Honza: JSON
+    - hotovo
+- Honza: pusti deska-dev
+    - hotovo
+- Honza: #ifdef na debugging
+    - hotovo
+- Lukas: vyklika tasky, dneska, aby Honzik videl
+    - hotovo (ac ne "dneska")
+- Lukas: prace na DB
+    - nad ramec: pregenerovani struktury DB, porovnani primo ze SQL prostredi a
+    nebo z shellu/Pythonu/...
+    - prepsani generatoru, prace s contrainty (rozpracovano -- nefunguje foreign
+      key, funguje prim. key, unique, vyhazuje not null,...), dalsi moduly
+- Martina: prace na DB
+    - funkce pro generovani constraintu
+    - komentare, Doxygen neumi
+    - exceptions v SQL: nejde, resp. jde blbe, resp. je to cizi koncept
+- Martina: precist clanek
+    - hotovo
+
+
+Diskuse:
+--------
+
+- Jak predelavat strukturu DB? Je to lepsi z shellu/Pythonu/..., nebo zevnitr
+  PgSQL? -> je to jedno
+- rename objektu muze vlastne prejmenovat dalsi objekty (host hpv2, jeho
+  interfacy,...)
+- V budoucnu bude potreba umet delat zmeny nad vetsim mnozstvim objektu, na to je
+  potreba podpora v SQL, API i CLI. Zatim by design neni.
+- API: chybi abort() nebo zahozeni changesetu
+- API: co bindovani na existujici sessions od jednoho uzivatele?
+- mergovani dvou instanci nejakeho objektu nebude podporovana operace (priklad s
+  fuzi SGI - Rackable)
+- API: osetrovnai chyb, jak s tim?
+- explicitni oznacovani objektu jako templaty: dosli jsme k tomu, ze pujde z
+  pohledu API o dva nezavisle top-level typy, spravce DB pri zakladani bude
+  definovat jenom jednu tabulku, rozsiri se relation TEMPLATE, pres ktery se
+  predaji nazvy obou tabulek. Event. rozsireni o featuru "tenhle argument nesmi
+  byt v template" je vec do budoucna.
+- rychla diskuse o git workflow, zadny vysledek
+
+Ukoly na priste:
+----------------
+
+- Honza: tab completion: premyslet, jak udelat
+- Honza: implementovat JSON
+- Honza: pridat do API jednu funkci pro predani "obecne chyby"
+- Honza: doplnit chybejici funkce pro session management do API, vis diskuse
+- Honza: rozsirit TEMPLATE v API
+- Honza: vykomunikovat s Tomasem jeho stav
+- Tomas: zprovozneni parseru, unit testy hlasi kotel chyb
+- Tomas: embedovane objekty
+- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu
+- Tomas: ucesat end
+- Tomas: event. readline
+- Martina: vyresit commitovani zmen z docasne, rozpracovane revize do produkcni
+  tabulky (diskuse o DEFERRABLE DEFAULT DEFERRED)
+- Martina: sjednoceni datovych typu
+- Martina: zbude-li cas, seznam chyb, ktere muze vratit DB, k zahrnuti do API
+- Lukas: kompletni funkcnost pro prevod uzivetelem definovanych tabulek do Deska
+  tabulek, nebudou templaty
+- Lukas: JSON
+- Lukas vymysli Martine, co ma udelat -- v utery rano
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 14. brezna FZU, Lukas nemuze
