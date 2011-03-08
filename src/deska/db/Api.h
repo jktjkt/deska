@@ -144,6 +144,7 @@ struct ObjectRelation
     {
     }
 
+    /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &into);
 
     /** @short Kind of relation */
