@@ -34,7 +34,7 @@ Ukoly z minula:
 - Honza: #ifdef na debugging
     - hotovo
 - Lukas: vyklika tasky, dneska, aby Honzik videl
-    - hotovo (ac ne "dneska")
+    - hotovo, vcas
 - Lukas: prace na DB
     - nad ramec: pregenerovani struktury DB, porovnani primo ze SQL prostredi a
     nebo z shellu/Pythonu/...
