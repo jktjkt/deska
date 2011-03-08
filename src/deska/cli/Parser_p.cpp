@@ -284,11 +284,6 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
         kindsParsers[ *it ] = new KindsParser<Iterator>( *it, this );
         addNestedKinds( *it, kindsParsers[ *it ] );
 
-        std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
-        for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-            if ( itRel->kind == RELATION_MERGE_WITH )
-                addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
-
         kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
     }
 }
