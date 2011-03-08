@@ -29,9 +29,8 @@ Api::~Api()
 {
 }
 
-ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName,
-    const Identifier &_sourceAttribute, const Identifier &_destinationAttribute):
-    kind(_kind), targetTableName(_targetTableName), sourceAttribute(_sourceAttribute), destinationAttribute(_destinationAttribute)
+ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute):
+    kind(_kind), targetTableName(_targetTableName), sourceAttribute(_sourceAttribute)
 {
 }
 

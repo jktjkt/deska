@@ -168,13 +168,10 @@ struct ObjectRelation
     Identifier targetTableName;
     /** @short From which attribute shall we match */
     Identifier sourceAttribute;
-    /** @short To which attribute shall we match */
-    Identifier destinationAttribute;
 
 private:
     ObjectRelation();
-    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName,
-                   const Identifier &_sourceAttribute, const Identifier &_destinationAttribute);
+    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
 
 /** @short Class representing the database API
