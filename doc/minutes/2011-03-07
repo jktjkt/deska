@@ -75,7 +75,7 @@ Ukoly na priste:
 - Honza: tab completion: premyslet, jak udelat
 - Honza: implementovat JSON
 - Honza: pridat do API jednu funkci pro predani "obecne chyby"
-- Honza: doplnit chybejici funkce pro session management do API, vis diskuse
+- Honza: doplnit chybejici funkce pro session management do API, viz diskuse
 - Honza: rozsirit TEMPLATE v API
 - Honza: vykomunikovat s Tomasem jeho stav
 - Tomas: zprovozneni parseru, unit testy hlasi kotel chyb
