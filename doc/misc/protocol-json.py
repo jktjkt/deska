@@ -24,9 +24,10 @@ resp_kindAttributes = {R_PREFIX: "getKindAttributes", KIND_NAME: IDENTIFIER,
 cmd_kindRelations = {C_PREFIX: "getKindRelations", KIND_NAME: IDENTIFIER}
 resp_kindRelations = {R_PREFIX: "getKindRelations", KIND_NAME: IDENTIFIER,
                       "kindRelations": [("EMBED_INTO", "hardware"),
-                                        ("MERGE_WITH", "second-kind",
-                                         "my-attribute", "their-attribute"),
-                                        ("TEMPLATE", "my-attribute")]}
+                                        ("MERGE_WITH", "second-kind", "my-attribute"),
+                                        ("IS_TEMPLATE", "target-kind"),
+                                        ("TEMPLATIZED", "by-which-kind", "my-attribute")
+                                       ]}
 
 cmd_kindInstances = {C_PREFIX: "getKindInstances", KIND_NAME: IDENTIFIER,
                      REVISION: 0}
