@@ -29,7 +29,8 @@ plpy = Plpy()
 class Schema:
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
-	key_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	def __init__(self):
 		plpy.execute("SET search_path TO deska,production")
 
@@ -70,10 +71,15 @@ class Schema:
 		for col in tables[:]:
 			table.add_column(col[0],col[1])
 
-		# add key constraints
-		constraints = plpy.execute(self.key_str.format(tbl))
+		# add pk constraints
+		constraints = plpy.execute(self.pk_str.format(tbl))
 		for col in constraints[:]:
-			table.add_key(col[0],col[1])
+			table.add_pk(col[0],col[1])
+
+		# add fk constraints
+		constraints = plpy.execute(self.fk_str.format(tbl))
+		for col in constraints[:]:
+			table.add_fk(col[0],col[1],col[2],col[3])
 
 		# generate sql
 		self.sql.write(table.gen_hist())

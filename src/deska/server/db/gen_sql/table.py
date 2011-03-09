@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 
-class ConSet(dict):
+class PkSet(dict):
 	def __init__(self):
 		dict.__init__(self)
 	
@@ -13,7 +13,36 @@ class ConSet(dict):
 			s = set()
 			s.add(att)
 			dict.__setitem__(self,name,s)
+
+# foreign keys
+class Fks():
+	def __init__(self):
+		self.att = PkSet()
+		self.ratt = PkSet()
+		self.tbl = dict()
 	
+	def add(self,name,att,table,ratt):
+		self.att[name] = att
+		self.tbl[name] = table
+		self.ratt[name] = ratt
+	
+	def gen_fkcon(self,con):
+		# add version column into key constraint
+		self.att[con] = "version"
+		self.ratt[con] = "version"
+		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {tbl}_history({ratt})"
+		atts = ",".join(self.att[con])
+		ratts = ",".join(self.ratt[con])
+		str = str.format(name = con,tbl = self.tbl[con],att = atts, ratt = ratts)
+		return str
+	
+	def gen_fk_constraints(self):
+		constr = ""
+		for att in self.att:
+			constr = constr + ",\n" + self.gen_fkcon(att)
+		return constr
+			
+		
 
 class Table:
 	# template string for generate historic table
@@ -40,7 +69,8 @@ class Table:
 	BEGIN
 		SELECT my_version() INTO ver;
 		UPDATE {tbl}_history SET {colname} = value, version = ver
-			WHERE name = name_;
+			WHERE name = name_ AND version = ver;
+		--TODO if there is nothing in current version???
 		RETURN 1;
 	END
 	$$
@@ -74,9 +104,9 @@ class Table:
 		ver bigint;
 	BEGIN	
 		SELECT my_version() INTO ver;
-		SELECT max(uid) INTO id FROM vendor_history
+		SELECT max(uid) INTO id FROM {tbl}_history
 			WHERE name = name_;
-		INSERT INTO vendor_history (uid, name, version, dest_bit)
+		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
 			VALUES (id, name_, ver, '1');
 		RETURN 1;
 	END
@@ -93,12 +123,12 @@ class Table:
 	DECLARE	ver bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
-		UPDATE {tbl} as v SET name = new.name
+		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
-				WHERE new.version = ver AND v.uid = new.uid;
-		INSERT INTO {tbl} (uid,name)
-			SELECT uid,name FROM {tbl}_history
-				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {tbl} );
+				WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl} ({columns})
+			SELECT {columns} FROM {tbl}_history
+				WHERE version = ver AND uid NOT IN ( SELECT uid FROM {tbl} ) AND dest_bit = '0';
 		DELETE FROM {tbl}
 			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
@@ -111,25 +141,40 @@ class Table:
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
-		self.conset = ConSet()
+		self.pkset = PkSet()
+		self.fks = Fks()
 		self.name= name
 
 	def add_column(self,col_name,col_type):
 		self.col[col_name] = col_type
 
-	def add_key(self,con_name,att_name):
-		self.conset[con_name] = att_name
+	# add pk and unique
+	def add_pk(self,con_name,att_name):
+		self.pkset[con_name] = att_name
 
-	def gen_constraint(self,con):
+	# add fk 
+	def add_fk(self,con_name,att_name,ref_table,ref_att):
+		self.fks.add(con_name,att_name,ref_table,ref_att)
+
+	def gen_assign(self,colname):
+		return "{col} = new.{col}".format(col= colname)
+
+	def gen_cols_assign(self):
+		#TODO remove uid
+		assign = map(self.gen_assign,self.col.keys())
+		return ",".join(assign)
+
+	def get_columns(self):
+		# comma separated list of values
+		return ",".join(self.col.keys())
+
+	def gen_pk_constraint(self,con):
+		# add version column into key constraint
+		self.pkset[con] = "version"
 		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
-		comma = False
-		for att in self.conset[con]:
-			if comma:
-				str = str + "," + att
-			else:
-				comma = True
-				str = str + att
+		str = str + ",".join(self.pkset[con])
 		return str + ")"
+
 	
 	def gen_drop_notnull(self):
 		nncol = self.col.copy()
@@ -142,8 +187,9 @@ class Table:
 
 	def gen_hist(self):
 		constr = ""
-		for con in self.conset:
-			constr = constr + ",\n" + self.gen_constraint(con)
+		for con in self.pkset:
+			constr = constr + ",\n" + self.gen_pk_constraint(con)
+		constr = constr + self.fks.gen_fk_constraints()
 		drop = self.gen_drop_notnull()
 		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
@@ -158,7 +204,7 @@ class Table:
 
 	def gen_commit(self):
 		#TODO if there is more columns...
-		return self.commit_string.format(tbl = self.name)
+		return self.commit_string.format(tbl = self.name, assign = self.gen_cols_assign(), columns = self.get_columns())
 
 
 class Api:
