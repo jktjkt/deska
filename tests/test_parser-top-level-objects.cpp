@@ -171,8 +171,9 @@ BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::CLI::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Syntax error in the name of the first attribute
@@ -189,8 +190,9 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Syntax error in the kind of a top-level object */
@@ -241,8 +243,10 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
     expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"price\" not defined for object of type \"interface\".", line, it));
+    expectCategoryLeft();
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+    verifyEmptyStack();
 }
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
@@ -282,8 +286,9 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
     expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Embedding incompatible types immediately after paren't definition */
@@ -294,6 +299,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
