@@ -49,6 +49,9 @@ struct F: public boost::signals2::trackable
     /** @short Handler for Parser's setAttr() signal */
     void slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val);
 
+    /** @short Handler for Parser's parserError() signal */
+    void slotParserError(const Deska::CLI::ParserException &exception);
+
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
 
@@ -67,10 +70,19 @@ struct F: public boost::signals2::trackable
     */
     void expectSetAttr(const Deska::Identifier &name, const Deska::Value &val);
 
+    /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
+
+    @see expectCategoryEntered();
+    */
+    void expectParseError(const Deska::CLI::ParserException &exception);
+
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e);
 
     void verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name);
+
+    void verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
+                              const Deska::Identifier &kind2, const Deska::Identifier &name2);
 
     void verifyEmptyStack();
 

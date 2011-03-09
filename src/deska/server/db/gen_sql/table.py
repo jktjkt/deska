@@ -175,7 +175,6 @@ class Table:
 		str = str + ",".join(self.pkset[con])
 		return str + ")"
 
-	
 	def gen_drop_notnull(self):
 		nncol = self.col.copy()
 		del nncol['uid']

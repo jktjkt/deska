@@ -282,15 +282,11 @@ public:
 private:
     Parser *m_parser;
 
-    bool leaveCategory;
-
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
     void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributesParser );
 
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
     void addNestedKinds( std::string &kindName, KindsParser<Iterator>* kindsParser );
-
-    bool matchesEnd( const std::string &word );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsParser<Iterator>* > kindsParsers;

@@ -33,6 +33,8 @@ namespace Deska
 namespace CLI
 {
 
+class ParserException;
+
 /** @short INTERNAL; Iterator for parser input */
 typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
@@ -143,6 +145,12 @@ public:
     *   of the attribute and the second one the attribute value.
     */
     boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
+
+    /** @short An error during parsing
+    *
+    *   The current user input has triggered an error during parsing.
+    */
+    boost::signals2::signal<void (const ParserException &err)> parseError;
 
     /** @short True if the parser is currently nested in some block
     *

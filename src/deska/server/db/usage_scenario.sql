@@ -21,12 +21,16 @@ SELECT hardware_commit();
 SELECT version_commit();
 
 SELECT * FROM vendor_history;
+SELECT * FROM hardware_history;
 SELECT * FROM vendor;
+SELECT * FROM hardware;
 
 SELECT start_changeset();
+SELECT hardware_del('hwDELL');
 SELECT vendor_del('DELL');
 SELECT vendor_add('HP');
 SELECT vendor_add('IBM');
+SELECT hardware_commit();
 SELECT vendor_commit();
 SELECT version_commit();
 

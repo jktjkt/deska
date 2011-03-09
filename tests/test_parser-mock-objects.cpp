@@ -51,3 +51,58 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
     expectNothingElse();
     verifyEmptyStack();
 }
+
+/** @short Test the implementation of equality test on caught exceptions */
+BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, F) {
+    // Verify that basic exception handling works well
+    slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
+    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
+    expectNothingElse();
+
+    // Test exception parameters
+    std::string s1 = "this is a sample input";
+    std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
+    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
+    std::string s2 = "this is a sample input";
+    std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
+    expectParseError(Deska::CLI::UndefinedAttributeError("some message", s2, it2));
+    expectNothingElse();
+}
+
+/** @short Helper for testing inequality of logged exceptions */
+void verifyExceptionDiffers(const Deska::CLI::ParserException &e, F &f)
+{
+    BOOST_REQUIRE( ! f.parserEvents.empty() );
+    BOOST_CHECK_NE(f.parserEvents.front(), MockParserEvent::parserError(e));
+    f.parserEvents.pop();
+}
+
+/** @short Test that we see a difference between two exceptions which are not equal */
+BOOST_FIXTURE_TEST_CASE(test_mock_exceptions_not_equal, F)
+{
+    // Test for difference in the description
+    slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bor"));
+    verifyExceptionDiffers(Deska::CLI::InvalidAttributeDataTypeError("foo bar"), *this);
+    expectNothingElse();
+
+    // Compare different classes
+    slotParserError(Deska::CLI::NestingError("foo bar"));
+    verifyExceptionDiffers(Deska::CLI::InvalidAttributeDataTypeError("foo bar"), *this);
+    expectNothingElse();
+
+    // Different user-supplied text
+    std::string s1 = "this is a sample input";
+    std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
+    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
+    std::string s2 = "this is A sample input";
+    std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
+    verifyExceptionDiffers(Deska::CLI::UndefinedAttributeError("some message", s2, it2), *this);
+    expectNothingElse();
+
+    // Same text, different position of the iterator
+    s2 = s1;
+    it2 = it1 + 1;
+    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
+    verifyExceptionDiffers(Deska::CLI::UndefinedAttributeError("some message", s2, it2), *this);
+    expectNothingElse();
+}

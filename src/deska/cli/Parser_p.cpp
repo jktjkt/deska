@@ -264,7 +264,7 @@ void KindParser<Iterator>::parsedSingleKind()
 
 
 template <typename Iterator>
-ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCategory( false )
+ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 {
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsParser<Iterator>( std::string( "" ), this );
@@ -274,9 +274,9 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
 
     for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
-        #ifdef PARSER_DEBUG
-            std::cout << "Adding top level kind: " << *it << std::endl;
-        #endif
+#ifdef PARSER_DEBUG
+        std::cout << "Adding top level kind: " << *it << std::endl;
+#endif
 
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it, this );
         addKindAttributes( *it, attributesParsers[ *it ] );
@@ -284,11 +284,8 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent ), leaveCat
         kindsParsers[ *it ] = new KindsParser<Iterator>( *it, this );
         addNestedKinds( *it, kindsParsers[ *it ] );
 
-        std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
-        for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-            if ( itRel->kind == RELATION_MERGE_WITH )
-                addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
-
+        // FIXME: this is either a logic error, or a memory leak. We're overwriting the parser created above
+        // with a new instance, see Redmine #120.
         kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
     }
 }
@@ -317,62 +314,49 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     std::cout << "Parse line: " << line << std::endl;
 #endif
 
-    // "end" detected
-    if ( matchesEnd( line ) ) {
-        categoryLeft();
-        return;
-    }
 
     Iterator iter = line.begin();
     Iterator end = line.end(); 
     
     bool parsingSucceeded;
-    bool parsingTopLevel;
+    int parsingIterations = 0;
+    std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
 
-    if ( contextStack.empty() ) {
-        // No context, parse top-level objects
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing top level object..." << std::endl;
-#endif
-        parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
-        parsingTopLevel = true;
-    } else {
-        // Context -> parse attributes
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
-#endif
-        parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
-        parsingTopLevel = false;
+    while( iter != end ) {
+        ++parsingIterations;
+        if ( contextStack.empty() ) {
+            // No context, parse top-level objects
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing top level object..." << std::endl;
+            #endif
+            parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
+        } else {
+            // Context -> parse attributes
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
+            #endif
+            parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
+        }
+
+        // Some bad input
+        if ( !parsingSucceeded ) {
+            #ifdef PARSER_DEBUG
+            std::cout << "Parsing failed." << std::endl;
+            #endif
+            break;
+        }
+
     }
 
-    // Some bad input
-    if ( !parsingSucceeded ) {
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing failed." << std::endl;
-#endif
-        return;
+    if( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
+        // Definition of kind found stand-alone on one line -> nest permanently
     }
-
-    if ( iter == end ) {
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing succeeded. Full match." << std::endl;
-#endif
-        // Entering category permanently. Only top-level object or attributes definition on line
-        if ( parsingTopLevel )
-            leaveCategory = false;        
-    } else {
-        // Top-level object with attributes definition on line
-        leaveCategory = true;
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing succeeded. Partial match." << std::endl;
-        std::cout << "Remaining: " << std::string( iter, end ) << std::endl;
-#endif
-        parseLine( std::string( iter, end ) );
-    }
-
-    if ( leaveCategory && !parsingTopLevel ) {
-        categoryLeft();
-        leaveCategory = false;
+    else {
+        int depthDiff = contextStack.size() - previousContextStackSize;
+        if ( depthDiff > 0 )
+            for( int i = 0; i < depthDiff; ++i ) {
+                categoryLeft();
+            }
     }
 }
 
@@ -468,7 +452,7 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
     for( std::vector<Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
-            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->tableName == kindName ) ) {
+            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
                 kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
@@ -478,22 +462,6 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
     }
 }
 
-
-
-template <typename Iterator>
-bool ParserImpl<Iterator>::matchesEnd( const std::string &word )
-{
-    /* FIXME: Regex has problems with linker
-    boost::regex re( "^end\\s*$}" );
-    return boost::regex_match( word, re );
-    */
-
-    if ( word.size() >= 3 ) {
-        if ( ( word[0] == 'e' ) && ( word[1] == 'n' ) && ( word[2] == 'd' ) )
-            return true;
-    }
-    return false;
-}
 
 
 /////////////////////////Template instances for linker//////////////////////////
@@ -562,8 +530,6 @@ template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindNam
 template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsParser<iterator_type>* kindsParser );
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
-
-template bool ParserImpl<iterator_type>::matchesEnd( const std::string &word );
 
 }
 }
