@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 
-class ConSet(dict):
+class PkSet(dict):
 	def __init__(self):
 		dict.__init__(self)
 	
@@ -112,14 +112,19 @@ class Table:
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
-		self.conset = ConSet()
+		self.pkset = PkSet()
 		self.name= name
 
 	def add_column(self,col_name,col_type):
 		self.col[col_name] = col_type
 
-	def add_key(self,con_name,att_name):
-		self.conset[con_name] = att_name
+	# add pk and unique
+	def add_pk(self,con_name,att_name):
+		self.pkset[con_name] = att_name
+
+	# add fk and unique
+	def add_fk(self,con_name,att_name,table):
+		self.pkset[con_name] = att_name
 
 	def gen_assign(self,colname):
 		return "{col} = new.{col}".format(col= colname)
@@ -133,12 +138,20 @@ class Table:
 		# comma separated list of values
 		return ",".join(self.col.keys())
 
-	def gen_constraint(self,con):
+	def gen_pk_constraint(self,con):
 		# add version column into key constraint
-		self.conset[con] = "version"
+		self.pkset[con] = "version"
 		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
-		str = str + ",".join(self.conset[con])
+		str = str + ",".join(self.pkset[con])
 		return str + ")"
+
+	def gen_fk_constraint(self,con):
+		# add version column into key constraint
+		self.pkset[con] = "version"
+		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
+		str = str + ",".join(self.pkset[con])
+		return str + ")"
+	
 	
 	def gen_drop_notnull(self):
 		nncol = self.col.copy()
@@ -151,8 +164,8 @@ class Table:
 
 	def gen_hist(self):
 		constr = ""
-		for con in self.conset:
-			constr = constr + ",\n" + self.gen_constraint(con)
+		for con in self.pkset:
+			constr = constr + ",\n" + self.gen_pk_constraint(con)
 		drop = self.gen_drop_notnull()
 		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
