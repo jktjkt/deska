@@ -66,7 +66,6 @@ reftabname	name,
 refattname	name
 );
 
---DROP FUNCTION fk_constraints_on_table(name);
 
 /** This function finds out which columns of given table are part of some foreign key.
    * Returns tuple constraint name, attribute name, referenced table name, referenced attribute name.
@@ -144,7 +143,6 @@ attname	name,
 condition text
 );
 
---DROP FUNCTION c_constraints_on_table(name);
 
 /** This function finds out on which columns of given table is some check constraint.
    * Returns tuple constraint name, attribute name, text of check constraint.
@@ -207,7 +205,6 @@ conname	name,
 attname	name
 );
 
-DROP FUNCTION u_constraints_on_table(name);
 
 /** This function finds out on which columns of given table is some unique constraint.
    * Returns tuple constraint name, attribute name.
@@ -261,7 +258,6 @@ LANGUAGE plpgsql;
 
 
 
---DROP FUNCTION n_constraints_on_table(name);
 
 /** This function finds out which columns are defined as NOT NULL.
    * Returns set of attribute name.
