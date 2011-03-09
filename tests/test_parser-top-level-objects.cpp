@@ -303,3 +303,112 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
     expectNothingElse();
     verifyEmptyStack();
 }
+
+/** @short An embedded object in an inline form should not cause full rollback to empty state, but stay in the previous context */
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    const std::string line = "interface eth0 mac \"foo\" bar baz\r\n";
+    const std::string::const_iterator it = line.begin() + line.find("bar");
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"bar\" not defined for object of type \"interface\".", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+}
+
+/** @short An embedded object in an inline form should then return to the previous context */
+BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("interface eth0 mac \"foo\"\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "foo");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+}
+
+/** @short Generic test for multiline embed */
+BOOST_FIXTURE_TEST_CASE(multiline_with_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("mac \"foo\"\r\n");
+    expectSetAttr("mac", "foo");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short An error in multiline embed should not manipulate the context at all */
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    const std::string line = "maaaac \"foo\"\r\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"maaaac\" not defined for object of type \"interface\".", line, it));
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
