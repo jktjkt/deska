@@ -42,6 +42,9 @@ class Schema:
 		for tbl in record[:]:
 			self.tables.add(tbl[0])
 
+		# print foreign keys at the end
+		self.fks = ""
+
 	# generate sql for all tables
 	def gen_schema(self):
 		self.sql = open('gen_schema.sql','w')
@@ -52,6 +55,9 @@ class Schema:
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
+
+		# print fks at the end of generation
+		self.sql.write(self.fks)
 
 		self.py.close()
 		self.sql.close()
@@ -83,6 +89,7 @@ class Schema:
 
 		# generate sql
 		self.sql.write(table.gen_hist())
+		self.fks = self.fks + (table.gen_fks())
 		for col in tables[:]:
 			 self.sql.write(table.gen_set(col[0]))
 			 self.py.write(api.gen_set(col[0]))

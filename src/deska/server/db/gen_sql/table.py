@@ -30,16 +30,16 @@ class Fks():
 		# add version column into key constraint
 		self.att[con] = "version"
 		self.ratt[con] = "version"
-		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {tbl}_history({ratt})"
+		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {rtbl}_history({ratt})"
 		atts = ",".join(self.att[con])
 		ratts = ",".join(self.ratt[con])
-		str = str.format(name = con,tbl = self.tbl[con],att = atts, ratt = ratts)
-		return str
+		str = str.format(name = con,rtbl = self.tbl[con],att = atts, ratt = ratts)
+		return "ALTER TABLE {tbl}_history ADD " + str
 	
 	def gen_fk_constraints(self):
 		constr = ""
 		for att in self.att:
-			constr = constr + ",\n" + self.gen_fkcon(att)
+			constr = constr + self.gen_fkcon(att) + ";\n" 
 		return constr
 			
 		
@@ -183,12 +183,15 @@ class Table:
 		for col in nncol:
 			drop = drop + "ALTER TABLE {name}_history ALTER {colname} DROP NOT NULL;\n".format(name = self.name, colname = col)
 		return drop
-
+	
+	def gen_fks(self):
+		return self.fks.gen_fk_constraints().format(tbl = self.name)
+	
+	
 	def gen_hist(self):
 		constr = ""
 		for con in self.pkset:
 			constr = constr + ",\n" + self.gen_pk_constraint(con)
-		constr = constr + self.fks.gen_fk_constraints()
 		drop = self.gen_drop_notnull()
 		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
