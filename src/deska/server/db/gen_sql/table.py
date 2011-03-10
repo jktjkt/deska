@@ -13,7 +13,36 @@ class PkSet(dict):
 			s = set()
 			s.add(att)
 			dict.__setitem__(self,name,s)
+
+# foreign keys
+class Fks():
+	def __init__(self):
+		self.att = PkSet()
+		self.ratt = PkSet()
+		self.tbl = dict()
 	
+	def add(self,name,att,table,ratt):
+		self.att[name] = att
+		self.tbl[name] = table
+		self.ratt[name] = ratt
+	
+	def gen_fkcon(self,con):
+		# add version column into key constraint
+		self.att[con] = "version"
+		self.ratt[con] = "version"
+		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {tbl}_history({ratt})"
+		atts = ",".join(self.att[con])
+		ratts = ",".join(self.ratt[con])
+		str = str.format(name = con,tbl = self.tbl[con],att = atts, ratt = ratts)
+		return str
+	
+	def gen_fk_constraints(self):
+		constr = ""
+		for att in self.att:
+			constr = constr + ",\n" + self.gen_fkcon(att)
+		return constr
+			
+		
 
 class Table:
 	# template string for generate historic table
@@ -113,6 +142,7 @@ class Table:
 		self.data = dict()
 		self.col = dict()
 		self.pkset = PkSet()
+		self.fks = Fks()
 		self.name= name
 
 	def add_column(self,col_name,col_type):
@@ -122,9 +152,9 @@ class Table:
 	def add_pk(self,con_name,att_name):
 		self.pkset[con_name] = att_name
 
-	# add fk and unique
-	def add_fk(self,con_name,att_name,table):
-		self.pkset[con_name] = att_name
+	# add fk 
+	def add_fk(self,con_name,att_name,ref_table,ref_att):
+		self.fks.add(con_name,att_name,ref_table,ref_att)
 
 	def gen_assign(self,colname):
 		return "{col} = new.{col}".format(col= colname)
@@ -145,14 +175,6 @@ class Table:
 		str = str + ",".join(self.pkset[con])
 		return str + ")"
 
-	def gen_fk_constraint(self,con):
-		# add version column into key constraint
-		self.pkset[con] = "version"
-		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
-		str = str + ",".join(self.pkset[con])
-		return str + ")"
-	
-	
 	def gen_drop_notnull(self):
 		nncol = self.col.copy()
 		del nncol['uid']
@@ -166,6 +188,7 @@ class Table:
 		constr = ""
 		for con in self.pkset:
 			constr = constr + ",\n" + self.gen_pk_constraint(con)
+		constr = constr + self.fks.gen_fk_constraints()
 		drop = self.gen_drop_notnull()
 		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
