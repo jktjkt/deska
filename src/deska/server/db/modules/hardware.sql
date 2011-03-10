@@ -15,7 +15,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor text 
-		CONSTRAINT hardware_fk_vendor REFERENCES vendor(name),
+		CONSTRAINT hardware_fk_vendor REFERENCES vendor(name) DEFERRABLE,
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	-- GB of RAM

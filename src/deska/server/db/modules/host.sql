@@ -17,7 +17,7 @@ CREATE TABLE host (
 	-- TODO-virtual host
 	-- TODO - better use uid
 	hardware char(64)
-		CONSTRAINT host_fk_hardware REFERENCES hardware(name),
+		CONSTRAINT host_fk_hardware REFERENCES hardware(name) DEFERRABLE,
 	note text
 );
 
