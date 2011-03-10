@@ -36,6 +36,38 @@ CREATE VIEW table_info_view AS SELECT relname::text,attname::text,typname::text
 		join pg_type AS typ ON (typ.oid = att.atttypid)
 	WHERE  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
 
+
+--this function rewrites array of ids of atributes to names of atributes joind with ","
+--needed for example for function get_dependency_info
+CREATE OR REPLACE FUNCTION concat_atts_name(classoid oid, idarray smallint[])	
+RETURNS text
+AS
+$$	
+DECLARE
+ result text;
+ counter int8;
+ currentval text;
+BEGIN
+	result='';
+	counter = array_lower(idarray, 1);
+	IF (counter <= array_upper(idarray, 1)) THEN
+		SELECT attname INTO result
+		FROM pg_attribute AS att 
+		WHERE att.attrelid = classoid AND att.attnum = idarray[counter];		
+		counter = counter + 1;
+	END IF;
+	WHILE (counter <= array_upper(idarray, 1)) LOOP
+		SELECT attname INTO currentval 
+		FROM pg_attribute AS att 
+		WHERE att.attrelid = classoid AND att.attnum = idarray[counter];
+		result = result || ' ' || currentval;
+		counter = counter + 1;
+	END LOOP;
+	RETURN result;	
+END;	
+$$	
+LANGUAGE plpgsql;
+
 --
 -- function returns info about dependencies between data - foreign keys
 -- TODO: get rid of concat 
@@ -57,10 +89,13 @@ BEGIN
 		class2.relname AS tableref, concat_atts_name(class2.oid, constr.confkey) AS colsref
 		FROM	pg_constraint AS constr
 			--join with TABLE which the contraint is ON
-			join pg_class AS class1 ON (constr.conrelid = class1.oid)	
+			join pg_class AS class1 ON (constr.conrelid = class1.oid)
+			join pg_tables AS tab1 ON (tab1.schemaname='production' and class1.relname = tab1.tablename)	
 			--join with referenced TABLE
 			join pg_class AS class2 ON (constr.confrelid = class2.oid)
+			join pg_tables AS tab2 ON (tab2.schemaname='production' and class2.relname = tab2.tablename)	
 		WHERE contype='f' ;
+
 END
 $$
 LANGUAGE plpgsql;
