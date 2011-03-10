@@ -31,6 +31,18 @@ class Schema:
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	commit_string = '''CREATE FUNCTION commit()
+	RETURNS integer
+	AS
+	$$
+	BEGIN
+		{commit_tables}
+		PERFORM version_commit();
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql;
+'''
 	def __init__(self):
 		plpy.execute("SET search_path TO deska,production")
 
@@ -58,6 +70,8 @@ class Schema:
 
 		# print fks at the end of generation
 		self.sql.write(self.fks)
+		
+		self.gen_commit()
 
 		self.py.close()
 		self.sql.close()
@@ -99,7 +113,21 @@ class Schema:
 		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
 		self.py.write(api.gen_commit())
-		return 
+		return
+	
+	def gen_commit(self):
+		commit_table_template = '''PERFORM {tbl}_commit();
+		'''		
+		commit_tables=""
+		for table in self.tables:
+			commit_table_string = commit_table_template.format(tbl = table)
+			commit_tables = commit_tables + commit_table_string			
+
+		self.sql.write(self.commit_string.format(commit_tables = commit_tables))			
+		self.py.write('''def commit():
+	return db.callproc("commit")
+		''')
+
 
 # just testing it
 schema = Schema()

@@ -138,6 +138,7 @@ class Table:
 	LANGUAGE plpgsql;
 
 '''
+
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
