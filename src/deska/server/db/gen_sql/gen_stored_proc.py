@@ -71,7 +71,8 @@ class Schema:
 		# print fks at the end of generation
 		self.sql.write(self.fks)
 		
-		self.gen_commit()
+		self.sql.write(self.gen_commit())
+		self.py.write(self.pygen_commit())
 
 		self.py.close()
 		self.sql.close()
@@ -120,13 +121,15 @@ class Schema:
 		'''		
 		commit_tables=""
 		for table in self.tables:
-			commit_table_string = commit_table_template.format(tbl = table)
-			commit_tables = commit_tables + commit_table_string			
+			commit_tables = commit_tables + commit_table_template.format(tbl = table)
+		
+		return self.commit_string.format(commit_tables = commit_tables)
 
-		self.sql.write(self.commit_string.format(commit_tables = commit_tables))			
-		self.py.write('''def commit():
+	def pygen_commit(self):
+		commit_str = '''def commit():
 	return db.callproc("commit")
-		''')
+	'''
+		return commit_str
 
 
 # just testing it
