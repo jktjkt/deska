@@ -7,11 +7,11 @@ class PkSet(dict):
 	def __setitem__(self,name,att):
 		if self.has_key(name):
 			s = dict.__getitem__(self,name)
-			s.add(att)
+			s.append(att)
 			dict.__setitem__(self,name,s)
 		else:
-			s = set()
-			s.add(att)
+			s = list()
+			s.append(att)
 			dict.__setitem__(self,name,s)
 
 # foreign keys
