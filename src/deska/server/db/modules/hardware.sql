@@ -9,9 +9,9 @@ CREATE SEQUENCE hardware_uid START 1;
 CREATE TABLE hardware (
 	-- this column is required in all plugins
 	uid bigint DEFAULT nextval('hardware_uid')
-		constraint hardware_pk PRIMARY KEY,
+		CONSTRAINT hardware_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text
+	name char(64)
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor text 

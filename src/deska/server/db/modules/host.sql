@@ -9,14 +9,14 @@ CREATE SEQUENCE host_uid START 1;
 CREATE TABLE host (
 	-- this column is required in all plugins
 	uid bigint DEFAULT nextval('host_uid')
-		constraint host_pk PRIMARY KEY,
+		CONSTRAINT host_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text
+	name char(64)
 		CONSTRAINT host_name_unique UNIQUE NOT NULL,
 	-- hardwere where it runs
 	-- TODO-virtual host
 	-- TODO - better use uid
-	hardware text
+	hardware char(64)
 		CONSTRAINT host_fk_hardware REFERENCES hardware(name),
 	note text
 );
