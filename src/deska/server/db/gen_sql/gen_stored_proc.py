@@ -36,7 +36,10 @@ class Schema:
 	AS
 	$$
 	BEGIN
+		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
+		-- should we check constraint before version_commit?
+		--SET CONSTRAINTS ALL IMMEDIATE;
 		PERFORM version_commit();
 		RETURN 1;
 	END
