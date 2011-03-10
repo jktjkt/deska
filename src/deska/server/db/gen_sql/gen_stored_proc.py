@@ -120,9 +120,8 @@ class Schema:
 		'''		
 		commit_tables=""
 		for table in self.tables:
-			commit_table_string = commit_table_template.format(tbl = table)
-			commit_tables = commit_tables + commit_table_string			
-
+			commit_tables = commit_tables + commit_table_template.format(tbl = table)
+		
 		self.sql.write(self.commit_string.format(commit_tables = commit_tables))			
 		self.py.write('''def commit():
 	return db.callproc("commit")
