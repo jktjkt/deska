@@ -23,6 +23,7 @@
 #define DESKA_API_H
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/variant.hpp>
@@ -174,6 +175,16 @@ private:
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
 
+
+/** @short Exception occured during processing of the request */
+class RemoteDbError: public std::runtime_error
+{
+public:
+    RemoteDbError(const std::string &message);
+    virtual ~RemoteDbError() throw ();
+};
+
+
 /** @short Class representing the database API
  *
  * This class should contain all functionality required for working with the Deska DB.
@@ -295,18 +306,43 @@ public:
      *
      * All changes affect just the temporary revision, nothing touches the live data until the
      * commit() succeeds.
+     *
+     * @returns a short-lived revision ID which represents the changeset being created
      * */
-    virtual void startChangeset() = 0;
+    virtual Revision startChangeset() = 0;
 
     /** @short Commit current in-progress changeset 
      *
      * This operation will commit the temporary changeset (ie. everything since the corresponding
      * startChangeset()) into the production DB, creating an identifiable revision in the process.
+     *
+     * @returns identification of a persistent revision we just created
      * */
-    virtual void commit() = 0;
+    virtual Revision commit() = 0;
 
-    /** @short Make current in-progress changeset appear as a child of a specified revision */
-    virtual void rebaseTransaction( const Revision rev ) = 0;
+    /** @short Make current in-progress changeset appear as a child of a specified revision
+     *
+     * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
+     */
+    virtual Revision rebaseTransaction( const Revision rev ) = 0;
+
+    /** @short Return a list of pending revisions started by current user */
+    virtual std::vector<Revision> pendingRevisionsByMyself() = 0;
+
+    /** @short Re-open a pre-existing changeset
+     *
+     * This function will attach current session to a pre-existing changeset which hasn't been comitted yet. An example where
+     * doing that would be handy is upon the initial connect to the DB, where the client would typically call
+     * pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps because
+     * the original session has died.
+     *
+     * @see startChangeset()
+     * @see pendingRevisionsByMyself()
+     */
+    virtual Revision resumeChangeset(const Revision rev) = 0;
+
+    /** @short Abort an in-progress changeset */
+    virtual void abortChangeset(const Revision rev) = 0;
 };
 
 }

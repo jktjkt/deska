@@ -147,22 +147,37 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 
 
 
-void FakeApi::startChangeset()
+Revision FakeApi::startChangeset()
 {
+    return 0;
 }
 
 
 
-void FakeApi::commit()
+Revision FakeApi::commit()
 {
+    return 0;
 }
 
 
 
-void FakeApi::rebaseTransaction( const Revision rev )
+Revision FakeApi::rebaseTransaction( const Revision rev )
 {
+    return 0;
 }
 
+std::vector<Revision> FakeApi::pendingRevisionsByMyself()
+{
+    return std::vector<Revision>();
+}
 
+Revision FakeApi::resumeChangeset(const Revision rev)
+{
+    return 0;
+}
+
+void FakeApi::abortChangeset(const Revision rev)
+{
+}
 
 }

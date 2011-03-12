@@ -60,9 +60,12 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
 
     // SCM-like operation and transaction control
-    virtual void startChangeset();
-    virtual void commit();
-    virtual void rebaseTransaction( const Revision rev );
+    virtual Revision startChangeset();
+    virtual Revision commit();
+    virtual Revision rebaseTransaction( const Revision rev );
+    virtual std::vector<Revision> pendingRevisionsByMyself();
+    virtual Revision resumeChangeset(const Revision rev);
+    virtual void abortChangeset(const Revision rev);
 
     // These members should be accessible for modifications from the test suite
 

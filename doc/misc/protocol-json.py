@@ -1,6 +1,9 @@
 import json
 
-# FIXME: do we want to have our dicts to be "sorted", as shown here?
+# Note: many JSON implementations would not respect the ordering of our keys,
+# and in some of them, like Python's own json module, it would be hard to
+# actually make it respect our order. Therefore, the Deska API doesn't mandate
+# any particular order at each level.
 
 C_PREFIX = "command"
 R_PREFIX = "response"
@@ -9,6 +12,7 @@ KIND_NAME = "kindName"
 OBJ_NAME = "objectName"
 ATTR_NAME = "attributeName"
 REVISION = "revision"
+E_PREFIX = "error"
 
 cmd_kindNames = {C_PREFIX: "getTopLevelObjectNames"}
 resp_kindNames = {R_PREFIX: "getTopLevelObjectNames",
@@ -101,11 +105,32 @@ cmd_startChangeset = {C_PREFIX: "vcsStartChangeSet"}
 resp_startChangeset = {R_PREFIX: "vcsStartChangeSet", "revision": 123}
 
 cmd_commit = {C_PREFIX: "vcsCommit"}
-resp_commit = {R_PREFIX: "vcsCommit", "result": True}
+resp_commit = {R_PREFIX: "vcsCommit", "revision": 123}
 
-cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "revision": 666}
-resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "revision": 666,
-                          "result": False}
+cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "currentRevision": 666}
+resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "currentRevision": 666,
+                          "revision": 333666}
+
+cmd_pendingRevisionsByMyself = {C_PREFIX: "getPendingRevisionsByMyself"}
+resp_pendingRevisionsByMyself = {R_PREFIX: "getPendingRevisionsByMyself",
+                                 "revisions": []
+                                }
+
+cmd_resumePendingChangeset = {C_PREFIX: "resumePendingChangeset",
+                              "currentRevision": 123}
+resp_resumePendingChangeset = {R_PREFIX: "resumePendingChangeset",
+                               "currentRevision": 123, "revision": 666}
+
+cmd_abortChangeset = {C_PREFIX: "abortChangeset", "revision": 123}
+resp_abortChangeset = {R_PREFIX: "abortChangeset", "revision": 123}
+
+def exceptionify(item):
+    """Each response can be extended to include a description of an error encountered
+    during processing of the request/command/... at the remote side."""
+
+    item[E_PREFIX] = ("IdentifierOfKindOfTheException", "Textual description",
+                      ("optional", "list", "of", "arguments"))
+    return item
 
 
 for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
@@ -119,7 +144,10 @@ for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               cmd_removeAttribute, resp_removeAttribute, cmd_setAttribute,
               resp_setAttribute, cmd_startChangeset, resp_startChangeset,
               cmd_commit, resp_commit, cmd_rebaseTransaction,
-              resp_rebaseTransaction
+              exceptionify(resp_rebaseTransaction),
+              cmd_pendingRevisionsByMyself, resp_pendingRevisionsByMyself,
+              cmd_resumePendingChangeset, resp_resumePendingChangeset,
+              cmd_abortChangeset, resp_abortChangeset
              ):
     print json.dumps(stuff, sort_keys=True)
 
