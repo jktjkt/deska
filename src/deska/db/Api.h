@@ -320,8 +320,11 @@ public:
      * */
     virtual Revision commit() = 0;
 
-    /** @short Make current in-progress changeset appear as a child of a specified revision */
-    virtual void rebaseTransaction( const Revision rev ) = 0;
+    /** @short Make current in-progress changeset appear as a child of a specified revision
+     *
+     * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
+     */
+    virtual Revision rebaseTransaction( const Revision rev ) = 0;
 
     /** @short Return a list of pending revisions started by current user */
     virtual std::vector<Revision> pendingRevisionsByMyself() = 0;

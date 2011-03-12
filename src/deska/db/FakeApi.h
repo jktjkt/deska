@@ -62,7 +62,7 @@ public:
     // SCM-like operation and transaction control
     virtual Revision startChangeset();
     virtual Revision commit();
-    virtual void rebaseTransaction( const Revision rev );
+    virtual Revision rebaseTransaction( const Revision rev );
     virtual std::vector<Revision> pendingRevisionsByMyself();
     virtual Revision resumeChangeset(const Revision rev);
     virtual void abortChangeset(const Revision rev);
