@@ -105,11 +105,11 @@ cmd_startChangeset = {C_PREFIX: "vcsStartChangeSet"}
 resp_startChangeset = {R_PREFIX: "vcsStartChangeSet", "revision": 123}
 
 cmd_commit = {C_PREFIX: "vcsCommit"}
-resp_commit = {R_PREFIX: "vcsCommit", "result": True}
+resp_commit = {R_PREFIX: "vcsCommit", "revision": 123}
 
-cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "revision": 666}
-resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "revision": 666,
-                          "result": False}
+cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "currentRevision": 666}
+resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "currentRevision": 666,
+                          "revision": 333666}
 
 
 def exceptionify(item):
