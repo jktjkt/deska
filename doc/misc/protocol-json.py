@@ -111,6 +111,18 @@ cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "currentRevision": 66
 resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "currentRevision": 666,
                           "revision": 333666}
 
+cmd_pendingRevisionsByMyself = {C_PREFIX: "getPendingRevisionsByMyself"}
+resp_pendingRevisionsByMyself = {R_PREFIX: "getPendingRevisionsByMyself",
+                                 "revisions": []
+                                }
+
+cmd_resumePendingChangeset = {C_PREFIX: "resumePendingChangeset",
+                              "currentRevision": 123}
+resp_resumePendingChangeset = {R_PREFIX: "resumePendingChangeset",
+                               "currentRevision": 123, "revision": 666}
+
+cmd_abortChangeset = {C_PREFIX: "abortChangeset", "revision": 123}
+resp_abortChangeset = {R_PREFIX: "abortChangeset", "revision": 123}
 
 def exceptionify(item):
     """Each response can be extended to include a description of an error encountered
@@ -132,7 +144,10 @@ for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               cmd_removeAttribute, resp_removeAttribute, cmd_setAttribute,
               resp_setAttribute, cmd_startChangeset, resp_startChangeset,
               cmd_commit, resp_commit, cmd_rebaseTransaction,
-              exceptionify(resp_rebaseTransaction)
+              exceptionify(resp_rebaseTransaction),
+              cmd_pendingRevisionsByMyself, resp_pendingRevisionsByMyself,
+              cmd_resumePendingChangeset, resp_resumePendingChangeset,
+              cmd_abortChangeset, resp_abortChangeset
              ):
     print json.dumps(stuff, sort_keys=True)
 
