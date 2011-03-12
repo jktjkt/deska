@@ -23,6 +23,7 @@
 #define DESKA_API_H
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/variant.hpp>
@@ -173,6 +174,16 @@ private:
     ObjectRelation();
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
+
+
+/** @short Exception occured during processing of the request */
+class DbException: public std::runtime_error
+{
+public:
+    DbException(const std::string &message);
+    virtual ~DbException() throw ();
+};
+
 
 /** @short Class representing the database API
  *

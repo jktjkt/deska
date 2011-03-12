@@ -76,4 +76,17 @@ ObjectRelation::ObjectRelation()
 {
 }
 
+DbException::DbException(const std::string &message): std::runtime_error(message)
+{
+}
+
+/** @short Virtual destructor
+
+The has to be defined and declared in order to force the vtable construction, which is needed for selectively catching
+these eceptions.
+*/
+DbException::~DbException() throw ()
+{
+}
+
 }
