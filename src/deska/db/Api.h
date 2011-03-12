@@ -322,6 +322,24 @@ public:
 
     /** @short Make current in-progress changeset appear as a child of a specified revision */
     virtual void rebaseTransaction( const Revision rev ) = 0;
+
+    /** @short Return a list of pending revisions started by current user */
+    virtual std::vector<Revision> pendingRevisionsByMyself() = 0;
+
+    /** @short Re-open a pre-existing changeset
+     *
+     * This function will attach current session to a pre-existing changeset which hasn't been comitted yet. An example where
+     * doing that would be handy is upon the initial connect to the DB, where the client would typically call
+     * pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps because
+     * the original session has died.
+     *
+     * @see startChangeset()
+     * @see pendingRevisionsByMyself()
+     */
+    virtual Revision resumeChangeset(const Revision rev) = 0;
+
+    /** @short Abort an in-progress changeset */
+    virtual void abortChangeset(const Revision rev) = 0;
 };
 
 }

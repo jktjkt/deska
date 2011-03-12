@@ -165,6 +165,18 @@ void FakeApi::rebaseTransaction( const Revision rev )
 {
 }
 
+std::vector<Revision> FakeApi::pendingRevisionsByMyself()
+{
+    return std::vector<Revision>();
+}
 
+Revision FakeApi::resumeChangeset(const Revision rev)
+{
+    return 0;
+}
+
+void FakeApi::abortChangeset(const Revision rev)
+{
+}
 
 }
