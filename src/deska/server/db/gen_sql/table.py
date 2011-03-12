@@ -61,14 +61,14 @@ class Table:
 '''
 	# template string for set function's
 	set_string = '''CREATE FUNCTION
-	{tbl}_set_{colname}(IN name_ text,IN value {coltype})
+	{tbl}_set_{colname}(IN name_ text,IN value text)
 	RETURNS integer
 	AS
 	$$
 	DECLARE	ver bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
-		UPDATE {tbl}_history SET {colname} = value, version = ver
+		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE name = name_ AND version = ver;
 		--TODO if there is nothing in current version???
 		RETURN 1;
