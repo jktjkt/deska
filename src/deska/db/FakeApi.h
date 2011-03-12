@@ -60,8 +60,8 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
 
     // SCM-like operation and transaction control
-    virtual void startChangeset();
-    virtual void commit();
+    virtual Revision startChangeset();
+    virtual Revision commit();
     virtual void rebaseTransaction( const Revision rev );
 
     // These members should be accessible for modifications from the test suite

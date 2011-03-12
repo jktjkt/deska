@@ -306,15 +306,19 @@ public:
      *
      * All changes affect just the temporary revision, nothing touches the live data until the
      * commit() succeeds.
+     *
+     * @returns a short-lived revision ID which represents the changeset being created
      * */
-    virtual void startChangeset() = 0;
+    virtual Revision startChangeset() = 0;
 
     /** @short Commit current in-progress changeset 
      *
      * This operation will commit the temporary changeset (ie. everything since the corresponding
      * startChangeset()) into the production DB, creating an identifiable revision in the process.
+     *
+     * @returns identification of a persistent revision we just created
      * */
-    virtual void commit() = 0;
+    virtual Revision commit() = 0;
 
     /** @short Make current in-progress changeset appear as a child of a specified revision */
     virtual void rebaseTransaction( const Revision rev ) = 0;

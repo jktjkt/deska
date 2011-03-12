@@ -147,14 +147,16 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 
 
 
-void FakeApi::startChangeset()
+Revision FakeApi::startChangeset()
 {
+    return 0;
 }
 
 
 
-void FakeApi::commit()
+Revision FakeApi::commit()
 {
+    return 0;
 }
 
 
