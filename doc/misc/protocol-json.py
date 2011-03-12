@@ -1,6 +1,9 @@
 import json
 
-# FIXME: do we want to have our dicts to be "sorted", as shown here?
+# Note: many JSON implementations would not respect the ordering of our keys,
+# and in some of them, like Python's own json module, it would be hard to
+# actually make it respect our order. Therefore, the Deska API doesn't mandate
+# any particular order at each level.
 
 C_PREFIX = "command"
 R_PREFIX = "response"
