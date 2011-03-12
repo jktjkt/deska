@@ -177,11 +177,11 @@ private:
 
 
 /** @short Exception occured during processing of the request */
-class DbException: public std::runtime_error
+class RemoteDbError: public std::runtime_error
 {
 public:
-    DbException(const std::string &message);
-    virtual ~DbException() throw ();
+    RemoteDbError(const std::string &message);
+    virtual ~RemoteDbError() throw ();
 };
 
 
