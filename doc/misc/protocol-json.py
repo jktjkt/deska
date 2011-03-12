@@ -12,6 +12,7 @@ KIND_NAME = "kindName"
 OBJ_NAME = "objectName"
 ATTR_NAME = "attributeName"
 REVISION = "revision"
+E_PREFIX = "error"
 
 cmd_kindNames = {C_PREFIX: "getTopLevelObjectNames"}
 resp_kindNames = {R_PREFIX: "getTopLevelObjectNames",
@@ -111,6 +112,15 @@ resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "revision": 666,
                           "result": False}
 
 
+def exceptionify(item):
+    """Each response can be extended to include a description of an error encountered
+    during processing of the request/command/... at the remote side."""
+
+    item[E_PREFIX] = ("IdentifierOfKindOfTheException", "Textual description",
+                      ("optional", "list", "of", "arguments"))
+    return item
+
+
 for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               resp_kindAttributes, cmd_kindRelations, resp_kindRelations,
               cmd_kindInstances, resp_kindInstances, cmd_objectData,
@@ -122,7 +132,7 @@ for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               cmd_removeAttribute, resp_removeAttribute, cmd_setAttribute,
               resp_setAttribute, cmd_startChangeset, resp_startChangeset,
               cmd_commit, resp_commit, cmd_rebaseTransaction,
-              resp_rebaseTransaction
+              exceptionify(resp_rebaseTransaction)
              ):
     print json.dumps(stuff, sort_keys=True)
 
