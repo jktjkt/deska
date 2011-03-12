@@ -343,9 +343,6 @@ public:
 
     /** @short Abort an in-progress changeset */
     virtual void abortChangeset(const Revision rev) = 0;
-
-    /** @short save an in-progress changeset for continue later with resumeChangeset*/
-    virtual void saveChangeset(const Revision rev) = 0;
 };
 
 }
