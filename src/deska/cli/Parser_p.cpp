@@ -309,6 +309,14 @@ ParserImpl<Iterator>::~ParserImpl()
         it != attributesParsers.end(); ++it ) {
         delete it->second;
     }
+    for( typename std::map<std::string, KindParser<Iterator>* >::iterator it = kindParsers.begin();
+        it != kindParsers.end(); ++it ) {
+        delete it->second;
+    }
+    for( typename std::map<std::string, KindsParser<Iterator>* >::iterator it = kindsParsers.begin();
+        it != kindsParsers.end(); ++it ) {
+        delete it->second;
+    }
 
     delete topLevelParser;
     delete predefinedRules;
