@@ -24,6 +24,7 @@ project(deska)
 cmake_minimum_required(VERSION 2.6)
 
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
+add_definitions(-D_GLIBCXX_DEBUG)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
@@ -39,13 +40,17 @@ set(libDeskaDb_SRCS
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
 )
 
 set(deskaCliParserDemo_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
+add_subdirectory(src/3rd-party/json_spirit_4.04/json_spirit)
+
 add_library(DeskaDb ${libDeskaDb_SRCS})
+target_link_libraries(DeskaDb json_spirit)
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})

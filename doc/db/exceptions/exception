@@ -1,0 +1,33 @@
+ 
+1) repeating of error message
+	A raises exception 'exception_text';
+
+	B calls A and catches
+		EXCEPTION
+			when raise_exception then 
+				raise exception 'test2 # %',SQLERRM;
+		SQLERRM is text of error from A
+
+2) sqlstate 
+RAISE 'Duplicate user ID: %', user_id USING ERRCODE = 'unique_violation';
+RAISE 'Duplicate user ID: %', user_id USING ERRCODE = '23505';
+
+nebo
+
+RAISE division_by_zero; --built-in error code
+RAISE SQLSTATE '22012';
+
+When specifying an error code by SQLSTATE code, you are not limited to the
+predefined error codes, but can select any error code consisting of five digits
+and/or upper-case ASCII letters, other than 00000. It is recommended that you
+avoid throwing error codes that end in three zeroes, because these are category
+codes and can only be trapped by trapping the whole category.
+
+
+RAISE with no parameters - can only be used inside a BEGIN block's EXCEPTION
+clause
+	-it causes the error currently being handled to be re-thrown to the next
+enclosing block
+
+
+*examples in exception.sql

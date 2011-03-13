@@ -29,7 +29,23 @@ plpy = Plpy()
 class Schema:
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
-	key_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	commit_string = '''CREATE FUNCTION commit()
+	RETURNS integer
+	AS
+	$$
+	BEGIN
+		SET CONSTRAINTS ALL DEFERRED;
+		{commit_tables}
+		-- should we check constraint before version_commit?
+		--SET CONSTRAINTS ALL IMMEDIATE;
+		PERFORM version_commit();
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql;
+'''
 	def __init__(self):
 		plpy.execute("SET search_path TO deska,production")
 
@@ -41,6 +57,9 @@ class Schema:
 		for tbl in record[:]:
 			self.tables.add(tbl[0])
 
+		# print foreign keys at the end
+		self.fks = ""
+
 	# generate sql for all tables
 	def gen_schema(self):
 		self.sql = open('gen_schema.sql','w')
@@ -51,6 +70,12 @@ class Schema:
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
+
+		# print fks at the end of generation
+		self.sql.write(self.fks)
+		
+		self.sql.write(self.gen_commit())
+		self.py.write(self.pygen_commit())
 
 		self.py.close()
 		self.sql.close()
@@ -70,13 +95,19 @@ class Schema:
 		for col in tables[:]:
 			table.add_column(col[0],col[1])
 
-		# add key constraints
-		constraints = plpy.execute(self.key_str.format(tbl))
+		# add pk constraints
+		constraints = plpy.execute(self.pk_str.format(tbl))
 		for col in constraints[:]:
-			table.add_key(col[0],col[1])
+			table.add_pk(col[0],col[1])
+
+		# add fk constraints
+		constraints = plpy.execute(self.fk_str.format(tbl))
+		for col in constraints[:]:
+			table.add_fk(col[0],col[1],col[2],col[3])
 
 		# generate sql
 		self.sql.write(table.gen_hist())
+		self.fks = self.fks + (table.gen_fks())
 		for col in tables[:]:
 			 self.sql.write(table.gen_set(col[0]))
 			 self.py.write(api.gen_set(col[0]))
@@ -86,7 +117,23 @@ class Schema:
 		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
 		self.py.write(api.gen_commit())
-		return 
+		return
+	
+	def gen_commit(self):
+		commit_table_template = '''PERFORM {tbl}_commit();
+		'''		
+		commit_tables=""
+		for table in self.tables:
+			commit_tables = commit_tables + commit_table_template.format(tbl = table)
+		
+		return self.commit_string.format(commit_tables = commit_tables)
+
+	def pygen_commit(self):
+		commit_str = '''def commit():
+	return db.callproc("commit")
+	'''
+		return commit_str
+
 
 # just testing it
 schema = Schema()

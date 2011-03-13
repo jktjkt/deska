@@ -9,13 +9,13 @@ CREATE SEQUENCE interface_uid START 1;
 CREATE TABLE interface (
 	-- this column is required in all plugins
 	uid bigint DEFAULT nextval('interface_uid')
-		constraint interface_pk PRIMARY KEY,
+		CONSTRAINT interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text NOT NULL,
+	name char(64) NOT NULL,
 	-- host
 	-- TODO better use uid
-	host name
-		CONSTRAINT interface_fk_host REFERENCES host(name),
+	host char(64)
+		CONSTRAINT interface_fk_host REFERENCES host(name) DEFERRABLE,
 	-- IP
 	-- TODO unique constraint
 	ip inet,

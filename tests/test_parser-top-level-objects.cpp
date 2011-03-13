@@ -166,11 +166,14 @@ The idea here is that the stack should not roll back after the exception.
 */
 BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
 {
-    parser->parseLine("hardware abcde id xx name \"jmeno\" price 1234.5\n");
+    const std::string line = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find("xx");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: add an exception here
+    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Syntax error in the name of the first attribute
@@ -182,18 +185,23 @@ Similar to error_in_datatype_of_first_inline, but the mistake is not in the valu
 */
 BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 {
-    parser->parseLine("hardware abcde isd 123 name \"jmeno\" price 1234.5\n");
+    const std::string line = "hardware abcde isd 123 name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find("isd");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: add an exception here
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Syntax error in the kind of a top-level object */
 BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
 {
-    parser->parseLine("haware abcde id 123 name \"jmeno\" price 1234.5\n");
-    // FIXME: add an exception here
+    const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::InvalidObjectKind("Object \"haware\" not recognized.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -226,15 +234,19 @@ BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_par
 /** @short An attribute for parent is listed inline after an embedded object -> fail */
 BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
 {
-    parser->parseLine("host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5");
+    const std::string line ="host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
+    const std::string::const_iterator it = line.begin() + line.find("price");
+    parser->parseLine(line);
     expectCategoryEntered("host", "abcde");
     expectSetAttr("hardware_id", 123);
     expectSetAttr("name", "jmeno");
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
-    // FIXME: exception here
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"price\" not defined for object of type \"interface\".", line, it));
+    expectCategoryLeft();
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+    verifyEmptyStack();
 }
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
@@ -268,20 +280,135 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
 /** @short Embedding incompatible types after a paren't attribute */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 {
-    parser->parseLine("hardware abcde id 123 interface eth0");
+    const std::string line = "hardware abcde id 123 interface eth0";
+    const std::string::const_iterator it = line.begin() + line.find("interface");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
-    // FIXME: exception
+    expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
 }
 
 /** @short Embedding incompatible types immediately after paren't definition */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
 {
-    parser->parseLine("hardware abcde interface eth0");
+    const std::string line = "hardware abcde interface eth0";
+    const std::string::const_iterator it = line.begin() + line.find("interface");
+    parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    // FIXME: exception
+    expectParseError(Deska::CLI::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectCategoryLeft();
     expectNothingElse();
-    verifyStackOneLevel("hardware", "abcde");
+    verifyEmptyStack();
+}
+
+/** @short An embedded object in an inline form should not cause full rollback to empty state, but stay in the previous context */
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    const std::string line = "interface eth0 mac \"foo\" bar baz\r\n";
+    const std::string::const_iterator it = line.begin() + line.find("bar");
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"bar\" not defined for object of type \"interface\".", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+}
+
+/** @short An embedded object in an inline form should then return to the previous context */
+BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    parser->parseLine("interface eth0 mac \"foo\"\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "foo");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+}
+
+/** @short Generic test for multiline embed */
+BOOST_FIXTURE_TEST_CASE(multiline_with_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("mac \"foo\"\r\n");
+    expectSetAttr("mac", "foo");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short An error in multiline embed should not manipulate the context at all */
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, F)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", "jmeno");
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    const std::string line = "maaaac \"foo\"\r\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::CLI::UndefinedAttributeError("Attribute \"maaaac\" not defined for object of type \"interface\".", line, it));
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
 }

@@ -291,11 +291,8 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
         kindsParsers[ *it ] = new KindsParser<Iterator>( *it, this );
         addNestedKinds( *it, kindsParsers[ *it ] );
 
-        std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
-        for( std::vector<ObjectRelation>::iterator itRel = relations.begin(); itRel != relations.end(); ++itRel )
-            if ( itRel->kind == RELATION_MERGE_WITH )
-                addKindAttributes( itRel->destinationAttribute, attributesParsers[ *it ] );
-
+        // FIXME: this is either a logic error, or a memory leak. We're overwriting the parser created above
+        // with a new instance, see Redmine #120.
         kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
     }
 }
@@ -338,7 +335,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
     
     bool parsingSucceeded;
     int parsingIterations = 0;
-    int previousContextStackSize = contextStack.size();
+    std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
 
     while( iter != end ) {
         ++parsingIterations;
@@ -470,7 +467,7 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
     for( std::vector<Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
-            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->tableName == kindName ) ) {
+            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
                 kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;

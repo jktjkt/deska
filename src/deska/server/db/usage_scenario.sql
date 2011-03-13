@@ -14,21 +14,20 @@ SELECT hardware_set_purchase('hwDELL','10.1.2010');
 SELECT hardware_set_warranty('hwDELL','10.1.2012');
 
 -- commit
-SELECT vendor_commit();
-SELECT hardware_commit();
-
 -- end session, part of vendor commit? of vendor commit part of this?
-SELECT version_commit();
+SELECT commit();
 
 SELECT * FROM vendor_history;
+SELECT * FROM hardware_history;
 SELECT * FROM vendor;
+SELECT * FROM hardware;
 
 SELECT start_changeset();
+SELECT hardware_del('hwDELL');
 SELECT vendor_del('DELL');
 SELECT vendor_add('HP');
 SELECT vendor_add('IBM');
-SELECT vendor_commit();
-SELECT version_commit();
+SELECT commit();
 
 SELECT * FROM vendor_history;
 SELECT * FROM vendor;

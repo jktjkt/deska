@@ -29,11 +29,42 @@ Api::~Api()
 {
 }
 
+ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute):
+    kind(_kind), targetTableName(_targetTableName), sourceAttribute(_sourceAttribute)
+{
+}
+
+ObjectRelation ObjectRelation::mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute)
+{
+    ObjectRelation res;
+    res.kind = RELATION_MERGE_WITH;
+    res.targetTableName = targetTableName;
+    res.sourceAttribute = sourceAttribute;
+    return res;
+}
+
 ObjectRelation ObjectRelation::embedInto(const Identifier &into)
 {
     ObjectRelation res;
     res.kind = RELATION_EMBED_INTO;
-    res.tableName = into;
+    res.targetTableName = into;
+    return res;
+}
+
+ObjectRelation ObjectRelation::isTemplate(const Identifier &toWhichKind)
+{
+    ObjectRelation res;
+    res.kind = RELATION_IS_TEMPLATE;
+    res.targetTableName = toWhichKind;
+    return res;
+}
+
+ObjectRelation ObjectRelation::templatized(const Identifier &byWhichKind, const Identifier &sourceAttribute)
+{
+    ObjectRelation res;
+    res.kind = RELATION_TEMPLATIZED;
+    res.targetTableName = byWhichKind;
+    res.sourceAttribute = sourceAttribute;
     return res;
 }
 
@@ -42,6 +73,19 @@ ObjectRelation ObjectRelation::embedInto(const Identifier &into)
 This is very much needed for ObjectRelation::embedInto.
 */
 ObjectRelation::ObjectRelation()
+{
+}
+
+RemoteDbError::RemoteDbError(const std::string &message): std::runtime_error(message)
+{
+}
+
+/** @short Virtual destructor
+
+The has to be defined and declared in order to force the vtable construction, which is needed for selectively catching
+these eceptions.
+*/
+RemoteDbError::~RemoteDbError() throw ()
 {
 }
 

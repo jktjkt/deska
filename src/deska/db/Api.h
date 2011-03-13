@@ -23,6 +23,7 @@
 #define DESKA_API_H
 
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <boost/variant.hpp>
@@ -106,12 +107,25 @@ typedef enum {
      * */
     RELATION_EMBED_INTO,
 
+    /** @short This object is a template
+     *
+     * This objects acts as a template, that is, it can provide partial defaults for instances of the kind defined by the
+     * matching RELATION_TEMPLATIZED objects.  The template relation is a relation between two kinds of objects, and the
+     * RELATION_IS_TEMPLATE and RELATION_TEMPLATIZED is used to describe both sides of that.  Users of the API can expect
+     * to always find both of them.
+     *
+     * @see RELATION_TEMPLATIZED
+     * */
+    RELATION_IS_TEMPLATE,
+
     /** @short This object's values should be combined from its parent's values to derive a full set
      *
      * This objects supports incremental setting of values, that is, data which are not defined at
      * this level shall be looked up at the parent.
+     *
+     * @see RELATION_IS_TEMPLATE
      * */
-    RELATION_TEMPLATE,
+    RELATION_TEMPLATIZED,
 
     RELATION_INVALID /**< Last, invalid item */
 } ObjectRelationKind;
@@ -120,44 +134,56 @@ typedef enum {
 /** @short A pair of (kind-of-relation, table)
  *
  * Examples for a "host" would be:
- * (RELATION_MERGE_WITH, "hw", "hw", "host")
+ * (RELATION_MERGE_WITH, "hw", "hw")
+ * ...which means that the "host" records shall contain a reference to the "hw" table, and the reference shall be formed by a
+ * column named "hw" which points to the name of the object in the "hw" table. We do not define the name of the target column,
+ * simply because we always point to its identifier.
  *
- * Examples for a "hw":
- * (RELATION_MERGE_WITH, "host", "host", "hw")
- * (RELATION_TEMPLATE, "hw", "template", "name")
+ * In this situation, the record will be accompanied by the corresponding relation for the "hw" object kind:
+ * (RELATION_MERGE_WITH, "host", "host")
+ *
+ * This is how templates work:
+ * (RELATION_TEMPLATIZED, "hw-template", "template") -- for the "hw" kind
+ * (RELATION_IS_TEMPLATE, "hw") -- for the "hw-template" kind
  *
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
  * */
 struct ObjectRelation
 {
+    /** @short Construct a RELATION_MERGE_WITH */
+    static ObjectRelation mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute);
 
-    ObjectRelation(
-        const ObjectRelationKind _kind,
-        const Identifier &_tableName,
-        const Identifier &_sourceAttribute,
-        const Identifier &_destinationAttribute ):
-        kind(_kind),
-        tableName(_tableName),
-        sourceAttribute(_sourceAttribute),
-        destinationAttribute(_destinationAttribute) 
-    {
-    }
-
+    /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &into);
+
+    /** @short Construct a RELATION_IS_TEMPLATE */
+    static ObjectRelation isTemplate(const Identifier &toWhichKind);
+
+    /** @short Construct a RELATION_TEMPLATIZED */
+    static ObjectRelation templatized(const Identifier &byWhichKind, const Identifier &sourceAttribute);
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
-    /** @short Name of a table this relation refers to */
-    Identifier tableName;
+    /** @short Name of the target table this relation refers to */
+    Identifier targetTableName;
     /** @short From which attribute shall we match */
     Identifier sourceAttribute;
-    /** @short To which attribute shall we match */
-    Identifier destinationAttribute;
 
 private:
     ObjectRelation();
+    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
+
+
+/** @short Exception occured during processing of the request */
+class RemoteDbError: public std::runtime_error
+{
+public:
+    RemoteDbError(const std::string &message);
+    virtual ~RemoteDbError() throw ();
+};
+
 
 /** @short Class representing the database API
  *
@@ -280,18 +306,70 @@ public:
      *
      * All changes affect just the temporary revision, nothing touches the live data until the
      * commit() succeeds.
+     *
+     * @returns a short-lived revision ID which represents the changeset being created
      * */
-    virtual void startChangeset() = 0;
+    virtual Revision startChangeset() = 0;
 
     /** @short Commit current in-progress changeset 
      *
      * This operation will commit the temporary changeset (ie. everything since the corresponding
      * startChangeset()) into the production DB, creating an identifiable revision in the process.
+     *
+     * @returns identification of a persistent revision we just created
      * */
-    virtual void commit() = 0;
+    virtual Revision commitChangeset() = 0;
 
-    /** @short Make current in-progress changeset appear as a child of a specified revision */
-    virtual void rebaseTransaction( const Revision rev ) = 0;
+    /** @short Make current in-progress changeset appear as a child of a specified revision
+     *
+     * In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
+     * persistent, production revisions unless the latest persistent revision is the same as was at the time the user started
+     * working on her in-progress copy. For example, if there was a revision X and user A started working on a changeset J, and
+     * while the J still was not comitted, nother user went ahead and created revision X+1, user A won't be able to push her
+     * changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In order to be able to push J and
+     * turn it into a persistent revision, it has to be explicitly marked as derived from X+1, which is exactly what this
+     * function performs.
+     *
+     * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
+     */
+    virtual Revision rebaseChangeset(const Revision oldRevision) = 0;
+
+    /** @short Return a list of pending revisions started by current user */
+    virtual std::vector<Revision> pendingChangesetsByMyself() = 0;
+
+    /** @short Re-open a pre-existing changeset
+     *
+     * This function will attach current session to a pre-existing changeset which hasn't been comitted yet. An example where
+     * doing that would be handy is upon the initial connect to the DB, where the client would typically call
+     * pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps because
+     * the original session has died.
+     *
+     * @see startChangeset()
+     * @see pendingRevisionsByMyself()
+     */
+    virtual Revision resumeChangeset(const Revision oldRevision) = 0;
+
+    /** @short Detach this session from its active changeset
+     *
+     * This function will detach current session from its associated active changeset. Each user can have multiple non-persistent
+     * changeset in progress (that is, stored in the remote database in a special section dedicated to in-progress changesets),
+     * but only one can be active at any point. This particular changeset is called an active one, and will receive updates from
+     * the functions performing modifications to individual objects.
+     *
+     * The purpose of this function is to faciliate a way to temporarily detach from a revision which still needs some time
+     * before it could be commited. After the former active changeset is detached, it remains available for further processing
+     * via the resumeChangeset() function, but the current session is not associated with an active changeset anymore. This is
+     * intended to make sure that user has to explicitly ask for her changes to be "set aside" instead of doing that implicitly
+     * from inside startChangeset().
+     *
+     * @see startChangeset();
+     * @see abortChangeset();
+     * @see resumeChangeset();
+     */
+    virtual void detachFromActiveChangeset() = 0;
+
+    /** @short Abort an in-progress changeset */
+    virtual void abortChangeset(const Revision rev) = 0;
 };
 
 }

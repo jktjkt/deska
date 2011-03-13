@@ -48,9 +48,16 @@ MockParserEvent MockParserEvent::invalid()
     return MockParserEvent(EVENT_INVALID);
 }
 
+MockParserEvent MockParserEvent::parserError(const Deska::CLI::ParserException &err)
+{
+    MockParserEvent res(EVENT_PARSE_ERROR);
+    res.message = err.dump();
+    return res;
+}
+
 bool MockParserEvent::operator==(const MockParserEvent &other) const
 {
-    return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1;
+    return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1 && message == other.message;
 }
 
 
@@ -69,6 +76,9 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_SET_ATTR:
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
+        break;
+    case MockParserEvent::EVENT_PARSE_ERROR:
+        out << "parseError(" << m.message << ")";
         break;
     case MockParserEvent::EVENT_INVALID:
         out << "[no event]";

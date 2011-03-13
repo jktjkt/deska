@@ -91,10 +91,8 @@ map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Id
 
 
 
-map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(
-    const Identifier &kindName,
-    const Identifier &objectName,
-    const Revision )
+map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(const Identifier &kindName,
+                                                                      const Identifier &objectName, const Revision)
 {
     map<Identifier, pair<Identifier, Value> > empty;
     return empty;
@@ -102,10 +100,8 @@ map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(
 
 
 
-vector<Identifier> FakeApi::findOverriddenAttrs(
-    const Identifier &kindName,
-    const Identifier &objectName,
-    const Identifier &attrName )
+vector<Identifier> FakeApi::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
+                                                const Identifier &attrName)
 {
     vector<Identifier> empty;
     return empty;
@@ -113,10 +109,8 @@ vector<Identifier> FakeApi::findOverriddenAttrs(
 
 
 
-vector<Identifier> FakeApi::findNonOverriddenAttrs(
-    const Identifier &kindName,
-    const Identifier &objectName,
-    const Identifier &attrName )
+vector<Identifier> FakeApi::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
+                                                   const Identifier &attrName)
 {
     vector<Identifier> empty;
     return empty;
@@ -140,41 +134,54 @@ void FakeApi::renameObject( const Identifier &kindName, const Identifier &oldNam
 {
 }
 
-void FakeApi::removeAttribute(
-    const Identifier &kindName,
-    const Identifier &objectName,
-    const Identifier &attributeName )
+void FakeApi::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
 {
 }
 
 
 
-void FakeApi::setAttribute(
-    const Identifier &kindName,
-    const Identifier &objectName,
-    const Identifier &attributeName,
-    const Value &value )
+void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
+                           const Value &value)
 {
 }
 
 
 
-void FakeApi::startChangeset()
+Revision FakeApi::startChangeset()
 {
+    return 0;
 }
 
 
 
-void FakeApi::commit()
+Revision FakeApi::commitChangeset()
 {
+    return 0;
 }
 
 
 
-void FakeApi::rebaseTransaction( const Revision rev )
+Revision FakeApi::rebaseChangeset(const Revision oldRevision)
+{
+    return 0;
+}
+
+std::vector<Revision> FakeApi::pendingChangesetsByMyself()
+{
+    return std::vector<Revision>();
+}
+
+Revision FakeApi::resumeChangeset(const Revision oldRevision)
+{
+    return 0;
+}
+
+void FakeApi::detachFromActiveChangeset()
 {
 }
 
-
+void FakeApi::abortChangeset(const Revision rev)
+{
+}
 
 }
