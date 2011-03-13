@@ -318,7 +318,7 @@ public:
      *
      * @returns identification of a persistent revision we just created
      * */
-    virtual Revision commit() = 0;
+    virtual Revision commitChangeset() = 0;
 
     /** @short Make current in-progress changeset appear as a child of a specified revision
      *
@@ -332,10 +332,10 @@ public:
      *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual Revision rebaseTransaction( const Revision oldRevision ) = 0;
+    virtual Revision rebaseChangeset(const Revision oldRevision) = 0;
 
     /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<Revision> pendingRevisionsByMyself() = 0;
+    virtual std::vector<Revision> pendingChangesetsByMyself() = 0;
 
     /** @short Re-open a pre-existing changeset
      *
