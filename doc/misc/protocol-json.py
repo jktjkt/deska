@@ -101,31 +101,31 @@ resp_setAttribute = {R_PREFIX: "setObjectAttribute", KIND_NAME: IDENTIFIER,
                      OBJ_NAME: IDENTIFIER, ATTR_NAME: IDENTIFIER,
                      "attributeData": "value", "result": True}
 
-cmd_startChangeset = {C_PREFIX: "vcsStartChangeSet"}
-resp_startChangeset = {R_PREFIX: "vcsStartChangeSet", "revision": 123}
+cmd_startChangeset = {C_PREFIX: "vcsStartChangeset"}
+resp_startChangeset = {R_PREFIX: "vcsStartChangeset", "revision": 123}
 
-cmd_commit = {C_PREFIX: "vcsCommit"}
-resp_commit = {R_PREFIX: "vcsCommit", "revision": 123}
+cmd_commitChangeset = {C_PREFIX: "vcsCommitChangeset"}
+resp_commitChangeset = {R_PREFIX: "vcsCommitChangeset", "revision": 123}
 
-cmd_rebaseTransaction = {C_PREFIX: "vcsRebaseTransaction", "currentRevision": 666}
-resp_rebaseTransaction = {R_PREFIX: "vcsRebaseTransaction", "currentRevision": 666,
+cmd_rebaseChangeset = {C_PREFIX: "vcsRebaseChangeset", "currentRevision": 666}
+resp_rebaseChangeset = {R_PREFIX: "vcsRebaseChangeset", "currentRevision": 666,
                           "revision": 333666}
 
-cmd_pendingRevisionsByMyself = {C_PREFIX: "getPendingRevisionsByMyself"}
-resp_pendingRevisionsByMyself = {R_PREFIX: "getPendingRevisionsByMyself",
-                                 "revisions": []
-                                }
+cmd_pendingChangesetsByMyself = {C_PREFIX: "vcsGetPendingChangesetsByMyself"}
+resp_pendingChangesetsByMyself = {R_PREFIX: "vcsGetPendingChangesetsByMyself",
+                                  "revisions": []
+                                 }
 
-cmd_resumePendingChangeset = {C_PREFIX: "resumePendingChangeset",
+cmd_resumePendingChangeset = {C_PREFIX: "vcsResumePendingChangeset",
                               "currentRevision": 123}
-resp_resumePendingChangeset = {R_PREFIX: "resumePendingChangeset",
+resp_resumePendingChangeset = {R_PREFIX: "vcsResumePendingChangeset",
                                "currentRevision": 123, "revision": 666}
 
-cmd_detachFromActiveChangeset = {C_PREFIX: "detachFromActiveChangeset"}
-resp_detachFromActiveChangeset = {R_PREFIX: "detachFromActiveChangeset"}
+cmd_detachFromActiveChangeset = {C_PREFIX: "vcsDetachFromActiveChangeset"}
+resp_detachFromActiveChangeset = {R_PREFIX: "vcsDetachFromActiveChangeset"}
 
-cmd_abortChangeset = {C_PREFIX: "abortChangeset", "revision": 123}
-resp_abortChangeset = {R_PREFIX: "abortChangeset", "revision": 123}
+cmd_abortChangeset = {C_PREFIX: "vcsAbortChangeset", "revision": 123}
+resp_abortChangeset = {R_PREFIX: "vcsAbortChangeset", "revision": 123}
 
 def exceptionify(item):
     """Each response can be extended to include a description of an error encountered
@@ -146,9 +146,9 @@ for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               resp_createObject, cmd_renameObject, resp_renameObject,
               cmd_removeAttribute, resp_removeAttribute, cmd_setAttribute,
               resp_setAttribute, cmd_startChangeset, resp_startChangeset,
-              cmd_commit, resp_commit, cmd_rebaseTransaction,
-              exceptionify(resp_rebaseTransaction),
-              cmd_pendingRevisionsByMyself, resp_pendingRevisionsByMyself,
+              cmd_commitChangeset, resp_commitChangeset, cmd_rebaseChangeset,
+              exceptionify(resp_rebaseChangeset),
+              cmd_pendingChangesetsByMyself, resp_pendingChangesetsByMyself,
               cmd_resumePendingChangeset, resp_resumePendingChangeset,
               cmd_detachFromActiveChangeset, resp_detachFromActiveChangeset,
               cmd_abortChangeset, resp_abortChangeset
