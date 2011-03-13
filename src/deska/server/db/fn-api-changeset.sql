@@ -119,3 +119,17 @@ END
 $$
 LANGUAGE plpgsql;
 
+--
+-- abort changeset, for api, same as close
+--
+CREATE FUNCTION abortChangeset(id interger)
+RETURNS integer
+AS
+$$
+BEGIN
+	DELETE FROM changeset
+		WHERE version = id;
+	RETURN 1;
+END
+$$
+LANGUAGE plpgsql;
