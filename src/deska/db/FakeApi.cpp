@@ -154,26 +154,30 @@ Revision FakeApi::startChangeset()
 
 
 
-Revision FakeApi::commit()
+Revision FakeApi::commitChangeset()
 {
     return 0;
 }
 
 
 
-Revision FakeApi::rebaseTransaction( const Revision rev )
+Revision FakeApi::rebaseChangeset(const Revision oldRevision)
 {
     return 0;
 }
 
-std::vector<Revision> FakeApi::pendingRevisionsByMyself()
+std::vector<Revision> FakeApi::pendingChangesetsByMyself()
 {
     return std::vector<Revision>();
 }
 
-Revision FakeApi::resumeChangeset(const Revision rev)
+Revision FakeApi::resumeChangeset(const Revision oldRevision)
 {
     return 0;
+}
+
+void FakeApi::detachFromActiveChangeset()
+{
 }
 
 void FakeApi::abortChangeset(const Revision rev)

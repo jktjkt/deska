@@ -318,16 +318,24 @@ public:
      *
      * @returns identification of a persistent revision we just created
      * */
-    virtual Revision commit() = 0;
+    virtual Revision commitChangeset() = 0;
 
     /** @short Make current in-progress changeset appear as a child of a specified revision
      *
+     * In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
+     * persistent, production revisions unless the latest persistent revision is the same as was at the time the user started
+     * working on her in-progress copy. For example, if there was a revision X and user A started working on a changeset J, and
+     * while the J still was not comitted, nother user went ahead and created revision X+1, user A won't be able to push her
+     * changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In order to be able to push J and
+     * turn it into a persistent revision, it has to be explicitly marked as derived from X+1, which is exactly what this
+     * function performs.
+     *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual Revision rebaseTransaction( const Revision rev ) = 0;
+    virtual Revision rebaseChangeset(const Revision oldRevision) = 0;
 
     /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<Revision> pendingRevisionsByMyself() = 0;
+    virtual std::vector<Revision> pendingChangesetsByMyself() = 0;
 
     /** @short Re-open a pre-existing changeset
      *
@@ -339,7 +347,26 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual Revision resumeChangeset(const Revision rev) = 0;
+    virtual Revision resumeChangeset(const Revision oldRevision) = 0;
+
+    /** @short Detach this session from its active changeset
+     *
+     * This function will detach current session from its associated active changeset. Each user can have multiple non-persistent
+     * changeset in progress (that is, stored in the remote database in a special section dedicated to in-progress changesets),
+     * but only one can be active at any point. This particular changeset is called an active one, and will receive updates from
+     * the functions performing modifications to individual objects.
+     *
+     * The purpose of this function is to faciliate a way to temporarily detach from a revision which still needs some time
+     * before it could be commited. After the former active changeset is detached, it remains available for further processing
+     * via the resumeChangeset() function, but the current session is not associated with an active changeset anymore. This is
+     * intended to make sure that user has to explicitly ask for her changes to be "set aside" instead of doing that implicitly
+     * from inside startChangeset().
+     *
+     * @see startChangeset();
+     * @see abortChangeset();
+     * @see resumeChangeset();
+     */
+    virtual void detachFromActiveChangeset() = 0;
 
     /** @short Abort an in-progress changeset */
     virtual void abortChangeset(const Revision rev) = 0;

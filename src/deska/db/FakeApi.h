@@ -61,10 +61,11 @@ public:
 
     // SCM-like operation and transaction control
     virtual Revision startChangeset();
-    virtual Revision commit();
-    virtual Revision rebaseTransaction( const Revision rev );
-    virtual std::vector<Revision> pendingRevisionsByMyself();
-    virtual Revision resumeChangeset(const Revision rev);
+    virtual Revision commitChangeset();
+    virtual Revision rebaseChangeset(const Revision oldRevision);
+    virtual std::vector<Revision> pendingChangesetsByMyself();
+    virtual Revision resumeChangeset(const Revision oldRevision);
+    virtual void detachFromActiveChangeset();
     virtual void abortChangeset(const Revision rev);
 
     // These members should be accessible for modifications from the test suite
