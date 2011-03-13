@@ -322,6 +322,14 @@ public:
 
     /** @short Make current in-progress changeset appear as a child of a specified revision
      *
+     * In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
+     * persistent, production revisions unless the latest persistent revision is the same as was at the time the user started
+     * working on her in-progress copy. For example, if there was a revision X and user A started working on a changeset J, and
+     * while the J still was not comitted, nother user went ahead and created revision X+1, user A won't be able to push her
+     * changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In order to be able to push J and
+     * turn it into a persistent revision, it has to be explicitly marked as derived from X+1, which is exactly what this
+     * function performs.
+     *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
     virtual Revision rebaseTransaction( const Revision rev ) = 0;
