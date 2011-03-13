@@ -161,7 +161,7 @@ Revision FakeApi::commit()
 
 
 
-Revision FakeApi::rebaseTransaction( const Revision rev )
+Revision FakeApi::rebaseTransaction( const Revision oldRevision )
 {
     return 0;
 }
@@ -171,7 +171,7 @@ std::vector<Revision> FakeApi::pendingRevisionsByMyself()
     return std::vector<Revision>();
 }
 
-Revision FakeApi::resumeChangeset(const Revision rev)
+Revision FakeApi::resumeChangeset(const Revision oldRevision)
 {
     return 0;
 }

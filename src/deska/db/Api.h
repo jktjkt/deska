@@ -332,7 +332,7 @@ public:
      *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual Revision rebaseTransaction( const Revision rev ) = 0;
+    virtual Revision rebaseTransaction( const Revision oldRevision ) = 0;
 
     /** @short Return a list of pending revisions started by current user */
     virtual std::vector<Revision> pendingRevisionsByMyself() = 0;
@@ -347,7 +347,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual Revision resumeChangeset(const Revision rev) = 0;
+    virtual Revision resumeChangeset(const Revision oldRevision) = 0;
 
     /** @short Abort an in-progress changeset */
     virtual void abortChangeset(const Revision rev) = 0;
