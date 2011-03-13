@@ -176,6 +176,10 @@ Revision FakeApi::resumeChangeset(const Revision oldRevision)
     return 0;
 }
 
+void FakeApi::detachFromActiveChangeset()
+{
+}
+
 void FakeApi::abortChangeset(const Revision rev)
 {
 }

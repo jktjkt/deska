@@ -349,6 +349,25 @@ public:
      */
     virtual Revision resumeChangeset(const Revision oldRevision) = 0;
 
+    /** @short Detach this session from its active changeset
+     *
+     * This function will detach current session from its associated active changeset. Each user can have multiple non-persistent
+     * changeset in progress (that is, stored in the remote database in a special section dedicated to in-progress changesets),
+     * but only one can be active at any point. This particular changeset is called an active one, and will receive updates from
+     * the functions performing modifications to individual objects.
+     *
+     * The purpose of this function is to faciliate a way to temporarily detach from a revision which still needs some time
+     * before it could be commited. After the former active changeset is detached, it remains available for further processing
+     * via the resumeChangeset() function, but the current session is not associated with an active changeset anymore. This is
+     * intended to make sure that user has to explicitly ask for her changes to be "set aside" instead of doing that implicitly
+     * from inside startChangeset().
+     *
+     * @see startChangeset();
+     * @see abortChangeset();
+     * @see resumeChangeset();
+     */
+    virtual void detachFromActiveChangeset() = 0;
+
     /** @short Abort an in-progress changeset */
     virtual void abortChangeset(const Revision rev) = 0;
 };

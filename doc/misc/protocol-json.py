@@ -121,6 +121,9 @@ cmd_resumePendingChangeset = {C_PREFIX: "resumePendingChangeset",
 resp_resumePendingChangeset = {R_PREFIX: "resumePendingChangeset",
                                "currentRevision": 123, "revision": 666}
 
+cmd_detachFromActiveChangeset = {C_PREFIX: "detachFromActiveChangeset"}
+resp_detachFromActiveChangeset = {R_PREFIX: "detachFromActiveChangeset"}
+
 cmd_abortChangeset = {C_PREFIX: "abortChangeset", "revision": 123}
 resp_abortChangeset = {R_PREFIX: "abortChangeset", "revision": 123}
 
@@ -147,6 +150,7 @@ for stuff in (cmd_kindNames, resp_kindNames, cmd_kindAttributes,
               exceptionify(resp_rebaseTransaction),
               cmd_pendingRevisionsByMyself, resp_pendingRevisionsByMyself,
               cmd_resumePendingChangeset, resp_resumePendingChangeset,
+              cmd_detachFromActiveChangeset, resp_detachFromActiveChangeset,
               cmd_abortChangeset, resp_abortChangeset
              ):
     print json.dumps(stuff, sort_keys=True)
