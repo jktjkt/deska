@@ -291,8 +291,6 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
         kindsParsers[ *it ] = new KindsParser<Iterator>( *it, this );
         addNestedKinds( *it, kindsParsers[ *it ] );
 
-        // FIXME: this is either a logic error, or a memory leak. We're overwriting the parser created above
-        // with a new instance, see Redmine #120.
         kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
     }
 }
