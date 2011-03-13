@@ -24,18 +24,25 @@ int main()
 
     Deska::CLI::Parser parser( fake );
 
-    test = "end";
-    parser.parseLine( test );
-    test = "price 34234";
-    parser.parseLine( test );
-    /*
+
+    std::string str;
+    std::cout << "> ";
+    std::vector<CLI::ContextStackItem> context;
     while ( getline( std::cin, str ) ) {
-        if ( str.empty() || str[ 0 ] == 'q' || str[ 0 ] == 'Q' )
+        if ( str.size() == 1 && ( str[ 0 ] == 'q' || str[ 0 ] == 'Q' ) )
             break;
         
         parser.parseLine( str );
+
+        context = parser.currentContextStack();
+        for( std::vector<CLI::ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it ) {
+            if ( it != context.begin() )
+                std::cout << "/";
+            std::cout << it->kind << " " << it->name;
+        }
+        std::cout << "> ";
     }
-    */
+    
 
     delete fake;
 
