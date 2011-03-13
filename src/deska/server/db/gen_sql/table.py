@@ -28,8 +28,9 @@ class Fks():
 	
 	def gen_fkcon(self,con):
 		# add version column into key constraint
-		self.att[con] = "version"
-		self.ratt[con] = "version"
+		# workround for add fks to objects from earlier changesets
+		#self.att[con] = "version"
+		#self.ratt[con] = "version"
 		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {rtbl}_history({ratt})"
 		atts = ",".join(self.att[con])
 		ratts = ",".join(self.ratt[con])
