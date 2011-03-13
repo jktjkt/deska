@@ -15,11 +15,8 @@ SELECT setAttribute('hardware','hwDELL','warranty','10.1.2013');
 SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
 
 -- commit
-SELECT vendor_commit();
-SELECT hardware_commit();
-
 -- end session, part of vendor commit? of vendor commit part of this?
-SELECT version_commit();
+SELECT commit();
 
 SELECT * FROM vendor_history;
 SELECT * FROM hardware_history;
@@ -31,9 +28,7 @@ SELECT deleteObject('hardware','hwDELL');
 SELECT deleteObject('vendor','DELL');
 SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
-SELECT hardware_commit();
-SELECT vendor_commit();
-SELECT version_commit();
+SELECT commit();
 
 SELECT * FROM vendor_history;
 SELECT * FROM vendor;
