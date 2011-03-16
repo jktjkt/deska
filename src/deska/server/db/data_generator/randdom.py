@@ -30,6 +30,21 @@ class Numbers:
 	def rset(self,size):
 		return random.sample(range(self.start, self.end),size)
 
+class Macs:
+	def __init__(self):
+		self.num = Numbers(256)
+
+	def hextostr(self,hexstr):
+		return hexstr.split('x')[1]
+	
+	def ritem(self):
+		mac = list()
+		for i in range(6):
+			mac.append(self.num.ritem())
+		mac = map(hex,mac)
+		mac = map(self.hextostr,mac)
+		return ":".join(mac)
+
 class IPv4s:
 	def __init__(self):
 		self.data = dict()
@@ -54,4 +69,5 @@ class Dates:
 
 	def ritem(self):
 		return "{M}/{D}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
+
 
