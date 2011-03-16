@@ -122,7 +122,7 @@ LANGUAGE plpgsql;
 --
 -- abort changeset, for api, same as close
 --
-CREATE FUNCTION abortChangeset(id interger)
+CREATE FUNCTION abortChangeset(id integer)
 RETURNS integer
 AS
 $$
