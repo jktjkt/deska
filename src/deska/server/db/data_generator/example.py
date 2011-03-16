@@ -1,4 +1,4 @@
-from randdom import Numbers, Names, IPv4s
+from randdom import Numbers, Names, IPv4s, Dates
 
 num = Numbers(10000)
 print num.rset(5)
@@ -21,3 +21,13 @@ print ip.ritem()
 print ip.ritem()
 print ip.ritem()
 print ip.ritem()
+
+date = Dates()
+print date.ritem()
+print date.ritem()
+print date.ritem()
+
+date = Dates(2011,3)
+print date.ritem()
+print date.ritem()
+print date.ritem()

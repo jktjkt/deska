@@ -45,3 +45,13 @@ class IPv4s:
 		strings = map(str,cidr)
 		return ".".join(strings)
 
+class Dates:
+	def __init__(self, start = 2000, size = 10):
+		self.Y = Numbers(size, start)
+		self.M = Numbers(12, 2)
+		# only 28 days...
+		self.D = Numbers(28, 1)
+
+	def ritem(self):
+		return "{M}/{D}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
+
