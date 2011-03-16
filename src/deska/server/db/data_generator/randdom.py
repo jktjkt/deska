@@ -6,19 +6,27 @@ class rlist(list):
 	def ritem(self):
 		i = random.randint(0,len(self)-1)
 		return list.__getitem__(self,i)
-		
 
+	# unique
 	def rset(self,size):
 		if size > len(self):
 			raise "size larger then items in rlist"
 		return rlist(random.sample(self, size))
+	
+	# not unique
+	def rlist(self,size):
+		ret = rlist()
+		for i in range(0,size):
+			ret.append(self.ritem())
+		return ret
+		
+		
 
 
-class Names():
+class Names(rlist):
 	def __init__(self,source):
 		f = open(source,"r")
 		self.data = list(f.read().split())
-		print "{0} names read.".format(len(self.data))
 		f.close()
 	# random item
 	def ritem(self):
@@ -32,7 +40,7 @@ class Names():
 		return rlist(random.sample(self.data, size))
 	
 
-class Numbers:
+class Numbers(rlist):
 	def __init__(self, size, start = 0):
 		self.end = start + size - 1
 		self.start = start
@@ -43,7 +51,7 @@ class Numbers:
 	def rset(self,size):
 		return rlist(random.sample(range(self.start, self.end),size))
 
-class Macs:
+class Macs(rlist):
 	def __init__(self):
 		self.num = Numbers(256)
 
@@ -58,7 +66,7 @@ class Macs:
 		mac = map(self.hextostr,mac)
 		return ":".join(mac)
 
-class IPv4s:
+class IPv4s(rlist):
 	def __init__(self):
 		self.data = dict()
 	
@@ -72,14 +80,13 @@ class IPv4s:
 		cidr = map(Numbers.ritem,numbers)
 		strings = map(str,cidr)
 		return ".".join(strings)
-
-class Dates:
+	
+class Dates(rlist):
 	def __init__(self, start = 2000, size = 10):
 		self.Y = Numbers(size, start)
-		self.M = Numbers(12, 2)
+		self.M = Numbers(12, 1)
 		# only 28 days...
 		self.D = Numbers(28, 1)
 
 	def ritem(self):
-		return "{M}/{D}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
-
+		return "{D}/{M}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
