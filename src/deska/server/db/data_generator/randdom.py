@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 
 import random, datetime
+from operator import mul
 
 class rlist(list):
 	# get random item from list
@@ -20,8 +21,6 @@ class rlist(list):
 		for i in range(0,size):
 			ret.append(self.ritem())
 		return ret
-		
-		
 
 
 class Names(rlist):
@@ -29,6 +28,10 @@ class Names(rlist):
 		f = open(source,"r")
 		self.data = list(f.read().split())
 		f.close()
+	
+	def __len__(self):
+		return len(self.data)
+	
 	# random item
 	def ritem(self):
 		i = random.randint(0,len(self.data)-1)
@@ -45,6 +48,10 @@ class Numbers(rlist):
 	def __init__(self, size, start = 0):
 		self.end = start + size - 1
 		self.start = start
+		self.size = size
+	
+	def __len__(self):
+		return self.size
 	
 	def ritem(self):
 		return random.randint(self.start, self.end)
@@ -56,6 +63,9 @@ class Macs(rlist):
 	def __init__(self):
 		self.num = Numbers(256)
 
+	def __len__(self):
+		return 256**6
+
 	def hextostr(self,hexstr):
 		return hexstr.split('x')[1]
 	
@@ -66,6 +76,14 @@ class Macs(rlist):
 		mac = map(hex,mac)
 		mac = map(self.hextostr,mac)
 		return ":".join(mac)
+	
+	def rset(self,size):
+		s = set(self.rlist(size))
+		while len(s) < size:
+			print len(s)
+			s.add(self.ritem())
+		return rlist(s)
+
 
 class IPv4s(rlist):
 	def __init__(self):
@@ -73,6 +91,13 @@ class IPv4s(rlist):
 	
 	def setBlock(self,block,start,size = 1):
 		self.data[block] = Numbers(size,start)
+
+	def __len__(self):
+		if len(self.data) != 4:
+			raise "bed number of cidr blocks"
+		numbers = map(self.data.__getitem__,["A", "B", "C", "D"])
+		numbers = map(Numbers.__len__,numbers)
+		return reduce(mul,numbers)
 
 	def ritem(self):
 		if len(self.data) != 4:
@@ -82,6 +107,13 @@ class IPv4s(rlist):
 		strings = map(str,cidr)
 		return ".".join(strings)
 	
+	def rset(self,size):
+		s = set(self.rlist(size))
+		while len(s) < size:
+			s.add(self.ritem())
+		return rlist(s)
+
+
 class Dates(rlist):
 	def __init__(self, start = 2000, size = 10):
 		self.Y = Numbers(size, start)
