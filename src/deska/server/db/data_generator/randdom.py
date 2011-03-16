@@ -3,17 +3,18 @@
 import random, datetime
 
 class rlist(list):
+	# get random item from list
 	def ritem(self):
 		i = random.randint(0,len(self)-1)
 		return list.__getitem__(self,i)
 
-	# unique
+	# get set of random items
 	def rset(self,size):
 		if size > len(self):
 			raise "size larger then items in rlist"
 		return rlist(random.sample(self, size))
 	
-	# not unique
+	# get list of random items
 	def rlist(self,size):
 		ret = rlist()
 		for i in range(0,size):
