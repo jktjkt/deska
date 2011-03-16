@@ -22,8 +22,8 @@
 #include <boost/assert.hpp>
 #include "Parser_p.h"
 
-#define PARSER_DEBUG
-#define PARSER_PRINT_ERRORS
+//#define PARSER_DEBUG
+//#define PARSER_PRINT_ERRORS
 
 namespace Deska
 {
@@ -160,7 +160,7 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = +( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
+    start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
     dispatch = ( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
         > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
@@ -243,12 +243,11 @@ KindParser<Iterator>::KindParser( const std::string &kindName, AttributesParser<
     KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
     KindParser<Iterator>::base_type( start ), m_parent( parent )
 {
-
     this->name( kindName );
 
-    start =( *nestedKinds )[ phoenix::bind( &KindParser::parsedSingleKind, this ) ]
-        | ( ( *attributesParser ) >> -( *nestedKinds ) )
-        | qi::lit("end")[ phoenix::bind( &KindParser::parsedEnd, this ) ];
+    start =( ( +( *attributesParser ) >> -( *nestedKinds ) )
+        | ( ( *nestedKinds )[ phoenix::bind( &KindParser::parsedSingleKind, this ) ] )
+        | ( qi::lit("end")[ phoenix::bind( &KindParser::parsedEnd, this ) ] ) );
 }
 
 
@@ -337,6 +336,9 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     while( iter != end ) {
         ++parsingIterations;
+        #ifdef PARSER_DEBUG
+        std::cout << "Parsing: " << std::string( iter, end ) << std::endl;
+        #endif
         if ( contextStack.empty() ) {
             // No context, parse top-level objects
             #ifdef PARSER_DEBUG
