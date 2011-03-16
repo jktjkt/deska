@@ -30,3 +30,18 @@ class Numbers:
 	def rset(self,size):
 		return random.sample(range(self.start, self.end),size)
 
+class IPv4s:
+	def __init__(self):
+		self.data = dict()
+	
+	def setBlock(self,block,start,size = 1):
+		self.data[block] = Numbers(size,start)
+
+	def ritem(self):
+		if len(self.data) != 4:
+			raise "bed number of cidr blocks"
+		numbers = map(self.data.__getitem__,["A", "B", "C", "D"])
+		cidr = map(Numbers.ritem,numbers)
+		strings = map(str,cidr)
+		return ".".join(strings)
+
