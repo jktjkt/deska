@@ -116,7 +116,7 @@ while (hostnum > 0):
 		mac_addr = "01:23:45:67:89:ab"
 		#interfaces_string = interface_add_template.format(interface = inf) + interface_set_template.format(interface = inf, host = host_list[hostnum - 1], ip = ip_addr, mac = mac_addr)
 		interfaces_string = interfaces_string + interface_add_template.format(interface = inf) + interface_set_template.format(interface = inf, host = host_list[hostnum - 1], ip = ip_addr, mac = mac_addr)
-		enum = enum - 1
+		eiter = eiter + 1
 	hostnum = hostnum - 1
 		
 result = script_template.format(vendors_add = vendors_string, hardware_add = hardwares_string, host_add = hosts_string, interface_add = interfaces_string)
