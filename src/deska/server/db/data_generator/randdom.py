@@ -1,6 +1,19 @@
 #!/usr/bin/python2
 
 import random, datetime
+
+class rlist(list):
+	def ritem(self):
+		i = random.randint(0,len(self)-1)
+		return list.__getitem__(self,i)
+		
+
+	def rset(self,size):
+		if size > len(self):
+			raise "size larger then items in rlist"
+		return rlist(random.sample(self, size))
+
+
 class Names():
 	def __init__(self,source):
 		f = open(source,"r")
@@ -16,7 +29,7 @@ class Names():
 	def rset(self,size):
 		if size > len(self.data):
 			raise "size larger then names in db"
-		return random.sample(self.data, size)
+		return rlist(random.sample(self.data, size))
 	
 
 class Numbers:
@@ -28,7 +41,7 @@ class Numbers:
 		return random.randint(self.start, self.end)
 	
 	def rset(self,size):
-		return random.sample(range(self.start, self.end),size)
+		return rlist(random.sample(range(self.start, self.end),size))
 
 class Macs:
 	def __init__(self):
@@ -69,5 +82,4 @@ class Dates:
 
 	def ritem(self):
 		return "{M}/{D}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
-
 

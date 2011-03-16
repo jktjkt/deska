@@ -10,6 +10,15 @@ print num.ritem()
 vendor = Names("names.txt")
 print vendor.rset(10)
 
+# now we can use ritem / rset on result of rset
+subvendor = vendor.rset(6)
+print subvendor
+ssvendor = subvendor.rset(4)
+print ssvendor
+print ssvendor.ritem()
+print ssvendor.rset(2)
+
+
 ip = IPv4s()
 ip.setBlock("A",10)
 ip.setBlock("B",0)
@@ -35,4 +44,5 @@ print date.ritem()
 mac = Macs()
 print mac.ritem()
 print mac.ritem()
+
 
