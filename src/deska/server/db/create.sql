@@ -4,11 +4,11 @@ set role deska_team;
 \i create_schemas.sql
 
 -- create version table and function
-\i versionlib.sql
+\i fn-api-changeset.sql
 
 -- create functions
-\i fn-get-schema.sql
-\i table_constraints.sql
+\i fn-api-schema.sql
+\i fn-constraints.sql
 
 -- add modules
 \i modules/vendor.sql
