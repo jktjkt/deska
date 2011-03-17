@@ -96,6 +96,8 @@ private:
     void sendJsonObject(const json_spirit::Object &o) const;
     /** @short The implementation tries to obtain the JSON data */
     json_spirit::Object readJsonObject() const;
+
+    static Value jsonValueToDeskaValue(const json_spirit::Value &v);
 };
 
 }

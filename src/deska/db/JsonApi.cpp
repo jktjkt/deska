@@ -289,6 +289,20 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     return res;
 }
 
+Value JsonApiParser::jsonValueToDeskaValue(const json_spirit::Value &v)
+{
+    // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+    if (v.type() == json_spirit::str_type) {
+        return v.get_str();
+    } else if (v.type() == json_spirit::int_type) {
+        return v.get_int();
+    } else if (v.type() == json_spirit::real_type) {
+        return v.get_real();
+    } else {
+        throw JsonParseError("Unsupported type of attribute data");
+    }
+}
+
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )
 {
     Object o;
@@ -310,17 +324,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
         JSON_BLOCK_CHECK_COMMAND(j_cmd_objectData)
         else if (node.name_ == "objectData") {
             BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
-                std::string attrName = item.name_;
-                if (item.value_.type() == json_spirit::str_type) {
-                    res[attrName] = item.value_.get_str();
-                } else if (item.value_.type() == json_spirit::int_type) {
-                    res[attrName] = item.value_.get_int();
-                } else if (item.value_.type() == json_spirit::real_type) {
-                    res[attrName] = item.value_.get_real();
-                } else {
-                    throw JsonParseError("Unsupported type of attribute data");
-                }
-                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+                res[item.name_] = jsonValueToDeskaValue(item.value_);
             }
             gotData = true;
         }
