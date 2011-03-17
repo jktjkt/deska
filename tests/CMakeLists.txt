@@ -31,10 +31,12 @@ endmacro(deska_test)
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/JsonApiTestFixture.cpp
 )
 
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
-deska_test(parser-top-level-objects)
 deska_test(parser-mock-objects)
+deska_test(parser-top-level-objects)
+deska_test(json_api_parser)

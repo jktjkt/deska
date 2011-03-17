@@ -20,13 +20,68 @@
 * */
 #include "Api.h"
 
-using namespace std;
-
 namespace Deska
 {
 
 Api::~Api()
 {
+}
+
+std::ostream& operator<<(std::ostream &stream, const Type t)
+{
+    switch (t) {
+    case TYPE_IDENTIFIER:
+        return stream << "TYPE_IDENTIFIER";
+    case TYPE_STRING:
+        return stream << "TYPE_STRING";
+    case TYPE_INT:
+        return stream << "TYPE_INT";
+    case TYPE_DOUBLE:
+        return stream << "TYPE_DOUBLE";
+    }
+    return stream << "[Invalid type:" << static_cast<int>(t) << "]";
+}
+
+bool operator==(const KindAttributeDataType &a, const KindAttributeDataType &b)
+{
+    return a.name == b.name && a.type == b.type;
+}
+
+bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b)
+{
+    return !(a == b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k)
+{
+    return stream << k.name << ": " << k.type;
+}
+
+bool operator==(const ObjectRelation &a, const ObjectRelation &b)
+{
+    return a.kind == b.kind && a.sourceAttribute == b.sourceAttribute && a.targetTableName == b.targetTableName;
+}
+
+bool operator!=(const ObjectRelation &a, const ObjectRelation &b)
+{
+    return !(a == b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
+{
+    switch (o.kind) {
+    case RELATION_MERGE_WITH:
+        return stream << "mergeWith(" << o.targetTableName << ", " << o.sourceAttribute << ")";
+    case RELATION_EMBED_INTO:
+        return stream << "embedInto(" << o.targetTableName << ")";
+    case RELATION_IS_TEMPLATE:
+        return stream << "isTemplate(" << o.targetTableName << ")";
+    case RELATION_TEMPLATIZED:
+        return stream << "templatized(" << o.targetTableName << ", " << o.sourceAttribute << ")";
+    case RELATION_INVALID:
+        return stream << "RELATION_INVALID";
+    }
+    return stream << "[Invalid relation: " << static_cast<int>(o.kind) << "]";
 }
 
 ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute):

@@ -34,11 +34,11 @@ class Parser;
 }
 }
 
-struct F: public boost::signals2::trackable
+struct ParserTestFixture: public boost::signals2::trackable
 {
-    F();
+    ParserTestFixture();
 
-    ~F();
+    ~ParserTestFixture();
 
     /** @short Handler for Parser's categoryEntered signal */
     void slotParserCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name);

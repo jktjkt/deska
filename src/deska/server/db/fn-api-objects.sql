@@ -1,6 +1,6 @@
 BEGIN;
 
-SET search_path TO genproc,history,production,deska;
+SET search_path TO api,genproc;
 
 CREATE FUNCTION getfn(fntype text, kindname text, attributename text = '')
 RETURNS text
@@ -17,7 +17,7 @@ else:
 	fname = fn_string.format(kindname,fntype)
 return fname
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 
 CREATE FUNCTION setAttribute(kindname text, objectname text, attributename text, value text)
@@ -31,7 +31,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1,$2)", [ "text", "text"])
 res = plpy.execute(plan, [ objectname, value], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION removeAttribute(kindname text, objectname text, attributename text)
 RETURNS text
@@ -44,7 +44,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION changeObjectName(kindname text, oldname text, newname text)
 RETURNS text
@@ -57,7 +57,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text", "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION createObject(kindname text, objectname text)
 RETURNS text
@@ -70,7 +70,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION deleteObject(kindname text, objectname text)
 RETURNS text
@@ -83,7 +83,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpythonu SECURITY DEFINER;
 
 
 END;

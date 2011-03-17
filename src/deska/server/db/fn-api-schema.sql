@@ -26,7 +26,7 @@ BEGIN
 		WHERE  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 -- and here is also view
 CREATE VIEW table_info_view AS SELECT relname::text,attname::text,typname::text
@@ -66,7 +66,7 @@ BEGIN
 	RETURN result;	
 END;	
 $$	
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- function returns info about dependencies between data - foreign keys
@@ -98,7 +98,7 @@ BEGIN
 
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
@@ -115,7 +115,7 @@ BEGIN
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid);
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- function returns list of attributes' names and types = attributes of tables from production
@@ -135,7 +135,7 @@ RETURN QUERY SELECT attname,typname
 		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --DROP TYPE kind_relation;
 
@@ -172,6 +172,6 @@ BEGIN
 			WHERE contype='f' AND class1.relname = kindname;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 

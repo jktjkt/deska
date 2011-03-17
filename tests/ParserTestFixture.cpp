@@ -26,7 +26,7 @@
 #include "deska/cli/Parser.h"
 #include "deska/db/FakeApi.h"
 
-F::F()
+ParserTestFixture::ParserTestFixture()
 {
     using namespace Deska;
     Deska::FakeApi *fake = new FakeApi();
@@ -42,65 +42,65 @@ F::F()
     db = fake;
 
     parser = new Deska::CLI::Parser(db);
-    parser->categoryEntered.connect(boost::bind(&F::slotParserCategoryEntered, this, _1, _2));
-    parser->categoryLeft.connect(boost::bind(&F::slotParserCategoryLeft, this));
-    parser->attributeSet.connect(boost::bind(&F::slotParserSetAttr, this, _1, _2));
-    attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&F::slotParserSetAttrCheckContext, this));
-    parser->parseError.connect(boost::bind(&F::slotParserError, this, _1));
+    parser->categoryEntered.connect(boost::bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
+    parser->categoryLeft.connect(boost::bind(&ParserTestFixture::slotParserCategoryLeft, this));
+    parser->attributeSet.connect(boost::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
+    attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->parseError.connect(boost::bind(&ParserTestFixture::slotParserError, this, _1));
 }
 
-F::~F()
+ParserTestFixture::~ParserTestFixture()
 {
     delete parser;
     delete db;
 }
 
-void F::slotParserCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::slotParserCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
 {
     parserEvents.push(MockParserEvent::categoryEntered(kind, name));
 }
 
-void F::slotParserCategoryLeft()
+void ParserTestFixture::slotParserCategoryLeft()
 {
     parserEvents.push(MockParserEvent::categoryLeft());
 }
 
-void F::slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val)
+void ParserTestFixture::slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
 }
 
-void F::slotParserError(const Deska::CLI::ParserException &exception)
+void ParserTestFixture::slotParserError(const Deska::CLI::ParserException &exception)
 {
     parserEvents.push(MockParserEvent::parserError(exception));
 }
 
-void F::expectNothingElse()
+void ParserTestFixture::expectNothingElse()
 {
     BOOST_CHECK_MESSAGE(parserEvents.empty(), "Expected no more emitted signals");
 }
 
-void F::expectCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::expectCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
 {
     expectHelper(MockParserEvent::categoryEntered(kind, name));
 }
 
-void F::expectCategoryLeft()
+void ParserTestFixture::expectCategoryLeft()
 {
     expectHelper(MockParserEvent::categoryLeft());
 }
 
-void F::expectSetAttr(const Deska::Identifier &name, const Deska::Value &val)
+void ParserTestFixture::expectSetAttr(const Deska::Identifier &name, const Deska::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
 }
 
-void F::expectParseError(const Deska::CLI::ParserException &exception)
+void ParserTestFixture::expectParseError(const Deska::CLI::ParserException &exception)
 {
     expectHelper(MockParserEvent::parserError(exception));
 }
 
-void F::expectHelper(const MockParserEvent &e)
+void ParserTestFixture::expectHelper(const MockParserEvent &e)
 {
     // We would like to continue with the test suite after hitting the first error, and
     // BOOST_REQUIRE doesn't allow masking via BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES...
@@ -112,35 +112,33 @@ void F::expectHelper(const MockParserEvent &e)
         parserEvents.pop();
 }
 
-void F::verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name)
 {
     const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
     std::vector<Deska::CLI::ContextStackItem> specimen;
     specimen.push_back(Deska::CLI::ContextStackItem(kind, name));
-    BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
 
-void F::verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
+void ParserTestFixture::verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
                              const Deska::Identifier &kind2, const Deska::Identifier &name2)
 {
     const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
     std::vector<Deska::CLI::ContextStackItem> specimen;
     specimen.push_back(Deska::CLI::ContextStackItem(kind1, name1));
     specimen.push_back(Deska::CLI::ContextStackItem(kind2, name2));
-    BOOST_REQUIRE_EQUAL(stack.size(), specimen.size());
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
 
-void F::verifyEmptyStack()
+void ParserTestFixture::verifyEmptyStack()
 {
     BOOST_CHECK( ! parser->isNestedInContext() );
     BOOST_CHECK( parser->currentContextStack().empty() );
 }
 
-void F::slotParserSetAttrCheckContext()
+void ParserTestFixture::slotParserSetAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
 }

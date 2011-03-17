@@ -26,7 +26,7 @@
 
 
 /** @short Verify that we don't fail when leaving a context immediately we've entered it */
-BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, F )
+BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, ParserTestFixture )
 {
     // Start a new context with nothing inside
     parser->parseLine("hardware hpv2\r\n");
@@ -42,7 +42,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, F )
 }
 
 /** @short Assign a simple value to an object using verbose syntax */
-BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, F )
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
@@ -66,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, F )
 }
 
 /** @short Assing a simple value to an object using the inline syntax*/
-BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, F )
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2 name \"foo bar baz\"\r\n");
@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, F )
 }
 
 /** @short Set two attributes of an object using the multiline variant of the syntax */
-BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
@@ -106,7 +106,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, F )
 }
 
 /** @short Set two attributes of an object inline */
-BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
+BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
@@ -119,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, F )
 }
 
 /** @short Make sure we can indeed handle multiple top-level objects */
-BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
+BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 {
     // create hpv2
     parser->parseLine("hardware hpv2\r\n");
@@ -147,7 +147,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, F )
 }
 
 /** @short test correct parsing of multiple arguments, all passed inline */
-BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
+BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
 {
     parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5\n");
     expectCategoryEntered("hardware", "abcde");
@@ -164,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, F)
 A single-line input which enters a new category and immediately after that encounters an exception.
 The idea here is that the stack should not roll back after the exception.
 */
-BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, F)
+BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, ParserTestFixture)
 {
     const std::string line = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find("xx");
@@ -183,7 +183,7 @@ Similar to error_in_datatype_of_first_inline, but the mistake is not in the valu
 @see error_in_datatype_of_first_inline
 
 */
-BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
+BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, ParserTestFixture)
 {
     const std::string line = "hardware abcde isd 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find("isd");
@@ -196,7 +196,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, F)
 }
 
 /** @short Syntax error in the kind of a top-level object */
-BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
+BOOST_FIXTURE_TEST_CASE(error_toplevel_name, ParserTestFixture)
 {
     const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin();
@@ -207,7 +207,7 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, F)
 }
 
 /** @short Test parsing of an object nested into the parent one */
-BOOST_FIXTURE_TEST_CASE(nested_interface, F)
+BOOST_FIXTURE_TEST_CASE(nested_interface, ParserTestFixture)
 {
     parser->parseLine("host abcde\n");
     expectCategoryEntered("host", "abcde");
@@ -232,7 +232,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface, F)
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_parent, 6);
 /** @short An attribute for parent is listed inline after an embedded object -> fail */
-BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
+BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTestFixture)
 {
     const std::string line ="host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
     const std::string::const_iterator it = line.begin() + line.find("price");
@@ -251,7 +251,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, F)
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
 /** @short Inline definition of an embedded object given immediately after the parent */
-BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, F)
+BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde interface eth0 mac \"nejakamac\"\n");
     expectCategoryEntered("host", "abcde");
@@ -265,7 +265,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, F)
 
 BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_after_parent_attr_inline, 9);
 /** @short Inline definition of an embedded object after a paren't attr */
-BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
+BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde hardware_id 1 interface eth0 mac \"nejakamac\"\n");
     expectCategoryEntered("host", "abcde");
@@ -278,7 +278,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, F)
 }
 
 /** @short Embedding incompatible types after a paren't attribute */
-BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFixture)
 {
     const std::string line = "hardware abcde id 123 interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
@@ -292,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, F)
 }
 
 /** @short Embedding incompatible types immediately after paren't definition */
-BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
+BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture)
 {
     const std::string line = "hardware abcde interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
@@ -305,7 +305,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, F)
 }
 
 /** @short An embedded object in an inline form should not cause full rollback to empty state, but stay in the previous context */
-BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, F)
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
     expectCategoryEntered("host", "abcde");
@@ -325,7 +325,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, F)
 }
 
 /** @short An embedded object in an inline form should then return to the previous context */
-BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, F)
+BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
     expectCategoryEntered("host", "abcde");
@@ -344,7 +344,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, F)
 }
 
 /** @short Generic test for multiline embed */
-BOOST_FIXTURE_TEST_CASE(multiline_with_embed, F)
+BOOST_FIXTURE_TEST_CASE(multiline_with_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
     expectCategoryEntered("host", "abcde");
@@ -378,7 +378,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_embed, F)
 }
 
 /** @short An error in multiline embed should not manipulate the context at all */
-BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, F)
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
     expectCategoryEntered("host", "abcde");

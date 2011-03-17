@@ -53,7 +53,7 @@ BEGIN
 	END LOOP;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --SELECT pk_constraints_on_table('test');
 
@@ -131,7 +131,7 @@ BEGIN
 	END LOOP;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --SELECT fk_constraints_on_table('test');
 
@@ -194,7 +194,7 @@ BEGIN
 	END LOOP;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --SELECT c_constraints_on_table('test');
 
@@ -252,7 +252,7 @@ BEGIN
 	END LOOP;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --SELECT u_constraints_on_table('test');
 
@@ -278,7 +278,7 @@ BEGIN
 		WHERE class.relname = tabname AND att.attnotnull = 't' AND att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --SELECT n_constraints_on_table('test');
 
@@ -299,4 +299,4 @@ BEGIN
 		UNION SELECT conname,attname FROM u_constraints_on_table(tabname);
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
