@@ -1,8 +1,3 @@
--- admin and user role
-CREATE ROLE deska_admin;
-CREATE ROLE deska_user;
-
-
 -- what schemas we are using
 
 --

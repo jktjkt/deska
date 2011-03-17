@@ -1,5 +1,4 @@
-begin;
-set role deska_team;
+BEGIN;
 -- create schemas
 \i create_schemas.sql
 
@@ -8,6 +7,8 @@ set role deska_team;
 
 -- create functions
 \i fn-api-schema.sql
+
+GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 \i fn-constraints.sql
 
 -- add modules
@@ -16,10 +17,10 @@ set role deska_team;
 \i modules/host.sql
 \i modules/interface.sql
 
+GRANT ALL ON ALL TABLES IN SCHEMA production TO deska_admin;
+
 -- add generated files from modules
 --\i gen_schema.sql
 --\i usage_scenario.sql
 
-SET search_path TO genproc,history,deska,production;
-
-end;
+END;

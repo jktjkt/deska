@@ -1,5 +1,5 @@
 -- switch to deska_dev SCHEMA
-SET search_path TO deska,production;
+SET search_path TO deska;
 
 CREATE SEQUENCE version_num;
 
@@ -71,6 +71,8 @@ END
 $$
 LANGUAGE plpgsql;
 
+-- API part here
+SET search_path TO api,deska;
 --
 -- start changeset
 --

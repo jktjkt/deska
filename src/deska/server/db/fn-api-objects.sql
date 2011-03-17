@@ -1,6 +1,6 @@
 BEGIN;
 
-SET search_path TO genproc,history,production,deska;
+SET search_path TO api,genproc;
 
 CREATE FUNCTION getfn(fntype text, kindname text, attributename text = '')
 RETURNS text

@@ -4,5 +4,3 @@ DROP SCHEMA history CASCADE;
 DROP SCHEMA genproc CASCADE;
 DROP SCHEMA deska CASCADE;
 DROP SCHEMA api CASCADE;
-DROP ROLE deska_admin;
-DROP ROLE deska_user;
