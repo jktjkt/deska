@@ -29,7 +29,6 @@ using json_spirit::Pair;
 
 static std::string j_command = "command";
 static std::string j_response = "response";
-static std::string j_identifier = "identifier";
 static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
 static std::string j_attrName = "attributeName";
@@ -65,10 +64,12 @@ json_spirit::Object JsonApiParser::readJsonObject() const
 
 vector<Identifier> JsonApiParser::kindNames() const
 {
+    // Send the command
     Object o;
     o.push_back(Pair(j_command, j_cmd_kindNames));
     sendJsonObject(o);
 
+    // Retrieve and process the response
     bool gotCmdId = false;
     bool gotData = false;
     vector<Identifier> res;
@@ -80,6 +81,7 @@ vector<Identifier> JsonApiParser::kindNames() const
             gotCmdId = true;
         } else if (node.name_ == "topLevelObjectKinds") {
             json_spirit::Array data = node.value_.get_array();
+            // simply copy a string from the JSON representation into a vector<string>
             std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
             gotData = true;
         } else {

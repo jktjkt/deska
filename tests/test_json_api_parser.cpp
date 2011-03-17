@@ -24,16 +24,18 @@
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
+using std::vector;
+using namespace Deska;
 
-BOOST_FIXTURE_TEST_CASE( json_kindNames, JsonApiTestFixture )
+BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getTopLevelObjectNames\"}";
     jsonDbOutput = "{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"z\", \"a\", \"b\", \"foo bar\"]}";
-    std::vector<Deska::Identifier> expected;
+    vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
     expected.push_back("b");
     expected.push_back("foo bar");
-    std::vector<Deska::Identifier> res = j->kindNames();
+    vector<Identifier> res = j->kindNames();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
