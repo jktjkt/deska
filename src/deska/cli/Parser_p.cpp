@@ -156,6 +156,8 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
     using qi::on_error;
     using qi::fail;
 
+    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
+    // The API is not sane, and therefore we have the following crap here.
     this->name( kindName );
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
@@ -205,6 +207,8 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
     using qi::on_error;
     using qi::fail;
 
+    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
+    // The API is not sane, and therefore we have the following crap here.
     this->name( kindName );
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
@@ -243,6 +247,8 @@ KindParser<Iterator>::KindParser( const std::string &kindName, AttributesParser<
     KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
     KindParser<Iterator>::base_type( start ), m_parent( parent )
 {
+    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
+    // The API is not sane, and therefore we have the following crap here.
     this->name( kindName );
 
     start =( ( +( *attributesParser ) >> -( *nestedKinds ) )

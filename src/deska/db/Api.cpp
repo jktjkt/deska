@@ -20,8 +20,6 @@
 * */
 #include "Api.h"
 
-using namespace std;
-
 namespace Deska
 {
 
