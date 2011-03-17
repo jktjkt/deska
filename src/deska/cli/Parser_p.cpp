@@ -32,71 +32,6 @@ namespace CLI
 
 
 template <typename Iterator>
-void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const
-{
-    str.assign( range.begin(), range.end() );
-}
-
-
-
-template <typename Iterator>
-void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const
-{
-#ifdef PARSER_PRINT_ERRORS
-    std::cout << "Error in object type parsing! Expecting ";
-    kinds.for_each( printKindName );
-    std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
-#endif
-}
-
-
-
-template <typename Iterator>
-void ObjectErrorHandler<Iterator>::printKindName(
-    const std::string &name,
-    const qi::rule<Iterator, std::string(), ascii::space_type> &rule )
-{
-    std::cout << name << " ";
-}
-
-
-
-template <typename Iterator>
-void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-    qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const
-{
-#ifdef PARSER_PRINT_ERRORS
-    std::cout << "Error in attribute name parsing! Expecting ";
-    attributes.for_each( printAttributeName );
-    std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
-#endif
-}
-
-
-
-template <typename Iterator>
-void KeyErrorHandler<Iterator>::printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule )
-{
-    std::cout << name << " ";
-}
-
-
-
-template <typename Iterator>
-void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const
-{
-#ifdef PARSER_PRINT_ERRORS
-    std::cout
-        << "Error in value parsing! Expecting " << what
-        << " here: \"" << std::string( errorPos, end ) << "\""
-        << std::endl;
-#endif
-}
-
-
-
-template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
     rulesMap[TYPE_INT] = qi::int_
@@ -480,23 +415,6 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
 
 
 /////////////////////////Template instances for linker//////////////////////////
-
-template void RangeToString<iterator_type>::operator()(
-    const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
-
-template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos,
-    const spirit::info &what, qi::symbols<char, qi::rule<iterator_type, std::string(), ascii::space_type> > kinds ) const;
-
-template void ObjectErrorHandler<iterator_type>::printKindName( const std::string &name,
-    const qi::rule<iterator_type, std::string(), ascii::space_type> &rule );
-
-template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what,
-    qi::symbols<char, qi::rule<iterator_type, Value(), ascii::space_type> > attributes ) const;
-
-template void KeyErrorHandler<iterator_type>::printAttributeName( const std::string &name,
-    const qi::rule<iterator_type, Value(), ascii::space_type> &rule );
-
-template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what ) const;
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 

@@ -29,6 +29,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "Parser.h"
+#include "ParserErrors.h"
 
 
 namespace Deska
@@ -40,88 +41,6 @@ namespace spirit = boost::spirit;
 namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
-
-
-
-/** @short Class used for conversion from boost::iterator_range<class> to std::string */
-template <typename Iterator>
-class RangeToString
-{
-public:
-    template <typename, typename>
-        struct result { typedef void type; };
-
-    void operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const;
-};
-
-
-
-/** @short Class for reporting parsing errors of input */
-template <typename Iterator>
-class ObjectErrorHandler
-{
-public:
-    template <typename, typename, typename, typename, typename>
-        struct result { typedef void type; };
-
-    /** @short Function executed when some error while parsing a top-level object type occures.
-    *          Prints information about the error
-    *
-    *   @param start Begin of the input being parsed when the error occures
-    *   @param end End of the input being parsed when the error occures
-    *   @param errorPos Position where the error occures
-    *   @param what Expected tokens
-    */
-    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
-
-    static void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
-};
-
-
-
-/** @short Class for reporting parsing errors of input */
-template <typename Iterator>
-class KeyErrorHandler
-{
-public:
-    template <typename, typename, typename, typename, typename>
-        struct result { typedef void type; };
-
-    /** @short Function executed when some error while parsing a name of an attribute occures.
-    *          Prints information about the error
-    *
-    *   @param start Begin of the input being parsed when the error occures
-    *   @param end End of the input being parsed when the error occures
-    *   @param errorPos Position where the error occures
-    *   @param what Expected tokens
-    */
-    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
-
-    static void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
-};
-
-
-
-/** @short Class for reporting parsing errors of input */
-template <typename Iterator>
-class ValueErrorHandler
-{
-public:
-    template <typename, typename, typename, typename>
-        struct result { typedef void type; };
-
-    /** @short Function executed when some error while parsing a value of an attribute occures.
-    *          Prints information about the error
-    *
-    *   @param start Begin of the input being parsed when the error occures
-    *   @param end End of the input being parsed when the error occures
-    *   @param errorPos Position where the error occures
-    *   @param what Expected tokens
-    */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
-};
 
 
 
