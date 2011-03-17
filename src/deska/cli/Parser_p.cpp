@@ -22,8 +22,8 @@
 #include <boost/assert.hpp>
 #include "Parser_p.h"
 
-#define PARSER_DEBUG
-#define PARSER_PRINT_ERRORS
+//#define PARSER_DEBUG
+//#define PARSER_PRINT_ERRORS
 
 namespace Deska
 {
@@ -43,11 +43,11 @@ template <typename Iterator>
 void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const
 {
-    #ifdef PARSER_PRINT_ERRORS
+#ifdef PARSER_PRINT_ERRORS
     std::cout << "Error in object type parsing! Expecting ";
     kinds.for_each( printKindName );
     std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
-    #endif
+#endif
 }
 
 
@@ -66,11 +66,11 @@ template <typename Iterator>
 void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const
 {
-    #ifdef PARSER_PRINT_ERRORS
+#ifdef PARSER_PRINT_ERRORS
     std::cout << "Error in attribute name parsing! Expecting ";
     attributes.for_each( printAttributeName );
     std::cout << "here: \"" << std::string( errorPos, end ) << "\"" << std::endl;
-    #endif
+#endif
 }
 
 
@@ -86,12 +86,12 @@ void KeyErrorHandler<Iterator>::printAttributeName( const std::string &name, con
 template <typename Iterator>
 void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what ) const
 {
-    #ifdef PARSER_PRINT_ERRORS
+#ifdef PARSER_PRINT_ERRORS
     std::cout
         << "Error in value parsing! Expecting " << what
         << " here: \"" << std::string( errorPos, end ) << "\""
         << std::endl;
-    #endif
+#endif
 }
 
 
@@ -160,7 +160,7 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = +( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
+    start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
     dispatch = ( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
         > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
@@ -243,12 +243,11 @@ KindParser<Iterator>::KindParser( const std::string &kindName, AttributesParser<
     KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
     KindParser<Iterator>::base_type( start ), m_parent( parent )
 {
-
     this->name( kindName );
 
-    start =( *nestedKinds )[ phoenix::bind( &KindParser::parsedSingleKind, this ) ]
-        | ( ( *attributesParser ) >> -( *nestedKinds ) )
-        | qi::lit("end")[ phoenix::bind( &KindParser::parsedEnd, this ) ];
+    start =( ( +( *attributesParser ) >> -( *nestedKinds ) )
+        | ( ( *nestedKinds )[ phoenix::bind( &KindParser::parsedSingleKind, this ) ] )
+        | ( qi::lit("end")[ phoenix::bind( &KindParser::parsedEnd, this ) ] ) );
 }
 
 
@@ -337,25 +336,28 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     while( iter != end ) {
         ++parsingIterations;
+#ifdef PARSER_DEBUG
+        std::cout << "Parsing: " << std::string( iter, end ) << std::endl;
+#endif
         if ( contextStack.empty() ) {
             // No context, parse top-level objects
-            #ifdef PARSER_DEBUG
+#ifdef PARSER_DEBUG
             std::cout << "Parsing top level object..." << std::endl;
-            #endif
+#endif
             parsingSucceeded = phrase_parse( iter, end, *topLevelParser, ascii::space );
         } else {
             // Context -> parse attributes
-            #ifdef PARSER_DEBUG
+#ifdef PARSER_DEBUG
             std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
-            #endif
+#endif
             parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
         }
 
         // Some bad input
         if ( !parsingSucceeded ) {
-            #ifdef PARSER_DEBUG
+#ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
-            #endif
+#endif
             break;
         }
 
