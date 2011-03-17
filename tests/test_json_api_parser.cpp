@@ -61,3 +61,18 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
             "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"getKindAttributes\"}";
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
 }
+
+BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getKindRelations\",\"kindName\":\"identifier\"}";
+    jsonDbOutput = "{\"kindName\": \"identifier\", \"kindRelations\": [[\"EMBED_INTO\", \"hardware\"], "
+            "[\"MERGE_WITH\", \"second-kind\", \"my-attribute\"], [\"IS_TEMPLATE\", \"target-kind\"], "
+            "[\"TEMPLATIZED\", \"by-which-kind\", \"my-attribute\"]], \"response\": \"getKindRelations\"}";
+    vector<ObjectRelation> expected;
+    expected.push_back(ObjectRelation::embedInto("hardware"));
+    expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::isTemplate("target-kind"));
+    expected.push_back(ObjectRelation::templatized("by-which-kind", "my-attribute"));
+    vector<ObjectRelation> res = j->kindRelations("identifier");
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+}

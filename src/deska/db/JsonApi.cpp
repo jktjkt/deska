@@ -37,6 +37,7 @@ static std::string j_errorPrefix = "error";
 
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
 static std::string j_cmd_kindAttributes = "getKindAttributes";
+static std::string j_cmd_kindRelations = "getKindRelations";
 
 namespace Deska
 {
@@ -153,7 +154,78 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
 
 vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName ) const
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_kindRelations));
+    o.push_back(Pair(j_kindName, kindName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotKindName = false;
+    bool gotData = false;
+    vector<ObjectRelation> res;
+
+    BOOST_FOREACH(const Pair &node, readJsonObject()) {
+        if (node.name_ == j_response) {
+            if (node.value_.get_str() != j_cmd_kindRelations)
+                throw JsonParseError("Response belongs to another command");
+            gotCmdId = true;
+        } else if (node.name_ == "kindRelations") {
+            BOOST_FOREACH(const json_spirit::Value &item, node.value_.get_array()) {
+                json_spirit::Array relationRecord = item.get_array();
+                switch (relationRecord.size()) {
+                // got to enclose the individual branches in curly braces to be able to use local variables...
+                case 2:
+                {
+                    // EMBED_INTO, IS_TEMPLATE
+                    std::string kind = relationRecord[0].get_str();
+                    if (kind == "EMBED_INTO") {
+                        res.push_back(ObjectRelation::embedInto(relationRecord[1].get_str()));
+                    } else if (kind == "IS_TEMPLATE") {
+                        res.push_back(ObjectRelation::isTemplate(relationRecord[1].get_str()));
+                    } else {
+                        std::ostringstream s;
+                        s << "Invalid relation kind " << kind << " with one argument";
+                        throw JsonParseError(s.str());
+                    }
+                }
+                break;
+                case 3:
+                {
+                    // MERGE_WITH, TEMPLATIZED
+                    std::string kind = relationRecord[0].get_str();
+                    if (kind == "MERGE_WITH") {
+                        res.push_back(ObjectRelation::mergeWith(relationRecord[1].get_str(), relationRecord[2].get_str()));
+                    } else if (kind == "TEMPLATIZED") {
+                        res.push_back(ObjectRelation::templatized(relationRecord[1].get_str(), relationRecord[2].get_str()));
+                    } else {
+                        std::ostringstream s;
+                        s << "Invalid relation kind " << kind << " with two arguments";
+                        throw JsonParseError(s.str());
+                    }
+                }
+                break;
+                default:
+                    throw JsonParseError("Relation record has invalid number of arguments");
+                }
+            }
+            gotData = true;
+        } else if (node.name_ == j_kindName) {
+            if (node.value_.get_str() != kindName) {
+                throw JsonParseError("Response addressed to a different kindAttributes request");
+            }
+            gotKindName = true;
+        } else {
+            throw JsonParseError("Response contains aditional data");
+        }
+    }
+    if (!gotCmdId)
+        throw JsonParseError("Response doesn't contain command identification");
+    if (!gotData)
+        throw JsonParseError("Response doesn't contain usable data");
+    if (!gotKindName)
+        throw JsonParseError("Response doesn't contain kind identification");
+
+    return res;
 }
 
 vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision ) const
