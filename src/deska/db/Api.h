@@ -22,6 +22,7 @@
 #ifndef DESKA_API_H
 #define DESKA_API_H
 
+#include <iosfwd>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -62,6 +63,8 @@ typedef enum {
     TYPE_DOUBLE
 } Type;
 
+std::ostream& operator<<(std::ostream &stream, const Type t);
+
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
 
@@ -84,6 +87,10 @@ struct KindAttributeDataType
     Identifier name;
     Type type;
 };
+
+bool operator==(const KindAttributeDataType &a, const KindAttributeDataType &b);
+bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b);
+std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k);
 
 /** @short Table relations -- are these objects somehow related, and should their representation be merged in the CLI? */
 typedef enum {
@@ -174,6 +181,10 @@ private:
     ObjectRelation();
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
+
+bool operator==(const ObjectRelation &a, const ObjectRelation &b);
+bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
+std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
 
 
 /** @short Exception occured during processing of the request */
