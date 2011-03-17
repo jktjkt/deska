@@ -39,6 +39,7 @@ static std::string j_cmd_kindNames = "getTopLevelObjectNames";
 static std::string j_cmd_kindAttributes = "getKindAttributes";
 static std::string j_cmd_kindRelations = "getKindRelations";
 static std::string j_cmd_kindInstances = "getKindInstances";
+static std::string j_cmd_objectData = "getObjectData";
 
 namespace Deska
 {
@@ -283,7 +284,72 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_objectData));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotRevision = false;
+    map<Identifier, Value> res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        if (node.name_ == j_response) {
+            if (node.value_.get_str() != j_cmd_objectData)
+                throw JsonParseError("Response belongs to another command");
+            gotCmdId = true;
+        } else if (node.name_ == "objectData") {
+            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
+                std::string attrName = item.name_;
+                if (item.value_.type() == json_spirit::str_type) {
+                    res[attrName] = item.value_.get_str();
+                } else if (item.value_.type() == json_spirit::int_type) {
+                    res[attrName] = item.value_.get_int();
+                } else if (item.value_.type() == json_spirit::real_type) {
+                    res[attrName] = item.value_.get_real();
+                } else {
+                    throw JsonParseError("Unsupported type of attribute data");
+                }
+                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+            }
+            gotData = true;
+        } else if (node.name_ == j_kindName) {
+            if (node.value_.get_str() != kindName) {
+                throw JsonParseError("Response addressed to a different kindAttributes request");
+            }
+            gotKindName = true;
+        } else if (node.name_ == j_objName) {
+            if (node.value_.get_str() != objectName) {
+                throw JsonParseError("Response concerning another object name");
+            }
+            gotObjectName = true;
+        } else if (node.name_ == j_revision) {
+            if (node.value_.get_int64() != rev) {
+                throw JsonParseError("Got unmatching revision");
+            }
+            gotRevision = true;
+        } else {
+            throw JsonParseError("Response contains aditional data");
+        }
+    }
+    if (!gotCmdId)
+        throw JsonParseError("Response doesn't contain command identification");
+    if (!gotData)
+        throw JsonParseError("Response doesn't contain usable data");
+    if (!gotKindName)
+        throw JsonParseError("Response doesn't contain kind identification");
+    if (!gotObjectName)
+        throw JsonParseError("Response doesn't contain object identification");
+    if (!gotRevision)
+        throw JsonParseError("Response doesn't contain revision");
+
+    return res;
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,

@@ -21,11 +21,45 @@
 
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
+#include <boost/test/floating_point_comparison.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
 using std::vector;
+using std::map;
 using namespace Deska;
+
+/** @short Fuzzy comparator for Deska::Value which can dela with floating point values
+
+@see json_objectData
+*/
+struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
+{
+    template <typename T, typename U> void operator()(const T &, const U &) const
+    {
+        BOOST_ERROR("Cannot compare different types for equality");
+    }
+
+    template <typename T> void operator()(const T &a, const T &b) const
+    {
+        BOOST_CHECK_EQUAL(a, b);
+    }
+
+    void operator()(const double &a, const double &b) const
+    {
+        BOOST_CHECK_CLOSE(a, b, 0.01);
+    }
+
+    void operator()(const int &a, const double &b) const
+    {
+        BOOST_CHECK_CLOSE(static_cast<double>(a), b, 0.01);
+    }
+
+    void operator()(const double &a, const int &b) const
+    {
+        BOOST_CHECK_CLOSE(a, static_cast<double>(b), 0.01);
+    }
+};
 
 /** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
@@ -100,4 +134,30 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixture)
     jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":666}";
     jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": 333}";
     BOOST_CHECK_THROW(j->kindInstances("blah", 666), JsonParseError);
+}
+
+/** @short Basic test for objectData() */
+BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":3}";
+    jsonDbOutput = "{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+            "\"objectName\": \"oo\", \"response\": \"getObjectData\", \"revision\": 3}";
+    map<Identifier,Value> expected;
+    expected["foo"] = "bar";
+    expected["int"] = 10;
+    expected["real"] = 100.666;
+    // Yes, check int-to-float comparison here
+    expected["price"] = 666.0;
+    map<Identifier,Value> res = j->objectData("kk", "oo", 3);
+    // This won't work on floats...
+    //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    // ...which is why we have to resort to implicit iteration here:
+    BOOST_REQUIRE_EQUAL(res.size(), expected.size());
+    map<Identifier,Value>::iterator i1 = expected.begin(), i2 = res.begin();
+    while (i1 != expected.end()) {
+        BOOST_REQUIRE_EQUAL(i1->first, i2->first);
+        boost::apply_visitor(FuzzyTestCompareDeskaValue(), i1->second, i2->second);
+        ++i1;
+        ++i2;
+    }
 }
