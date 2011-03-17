@@ -27,6 +27,7 @@
 using std::vector;
 using namespace Deska;
 
+/** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getTopLevelObjectNames\"}";
@@ -40,6 +41,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
 
+/** @short Test that kindAttributes() retrieves data */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
@@ -54,6 +56,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
 
+/** @short Test that kindAtttributes() can catch wrong referenced objects */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
@@ -62,6 +65,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
 }
 
+/** @short Test that kindRelations() can fetch data */
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getKindRelations\",\"kindName\":\"identifier\"}";
