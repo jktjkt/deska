@@ -42,14 +42,14 @@ class Generator():
 		self.count = _count
 		output = open('fill.sql', 'w')
 
-	def add_vendors(c = 0):
+	def add_vendors(self,c = 0):
 		if (c is 0):			
 			c = self.count
 		names = Names("names.txt")
 		# gen set of N random (and unique) names
 		self.vendor = names.rset(c) 
-		str = map(vendor_add_template.format, vendor)
-		output.write("\n".join(str))
+		str = map(self.vendor_add_template.format, self.vendor)
+		print "\n".join(str)
 
 
 generator = Generator(5)
