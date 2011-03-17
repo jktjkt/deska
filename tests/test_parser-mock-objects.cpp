@@ -29,7 +29,7 @@
 
 In this test case, we check our mock facility for obvious errors.
 */
-BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
+BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
 {
     // There's no parser, so we have to skip testing of the proper nesting
     boost::signals2::shared_connection_block(attrCheckContextConnection);
@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, F )
 }
 
 /** @short Test the implementation of equality test on caught exceptions */
-BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, F) {
+BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, ParserTestFixture) {
     // Verify that basic exception handling works well
     slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
     expectParseError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, F) {
 }
 
 /** @short Helper for testing inequality of logged exceptions */
-void verifyExceptionDiffers(const Deska::CLI::ParserException &e, F &f)
+void verifyExceptionDiffers(const Deska::CLI::ParserException &e, ParserTestFixture &f)
 {
     BOOST_REQUIRE( ! f.parserEvents.empty() );
     BOOST_CHECK_NE(f.parserEvents.front(), MockParserEvent::parserError(e));
@@ -78,7 +78,7 @@ void verifyExceptionDiffers(const Deska::CLI::ParserException &e, F &f)
 }
 
 /** @short Test that we see a difference between two exceptions which are not equal */
-BOOST_FIXTURE_TEST_CASE(test_mock_exceptions_not_equal, F)
+BOOST_FIXTURE_TEST_CASE(test_mock_exceptions_not_equal, ParserTestFixture)
 {
     // Test for difference in the description
     slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bor"));
