@@ -115,6 +115,9 @@ CREATE FUNCTION commit()
 		for col in tables[:]:
 			 self.sql.write(table.gen_set(col[0]))
 			 self.py.write(api.gen_set(col[0]))
+			 self.sql.write(table.gen_get(col[0]))
+			 self.py.write(api.gen_get(col[0]))
+
 		self.sql.write(table.gen_add())
 		self.py.write(api.gen_add())
 		self.sql.write(table.gen_del())

@@ -78,6 +78,32 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	#template string for get functions
+	get_string = '''CREATE FUNCTION
+	{tbl}_get_{colname}(IN name_ text)
+	RETURNS {coltype}
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value {coltype};
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT {colname} INTO value
+			FROM {tbl}_history
+			WHERE name = name_ AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT {colname} INTO value
+			FROM {tbl}
+			WHERE name = name_;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 	# template string for add function
 	add_string = '''CREATE FUNCTION
 	{tbl}_add(IN name_ text)
@@ -205,6 +231,9 @@ class Table:
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
+	
+	def gen_get(self,col_name):
+		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
 
 	def gen_commit(self):
 		#TODO if there is more columns...
@@ -215,6 +244,10 @@ class Api:
 	# template string for set function's
 	set_string = '''def {tbl}_set_{col}(objectName,value):
 	return db.callproc("{tbl}_set_{col}",[objectName, value])
+'''
+	# template string for get functions
+	get_string = '''def {tbl}_get_{col}(objectName):
+	return db.callproc("{tbl}_get_{col}",[objectName])
 '''
 	# template string for add function
 	add_string = '''def {tbl}_add(objectName):
@@ -247,6 +280,9 @@ class Api:
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name, col = col_name)
+
+	def gen_get(self,col_name):
+		return self.get_string.format(tbl = self.name, col = col_name)
 
 	def gen_commit(self):
 		#TODO if there is more columns...
