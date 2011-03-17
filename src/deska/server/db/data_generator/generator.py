@@ -106,5 +106,5 @@ generator.add_hardwares()
 generator.add_hosts()
 generator.add_interfaces()
 
-# debug
-print generator.data
+# print
+print "\n".join(generator.data)
