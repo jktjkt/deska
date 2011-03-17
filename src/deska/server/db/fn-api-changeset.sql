@@ -16,7 +16,6 @@ CREATE TABLE version (
 	created timestamp without time zone NOT NULL DEFAULT now(),
 	note text
 );
-GRANT ALL ON version TO deska_team;
 
 -- current changesets
 CREATE TABLE changeset (
@@ -49,7 +48,7 @@ BEGIN
 	RETURN ver;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 -- fuction for commit version and return human readable number
 --
@@ -69,7 +68,7 @@ BEGIN
 	RETURN ret;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 -- API part here
 SET search_path TO api,deska;
@@ -88,7 +87,7 @@ BEGIN
 	RETURN 1;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- close changeset
@@ -103,7 +102,7 @@ BEGIN
 	RETURN 1;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- get my version id
@@ -119,7 +118,7 @@ BEGIN
 	RETURN ver;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- abort changeset, for api, same as close
@@ -134,4 +133,4 @@ BEGIN
 	RETURN 1;
 END
 $$
-LANGUAGE plpgsql;
+LANGUAGE plpgsql SECURITY DEFINER;

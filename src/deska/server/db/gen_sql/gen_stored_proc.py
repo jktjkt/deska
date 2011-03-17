@@ -44,7 +44,7 @@ class Schema:
 		RETURN 1;
 	END
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 '''
 	def __init__(self):
 		plpy.execute("SET search_path TO deska,production")

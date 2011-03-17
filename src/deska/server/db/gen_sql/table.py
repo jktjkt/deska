@@ -75,7 +75,7 @@ class Table:
 		RETURN 1;
 	END
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 	# template string for add function
@@ -92,7 +92,7 @@ class Table:
 		RETURN 1;
 	END
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 	# template string for del function
@@ -112,7 +112,7 @@ class Table:
 		RETURN 1;
 	END
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 	# template string for commit function
@@ -136,7 +136,7 @@ class Table:
 		RETURN 1;
 	END
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 
