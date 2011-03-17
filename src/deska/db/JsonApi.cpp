@@ -38,6 +38,7 @@ static std::string j_errorPrefix = "error";
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
 static std::string j_cmd_kindAttributes = "getKindAttributes";
 static std::string j_cmd_kindRelations = "getKindRelations";
+static std::string j_cmd_kindInstances = "getKindInstances";
 
 namespace Deska
 {
@@ -230,7 +231,54 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
 
 vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision rev ) const
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_kindInstances));
+    o.push_back(Pair(j_kindName, kindName));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
+    sendJsonObject(o);
+
+    // Retrieve and process the response
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotRevision = false;
+    vector<Identifier> res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        if (node.name_ == j_response) {
+            if (node.value_.get_str() != j_cmd_kindInstances)
+                throw JsonParseError("Response belongs to another command");
+            gotCmdId = true;
+        } else if (node.name_ == "objectInstances") {
+            json_spirit::Array data = node.value_.get_array();
+            // simply copy a string from the JSON representation into a vector<string>
+            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
+            gotData = true;
+        } else if (node.name_ == j_kindName) {
+            if (node.value_.get_str() != kindName) {
+                throw JsonParseError("Response addressed to a different kindAttributes request");
+            }
+            gotKindName = true;
+        } else if (node.name_ == j_revision) {
+            if (node.value_.get_int64() != rev) {
+                throw JsonParseError("Got unmatching revision");
+            }
+            gotRevision = true;
+        } else {
+            throw JsonParseError("Response contains aditional data");
+        }
+    }
+    if (!gotCmdId)
+        throw JsonParseError("Response doesn't contain command identification");
+    if (!gotData)
+        throw JsonParseError("Response doesn't contain usable data");
+    if (!gotKindName)
+        throw JsonParseError("Response doesn't contain kind identification");
+    if (!gotRevision)
+        throw JsonParseError("Response doesn't contain revision");
+
+    return res;
 }
 
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )

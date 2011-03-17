@@ -80,3 +80,24 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
+
+/** @short Test that kindInstances() returns a reasonable result */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":666}";
+    jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": 666}";
+    vector<Identifier> expected;
+    expected.push_back("foo");
+    expected.push_back("bar");
+    expected.push_back("ahoj");
+    vector<Identifier> res = j->kindInstances("blah", 666);
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+}
+
+/** @short Test that kindInstances() fails when faced with wrong revision */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":666}";
+    jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": 333}";
+    BOOST_CHECK_THROW(j->kindInstances("blah", 666), JsonParseError);
+}
