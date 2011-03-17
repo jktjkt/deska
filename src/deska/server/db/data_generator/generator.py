@@ -14,13 +14,6 @@ SELECT commit();
 ROLLBACK;
  '''
 
-interface_add_template = '''SELECT interface_add('{interface}');
-'''
-interface_set_template = '''SELECT interface_set_hardware('{interface}','{host}');
-SELECT interface_set_ip('{interface}','{ip}');
-SELECT interface_set_mac('{interface}','{mac}');
-'''
-
 class Generator():
 
 	vendor_add_template = "SELECT vendor_add('{0}');"
@@ -31,7 +24,11 @@ SELECT hardware_set_warranty('{0}','{3}');
 '''
 	host_add_template = "SELECT host_add('{0}');"
 	host_set_template = "SELECT host_set_hardware('{0}','{1}');"
-
+	interface_add_template = "SELECT interface_add('{0}');"
+	interface_set_template = '''SELECT interface_set_host('{0}','{1}');
+SELECT interface_set_ip('{0}','{2}');
+SELECT interface_set_mac('{0}','{3}');
+'''
 
 	def __init__(self, count = 2):
 		self.count = count
@@ -80,12 +77,34 @@ SELECT hardware_set_warranty('{0}','{3}');
 		str = map(self.host_set_template.format, self.host, hardware)
 		self.data.extend(str)
 		
-
-
+	def add_interfaces(self, count = 0):
+		if (count == 0):			
+			count = self.count * 6
+		names = Names("names.txt")
+		# gen set of N random (and unique) names
+		self.interface = names.rset(count) 
+		str = map(self.interface_add_template.format, self.interface)
+		self.data.extend(str)
+		
+		#set part of interface
+		host = self.host.rlist(count)
+		ips = IPv4s()
+		ips.setBlock("A",10)
+		ips.setBlock("B",0)
+		ips.setBlock("C",10,2)
+		ips.setBlock("D",0,25)
+		ip = ips.rset(count)
+		macs = Macs()
+		mac = macs.rset(count)
+		str = map(self.interface_set_template.format, self.interface, host, ip, mac)
+		self.data.extend(str)
+		
+		
 generator = Generator(2)
 generator.add_vendors()
 generator.add_hardwares()
 generator.add_hosts()
+generator.add_interfaces()
 
 # debug
 print generator.data
