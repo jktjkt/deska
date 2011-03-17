@@ -51,6 +51,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
     expected.push_back(KindAttributeDataType("foo", TYPE_STRING));
     expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
 
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
