@@ -40,7 +40,7 @@ class Generator():
 	
 	def __init__(self, _count = 2):
 		self.count = _count
-		output = open('fill.sql', 'w')
+		self.data = list()
 
 	def add_vendors(self,c = 0):
 		if (c is 0):			
@@ -49,8 +49,11 @@ class Generator():
 		# gen set of N random (and unique) names
 		self.vendor = names.rset(c) 
 		str = map(self.vendor_add_template.format, self.vendor)
-		print "\n".join(str)
+		self.data.extend(str)
 
 
 generator = Generator(5)
 generator.add_vendors()
+
+# debug
+print generator.data
