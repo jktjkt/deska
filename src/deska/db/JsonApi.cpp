@@ -120,6 +120,35 @@ vector<Identifier> JsonApiParser::kindNames() const
         gotCmdId = true; \
     }
 
+#define JSON_BLOCK_CHECK_KINDNAME \
+    else if (node.name_ == j_kindName) { \
+        if (node.value_.get_str() != kindName) { \
+            throw JsonParseError("Response addressed to a different kindAttributes request"); \
+        } \
+        gotKindName = true; \
+    }
+
+#define JSON_BLOCK_CHECK_OBJNAME \
+    else if (node.name_ == j_objName) { \
+        if (node.value_.get_str() != objectName) { \
+            throw JsonParseError("Response concerning another object name"); \
+        } \
+        gotObjectName = true; \
+    }
+
+#define JSON_BLOCK_CHECK_REVISION \
+    else if (node.name_ == j_revision) { \
+        if (node.value_.get_int64() != rev) { \
+            throw JsonParseError("Got unmatching revision"); \
+        } \
+        gotRevision = true; \
+    }
+
+#define JSON_BLOCK_CHECK_ELSE \
+    else { \
+        throw JsonParseError("Response contains aditional data"); \
+    }
+
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
     Object o;
@@ -152,14 +181,9 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
                 }
             }
             gotData = true;
-        } else if (node.name_ == j_kindName) {
-            if (node.value_.get_str() != kindName) {
-                throw JsonParseError("Response addressed to a different kindAttributes request");
-            }
-            gotKindName = true;
-        } else {
-            throw JsonParseError("Response contains aditional data");
         }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_ELSE
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME
@@ -221,14 +245,9 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
                 }
             }
             gotData = true;
-        } else if (node.name_ == j_kindName) {
-            if (node.value_.get_str() != kindName) {
-                throw JsonParseError("Response addressed to a different kindAttributes request");
-            }
-            gotKindName = true;
-        } else {
-            throw JsonParseError("Response contains aditional data");
         }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_ELSE
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME;
@@ -259,19 +278,10 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
             // simply copy a string from the JSON representation into a vector<string>
             std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
             gotData = true;
-        } else if (node.name_ == j_kindName) {
-            if (node.value_.get_str() != kindName) {
-                throw JsonParseError("Response addressed to a different kindAttributes request");
-            }
-            gotKindName = true;
-        } else if (node.name_ == j_revision) {
-            if (node.value_.get_int64() != rev) {
-                throw JsonParseError("Got unmatching revision");
-            }
-            gotRevision = true;
-        } else {
-            throw JsonParseError("Response contains aditional data");
         }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_ELSE
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
@@ -313,24 +323,11 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
                 // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
             }
             gotData = true;
-        } else if (node.name_ == j_kindName) {
-            if (node.value_.get_str() != kindName) {
-                throw JsonParseError("Response addressed to a different kindAttributes request");
-            }
-            gotKindName = true;
-        } else if (node.name_ == j_objName) {
-            if (node.value_.get_str() != objectName) {
-                throw JsonParseError("Response concerning another object name");
-            }
-            gotObjectName = true;
-        } else if (node.name_ == j_revision) {
-            if (node.value_.get_int64() != rev) {
-                throw JsonParseError("Got unmatching revision");
-            }
-            gotRevision = true;
-        } else {
-            throw JsonParseError("Response contains aditional data");
         }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_ELSE
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
