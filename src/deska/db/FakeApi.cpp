@@ -24,7 +24,10 @@
 #include <boost/lambda/construct.hpp>
 #include "FakeApi.h"
 
-using namespace std;
+using std::map;
+using std::pair;
+using std::string;
+using std::vector;
 
 namespace Deska
 {
