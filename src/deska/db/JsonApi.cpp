@@ -36,6 +36,7 @@ static std::string j_revision = "revision";
 static std::string j_errorPrefix = "error";
 
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
+static std::string j_cmd_kindAttributes = "getKindAttributes";
 
 namespace Deska
 {
@@ -98,7 +99,56 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_kindAttributes));
+    o.push_back(Pair(j_kindName, kindName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotKindName = false;
+    bool gotData = false;
+    vector<KindAttributeDataType> res;
+
+    BOOST_FOREACH(const Pair &node, readJsonObject()) {
+        if (node.name_ == j_response) {
+            if (node.value_.get_str() != j_cmd_kindAttributes)
+                throw JsonParseError("Response belongs to another command");
+            gotCmdId = true;
+        } else if (node.name_ == "kindAttributes") {
+            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
+                std::string datatype = item.value_.get_str();
+                if (datatype == "string") {
+                    res.push_back(KindAttributeDataType(item.name_, TYPE_STRING));
+                } else if (datatype == "int") {
+                    res.push_back(KindAttributeDataType(item.name_, TYPE_INT));
+                } else if (datatype == "identifier") {
+                    res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
+                } else if (datatype == "double") {
+                    res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+                } else {
+                    std::ostringstream s;
+                    s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
+                    throw JsonParseError(s.str());
+                }
+            }
+            gotData = true;
+        } else if (node.name_ == j_kindName) {
+            if (node.value_.get_str() != kindName) {
+                throw JsonParseError("Response addressed to a different kindAttributes request");
+            }
+            gotKindName = true;
+        } else {
+            throw JsonParseError("Response contains aditional data");
+        }
+    }
+    if (!gotCmdId)
+        throw JsonParseError("Response doesn't contain command identification");
+    if (!gotData)
+        throw JsonParseError("Response doesn't contain usable data");
+    if (!gotKindName)
+        throw JsonParseError("Response doesn't contain kind identification");
+
+    return res;
 }
 
 vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName ) const

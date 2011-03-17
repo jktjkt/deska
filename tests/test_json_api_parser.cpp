@@ -39,3 +39,24 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
     vector<Identifier> res = j->kindNames();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
+
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
+    jsonDbOutput = "{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"getKindAttributes\"}";
+    vector<KindAttributeDataType> expected;
+    expected.push_back(KindAttributeDataType("bar", TYPE_INT));
+    expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
+    expected.push_back(KindAttributeDataType("foo", TYPE_STRING));
+    expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
+    vector<KindAttributeDataType> res = j->kindAttributes("some-object");
+}
+
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
+    jsonDbOutput = "{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"getKindAttributes\"}";
+    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
+}
