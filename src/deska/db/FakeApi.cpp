@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <boost/lambda/bind.hpp>
-#include <boost/lambda/construct.hpp>
 #include "FakeApi.h"
 
 using std::map;
