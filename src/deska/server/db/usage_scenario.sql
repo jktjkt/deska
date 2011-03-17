@@ -1,3 +1,5 @@
+-- can run without other priveleges
+SET ROLE deska_user;
 SET search_path TO deska,api,genproc,history,production;
 -- after connect, register session
 BEGIN;
@@ -17,10 +19,10 @@ SELECT hardware_set_warranty('hwDELL','10.1.2012');
 -- end session, part of vendor commit? of vendor commit part of this?
 SELECT commit();
 
-SELECT * FROM vendor_history;
-SELECT * FROM hardware_history;
-SELECT * FROM vendor;
-SELECT * FROM hardware;
+--SELECT * FROM vendor_history;
+--SELECT * FROM hardware_history;
+--SELECT * FROM vendor;
+--SELECT * FROM hardware;
 
 SELECT start_changeset();
 SELECT hardware_del('hwDELL');

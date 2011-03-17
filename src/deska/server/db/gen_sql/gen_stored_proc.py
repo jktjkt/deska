@@ -31,7 +31,11 @@ class Schema:
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
-	commit_string = '''CREATE FUNCTION commit()
+	commit_string = '''
+-- need this in api schema
+SET search_path TO api,genproc,history,deska,production;
+	
+CREATE FUNCTION commit()
 	RETURNS integer
 	AS
 	$$

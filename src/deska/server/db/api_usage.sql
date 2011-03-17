@@ -1,4 +1,4 @@
-SET search_path TO genproc,history,deska,production;
+SET search_path TO api,genproc,history,deska,production;
 -- after connect, register session
 BEGIN;
 SELECT start_changeset();
