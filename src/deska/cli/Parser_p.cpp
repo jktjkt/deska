@@ -336,9 +336,9 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     while( iter != end ) {
         ++parsingIterations;
-        #ifdef PARSER_DEBUG
+#ifdef PARSER_DEBUG
         std::cout << "Parsing: " << std::string( iter, end ) << std::endl;
-        #endif
+#endif
         if ( contextStack.empty() ) {
             // No context, parse top-level objects
 #ifdef PARSER_DEBUG
