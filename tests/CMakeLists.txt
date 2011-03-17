@@ -36,5 +36,5 @@ set(ParserTestHelpers_SRCS
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
-deska_test(parser-top-level-objects)
 deska_test(parser-mock-objects)
+deska_test(parser-top-level-objects)
