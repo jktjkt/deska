@@ -40,6 +40,7 @@ static std::string j_cmd_kindAttributes = "getKindAttributes";
 static std::string j_cmd_kindRelations = "getKindRelations";
 static std::string j_cmd_kindInstances = "getKindInstances";
 static std::string j_cmd_objectData = "getObjectData";
+static std::string j_cmd_resolvedObjectData = "getResolvedObjectData";
 
 namespace Deska
 {
@@ -344,7 +345,44 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
                                                                       const Identifier &objectName, const Revision rev )
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_resolvedObjectData));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotRevision = false;
+    map<Identifier, pair<Identifier, Value> > res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_resolvedObjectData)
+        else if (node.name_ == "resolvedObjectData") {
+            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
+                json_spirit::Array a = item.value_.get_array();
+                if (a.size() != 2) {
+                    throw JsonParseError("Malformed record of resolved attribute");
+                }
+                res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
+            }
+            gotData = true;
+        }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
+    if (!gotObjectName)
+        throw JsonParseError("Response doesn't contain object identification");
+
+    return res;
 }
 
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,

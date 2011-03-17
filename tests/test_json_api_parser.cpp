@@ -161,3 +161,20 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
         ++i2;
     }
 }
+
+/** @short Basic test for resolvedObjectData() */
+BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getResolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":0}";
+    jsonDbOutput = "{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
+            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", \"666\"]}, \"response\": \"getResolvedObjectData\", \"revision\": 0}";
+    map<Identifier, std::pair<Identifier,Value> > expected;
+    expected["foo"] = std::make_pair("obj-defining-this", "bar");
+    expected["baz"] = std::make_pair("this-obj", "666");
+    map<Identifier, std::pair<Identifier,Value> > res = j->resolvedObjectData("kk", "oo");
+    // In this case, we limit ourselves to string comparisons. There's a map invloved here, which means that
+    // BOOST_CHECK_EQUAL_COLLECTIONS is worthless, and there isn't much point in duplicating the whole logic from json_objectData
+    // at yet another place. Let's stick with strings and don't expect to see detailed error reporting here.
+    BOOST_REQUIRE_EQUAL(res.size(), expected.size());
+    BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+}
