@@ -228,18 +228,18 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     return res;
 }
 
-vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision ) const
+vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision rev ) const
 {
     throw 42;
 }
 
-map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision )
+map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )
 {
     throw 42;
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
-                                                                      const Identifier &objectName, const Revision)
+                                                                      const Identifier &objectName, const Revision rev )
 {
     throw 42;
 }

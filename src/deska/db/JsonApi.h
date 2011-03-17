@@ -51,11 +51,11 @@ public:
     virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const;
 
     // Returning data for existing objects
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision rev = 0 ) const;
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const Revision = 0 );
+        const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const Revision=0 );
+            const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
     virtual std::vector<Identifier> findOverriddenAttrs(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attrName );
     virtual std::vector<Identifier> findNonOverriddenAttrs(
