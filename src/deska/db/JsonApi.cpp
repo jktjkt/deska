@@ -100,6 +100,26 @@ vector<Identifier> JsonApiParser::kindNames() const
     return res;
 }
 
+#define JSON_REQUIRE_CMD_DATA_KINDNAME \
+    if (!gotCmdId) \
+        throw JsonParseError("Response doesn't contain command identification"); \
+    if (!gotData) \
+        throw JsonParseError("Response doesn't contain usable data"); \
+    if (!gotKindName) \
+        throw JsonParseError("Response doesn't contain kind identification");
+
+#define JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION \
+    JSON_REQUIRE_CMD_DATA_KINDNAME; \
+    if (!gotRevision) \
+        throw JsonParseError("Response doesn't contain revision");
+
+#define JSON_BLOCK_CHECK_COMMAND(X) \
+    if (node.name_ == j_response) { \
+        if (node.value_.get_str() != X) \
+            throw JsonParseError("Response belongs to another command"); \
+        gotCmdId = true; \
+    }
+
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
     Object o;
@@ -113,11 +133,8 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
     vector<KindAttributeDataType> res;
 
     BOOST_FOREACH(const Pair &node, readJsonObject()) {
-        if (node.name_ == j_response) {
-            if (node.value_.get_str() != j_cmd_kindAttributes)
-                throw JsonParseError("Response belongs to another command");
-            gotCmdId = true;
-        } else if (node.name_ == "kindAttributes") {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindAttributes)
+        else if (node.name_ == "kindAttributes") {
             BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
                 std::string datatype = item.value_.get_str();
                 if (datatype == "string") {
@@ -144,12 +161,8 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
             throw JsonParseError("Response contains aditional data");
         }
     }
-    if (!gotCmdId)
-        throw JsonParseError("Response doesn't contain command identification");
-    if (!gotData)
-        throw JsonParseError("Response doesn't contain usable data");
-    if (!gotKindName)
-        throw JsonParseError("Response doesn't contain kind identification");
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME
 
     return res;
 }
@@ -167,11 +180,8 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     vector<ObjectRelation> res;
 
     BOOST_FOREACH(const Pair &node, readJsonObject()) {
-        if (node.name_ == j_response) {
-            if (node.value_.get_str() != j_cmd_kindRelations)
-                throw JsonParseError("Response belongs to another command");
-            gotCmdId = true;
-        } else if (node.name_ == "kindRelations") {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindRelations)
+        else if (node.name_ == "kindRelations") {
             BOOST_FOREACH(const json_spirit::Value &item, node.value_.get_array()) {
                 json_spirit::Array relationRecord = item.get_array();
                 switch (relationRecord.size()) {
@@ -220,12 +230,8 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
             throw JsonParseError("Response contains aditional data");
         }
     }
-    if (!gotCmdId)
-        throw JsonParseError("Response doesn't contain command identification");
-    if (!gotData)
-        throw JsonParseError("Response doesn't contain usable data");
-    if (!gotKindName)
-        throw JsonParseError("Response doesn't contain kind identification");
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
 
     return res;
 }
@@ -247,11 +253,8 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     vector<Identifier> res;
 
     BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        if (node.name_ == j_response) {
-            if (node.value_.get_str() != j_cmd_kindInstances)
-                throw JsonParseError("Response belongs to another command");
-            gotCmdId = true;
-        } else if (node.name_ == "objectInstances") {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindInstances)
+        else if (node.name_ == "objectInstances") {
             json_spirit::Array data = node.value_.get_array();
             // simply copy a string from the JSON representation into a vector<string>
             std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
@@ -270,14 +273,8 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
             throw JsonParseError("Response contains aditional data");
         }
     }
-    if (!gotCmdId)
-        throw JsonParseError("Response doesn't contain command identification");
-    if (!gotData)
-        throw JsonParseError("Response doesn't contain usable data");
-    if (!gotKindName)
-        throw JsonParseError("Response doesn't contain kind identification");
-    if (!gotRevision)
-        throw JsonParseError("Response doesn't contain revision");
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
 
     return res;
 }
@@ -300,11 +297,8 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     map<Identifier, Value> res;
 
     BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        if (node.name_ == j_response) {
-            if (node.value_.get_str() != j_cmd_objectData)
-                throw JsonParseError("Response belongs to another command");
-            gotCmdId = true;
-        } else if (node.name_ == "objectData") {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_objectData)
+        else if (node.name_ == "objectData") {
             BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
                 std::string attrName = item.name_;
                 if (item.value_.type() == json_spirit::str_type) {
@@ -338,16 +332,10 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
             throw JsonParseError("Response contains aditional data");
         }
     }
-    if (!gotCmdId)
-        throw JsonParseError("Response doesn't contain command identification");
-    if (!gotData)
-        throw JsonParseError("Response doesn't contain usable data");
-    if (!gotKindName)
-        throw JsonParseError("Response doesn't contain kind identification");
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
     if (!gotObjectName)
         throw JsonParseError("Response doesn't contain object identification");
-    if (!gotRevision)
-        throw JsonParseError("Response doesn't contain revision");
 
     return res;
 }
