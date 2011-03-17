@@ -13,11 +13,6 @@ SELECT start_changeset();
 SELECT commit();
 ROLLBACK;
  '''
- 
-host_add_template = '''SELECT host_add('{host}');
-'''
-host_set_template = '''SELECT host_set_hardware('{host}','{hardware}');
-'''
 
 interface_add_template = '''SELECT interface_add('{interface}');
 '''
@@ -34,13 +29,16 @@ class Generator():
 SELECT hardware_set_purchase('{0}','{2}');
 SELECT hardware_set_warranty('{0}','{3}');
 '''
+	host_add_template = "SELECT host_add('{0}');"
+	host_set_template = "SELECT host_set_hardware('{0}','{1}');"
+
 
 	def __init__(self, count = 2):
 		self.count = count
 		self.data = list()
 
 	def add_vendors(self,count = 0):
-		if (count is 0):			
+		if (count == 0):			
 			count = self.count
 		names = Names("names.txt")
 		# gen set of N random (and unique) names
@@ -49,7 +47,7 @@ SELECT hardware_set_warranty('{0}','{3}');
 		self.data.extend(str)
 		
 	def add_hardwares(self,count = 0):
-		if (count is 0):			
+		if (count == 0):			
 			count = self.count * 3
 		names = Names("names.txt")
 		# gen set of N random (and unique) names
@@ -58,22 +56,36 @@ SELECT hardware_set_warranty('{0}','{3}');
 		self.data.extend(str)
 		
 		#set part of hardware
+		vendor = self.vendor.rlist(count)
 		purchase_dates = Dates()
 		# get list (not unique) of N dates
 		purchase = purchase_dates.rlist(count)
 		warranty_dates = Dates(2011,4)
 		# get list (not unique) of N dates
 		warranty = warranty_dates.rlist(count)
-		str = map(self.hardware_set_template.format, self.hardware, self.vendor, purchase, warranty)
+		str = map(self.hardware_set_template.format, self.hardware, vendor, purchase, warranty)
 		self.data.extend(str)
 		
-	
-	
+	def add_hosts(self, count = 0):
+		if (count == 0):			
+			count = self.count * 4
+		names = Names("names.txt")
+		# gen set of N random (and unique) names
+		self.host = names.rset(count) 
+		str = map(self.host_add_template.format, self.host)
+		self.data.extend(str)
+		
+		#set part of host
+		hardware = self.hardware.rlist(count)
+		str = map(self.host_set_template.format, self.host, hardware)
+		self.data.extend(str)
+		
 
 
 generator = Generator(2)
 generator.add_vendors()
 generator.add_hardwares()
+generator.add_hosts()
 
 # debug
 print generator.data
