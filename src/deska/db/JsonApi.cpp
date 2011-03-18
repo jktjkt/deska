@@ -165,6 +165,18 @@ vector<Identifier> JsonApiParser::kindNames() const
         gotAttrName = true; \
     }
 
+#define JSON_BLOCK_CHECK_BOOL_RESULT(CMD) \
+    else if (node.name_ == "result") { \
+        if (!node.value_.get_bool()) { \
+            /* Yes, we really do require true here. The idea is that failed operations are reported using another, \
+               different mechanism, likely via an exception. */ \
+            std::ostringstream s; \
+            s << "Mallformed " << CMD << " reply: got something else than true as a 'result'."; \
+            throw JsonParseError(s.str()); \
+        } \
+        gotData = true; \
+    }
+
 #define JSON_BLOCK_CHECK_ELSE \
     else { \
         throw JsonParseError("Response contains aditional data"); \
@@ -467,16 +479,7 @@ void JsonApiParser::helperCreateDeleteObject(const std::string &cmd, const Ident
 
     BOOST_FOREACH(const Pair& node, readJsonObject()) {
         JSON_BLOCK_CHECK_COMMAND(cmd)
-        else if (node.name_ == "result") {
-            if (!node.value_.get_bool()) {
-                // Yes, we really do require true here. The idea is that failed operations are reported using another,
-                // different mechanism, likely via an exception.
-                std::ostringstream s;
-                s << "Mallformed " << cmd << " reply: got something else than true as a 'result'.";
-                throw JsonParseError(s.str());
-            }
-            gotData = true;
-        }
+        JSON_BLOCK_CHECK_BOOL_RESULT(cmd)
         JSON_BLOCK_CHECK_KINDNAME
         JSON_BLOCK_CHECK_OBJNAME
         JSON_BLOCK_CHECK_ELSE
