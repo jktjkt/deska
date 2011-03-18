@@ -64,9 +64,9 @@ public:
     virtual Revision commitChangeset();
     virtual Revision rebaseChangeset(const Revision oldRevision);
     virtual std::vector<Revision> pendingChangesetsByMyself();
-    virtual void resumeChangeset(const Revision oldRevision);
+    virtual void resumeChangeset(const Revision revision);
     virtual void detachFromActiveChangeset();
-    virtual void abortChangeset(const Revision rev);
+    virtual void abortChangeset(const Revision revision);
 
     // These members should be accessible for modifications from the test suite
 
