@@ -332,6 +332,16 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
     BOOST_CHECK(jsonDbOutput.empty());
 }
 
+/** @short Basic test for detachFromActiveChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsDetachFromActiveChangeset\"}";
+    jsonDbOutput = "{\"response\": \"vcsDetachFromActiveChangeset\"}";
+    j->detachFromActiveChangeset();
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
 /** @short Basic test for abortChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
 {
