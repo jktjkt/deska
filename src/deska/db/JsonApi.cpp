@@ -868,25 +868,12 @@ vector<Revision> JsonApiParser::pendingChangesetsByMyself()
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const Revision rev)
+void JsonApiParser::resumeChangeset(const Revision revision)
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_resumeChangeset));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotRevision = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_resumeChangeset)
-        JSON_BLOCK_CHECK_REVISION(j_revision)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_REVISION;
+    JsonHandler h(this);
+    h.command(j_cmd_resumeChangeset);
+    h.write(j_revision, revision);
+    h.work();
 }
 
 void JsonApiParser::detachFromActiveChangeset()
