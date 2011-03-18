@@ -41,6 +41,8 @@ static std::string j_cmd_kindRelations = "getKindRelations";
 static std::string j_cmd_kindInstances = "getKindInstances";
 static std::string j_cmd_objectData = "getObjectData";
 static std::string j_cmd_resolvedObjectData = "getResolvedObjectData";
+static std::string j_cmd_findObjectsOverridingAttrs = "getObjectsOverridingAttribute";
+static std::string j_cmd_findObjectsNotOverridingAttrs = "getObjectsNotOverridingAttribute";
 
 namespace Deska
 {
@@ -118,6 +120,10 @@ vector<Identifier> JsonApiParser::kindNames() const
     if (!gotObjectName) \
         throw JsonParseError("Response doesn't contain object identification");
 
+#define JSON_REQUIRE_ATTRNAME \
+    if (!gotAttrName) \
+        throw JsonParseError("Response doesn't contain attribute name");
+
 #define JSON_BLOCK_CHECK_COMMAND(X) \
     if (node.name_ == j_response) { \
         if (node.value_.get_str() != X) \
@@ -147,6 +153,14 @@ vector<Identifier> JsonApiParser::kindNames() const
             throw JsonParseError("Got unmatching revision"); \
         } \
         gotRevision = true; \
+    }
+
+#define JSON_BLOCK_CHECK_ATTRNAME \
+    else if (node.name_ == j_attrName) { \
+        if (node.value_.get_str() != attrName) { \
+            throw JsonParseError("Got unmatching attribute name"); \
+        } \
+        gotAttrName = true; \
     }
 
 #define JSON_BLOCK_CHECK_ELSE \
@@ -387,16 +401,52 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     return res;
 }
 
+vector<Identifier> JsonApiParser::helperOverridenAttrs(const std::string &cmd, const Identifier &kindName, const Identifier &objectName, const Identifier &attrName)
+{
+    Object o;
+    o.push_back(Pair(j_command, cmd));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    o.push_back(Pair(j_attrName, attrName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotAttrName = false;
+    vector<Identifier> res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(cmd)
+        else if (node.name_ == "objectInstances") {
+            json_spirit::Array data = node.value_.get_array();
+            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
+            gotData = true;
+        }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_ATTRNAME
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
+    JSON_REQUIRE_OBJNAME;
+    JSON_REQUIRE_ATTRNAME;
+
+    return res;
+}
+
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
                                                 const Identifier &attrName)
 {
-    throw 42;
+    return helperOverridenAttrs(j_cmd_findObjectsOverridingAttrs, kindName, objectName, attrName);
 }
 
 vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
                                                    const Identifier &attrName)
 {
-    throw 42;
+    return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attrName);
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )

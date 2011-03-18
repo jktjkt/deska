@@ -178,3 +178,31 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixture)
     BOOST_REQUIRE_EQUAL(res.size(), expected.size());
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
 }
+
+/** @short Basic test for findOverridenAttrs() */
+BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getObjectsOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}";
+    jsonDbOutput = "{\"attributeName\": \"aa\", \"kindName\": \"k\", "
+            "\"objectInstances\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"getObjectsOverridingAttribute\"}";
+    vector<Identifier> expected;
+    expected.push_back("z");
+    expected.push_back("a");
+    expected.push_back("aaa");
+    vector<Identifier> res = j->findOverriddenAttrs("k", "o", "aa");
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+}
+
+/** @short Basic test for findNonOverridenAttrs() */
+BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"getObjectsNotOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}";
+    jsonDbOutput = "{\"attributeName\": \"aa\", \"kindName\": \"k\", "
+            "\"objectInstances\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"getObjectsNotOverridingAttribute\"}";
+    vector<Identifier> expected;
+    expected.push_back("d");
+    expected.push_back("e");
+    expected.push_back("aaaaa");
+    vector<Identifier> res = j->findNonOverriddenAttrs("k", "o", "aa");
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+}
