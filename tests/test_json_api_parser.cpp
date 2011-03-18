@@ -276,3 +276,23 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixture)
         BOOST_CHECK(jsonDbOutput.empty());
     }
 }
+
+/** @short Basic test for startChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsStartChangeset\"}";
+    jsonDbOutput = "{\"response\": \"vcsStartChangeset\", \"revision\": 333}";
+    BOOST_CHECK_EQUAL(j->startChangeset(), 333);
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short Basic test for commitChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsCommitChangeset\"}";
+    jsonDbOutput = "{\"response\": \"vcsCommitChangeset\", \"revision\": 666}";
+    BOOST_CHECK_EQUAL(j->commitChangeset(), 666);
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}

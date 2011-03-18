@@ -50,6 +50,8 @@ static std::string j_cmd_deleteObject = "deleteObject";
 static std::string j_cmd_renameObject = "renameObject";
 static std::string j_cmd_removeAttribute = "removeObjectAttribute";
 static std::string j_cmd_setAttribute = "setObjectAttribute";
+static std::string j_cmd_startChangeset = "vcsStartChangeset";
+static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
 
 namespace Deska
 {
@@ -146,18 +148,24 @@ vector<Identifier> JsonApiParser::kindNames() const
     return res;
 }
 
-#define JSON_REQUIRE_CMD_DATA_KINDNAME \
+#define JSON_REQUIRE_CMD \
     if (!gotCmdId) \
-        throw JsonParseError("Response doesn't contain command identification"); \
+        throw JsonParseError("Response doesn't contain command identification");
+
+#define JSON_REQUIRE_CMD_DATA_KINDNAME \
+    JSON_REQUIRE_CMD \
     if (!gotData) \
         throw JsonParseError("Response doesn't contain usable data"); \
     if (!gotKindName) \
         throw JsonParseError("Response doesn't contain kind identification");
 
-#define JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION \
-    JSON_REQUIRE_CMD_DATA_KINDNAME; \
+#define JSON_REQUIRE_REVISION \
     if (!gotRevision) \
         throw JsonParseError("Response doesn't contain revision");
+
+#define JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION \
+    JSON_REQUIRE_CMD_DATA_KINDNAME; \
+    JSON_REQUIRE_REVISION
 
 #define JSON_REQUIRE_OBJNAME \
     if (!gotObjectName) \
@@ -166,6 +174,12 @@ vector<Identifier> JsonApiParser::kindNames() const
 #define JSON_REQUIRE_ATTRNAME \
     if (!gotAttrName) \
         throw JsonParseError("Response doesn't contain attribute name");
+
+#define JSON_BLOCK_EXTRACT_REVISION \
+    else if (node.name_ == j_revision) { \
+        revision = node.value_.get_int64(); \
+        gotRevision = true; \
+    }
 
 #define JSON_BLOCK_CHECK_COMMAND(X) \
     if (node.name_ == j_response) { \
@@ -638,14 +652,35 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
         throw JsonParseError("Response did not specify attributeData");
 }
 
+Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
+{
+    Object o;
+    o.push_back(Pair(j_command, cmd));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotRevision = false;
+    Revision revision = 0;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(cmd)
+        JSON_BLOCK_EXTRACT_REVISION
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_REVISION;
+    return revision;
+}
+
 Revision JsonApiParser::startChangeset()
 {
-    throw 42;
+    return helperStartCommitChangeset(j_cmd_startChangeset);
 }
 
 Revision JsonApiParser::commitChangeset()
 {
-    throw 42;
+    return helperStartCommitChangeset(j_cmd_commitChangeset);
 }
 
 Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
