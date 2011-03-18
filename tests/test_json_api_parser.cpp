@@ -321,3 +321,23 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
+
+/** @short Basic test for resumeChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsResumePendingChangeset\",\"revision\":123}";
+    jsonDbOutput = "{\"response\": \"vcsResumePendingChangeset\", \"revision\": 123}";
+    j->resumeChangeset(123);
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short Basic test for abortChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsAbortChangeset\",\"revision\":123}";
+    jsonDbOutput = "{\"response\": \"vcsAbortChangeset\", \"revision\": 123}";
+    j->abortChangeset(123);
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}

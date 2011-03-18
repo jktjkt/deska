@@ -55,6 +55,8 @@ static std::string j_cmd_startChangeset = "vcsStartChangeset";
 static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
 static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
 static std::string j_cmd_pendingChangesetsByMyself = "vcsGetPendingChangesetsByMyself";
+static std::string j_cmd_resumeChangeset = "vcsResumePendingChangeset";
+static std::string j_cmd_abortChangeset = "vcsAbortChangeset";
 
 namespace Deska
 {
@@ -737,9 +739,25 @@ vector<Revision> JsonApiParser::pendingChangesetsByMyself()
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const Revision revision)
+void JsonApiParser::resumeChangeset(const Revision rev)
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_resumeChangeset));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotRevision = false;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_resumeChangeset)
+        JSON_BLOCK_CHECK_REVISION(j_revision)
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_REVISION;
 }
 
 void JsonApiParser::detachFromActiveChangeset()
@@ -747,9 +765,25 @@ void JsonApiParser::detachFromActiveChangeset()
     throw 42;
 }
 
-void JsonApiParser::abortChangeset(const Revision revision)
+void JsonApiParser::abortChangeset(const Revision rev)
 {
-     throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_abortChangeset));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotRevision = false;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_abortChangeset)
+        JSON_BLOCK_CHECK_REVISION(j_revision)
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_REVISION;
 }
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
