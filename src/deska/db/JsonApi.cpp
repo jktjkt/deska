@@ -161,7 +161,7 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 #define JSON_BLOCK_CHECK_ATTRNAME \
     else if (node.name_ == j_attrName) { \
-        if (node.value_.get_str() != attrName) { \
+        if (node.value_.get_str() != attributeName) { \
             throw JsonParseError("Got unmatching attribute name"); \
         } \
         gotAttrName = true; \
@@ -417,13 +417,13 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     return res;
 }
 
-vector<Identifier> JsonApiParser::helperOverridenAttrs(const std::string &cmd, const Identifier &kindName, const Identifier &objectName, const Identifier &attrName)
+vector<Identifier> JsonApiParser::helperOverridenAttrs(const std::string &cmd, const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
 {
     Object o;
     o.push_back(Pair(j_command, cmd));
     o.push_back(Pair(j_kindName, kindName));
     o.push_back(Pair(j_objName, objectName));
-    o.push_back(Pair(j_attrName, attrName));
+    o.push_back(Pair(j_attrName, attributeName));
     sendJsonObject(o);
 
     bool gotCmdId = false;
@@ -454,15 +454,15 @@ vector<Identifier> JsonApiParser::helperOverridenAttrs(const std::string &cmd, c
 }
 
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                const Identifier &attrName)
+                                                const Identifier &attributeName)
 {
-    return helperOverridenAttrs(j_cmd_findObjectsOverridingAttrs, kindName, objectName, attrName);
+    return helperOverridenAttrs(j_cmd_findObjectsOverridingAttrs, kindName, objectName, attributeName);
 }
 
 vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                   const Identifier &attrName)
+                                                   const Identifier &attributeName)
 {
-    return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attrName);
+    return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attributeName);
 }
 
 

@@ -276,7 +276,7 @@ public:
      *
      * */
     virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
      *
@@ -288,7 +288,7 @@ public:
      * @see findOverriddenAttrs()
      * */
     virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     // Manipulating objects
 

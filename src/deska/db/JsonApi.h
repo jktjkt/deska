@@ -57,9 +57,9 @@ public:
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
             const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
     virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
     virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
 
     // Manipulating objects
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName );
@@ -101,7 +101,7 @@ private:
 
     /** @short Helper for findOverriddenAttrs and findNonOverriddenAttrs */
     std::vector<Identifier> helperOverridenAttrs(const std::string &cmd, const Identifier &kindName,
-                                                 const Identifier &objectName, const Identifier &attrName);
+                                                 const Identifier &objectName, const Identifier &attributeName);
 
     /** @short Helper for createObject() and deleteObject() */
     void helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName);
