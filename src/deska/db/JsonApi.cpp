@@ -35,6 +35,7 @@ static std::string j_newObjectName = "newObjectName";
 static std::string j_attrName = "attributeName";
 static std::string j_attrData = "attributeData";
 static std::string j_revision = "revision";
+static std::string j_currentRevision = "currentRevision";
 static std::string j_errorPrefix = "error";
 
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
@@ -52,6 +53,7 @@ static std::string j_cmd_removeAttribute = "removeObjectAttribute";
 static std::string j_cmd_setAttribute = "setObjectAttribute";
 static std::string j_cmd_startChangeset = "vcsStartChangeset";
 static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
+static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
 
 namespace Deska
 {
@@ -204,8 +206,8 @@ vector<Identifier> JsonApiParser::kindNames() const
         gotObjectName = true; \
     }
 
-#define JSON_BLOCK_CHECK_REVISION \
-    else if (node.name_ == j_revision) { \
+#define JSON_BLOCK_CHECK_REVISION(REV_IDENTIFICATION_NAME) \
+    else if (node.name_ == REV_IDENTIFICATION_NAME) { \
         if (node.value_.get_int64() != rev) { \
             throw JsonParseError("Got unmatching revision"); \
         } \
@@ -368,7 +370,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
             gotData = true;
         }
         JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_REVISION(j_revision)
         JSON_BLOCK_CHECK_ELSE
     }
 
@@ -405,7 +407,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
         }
         JSON_BLOCK_CHECK_KINDNAME
         JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_REVISION(j_revision)
         JSON_BLOCK_CHECK_ELSE
     }
 
@@ -448,7 +450,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
         }
         JSON_BLOCK_CHECK_KINDNAME
         JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_REVISION
+        JSON_BLOCK_CHECK_REVISION(j_revision)
         JSON_BLOCK_CHECK_ELSE
     }
 
@@ -685,7 +687,28 @@ Revision JsonApiParser::commitChangeset()
 
 Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_rebaseChangeset));
+    // The following cast is required because the json_spirit doesn't have an overload for uint...
+    o.push_back(Pair(j_currentRevision, static_cast<int64_t>(oldRevision)));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotRevision = false;
+    Revision revision = 0;
+    // An alias for JSON_BLOCK_CHECK_REVISION
+    const Revision &rev = oldRevision;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_rebaseChangeset)
+        JSON_BLOCK_CHECK_REVISION(j_currentRevision)
+        JSON_BLOCK_EXTRACT_REVISION
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_REVISION;
+    return revision;
 }
 
 std::vector<Revision> JsonApiParser::pendingChangesetsByMyself()

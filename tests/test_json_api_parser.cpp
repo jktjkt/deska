@@ -296,3 +296,13 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
+
+/** @short Basic test for reabseChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":666}";
+    jsonDbOutput = "{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": 666, \"revision\": 333666 }";
+    BOOST_CHECK_EQUAL(j->rebaseChangeset(666), 333666);
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
