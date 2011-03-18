@@ -116,48 +116,18 @@ json_spirit::Object JsonApiParser::readJsonObject() const
     return o;
 }
 
-vector<Identifier> JsonApiParser::kindNames() const
-{
-    // Send the command
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_kindNames));
-    sendJsonObject(o);
-
-    // Retrieve and process the response
-    bool gotCmdId = false;
-    bool gotData = false;
-    vector<Identifier> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        if (node.name_ == j_response) {
-            if (node.value_.get_str() != j_cmd_kindNames)
-                throw JsonParseError("Response belongs to another command");
-            gotCmdId = true;
-        } else if (node.name_ == "topLevelObjectKinds") {
-            json_spirit::Array data = node.value_.get_array();
-            // simply copy a string from the JSON representation into a vector<string>
-            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
-            gotData = true;
-        } else {
-            throw JsonParseError("Response contains aditional data");
-        }
-    }
-    if (!gotCmdId)
-        throw JsonParseError("Response doesn't contain command identification");
-    if (!gotData)
-        throw JsonParseError("Response doesn't contain usable data");
-
-    return res;
-}
 
 #define JSON_REQUIRE_CMD \
     if (!gotCmdId) \
         throw JsonParseError("Response doesn't contain command identification");
 
+#define JSON_REQUIRE_DATA \
+    if (!gotData) \
+        throw JsonParseError("Response doesn't contain usable data");
+
 #define JSON_REQUIRE_CMD_DATA_KINDNAME \
     JSON_REQUIRE_CMD \
-    if (!gotData) \
-        throw JsonParseError("Response doesn't contain usable data"); \
+    JSON_REQUIRE_DATA \
     if (!gotKindName) \
         throw JsonParseError("Response doesn't contain kind identification");
 
@@ -238,6 +208,34 @@ vector<Identifier> JsonApiParser::kindNames() const
     else { \
         throw JsonParseError("Response contains aditional data"); \
     }
+
+
+vector<Identifier> JsonApiParser::kindNames() const
+{
+    // Send the command
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_kindNames));
+    sendJsonObject(o);
+
+    // Retrieve and process the response
+    bool gotCmdId = false;
+    bool gotData = false;
+    vector<Identifier> res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindNames)
+        else if (node.name_ == "topLevelObjectKinds") {
+            json_spirit::Array data = node.value_.get_array();
+            // simply copy a string from the JSON representation into a vector<string>
+            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
+            gotData = true;
+        }
+        JSON_BLOCK_CHECK_ELSE
+    }
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_DATA;
+    return res;
+}
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
