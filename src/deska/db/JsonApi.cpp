@@ -31,6 +31,7 @@ static std::string j_command = "command";
 static std::string j_response = "response";
 static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
+static std::string j_newObjectName = "newObjectName";
 static std::string j_attrName = "attributeName";
 static std::string j_revision = "revision";
 static std::string j_errorPrefix = "error";
@@ -45,6 +46,7 @@ static std::string j_cmd_findObjectsOverridingAttrs = "getObjectsOverridingAttri
 static std::string j_cmd_findObjectsNotOverridingAttrs = "getObjectsNotOverridingAttribute";
 static std::string j_cmd_createObject = "createObject";
 static std::string j_cmd_deleteObject = "deleteObject";
+static std::string j_cmd_renameObject = "renameObject";
 
 namespace Deska
 {
@@ -501,7 +503,41 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_renameObject));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, oldName));
+    o.push_back(Pair(j_newObjectName, newName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotNewObjectName = false;
+
+    // Setup an alias for the JSON_BLOCK_CHECK_OBJNAME macro. It is ugly, but I feel like having "oldName" as the argument
+    // name is beneficial.
+    const Identifier &objectName = oldName;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_renameObject)
+        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_renameObject, gotData)
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        else if (node.name_ == j_newObjectName) {
+            if (node.value_.get_str() != newName) { \
+                throw JsonParseError("newObjectName doesn't match"); \
+            } \
+            gotNewObjectName = true;
+        }
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
+    JSON_REQUIRE_OBJNAME;
+    if (!gotNewObjectName) \
+        throw JsonParseError("Response doesn't contain newObjectName identification");
 }
 
 void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)

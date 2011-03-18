@@ -226,3 +226,13 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixture)
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
+
+/** @short Basic test for renameObject() */
+BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}";
+    jsonDbOutput = "{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}";
+    j->renameObject("kind", "ooooold", "new");
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
