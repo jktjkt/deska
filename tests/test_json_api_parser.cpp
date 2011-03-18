@@ -306,3 +306,18 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
+
+/** @short Basic test for pendingChangesetsByMyself() */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"vcsGetPendingChangesetsByMyself\"}";
+    jsonDbOutput = "{\"response\": \"vcsGetPendingChangesetsByMyself\", \"revisions\": [1, 2, 3]}";
+    vector<Revision> expected;
+    expected.push_back(1);
+    expected.push_back(2);
+    expected.push_back(3);
+    vector<Revision> res = j->pendingChangesetsByMyself();
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}

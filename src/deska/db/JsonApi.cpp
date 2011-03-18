@@ -54,6 +54,7 @@ static std::string j_cmd_setAttribute = "setObjectAttribute";
 static std::string j_cmd_startChangeset = "vcsStartChangeset";
 static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
 static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
+static std::string j_cmd_pendingChangesetsByMyself = "vcsGetPendingChangesetsByMyself";
 
 namespace Deska
 {
@@ -709,9 +710,31 @@ Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
     return revision;
 }
 
-std::vector<Revision> JsonApiParser::pendingChangesetsByMyself()
+vector<Revision> JsonApiParser::pendingChangesetsByMyself()
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_pendingChangesetsByMyself));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+
+    vector<Revision> res;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_pendingChangesetsByMyself)
+        else if (node.name_ == "revisions") {
+            json_spirit::Array data = node.value_.get_array();
+            // Copy int64 and store them into a vector<Revision>
+            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_int64));
+            gotData = true;
+        }
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD;
+    JSON_REQUIRE_DATA;
+    return res;
 }
 
 Revision JsonApiParser::resumeChangeset(const Revision oldRevision)
