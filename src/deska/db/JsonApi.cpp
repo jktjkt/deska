@@ -788,6 +788,16 @@ public:
         return *(--fields.end());
     }
 
+    Field &write(const std::string &name, const Revision value)
+    {
+        Field f(name);
+        f.jsonValue = static_cast<int64_t>(value);
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
     Field &read(const std::string &name)
     {
         Field f(name);
@@ -822,27 +832,12 @@ Revision JsonApiParser::commitChangeset()
 
 Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_rebaseChangeset));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_currentRevision, static_cast<int64_t>(oldRevision)));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotRevision = false;
     Revision revision = 0;
-    // An alias for JSON_BLOCK_CHECK_REVISION
-    const Revision &rev = oldRevision;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_rebaseChangeset)
-        JSON_BLOCK_CHECK_REVISION(j_currentRevision)
-        JSON_BLOCK_EXTRACT_REVISION
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_REVISION;
+    JsonHandler h(this);
+    h.command(j_cmd_rebaseChangeset);
+    h.write(j_currentRevision, oldRevision);
+    h.read(j_revision).extractRevision(&revision);
+    h.work();
     return revision;
 }
 
