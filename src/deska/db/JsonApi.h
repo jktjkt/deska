@@ -91,7 +91,7 @@ public:
      */
     boost::signals2::signal<std::string (), boost::signals2::last_value<std::string> > readString;
 
-private:
+//private:
     /** @short The implementation wants to send a JSON object */
     void sendJsonObject(const json_spirit::Object &o) const;
     /** @short The implementation tries to obtain the JSON data */

@@ -20,6 +20,12 @@
 * */
 
 #include <boost/foreach.hpp>
+/*#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/home/phoenix/bind/bind_member_variable.hpp>*/
+
+#include <boost/lambda/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 #include "JsonApi.h"
 
 using namespace std;
@@ -655,6 +661,68 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     if (!gotAttrData)
         throw JsonParseError("Response did not specify attributeData");
 }
+
+
+struct Field
+{
+    bool isForSending;
+    bool isRequiredToReceive;
+    bool isAlreadyReceived;
+    std::string jsonField;
+    json_spirit::Value jsonValue;
+
+    std::string name() const {return jsonField;}
+
+    Field(): isForSending(false), isRequiredToReceive(false), isAlreadyReceived(false) {}
+};
+
+class JsonHandler
+{
+public:
+    JsonHandler(JsonApiParser *api): p(api)
+    {
+    }
+
+    void send()
+    {
+        json_spirit::Object o;
+        BOOST_FOREACH(const Field &f, fields) {
+            if (f.isForSending) {
+                o.push_back(json_spirit::Pair(f.jsonField, f.jsonValue));
+            }
+        }
+        p->sendJsonObject(o);
+    }
+
+    void receive()
+    {
+        BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
+            /*using namespace boost::phoenix;
+            using namespace arg_names;*/
+
+            /*std::string key = node.name_;
+            std::vector<Field>::iterator it =
+                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, arg1) == key);*/
+            using namespace boost::lambda;
+            std::vector<Field>::iterator it =
+                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, boost::lambda::_1) == node.name_);
+        }
+    }
+
+    void addIOField(const std::string &name, const std::string &value)
+    {
+        Field f;
+        f.jsonField = name;
+        f.jsonValue = value;
+        f.isForSending = true;
+        f.isRequiredToReceive = true;
+        fields.push_back(f);
+    }
+
+private:
+    JsonApiParser *p;
+    std::vector<Field> fields;
+};
 
 Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
 {
