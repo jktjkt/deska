@@ -165,7 +165,7 @@ vector<Identifier> JsonApiParser::kindNames() const
         gotAttrName = true; \
     }
 
-#define JSON_BLOCK_CHECK_BOOL_RESULT(CMD) \
+#define JSON_BLOCK_CHECK_BOOL_RESULT(CMD, RESULT_VARIABLE) \
     else if (node.name_ == "result") { \
         if (!node.value_.get_bool()) { \
             /* Yes, we really do require true here. The idea is that failed operations are reported using another, \
@@ -174,7 +174,7 @@ vector<Identifier> JsonApiParser::kindNames() const
             s << "Mallformed " << CMD << " reply: got something else than true as a 'result'."; \
             throw JsonParseError(s.str()); \
         } \
-        gotData = true; \
+        RESULT_VARIABLE = true; \
     }
 
 #define JSON_BLOCK_CHECK_ELSE \
@@ -479,7 +479,7 @@ void JsonApiParser::helperCreateDeleteObject(const std::string &cmd, const Ident
 
     BOOST_FOREACH(const Pair& node, readJsonObject()) {
         JSON_BLOCK_CHECK_COMMAND(cmd)
-        JSON_BLOCK_CHECK_BOOL_RESULT(cmd)
+        JSON_BLOCK_CHECK_BOOL_RESULT(cmd, gotData)
         JSON_BLOCK_CHECK_KINDNAME
         JSON_BLOCK_CHECK_OBJNAME
         JSON_BLOCK_CHECK_ELSE
