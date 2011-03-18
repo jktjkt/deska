@@ -62,7 +62,7 @@ JsonApiParser::~JsonApiParser()
 
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    writeString(json_spirit::write(o));
+    writeString(json_spirit::write(o, json_spirit::remove_trailing_zeros));
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
