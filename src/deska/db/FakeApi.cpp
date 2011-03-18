@@ -173,9 +173,8 @@ std::vector<Revision> FakeApi::pendingChangesetsByMyself()
     return std::vector<Revision>();
 }
 
-Revision FakeApi::resumeChangeset(const Revision oldRevision)
+void FakeApi::resumeChangeset(const Revision oldRevision)
 {
-    return 0;
 }
 
 void FakeApi::detachFromActiveChangeset()

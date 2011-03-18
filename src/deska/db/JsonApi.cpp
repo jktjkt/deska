@@ -737,7 +737,7 @@ vector<Revision> JsonApiParser::pendingChangesetsByMyself()
     return res;
 }
 
-Revision JsonApiParser::resumeChangeset(const Revision oldRevision)
+void JsonApiParser::resumeChangeset(const Revision oldRevision)
 {
     throw 42;
 }

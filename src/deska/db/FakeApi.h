@@ -64,7 +64,7 @@ public:
     virtual Revision commitChangeset();
     virtual Revision rebaseChangeset(const Revision oldRevision);
     virtual std::vector<Revision> pendingChangesetsByMyself();
-    virtual Revision resumeChangeset(const Revision oldRevision);
+    virtual void resumeChangeset(const Revision oldRevision);
     virtual void detachFromActiveChangeset();
     virtual void abortChangeset(const Revision rev);
 
