@@ -20,8 +20,9 @@
 * */
 
 #include <boost/foreach.hpp>
-#include <boost/lambda/bind.hpp>
-#include <boost/lambda/lambda.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/home/phoenix/bind/bind_member_variable.hpp>
 #include "JsonApi.h"
 
 using namespace std;
@@ -690,13 +691,14 @@ public:
 
     void receive()
     {
-        using namespace boost::lambda;
+        using namespace boost::phoenix;
+        using namespace arg_names;
 
         BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
 
             // At first, find a matching rule for this particular key
             std::vector<Field>::iterator rule =
-                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, boost::lambda::_1) == node.name_);
+                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, arg1) == node.name_);
 
             if (rule == fields.end()) {
                 // No such rule
@@ -718,7 +720,7 @@ public:
             // FIXME: check the value, store it somewhere, etc etc
         }
 
-        std::vector<Field>::iterator rule = std::find_if(fields.begin(), fields.end(), !bind(&Field::isAlreadyReceived, boost::lambda::_1) );
+        std::vector<Field>::iterator rule = std::find_if(fields.begin(), fields.end(), !bind(&Field::isAlreadyReceived, arg1) );
         if ( rule != fields.end() ) {
             std::ostringstream s;
             s << "Mandatory field '" << rule->jsonField << "' not present in the response";
