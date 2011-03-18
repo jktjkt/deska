@@ -665,10 +665,28 @@ struct Field
     bool isForSending;
     bool isRequiredToReceive;
     bool isAlreadyReceived;
-    std::string jsonField;
+    bool valueShouldMatch;
+    std::string jsonFieldRead, jsonFieldWrite;
     json_spirit::Value jsonValue;
+    Revision *e_Revision;
 
-    Field(): isForSending(false), isRequiredToReceive(false), isAlreadyReceived(false) {}
+    Field(const std::string &name):
+        isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
+        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0)
+    {
+    }
+
+    Field &optional()
+    {
+        isRequiredToReceive = false;
+        return *this;
+    }
+
+    Field &extractRevision(Revision *where)
+    {
+        e_Revision = where;
+        return *this;
+    }
 };
 
 class JsonHandler
@@ -683,7 +701,7 @@ public:
         json_spirit::Object o;
         BOOST_FOREACH(const Field &f, fields) {
             if (f.isForSending) {
-                o.push_back(json_spirit::Pair(f.jsonField, f.jsonValue));
+                o.push_back(json_spirit::Pair(f.jsonFieldWrite, f.jsonValue));
             }
         }
         p->sendJsonObject(o);
@@ -698,7 +716,7 @@ public:
 
             // At first, find a matching rule for this particular key
             std::vector<Field>::iterator rule =
-                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, arg1) == node.name_);
+                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonFieldRead, arg1) == node.name_);
 
             if (rule == fields.end()) {
                 // No such rule
@@ -714,28 +732,67 @@ public:
                 throw JsonParseError(s.str());
             }
 
+            // Check the value
+            if (rule->valueShouldMatch) {
+                // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
+                if (!(node.value_ == rule->jsonValue)) {
+                    std::ostringstream s;
+                    s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
+                    throw JsonParseError(s.str());
+                }
+            }
+
+            // Store revision
+            if (rule->e_Revision) {
+                *(rule->e_Revision) = node.value_.get_int64();
+            }
+
             // Mark this field as "processed"
             rule->isAlreadyReceived = true;
-
-            // FIXME: check the value, store it somewhere, etc etc
         }
 
-        std::vector<Field>::iterator rule = std::find_if(fields.begin(), fields.end(), !bind(&Field::isAlreadyReceived, arg1) );
+        std::vector<Field>::iterator rule =
+                std::find_if(fields.begin(), fields.end(),
+                ! bind(&Field::isAlreadyReceived, arg1) && bind(&Field::isRequiredToReceive, arg1) );
         if ( rule != fields.end() ) {
             std::ostringstream s;
-            s << "Mandatory field '" << rule->jsonField << "' not present in the response";
+            s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
             throw JsonParseError(s.str());
         }
     }
 
-    void addIOField(const std::string &name, const std::string &value)
+    void work()
     {
-        Field f;
-        f.jsonField = name;
+        send();
+        receive();
+    }
+
+    Field &command(const std::string &cmd)
+    {
+        Field f(j_command);
+        f.jsonFieldRead = j_response;
+        f.jsonValue = cmd;
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    Field &write(const std::string &name, const std::string &value)
+    {
+        Field f(name);
         f.jsonValue = value;
         f.isForSending = true;
-        f.isRequiredToReceive = true;
+        f.valueShouldMatch = true;
         fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    Field &read(const std::string &name)
+    {
+        Field f(name);
+        fields.push_back(f);
+        return *(--fields.end());
     }
 
 private:
@@ -745,22 +802,11 @@ private:
 
 Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
 {
-    Object o;
-    o.push_back(Pair(j_command, cmd));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotRevision = false;
     Revision revision = 0;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(cmd)
-        JSON_BLOCK_EXTRACT_REVISION
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_REVISION;
+    JsonHandler h(this);
+    h.command(cmd);
+    h.read(j_revision).extractRevision(&revision);
+    h.work();
     return revision;
 }
 
