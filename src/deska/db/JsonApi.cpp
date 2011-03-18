@@ -697,6 +697,32 @@ public:
             // At first, find a matching rule for this particular key
             std::vector<Field>::iterator rule =
                     std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, boost::lambda::_1) == node.name_);
+
+            if (rule == fields.end()) {
+                // No such rule
+                std::ostringstream s;
+                s << "Unhandled JSON field '" << node.name_ << "'";
+                throw JsonParseError(s.str());
+            }
+
+            if (rule->isAlreadyReceived) {
+                // Duplicate rule
+                std::ostringstream s;
+                s << "Duplicate JSON field '" << node.name_ << "'";
+                throw JsonParseError(s.str());
+            }
+
+            // Mark this field as "processed"
+            rule->isAlreadyReceived = true;
+
+            // FIXME: check the value, store it somewhere, etc etc
+        }
+
+        std::vector<Field>::iterator rule = std::find_if(fields.begin(), fields.end(), !bind(&Field::isAlreadyReceived, boost::lambda::_1) );
+        if ( rule != fields.end() ) {
+            std::ostringstream s;
+            s << "Mandatory field '" << rule->jsonField << "' not present in the response";
+            throw JsonParseError(s.str());
         }
     }
 
