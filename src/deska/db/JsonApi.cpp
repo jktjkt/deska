@@ -20,10 +20,6 @@
 * */
 
 #include <boost/foreach.hpp>
-/*#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/home/phoenix/bind/bind_member_variable.hpp>*/
-
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 #include "JsonApi.h"
@@ -671,8 +667,6 @@ struct Field
     std::string jsonField;
     json_spirit::Value jsonValue;
 
-    std::string name() const {return jsonField;}
-
     Field(): isForSending(false), isRequiredToReceive(false), isAlreadyReceived(false) {}
 };
 
@@ -696,15 +690,12 @@ public:
 
     void receive()
     {
-        BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
-            /*using namespace boost::phoenix;
-            using namespace arg_names;*/
+        using namespace boost::lambda;
 
-            /*std::string key = node.name_;
-            std::vector<Field>::iterator it =
-                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, arg1) == key);*/
-            using namespace boost::lambda;
-            std::vector<Field>::iterator it =
+        BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
+
+            // At first, find a matching rule for this particular key
+            std::vector<Field>::iterator rule =
                     std::find_if(fields.begin(), fields.end(), bind(&Field::jsonField, boost::lambda::_1) == node.name_);
         }
     }
