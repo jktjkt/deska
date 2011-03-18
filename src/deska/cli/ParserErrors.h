@@ -70,7 +70,8 @@ public:
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a top-level object type occures.
-    *          Prints information about the error
+    *
+    * Prints information about the error.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -94,7 +95,8 @@ public:
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a name of an attribute occures.
-    *          Prints information about the error
+    *
+    * Prints information about the error.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -118,7 +120,8 @@ public:
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a value of an attribute occures.
-    *          Prints information about the error
+    *
+    * Prints information about the error.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -130,9 +133,7 @@ public:
 
 
 
-/** @short Class used in visitor for boost::spirit::info to extract
-*          keywords from it to std::vector passed to the constructor
-*/
+/** @short Class used in visitor for boost::spirit::info to extract keywords from it to std::vector passed to the constructor */
 class InfoExtractor
 {
 public:
