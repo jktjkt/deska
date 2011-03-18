@@ -296,7 +296,7 @@ public:
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName ) = 0;
 
     /** @short Create new object */
-    virtual void createObject( const Identifier &kindName, const Identifier &objectname ) = 0;
+    virtual void createObject( const Identifier &kindName, const Identifier &objectName ) = 0;
 
     /** @short Change object's name */
     virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;

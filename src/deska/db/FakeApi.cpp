@@ -126,7 +126,7 @@ void FakeApi::deleteObject( const Identifier &kindName, const Identifier &object
 
 
 
-void FakeApi::createObject( const Identifier &kindName, const Identifier &objectname )
+void FakeApi::createObject( const Identifier &kindName, const Identifier &objectName )
 {
 }
 

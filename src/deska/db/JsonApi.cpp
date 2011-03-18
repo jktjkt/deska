@@ -454,7 +454,7 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     throw 42;
 }
 
-void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectname )
+void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
     throw 42;
 }
