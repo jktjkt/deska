@@ -43,6 +43,8 @@ static std::string j_cmd_objectData = "getObjectData";
 static std::string j_cmd_resolvedObjectData = "getResolvedObjectData";
 static std::string j_cmd_findObjectsOverridingAttrs = "getObjectsOverridingAttribute";
 static std::string j_cmd_findObjectsNotOverridingAttrs = "getObjectsNotOverridingAttribute";
+static std::string j_cmd_createObject = "createObject";
+static std::string j_cmd_deleteObject = "deleteObject";
 
 namespace Deska
 {
@@ -449,14 +451,49 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
     return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attrName);
 }
 
+
+void JsonApiParser::helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName)
+{
+    Object o;
+    o.push_back(Pair(j_command, cmd));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(cmd)
+        else if (node.name_ == "result") {
+            if (!node.value_.get_bool()) {
+                // Yes, we really do require true here. The idea is that failed operations are reported using another,
+                // different mechanism, likely via an exception.
+                std::ostringstream s;
+                s << "Mallformed " << cmd << " reply: got something else than true as a 'result'.";
+                throw JsonParseError(s.str());
+            }
+            gotData = true;
+        }
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
+    JSON_REQUIRE_OBJNAME;
+}
+
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
 {
-    throw 42;
+    helperCreateDeleteObject(j_cmd_deleteObject, kindName, objectName);
 }
 
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
-    throw 42;
+    helperCreateDeleteObject(j_cmd_createObject, kindName, objectName);
 }
 
 void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )

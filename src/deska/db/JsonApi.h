@@ -102,6 +102,9 @@ private:
     /** @short Helper for findOverriddenAttrs and findNonOverriddenAttrs */
     std::vector<Identifier> helperOverridenAttrs(const std::string &cmd, const Identifier &kindName,
                                                  const Identifier &objectName, const Identifier &attrName);
+
+    /** @short Helper for createObject() and deleteObject() */
+    void helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName);
 };
 
 }

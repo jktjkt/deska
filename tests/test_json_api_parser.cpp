@@ -206,3 +206,23 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixture)
     vector<Identifier> res = j->findNonOverriddenAttrs("k", "o", "aa");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
+
+/** @short Basic test for createObject() */
+BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}";
+    jsonDbOutput = "{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}";
+    j->createObject("k", "o");
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short Basic test for deleteObject() */
+BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}";
+    jsonDbOutput = "{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}";
+    j->deleteObject("k", "o");
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
