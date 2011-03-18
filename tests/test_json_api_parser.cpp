@@ -236,3 +236,13 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixture)
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
+
+/** @short Basic test for removeAttribute() */
+BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"removeObjectAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}";
+    jsonDbOutput = "{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeObjectAttribute\", \"result\": true}";
+    j->removeAttribute("kind", "obj", "fancyAttr");
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}

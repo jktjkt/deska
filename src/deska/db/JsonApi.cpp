@@ -47,6 +47,7 @@ static std::string j_cmd_findObjectsNotOverridingAttrs = "getObjectsNotOverridin
 static std::string j_cmd_createObject = "createObject";
 static std::string j_cmd_deleteObject = "deleteObject";
 static std::string j_cmd_renameObject = "renameObject";
+static std::string j_cmd_removeAttribute = "removeObjectAttribute";
 
 namespace Deska
 {
@@ -542,7 +543,31 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_removeAttribute));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    o.push_back(Pair(j_attrName, attributeName));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotAttrName = false;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_removeAttribute)
+        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_removeAttribute, gotData)
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_ATTRNAME
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
+    JSON_REQUIRE_OBJNAME;
+    JSON_REQUIRE_ATTRNAME;
 }
 
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
