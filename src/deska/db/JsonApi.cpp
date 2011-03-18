@@ -51,6 +51,9 @@ static std::string j_cmd_renameObject = "renameObject";
 static std::string j_cmd_removeAttribute = "removeObjectAttribute";
 static std::string j_cmd_setAttribute = "setObjectAttribute";
 
+namespace Deska
+{
+
 /** @short Variant visitor convert a Deska::Value to json_spirit::Value */
 struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
@@ -70,9 +73,22 @@ struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
     }
 };
 
+/** @short Convert a json_spirit::Value to Deska::Value
 
-namespace Deska
+No type information is checked.
+*/
+Value jsonValueToDeskaValue(const json_spirit::Value &v)
 {
+    if (v.type() == json_spirit::str_type) {
+        return v.get_str();
+    } else if (v.type() == json_spirit::int_type) {
+        return v.get_int();
+    } else if (v.type() == json_spirit::real_type) {
+        return v.get_real();
+    } else {
+        throw JsonParseError("Unsupported type of attribute data");
+    }
+}
 
 JsonApiParser::JsonApiParser()
 {
@@ -347,20 +363,6 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     return res;
 }
 
-Value JsonApiParser::jsonValueToDeskaValue(const json_spirit::Value &v)
-{
-    // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-    if (v.type() == json_spirit::str_type) {
-        return v.get_str();
-    } else if (v.type() == json_spirit::int_type) {
-        return v.get_int();
-    } else if (v.type() == json_spirit::real_type) {
-        return v.get_real();
-    } else {
-        throw JsonParseError("Unsupported type of attribute data");
-    }
-}
-
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )
 {
     Object o;
@@ -382,6 +384,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
         JSON_BLOCK_CHECK_COMMAND(j_cmd_objectData)
         else if (node.name_ == "objectData") {
             BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
+                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
                 res[item.name_] = jsonValueToDeskaValue(item.value_);
             }
             gotData = true;
@@ -424,6 +427,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
                 if (a.size() != 2) {
                     throw JsonParseError("Malformed record of resolved attribute");
                 }
+                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
                 res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
             }
             gotData = true;
