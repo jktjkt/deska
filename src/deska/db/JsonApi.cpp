@@ -33,6 +33,7 @@ static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
 static std::string j_newObjectName = "newObjectName";
 static std::string j_attrName = "attributeName";
+static std::string j_attrData = "attributeData";
 static std::string j_revision = "revision";
 static std::string j_errorPrefix = "error";
 
@@ -48,6 +49,27 @@ static std::string j_cmd_createObject = "createObject";
 static std::string j_cmd_deleteObject = "deleteObject";
 static std::string j_cmd_renameObject = "renameObject";
 static std::string j_cmd_removeAttribute = "removeObjectAttribute";
+static std::string j_cmd_setAttribute = "setObjectAttribute";
+
+/** @short Variant visitor convert a Deska::Value to json_spirit::Value */
+struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    /** @short Simply use json_spirit::Value's overloaded constructor */
+    template <typename T>
+    result_type operator()(const T &value) const
+    {
+        // A strange thing -- when the operator() is not const-qualified, it won't compile.
+        // Too bad that the documentation doesn't mention that. Could it be related to the
+        // fact that the variant we operate on is itself const? But why is there the
+        // requirement to const-qualify the operator() and not only the value it reads?
+        //
+        // How come that this builds fine:
+        // template <typename T>
+        // result_type operator()(T &value) const
+        return value;
+    }
+};
+
 
 namespace Deska
 {
@@ -573,7 +595,43 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
                            const Value &value)
 {
-    throw 42;
+    Object o;
+    o.push_back(Pair(j_command, j_cmd_setAttribute));
+    o.push_back(Pair(j_kindName, kindName));
+    o.push_back(Pair(j_objName, objectName));
+    o.push_back(Pair(j_attrName, attributeName));
+    json_spirit::Value jsonAttrValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
+    o.push_back(Pair(j_attrData, jsonAttrValue));
+    sendJsonObject(o);
+
+    bool gotCmdId = false;
+    bool gotData = false;
+    bool gotKindName = false;
+    bool gotObjectName = false;
+    bool gotAttrName = false;
+    bool gotAttrData = false;
+
+    BOOST_FOREACH(const Pair& node, readJsonObject()) {
+        JSON_BLOCK_CHECK_COMMAND(j_cmd_setAttribute)
+        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_setAttribute, gotData)
+        JSON_BLOCK_CHECK_KINDNAME
+        JSON_BLOCK_CHECK_OBJNAME
+        JSON_BLOCK_CHECK_ATTRNAME
+        else if (node.name_ == j_attrData) {
+            // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
+            if (!(node.value_ == jsonAttrValue)) {
+                throw JsonParseError("Returned value of attributeData is different than what we requested");
+            }
+            gotAttrData = true;
+        }
+        JSON_BLOCK_CHECK_ELSE
+    }
+
+    JSON_REQUIRE_CMD_DATA_KINDNAME;
+    JSON_REQUIRE_OBJNAME;
+    JSON_REQUIRE_ATTRNAME;
+    if (!gotAttrData)
+        throw JsonParseError("Response did not specify attributeData");
 }
 
 Revision JsonApiParser::startChangeset()

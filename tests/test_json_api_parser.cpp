@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/foreach.hpp>
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
@@ -245,4 +246,33 @@ BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixture)
     j->removeAttribute("kind", "obj", "fancyAttr");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short A three-member tuple for holding JSON input/output and the corresponding Deska::Value */
+struct SetAttrTestData {
+    std::string jsonIn;
+    std::string jsonOut;
+    Value v;
+    SetAttrTestData() {};
+    SetAttrTestData(const std::string &ji, const std::string &jo, const Value &val): jsonIn(ji), jsonOut(jo), v(val) {}
+};
+
+/** @short Basic test for setAttribute() */
+BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixture)
+{
+    // We want to test all of the supported data types, that's why we use a vector and some rather complicated boilerplate code here
+    vector<SetAttrTestData> data;
+    std::string jsonInputPrefix = "{\"command\":\"setObjectAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
+    std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
+            "\"response\": \"setObjectAttribute\", \"result\": true, \"attributeData\": ";
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}", jsonOutputSuffix + "\"some string\"}", "some string"));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "123}", jsonOutputSuffix + " 123}", 123));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}", jsonOutputSuffix + " 333.666}", 333.666));
+    BOOST_FOREACH(const SetAttrTestData &value, data) {
+        jsonDbInput = value.jsonIn;
+        jsonDbOutput = value.jsonOut;
+        j->setAttribute("k", "o", "a", value.v);
+        BOOST_CHECK(jsonDbInput.empty());
+        BOOST_CHECK(jsonDbOutput.empty());
+    }
 }
