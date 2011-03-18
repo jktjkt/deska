@@ -114,6 +114,10 @@ vector<Identifier> JsonApiParser::kindNames() const
     if (!gotRevision) \
         throw JsonParseError("Response doesn't contain revision");
 
+#define JSON_REQUIRE_OBJNAME \
+    if (!gotObjectName) \
+        throw JsonParseError("Response doesn't contain object identification");
+
 #define JSON_BLOCK_CHECK_COMMAND(X) \
     if (node.name_ == j_response) { \
         if (node.value_.get_str() != X) \
@@ -336,8 +340,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
-    if (!gotObjectName)
-        throw JsonParseError("Response doesn't contain object identification");
+    JSON_REQUIRE_OBJNAME;
 
     return res;
 }
@@ -379,8 +382,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     }
 
     JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
-    if (!gotObjectName)
-        throw JsonParseError("Response doesn't contain object identification");
+    JSON_REQUIRE_OBJNAME;
 
     return res;
 }
