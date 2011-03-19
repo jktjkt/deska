@@ -419,28 +419,10 @@ json_spirit::Object JsonApiParser::readJsonObject() const
 
 vector<Identifier> JsonApiParser::kindNames() const
 {
-    // Send the command
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_kindNames));
-    sendJsonObject(o);
-
-    // Retrieve and process the response
-    bool gotCmdId = false;
-    bool gotData = false;
     vector<Identifier> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindNames)
-        else if (node.name_ == "topLevelObjectKinds") {
-            json_spirit::Array data = node.value_.get_array();
-            // simply copy a string from the JSON representation into a vector<string>
-            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_ELSE
-    }
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_DATA;
+    JsonHandler h(this, j_cmd_kindNames);
+    h.read("topLevelObjectKinds").extractIdentifiersVector(&res);
+    h.work();
     return res;
 }
 
@@ -550,37 +532,14 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     return res;
 }
 
-vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision rev ) const
+vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision revision ) const
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_kindInstances));
-    o.push_back(Pair(j_kindName, kindName));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
-    sendJsonObject(o);
-
-    // Retrieve and process the response
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotRevision = false;
     vector<Identifier> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindInstances)
-        else if (node.name_ == "objectInstances") {
-            json_spirit::Array data = node.value_.get_array();
-            // simply copy a string from the JSON representation into a vector<string>
-            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_REVISION(j_revision)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
-
+    JsonHandler h(this, j_cmd_kindInstances);
+    h.write(j_kindName, kindName);
+    h.write(j_revision, revision);
+    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.work();
     return res;
 }
 
