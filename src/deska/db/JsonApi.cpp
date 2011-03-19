@@ -692,8 +692,9 @@ struct Field
 class JsonHandler
 {
 public:
-    JsonHandler(JsonApiParser *api): p(api)
+    JsonHandler(JsonApiParser *api, const std::string &cmd): p(api)
     {
+        command(cmd);
     }
 
     void send()
@@ -767,7 +768,7 @@ public:
         receive();
     }
 
-    Field &command(const std::string &cmd)
+    void command(const std::string &cmd)
     {
         Field f(j_command);
         f.jsonFieldRead = j_response;
@@ -775,7 +776,6 @@ public:
         f.isForSending = true;
         f.valueShouldMatch = true;
         fields.push_back(f);
-        return *(--fields.end());
     }
 
     Field &write(const std::string &name, const std::string &value)
@@ -813,8 +813,7 @@ private:
 Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
 {
     Revision revision = 0;
-    JsonHandler h(this);
-    h.command(cmd);
+    JsonHandler h(this, cmd);
     h.read(j_revision).extractRevision(&revision);
     h.work();
     return revision;
@@ -833,8 +832,7 @@ Revision JsonApiParser::commitChangeset()
 Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
 {
     Revision revision = 0;
-    JsonHandler h(this);
-    h.command(j_cmd_rebaseChangeset);
+    JsonHandler h(this, j_cmd_rebaseChangeset);
     h.write(j_currentRevision, oldRevision);
     h.read(j_revision).extractRevision(&revision);
     h.work();
@@ -870,8 +868,7 @@ vector<Revision> JsonApiParser::pendingChangesetsByMyself()
 
 void JsonApiParser::resumeChangeset(const Revision revision)
 {
-    JsonHandler h(this);
-    h.command(j_cmd_resumeChangeset);
+    JsonHandler h(this, j_cmd_resumeChangeset);
     h.write(j_revision, revision);
     h.work();
 }
