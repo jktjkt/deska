@@ -107,8 +107,8 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
     phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>( start, keyErrorHandler( _1, _2, _3, _4, phoenix::ref( attributes ) ) );
-    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4 ) );
+    on_error<fail>( start, keyErrorHandler( _1, _2, _3, _4, phoenix::ref( attributes ), m_parent ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, m_parent ) );
 }
 
 
@@ -158,8 +158,8 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>( start, objectErrorHandler( _1, _2, _3, _4, phoenix::ref( kinds ) ) );
-    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4 ) );
+    on_error<fail>( start, objectErrorHandler( _1, _2, _3, _4, phoenix::ref( kinds ), m_parent ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, m_parent ) );
 }
 
 
@@ -301,9 +301,14 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
         if ( !parsingSucceeded ) {
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
+            for( std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it ) {
+                std::cout << it->toString() << std::endl;
+            }
 #endif
             break;
         }
+
+        parseErrors.clear();
 
     }
 
@@ -391,6 +396,14 @@ void ParserImpl<Iterator>::parsedSingleKind()
 
 
 template <typename Iterator>
+void ParserImpl<Iterator>::addParseError( const ParseError<Iterator> &error )
+{
+    parseErrors.push_back( error );
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesParser<Iterator>* attributesParser )
 {
     std::vector<KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
@@ -466,6 +479,8 @@ template void ParserImpl<iterator_type>::categoryEntered( const Identifier &kind
 template void ParserImpl<iterator_type>::categoryLeft();
 
 template void ParserImpl<iterator_type>::attributeSet( const Identifier &name, const Value &value );
+
+template void ParserImpl<iterator_type>::addParseError( const ParseError<iterator_type> &error );
 
 template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindName, AttributesParser<iterator_type>* attributesParser );
 
