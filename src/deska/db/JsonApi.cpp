@@ -203,6 +203,13 @@ void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spir
     }
 }
 
+template<typename T>
+void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
+{
+    // If you get this error, there's no extractor from JSON to the desired type.
+    BOOST_STATIC_ASSERT(sizeof(T) == 0);
+}
+
 struct Field
 {
     bool isForSending;
