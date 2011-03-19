@@ -148,7 +148,7 @@ struct Field
 class JsonHandler
 {
 public:
-    JsonHandler(JsonApiParser *api, const std::string &cmd): p(api)
+    JsonHandler(const JsonApiParser * const api, const std::string &cmd): p(api)
     {
         command(cmd);
     }
@@ -294,7 +294,7 @@ public:
     }
 
 private:
-    JsonApiParser *p;
+    const JsonApiParser * const p;
     std::vector<Field> fields;
 };
 
