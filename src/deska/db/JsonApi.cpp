@@ -212,6 +212,19 @@ void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spiri
     }
 }
 
+template<>
+void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
+{
+    BOOST_FOREACH(const Pair &item, value.get_obj()) {
+        json_spirit::Array a = item.value_.get_array();
+        if (a.size() != 2) {
+            throw JsonParseError("Malformed record of resolved attribute");
+        }
+        // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+        (*target)[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
+    }
+}
+
 template<typename T>
 void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
@@ -566,45 +579,15 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
-                                                                      const Identifier &objectName, const Revision rev )
+                                                                      const Identifier &objectName, const Revision revision )
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_resolvedObjectData));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotRevision = false;
     map<Identifier, pair<Identifier, Value> > res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_resolvedObjectData)
-        else if (node.name_ == "resolvedObjectData") {
-            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
-                json_spirit::Array a = item.value_.get_array();
-                if (a.size() != 2) {
-                    throw JsonParseError("Malformed record of resolved attribute");
-                }
-                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-                res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
-            }
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_REVISION(j_revision)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
-    JSON_REQUIRE_OBJNAME;
-
+    JsonHandler h(this, j_cmd_resolvedObjectData);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_revision, revision);
+    h.read("resolvedObjectData").extract(&res);
+    h.work();
     return res;
 }
 
