@@ -254,10 +254,29 @@ public:
         return *(--fields.end());
     }
 
+    Field &write(const std::string &name, const Deska::Value &value)
+    {
+        Field f(name);
+        f.jsonValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
     Field &read(const std::string &name)
     {
         Field f(name);
         fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    Field &expectTrue(const std::string &name)
+    {
+        Field f(name);
+        fields.push_back(f);
+        f.valueShouldMatch = true;
+        f.jsonValue = true;
         return *(--fields.end());
     }
 
@@ -788,43 +807,13 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
                            const Value &value)
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_setAttribute));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    o.push_back(Pair(j_attrName, attributeName));
-    json_spirit::Value jsonAttrValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
-    o.push_back(Pair(j_attrData, jsonAttrValue));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotAttrName = false;
-    bool gotAttrData = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_setAttribute)
-        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_setAttribute, gotData)
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_ATTRNAME
-        else if (node.name_ == j_attrData) {
-            // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
-            if (!(node.value_ == jsonAttrValue)) {
-                throw JsonParseError("Returned value of attributeData is different than what we requested");
-            }
-            gotAttrData = true;
-        }
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-    JSON_REQUIRE_OBJNAME;
-    JSON_REQUIRE_ATTRNAME;
-    if (!gotAttrData)
-        throw JsonParseError("Response did not specify attributeData");
+    JsonHandler h(this, j_cmd_setAttribute);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_attrName, attributeName);
+    h.write(j_attrData, value);
+    h.expectTrue("result");
+    h.work();
 }
 
 Revision JsonApiParser::startChangeset()
