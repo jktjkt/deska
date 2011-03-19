@@ -875,39 +875,15 @@ void JsonApiParser::resumeChangeset(const Revision revision)
 
 void JsonApiParser::detachFromActiveChangeset()
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_detachFromActiveChangeset));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_detachFromActiveChangeset)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
+    JsonHandler h(this, j_cmd_detachFromActiveChangeset);
+    h.work();
 }
 
-void JsonApiParser::abortChangeset(const Revision rev)
+void JsonApiParser::abortChangeset(const Revision revision)
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_abortChangeset));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotRevision = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_abortChangeset)
-        JSON_BLOCK_CHECK_REVISION(j_revision)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_REVISION;
+    JsonHandler h(this, j_cmd_abortChangeset);
+    h.write(j_revision, revision);
+    h.work();
 }
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
