@@ -139,6 +139,27 @@ void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::
     std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
 }
 
+template<>
+void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
+{
+    BOOST_FOREACH(const Pair &item, value.get_obj()) {
+        std::string datatype = item.value_.get_str();
+        if (datatype == "string") {
+            target->push_back(KindAttributeDataType(item.name_, TYPE_STRING));
+        } else if (datatype == "int") {
+            target->push_back(KindAttributeDataType(item.name_, TYPE_INT));
+        } else if (datatype == "identifier") {
+            target->push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
+        } else if (datatype == "double") {
+            target->push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+        } else {
+            std::ostringstream s;
+            s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
+            throw JsonParseError(s.str());
+        }
+    }
+}
+
 struct Field
 {
     bool isForSending;
@@ -444,43 +465,11 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_kindAttributes));
-    o.push_back(Pair(j_kindName, kindName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotKindName = false;
-    bool gotData = false;
     vector<KindAttributeDataType> res;
-
-    BOOST_FOREACH(const Pair &node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindAttributes)
-        else if (node.name_ == "kindAttributes") {
-            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
-                std::string datatype = item.value_.get_str();
-                if (datatype == "string") {
-                    res.push_back(KindAttributeDataType(item.name_, TYPE_STRING));
-                } else if (datatype == "int") {
-                    res.push_back(KindAttributeDataType(item.name_, TYPE_INT));
-                } else if (datatype == "identifier") {
-                    res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
-                } else if (datatype == "double") {
-                    res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
-                } else {
-                    std::ostringstream s;
-                    s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
-                    throw JsonParseError(s.str());
-                }
-            }
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME
-
+    JsonHandler h(this, j_cmd_kindAttributes);
+    h.write(j_kindName, kindName);
+    h.read("kindAttributes").extract(&res);
+    h.work();
     return res;
 }
 
