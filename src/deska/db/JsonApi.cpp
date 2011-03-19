@@ -101,29 +101,35 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+
+/** @short Abstract class for conversion between a JSON value and "something" */
 class Extractor
 {
 public:
     virtual ~Extractor() {}
-
+    /** @short Read the JSON data, convert them to the target form and store into a variable */
     virtual void extract(const json_spirit::Value &value) = 0;
 };
 
+/** @short Template class implementing the conversion from JSON to "something" */
 template <typename T>
 class SpecializedExtractor: public Extractor
 {
     T *target;
 public:
+    /** @short Create an extractor which will save the parsed and converted value to a pointer */
     SpecializedExtractor(T *source): target(source) {}
     virtual void extract(const json_spirit::Value &value);
 };
 
+/** @short Convert JSON into Deska::Revision */
 template<>
 void SpecializedExtractor<Revision>::extract(const json_spirit::Value &value)
 {
     *target = value.get_int64();
 }
 
+/** @short Convert JSON into a vector of Deska::Revision */
 template<>
 void SpecializedExtractor<std::vector<Revision> >::extract(const json_spirit::Value &value)
 {
@@ -132,6 +138,7 @@ void SpecializedExtractor<std::vector<Revision> >::extract(const json_spirit::Va
     std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_int64));
 }
 
+/** @short Convert JSON into a vector of Deska::Identifier */
 template<>
 void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::Value &value)
 {
@@ -139,6 +146,7 @@ void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::
     std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
 }
 
+/** @short Convert JSON into a vector of attribute data types */
 template<>
 void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
 {
@@ -160,6 +168,7 @@ void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const js
     }
 }
 
+/** @short Convert JSON into a vector of object relations */
 template<>
 void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
 {
@@ -203,6 +212,7 @@ void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spir
     }
 }
 
+/** @short Convert JSON into a special data structure representing all attributes of an object */
 template<>
 void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spirit::Value &value)
 {
@@ -212,6 +222,7 @@ void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spiri
     }
 }
 
+/** @short Convert JSON into a special data structure representing all attributes of an object along with information where their values come from */
 template<>
 void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
 {
@@ -225,6 +236,7 @@ void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extrac
     }
 }
 
+/** @short Require specialization for all target types during compilation of this translation unit */
 template<typename T>
 void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
