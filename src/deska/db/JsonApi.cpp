@@ -265,12 +265,6 @@ struct Field
         delete extractor;
     }
 
-    Field &optional()
-    {
-        isRequiredToReceive = false;
-        return *this;
-    }
-
     template<typename T>
     Field &extract(T *where)
     {
