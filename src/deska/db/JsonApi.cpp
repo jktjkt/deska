@@ -244,6 +244,7 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
     BOOST_STATIC_ASSERT(sizeof(T) == 0);
 }
 
+/** @short Expecting/requiring/checking/sending one JSON record */
 struct Field
 {
     bool isForSending;
@@ -265,6 +266,7 @@ struct Field
         delete extractor;
     }
 
+    /** @short Register this field for future extraction to the indicated location */
     template<typename T>
     Field &extract(T *where)
     {
@@ -274,6 +276,7 @@ struct Field
 
 };
 
+/** @short Manager controlling the JSON interaction */
 class JsonHandler
 {
 public:
@@ -282,6 +285,7 @@ public:
         command(cmd);
     }
 
+    /** @short Create JSON string and send it as a command */
     void send()
     {
         json_spirit::Object o;
@@ -293,6 +297,7 @@ public:
         p->sendJsonObject(o);
     }
 
+    /** @short Request, read and parse the JSON string and process the response */
     void receive()
     {
         using namespace boost::phoenix;
@@ -328,6 +333,7 @@ public:
                 }
             }
 
+            // Extract the value from JSON
             if (rule->extractor) {
                 rule->extractor->extract(node.value_);
             }
@@ -336,6 +342,7 @@ public:
             rule->isAlreadyReceived = true;
         }
 
+        // Verify that each mandatory field was present
         std::vector<Field>::iterator rule =
                 std::find_if(fields.begin(), fields.end(),
                 ! bind(&Field::isAlreadyReceived, arg1) && bind(&Field::isRequiredToReceive, arg1) );
@@ -346,12 +353,14 @@ public:
         }
     }
 
+    /** @short Send and receive the JSON data */
     void work()
     {
         send();
         receive();
     }
 
+    /** @short Register a special JSON field for command/response identification */
     void command(const std::string &cmd)
     {
         Field f(j_command);
@@ -362,6 +371,7 @@ public:
         fields.push_back(f);
     }
 
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     Field &write(const std::string &name, const std::string &value)
     {
         Field f(name);
@@ -372,6 +382,7 @@ public:
         return *(--fields.end());
     }
 
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     Field &write(const std::string &name, const Revision value)
     {
         Field f(name);
@@ -382,6 +393,7 @@ public:
         return *(--fields.end());
     }
 
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     Field &write(const std::string &name, const Deska::Value &value)
     {
         Field f(name);
@@ -392,6 +404,7 @@ public:
         return *(--fields.end());
     }
 
+    /** @short Expect a required value in the JSON */
     Field &read(const std::string &name)
     {
         Field f(name);
@@ -399,6 +412,7 @@ public:
         return *(--fields.end());
     }
 
+    /** @short Require a JSON value with value of true */
     Field &expectTrue(const std::string &name)
     {
         Field f(name);
@@ -412,7 +426,6 @@ private:
     const JsonApiParser * const p;
     std::vector<Field> fields;
 };
-
 
 
 
@@ -635,6 +648,8 @@ void JsonApiParser::abortChangeset(const Revision revision)
     h.write(j_revision, revision);
     h.work();
 }
+
+
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
 {
