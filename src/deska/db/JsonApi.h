@@ -104,9 +104,6 @@ private:
     /** @short Helper for createObject() and deleteObject() */
     void helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName);
 
-    /** @short Helper for startChangeset() and commitChangeset() */
-    Revision helperStartCommitChangeset(const std::string &cmd);
-
     friend class JsonHandler;
 };
 

@@ -827,23 +827,22 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
         throw JsonParseError("Response did not specify attributeData");
 }
 
-Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
+Revision JsonApiParser::startChangeset()
 {
     Revision revision = 0;
-    JsonHandler h(this, cmd);
+    JsonHandler h(this, j_cmd_startChangeset);
     h.read(j_revision).extractRevision(&revision);
     h.work();
     return revision;
 }
 
-Revision JsonApiParser::startChangeset()
-{
-    return helperStartCommitChangeset(j_cmd_startChangeset);
-}
-
 Revision JsonApiParser::commitChangeset()
 {
-    return helperStartCommitChangeset(j_cmd_commitChangeset);
+    Revision revision = 0;
+    JsonHandler h(this, j_cmd_commitChangeset);
+    h.read(j_revision).extractRevision(&revision);
+    h.work();
+    return revision;
 }
 
 Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
