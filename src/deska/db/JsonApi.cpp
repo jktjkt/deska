@@ -101,6 +101,52 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+class Extractor
+{
+public:
+    virtual ~Extractor() {}
+
+    virtual void extract(const json_spirit::Value &value) = 0;
+};
+
+class RevisionExtractor: public Extractor
+{
+    Revision *target;
+public:
+    RevisionExtractor(Revision *revision): target(revision) {}
+
+    virtual void extract(const json_spirit::Value &value)
+    {
+        *target = value.get_int64();
+    }
+};
+
+class RevisionVectorExtractor: public Extractor
+{
+    std::vector<Revision> *target;
+public:
+    RevisionVectorExtractor(std::vector<Revision> *vec): target(vec) {}
+
+    virtual void extract(const json_spirit::Value &value)
+    {
+        json_spirit::Array data = value.get_array();
+        // Copy int64 and store them into a vector<Revision>
+        std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_int64));
+    }
+};
+
+class IdentifierVectorExtractor: public Extractor
+{
+    std::vector<Identifier> *target;
+public:
+    IdentifierVectorExtractor(std::vector<Identifier> *vec): target(vec) {}
+
+    virtual void extract(const json_spirit::Value &value)
+    {
+        json_spirit::Array data = value.get_array();
+        std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
+    }
+};
 
 struct Field
 {
@@ -110,14 +156,17 @@ struct Field
     bool valueShouldMatch;
     std::string jsonFieldRead, jsonFieldWrite;
     json_spirit::Value jsonValue;
-    Revision *e_Revision;
-    std::vector<Revision> *e_VecRevisions;
-    std::vector<Identifier> *e_VecIdentifiers;
+    Extractor *extractor;
 
     Field(const std::string &name):
         isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
-        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0), e_VecIdentifiers(0)
+        jsonFieldRead(name), jsonFieldWrite(name), extractor(0)
     {
+    }
+
+    ~Field()
+    {
+        delete extractor;
     }
 
     Field &optional()
@@ -128,19 +177,19 @@ struct Field
 
     Field &extractRevision(Revision *where)
     {
-        e_Revision = where;
+        extractor = new RevisionExtractor(where);
         return *this;
     }
 
     Field &extractRevisionsVector(std::vector<Revision> *where)
     {
-        e_VecRevisions = where;
+        extractor = new RevisionVectorExtractor(where);
         return *this;
     }
 
     Field &extractIdentifiersVector(std::vector<Identifier> *where)
     {
-        e_VecIdentifiers = where;
+        extractor = new IdentifierVectorExtractor(where);
         return *this;
     }
 };
@@ -199,22 +248,8 @@ public:
                 }
             }
 
-            // Store revision
-            if (rule->e_Revision) {
-                *(rule->e_Revision) = node.value_.get_int64();
-            }
-
-            // Store vector of revisions
-            if (rule->e_VecRevisions) {
-                json_spirit::Array data = node.value_.get_array();
-                // Copy int64 and store them into a vector<Revision>
-                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecRevisions)), std::mem_fun_ref(&json_spirit::Value::get_int64));
-            }
-
-            // Store vector of identifiers
-            if (rule->e_VecIdentifiers) {
-                json_spirit::Array data = node.value_.get_array();
-                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecIdentifiers)), std::mem_fun_ref(&json_spirit::Value::get_str));
+            if (rule->extractor) {
+                rule->extractor->extract(node.value_);
             }
 
             // Mark this field as "processed"
