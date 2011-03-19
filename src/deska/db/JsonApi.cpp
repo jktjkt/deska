@@ -700,108 +700,42 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
     return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attributeName);
 }
 
-
-void JsonApiParser::helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName)
-{
-    Object o;
-    o.push_back(Pair(j_command, cmd));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(cmd)
-        JSON_BLOCK_CHECK_BOOL_RESULT(cmd, gotData)
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-    JSON_REQUIRE_OBJNAME;
-}
-
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
 {
-    helperCreateDeleteObject(j_cmd_deleteObject, kindName, objectName);
+    JsonHandler h(this, j_cmd_deleteObject);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.expectTrue("result");
+    h.work();
 }
 
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
-    helperCreateDeleteObject(j_cmd_createObject, kindName, objectName);
+    JsonHandler h(this, j_cmd_createObject);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.expectTrue("result");
+    h.work();
 }
 
 void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_renameObject));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, oldName));
-    o.push_back(Pair(j_newObjectName, newName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotNewObjectName = false;
-
-    // Setup an alias for the JSON_BLOCK_CHECK_OBJNAME macro. It is ugly, but I feel like having "oldName" as the argument
-    // name is beneficial.
-    const Identifier &objectName = oldName;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_renameObject)
-        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_renameObject, gotData)
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        else if (node.name_ == j_newObjectName) {
-            if (node.value_.get_str() != newName) { \
-                throw JsonParseError("newObjectName doesn't match"); \
-            } \
-            gotNewObjectName = true;
-        }
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-    JSON_REQUIRE_OBJNAME;
-    if (!gotNewObjectName) \
-        throw JsonParseError("Response doesn't contain newObjectName identification");
+    JsonHandler h(this, j_cmd_renameObject);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, oldName);
+    h.write(j_newObjectName, newName);
+    h.expectTrue("result");
+    h.work();
 }
 
 void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_removeAttribute));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    o.push_back(Pair(j_attrName, attributeName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotAttrName = false;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_removeAttribute)
-        JSON_BLOCK_CHECK_BOOL_RESULT(j_cmd_removeAttribute, gotData)
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_ATTRNAME
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-    JSON_REQUIRE_OBJNAME;
-    JSON_REQUIRE_ATTRNAME;
+    JsonHandler h(this, j_cmd_removeAttribute);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_attrName, attributeName);
+    h.expectTrue("result");
+    h.work();
 }
 
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,

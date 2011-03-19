@@ -101,9 +101,6 @@ private:
     std::vector<Identifier> helperOverridenAttrs(const std::string &cmd, const Identifier &kindName,
                                                  const Identifier &objectName, const Identifier &attributeName);
 
-    /** @short Helper for createObject() and deleteObject() */
-    void helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName);
-
     friend class JsonHandler;
 };
 
