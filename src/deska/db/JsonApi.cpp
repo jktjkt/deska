@@ -203,6 +203,15 @@ void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spir
     }
 }
 
+template<>
+void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spirit::Value &value)
+{
+    BOOST_FOREACH(const Pair &item, value.get_obj()) {
+        // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+        (*target)[item.name_] = jsonValueToDeskaValue(item.value_);
+    }
+}
+
 template<typename T>
 void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
@@ -544,41 +553,15 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     return res;
 }
 
-map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision rev )
+map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision revision )
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_objectData));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    // The following cast is required because the json_spirit doesn't have an overload for uint...
-    o.push_back(Pair(j_revision, static_cast<int64_t>(rev)));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotRevision = false;
     map<Identifier, Value> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_objectData)
-        else if (node.name_ == "objectData") {
-            BOOST_FOREACH(const Pair &item, node.value_.get_obj()) {
-                // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-                res[item.name_] = jsonValueToDeskaValue(item.value_);
-            }
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_REVISION(j_revision)
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME_REVISION;
-    JSON_REQUIRE_OBJNAME;
-
+    JsonHandler h(this, j_cmd_objectData);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_revision, revision);
+    h.read("objectData").extract(&res);
+    h.work();
     return res;
 }
 
