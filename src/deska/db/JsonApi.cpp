@@ -109,49 +109,35 @@ public:
     virtual void extract(const json_spirit::Value &value) = 0;
 };
 
-class RevisionExtractor: public Extractor
+template <typename T>
+class SpecializedExtractor: public Extractor
 {
-    Revision *target;
+    T *target;
 public:
-    RevisionExtractor(Revision *revision): target(revision) {}
-
-    virtual void extract(const json_spirit::Value &value)
-    {
-        *target = value.get_int64();
-    }
+    SpecializedExtractor(T *source): target(source) {}
+    virtual void extract(const json_spirit::Value &value);
 };
 
-class RevisionVectorExtractor: public Extractor
+template<>
+void SpecializedExtractor<Revision>::extract(const json_spirit::Value &value)
 {
-    std::vector<Revision> *target;
-public:
-    RevisionVectorExtractor(std::vector<Revision> *vec): target(vec) {}
+    *target = value.get_int64();
+}
 
-    virtual void extract(const json_spirit::Value &value)
-    {
-        json_spirit::Array data = value.get_array();
-        // Copy int64 and store them into a vector<Revision>
-        std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_int64));
-    }
-};
-
-class IdentifierVectorExtractor: public Extractor
+template<>
+void SpecializedExtractor<std::vector<Revision> >::extract(const json_spirit::Value &value)
 {
-    std::vector<Identifier> *target;
-public:
-    IdentifierVectorExtractor(std::vector<Identifier> *vec): target(vec) {}
+    json_spirit::Array data = value.get_array();
+    // Copy int64 and store them into a vector<Revision>
+    std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_int64));
+}
 
-    virtual void extract(const json_spirit::Value &value)
-    {
-        json_spirit::Array data = value.get_array();
-        std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
-    }
-};
-
-template <typename T> struct ExtractorTraits {};
-template<> struct ExtractorTraits<Revision>{ typedef RevisionExtractor Extractor; };
-template<> struct ExtractorTraits<std::vector<Revision> >{ typedef RevisionVectorExtractor Extractor; };
-template<> struct ExtractorTraits<std::vector<Identifier> >{ typedef IdentifierVectorExtractor Extractor; };
+template<>
+void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::Value &value)
+{
+    json_spirit::Array data = value.get_array();
+    std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
+}
 
 struct Field
 {
@@ -183,7 +169,7 @@ struct Field
     template<typename T>
     Field &extract(T *where)
     {
-        extractor = new typename ExtractorTraits<T>::Extractor(where);
+        extractor = new SpecializedExtractor<T>(where);
         return *this;
     }
 
