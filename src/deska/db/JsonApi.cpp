@@ -101,6 +101,174 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+
+struct Field
+{
+    bool isForSending;
+    bool isRequiredToReceive;
+    bool isAlreadyReceived;
+    bool valueShouldMatch;
+    std::string jsonFieldRead, jsonFieldWrite;
+    json_spirit::Value jsonValue;
+    Revision *e_Revision;
+    std::vector<Revision> *e_VecRevisions;
+
+    Field(const std::string &name):
+        isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
+        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0)
+    {
+    }
+
+    Field &optional()
+    {
+        isRequiredToReceive = false;
+        return *this;
+    }
+
+    Field &extractRevision(Revision *where)
+    {
+        e_Revision = where;
+        return *this;
+    }
+
+    Field &extractRevisionsVector(std::vector<Revision> *where)
+    {
+        e_VecRevisions = where;
+        return *this;
+    }
+};
+
+class JsonHandler
+{
+public:
+    JsonHandler(JsonApiParser *api, const std::string &cmd): p(api)
+    {
+        command(cmd);
+    }
+
+    void send()
+    {
+        json_spirit::Object o;
+        BOOST_FOREACH(const Field &f, fields) {
+            if (f.isForSending) {
+                o.push_back(json_spirit::Pair(f.jsonFieldWrite, f.jsonValue));
+            }
+        }
+        p->sendJsonObject(o);
+    }
+
+    void receive()
+    {
+        using namespace boost::phoenix;
+        using namespace arg_names;
+
+        BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
+
+            // At first, find a matching rule for this particular key
+            std::vector<Field>::iterator rule =
+                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonFieldRead, arg1) == node.name_);
+
+            if (rule == fields.end()) {
+                // No such rule
+                std::ostringstream s;
+                s << "Unhandled JSON field '" << node.name_ << "'";
+                throw JsonParseError(s.str());
+            }
+
+            if (rule->isAlreadyReceived) {
+                // Duplicate rule
+                std::ostringstream s;
+                s << "Duplicate JSON field '" << node.name_ << "'";
+                throw JsonParseError(s.str());
+            }
+
+            // Check the value
+            if (rule->valueShouldMatch) {
+                // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
+                if (!(node.value_ == rule->jsonValue)) {
+                    std::ostringstream s;
+                    s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
+                    throw JsonParseError(s.str());
+                }
+            }
+
+            // Store revision
+            if (rule->e_Revision) {
+                *(rule->e_Revision) = node.value_.get_int64();
+            }
+
+            // Store vector of revisions
+            if (rule->e_VecRevisions) {
+                json_spirit::Array data = node.value_.get_array();
+                // Copy int64 and store them into a vector<Revision>
+                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecRevisions)), std::mem_fun_ref(&json_spirit::Value::get_int64));
+            }
+
+            // Mark this field as "processed"
+            rule->isAlreadyReceived = true;
+        }
+
+        std::vector<Field>::iterator rule =
+                std::find_if(fields.begin(), fields.end(),
+                ! bind(&Field::isAlreadyReceived, arg1) && bind(&Field::isRequiredToReceive, arg1) );
+        if ( rule != fields.end() ) {
+            std::ostringstream s;
+            s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
+            throw JsonParseError(s.str());
+        }
+    }
+
+    void work()
+    {
+        send();
+        receive();
+    }
+
+    void command(const std::string &cmd)
+    {
+        Field f(j_command);
+        f.jsonFieldRead = j_response;
+        f.jsonValue = cmd;
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+    }
+
+    Field &write(const std::string &name, const std::string &value)
+    {
+        Field f(name);
+        f.jsonValue = value;
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    Field &write(const std::string &name, const Revision value)
+    {
+        Field f(name);
+        f.jsonValue = static_cast<int64_t>(value);
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    Field &read(const std::string &name)
+    {
+        Field f(name);
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
+private:
+    JsonApiParser *p;
+    std::vector<Field> fields;
+};
+
+
+
+
 JsonApiParser::JsonApiParser()
 {
 }
@@ -658,171 +826,6 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     if (!gotAttrData)
         throw JsonParseError("Response did not specify attributeData");
 }
-
-
-struct Field
-{
-    bool isForSending;
-    bool isRequiredToReceive;
-    bool isAlreadyReceived;
-    bool valueShouldMatch;
-    std::string jsonFieldRead, jsonFieldWrite;
-    json_spirit::Value jsonValue;
-    Revision *e_Revision;
-    std::vector<Revision> *e_VecRevisions;
-
-    Field(const std::string &name):
-        isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
-        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0)
-    {
-    }
-
-    Field &optional()
-    {
-        isRequiredToReceive = false;
-        return *this;
-    }
-
-    Field &extractRevision(Revision *where)
-    {
-        e_Revision = where;
-        return *this;
-    }
-
-    Field &extractRevisionsVector(std::vector<Revision> *where)
-    {
-        e_VecRevisions = where;
-        return *this;
-    }
-};
-
-class JsonHandler
-{
-public:
-    JsonHandler(JsonApiParser *api, const std::string &cmd): p(api)
-    {
-        command(cmd);
-    }
-
-    void send()
-    {
-        json_spirit::Object o;
-        BOOST_FOREACH(const Field &f, fields) {
-            if (f.isForSending) {
-                o.push_back(json_spirit::Pair(f.jsonFieldWrite, f.jsonValue));
-            }
-        }
-        p->sendJsonObject(o);
-    }
-
-    void receive()
-    {
-        using namespace boost::phoenix;
-        using namespace arg_names;
-
-        BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
-
-            // At first, find a matching rule for this particular key
-            std::vector<Field>::iterator rule =
-                    std::find_if(fields.begin(), fields.end(), bind(&Field::jsonFieldRead, arg1) == node.name_);
-
-            if (rule == fields.end()) {
-                // No such rule
-                std::ostringstream s;
-                s << "Unhandled JSON field '" << node.name_ << "'";
-                throw JsonParseError(s.str());
-            }
-
-            if (rule->isAlreadyReceived) {
-                // Duplicate rule
-                std::ostringstream s;
-                s << "Duplicate JSON field '" << node.name_ << "'";
-                throw JsonParseError(s.str());
-            }
-
-            // Check the value
-            if (rule->valueShouldMatch) {
-                // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
-                if (!(node.value_ == rule->jsonValue)) {
-                    std::ostringstream s;
-                    s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
-                    throw JsonParseError(s.str());
-                }
-            }
-
-            // Store revision
-            if (rule->e_Revision) {
-                *(rule->e_Revision) = node.value_.get_int64();
-            }
-
-            // Store vector of revisions
-            if (rule->e_VecRevisions) {
-                json_spirit::Array data = node.value_.get_array();
-                // Copy int64 and store them into a vector<Revision>
-                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecRevisions)), std::mem_fun_ref(&json_spirit::Value::get_int64));
-            }
-
-            // Mark this field as "processed"
-            rule->isAlreadyReceived = true;
-        }
-
-        std::vector<Field>::iterator rule =
-                std::find_if(fields.begin(), fields.end(),
-                ! bind(&Field::isAlreadyReceived, arg1) && bind(&Field::isRequiredToReceive, arg1) );
-        if ( rule != fields.end() ) {
-            std::ostringstream s;
-            s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
-            throw JsonParseError(s.str());
-        }
-    }
-
-    void work()
-    {
-        send();
-        receive();
-    }
-
-    void command(const std::string &cmd)
-    {
-        Field f(j_command);
-        f.jsonFieldRead = j_response;
-        f.jsonValue = cmd;
-        f.isForSending = true;
-        f.valueShouldMatch = true;
-        fields.push_back(f);
-    }
-
-    Field &write(const std::string &name, const std::string &value)
-    {
-        Field f(name);
-        f.jsonValue = value;
-        f.isForSending = true;
-        f.valueShouldMatch = true;
-        fields.push_back(f);
-        return *(--fields.end());
-    }
-
-    Field &write(const std::string &name, const Revision value)
-    {
-        Field f(name);
-        f.jsonValue = static_cast<int64_t>(value);
-        f.isForSending = true;
-        f.valueShouldMatch = true;
-        fields.push_back(f);
-        return *(--fields.end());
-    }
-
-    Field &read(const std::string &name)
-    {
-        Field f(name);
-        fields.push_back(f);
-        return *(--fields.end());
-    }
-
-private:
-    JsonApiParser *p;
-    std::vector<Field> fields;
-};
 
 Revision JsonApiParser::helperStartCommitChangeset(const std::string &cmd)
 {
