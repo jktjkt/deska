@@ -669,10 +669,11 @@ struct Field
     std::string jsonFieldRead, jsonFieldWrite;
     json_spirit::Value jsonValue;
     Revision *e_Revision;
+    std::vector<Revision> *e_VecRevisions;
 
     Field(const std::string &name):
         isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
-        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0)
+        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0)
     {
     }
 
@@ -685,6 +686,12 @@ struct Field
     Field &extractRevision(Revision *where)
     {
         e_Revision = where;
+        return *this;
+    }
+
+    Field &extractRevisionsVector(std::vector<Revision> *where)
+    {
+        e_VecRevisions = where;
         return *this;
     }
 };
@@ -746,6 +753,13 @@ public:
             // Store revision
             if (rule->e_Revision) {
                 *(rule->e_Revision) = node.value_.get_int64();
+            }
+
+            // Store vector of revisions
+            if (rule->e_VecRevisions) {
+                json_spirit::Array data = node.value_.get_array();
+                // Copy int64 and store them into a vector<Revision>
+                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecRevisions)), std::mem_fun_ref(&json_spirit::Value::get_int64));
             }
 
             // Mark this field as "processed"
@@ -841,28 +855,10 @@ Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
 
 vector<Revision> JsonApiParser::pendingChangesetsByMyself()
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_pendingChangesetsByMyself));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-
     vector<Revision> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_pendingChangesetsByMyself)
-        else if (node.name_ == "revisions") {
-            json_spirit::Array data = node.value_.get_array();
-            // Copy int64 and store them into a vector<Revision>
-            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_int64));
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD;
-    JSON_REQUIRE_DATA;
+    JsonHandler h(this, j_cmd_pendingChangesetsByMyself);
+    h.read("revisions").extractRevisionsVector(&res);
+    h.work();
     return res;
 }
 
