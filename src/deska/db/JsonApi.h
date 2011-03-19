@@ -97,10 +97,6 @@ private:
     /** @short The implementation tries to obtain the JSON data */
     json_spirit::Object readJsonObject() const;
 
-    /** @short Helper for findOverriddenAttrs and findNonOverriddenAttrs */
-    std::vector<Identifier> helperOverridenAttrs(const std::string &cmd, const Identifier &kindName,
-                                                 const Identifier &objectName, const Identifier &attributeName);
-
     friend class JsonHandler;
 };
 

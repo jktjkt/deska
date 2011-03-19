@@ -112,10 +112,11 @@ struct Field
     json_spirit::Value jsonValue;
     Revision *e_Revision;
     std::vector<Revision> *e_VecRevisions;
+    std::vector<Identifier> *e_VecIdentifiers;
 
     Field(const std::string &name):
         isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
-        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0)
+        jsonFieldRead(name), jsonFieldWrite(name), e_Revision(0), e_VecRevisions(0), e_VecIdentifiers(0)
     {
     }
 
@@ -134,6 +135,12 @@ struct Field
     Field &extractRevisionsVector(std::vector<Revision> *where)
     {
         e_VecRevisions = where;
+        return *this;
+    }
+
+    Field &extractIdentifiersVector(std::vector<Identifier> *where)
+    {
+        e_VecIdentifiers = where;
         return *this;
     }
 };
@@ -202,6 +209,12 @@ public:
                 json_spirit::Array data = node.value_.get_array();
                 // Copy int64 and store them into a vector<Revision>
                 std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecRevisions)), std::mem_fun_ref(&json_spirit::Value::get_int64));
+            }
+
+            // Store vector of identifiers
+            if (rule->e_VecIdentifiers) {
+                json_spirit::Array data = node.value_.get_array();
+                std::transform(data.begin(), data.end(), std::back_inserter(*(rule->e_VecIdentifiers)), std::mem_fun_ref(&json_spirit::Value::get_str));
             }
 
             // Mark this field as "processed"
@@ -652,52 +665,30 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     return res;
 }
 
-vector<Identifier> JsonApiParser::helperOverridenAttrs(const std::string &cmd, const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
-{
-    Object o;
-    o.push_back(Pair(j_command, cmd));
-    o.push_back(Pair(j_kindName, kindName));
-    o.push_back(Pair(j_objName, objectName));
-    o.push_back(Pair(j_attrName, attributeName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotData = false;
-    bool gotKindName = false;
-    bool gotObjectName = false;
-    bool gotAttrName = false;
-    vector<Identifier> res;
-
-    BOOST_FOREACH(const Pair& node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(cmd)
-        else if (node.name_ == "objectInstances") {
-            json_spirit::Array data = node.value_.get_array();
-            std::transform(data.begin(), data.end(), std::back_inserter(res), std::mem_fun_ref(&json_spirit::Value::get_str));
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_OBJNAME
-        JSON_BLOCK_CHECK_ATTRNAME
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-    JSON_REQUIRE_OBJNAME;
-    JSON_REQUIRE_ATTRNAME;
-
-    return res;
-}
-
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
                                                 const Identifier &attributeName)
 {
-    return helperOverridenAttrs(j_cmd_findObjectsOverridingAttrs, kindName, objectName, attributeName);
+    vector<Identifier> res;
+    JsonHandler h(this, j_cmd_findObjectsOverridingAttrs);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_attrName, attributeName);
+    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.work();
+    return res;
 }
 
 vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
                                                    const Identifier &attributeName)
 {
-    return helperOverridenAttrs(j_cmd_findObjectsNotOverridingAttrs, kindName, objectName, attributeName);
+    vector<Identifier> res;
+    JsonHandler h(this, j_cmd_findObjectsNotOverridingAttrs);
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.write(j_attrName, attributeName);
+    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.work();
+    return res;
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
