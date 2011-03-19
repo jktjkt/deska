@@ -160,6 +160,49 @@ void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const js
     }
 }
 
+template<>
+void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
+{
+    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
+        json_spirit::Array relationRecord = item.get_array();
+        switch (relationRecord.size()) {
+        // got to enclose the individual branches in curly braces to be able to use local variables...
+        case 2:
+        {
+            // EMBED_INTO, IS_TEMPLATE
+            std::string kind = relationRecord[0].get_str();
+            if (kind == "EMBED_INTO") {
+                target->push_back(ObjectRelation::embedInto(relationRecord[1].get_str()));
+            } else if (kind == "IS_TEMPLATE") {
+                target->push_back(ObjectRelation::isTemplate(relationRecord[1].get_str()));
+            } else {
+                std::ostringstream s;
+                s << "Invalid relation kind " << kind << " with one argument";
+                throw JsonParseError(s.str());
+            }
+        }
+        break;
+        case 3:
+        {
+            // MERGE_WITH, TEMPLATIZED
+            std::string kind = relationRecord[0].get_str();
+            if (kind == "MERGE_WITH") {
+                target->push_back(ObjectRelation::mergeWith(relationRecord[1].get_str(), relationRecord[2].get_str()));
+            } else if (kind == "TEMPLATIZED") {
+                target->push_back(ObjectRelation::templatized(relationRecord[1].get_str(), relationRecord[2].get_str()));
+            } else {
+                std::ostringstream s;
+                s << "Invalid relation kind " << kind << " with two arguments";
+                throw JsonParseError(s.str());
+            }
+        }
+        break;
+        default:
+            throw JsonParseError("Relation record has invalid number of arguments");
+        }
+    }
+}
+
 struct Field
 {
     bool isForSending;
@@ -475,65 +518,11 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
 
 vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName ) const
 {
-    Object o;
-    o.push_back(Pair(j_command, j_cmd_kindRelations));
-    o.push_back(Pair(j_kindName, kindName));
-    sendJsonObject(o);
-
-    bool gotCmdId = false;
-    bool gotKindName = false;
-    bool gotData = false;
     vector<ObjectRelation> res;
-
-    BOOST_FOREACH(const Pair &node, readJsonObject()) {
-        JSON_BLOCK_CHECK_COMMAND(j_cmd_kindRelations)
-        else if (node.name_ == "kindRelations") {
-            BOOST_FOREACH(const json_spirit::Value &item, node.value_.get_array()) {
-                json_spirit::Array relationRecord = item.get_array();
-                switch (relationRecord.size()) {
-                // got to enclose the individual branches in curly braces to be able to use local variables...
-                case 2:
-                {
-                    // EMBED_INTO, IS_TEMPLATE
-                    std::string kind = relationRecord[0].get_str();
-                    if (kind == "EMBED_INTO") {
-                        res.push_back(ObjectRelation::embedInto(relationRecord[1].get_str()));
-                    } else if (kind == "IS_TEMPLATE") {
-                        res.push_back(ObjectRelation::isTemplate(relationRecord[1].get_str()));
-                    } else {
-                        std::ostringstream s;
-                        s << "Invalid relation kind " << kind << " with one argument";
-                        throw JsonParseError(s.str());
-                    }
-                }
-                break;
-                case 3:
-                {
-                    // MERGE_WITH, TEMPLATIZED
-                    std::string kind = relationRecord[0].get_str();
-                    if (kind == "MERGE_WITH") {
-                        res.push_back(ObjectRelation::mergeWith(relationRecord[1].get_str(), relationRecord[2].get_str()));
-                    } else if (kind == "TEMPLATIZED") {
-                        res.push_back(ObjectRelation::templatized(relationRecord[1].get_str(), relationRecord[2].get_str()));
-                    } else {
-                        std::ostringstream s;
-                        s << "Invalid relation kind " << kind << " with two arguments";
-                        throw JsonParseError(s.str());
-                    }
-                }
-                break;
-                default:
-                    throw JsonParseError("Relation record has invalid number of arguments");
-                }
-            }
-            gotData = true;
-        }
-        JSON_BLOCK_CHECK_KINDNAME
-        JSON_BLOCK_CHECK_ELSE
-    }
-
-    JSON_REQUIRE_CMD_DATA_KINDNAME;
-
+    JsonHandler h(this, j_cmd_kindRelations);
+    h.write(j_kindName, kindName);
+    h.read("kindRelations").extract(&res);
+    h.work();
     return res;
 }
 
