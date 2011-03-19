@@ -148,6 +148,11 @@ public:
     }
 };
 
+template <typename T> struct ExtractorTraits {};
+template<> struct ExtractorTraits<Revision>{ typedef RevisionExtractor Extractor; };
+template<> struct ExtractorTraits<std::vector<Revision> >{ typedef RevisionVectorExtractor Extractor; };
+template<> struct ExtractorTraits<std::vector<Identifier> >{ typedef IdentifierVectorExtractor Extractor; };
+
 struct Field
 {
     bool isForSending;
@@ -175,23 +180,13 @@ struct Field
         return *this;
     }
 
-    Field &extractRevision(Revision *where)
+    template<typename T>
+    Field &extract(T *where)
     {
-        extractor = new RevisionExtractor(where);
+        extractor = new typename ExtractorTraits<T>::Extractor(where);
         return *this;
     }
 
-    Field &extractRevisionsVector(std::vector<Revision> *where)
-    {
-        extractor = new RevisionVectorExtractor(where);
-        return *this;
-    }
-
-    Field &extractIdentifiersVector(std::vector<Identifier> *where)
-    {
-        extractor = new IdentifierVectorExtractor(where);
-        return *this;
-    }
 };
 
 class JsonHandler
@@ -456,7 +451,7 @@ vector<Identifier> JsonApiParser::kindNames() const
 {
     vector<Identifier> res;
     JsonHandler h(this, j_cmd_kindNames);
-    h.read("topLevelObjectKinds").extractIdentifiersVector(&res);
+    h.read("topLevelObjectKinds").extract(&res);
     h.work();
     return res;
 }
@@ -573,7 +568,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     JsonHandler h(this, j_cmd_kindInstances);
     h.write(j_kindName, kindName);
     h.write(j_revision, revision);
-    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.read("objectInstances").extract(&res);
     h.work();
     return res;
 }
@@ -667,7 +662,7 @@ vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.read("objectInstances").extract(&res);
     h.work();
     return res;
 }
@@ -680,7 +675,7 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.read("objectInstances").extractIdentifiersVector(&res);
+    h.read("objectInstances").extract(&res);
     h.work();
     return res;
 }
@@ -739,7 +734,7 @@ Revision JsonApiParser::startChangeset()
 {
     Revision revision = 0;
     JsonHandler h(this, j_cmd_startChangeset);
-    h.read(j_revision).extractRevision(&revision);
+    h.read(j_revision).extract(&revision);
     h.work();
     return revision;
 }
@@ -748,7 +743,7 @@ Revision JsonApiParser::commitChangeset()
 {
     Revision revision = 0;
     JsonHandler h(this, j_cmd_commitChangeset);
-    h.read(j_revision).extractRevision(&revision);
+    h.read(j_revision).extract(&revision);
     h.work();
     return revision;
 }
@@ -758,7 +753,7 @@ Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
     Revision revision = 0;
     JsonHandler h(this, j_cmd_rebaseChangeset);
     h.write(j_currentRevision, oldRevision);
-    h.read(j_revision).extractRevision(&revision);
+    h.read(j_revision).extract(&revision);
     h.work();
     return revision;
 }
@@ -767,7 +762,7 @@ vector<Revision> JsonApiParser::pendingChangesetsByMyself()
 {
     vector<Revision> res;
     JsonHandler h(this, j_cmd_pendingChangesetsByMyself);
-    h.read("revisions").extractRevisionsVector(&res);
+    h.read("revisions").extract(&res);
     h.work();
     return res;
 }
