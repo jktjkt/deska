@@ -75,9 +75,9 @@ public:
     virtual Revision commitChangeset();
     virtual Revision rebaseChangeset(const Revision oldRevision);
     virtual std::vector<Revision> pendingChangesetsByMyself();
-    virtual Revision resumeChangeset(const Revision oldRevision);
+    virtual void resumeChangeset(const Revision revision);
     virtual void detachFromActiveChangeset();
-    virtual void abortChangeset(const Revision rev);
+    virtual void abortChangeset(const Revision revision);
 
     /** @short Write JSON data to the DB server
      *
@@ -97,14 +97,7 @@ private:
     /** @short The implementation tries to obtain the JSON data */
     json_spirit::Object readJsonObject() const;
 
-    static Value jsonValueToDeskaValue(const json_spirit::Value &v);
-
-    /** @short Helper for findOverriddenAttrs and findNonOverriddenAttrs */
-    std::vector<Identifier> helperOverridenAttrs(const std::string &cmd, const Identifier &kindName,
-                                                 const Identifier &objectName, const Identifier &attributeName);
-
-    /** @short Helper for createObject() and deleteObject() */
-    void helperCreateDeleteObject(const std::string &cmd, const Identifier &kindName, const Identifier &objectName);
+    friend class JsonHandler;
 };
 
 }

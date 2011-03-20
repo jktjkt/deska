@@ -358,7 +358,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual Revision resumeChangeset(const Revision oldRevision) = 0;
+    virtual void resumeChangeset(const Revision revision) = 0;
 
     /** @short Detach this session from its active changeset
      *

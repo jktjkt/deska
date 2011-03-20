@@ -20,7 +20,8 @@
 * */
 
 #include <algorithm>
-#include <boost/lambda/bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include "FakeApi.h"
 
 using std::map;
@@ -45,10 +46,11 @@ FakeApi::~FakeApi()
 
 vector<Identifier> FakeApi::kindNames() const
 {
-    using namespace boost::lambda;
+    using namespace boost::phoenix;
+    using namespace arg_names;
     vector<Identifier> res;
     transform( attrs.begin(), attrs.end(), back_inserter(res),
-               bind( &map<string, vector<KindAttributeDataType> >::value_type::first, _1 )
+               bind( &map<string, vector<KindAttributeDataType> >::value_type::first, arg1 )
                );
     return res;
 }
@@ -173,16 +175,15 @@ std::vector<Revision> FakeApi::pendingChangesetsByMyself()
     return std::vector<Revision>();
 }
 
-Revision FakeApi::resumeChangeset(const Revision oldRevision)
+void FakeApi::resumeChangeset(const Revision revision)
 {
-    return 0;
 }
 
 void FakeApi::detachFromActiveChangeset()
 {
 }
 
-void FakeApi::abortChangeset(const Revision rev)
+void FakeApi::abortChangeset(const Revision revision)
 {
 }
 
