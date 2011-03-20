@@ -34,6 +34,9 @@ class Jsn:
 			self.jsn[self.cmd] = data
 		elif res == 1:
 			self.jsn["result"] = True
+			if self.jsn.has_key(self.cmd):
+				#remove unneded args
+				del self.jsn[self.cmd]
 		# write response instead of command
 		del self.jsn[CMD]
 		self.jsn[RES] = self.cmd
