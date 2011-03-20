@@ -1,7 +1,7 @@
 SET search_path TO api,genproc,history,deska,production;
 -- after connect, register session
 BEGIN;
-SELECT start_changeset();
+SELECT startChangeset();
 
 -- works?
 SELECT my_version();
@@ -16,19 +16,19 @@ SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
 
 -- commit
 -- end session, part of vendor commit? of vendor commit part of this?
-SELECT commit();
+SELECT commitChangeset();
 
 SELECT * FROM vendor_history;
 SELECT * FROM hardware_history;
 SELECT * FROM vendor;
 SELECT * FROM hardware;
 
-SELECT start_changeset();
+SELECT startChangeset();
 SELECT deleteObject('hardware','hwDELL');
 SELECT deleteObject('vendor','DELL');
 SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
-SELECT commit();
+SELECT commitChangeset();
 
 SELECT * FROM vendor_history;
 SELECT * FROM vendor;

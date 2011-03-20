@@ -139,6 +139,19 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	# template string for names
+	names_string = '''CREATE FUNCTION
+	{tbl}_names()
+	RETURNS SETOF char(64) --FIXME this should be set dynamic
+	AS
+	$$
+	BEGIN
+		RETURN QUERY SELECT name FROM {tbl};
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 
 	def __init__(self,name):
 		self.data = dict()
@@ -209,6 +222,9 @@ class Table:
 	def gen_commit(self):
 		#TODO if there is more columns...
 		return self.commit_string.format(tbl = self.name, assign = self.gen_cols_assign(), columns = self.get_columns())
+
+	def gen_names(self):
+		return self.names_string.format(tbl = self.name)
 
 
 class Api:

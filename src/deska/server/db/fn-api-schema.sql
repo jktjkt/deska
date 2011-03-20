@@ -174,4 +174,16 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
-
+--function returns relations of a given kind
+CREATE FUNCTION kindInstances(kindname name)
+RETURNS SETOF char(64)
+AS
+$$
+DECLARE
+fn text;
+BEGIN
+	fn = 'SELECT * from ' || kindname || '_names()';
+	RETURN QUERY EXECUTE fn ;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
