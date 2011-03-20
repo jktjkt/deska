@@ -103,7 +103,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --
-CREATE OR REPLACE FUNCTION get_kind_names()
+CREATE OR REPLACE FUNCTION kindNames()
 RETURNS SETOF name
 AS
 $$
@@ -122,7 +122,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 CREATE TYPE attr_info AS (attname name, typename name);
 
-CREATE OR REPLACE FUNCTION get_kind_attributes(tabname name)
+CREATE OR REPLACE FUNCTION kindAttributes(tabname name)
 RETURNS SETOF attr_info
 AS
 $$
@@ -150,7 +150,7 @@ refattname	text
 --DROP FUNCTION get_relations(name);
 
 --function returns relations of a given kind
-CREATE FUNCTION get_relations(kindname name)
+CREATE FUNCTION kindRelations(kindname name)
 RETURNS SETOF kind_relation
 AS $$
 DECLARE
