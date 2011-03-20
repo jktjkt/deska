@@ -6,9 +6,22 @@ class DB:
 		"kindAttributes": ["kindName"],
 		"kindRelations": ["kindName"],
 		"kindInstances": ["kindName"],
-		"objectData": ["kindName", "objectName"],
-		"setAttribute": ["kindName","objectName","attributeName","Value"]
-	
+		#"objectData": ["kindName", "objectName"],
+		#"resolvedObjectData": ["kindName", "objectName"],
+		#"findOverriddenAttrs": ["kindName", "objectName", "attributeName"],
+		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
+		"deleteObject": ["kindName","objectName"],
+		"createObject": ["kindName","objectName"],
+		"renameObject": ["kindName","oldName","newName"],
+		"removeAttribute": ["kindName","objectName","attributeName"],
+		"setAttribute": ["kindName","objectName","attributeName","Value"],
+		"startChangeset": [],
+		"commitChangeset": [],
+		#"rebaseChangeset": [],
+		#"pendingChangesetsByMyself": [],
+		#"resumeChangeset": [],
+		#"detachFromActiveChangeset": [],
+		"abortChangeset": []
 	})
 	def __init__(self):
 		print "conntect to db"
