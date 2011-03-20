@@ -5,12 +5,12 @@ from randdom import Names, Macs, IPv4s, Dates
 
 script_template = '''SET search_path TO genproc,history,deska,production;
 BEGIN;
-SELECT start_changeset();
+SELECT startChangeset();
 {vendors_add}
 {hardware_add}
 {host_add}
 {interface_add}
-SELECT commit();
+SELECT commitChangeset();
 ROLLBACK;
  '''
 
