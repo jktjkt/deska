@@ -25,8 +25,8 @@ class DB:
 	})
 	def __init__(self):
 		print "conntect to db"
-		conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
-		self.mark = conn.cursor()
+		self.conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
+		self.mark = self.conn.cursor()
 		self.mark.execute("SET search_path TO api,genproc,history,deska,production;")
 
 	# has api this method?
@@ -54,6 +54,10 @@ class DB:
 			d[i[0]] = i[1]
 		return d
 
+	def close(self):
+		self.mark.close()
+		self.conn.commit()
+		self.conn.close()
 
 
 

@@ -1,7 +1,6 @@
 import json
 from dbapi import DB
 
-db = DB()
 CMD = "command"
 RES = "response"
 
@@ -10,6 +9,7 @@ class Jsn:
 	# create json object from string in data
 	def __init__(self,data):
 		#FIXME try and error reporting
+		self.db = DB()
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
@@ -22,15 +22,15 @@ class Jsn:
 			args = self.jsn[cmd]
 		else:
 			args = dict()
-		if db.has(cmd):
-			res = db.run(cmd,args)
+		if self.db.has(cmd):
+			res = self.db.run(cmd,args)
 			return res
 		else:
 			raise "no command named" + cmd
 	
 	def responce(self,res):
 		if res > 1:
-			data = db.fetchall()	
+			data = self.db.fetchall()	
 			self.jsn[self.cmd] = data
 		elif res == 1:
 			self.jsn["result"] = True
@@ -41,13 +41,7 @@ class Jsn:
 		
 	def process(self):
 		res = self.command()
-		return self.responce(res)
+		jsn = self.responce(res)
+		self.db.close()
+		return jsn
 
-
-data = '{"command": "setAttribute", "setAttribute": {"kindName":"vendor", "objectName":"DELL", "attributeName": "name", "Value":"xxx"}}'
-jsn = Jsn(data)
-print jsn.process()
-
-data = '{"command": "kindAttributes", "kindAttributes": { "kindName": "vendor"} }'
-jsn = Jsn(data)
-print jsn.process()

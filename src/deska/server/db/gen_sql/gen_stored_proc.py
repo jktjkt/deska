@@ -35,7 +35,7 @@ class Schema:
 -- need this in api schema
 SET search_path TO api,genproc,history,deska,production;
 	
-CREATE FUNCTION commit()
+CREATE FUNCTION commitChangeset()
 	RETURNS integer
 	AS
 	$$
