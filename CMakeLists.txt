@@ -35,11 +35,13 @@ INCLUDE_DIRECTORIES(
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Api.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/FakeApi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonApi.cpp
 )
 
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
 )
 

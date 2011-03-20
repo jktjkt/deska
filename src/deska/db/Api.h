@@ -22,6 +22,7 @@
 #ifndef DESKA_API_H
 #define DESKA_API_H
 
+#include <iosfwd>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -62,6 +63,8 @@ typedef enum {
     TYPE_DOUBLE
 } Type;
 
+std::ostream& operator<<(std::ostream &stream, const Type t);
+
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
 
@@ -84,6 +87,10 @@ struct KindAttributeDataType
     Identifier name;
     Type type;
 };
+
+bool operator==(const KindAttributeDataType &a, const KindAttributeDataType &b);
+bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b);
+std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k);
 
 /** @short Table relations -- are these objects somehow related, and should their representation be merged in the CLI? */
 typedef enum {
@@ -175,6 +182,10 @@ private:
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
 };
 
+bool operator==(const ObjectRelation &a, const ObjectRelation &b);
+bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
+std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
+
 
 /** @short Exception occured during processing of the request */
 class RemoteDbError: public std::runtime_error
@@ -265,7 +276,7 @@ public:
      *
      * */
     virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
      *
@@ -277,7 +288,7 @@ public:
      * @see findOverriddenAttrs()
      * */
     virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attrName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
 
     // Manipulating objects
 
@@ -285,7 +296,7 @@ public:
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName ) = 0;
 
     /** @short Create new object */
-    virtual void createObject( const Identifier &kindName, const Identifier &objectname ) = 0;
+    virtual void createObject( const Identifier &kindName, const Identifier &objectName ) = 0;
 
     /** @short Change object's name */
     virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;
@@ -347,7 +358,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual Revision resumeChangeset(const Revision oldRevision) = 0;
+    virtual void resumeChangeset(const Revision revision) = 0;
 
     /** @short Detach this session from its active changeset
      *

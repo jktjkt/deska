@@ -19,32 +19,43 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_FAKEAPI_H
-#define DESKA_FAKEAPI_H
+#ifndef DESKA_JSONAPI_H
+#define DESKA_JSONAPI_H
 
+#include <stdexcept>
+#include <boost/signals2.hpp>
 #include "Api.h"
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
 
 namespace Deska
 {
 
-/** @short A fake implementation of the DB API for testing purposes */
-class FakeApi: public Api
+/** @short An error occured during parsing of the server's response */
+class JsonParseError: public std::runtime_error
 {
 public:
-    FakeApi();
-    virtual ~FakeApi();
+    JsonParseError(const std::string &message);
+    virtual ~JsonParseError() throw ();
+};
+
+/** @short Database API implemented through the JSON */
+class JsonApiParser: public Api
+{
+public:
+    JsonApiParser();
+    virtual ~JsonApiParser();
 
     // Querying schema definition
     virtual std::vector<Identifier> kindNames() const;
-    virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const;
+    virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const;
     virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const;
 
     // Returning data for existing objects
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision=0 ) const;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision rev = 0 ) const;
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const Revision = 0 );
+        const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const Revision=0 );
+            const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
     virtual std::vector<Identifier> findOverriddenAttrs(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
     virtual std::vector<Identifier> findNonOverriddenAttrs(
@@ -68,15 +79,25 @@ public:
     virtual void detachFromActiveChangeset();
     virtual void abortChangeset(const Revision revision);
 
-    // These members should be accessible for modifications from the test suite
+    /** @short Write JSON data to the DB server
+     *
+     * This signal is emitted when the JSON implementation of the Deska DB API needs to send a JSON request to the Deska DB.
+     */
+    boost::signals2::signal<void (const std::string &jsonDataToWrite)> writeString;
+    /** @short Ask for JSON data from the DB server
+     *
+     * This signal is used to request data from the remote DB server over the JSON protocol. No arguments are passed, but the
+     * attached slot should return a signle string when all data were received.
+     */
+    boost::signals2::signal<std::string (), boost::signals2::last_value<std::string> > readString;
 
-    /** @short Attributes of various top-level objects */
-    std::map<std::string, std::vector<KindAttributeDataType> > attrs;
+private:
+    /** @short The implementation wants to send a JSON object */
+    void sendJsonObject(const json_spirit::Object &o) const;
+    /** @short The implementation tries to obtain the JSON data */
+    json_spirit::Object readJsonObject() const;
 
-    /** @short Relations, as "retrieved" from the DB scheme */
-    std::map<std::string, std::vector<ObjectRelation> > relations;
-
-    // FIXME: add more members for implementing other methods
+    friend class JsonHandler;
 };
 
 }

@@ -85,5 +85,4 @@ return res[0][fname]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
-
 END;
