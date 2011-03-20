@@ -78,7 +78,33 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	#template string for get functions
+	get_data_type_string='''CREATE TYPE {tbl}_type AS(
+{columns}
+);
+'''
+	# template string for get data functions
+	get_data_string = '''CREATE FUNCTION
+	{tbl}_get_data(IN name_ text)
+	RETURNS SETOF {tbl}_type
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
+		RETURN QUERY 
+			SELECT {columns} FROM {tbl}_history
+			WHERE name = name_ AND version = ver
+			UNION
+			SELECT {columns} FROM {tbl}
+			WHERE name = name_ AND name NOT IN 
+				(SELECT name FROM {tbl}_history
+				WHERE name = name_ AND version = ver);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+#template string for get functions
 	get_string = '''CREATE FUNCTION
 	{tbl}_get_{colname}(IN name_ text)
 	RETURNS {coltype}
@@ -232,6 +258,20 @@ class Table:
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
 	
+	def gen_get_object_data(self):
+		collist = self.col.copy()
+		del collist['uid']
+		del collist['name']
+		if len(collist) == 0:
+			return ""
+		cols = ",".join(collist)
+		coltype_string = "{colname} {coltype}"
+		coltypeslist = list()
+		for col in collist:
+			coltypeslist.append(coltype_string.format(colname = col, coltype = collist[col]))
+		coltypes = ",\n".join(coltypeslist)
+		return self.get_data_type_string.format(tbl = self.name, columns = coltypes) + "\n" + self.get_data_string.format(tbl = self.name, columns = cols)
+
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
 
@@ -248,6 +288,10 @@ class Api:
 	# template string for get functions
 	get_string = '''def {tbl}_get_{col}(objectName):
 	return db.callproc("{tbl}_get_{col}",[objectName])
+'''
+	# template string for get functions
+	get_data_string = '''def {tbl}_get_data(objectName):
+	return db.callproc("{tbl}_get_data",[objectName])
 '''
 	# template string for add function
 	add_string = '''def {tbl}_add(objectName):
@@ -280,6 +324,9 @@ class Api:
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name, col = col_name)
+
+	def gen_get_object_data(self):
+		return self.get_data_string.format(tbl = self.name)
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name, col = col_name)
