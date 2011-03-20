@@ -117,9 +117,9 @@ resp_pendingChangesetsByMyself = {R_PREFIX: "vcsGetPendingChangesetsByMyself",
                                  }
 
 cmd_resumePendingChangeset = {C_PREFIX: "vcsResumePendingChangeset",
-                              "currentRevision": 123}
+                              "revision": 123}
 resp_resumePendingChangeset = {R_PREFIX: "vcsResumePendingChangeset",
-                               "currentRevision": 123, "revision": 666}
+                               "revision": 123}
 
 cmd_detachFromActiveChangeset = {C_PREFIX: "vcsDetachFromActiveChangeset"}
 resp_detachFromActiveChangeset = {R_PREFIX: "vcsDetachFromActiveChangeset"}

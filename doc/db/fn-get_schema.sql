@@ -179,7 +179,7 @@ select currval('version_seq');
 --select get_kindInstances('vendor');
 --select get_primary_key_column('vendor');
 
---createObject( const Identifier &kindName, const Identifier &objectname )
+--createObject( const Identifier &kindName, const Identifier &objectName )
 --creates new object if doesn't exist that one
 --postgresql 9.1 execute format('insert into %I ( %I ) values ( $1 )',tabname, get_primary_key_column(tabname))
 create or replace function create_object(tabname name, id text) returns void

@@ -70,25 +70,6 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
--- API part here
-SET search_path TO api,deska;
---
--- start changeset
---
-CREATE FUNCTION start_changeset()
-RETURNS integer
-AS
-$$
-DECLARE ver integer;
-BEGIN
-	SELECT add_version() INTO ver;
-	INSERT INTO changeset (username,version)
-		VALUES (current_user,ver);
-	RETURN 1;
-END
-$$
-LANGUAGE plpgsql SECURITY DEFINER;
-
 --
 -- close changeset
 --
@@ -99,6 +80,25 @@ $$
 BEGIN
 	DELETE FROM changeset
 		WHERE username = current_user;
+	RETURN 1;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+-- API part here
+SET search_path TO api,deska;
+--
+-- start changeset
+--
+CREATE FUNCTION startChangeset()
+RETURNS integer
+AS
+$$
+DECLARE ver integer;
+BEGIN
+	SELECT add_version() INTO ver;
+	INSERT INTO changeset (username,version)
+		VALUES (current_user,ver);
 	RETURN 1;
 END
 $$

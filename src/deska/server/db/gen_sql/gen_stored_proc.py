@@ -35,7 +35,7 @@ class Schema:
 -- need this in api schema
 SET search_path TO api,genproc,history,deska,production;
 	
-CREATE FUNCTION commit()
+CREATE FUNCTION commitChangeset()
 	RETURNS integer
 	AS
 	$$
@@ -126,6 +126,7 @@ CREATE FUNCTION commit()
 		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
 		self.py.write(api.gen_commit())
+		self.sql.write(table.gen_names())
 		return
 	
 	def gen_commit(self):

@@ -26,4 +26,4 @@ CREATE SCHEMA deska AUTHORIZATION deska_admin;
 --
 -- schema for api functions
 --
-CREATE SCHEMA api AUTHORIZATION deska_team;
+CREATE SCHEMA api AUTHORIZATION deska_admin;
