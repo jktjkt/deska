@@ -313,8 +313,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     if( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
         // Definition of kind found stand-alone on one line -> nest permanently
-    }
-    else {
+    } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
         if ( depthDiff > 0 )
             for( int i = 0; i < depthDiff; ++i ) {
@@ -409,7 +408,7 @@ void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesPa
     for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
         attributesParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
 #ifdef PARSER_DEBUG
-    std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
+        std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
 #endif
     }
 }
