@@ -112,16 +112,42 @@ CREATE FUNCTION commitChangeset()
 		# generate sql
 		self.sql.write(table.gen_hist())
 		self.fks = self.fks + (table.gen_fks())
-		for col in tables[:]:
-			 self.sql.write(table.gen_set(col[0]))
-			 self.py.write(api.gen_set(col[0]))
-			 self.sql.write(table.gen_get(col[0]))
-			 self.py.write(api.gen_get(col[0]))
+		#get dictionary of colname and reftable, which uid colname references
+		cols_ref_uid = table.get_cols_reference_uid()
+		for col in tables[:]:			
+			if (col[0] in cols_ref_uid):
+				reftable = cols_ref_uid[col[0]]
+				#column that references uid has another set function(with finding corresponding uid)
+				self.sql.write(table.gen_set_ref_uid(col[0], reftable))
+			#if we would like to get name, parameter is uid
+			elif (col[0] != 'name' and col[0]!='uid'):
+				self.sql.write(table.gen_set(col[0]))
+				self.sql.write(table.gen_get(col[0]))
 
+			self.py.write(api.gen_set(col[0]))
+			#get uid of that references uid should not return uid but name of according instance
+			#if (col[0] in cols_ref_embed):
+			self.py.write(api.gen_get(col[0]))
+		self.sql.write(table.gen_set_name())
+		self.sql.write(table.gen_get_name())
+		
+		#get uid from embed object		
+		embed_column = table.get_col_embed_reference_uid()
+		if (embed_column != ""):
+			reftable = cols_ref_uid[embed_column[0]]
+			#adding full quolified name with _ delimiter
+			self.sql.write(table.gen_add_embed(embed_column[0],reftable))
+			#get uid from embed object, again name have to be full
+			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
+		else:
+			self.sql.write(table.gen_add())
+			self.sql.write(table.gen_get_uid())
+			
+#TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
+#we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
 		self.py.write(api.gen_get_object_data())
 		self.sql.write(table.gen_add())
-		self.py.write(api.gen_add())
 		self.sql.write(table.gen_del())
 		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
