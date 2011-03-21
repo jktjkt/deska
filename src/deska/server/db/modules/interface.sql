@@ -14,8 +14,8 @@ CREATE TABLE interface (
 	name char(64) NOT NULL,
 	-- host
 	-- TODO better use uid
-	host char(64)
-		CONSTRAINT interface_fk_host REFERENCES host(name) DEFERRABLE,
+	host bigint
+		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
 	-- TODO unique constraint
 	ip inet,
@@ -25,5 +25,3 @@ CREATE TABLE interface (
 	note text,
 	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
 );
-
-
