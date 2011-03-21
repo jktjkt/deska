@@ -71,9 +71,9 @@ void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Itera
 
 
 
-InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList )
+InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList ):
+    list(keywordsList)
 {
-    list = keywordsList;
 }
 
 
@@ -89,13 +89,9 @@ void InfoExtractor::element( spirit::utf8_string const& tag, spirit::utf8_string
 
 
 template <typename Iterator>
-ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what )
+ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ):
+    errorType(PARSE_ERROR_TYPE_VALUE_TYPE), m_start(start), m_end(end), m_errorPos(errorPos)
 {
-    errorType = PARSE_ERROR_TYPE_VALUE_TYPE;
-    m_start = start;
-    m_end = end;
-    m_errorPos = errorPos;
-    
     InfoExtractor extractor( &expectedKeywords );
     spirit::basic_info_walker<InfoExtractor> walker( extractor, what.tag, 0 );
     boost::apply_visitor( walker, what.value );
@@ -105,26 +101,18 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-    const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds )
+    const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds ):
+    errorType(PARSE_ERROR_TYPE_KIND), m_start(start), m_end(end), m_errorPos(errorPos)
 {
-    errorType = PARSE_ERROR_TYPE_KIND;
-    m_start = start;
-    m_end = end;
-    m_errorPos = errorPos;
-
     kinds.for_each( boost::bind( &ParseError<Iterator>::extractKindName, this, _1, _2 ) );
 }
 
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-    const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes )
+    const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes ):
+    errorType(PARSE_ERROR_TYPE_ATTRIBUTE), m_start(start), m_end(end), m_errorPos(errorPos)
 {
-    errorType = PARSE_ERROR_TYPE_ATTRIBUTE;
-    m_start = start;
-    m_end = end;
-    m_errorPos = errorPos;
-
     attributes.for_each( boost::bind( &ParseError<Iterator>::extractAttributeName, this, _1, _2 ) );
 }
 
