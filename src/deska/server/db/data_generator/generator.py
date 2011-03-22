@@ -6,12 +6,9 @@ from randdom import Names, Macs, IPv4s, Dates
 script_template = '''SET search_path TO genproc,history,deska,production;
 BEGIN;
 SELECT startChangeset();
-{vendors_add}
-{hardware_add}
-{host_add}
-{interface_add}
+{data}
 SELECT commitChangeset();
-ROLLBACK;
+END;
  '''
 
 class Generator():
@@ -107,4 +104,4 @@ generator.add_hosts()
 generator.add_interfaces()
 
 # print
-print "\n".join(generator.data)
+print script_template.format(data = "\n".join(generator.data))
