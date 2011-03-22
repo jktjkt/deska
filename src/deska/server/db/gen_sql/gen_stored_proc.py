@@ -128,8 +128,6 @@ CREATE FUNCTION commitChangeset()
 			#get uid of that references uid should not return uid but name of according instance
 			#if (col[0] in cols_ref_embed):
 			self.py.write(api.gen_get(col[0]))
-		self.sql.write(table.gen_set_name())
-		self.sql.write(table.gen_get_name())
 		
 		#get uid from embed object		
 		embed_column = table.get_col_embed_reference_uid()
