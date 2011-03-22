@@ -99,24 +99,6 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	# template string for set function's
-	set_name_string = '''CREATE FUNCTION
-	{tbl}_set_name(IN {tbl}_uid bigint,IN name_ text)
-	RETURNS integer
-	AS
-	$$
-	DECLARE	ver bigint;
-	BEGIN
-		SELECT my_version() INTO ver;
-		UPDATE {tbl}_history SET name = name_, version = ver
-			WHERE uid = {tbl}_uid AND version = ver;
-		--TODO if there is nothing in current version???
-		RETURN 1;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
 	#template for setting uid of referenced row that has name attribute value
 	#value could be composed of names that are in embed into chain
 	set_fk_uid_string = '''CREATE FUNCTION
@@ -455,9 +437,6 @@ class Table:
 
 	def gen_set_ref_uid(self,col_name, reftable):
 		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable)
-
-	def gen_set_name(self):
-		return self.set_name_string.format(tbl = self.name)
 
 	def gen_get_object_data(self):
 		collist = self.col.copy()
