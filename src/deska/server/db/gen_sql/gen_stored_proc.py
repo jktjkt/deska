@@ -119,7 +119,6 @@ CREATE FUNCTION commitChangeset()
 				reftable = cols_ref_uid[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
 				self.sql.write(table.gen_set_ref_uid(col[0], reftable))
-			#if we would like to get name, parameter is uid
 			elif (col[0] != 'name' and col[0]!='uid'):
 				self.sql.write(table.gen_set(col[0]))
 				self.sql.write(table.gen_get(col[0]))
@@ -128,7 +127,6 @@ CREATE FUNCTION commitChangeset()
 			#get uid of that references uid should not return uid but name of according instance
 			#if (col[0] in cols_ref_embed):
 			self.py.write(api.gen_get(col[0]))
-		self.sql.write(table.gen_set_name())
 		self.sql.write(table.gen_get_name())
 		
 		#get uid from embed object		
