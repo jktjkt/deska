@@ -147,7 +147,6 @@ CREATE FUNCTION commitChangeset()
 #we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
 		self.py.write(api.gen_get_object_data())
-		self.sql.write(table.gen_add())
 		self.sql.write(table.gen_del())
 		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
