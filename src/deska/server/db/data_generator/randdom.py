@@ -3,7 +3,7 @@
 import random, datetime
 from operator import mul
 
-random.seed(42)
+random.seed(777)
 
 class rlist(list):
 	# get random item from list
