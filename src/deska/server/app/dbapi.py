@@ -74,13 +74,20 @@ class DB:
 			raise "very bad assert here, not run this function without run has() before"
 	
 	def fetchall(self):
-		print type(self.res)
-		d = dict()
+		res = list()
+		args = list()
+		# select attribute names
+		for i in self.mark.description:
+			args.append(i[0])
 		for i in self.res:
-			print i
-			d[i[0]] = i[1]
-		return d
-
+			# for each line of result
+			# add tuple argname:value into dictionary
+			d = dict()
+			map(d.__setitem__,args,list(i))
+			res.append(d)
+			
+		return res
+	
 	def close(self):
 		self.mark.close()
 		self.conn.commit()
