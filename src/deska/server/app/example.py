@@ -13,7 +13,20 @@ data = '{"command": "createObject", "createObject": { "kindName": "vendor", "obj
 jsn = Jsn(data)
 print jsn.process()
 
-data = '{"command": "commitChangeset"}'
+data = '{"command": "createObject", "createObject": { "kindName": "hardware", "objectName": "hp2"} }'
+jsn = Jsn(data)
+print jsn.process()
+
+data = '{"command": "setAttribute", "setAttribute": {"kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}}'
+jsn = Jsn(data)
+print jsn.process()
+
+data = '{"command": "objectData", "objectData": { "kindName": "hardware", "objectName": "hp2"} }'
+jsn = Jsn(data)
+print jsn.process()
+
+#data = '{"command": "commitChangeset"}'
+data = '{"command": "abortChangeset"}'
 jsn = Jsn(data)
 print jsn.process()
 
