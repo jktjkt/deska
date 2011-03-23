@@ -42,7 +42,6 @@ namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
-
 typedef enum {
     PARSE_ERROR_TYPE_KIND,
     PARSE_ERROR_TYPE_ATTRIBUTE,
@@ -68,7 +67,7 @@ template <typename Iterator>
 class ObjectErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a top-level object type occures.
@@ -81,9 +80,8 @@ public:
     *   @param what Expected tokens
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds ) const;
-
-    static void printKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
+        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds,
+        ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -93,7 +91,7 @@ template <typename Iterator>
 class KeyErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a name of an attribute occures.
@@ -106,9 +104,8 @@ public:
     *   @param what Expected tokens
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes ) const;
-
-    static void printAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+        const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes,
+        ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -118,7 +115,7 @@ template <typename Iterator>
 class ValueErrorHandler
 {
 public:
-    template <typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short Function executed when some error while parsing a value of an attribute occures.
@@ -130,7 +127,8 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ) const;
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -156,9 +154,11 @@ class ParseError
 public:
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what );
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds );
+        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds );
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes );
+        const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes );
+
+    std::string toString();
 
 private:
     void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
