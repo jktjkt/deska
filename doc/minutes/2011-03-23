@@ -1,0 +1,98 @@
+Schuze Deska, 2011-03-23 FZU
+----------------------------
+
+Pritomni: Honza, Martina, Lukas
+Omluveni: Tomas - hory
+
+
+Ukoly z minula:
+---------------
+
+- Honza: tab completion: premyslet, jak udelat (#101)
+    - neni
+- Honza: implementovat JSON (#113)
+    - je
+- Honza: pridat do API jednu funkci pro predani "obecne chyby" (#114)
+    - je
+- Honza: doplnit chybejici funkce pro session management do API, viz diskuse (#115)
+    - je
+- Honza: rozsirit TEMPLATE v API (#116)
+    - je
+- Honza: vykomunikovat s Tomasem jeho stav
+    - je
+- Tomas: zprovozneni parseru, unit testy hlasi kotel chyb (#119)
+    ?
+- Tomas: embedovane objekty (#98)
+    ?
+- Tomas: embed.: kontrolovat, jestli se vnoruji povolene typy objektu (#99)
+    ?
+- Tomas: ucesat end (#100)
+    ?
+- Tomas: event. readline
+    - neni
+- Martina: vyresit commitovani zmen z docasne, rozpracovane revize do produkcni
+  tabulky (diskuse o DEFERRABLE DEFAULT DEFERRED) (#104)
+    - je
+- Martina: sjednoceni datovych typu (#105)
+    - je
+- Martina: zbude-li cas, seznam chyb, ktere muze vratit DB, k zahrnuti do API (#117)
+    - neni
+- Lukas: kompletni funkcnost pro prevod uzivetelem definovanych tabulek do Deska
+  tabulek, nebudou templaty
+    - je
+- Lukas: JSON (#118)
+    - skoro je
+- Lukas vymysli Martine, co ma udelat -- v utery rano
+    - je
+
+Udelano:
+--------
+
+Lukas: JSON
+Martina: generovani dat, funkce pro getObjectData, odkazy pres PK (id) misto
+name, embedded objekty, testovani embed objektu
+
+Diskuse:
+--------
+
+- cislovani docasnych revizi: argumenty pro to, aby "cislo stale revize" a
+"cislo docasne revize" byly dve samostatne domeny jsou; bez toho by rozumne
+neslo zajistit, aby cisla stalych changesetu byly kontinualni (hromadne
+precislovani rozpracovancyh changesetu je spatny napad). To znamena, ze "revize"
+a "docasna revize" jsou uplne jina cisla, melo by se to odrazit i v API, a
+idealne by i podrate (v JSONu) melo byt "r123" a "tmp123", plus k tomu predelat
+Revision z typedefu na tridu a nahradit ji na TemporaryRevision u trid, ktere
+sahaji na docasne revize.
+
+Ukoly na priste:
+----------------
+
+Ukoly jsou seznam veci, na kterych se da delat. Dnesni seznam je zamerne sirsi,
+nez obvykle, zrejme nektere veci nebudou.
+
+Martina: oddelovac na "->"
+Martina: vylistovani argumentu u embed objektu nema ukazovat dvojice (parent,
+        jmeno), ale jenom jednu vec
+Martina: zdokumentovat po sobe kod
+Martina: pouzit generator na zjisteni, co je dobre indexovat,...
+Lukas: zdokumentovat po sobe kod
+Lukas: pouzit generator na zjisteni, co je dobre indexovat,...
+Lukas: upravit generovani pro templaty
+Lukas: uprava generatoru atd, aby se dal mergnout get_functions
+Honza: smazat branche server-app-devel, data_generator a event. dalsi
+Honza: vyzkousi DB
+Honza: smerovat k funkcnimu IO k deska serveru
+Honza: rozsireni API smerem k dotazum na revize
+Honza: docasne revize v API
+Honza: abortChangeset se zmeni na abortCurrentChangeset
+Honza: detachFromActiveChangeset() ma zrat string message
+Honza: vymyslet nam plan, jak a co chcem delat, vyklikat v Redmine,...
+Honza: tab completion: premyslet, jak udelat (#101)
+Tomas: unit testy maji prochazet
+Tomas: dokumentace kodu
+Tomas: event. readline
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 28. brezna FZU
