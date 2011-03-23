@@ -116,28 +116,27 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
     attributes.for_each( boost::bind( &ParseError<Iterator>::extractAttributeName, this, _1, _2 ) );
 }
 
-
+std::string parseErrorTypeToString(const ParseErrorType errorType)
+{
+    switch( errorType ) {
+        case PARSE_ERROR_TYPE_KIND:
+            return "kind name";
+        case PARSE_ERROR_TYPE_ATTRIBUTE:
+            return "attribute name";
+        case PARSE_ERROR_TYPE_VALUE_TYPE:
+            return "attribute value";
+            break;
+    }
+    throw std::domain_error("ParseErrorType out of range");
+}
 
 template <typename Iterator>
 std::string ParseError<Iterator>::toString()
 {
     std::ostringstream sout;
-    switch( errorType ) {
-        case PARSE_ERROR_TYPE_KIND:
-            sout << "Error while parsing kind name. Epected";
-            break;
-        case PARSE_ERROR_TYPE_ATTRIBUTE:
-            sout << "Error while parsing attribute name. Epected";
-            break;
-        case PARSE_ERROR_TYPE_VALUE_TYPE:
-            sout << "Error while parsing attribute value. Epected";
-            break;
-    }
-    for( std::vector<std::string>::iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it ) {
-        sout << " " << *it;
-    }
-    sout << " here: " << std::string( m_errorPos, m_end ) << ".";
-
+    sout << "Error while parsing " << parseErrorTypeToString(errorType) << ". Expected one of [";
+    std::copy( expectedKeywords.begin(), expectedKeywords.end(), std::ostream_iterator<std::string>(sout, " ") );
+    sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
     return sout.str();
 }
 
