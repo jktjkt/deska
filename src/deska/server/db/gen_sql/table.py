@@ -228,6 +228,58 @@ class Table:
 
 '''
 	#template for function getting uid of object embed into another
+	get_uid_string = '''CREATE FUNCTION
+	{tbl}_get_uid(IN name_ text)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT uid INTO value
+			FROM {tbl}_history
+			WHERE name = name_ AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT uid INTO value
+			FROM {tbl}
+			WHERE name = name_;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template string for get functions
+	get_name_string = '''CREATE FUNCTION
+	{tbl}_get_name(IN {tbl}_uid bigint)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value text;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT name INTO value
+			FROM {tbl}_history
+			WHERE uid = {tbl}_uid AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT name INTO value
+			FROM {tbl}
+			WHERE uid = {tbl}_name;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for function getting uid of object embed into another
 	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_get_uid(full_name text)
 	RETURNS bigint
 	AS
@@ -238,13 +290,16 @@ class Table:
 		pos integer;
 		{tbl}_name char(64);
 		{tbl}_uid bigint;
+		delimiter_length int;
 	BEGIN
-		pos = position('_' IN full_name);
+		pos = rposition(full_name, '{delim}');
 		IF pos = 0 THEN
 			RAISE EXCEPTION 'this object is embed into another, this name is not fully qualifide';
 		END IF;
-		{tbl}_name = substr(full_name,1,pos - 1);
-		rest_of_name = substr(full_name,pos + 1);
+		
+		delimiter_length = length('{delim}');
+		{tbl}_name = substr(full_name,pos + delimiter_length + 1);
+		rest_of_name = substr(full_name,1,pos);
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
@@ -277,7 +332,7 @@ class Table:
 '''
 	# template string for add function
 	add_embed_string = '''CREATE FUNCTION
-	{tbl}_add(IN fullname text)
+	{tbl}_add(IN full_name text)
 	RETURNS integer
 	AS
 	$$
@@ -286,13 +341,15 @@ class Table:
 		rest_of_name text;
 		pos integer;
 		{tbl}_name char(64);
+		delimiter_length int;
 	BEGIN
-		pos = position('_' IN fullname);
+		pos = rposition(full_name, '{delim}');
 		IF pos = 0 THEN
 			RAISE EXCEPTION 'this object is embed into another, this name is not fully qualifide';
 		END IF;
-		{tbl}_name = substr(fullname,1,pos - 1);
-		rest_of_name = substr(fullname,pos + 1);
+		delimiter_length = length('{delim}');
+		{tbl}_name = substr(full_name,pos + delimiter_length + 1);
+		rest_of_name = substr(full_name,1,pos);
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT my_version() INTO ver;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);

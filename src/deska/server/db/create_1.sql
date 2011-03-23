@@ -8,6 +8,9 @@ BEGIN;
 -- create functions
 \i fn-api-schema.sql
 
+--creates functions - string operations
+\i fn-strlib.sql
+
 GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 \i fn-constraints.sql
 
