@@ -49,7 +49,7 @@ typedef enum {
 } ParseErrorType;
 
 
-/** @short Class used for conversion from boost::iterator_range<class> to std::string */
+/** @short Convert boost::iterator_range<class> to std::string */
 template <typename Iterator>
 class RangeToString
 {
@@ -62,7 +62,7 @@ public:
 
 
 
-/** @short Class for reporting parsing errors of input */
+/** @short Handle errors during parsing a top-level objects */
 template <typename Iterator>
 class ObjectErrorHandler
 {
@@ -70,7 +70,7 @@ public:
     template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error while parsing a top-level object type occures.
+    /** @short An error has occured during parsing a top-level object
     *
     * Prints information about the error.
     *
@@ -86,7 +86,7 @@ public:
 
 
 
-/** @short Class for reporting parsing errors of input */
+/** @short Handle errors while parsing a name of an attribute */
 template <typename Iterator>
 class KeyErrorHandler
 {
@@ -94,7 +94,7 @@ public:
     template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error while parsing a name of an attribute occures.
+    /** @short An error has occured while parsing a name of an attribute
     *
     * Prints information about the error.
     *
@@ -110,7 +110,7 @@ public:
 
 
 
-/** @short Class for reporting parsing errors of input */
+/** @short Handle errors while parsing an attribute's value */
 template <typename Iterator>
 class ValueErrorHandler
 {
@@ -118,7 +118,7 @@ public:
     template <typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short Function executed when some error while parsing a value of an attribute occures.
+    /** @short An error has occured while parsing an attribute's value
     *
     * Prints information about the error.
     *
@@ -133,7 +133,10 @@ public:
 
 
 
-/** @short Class used in visitor for boost::spirit::info to extract keywords from it to std::vector passed to the constructor */
+/** @short Extract keywords from boost::spirit::info into a vector of strings
+
+This class is used as a visitor of boost::spirit::info to extract keywords from it to a std::vector passed to the constructor.
+*/
 class InfoExtractor
 {
 public:
@@ -147,7 +150,7 @@ private:
 
 
 
-/** @short Class representing parsing errors of input */
+/** @short Representation of input parsing errors */
 template <typename Iterator>
 class ParseError
 {
