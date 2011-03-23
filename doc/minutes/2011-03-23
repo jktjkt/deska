@@ -81,14 +81,15 @@ Lukas: upravit generovani pro templaty
 Lukas: uprava generatoru atd, aby se dal mergnout get_functions
 Honza: smazat branche server-app-devel, data_generator a event. dalsi
 Honza: vyzkousi DB
-Honza: smerovat k funkcnimu IO k deska serveru
-Honza: rozsireni API smerem k dotazum na revize
-Honza: docasne revize v API
-Honza: abortChangeset se zmeni na abortCurrentChangeset
-Honza: detachFromActiveChangeset() ma zrat string message
+Honza: smerovat k funkcnimu IO k deska serveru (#142)
+Honza: rozsireni API smerem k dotazum na revize (#143)
+Honza: docasne revize v API (#141)
+Honza: abortChangeset se zmeni na abortCurrentChangeset (#141)
+Honza: detachFromActiveChangeset() ma zrat string message (#141)
 Honza: vymyslet nam plan, jak a co chcem delat, vyklikat v Redmine,...
 Honza: tab completion: premyslet, jak udelat (#101)
-Tomas: unit testy maji prochazet
+Tomas: unit testy maji prochazet (#119)
+Tomas: #120
 Tomas: dokumentace kodu
 Tomas: event. readline
 
