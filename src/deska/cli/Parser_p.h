@@ -31,6 +31,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "Parser.h"
+#include "ParserErrors.h"
 
 namespace Deska
 {
@@ -197,6 +198,7 @@ public:
 
     void parsedSingleKind();
 
+    void addParseError( const ParseError<Iterator> &error );
 
 private:
     Parser *m_parser;
@@ -214,6 +216,8 @@ private:
     PredefinedRules<Iterator> *predefinedRules;
 
     std::vector<ContextStackItem> contextStack;
+
+    std::vector<ParseError<Iterator> > parseErrors;
 };
 
 }

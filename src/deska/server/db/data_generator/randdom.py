@@ -3,6 +3,8 @@
 import random, datetime
 from operator import mul
 
+random.seed(777)
+
 class rlist(list):
 	# get random item from list
 	def ritem(self):
@@ -123,3 +125,18 @@ class Dates(rlist):
 
 	def ritem(self):
 		return "{D}/{M}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
+
+class Interfaces(rlist):
+	def __init__(self,source,num = 4):
+		self.name = Names(source)
+		self.num = Numbers(num)
+
+	def ritem(self):
+		return "{name}_eth{num}".format(name = self.name.ritem(), num = self.num.ritem())
+
+	def rset(self,size):
+		s = set(self.rlist(size))
+		while len(s) < size:
+			s.add(self.ritem())
+		return rlist(s)
+

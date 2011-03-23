@@ -123,13 +123,13 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- abort changeset, for api, same as close
 --
-CREATE FUNCTION abortChangeset(id integer)
+CREATE FUNCTION abortChangeset()
 RETURNS integer
 AS
 $$
 BEGIN
 	DELETE FROM changeset
-		WHERE version = id;
+		WHERE username = current_user;
 	RETURN 1;
 END
 $$
