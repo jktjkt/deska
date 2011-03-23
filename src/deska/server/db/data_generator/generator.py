@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 import random, datetime
-from randdom import Names, Macs, IPv4s, Dates, Numbers
+from randdom import Names, Macs, IPv4s, Dates, Numbers, Interfaces
 
 script_template = '''SET search_path TO api,genproc,history,deska,production;
 BEGIN;
@@ -89,7 +89,7 @@ SELECT startChangeset();
 	def add_interfaces(self, count = 0):
 		if (count == 0):			
 			count = self.count * 6
-		names = Names("names.txt")
+		names = Interfaces("names.txt")
 		# gen set of N random (and unique) names
 		self.interface = names.rset(count) 
 		str1 = map(self.interface_add_template.format, self.interface)
