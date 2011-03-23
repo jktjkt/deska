@@ -34,12 +34,6 @@ namespace Deska
 namespace CLI
 {
 
-template <typename Iterator>
-void RangeToString<Iterator>::operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const
-{
-    str.assign( range.begin(), range.end() );
-}
-
 
 
 template <typename Iterator>
@@ -161,9 +155,6 @@ void ParseError<Iterator>::extractAttributeName( const std::string &name,
 
 
 /////////////////////////Template instances for linker//////////////////////////
-
-template void RangeToString<iterator_type>::operator()(
-    const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
 
 template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos,
     const spirit::info &what, qi::symbols<char, qi::rule<iterator_type, std::string(), ascii::space_type> > kinds,

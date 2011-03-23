@@ -33,6 +33,22 @@ namespace CLI
 {
 
 
+/** @short Convert boost::iterator_range<class> to std::string */
+template <typename Iterator>
+class RangeToString
+{
+public:
+    template <typename, typename>
+        struct result { typedef void type; };
+
+    void operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const
+    {
+        str.assign( range.begin(), range.end() );
+    }
+};
+
+
+
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
@@ -485,6 +501,8 @@ template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindNam
 template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsParser<iterator_type>* kindsParser );
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
+
+template void RangeToString<iterator_type>::operator()( const boost::iterator_range<iterator_type> &rng, std::string &str ) const;
 
 }
 }

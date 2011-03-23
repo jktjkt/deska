@@ -49,18 +49,6 @@ typedef enum {
 } ParseErrorType;
 
 
-/** @short Convert boost::iterator_range<class> to std::string */
-template <typename Iterator>
-class RangeToString
-{
-public:
-    template <typename, typename>
-        struct result { typedef void type; };
-
-    void operator()( const boost::iterator_range<Iterator> &range, std::string &str ) const;
-};
-
-
 
 /** @short Handle errors during parsing a top-level objects */
 template <typename Iterator>
