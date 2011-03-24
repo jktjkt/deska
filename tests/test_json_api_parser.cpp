@@ -25,6 +25,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
+#include "deska/db/JsonHandler.h"
 
 using std::vector;
 using std::map;
@@ -350,4 +351,54 @@ BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
     j->abortChangeset(TemporaryChangesetId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short Verify correctness of parsing of revisions from JSON */
+BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixture)
+{
+    jsonDbInput = "{\"command\":\"c\",\"r\":\"tmp123\"}";
+    jsonDbOutput = "{\"response\": \"c\", \"r\": \"tmp3\"}";
+    TemporaryChangesetId r(123);
+    JsonHandler h(j, "c");
+    h.write("r", r).extract(&r).valueShouldMatch = false;
+    h.work();
+    BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
+/** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
+BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixture)
+{
+    std::vector<std::string> offendingItems;
+    offendingItems.push_back("r3");
+    offendingItems.push_back("r");
+    offendingItems.push_back("tm");
+    offendingItems.push_back("tmp");
+    offendingItems.push_back("tmpabc");
+    offendingItems.push_back("foo");
+    offendingItems.push_back("666");
+    offendingItems.push_back("");
+
+    BOOST_FOREACH(const std::string &s, offendingItems) {
+        jsonDbInput = "{\"command\":\"c\",\"r\":\"tmp123\"}";
+        jsonDbOutput = "{\"response\": \"c\", \"r\": \"" + s + "\"}";
+
+        // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
+        TemporaryChangesetId r(123);
+        JsonHandler h(j, "c");
+        // Make sure to explicitly request extraction, but also don't request comparison of JSON serialization
+        h.write("r", r).extract(&r).valueShouldMatch = false;
+        // ...if we didn't use the valueShouldMatch here, the error would get caught much earlier, even before
+        // the actual extraction happens.
+        try {
+            h.work();
+            BOOST_ERROR(std::string("Passing '" + s + "' should have thrown an exception."));
+        } catch (std::domain_error &e) {
+            // this is actually what we want
+            //std::cerr << "OK: " << e.what() << std::endl;
+        }
+        BOOST_CHECK(jsonDbInput.empty());
+        BOOST_CHECK(jsonDbOutput.empty());
+    }
 }
