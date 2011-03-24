@@ -293,7 +293,7 @@ class Table:
 		{tbl}_name char(64);
 		{tbl}_uid bigint;
 	BEGIN
-		SELECT embed_name(full_name,"_") INTO rest_of_name,{tbl}_name;
+		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
@@ -336,7 +336,7 @@ class Table:
 		rest_of_name text;
 		{tbl}_name char(64);
 	BEGIN
-		SELECT embed_name(full_name,"_") INTO rest_of_name,{tbl}_name;
+		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT my_version() INTO ver;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
