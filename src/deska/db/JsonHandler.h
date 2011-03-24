@@ -29,10 +29,10 @@ namespace Deska
 {
 
 class JsonApiParser;
-class Extractor;
+class JsonExtractor;
 
 /** @short Expecting/requiring/checking/sending one JSON record */
-struct Field
+struct JsonField
 {
     bool isForSending;
     bool isRequiredToReceive;
@@ -40,12 +40,12 @@ struct Field
     bool valueShouldMatch;
     std::string jsonFieldRead, jsonFieldWrite;
     json_spirit::Value jsonValue;
-    Extractor *extractor;
+    JsonExtractor *extractor;
 
-    Field(const std::string &name);
-    ~Field();
+    JsonField(const std::string &name);
+    ~JsonField();
 
-    template<typename T> Field &extract(T *where);
+    template<typename T> JsonField &extract(T *where);
 };
 
 /** @short Manager controlling the JSON interaction */
@@ -67,26 +67,26 @@ public:
     void command(const std::string &cmd);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    Field &write(const std::string &name, const std::string &value);
+    JsonField &write(const std::string &name, const std::string &value);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    Field &write(const std::string &name, const RevisionId value);
+    JsonField &write(const std::string &name, const RevisionId value);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    Field &write(const std::string &name, const TemporaryChangesetId value);
+    JsonField &write(const std::string &name, const TemporaryChangesetId value);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    Field &write(const std::string &name, const Deska::Value &value);
+    JsonField &write(const std::string &name, const Deska::Value &value);
 
     /** @short Expect a required value in the JSON */
-    Field &read(const std::string &name);
+    JsonField &read(const std::string &name);
 
     /** @short Require a JSON value with value of true */
-    Field &expectTrue(const std::string &name);
+    JsonField &expectTrue(const std::string &name);
 
 private:
     const JsonApiParser * const p;
-    std::vector<Field> fields;
+    std::vector<JsonField> fields;
 };
 
 

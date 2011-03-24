@@ -74,17 +74,17 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
 }
 
 /** @short Abstract class for conversion between a JSON value and "something" */
-class Extractor
+class JsonExtractor
 {
 public:
-    virtual ~Extractor() {}
+    virtual ~JsonExtractor() {}
     /** @short Read the JSON data, convert them to the target form and store into a variable */
     virtual void extract(const json_spirit::Value &value) = 0;
 };
 
 /** @short Template class implementing the conversion from JSON to "something" */
 template <typename T>
-class SpecializedExtractor: public Extractor
+class SpecializedExtractor: public JsonExtractor
 {
     T *target;
 public:
@@ -228,20 +228,20 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
     BOOST_STATIC_ASSERT(sizeof(T) == 0);
 }
 
-Field::Field(const std::string &name):
+JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
     jsonFieldRead(name), jsonFieldWrite(name), extractor(0)
 {
 }
 
-Field::~Field()
+JsonField::~JsonField()
 {
     delete extractor;
 }
 
 /** @short Register this field for future extraction to the indicated location */
 template<typename T>
-Field &Field::extract(T *where)
+JsonField &JsonField::extract(T *where)
 {
     extractor = new SpecializedExtractor<T>(where);
     return *this;
@@ -255,7 +255,7 @@ JsonHandler::JsonHandler(const JsonApiParser * const api, const std::string &cmd
 void JsonHandler::send()
 {
     json_spirit::Object o;
-    BOOST_FOREACH(const Field &f, fields) {
+    BOOST_FOREACH(const JsonField &f, fields) {
         if (f.isForSending) {
             o.push_back(json_spirit::Pair(f.jsonFieldWrite, f.jsonValue));
         }
@@ -271,8 +271,8 @@ void JsonHandler::receive()
     BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
 
         // At first, find a matching rule for this particular key
-        std::vector<Field>::iterator rule =
-                std::find_if(fields.begin(), fields.end(), bind(&Field::jsonFieldRead, arg1) == node.name_);
+        std::vector<JsonField>::iterator rule =
+                std::find_if(fields.begin(), fields.end(), bind(&JsonField::jsonFieldRead, arg1) == node.name_);
 
         if (rule == fields.end()) {
             // No such rule
@@ -308,9 +308,9 @@ void JsonHandler::receive()
     }
 
     // Verify that each mandatory field was present
-    std::vector<Field>::iterator rule =
+    std::vector<JsonField>::iterator rule =
             std::find_if(fields.begin(), fields.end(),
-                         ! bind(&Field::isAlreadyReceived, arg1) && bind(&Field::isRequiredToReceive, arg1) );
+                         ! bind(&JsonField::isAlreadyReceived, arg1) && bind(&JsonField::isRequiredToReceive, arg1) );
     if ( rule != fields.end() ) {
         std::ostringstream s;
         s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
@@ -326,7 +326,7 @@ void JsonHandler::work()
 
 void JsonHandler::command(const std::string &cmd)
 {
-    Field f(j_command);
+    JsonField f(j_command);
     f.jsonFieldRead = j_response;
     f.jsonValue = cmd;
     f.isForSending = true;
@@ -334,9 +334,9 @@ void JsonHandler::command(const std::string &cmd)
     fields.push_back(f);
 }
 
-Field &JsonHandler::write(const std::string &name, const std::string &value)
+JsonField &JsonHandler::write(const std::string &name, const std::string &value)
 {
-    Field f(name);
+    JsonField f(name);
     f.jsonValue = value;
     f.isForSending = true;
     f.valueShouldMatch = true;
@@ -344,9 +344,9 @@ Field &JsonHandler::write(const std::string &name, const std::string &value)
     return *(--fields.end());
 }
 
-Field &JsonHandler::write(const std::string &name, const RevisionId value)
+JsonField &JsonHandler::write(const std::string &name, const RevisionId value)
 {
-    Field f(name);
+    JsonField f(name);
     std::ostringstream s;
     s << value;
     f.jsonValue = s.str();
@@ -356,9 +356,9 @@ Field &JsonHandler::write(const std::string &name, const RevisionId value)
     return *(--fields.end());
 }
 
-Field &JsonHandler::write(const std::string &name, const TemporaryChangesetId value)
+JsonField &JsonHandler::write(const std::string &name, const TemporaryChangesetId value)
 {
-    Field f(name);
+    JsonField f(name);
     std::ostringstream s;
     s << value;
     f.jsonValue = s.str();
@@ -368,9 +368,9 @@ Field &JsonHandler::write(const std::string &name, const TemporaryChangesetId va
     return *(--fields.end());
 }
 
-Field &JsonHandler::write(const std::string &name, const Deska::Value &value)
+JsonField &JsonHandler::write(const std::string &name, const Deska::Value &value)
 {
-    Field f(name);
+    JsonField f(name);
     f.jsonValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
     f.isForSending = true;
     f.valueShouldMatch = true;
@@ -378,16 +378,16 @@ Field &JsonHandler::write(const std::string &name, const Deska::Value &value)
     return *(--fields.end());
 }
 
-Field &JsonHandler::read(const std::string &name)
+JsonField &JsonHandler::read(const std::string &name)
 {
-    Field f(name);
+    JsonField f(name);
     fields.push_back(f);
     return *(--fields.end());
 }
 
-Field &JsonHandler::expectTrue(const std::string &name)
+JsonField &JsonHandler::expectTrue(const std::string &name)
 {
-    Field f(name);
+    JsonField f(name);
     fields.push_back(f);
     f.valueShouldMatch = true;
     f.jsonValue = true;
@@ -396,13 +396,13 @@ Field &JsonHandler::expectTrue(const std::string &name)
 
 
 // Template instances for the linker
-template Field& Field::extract(vector<TemporaryChangesetId>*);
-template Field& Field::extract(RevisionId*);
-template Field& Field::extract(TemporaryChangesetId*);
-template Field& Field::extract(vector<Identifier>*);
-template Field& Field::extract(vector<KindAttributeDataType>*);
-template Field& Field::extract(vector<ObjectRelation>*);
-template Field& Field::extract(map<Identifier,Value>*);
-template Field& Field::extract(map<Identifier,pair<Identifier,Value> >*);
+template JsonField& JsonField::extract(vector<TemporaryChangesetId>*);
+template JsonField& JsonField::extract(RevisionId*);
+template JsonField& JsonField::extract(TemporaryChangesetId*);
+template JsonField& JsonField::extract(vector<Identifier>*);
+template JsonField& JsonField::extract(vector<KindAttributeDataType>*);
+template JsonField& JsonField::extract(vector<ObjectRelation>*);
+template JsonField& JsonField::extract(map<Identifier,Value>*);
+template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 
 }
