@@ -29,6 +29,8 @@
 #include <vector>
 #include <boost/variant.hpp>
 
+#include "deska/db/Revisions.h"
+
 /*
  * TODO items for the DB API:
  *
@@ -67,29 +69,6 @@ std::ostream& operator<<(std::ostream &stream, const Type t);
 
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
-
-/** @short An identification of a persistent revision in the DB */
-struct RevisionId {
-    explicit RevisionId(const unsigned int revision);
-    unsigned int r;
-    static RevisionId null;
-};
-
-bool operator==(const RevisionId a, const RevisionId b);
-bool operator!=(const RevisionId a, const RevisionId b);
-std::ostream& operator<<(std::ostream &stream, const RevisionId r);
-
-/** @short An identification of a temporary changeset in the DB */
-struct TemporaryChangesetId {
-    explicit TemporaryChangesetId(const unsigned int tmp);
-    unsigned int t;
-    static TemporaryChangesetId null;
-};
-
-bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
-bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b);
-std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t);
-
 
 /** @short Description of an attribute of a Kind object 
  *

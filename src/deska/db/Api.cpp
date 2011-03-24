@@ -23,49 +23,6 @@
 namespace Deska
 {
 
-RevisionId RevisionId::null = RevisionId(0);
-
-RevisionId::RevisionId(const unsigned int revision): r(revision)
-{
-}
-
-bool operator==(const RevisionId a, const RevisionId b)
-{
-    return a.r == b.r;
-}
-
-bool operator!=(const RevisionId a, const RevisionId b)
-{
-    return !(a==b);
-}
-
-std::ostream& operator<<(std::ostream &stream, const RevisionId r)
-{
-    return stream << "r" << r.r;
-}
-
-
-TemporaryChangesetId TemporaryChangesetId::null = TemporaryChangesetId(0);
-
-TemporaryChangesetId::TemporaryChangesetId(const unsigned int revision): t(revision)
-{
-}
-
-bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b)
-{
-    return a.t == b.t;
-}
-
-bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b)
-{
-    return !(a==b);
-}
-
-std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t)
-{
-    return stream << "tmp" << t.t;
-}
-
 Api::~Api()
 {
 }
