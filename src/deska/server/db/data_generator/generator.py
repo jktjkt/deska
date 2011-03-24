@@ -5,11 +5,9 @@ import random, datetime
 from randdom import Names, Macs, IPv4s, Dates, Numbers, Interfaces
 
 script_template = '''SET search_path TO api,genproc,history,deska,production;
-BEGIN;
 SELECT startChangeset();
 {data}
 SELECT commitChangeset();
-END;
  '''
 
 class Generator():
