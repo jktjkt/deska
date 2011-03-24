@@ -40,6 +40,7 @@ static std::string j_attrData = "attributeData";
 static std::string j_revision = "revision";
 static std::string j_currentRevision = "currentRevision";
 static std::string j_errorPrefix = "error";
+static std::string j_commitMessage = "commitMessage";
 
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
 static std::string j_cmd_kindAttributes = "getKindAttributes";
@@ -636,9 +637,10 @@ void JsonApiParser::resumeChangeset(const Revision revision)
     h.work();
 }
 
-void JsonApiParser::detachFromActiveChangeset()
+void JsonApiParser::detachFromActiveChangeset(const std::string &commitMessage)
 {
     JsonHandler h(this, j_cmd_detachFromActiveChangeset);
+    h.write(j_commitMessage, commitMessage);
     h.work();
 }
 

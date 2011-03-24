@@ -76,7 +76,7 @@ public:
     virtual Revision rebaseChangeset(const Revision oldRevision);
     virtual std::vector<Revision> pendingChangesetsByMyself();
     virtual void resumeChangeset(const Revision revision);
-    virtual void detachFromActiveChangeset();
+    virtual void detachFromActiveChangeset(const std::string &commitMessage);
     virtual void abortChangeset(const Revision revision);
 
     /** @short Write JSON data to the DB server
