@@ -138,9 +138,6 @@ class Table:
 	DECLARE	ver bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
-	DECLARE	ver bigint;
-	BEGIN
-		SELECT my_version() INTO ver;
 		RETURN QUERY 
 			SELECT {columns} FROM {tbl}_history
 			WHERE name = name_ AND version = ver
