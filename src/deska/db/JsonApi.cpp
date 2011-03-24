@@ -140,19 +140,6 @@ void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Valu
 
 /** @short Convert JSON into a vector of Deska::RevisionId */
 template<>
-void SpecializedExtractor<std::vector<RevisionId> >::extract(const json_spirit::Value &value)
-{
-    using namespace boost::phoenix;
-    using arg_names::_1;
-    json_spirit::Array data = value.get_array();
-    // Extract the int64_t, convert them into a Revision and store them into a vector
-    std::transform(data.begin(), data.end(), std::back_inserter(*target),
-                   construct<RevisionId>(bind(&json_spirit::Value::get_int64, _1))
-                   );
-}
-
-/** @short Convert JSON into a vector of Deska::RevisionId */
-template<>
 void SpecializedExtractor<std::vector<TemporaryChangesetId> >::extract(const json_spirit::Value &value)
 {
     using namespace boost::phoenix;
