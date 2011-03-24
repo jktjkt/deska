@@ -79,6 +79,18 @@ bool operator==(const RevisionId a, const RevisionId b);
 bool operator!=(const RevisionId a, const RevisionId b);
 std::ostream& operator<<(std::ostream &stream, const RevisionId r);
 
+/** @short An identification of a temporary changeset in the DB */
+struct TemporaryChangesetId {
+    explicit TemporaryChangesetId(const unsigned int tmp);
+    unsigned int t;
+    static TemporaryChangesetId null;
+};
+
+bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
+bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b);
+std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t);
+
+
 /** @short Description of an attribute of a Kind object 
  *
  * This struct is a tuple of <name,datatype>, representing one attribute of a Kind object. Each Kind
@@ -328,7 +340,7 @@ public:
      *
      * @returns a short-lived revision ID which represents the changeset being created
      * */
-    virtual RevisionId startChangeset() = 0;
+    virtual TemporaryChangesetId startChangeset() = 0;
 
     /** @short Commit current in-progress changeset 
      *
@@ -351,10 +363,10 @@ public:
      *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual RevisionId rebaseChangeset(const RevisionId oldRevision) = 0;
+    virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision) = 0;
 
     /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<RevisionId> pendingChangesetsByMyself() = 0;
+    virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself() = 0;
 
     /** @short Re-open a pre-existing changeset
      *
@@ -366,7 +378,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual void resumeChangeset(const RevisionId revision) = 0;
+    virtual void resumeChangeset(const TemporaryChangesetId revision) = 0;
 
     /** @short Detach this session from its active changeset
      *
@@ -388,7 +400,7 @@ public:
     virtual void detachFromActiveChangeset(const std::string &commitMessage) = 0;
 
     /** @short Abort an in-progress changeset */
-    virtual void abortChangeset(const RevisionId rev) = 0;
+    virtual void abortChangeset(const TemporaryChangesetId rev) = 0;
 };
 
 }

@@ -151,9 +151,9 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 
 
 
-RevisionId FakeApi::startChangeset()
+TemporaryChangesetId FakeApi::startChangeset()
 {
-    return RevisionId::null;
+    return TemporaryChangesetId::null;
 }
 
 
@@ -165,17 +165,17 @@ RevisionId FakeApi::commitChangeset()
 
 
 
-RevisionId FakeApi::rebaseChangeset(const RevisionId oldRevision)
+TemporaryChangesetId FakeApi::rebaseChangeset(const RevisionId oldRevision)
 {
-    return RevisionId::null;
+    return TemporaryChangesetId::null;
 }
 
-std::vector<RevisionId> FakeApi::pendingChangesetsByMyself()
+std::vector<TemporaryChangesetId> FakeApi::pendingChangesetsByMyself()
 {
-    return std::vector<RevisionId>();
+    return std::vector<TemporaryChangesetId>();
 }
 
-void FakeApi::resumeChangeset(const RevisionId revision)
+void FakeApi::resumeChangeset(const TemporaryChangesetId revision)
 {
 }
 
@@ -183,7 +183,7 @@ void FakeApi::detachFromActiveChangeset(const std::string &commitMessage)
 {
 }
 
-void FakeApi::abortChangeset(const RevisionId revision)
+void FakeApi::abortChangeset(const TemporaryChangesetId revision)
 {
 }
 

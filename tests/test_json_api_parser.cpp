@@ -282,7 +282,7 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsStartChangeset\"}";
     jsonDbOutput = "{\"response\": \"vcsStartChangeset\", \"revision\": 333}";
-    BOOST_CHECK_EQUAL(j->startChangeset(), RevisionId(333));
+    BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -302,7 +302,7 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":666}";
     jsonDbOutput = "{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": 666, \"revision\": 333666 }";
-    BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), RevisionId(333666));
+    BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -312,11 +312,11 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsGetPendingChangesetsByMyself\"}";
     jsonDbOutput = "{\"response\": \"vcsGetPendingChangesetsByMyself\", \"revisions\": [1, 2, 3]}";
-    vector<RevisionId> expected;
-    expected.push_back(RevisionId(1));
-    expected.push_back(RevisionId(2));
-    expected.push_back(RevisionId(3));
-    vector<RevisionId> res = j->pendingChangesetsByMyself();
+    vector<TemporaryChangesetId> expected;
+    expected.push_back(TemporaryChangesetId(1));
+    expected.push_back(TemporaryChangesetId(2));
+    expected.push_back(TemporaryChangesetId(3));
+    vector<TemporaryChangesetId> res = j->pendingChangesetsByMyself();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -327,7 +327,7 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsResumePendingChangeset\",\"revision\":123}";
     jsonDbOutput = "{\"response\": \"vcsResumePendingChangeset\", \"revision\": 123}";
-    j->resumeChangeset(RevisionId(123));
+    j->resumeChangeset(TemporaryChangesetId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -347,7 +347,7 @@ BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsAbortChangeset\",\"revision\":123}";
     jsonDbOutput = "{\"response\": \"vcsAbortChangeset\", \"revision\": 123}";
-    j->abortChangeset(RevisionId(123));
+    j->abortChangeset(TemporaryChangesetId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }

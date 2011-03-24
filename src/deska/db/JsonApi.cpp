@@ -131,6 +131,13 @@ void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
     *target = RevisionId(value.get_int64());
 }
 
+/** @short Convert JSON into Deska::TemporaryChangesetId */
+template<>
+void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
+{
+    *target = TemporaryChangesetId(value.get_int64());
+}
+
 /** @short Convert JSON into a vector of Deska::RevisionId */
 template<>
 void SpecializedExtractor<std::vector<RevisionId> >::extract(const json_spirit::Value &value)
@@ -141,6 +148,19 @@ void SpecializedExtractor<std::vector<RevisionId> >::extract(const json_spirit::
     // Extract the int64_t, convert them into a Revision and store them into a vector
     std::transform(data.begin(), data.end(), std::back_inserter(*target),
                    construct<RevisionId>(bind(&json_spirit::Value::get_int64, _1))
+                   );
+}
+
+/** @short Convert JSON into a vector of Deska::RevisionId */
+template<>
+void SpecializedExtractor<std::vector<TemporaryChangesetId> >::extract(const json_spirit::Value &value)
+{
+    using namespace boost::phoenix;
+    using arg_names::_1;
+    json_spirit::Array data = value.get_array();
+    // Extract the int64_t, convert them into a TemporaryChangesetId and store them into a vector
+    std::transform(data.begin(), data.end(), std::back_inserter(*target),
+                   construct<TemporaryChangesetId>(bind(&json_spirit::Value::get_int64, _1))
                    );
 }
 
@@ -401,6 +421,18 @@ public:
     }
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
+    Field &write(const std::string &name, const TemporaryChangesetId value)
+    {
+        Field f(name);
+        // FIXME: change to "tmp123"
+        f.jsonValue = static_cast<int64_t>(value.t);
+        f.isForSending = true;
+        f.valueShouldMatch = true;
+        fields.push_back(f);
+        return *(--fields.end());
+    }
+
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     Field &write(const std::string &name, const Deska::Value &value)
     {
         Field f(name);
@@ -599,9 +631,9 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.work();
 }
 
-RevisionId JsonApiParser::startChangeset()
+TemporaryChangesetId JsonApiParser::startChangeset()
 {
-    RevisionId revision = RevisionId::null;
+    TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandler h(this, j_cmd_startChangeset);
     h.read(j_revision).extract(&revision);
     h.work();
@@ -617,9 +649,9 @@ RevisionId JsonApiParser::commitChangeset()
     return revision;
 }
 
-RevisionId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
+TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
 {
-    RevisionId revision = RevisionId::null;
+    TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandler h(this, j_cmd_rebaseChangeset);
     h.write(j_currentRevision, oldRevision);
     h.read(j_revision).extract(&revision);
@@ -627,16 +659,16 @@ RevisionId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
     return revision;
 }
 
-vector<RevisionId> JsonApiParser::pendingChangesetsByMyself()
+vector<TemporaryChangesetId> JsonApiParser::pendingChangesetsByMyself()
 {
-    vector<RevisionId> res;
+    vector<TemporaryChangesetId> res;
     JsonHandler h(this, j_cmd_pendingChangesetsByMyself);
     h.read("revisions").extract(&res);
     h.work();
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const RevisionId revision)
+void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
 {
     JsonHandler h(this, j_cmd_resumeChangeset);
     h.write(j_revision, revision);
@@ -650,7 +682,7 @@ void JsonApiParser::detachFromActiveChangeset(const std::string &commitMessage)
     h.work();
 }
 
-void JsonApiParser::abortChangeset(const RevisionId revision)
+void JsonApiParser::abortChangeset(const TemporaryChangesetId revision)
 {
     JsonHandler h(this, j_cmd_abortChangeset);
     h.write(j_revision, revision);
