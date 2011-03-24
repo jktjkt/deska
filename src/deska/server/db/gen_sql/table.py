@@ -1,5 +1,10 @@
 #!/usr/bin/python2
 
+import string
+
+#delimiter string
+DELIMITER = "->"
+
 class PkSet(dict):
 	def __init__(self):
 		dict.__init__(self)
@@ -43,7 +48,24 @@ class Fks():
 			constr = constr + self.gen_fkcon(att) + ";\n" 
 		return constr
 			
-		
+	#needed for set functiom
+	#returns map of collname (column that references uid in some table) and tablename (table that is referenced)
+	def references_uid(self):
+		result = dict()
+		for conname in self.att:
+			refattributes = self.ratt[conname]
+			if ('uid' in refattributes):
+				index = self.ratt[conname].index('uid')
+				namecol = self.att[conname][index]
+				result[namecol] = self.tbl[conname]
+		return result
+
+	def embed_col(self):
+		for conname in self.att:
+			if (string.find(conname,'rembed_') == 0):
+				return self.att[conname]
+		return ""
+
 
 class Table:
 	# template string for generate historic table
@@ -67,10 +89,35 @@ class Table:
 	AS
 	$$
 	DECLARE	ver bigint;
+		rowuid bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
+		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
-			WHERE name = name_ AND version = ver;
+			WHERE uid = rowuid AND version = ver;
+		--TODO if there is nothing in current version???
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for setting uid of referenced row that has name attribute value
+	#value could be composed of names that are in embed into chain
+	set_fk_uid_string = '''CREATE FUNCTION
+	{tbl}_set_{colname}(IN name_ text,IN value text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		refuid bigint;
+		rowuid bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT {reftbl}_get_uid(value) INTO refuid;
+		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		UPDATE {tbl}_history SET {colname} = refuid, version = ver
+			WHERE uid = rowuid AND version = ver;
 		--TODO if there is nothing in current version???
 		RETURN 1;
 	END
@@ -104,7 +151,7 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-#template string for get functions
+	#template string for get functions
 	get_string = '''CREATE FUNCTION
 	{tbl}_get_{colname}(IN name_ text)
 	RETURNS {coltype}
@@ -130,6 +177,137 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	#template string for get_uid functions (for name finds corresponding uid)
+	#not for kind that are embed into another
+	get_uid_string = '''CREATE FUNCTION
+	{tbl}_get_uid(IN name_ text)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT uid INTO value
+			FROM {tbl}_history
+			WHERE name = name_ AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT uid INTO value
+			FROM {tbl}
+			WHERE name = name_;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template string for get functions
+	get_name_string = '''CREATE FUNCTION
+	{tbl}_get_name(IN {tbl}_uid bigint)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value text;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT name INTO value
+			FROM {tbl}_history
+			WHERE uid = {tbl}_uid AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT name INTO value
+			FROM {tbl}
+			WHERE uid = {tbl}_name;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for function getting uid of object embed into another
+	get_uid_string = '''CREATE FUNCTION
+	{tbl}_get_uid(IN name_ text)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT uid INTO value
+			FROM {tbl}_history
+			WHERE name = name_ AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT uid INTO value
+			FROM {tbl}
+			WHERE name = name_;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template string for get functions
+	get_name_string = '''CREATE FUNCTION
+	{tbl}_get_name(IN {tbl}_uid bigint)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		value text;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT name INTO value
+			FROM {tbl}_history
+			WHERE uid = {tbl}_uid AND version = ver;
+		--if the value isn't in current version then it should be found in production
+		IF NOT FOUND THEN
+			SELECT name INTO value
+			FROM {tbl}
+			WHERE uid = {tbl}_name;
+		END IF;		
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for function getting uid of object embed into another
+	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_get_uid(full_name text)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		{reftbl}_uid bigint;
+		rest_of_name text;
+		{tbl}_name char(64);
+		{tbl}_uid bigint;
+	BEGIN
+		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
+		
+		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
+		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
+		IF NOT FOUND THEN
+			SELECT uid INTO {tbl}_uid
+			FROM {tbl}
+			WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
+		END IF;		
+		RETURN {tbl}_uid;
+	END;
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 	# template string for add function
 	add_string = '''CREATE FUNCTION
 	{tbl}_add(IN name_ text)
@@ -141,6 +319,27 @@ class Table:
 		SELECT my_version() INTO ver;
 		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	# template string for add function
+	add_embed_string = '''CREATE FUNCTION
+	{tbl}_add(IN full_name text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		{reftbl}_uid bigint;
+		rest_of_name text;
+		{tbl}_name char(64);
+	BEGIN
+		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
+		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
+		SELECT my_version() INTO ver;
+		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
 		RETURN 1;
 	END
 	$$
@@ -223,6 +422,12 @@ class Table:
 	def add_fk(self,con_name,att_name,ref_table,ref_att):
 		self.fks.add(con_name,att_name,ref_table,ref_att)
 
+	def get_cols_reference_uid(self):
+		return self.fks.references_uid()
+
+	def get_col_embed_reference_uid(self):
+		return self.fks.embed_col()
+
 	def gen_assign(self,colname):
 		return "{col} = new.{col}".format(col= colname)
 
@@ -265,12 +470,18 @@ class Table:
 	def gen_add(self):
 		return self.add_string.format(tbl = self.name)
 
+	def gen_add_embed(self, col_name, reftable):
+		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = DELIMITER)
+
 	def gen_del(self):
 		return self.del_string.format(tbl = self.name)
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
-	
+
+	def gen_set_ref_uid(self,col_name, reftable):
+		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable)
+
 	def gen_get_object_data(self):
 		collist = self.col.copy()
 		del collist['uid']
@@ -287,6 +498,16 @@ class Table:
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
+
+	def gen_get_name(self):
+		return self.get_name_string.format(tbl = self.name)
+
+	def gen_get_uid(self):
+		return self.get_uid_string.format(tbl = self.name)
+	
+	def gen_get_uid_embed(self, refcolumn, reftable):
+		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = DELIMITER)
+
 
 	def gen_commit(self):
 		#TODO if there is more columns...
@@ -358,6 +579,3 @@ class Api:
 #print vendor.gen_hist()
 #print vendor.gen_set('name')
 #print vendor.gen_add()
-#print vendor.gen_del()
-#print vendor.gen_commit()
-

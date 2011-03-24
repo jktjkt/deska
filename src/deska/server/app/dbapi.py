@@ -6,10 +6,6 @@ class DB:
 		"kindAttributes": ["kindName"],
 		"kindRelations": ["kindName"],
 		"kindInstances": ["kindName"],
-		#"objectData": ["kindName", "objectName"],
-		#"resolvedObjectData": ["kindName", "objectName"],
-		#"findOverriddenAttrs": ["kindName", "objectName", "attributeName"],
-		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
 		"deleteObject": ["kindName","objectName"],
 		"createObject": ["kindName","objectName"],
 		"renameObject": ["kindName","oldName","newName"],
@@ -23,6 +19,12 @@ class DB:
 		#"detachFromActiveChangeset": [],
 		"abortChangeset": []
 	})
+	data_methods = dict({
+		"objectData": ["kindName", "objectName"],
+		#"resolvedObjectData": ["kindName", "objectName"],
+		#"findOverriddenAttrs": ["kindName", "objectName", "attributeName"],
+		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
+	})
 	def __init__(self):
 		print "conntect to db"
 		self.conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
@@ -31,9 +33,9 @@ class DB:
 
 	# has api this method?
 	def has(self,name):
-		return self.methods.has_key(name)
+		return self.methods.has_key(name) or self.data_methods.has_key(name)
 
-	def run(self,name,args):
+	def run_method(self,name,args):
 		# have we the exact needed arguments
 		if set(self.methods[name]) != set(args.keys()):
 			raise "args are not good"
@@ -47,13 +49,45 @@ class DB:
 		self.res = self.mark.fetchall()
 		return len(self.res)*len(self.res[0])
 	
+	def run_data_method(self,name,args):
+		# this code is provisorium, rewrite before merge into master
+		if set(self.data_methods[name]) != set(args.keys()):
+			raise "args are not good"
+		# sort args 
+		args = [args[i] for i in self.data_methods[name]]
+		# cast to string
+		fname = args[0] + "_get_data"
+		del args[0]
+		args = map(str,args)
+		self.mark.callproc(fname, args)
+		print self.mark.statusmessage
+		print self.mark.query
+		self.res = self.mark.fetchall()
+		return len(self.res)*len(self.res[0])
+	
+	def run(self,name,args):
+		if self.methods.has_key(name):
+			return self.run_method(name,args)
+		elif self.data_methods.has_key(name):
+			return self.run_data_method(name,args)
+		else:
+			raise "very bad assert here, not run this function without run has() before"
+	
 	def fetchall(self):
-		print type(self.res)
-		d = dict()
+		res = list()
+		args = list()
+		# select attribute names
+		for i in self.mark.description:
+			args.append(i[0])
 		for i in self.res:
-			d[i[0]] = i[1]
-		return d
-
+			# for each line of result
+			# add tuple argname:value into dictionary
+			d = dict()
+			map(d.__setitem__,args,list(i))
+			res.append(d)
+			
+		return res
+	
 	def close(self):
 		self.mark.close()
 		self.conn.commit()

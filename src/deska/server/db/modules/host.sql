@@ -1,6 +1,8 @@
 --
 -- every module must be place in schema production
 --
+-- every module must be place in schema production
+--
 SET search_path TO production;
 
 CREATE SEQUENCE host_uid START 1;
@@ -16,9 +18,8 @@ CREATE TABLE host (
 	-- hardwere where it runs
 	-- TODO-virtual host
 	-- TODO - better use uid
-	hardware char(64)
-		CONSTRAINT host_fk_hardware REFERENCES hardware(name) DEFERRABLE,
+	hardware bigint
+		CONSTRAINT host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	note text
 );
-
 

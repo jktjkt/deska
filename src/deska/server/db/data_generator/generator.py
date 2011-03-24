@@ -1,14 +1,13 @@
 #!/usr/bin/python2
 
+import sys
 import random, datetime
-from randdom import Names, Macs, IPv4s, Dates, Numbers
+from randdom import Names, Macs, IPv4s, Dates, Numbers, Interfaces
 
 script_template = '''SET search_path TO api,genproc,history,deska,production;
-BEGIN;
 SELECT startChangeset();
 {data}
 SELECT commitChangeset();
-END;
  '''
 
 class Generator():
@@ -89,7 +88,7 @@ SELECT startChangeset();
 	def add_interfaces(self, count = 0):
 		if (count == 0):			
 			count = self.count * 6
-		names = Names("names.txt")
+		names = Interfaces("names.txt")
 		# gen set of N random (and unique) names
 		self.interface = names.rset(count) 
 		str1 = map(self.interface_add_template.format, self.interface)
@@ -98,9 +97,9 @@ SELECT startChangeset();
 		host = self.host.rlist(count)
 		ips = IPv4s()
 		ips.setBlock("A",10)
-		ips.setBlock("B",0)
-		ips.setBlock("C",10,2)
-		ips.setBlock("D",0,25)
+		ips.setBlock("B",0,10)
+		ips.setBlock("C",10,10)
+		ips.setBlock("D",0,256)
 		ip = ips.rset(count)
 		macs = Macs()
 		mac = macs.rset(count)
@@ -113,17 +112,20 @@ SELECT startChangeset();
 		
 	def insert_commits(self, count = 0):
 		if (count == 0):			
-			count = self.count
+			count = self.count * 3
 		index = Numbers(len(generator.data)).rset(count)
 		for i in index:
 			self.data.insert(i,self.commit_template)
 
-generator = Generator(2)
-generator.add_vendors(4)
-generator.add_hardwares()
-generator.add_hosts()
-generator.add_interfaces()
-generator.insert_commits(10)
+	def run(self):
+		generator.add_vendors()
+		generator.add_hardwares()
+		generator.add_hosts()
+		# to slow, comment for large data
+		generator.add_interfaces()
+		generator.insert_commits()
 
+generator = Generator(int(sys.argv[1]))
+generator.run()
 # print
 print script_template.format(data = "\n".join(generator.data))
