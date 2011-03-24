@@ -132,7 +132,7 @@ class Interfaces(rlist):
 		self.num = Numbers(num)
 
 	def ritem(self):
-		return "{name}_eth{num}".format(name = self.name.ritem(), num = self.num.ritem())
+		return "{name}->eth{num}".format(name = self.name.ritem(), num = self.num.ritem())
 
 	def rset(self,size):
 		s = set(self.rlist(size))

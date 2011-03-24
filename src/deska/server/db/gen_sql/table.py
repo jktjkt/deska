@@ -290,10 +290,8 @@ class Table:
 	DECLARE
 		{reftbl}_uid bigint;
 		rest_of_name text;
-		pos integer;
 		{tbl}_name char(64);
 		{tbl}_uid bigint;
-		delimiter_length int;
 	BEGIN
 		SELECT embed_name(full_name,"_") INTO rest_of_name,{tbl}_name;
 		
@@ -336,17 +334,9 @@ class Table:
 	DECLARE	ver bigint;
 		{reftbl}_uid bigint;
 		rest_of_name text;
-		pos integer;
 		{tbl}_name char(64);
-		delimiter_length int;
 	BEGIN
-		pos = rposition(full_name, '{delim}');
-		IF pos = 0 THEN
-			RAISE EXCEPTION 'this object is embed into another, this name is not fully qualifide';
-		END IF;
-		delimiter_length = length('{delim}');
-		{tbl}_name = substr(full_name,pos + delimiter_length + 1);
-		rest_of_name = substr(full_name,1,pos);
+		SELECT embed_name(full_name,"_") INTO rest_of_name,{tbl}_name;
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT my_version() INTO ver;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
