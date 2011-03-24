@@ -32,7 +32,7 @@
 /*
  * TODO items for the DB API:
  *
- * - Think about how to retrieve older revisions from the DB (is the default Revision=0
+ * - Think about how to retrieve older revisions from the DB (is the default RevisionId=0
  *   enough/suitable?)
  * - Exceptions -- current idea is that all Deska::Api operations throw an exception upon any error
  * - Reorganize namespace and class names?
@@ -69,7 +69,15 @@ std::ostream& operator<<(std::ostream &stream, const Type t);
 typedef std::string Identifier;
 
 /** @short An identification of a persistent revision in the DB */
-typedef unsigned int Revision;
+struct RevisionId {
+    explicit RevisionId(const unsigned int revision);
+    unsigned int r;
+    static RevisionId null;
+};
+
+bool operator==(const RevisionId a, const RevisionId b);
+bool operator!=(const RevisionId a, const RevisionId b);
+std::ostream& operator<<(std::ostream &stream, const RevisionId r);
 
 /** @short Description of an attribute of a Kind object 
  *
@@ -232,7 +240,7 @@ public:
     // Returning data for existing objects
 
     /** @short Get identifiers of all concrete objects of a given Kind */
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision = 0 ) const = 0;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const RevisionId = RevisionId::null ) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
@@ -240,7 +248,7 @@ public:
      * resolvedObjectData() for template support.
      * */
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null ) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -258,7 +266,7 @@ public:
      *      ...
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-        const Identifier &kindName, const Identifier &objectName, const Revision = 0 ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null ) = 0;
 
     /** @short Get a list of identifiers of objects which explicitly override a given attribute 
      *
@@ -320,7 +328,7 @@ public:
      *
      * @returns a short-lived revision ID which represents the changeset being created
      * */
-    virtual Revision startChangeset() = 0;
+    virtual RevisionId startChangeset() = 0;
 
     /** @short Commit current in-progress changeset 
      *
@@ -329,7 +337,7 @@ public:
      *
      * @returns identification of a persistent revision we just created
      * */
-    virtual Revision commitChangeset() = 0;
+    virtual RevisionId commitChangeset() = 0;
 
     /** @short Make current in-progress changeset appear as a child of a specified revision
      *
@@ -343,10 +351,10 @@ public:
      *
      * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual Revision rebaseChangeset(const Revision oldRevision) = 0;
+    virtual RevisionId rebaseChangeset(const RevisionId oldRevision) = 0;
 
     /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<Revision> pendingChangesetsByMyself() = 0;
+    virtual std::vector<RevisionId> pendingChangesetsByMyself() = 0;
 
     /** @short Re-open a pre-existing changeset
      *
@@ -358,7 +366,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual void resumeChangeset(const Revision revision) = 0;
+    virtual void resumeChangeset(const RevisionId revision) = 0;
 
     /** @short Detach this session from its active changeset
      *
@@ -380,7 +388,7 @@ public:
     virtual void detachFromActiveChangeset(const std::string &commitMessage) = 0;
 
     /** @short Abort an in-progress changeset */
-    virtual void abortChangeset(const Revision rev) = 0;
+    virtual void abortChangeset(const RevisionId rev) = 0;
 };
 
 }

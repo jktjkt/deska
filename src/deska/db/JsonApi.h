@@ -51,11 +51,11 @@ public:
     virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const;
 
     // Returning data for existing objects
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const Revision rev = 0 ) const;
+    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const RevisionId rev=RevisionId::null ) const;
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
+        const Identifier &kindName, const Identifier &objectName, const RevisionId rev=RevisionId::null );
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const Revision rev = 0 );
+            const Identifier &kindName, const Identifier &objectName, const RevisionId rev=RevisionId::null );
     virtual std::vector<Identifier> findOverriddenAttrs(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
     virtual std::vector<Identifier> findNonOverriddenAttrs(
@@ -71,13 +71,13 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
 
     // SCM-like operation and transaction control
-    virtual Revision startChangeset();
-    virtual Revision commitChangeset();
-    virtual Revision rebaseChangeset(const Revision oldRevision);
-    virtual std::vector<Revision> pendingChangesetsByMyself();
-    virtual void resumeChangeset(const Revision revision);
+    virtual RevisionId startChangeset();
+    virtual RevisionId commitChangeset();
+    virtual RevisionId rebaseChangeset(const RevisionId oldRevision);
+    virtual std::vector<RevisionId> pendingChangesetsByMyself();
+    virtual void resumeChangeset(const RevisionId revision);
     virtual void detachFromActiveChangeset(const std::string &commitMessage);
-    virtual void abortChangeset(const Revision revision);
+    virtual void abortChangeset(const RevisionId revision);
 
     /** @short Write JSON data to the DB server
      *

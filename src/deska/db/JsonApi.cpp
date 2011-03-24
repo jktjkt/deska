@@ -20,9 +20,10 @@
 * */
 
 #include <boost/foreach.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/home/phoenix/bind/bind_member_variable.hpp>
+// The Phoenix is rather prone to missing includes. The compilation is roughly 10% slower
+// when including everything, but it's a worthwhile sacrifice, as it prevents many nasty
+// errors which are rather hard to debug.
+#include <boost/spirit/include/phoenix.hpp>
 #include "JsonApi.h"
 
 using namespace std;
@@ -123,20 +124,24 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
-/** @short Convert JSON into Deska::Revision */
+/** @short Convert JSON into Deska::RevisionId */
 template<>
-void SpecializedExtractor<Revision>::extract(const json_spirit::Value &value)
+void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 {
-    *target = value.get_int64();
+    *target = RevisionId(value.get_int64());
 }
 
-/** @short Convert JSON into a vector of Deska::Revision */
+/** @short Convert JSON into a vector of Deska::RevisionId */
 template<>
-void SpecializedExtractor<std::vector<Revision> >::extract(const json_spirit::Value &value)
+void SpecializedExtractor<std::vector<RevisionId> >::extract(const json_spirit::Value &value)
 {
+    using namespace boost::phoenix;
+    using arg_names::_1;
     json_spirit::Array data = value.get_array();
-    // Copy int64 and store them into a vector<Revision>
-    std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_int64));
+    // Extract the int64_t, convert them into a Revision and store them into a vector
+    std::transform(data.begin(), data.end(), std::back_inserter(*target),
+                   construct<RevisionId>(bind(&json_spirit::Value::get_int64, _1))
+                   );
 }
 
 /** @short Convert JSON into a vector of Deska::Identifier */
@@ -384,10 +389,11 @@ public:
     }
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    Field &write(const std::string &name, const Revision value)
+    Field &write(const std::string &name, const RevisionId value)
     {
         Field f(name);
-        f.jsonValue = static_cast<int64_t>(value);
+        // FIXME: change to "r123"
+        f.jsonValue = static_cast<int64_t>(value.r);
         f.isForSending = true;
         f.valueShouldMatch = true;
         fields.push_back(f);
@@ -481,7 +487,7 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     return res;
 }
 
-vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const Revision revision ) const
+vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const RevisionId revision ) const
 {
     vector<Identifier> res;
     JsonHandler h(this, j_cmd_kindInstances);
@@ -492,7 +498,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     return res;
 }
 
-map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const Revision revision )
+map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
     map<Identifier, Value> res;
     JsonHandler h(this, j_cmd_objectData);
@@ -505,7 +511,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
-                                                                      const Identifier &objectName, const Revision revision )
+                                                                      const Identifier &objectName, const RevisionId revision )
 {
     map<Identifier, pair<Identifier, Value> > res;
     JsonHandler h(this, j_cmd_resolvedObjectData);
@@ -593,27 +599,27 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.work();
 }
 
-Revision JsonApiParser::startChangeset()
+RevisionId JsonApiParser::startChangeset()
 {
-    Revision revision = 0;
+    RevisionId revision = RevisionId::null;
     JsonHandler h(this, j_cmd_startChangeset);
     h.read(j_revision).extract(&revision);
     h.work();
     return revision;
 }
 
-Revision JsonApiParser::commitChangeset()
+RevisionId JsonApiParser::commitChangeset()
 {
-    Revision revision = 0;
+    RevisionId revision = RevisionId::null;
     JsonHandler h(this, j_cmd_commitChangeset);
     h.read(j_revision).extract(&revision);
     h.work();
     return revision;
 }
 
-Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
+RevisionId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
 {
-    Revision revision = 0;
+    RevisionId revision = RevisionId::null;
     JsonHandler h(this, j_cmd_rebaseChangeset);
     h.write(j_currentRevision, oldRevision);
     h.read(j_revision).extract(&revision);
@@ -621,16 +627,16 @@ Revision JsonApiParser::rebaseChangeset(const Revision oldRevision)
     return revision;
 }
 
-vector<Revision> JsonApiParser::pendingChangesetsByMyself()
+vector<RevisionId> JsonApiParser::pendingChangesetsByMyself()
 {
-    vector<Revision> res;
+    vector<RevisionId> res;
     JsonHandler h(this, j_cmd_pendingChangesetsByMyself);
     h.read("revisions").extract(&res);
     h.work();
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const Revision revision)
+void JsonApiParser::resumeChangeset(const RevisionId revision)
 {
     JsonHandler h(this, j_cmd_resumeChangeset);
     h.write(j_revision, revision);
@@ -644,7 +650,7 @@ void JsonApiParser::detachFromActiveChangeset(const std::string &commitMessage)
     h.work();
 }
 
-void JsonApiParser::abortChangeset(const Revision revision)
+void JsonApiParser::abortChangeset(const RevisionId revision)
 {
     JsonHandler h(this, j_cmd_abortChangeset);
     h.write(j_revision, revision);

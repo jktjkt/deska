@@ -23,6 +23,27 @@
 namespace Deska
 {
 
+RevisionId RevisionId::null = RevisionId(0);
+
+RevisionId::RevisionId(const unsigned int revision): r(revision)
+{
+}
+
+bool operator==(const RevisionId a, const RevisionId b)
+{
+    return a.r == b.r;
+}
+
+bool operator!=(const RevisionId a, const RevisionId b)
+{
+    return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const RevisionId r)
+{
+    return stream << "r" << r.r;
+}
+
 Api::~Api()
 {
 }

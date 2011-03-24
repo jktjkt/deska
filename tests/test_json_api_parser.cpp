@@ -125,7 +125,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixture)
     expected.push_back("foo");
     expected.push_back("bar");
     expected.push_back("ahoj");
-    vector<Identifier> res = j->kindInstances("blah", 666);
+    vector<Identifier> res = j->kindInstances("blah", RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
 }
 
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":666}";
     jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": 333}";
-    BOOST_CHECK_THROW(j->kindInstances("blah", 666), JsonParseError);
+    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
 }
 
 /** @short Basic test for objectData() */
@@ -149,7 +149,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
     expected["real"] = 100.666;
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
-    map<Identifier,Value> res = j->objectData("kk", "oo", 3);
+    map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     // ...which is why we have to resort to implicit iteration here:
@@ -282,7 +282,7 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsStartChangeset\"}";
     jsonDbOutput = "{\"response\": \"vcsStartChangeset\", \"revision\": 333}";
-    BOOST_CHECK_EQUAL(j->startChangeset(), 333);
+    BOOST_CHECK_EQUAL(j->startChangeset(), RevisionId(333));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -292,7 +292,7 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsCommitChangeset\"}";
     jsonDbOutput = "{\"response\": \"vcsCommitChangeset\", \"revision\": 666}";
-    BOOST_CHECK_EQUAL(j->commitChangeset(), 666);
+    BOOST_CHECK_EQUAL(j->commitChangeset(), RevisionId(666));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -302,7 +302,7 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":666}";
     jsonDbOutput = "{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": 666, \"revision\": 333666 }";
-    BOOST_CHECK_EQUAL(j->rebaseChangeset(666), 333666);
+    BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), RevisionId(333666));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -312,11 +312,11 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsGetPendingChangesetsByMyself\"}";
     jsonDbOutput = "{\"response\": \"vcsGetPendingChangesetsByMyself\", \"revisions\": [1, 2, 3]}";
-    vector<Revision> expected;
-    expected.push_back(1);
-    expected.push_back(2);
-    expected.push_back(3);
-    vector<Revision> res = j->pendingChangesetsByMyself();
+    vector<RevisionId> expected;
+    expected.push_back(RevisionId(1));
+    expected.push_back(RevisionId(2));
+    expected.push_back(RevisionId(3));
+    vector<RevisionId> res = j->pendingChangesetsByMyself();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -327,7 +327,7 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsResumePendingChangeset\",\"revision\":123}";
     jsonDbOutput = "{\"response\": \"vcsResumePendingChangeset\", \"revision\": 123}";
-    j->resumeChangeset(123);
+    j->resumeChangeset(RevisionId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }
@@ -347,7 +347,7 @@ BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
 {
     jsonDbInput = "{\"command\":\"vcsAbortChangeset\",\"revision\":123}";
     jsonDbOutput = "{\"response\": \"vcsAbortChangeset\", \"revision\": 123}";
-    j->abortChangeset(123);
+    j->abortChangeset(RevisionId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }

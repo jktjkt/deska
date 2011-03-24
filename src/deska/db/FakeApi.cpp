@@ -79,7 +79,7 @@ vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) cons
 
 
 
-vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Revision ) const
+vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const RevisionId ) const
 {
     vector<Identifier> empty;
     return empty;
@@ -87,7 +87,7 @@ vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Rev
 
 
 
-map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const Revision )
+map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId )
 {
     map<Identifier, Value> empty;
     return empty;
@@ -96,7 +96,7 @@ map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Id
 
 
 map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(const Identifier &kindName,
-                                                                      const Identifier &objectName, const Revision)
+                                                                      const Identifier &objectName, const RevisionId)
 {
     map<Identifier, pair<Identifier, Value> > empty;
     return empty;
@@ -151,31 +151,31 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 
 
 
-Revision FakeApi::startChangeset()
+RevisionId FakeApi::startChangeset()
 {
-    return 0;
+    return RevisionId::null;
 }
 
 
 
-Revision FakeApi::commitChangeset()
+RevisionId FakeApi::commitChangeset()
 {
-    return 0;
+    return RevisionId::null;
 }
 
 
 
-Revision FakeApi::rebaseChangeset(const Revision oldRevision)
+RevisionId FakeApi::rebaseChangeset(const RevisionId oldRevision)
 {
-    return 0;
+    return RevisionId::null;
 }
 
-std::vector<Revision> FakeApi::pendingChangesetsByMyself()
+std::vector<RevisionId> FakeApi::pendingChangesetsByMyself()
 {
-    return std::vector<Revision>();
+    return std::vector<RevisionId>();
 }
 
-void FakeApi::resumeChangeset(const Revision revision)
+void FakeApi::resumeChangeset(const RevisionId revision)
 {
 }
 
@@ -183,7 +183,7 @@ void FakeApi::detachFromActiveChangeset(const std::string &commitMessage)
 {
 }
 
-void FakeApi::abortChangeset(const Revision revision)
+void FakeApi::abortChangeset(const RevisionId revision)
 {
 }
 
