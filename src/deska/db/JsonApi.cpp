@@ -128,14 +128,14 @@ public:
 template<>
 void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 {
-    *target = RevisionId(value.get_int64());
+    *target = RevisionId::fromJson(value.get_str());
 }
 
 /** @short Convert JSON into Deska::TemporaryChangesetId */
 template<>
 void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
 {
-    *target = TemporaryChangesetId(value.get_int64());
+    *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
 /** @short Convert JSON into a vector of Deska::RevisionId */
@@ -160,7 +160,7 @@ void SpecializedExtractor<std::vector<TemporaryChangesetId> >::extract(const jso
     json_spirit::Array data = value.get_array();
     // Extract the int64_t, convert them into a TemporaryChangesetId and store them into a vector
     std::transform(data.begin(), data.end(), std::back_inserter(*target),
-                   construct<TemporaryChangesetId>(bind(&json_spirit::Value::get_int64, _1))
+                   bind(&TemporaryChangesetId::fromJson, bind(&json_spirit::Value::get_str, _1))
                    );
 }
 
@@ -412,8 +412,9 @@ public:
     Field &write(const std::string &name, const RevisionId value)
     {
         Field f(name);
-        // FIXME: change to "r123"
-        f.jsonValue = static_cast<int64_t>(value.r);
+        std::ostringstream s;
+        s << value;
+        f.jsonValue = s.str();
         f.isForSending = true;
         f.valueShouldMatch = true;
         fields.push_back(f);
@@ -424,8 +425,9 @@ public:
     Field &write(const std::string &name, const TemporaryChangesetId value)
     {
         Field f(name);
-        // FIXME: change to "tmp123"
-        f.jsonValue = static_cast<int64_t>(value.t);
+        std::ostringstream s;
+        s << value;
+        f.jsonValue = s.str();
         f.isForSending = true;
         f.valueShouldMatch = true;
         fields.push_back(f);
