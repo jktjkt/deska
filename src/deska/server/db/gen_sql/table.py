@@ -2,6 +2,9 @@
 
 import string
 
+#delimiter string
+DELIMITER = "->"
+
 class PkSet(dict):
 	def __init__(self):
 		dict.__init__(self)
@@ -132,6 +135,9 @@ class Table:
 	RETURNS SETOF {tbl}_type
 	AS
 	$$
+	DECLARE	ver bigint;
+	BEGIN
+		SELECT my_version() INTO ver;
 	DECLARE	ver bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
@@ -484,7 +490,7 @@ class Table:
 		return self.add_string.format(tbl = self.name)
 
 	def gen_add_embed(self, col_name, reftable):
-		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable)
+		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = DELIMITER)
 
 	def gen_del(self):
 		return self.del_string.format(tbl = self.name)
@@ -519,7 +525,7 @@ class Table:
 		return self.get_uid_string.format(tbl = self.name)
 	
 	def gen_get_uid_embed(self, refcolumn, reftable):
-		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
+		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = DELIMITER)
 
 
 	def gen_commit(self):
@@ -592,6 +598,3 @@ class Api:
 #print vendor.gen_hist()
 #print vendor.gen_set('name')
 #print vendor.gen_add()
-#print vendor.gen_del()
-#print vendor.gen_commit()
-
