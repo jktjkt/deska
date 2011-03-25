@@ -29,8 +29,8 @@ using std::pair;
 using std::string;
 using std::vector;
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 FakeApi::FakeApi()
 {
@@ -187,4 +187,5 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
+}
 }

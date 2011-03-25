@@ -60,14 +60,14 @@ public:
     *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    const qi::rule<Iterator, Value(), ascii::space_type>& getRule( const Type attrType );
+    const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule( const Db::Type attrType );
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
     const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
 
 private:
 
-    std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> > rulesMap;
+    std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> > rulesMap;
     qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
 
 };
@@ -93,7 +93,7 @@ public:
     *   @param attributeParser  Attribute parser obtained from PredefinedRules class
     *   @see PredefinedRules
     */
-    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Value(), ascii::space_type> attributeParser );
+    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser );
 
 private:
 
@@ -102,14 +102,14 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const std::string &parameter, Value &value );
+    void parsedAttribute( const std::string &parameter, Db::Value &value );
 
 
-    qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes;
+    qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
 
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
 
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Value(), ascii::space_type>, std::string> > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type>, std::string> > dispatch;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -192,9 +192,9 @@ public:
     std::vector<ContextStackItem> currentContextStack() const;
     void clearContextStack();
 
-    void categoryEntered( const Identifier &kind, const Identifier &name );
+    void categoryEntered( const Db::Identifier &kind, const Db::Identifier &name );
     void categoryLeft();
-    void attributeSet( const Identifier &name, const Value &value );
+    void attributeSet( const Db::Identifier &name, const Db::Value &value );
 
     void parsedSingleKind();
 

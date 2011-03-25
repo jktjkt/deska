@@ -53,20 +53,20 @@ public:
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    rulesMap[TYPE_INT] = qi::int_
+    rulesMap[Db::TYPE_INT] = qi::int_
         [ qi::_val = phoenix::static_cast_<int>( qi::_1 ) ];
-    rulesMap[TYPE_INT].name( "integer" );
+    rulesMap[Db::TYPE_INT].name( "integer" );
 
     // FIXME: consider allowing trivial words without quotes
-    rulesMap[TYPE_STRING] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
-    rulesMap[TYPE_STRING].name( "quoted string" );
+    rulesMap[Db::TYPE_STRING] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    rulesMap[Db::TYPE_STRING].name( "quoted string" );
 
-    rulesMap[TYPE_DOUBLE] = qi::double_
+    rulesMap[Db::TYPE_DOUBLE] = qi::double_
         [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
-    rulesMap[TYPE_DOUBLE].name( "double" );
+    rulesMap[Db::TYPE_DOUBLE].name( "double" );
 
-    rulesMap[TYPE_IDENTIFIER] %= qi::lexeme[ +( ascii::alnum | '_' ) ];
-    rulesMap[TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
+    rulesMap[Db::TYPE_IDENTIFIER] %= qi::lexeme[ +( ascii::alnum | '_' ) ];
+    rulesMap[Db::TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
     objectIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
     objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
@@ -75,9 +75,9 @@ PredefinedRules<Iterator>::PredefinedRules()
 
 
 template <typename Iterator>
-const qi::rule<Iterator, Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule( const Type attrType )
+const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule( const Db::Type attrType )
 {
-    typename std::map<Type, qi::rule<Iterator, Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
+    typename std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> >::const_iterator it = rulesMap.find( attrType );
     if ( it == rulesMap.end() )
         throw std::domain_error( "PredefinedRules::getRule: Internal error: type of the attribute not registered when looking up grammar rule" );
     else
@@ -130,7 +130,7 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::addAtrribute(const std::string &attributeName, qi::rule<Iterator, Value(), ascii::space_type> attributeParser )
+void AttributesParser<Iterator>::addAtrribute(const std::string &attributeName, qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser )
 {
     attributes.add( attributeName, attributeParser );
 }
@@ -138,7 +138,7 @@ void AttributesParser<Iterator>::addAtrribute(const std::string &attributeName, 
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, Value &value )
+void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, Db::Value &value )
 {
     m_parent->attributeSet( parameter, value );
 }
@@ -366,7 +366,7 @@ void ParserImpl<Iterator>::clearContextStack()
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::categoryEntered( const Identifier &kind, const Identifier &name )
+void ParserImpl<Iterator>::categoryEntered( const Db::Identifier &kind, const Db::Identifier &name )
 {
     contextStack.push_back( ContextStackItem( kind, name ) );
     m_parser->categoryEntered( kind, name );
@@ -390,7 +390,7 @@ void ParserImpl<Iterator>::categoryLeft()
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::attributeSet( const Identifier &name, const Value &value )
+void ParserImpl<Iterator>::attributeSet( const Db::Identifier &name, const Db::Value &value )
 {
     m_parser->attributeSet( name, value );
 #ifdef PARSER_DEBUG
@@ -421,8 +421,8 @@ void ParserImpl<Iterator>::addParseError( const ParseError<Iterator> &error )
 template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesParser<Iterator>* attributesParser )
 {
-    std::vector<KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
-    for( std::vector<KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
+    std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
+    for( std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
         attributesParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
 #ifdef PARSER_DEBUG
         std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
@@ -435,11 +435,11 @@ void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesPa
 template <typename Iterator>
 void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Iterator>* kindsParser)
 {
-    std::vector<Identifier> kinds = m_parser->m_dbApi->kindNames();
-    for( std::vector<Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
-        std::vector<ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
-        for( std::vector<ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
-            if( ( itr->kind == RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
+    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+    for( std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
+        for( std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
+            if( ( itr->kind == Db::RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
                 kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
@@ -455,15 +455,15 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Ite
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 
-template const qi::rule<iterator_type, Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Type attrType);
+template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Db::Type attrType);
 
 template const qi::rule<iterator_type, std::string(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
 template AttributesParser<iterator_type>::AttributesParser( const std::string &kindName, ParserImpl<iterator_type> *parent );
 
-template void AttributesParser<iterator_type>::addAtrribute( const std::string &attributeName,qi::rule<iterator_type, Value(), ascii::space_type> attributeParser );
+template void AttributesParser<iterator_type>::addAtrribute( const std::string &attributeName,qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser );
 
-template void AttributesParser<iterator_type>::parsedAttribute(const std::string &parameter, Value &value );
+template void AttributesParser<iterator_type>::parsedAttribute(const std::string &parameter, Db::Value &value );
 
 template KindsParser<iterator_type>::KindsParser( const std::string &kindName, ParserImpl<iterator_type> *parent );
 
@@ -489,11 +489,11 @@ template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContext
 
 template void ParserImpl<iterator_type>::clearContextStack();
 
-template void ParserImpl<iterator_type>::categoryEntered( const Identifier &kind, const Identifier &name );
+template void ParserImpl<iterator_type>::categoryEntered( const Db::Identifier &kind, const Db::Identifier &name );
 
 template void ParserImpl<iterator_type>::categoryLeft();
 
-template void ParserImpl<iterator_type>::attributeSet( const Identifier &name, const Value &value );
+template void ParserImpl<iterator_type>::attributeSet( const Db::Identifier &name, const Db::Value &value );
 
 template void ParserImpl<iterator_type>::addParseError( const ParseError<iterator_type> &error );
 

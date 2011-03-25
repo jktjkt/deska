@@ -30,7 +30,7 @@ namespace CLI
 {
 
 
-Parser::Parser( Api *dbApi )
+Parser::Parser( Db::Api *dbApi )
 {
     m_dbApi = dbApi;
     BOOST_ASSERT( m_dbApi );
@@ -62,7 +62,7 @@ void Parser::clearContextStack()
     d_ptr->clearContextStack();
 }
 
-ContextStackItem::ContextStackItem(const Identifier &_kind, const Identifier &_name): kind(_kind), name(_name)
+ContextStackItem::ContextStackItem(const Db::Identifier &_kind, const Db::Identifier &_name): kind(_kind), name(_name)
 {
 }
 

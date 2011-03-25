@@ -48,7 +48,7 @@ void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iter
 
 template <typename Iterator>
 void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-    const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes,
+    const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
     ParserImpl<Iterator> *parser ) const
 {
     parser->addParseError( ParseError<Iterator>( start, end, errorPos, what, attributes ) );
@@ -104,7 +104,7 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-    const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes ):
+    const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes ):
     errorType(PARSE_ERROR_TYPE_ATTRIBUTE), m_start(start), m_end(end), m_errorPos(errorPos)
 {
     attributes.for_each( boost::bind( &ParseError<Iterator>::extractAttributeName, this, _1, _2 ) );
@@ -147,7 +147,7 @@ void ParseError<Iterator>::extractKindName( const std::string &name,
 
 template <typename Iterator>
 void ParseError<Iterator>::extractAttributeName( const std::string &name,
-    const qi::rule<Iterator, Value(), ascii::space_type> &rule )
+    const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule )
 {
     expectedKeywords.push_back( "\"" + name + "\"" );
 }
@@ -161,7 +161,7 @@ template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start,
     ParserImpl<iterator_type>* parser ) const;
 
 template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what,
-    qi::symbols<char, qi::rule<iterator_type, Value(), ascii::space_type> > attributes,
+    qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > attributes,
     ParserImpl<iterator_type>* parser ) const;
 
 template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, ParserImpl<iterator_type>* parser ) const;

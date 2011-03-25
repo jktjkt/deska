@@ -27,7 +27,7 @@
 
 JsonApiTestFixture::JsonApiTestFixture()
 {
-    j = new Deska::JsonApiParser();
+    j = new Deska::Db::JsonApiParser();
     j->writeString.connect(boost::bind(&JsonApiTestFixture::slotWrite, this, _1));
     j->readString.connect(boost::bind(&JsonApiTestFixture::slotRead, this));
 }

@@ -22,7 +22,7 @@
 #include <iostream>
 #include "MockParserEvent.h"
 
-MockParserEvent MockParserEvent::categoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
+MockParserEvent MockParserEvent::categoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     MockParserEvent res(EVENT_ENTER_CONTEXT);
     res.i1 = kind;
@@ -35,7 +35,7 @@ MockParserEvent MockParserEvent::categoryLeft()
     return MockParserEvent(EVENT_LEAVE_CONTEXT);
 }
 
-MockParserEvent MockParserEvent::setAttr(const Deska::Identifier &name, const Deska::Value &val)
+MockParserEvent MockParserEvent::setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     MockParserEvent res(EVENT_SET_ATTR);
     res.i1 = name;

@@ -24,8 +24,8 @@
 
 #include "Api.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short A fake implementation of the DB API for testing purposes */
 class FakeApi: public Api
@@ -79,6 +79,7 @@ public:
     // FIXME: add more members for implementing other methods
 };
 
+}
 }
 
 #endif // DESKA_FAKEAPI_H

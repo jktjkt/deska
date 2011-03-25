@@ -58,8 +58,8 @@ static std::string j_cmd_resumeChangeset = "vcsResumePendingChangeset";
 static std::string j_cmd_detachFromActiveChangeset = "vcsDetachFromActiveChangeset";
 static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 JsonApiParser::JsonApiParser()
 {
@@ -291,4 +291,5 @@ JsonParseError::~JsonParseError() throw ()
 {
 }
 
+}
 }

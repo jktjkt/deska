@@ -31,13 +31,13 @@ class MockParserEvent
 {
 public:
     /** @short The categoryEntered() signal */
-    static MockParserEvent categoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name);
+    static MockParserEvent categoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short The categoryLeft() signal */
     static MockParserEvent categoryLeft();
 
     /** @short The setAttr() signal */
-    static MockParserEvent setAttr(const Deska::Identifier &name, const Deska::Value &val);
+    static MockParserEvent setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
     /** @short An empty event for debug printing */
     static MockParserEvent invalid();
@@ -66,8 +66,8 @@ private:
     MockParserEvent(Event e);
 
     Event eventKind;
-    Deska::Identifier i1, i2;
-    Deska::Value v1;
+    Deska::Db::Identifier i1, i2;
+    Deska::Db::Value v1;
     std::string message;
 };
 

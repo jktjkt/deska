@@ -24,8 +24,8 @@
 
 #include <iosfwd>
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short An identification of a persistent revision in the DB */
 struct RevisionId {
@@ -51,6 +51,7 @@ bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
 bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b);
 std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t);
 
+}
 }
 
 #endif // DESKA_DB_REVISIONS_H

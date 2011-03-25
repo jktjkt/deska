@@ -7,7 +7,8 @@
 
 int main()
 {
-    using namespace Deska;
+    using namespace Deska::Db;
+    using namespace Deska::CLI;
 
     FakeApi *fake = new FakeApi();
 
@@ -22,12 +23,12 @@ int main()
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
 
 
-    Deska::CLI::Parser parser( fake );
+    Parser parser( fake );
 
 
     std::string str;
     std::cout << "> ";
-    std::vector<CLI::ContextStackItem> context;
+    std::vector<ContextStackItem> context;
     while ( getline( std::cin, str ) ) {
         if ( str.size() == 1 && ( str[ 0 ] == 'q' || str[ 0 ] == 'Q' ) )
             break;
@@ -35,7 +36,7 @@ int main()
         parser.parseLine( str );
 
         context = parser.currentContextStack();
-        for( std::vector<CLI::ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it ) {
+        for( std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it ) {
             if ( it != context.begin() )
                 std::cout << "/";
             std::cout << it->kind << " " << it->name;

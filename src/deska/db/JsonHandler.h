@@ -26,8 +26,8 @@
 #include "deska/db/Revisions.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 class JsonApiParser;
 class JsonExtractor;
@@ -77,7 +77,7 @@ public:
     JsonField &write(const std::string &name, const TemporaryChangesetId value);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const Deska::Value &value);
+    JsonField &write(const std::string &name, const Deska::Db::Value &value);
 
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
@@ -91,6 +91,7 @@ private:
 };
 
 
+}
 }
 
 #endif // DESKA_DESKA_JSONHANDLER_H

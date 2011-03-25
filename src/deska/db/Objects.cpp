@@ -20,8 +20,8 @@
 * */
 #include "Objects.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 std::ostream& operator<<(std::ostream &stream, const Type t)
 {
@@ -127,4 +127,5 @@ ObjectRelation::ObjectRelation()
 {
 }
 
+}
 }

@@ -92,7 +92,7 @@ public:
     *   @param what Expected tokens
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > attributes,
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
         ParserImpl<Iterator> *parser ) const;
 };
 
@@ -147,13 +147,13 @@ public:
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds );
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Value(), ascii::space_type> > &attributes );
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes );
 
     std::string toString();
 
 private:
     void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
-    void extractAttributeName( const std::string &name, const qi::rule<Iterator, Value(), ascii::space_type> &rule );
+    void extractAttributeName( const std::string &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule );
 
     ParseErrorType errorType;
     std::vector<std::string> expectedKeywords;

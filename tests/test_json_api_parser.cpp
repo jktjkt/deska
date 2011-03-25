@@ -29,7 +29,7 @@
 
 using std::vector;
 using std::map;
-using namespace Deska;
+using namespace Deska::Db;
 
 /** @short Fuzzy comparator for Deska::Value which can dela with floating point values
 

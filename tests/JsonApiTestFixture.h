@@ -25,7 +25,9 @@
 #include <string>
 
 namespace Deska {
+namespace Db {
 class JsonApiParser;
+}
 }
 
 struct JsonApiTestFixture
@@ -36,7 +38,7 @@ struct JsonApiTestFixture
     void slotWrite(const std::string &jsonDataToWrite);
     std::string slotRead();
 
-    Deska::JsonApiParser *j;
+    Deska::Db::JsonApiParser *j;
 
     std::string jsonDbInput;
     std::string jsonDbOutput;

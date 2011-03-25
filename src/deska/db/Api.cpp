@@ -20,8 +20,8 @@
 * */
 #include "Api.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 Api::~Api()
 {
@@ -40,4 +40,5 @@ RemoteDbError::~RemoteDbError() throw ()
 {
 }
 
+}
 }

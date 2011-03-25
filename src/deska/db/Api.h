@@ -41,8 +41,8 @@
  * */
 
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short Exception occured during processing of the request */
 class RemoteDbError: public std::runtime_error
@@ -240,6 +240,7 @@ public:
     virtual void abortCurrentChangeset() = 0;
 };
 
+}
 }
 
 #endif // DESKA_API_H

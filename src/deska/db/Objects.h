@@ -26,8 +26,8 @@
 #include <string>
 #include <boost/variant.hpp>
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short @short Value of an object's attribute
  *
@@ -168,7 +168,7 @@ bool operator==(const ObjectRelation &a, const ObjectRelation &b);
 bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
 
-
+}
 }
 
 #endif // DESKA_DB_OBJECTS_H

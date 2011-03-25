@@ -28,12 +28,12 @@
 
 #include "deska/db/Objects.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 class Api;
+}
 
-namespace CLI
-{
+namespace CLI {
 
 class ParserException;
 
@@ -44,11 +44,11 @@ template<typename Iterator> class ParserImpl;
 /** @short Context nesting */
 struct ContextStackItem
 {
-    ContextStackItem(const Identifier &_kind, const Identifier &_name);
+    ContextStackItem(const Db::Identifier &_kind, const Db::Identifier &_name);
     ContextStackItem();
 
-    Identifier kind;
-    Identifier name;
+    Db::Identifier kind;
+    Db::Identifier name;
 };
 
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
@@ -116,7 +116,7 @@ class Parser: boost::noncopyable
 {
 public:
     /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
-    Parser( Api* dbApi );
+    Parser( Db::Api* dbApi );
 
     virtual ~Parser();
 
@@ -132,7 +132,7 @@ public:
     *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
     *   and the second one is the object's identifier ("hpv2").
     */
-    boost::signals2::signal<void ( const Identifier &kind, const Identifier &name )> categoryEntered;
+    boost::signals2::signal<void ( const Db::Identifier &kind, const Db::Identifier &name )> categoryEntered;
 
     /** @short Leaving a context
     *
@@ -146,7 +146,7 @@ public:
     *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
     *   of the attribute and the second one the attribute value.
     */
-    boost::signals2::signal<void ( const Identifier &name, const Value &value )> attributeSet;
+    boost::signals2::signal<void ( const Db::Identifier &name, const Db::Value &value )> attributeSet;
 
     /** @short An error during parsing
     *
@@ -174,7 +174,7 @@ public:
 private:
     friend class ParserImpl<iterator_type>;
     ParserImpl<iterator_type> *d_ptr;
-    Api *m_dbApi;
+    Db::Api *m_dbApi;
 };
 
 }

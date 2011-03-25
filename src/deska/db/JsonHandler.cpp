@@ -34,8 +34,8 @@ using json_spirit::Pair;
 static std::string j_command = "command";
 static std::string j_response = "response";
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short Variant visitor convert a Deska::Value to json_spirit::Value */
 struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
@@ -368,7 +368,7 @@ JsonField &JsonHandler::write(const std::string &name, const TemporaryChangesetI
     return *(--fields.end());
 }
 
-JsonField &JsonHandler::write(const std::string &name, const Deska::Value &value)
+JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Value &value)
 {
     JsonField f(name);
     f.jsonValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
@@ -405,4 +405,5 @@ template JsonField& JsonField::extract(vector<ObjectRelation>*);
 template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 
+}
 }

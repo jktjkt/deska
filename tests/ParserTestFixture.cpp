@@ -28,8 +28,8 @@
 
 ParserTestFixture::ParserTestFixture()
 {
-    using namespace Deska;
-    Deska::FakeApi *fake = new FakeApi();
+    using namespace Deska::Db;
+    FakeApi *fake = new FakeApi();
     fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
@@ -55,7 +55,7 @@ ParserTestFixture::~ParserTestFixture()
     delete db;
 }
 
-void ParserTestFixture::slotParserCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     parserEvents.push(MockParserEvent::categoryEntered(kind, name));
 }
@@ -65,7 +65,7 @@ void ParserTestFixture::slotParserCategoryLeft()
     parserEvents.push(MockParserEvent::categoryLeft());
 }
 
-void ParserTestFixture::slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val)
+void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
 }
@@ -80,7 +80,7 @@ void ParserTestFixture::expectNothingElse()
     BOOST_CHECK_MESSAGE(parserEvents.empty(), "Expected no more emitted signals");
 }
 
-void ParserTestFixture::expectCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     expectHelper(MockParserEvent::categoryEntered(kind, name));
 }
@@ -90,7 +90,7 @@ void ParserTestFixture::expectCategoryLeft()
     expectHelper(MockParserEvent::categoryLeft());
 }
 
-void ParserTestFixture::expectSetAttr(const Deska::Identifier &name, const Deska::Value &val)
+void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
 }
@@ -112,7 +112,7 @@ void ParserTestFixture::expectHelper(const MockParserEvent &e)
         parserEvents.pop();
 }
 
-void ParserTestFixture::verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name)
+void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
     std::vector<Deska::CLI::ContextStackItem> specimen;
@@ -121,8 +121,8 @@ void ParserTestFixture::verifyStackOneLevel(const Deska::Identifier &kind, const
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
 
-void ParserTestFixture::verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
-                             const Deska::Identifier &kind2, const Deska::Identifier &name2)
+void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
+                             const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2)
 {
     const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
     std::vector<Deska::CLI::ContextStackItem> specimen;

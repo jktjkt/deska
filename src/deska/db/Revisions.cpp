@@ -26,8 +26,8 @@
 #include <boost/lexical_cast.hpp>
 #include "Revisions.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 template<typename T> T extractRevisionFromJson(const std::string &prefix, const std::string &name, const std::string &jsonStr)
 {
@@ -100,4 +100,5 @@ std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t)
     return stream << "tmp" << t.t;
 }
 
+}
 }

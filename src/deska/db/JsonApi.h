@@ -27,8 +27,8 @@
 #include "Api.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
 
-namespace Deska
-{
+namespace Deska {
+namespace Db {
 
 /** @short An error occured during parsing of the server's response */
 class JsonParseError: public std::runtime_error
@@ -100,6 +100,7 @@ private:
     friend class JsonHandler;
 };
 
+}
 }
 
 #endif // DESKA_FAKEAPI_H

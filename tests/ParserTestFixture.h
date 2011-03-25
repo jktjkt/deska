@@ -29,7 +29,9 @@
 #include "MockParserEvent.h"
 
 namespace Deska {
+namespace Db {
 class Api;
+}
 namespace CLI {
 class Parser;
 }
@@ -42,13 +44,13 @@ struct ParserTestFixture: public boost::signals2::trackable
     ~ParserTestFixture();
 
     /** @short Handler for Parser's categoryEntered signal */
-    void slotParserCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name);
+    void slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short Handler for Parser's categoryLeft() */
     void slotParserCategoryLeft();
 
     /** @short Handler for Parser's setAttr() signal */
-    void slotParserSetAttr(const Deska::Identifier &name, const Deska::Value &val);
+    void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
     /** @short Handler for Parser's parserError() signal */
     void slotParserError(const Deska::CLI::ParserException &exception);
@@ -57,7 +59,7 @@ struct ParserTestFixture: public boost::signals2::trackable
     void expectNothingElse();
 
     /** @short Verify that the first signal which wasn't checked yet was the categoryEntered and that its argument match */
-    void expectCategoryEntered(const Deska::Identifier &kind, const Deska::Identifier &name);
+    void expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short Check for categoryLeft
 
@@ -69,7 +71,7 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     @see expectCategoryEntered();
     */
-    void expectSetAttr(const Deska::Identifier &name, const Deska::Value &val);
+    void expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
     /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
 
@@ -80,16 +82,16 @@ struct ParserTestFixture: public boost::signals2::trackable
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e);
 
-    void verifyStackOneLevel(const Deska::Identifier &kind, const Deska::Identifier &name);
+    void verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
-    void verifyStackTwoLevels(const Deska::Identifier &kind1, const Deska::Identifier &name1,
-                              const Deska::Identifier &kind2, const Deska::Identifier &name2);
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
+                              const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2);
 
     void verifyEmptyStack();
 
     void slotParserSetAttrCheckContext();
 
-    Deska::Api *db;
+    Deska::Db::Api *db;
     Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
     boost::signals2::connection attrCheckContextConnection;
