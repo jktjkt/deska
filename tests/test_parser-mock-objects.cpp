@@ -55,22 +55,22 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
 /** @short Test the implementation of equality test on caught exceptions */
 BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, ParserTestFixture) {
     // Verify that basic exception handling works well
-    slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
-    expectParseError(Deska::CLI::InvalidAttributeDataTypeError("foo bar"));
+    slotParserError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
+    expectParseError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
     expectNothingElse();
 
     // Test exception parameters
     std::string s1 = "this is a sample input";
     std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
-    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
+    slotParserError(Deska::Cli::UndefinedAttributeError("some message", s1, it1));
     std::string s2 = "this is a sample input";
     std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
-    expectParseError(Deska::CLI::UndefinedAttributeError("some message", s2, it2));
+    expectParseError(Deska::Cli::UndefinedAttributeError("some message", s2, it2));
     expectNothingElse();
 }
 
 /** @short Helper for testing inequality of logged exceptions */
-void verifyExceptionDiffers(const Deska::CLI::ParserException &e, ParserTestFixture &f)
+void verifyExceptionDiffers(const Deska::Cli::ParserException &e, ParserTestFixture &f)
 {
     BOOST_REQUIRE( ! f.parserEvents.empty() );
     BOOST_CHECK_NE(f.parserEvents.front(), MockParserEvent::parserError(e));
@@ -81,28 +81,28 @@ void verifyExceptionDiffers(const Deska::CLI::ParserException &e, ParserTestFixt
 BOOST_FIXTURE_TEST_CASE(test_mock_exceptions_not_equal, ParserTestFixture)
 {
     // Test for difference in the description
-    slotParserError(Deska::CLI::InvalidAttributeDataTypeError("foo bor"));
-    verifyExceptionDiffers(Deska::CLI::InvalidAttributeDataTypeError("foo bar"), *this);
+    slotParserError(Deska::Cli::InvalidAttributeDataTypeError("foo bor"));
+    verifyExceptionDiffers(Deska::Cli::InvalidAttributeDataTypeError("foo bar"), *this);
     expectNothingElse();
 
     // Compare different classes
-    slotParserError(Deska::CLI::NestingError("foo bar"));
-    verifyExceptionDiffers(Deska::CLI::InvalidAttributeDataTypeError("foo bar"), *this);
+    slotParserError(Deska::Cli::NestingError("foo bar"));
+    verifyExceptionDiffers(Deska::Cli::InvalidAttributeDataTypeError("foo bar"), *this);
     expectNothingElse();
 
     // Different user-supplied text
     std::string s1 = "this is a sample input";
     std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
-    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
+    slotParserError(Deska::Cli::UndefinedAttributeError("some message", s1, it1));
     std::string s2 = "this is A sample input";
     std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
-    verifyExceptionDiffers(Deska::CLI::UndefinedAttributeError("some message", s2, it2), *this);
+    verifyExceptionDiffers(Deska::Cli::UndefinedAttributeError("some message", s2, it2), *this);
     expectNothingElse();
 
     // Same text, different position of the iterator
     s2 = s1;
     it2 = it1 + 1;
-    slotParserError(Deska::CLI::UndefinedAttributeError("some message", s1, it1));
-    verifyExceptionDiffers(Deska::CLI::UndefinedAttributeError("some message", s2, it2), *this);
+    slotParserError(Deska::Cli::UndefinedAttributeError("some message", s1, it1));
+    verifyExceptionDiffers(Deska::Cli::UndefinedAttributeError("some message", s2, it2), *this);
     expectNothingElse();
 }

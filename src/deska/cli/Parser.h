@@ -33,7 +33,7 @@ namespace Db {
 class Api;
 }
 
-namespace CLI {
+namespace Cli {
 
 class ParserException;
 

@@ -30,7 +30,7 @@
 
 namespace Deska
 {
-namespace CLI
+namespace Cli
 {
 
 

@@ -26,7 +26,7 @@
 #include <string>
 
 namespace Deska {
-namespace CLI {
+namespace Cli {
 
 /** @short An exception triggered by an error in user-submitted data */
 class ParserException: public std::exception

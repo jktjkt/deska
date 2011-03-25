@@ -35,7 +35,7 @@
 
 namespace Deska
 {
-namespace CLI
+namespace Cli
 {
 
 namespace spirit = boost::spirit;

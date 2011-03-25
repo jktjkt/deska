@@ -43,7 +43,7 @@ public:
     static MockParserEvent invalid();
 
     /** @short Parser error */
-    static MockParserEvent parserError(const Deska::CLI::ParserException &err);
+    static MockParserEvent parserError(const Deska::Cli::ParserException &err);
 
     bool operator==(const MockParserEvent &other) const;
 

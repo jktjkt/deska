@@ -32,7 +32,7 @@ namespace Deska {
 namespace Db {
 class Api;
 }
-namespace CLI {
+namespace Cli {
 class Parser;
 }
 }
@@ -53,7 +53,7 @@ struct ParserTestFixture: public boost::signals2::trackable
     void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
     /** @short Handler for Parser's parserError() signal */
-    void slotParserError(const Deska::CLI::ParserException &exception);
+    void slotParserError(const Deska::Cli::ParserException &exception);
 
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
@@ -77,7 +77,7 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     @see expectCategoryEntered();
     */
-    void expectParseError(const Deska::CLI::ParserException &exception);
+    void expectParseError(const Deska::Cli::ParserException &exception);
 
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e);
@@ -92,7 +92,7 @@ struct ParserTestFixture: public boost::signals2::trackable
     void slotParserSetAttrCheckContext();
 
     Deska::Db::Api *db;
-    Deska::CLI::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
+    Deska::Cli::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
     boost::signals2::connection attrCheckContextConnection;
 };

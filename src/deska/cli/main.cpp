@@ -8,7 +8,7 @@
 int main()
 {
     using namespace Deska::Db;
-    using namespace Deska::CLI;
+    using namespace Deska::Cli;
 
     FakeApi *fake = new FakeApi();
 

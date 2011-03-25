@@ -48,7 +48,7 @@ MockParserEvent MockParserEvent::invalid()
     return MockParserEvent(EVENT_INVALID);
 }
 
-MockParserEvent MockParserEvent::parserError(const Deska::CLI::ParserException &err)
+MockParserEvent MockParserEvent::parserError(const Deska::Cli::ParserException &err)
 {
     MockParserEvent res(EVENT_PARSE_ERROR);
     res.message = err.dump();

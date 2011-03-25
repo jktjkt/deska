@@ -41,7 +41,7 @@ ParserTestFixture::ParserTestFixture()
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
     db = fake;
 
-    parser = new Deska::CLI::Parser(db);
+    parser = new Deska::Cli::Parser(db);
     parser->categoryEntered.connect(boost::bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(boost::bind(&ParserTestFixture::slotParserCategoryLeft, this));
     parser->attributeSet.connect(boost::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
@@ -70,7 +70,7 @@ void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, con
     parserEvents.push(MockParserEvent::setAttr(name, val));
 }
 
-void ParserTestFixture::slotParserError(const Deska::CLI::ParserException &exception)
+void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &exception)
 {
     parserEvents.push(MockParserEvent::parserError(exception));
 }
@@ -95,7 +95,7 @@ void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const D
     expectHelper(MockParserEvent::setAttr(name, val));
 }
 
-void ParserTestFixture::expectParseError(const Deska::CLI::ParserException &exception)
+void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)
 {
     expectHelper(MockParserEvent::parserError(exception));
 }
@@ -114,9 +114,9 @@ void ParserTestFixture::expectHelper(const MockParserEvent &e)
 
 void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
-    const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
-    std::vector<Deska::CLI::ContextStackItem> specimen;
-    specimen.push_back(Deska::CLI::ContextStackItem(kind, name));
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind, name));
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
@@ -124,10 +124,10 @@ void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, c
 void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
                              const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2)
 {
-    const std::vector<Deska::CLI::ContextStackItem> &stack = parser->currentContextStack();
-    std::vector<Deska::CLI::ContextStackItem> specimen;
-    specimen.push_back(Deska::CLI::ContextStackItem(kind1, name1));
-    specimen.push_back(Deska::CLI::ContextStackItem(kind2, name2));
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind1, name1));
+    specimen.push_back(Deska::Cli::ContextStackItem(kind2, name2));
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }

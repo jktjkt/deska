@@ -24,7 +24,7 @@
 #include <typeinfo>
 
 namespace Deska {
-namespace CLI {
+namespace Cli {
 
 
 bool operator==(const ParserException &a, const ParserException &b)
