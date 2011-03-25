@@ -39,13 +39,31 @@ JsonApiTestFixture::~JsonApiTestFixture()
 
 std::string JsonApiTestFixture::slotRead()
 {
-    std::string res = jsonDbOutput;
-    jsonDbOutput.clear();
+    BOOST_REQUIRE(!jsonDbOutput.empty());
+    std::string res = jsonDbOutput.front();
+    jsonDbOutput.pop();
     return res;
 }
 
 void JsonApiTestFixture::slotWrite(const std::string &jsonDataToWrite)
 {
-    BOOST_CHECK_EQUAL(jsonDataToWrite, jsonDbInput);
-    jsonDbInput.clear();
+    BOOST_REQUIRE(!jsonDbInput.empty());
+    BOOST_CHECK_EQUAL(jsonDataToWrite, jsonDbInput.front());
+    jsonDbInput.pop();
+}
+
+void JsonApiTestFixture::expectEmpty()
+{
+    BOOST_CHECK(jsonDbInput.empty());
+    BOOST_CHECK(jsonDbOutput.empty());
+}
+
+void JsonApiTestFixture::expectRead(const std::string &str)
+{
+    jsonDbOutput.push(str);
+}
+
+void JsonApiTestFixture::expectWrite(const std::string &str)
+{
+    jsonDbInput.push(str);
 }

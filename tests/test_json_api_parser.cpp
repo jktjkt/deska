@@ -66,8 +66,8 @@ struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
 /** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getTopLevelObjectNames\"}";
-    jsonDbOutput = "{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"z\", \"a\", \"b\", \"foo bar\"]}";
+    expectWrite("{\"command\":\"getTopLevelObjectNames\"}");
+    expectRead("{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"z\", \"a\", \"b\", \"foo bar\"]}");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -80,9 +80,9 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
 /** @short Test that kindAttributes() retrieves data */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
-    jsonDbOutput = "{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"getKindAttributes\"}";
+    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}");
+    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"getKindAttributes\"}");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
     expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
@@ -95,19 +95,19 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
 /** @short Test that kindAtttributes() can catch wrong referenced objects */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}";
-    jsonDbOutput = "{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"getKindAttributes\"}";
+    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"some-object\"}");
+    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"getKindAttributes\"}");
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
 }
 
 /** @short Test that kindRelations() can fetch data */
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getKindRelations\",\"kindName\":\"identifier\"}";
-    jsonDbOutput = "{\"kindName\": \"identifier\", \"kindRelations\": [[\"EMBED_INTO\", \"hardware\"], "
+    expectWrite("{\"command\":\"getKindRelations\",\"kindName\":\"identifier\"}");
+    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [[\"EMBED_INTO\", \"hardware\"], "
             "[\"MERGE_WITH\", \"second-kind\", \"my-attribute\"], [\"IS_TEMPLATE\", \"target-kind\"], "
-            "[\"TEMPLATIZED\", \"by-which-kind\", \"my-attribute\"]], \"response\": \"getKindRelations\"}";
+            "[\"TEMPLATIZED\", \"by-which-kind\", \"my-attribute\"]], \"response\": \"getKindRelations\"}");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
@@ -120,8 +120,8 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
 /** @short Test that kindInstances() returns a reasonable result */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}";
-    jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": \"r666\"}";
+    expectWrite("{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}");
+    expectRead("{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": \"r666\"}");
     vector<Identifier> expected;
     expected.push_back("foo");
     expected.push_back("bar");
@@ -133,17 +133,17 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixture)
 /** @short Test that kindInstances() fails when faced with wrong revision */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}";
-    jsonDbOutput = "{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": \"r333\"}";
+    expectWrite("{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}");
+    expectRead("{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": \"r333\"}");
     BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
 }
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}";
-    jsonDbOutput = "{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
-            "\"objectName\": \"oo\", \"response\": \"getObjectData\", \"revision\": \"r3\"}";
+    expectWrite("{\"command\":\"getObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}");
+    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+            "\"objectName\": \"oo\", \"response\": \"getObjectData\", \"revision\": \"r3\"}");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -167,9 +167,9 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getResolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r0\"}";
-    jsonDbOutput = "{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
-            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", \"666\"]}, \"response\": \"getResolvedObjectData\", \"revision\": \"r0\"}";
+    expectWrite("{\"command\":\"getResolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r0\"}");
+    expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
+            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", \"666\"]}, \"response\": \"getResolvedObjectData\", \"revision\": \"r0\"}");
     map<Identifier, std::pair<Identifier,Value> > expected;
     expected["foo"] = std::make_pair("obj-defining-this", "bar");
     expected["baz"] = std::make_pair("this-obj", "666");
@@ -184,9 +184,9 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixture)
 /** @short Basic test for findOverridenAttrs() */
 BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getObjectsOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}";
-    jsonDbOutput = "{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"getObjectsOverridingAttribute\"}";
+    expectWrite("{\"command\":\"getObjectsOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}");
+    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
+            "\"objectInstances\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"getObjectsOverridingAttribute\"}");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -198,9 +198,9 @@ BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixture)
 /** @short Basic test for findNonOverridenAttrs() */
 BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"getObjectsNotOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}";
-    jsonDbOutput = "{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"getObjectsNotOverridingAttribute\"}";
+    expectWrite("{\"command\":\"getObjectsNotOverridingAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}");
+    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
+            "\"objectInstances\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"getObjectsNotOverridingAttribute\"}");
     vector<Identifier> expected;
     expected.push_back("d");
     expected.push_back("e");
@@ -212,8 +212,8 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixture)
 /** @short Basic test for createObject() */
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}";
-    jsonDbOutput = "{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}";
+    expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}");
     j->createObject("k", "o");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -222,8 +222,8 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixture)
 /** @short Basic test for deleteObject() */
 BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}";
-    jsonDbOutput = "{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}";
+    expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}");
     j->deleteObject("k", "o");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -232,8 +232,8 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixture)
 /** @short Basic test for renameObject() */
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}";
-    jsonDbOutput = "{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}";
+    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}");
+    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}");
     j->renameObject("kind", "ooooold", "new");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -242,8 +242,8 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixture)
 /** @short Basic test for removeAttribute() */
 BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"removeObjectAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}";
-    jsonDbOutput = "{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeObjectAttribute\", \"result\": true}";
+    expectWrite("{\"command\":\"removeObjectAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}");
+    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeObjectAttribute\", \"result\": true}");
     j->removeAttribute("kind", "obj", "fancyAttr");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -270,8 +270,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixture)
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}", jsonOutputSuffix + " 123}", 123));
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}", jsonOutputSuffix + " 333.666}", 333.666));
     BOOST_FOREACH(const SetAttrTestData &value, data) {
-        jsonDbInput = value.jsonIn;
-        jsonDbOutput = value.jsonOut;
+        expectWrite(value.jsonIn);
+        expectRead(value.jsonOut);
         j->setAttribute("k", "o", "a", value.v);
         BOOST_CHECK(jsonDbInput.empty());
         BOOST_CHECK(jsonDbOutput.empty());
@@ -281,8 +281,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixture)
 /** @short Basic test for startChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsStartChangeset\"}";
-    jsonDbOutput = "{\"response\": \"vcsStartChangeset\", \"revision\": \"tmp333\"}";
+    expectWrite("{\"command\":\"vcsStartChangeset\"}");
+    expectRead("{\"response\": \"vcsStartChangeset\", \"revision\": \"tmp333\"}");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -291,8 +291,8 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
 /** @short Basic test for commitChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsCommitChangeset\"}";
-    jsonDbOutput = "{\"response\": \"vcsCommitChangeset\", \"revision\": \"r666\"}";
+    expectWrite("{\"command\":\"vcsCommitChangeset\"}");
+    expectRead("{\"response\": \"vcsCommitChangeset\", \"revision\": \"r666\"}");
     BOOST_CHECK_EQUAL(j->commitChangeset(), RevisionId(666));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -301,8 +301,8 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
 /** @short Basic test for reabseChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":\"r666\"}";
-    jsonDbOutput = "{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": \"r666\", \"revision\": \"tmp333666\" }";
+    expectWrite("{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":\"r666\"}");
+    expectRead("{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": \"r666\", \"revision\": \"tmp333666\" }");
     BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -311,8 +311,8 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
 /** @short Basic test for pendingChangesetsByMyself() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsGetPendingChangesetsByMyself\"}";
-    jsonDbOutput = "{\"response\": \"vcsGetPendingChangesetsByMyself\", \"revisions\": [\"tmp1\", \"tmp2\", \"tmp3\"]}";
+    expectWrite("{\"command\":\"vcsGetPendingChangesetsByMyself\"}");
+    expectRead("{\"response\": \"vcsGetPendingChangesetsByMyself\", \"revisions\": [\"tmp1\", \"tmp2\", \"tmp3\"]}");
     vector<TemporaryChangesetId> expected;
     expected.push_back(TemporaryChangesetId(1));
     expected.push_back(TemporaryChangesetId(2));
@@ -326,8 +326,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
 /** @short Basic test for resumeChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsResumePendingChangeset\",\"revision\":\"tmp123\"}";
-    jsonDbOutput = "{\"response\": \"vcsResumePendingChangeset\", \"revision\": \"tmp123\"}";
+    expectWrite("{\"command\":\"vcsResumePendingChangeset\",\"revision\":\"tmp123\"}");
+    expectRead("{\"response\": \"vcsResumePendingChangeset\", \"revision\": \"tmp123\"}");
     j->resumeChangeset(TemporaryChangesetId(123));
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -336,8 +336,8 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
 /** @short Basic test for detachFromActiveChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}";
-    jsonDbOutput = "{\"response\": \"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}";
+    expectWrite("{\"command\":\"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
+    expectRead("{\"response\": \"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
     j->detachFromActiveChangeset("foobar");
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -346,8 +346,8 @@ BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
 /** @short Basic test for abortCurrentChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsAbortCurrentChangeset\"}";
-    jsonDbOutput = "{\"response\": \"vcsAbortCurrentChangeset\"}";
+    expectWrite("{\"command\":\"vcsAbortCurrentChangeset\"}");
+    expectRead("{\"response\": \"vcsAbortCurrentChangeset\"}");
     j->abortCurrentChangeset();
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
@@ -356,8 +356,8 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixture)
 /** @short Verify correctness of parsing of revisions from JSON */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"c\",\"r\":\"tmp123\"}";
-    jsonDbOutput = "{\"response\": \"c\", \"r\": \"tmp3\"}";
+    expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}");
+    expectRead("{\"response\": \"c\", \"r\": \"tmp3\"}");
     TemporaryChangesetId r(123);
     JsonHandler h(j, "c");
     h.write("r", r).extract(&r).valueShouldMatch = false;
@@ -381,8 +381,8 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixture)
     offendingItems.push_back("");
 
     BOOST_FOREACH(const std::string &s, offendingItems) {
-        jsonDbInput = "{\"command\":\"c\",\"r\":\"tmp123\"}";
-        jsonDbOutput = "{\"response\": \"c\", \"r\": \"" + s + "\"}";
+        expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}");
+        expectRead("{\"response\": \"c\", \"r\": \"" + s + "\"}");
 
         // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
         TemporaryChangesetId r(123);
