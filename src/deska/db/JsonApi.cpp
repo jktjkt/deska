@@ -56,7 +56,7 @@ static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
 static std::string j_cmd_pendingChangesetsByMyself = "vcsGetPendingChangesetsByMyself";
 static std::string j_cmd_resumeChangeset = "vcsResumePendingChangeset";
 static std::string j_cmd_detachFromActiveChangeset = "vcsDetachFromActiveChangeset";
-static std::string j_cmd_abortChangeset = "vcsAbortChangeset";
+static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
 
 namespace Deska
 {
@@ -275,10 +275,9 @@ void JsonApiParser::detachFromActiveChangeset(const std::string &commitMessage)
     h.work();
 }
 
-void JsonApiParser::abortChangeset(const TemporaryChangesetId revision)
+void JsonApiParser::abortCurrentChangeset()
 {
-    JsonHandler h(this, j_cmd_abortChangeset);
-    h.write(j_revision, revision);
+    JsonHandler h(this, j_cmd_abortCurrentChangeset);
     h.work();
 }
 

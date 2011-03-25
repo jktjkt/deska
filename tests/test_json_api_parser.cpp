@@ -343,12 +343,12 @@ BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
     BOOST_CHECK(jsonDbOutput.empty());
 }
 
-/** @short Basic test for abortChangeset() */
-BOOST_FIXTURE_TEST_CASE(json_abortChangeset, JsonApiTestFixture)
+/** @short Basic test for abortCurrentChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixture)
 {
-    jsonDbInput = "{\"command\":\"vcsAbortChangeset\",\"revision\":\"tmp123\"}";
-    jsonDbOutput = "{\"response\": \"vcsAbortChangeset\", \"revision\": \"tmp123\"}";
-    j->abortChangeset(TemporaryChangesetId(123));
+    jsonDbInput = "{\"command\":\"vcsAbortCurrentChangeset\"}";
+    jsonDbOutput = "{\"response\": \"vcsAbortCurrentChangeset\"}";
+    j->abortCurrentChangeset();
     BOOST_CHECK(jsonDbInput.empty());
     BOOST_CHECK(jsonDbOutput.empty());
 }

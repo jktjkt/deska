@@ -183,7 +183,7 @@ void FakeApi::detachFromActiveChangeset(const std::string &commitMessage)
 {
 }
 
-void FakeApi::abortChangeset(const TemporaryChangesetId revision)
+void FakeApi::abortCurrentChangeset()
 {
 }
 

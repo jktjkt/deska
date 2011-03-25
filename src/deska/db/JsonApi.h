@@ -77,7 +77,7 @@ public:
     virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself();
     virtual void resumeChangeset(const TemporaryChangesetId revision);
     virtual void detachFromActiveChangeset(const std::string &commitMessage);
-    virtual void abortChangeset(const TemporaryChangesetId revision);
+    virtual void abortCurrentChangeset();
 
     /** @short Write JSON data to the DB server
      *

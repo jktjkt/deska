@@ -379,7 +379,7 @@ public:
     virtual void detachFromActiveChangeset(const std::string &commitMessage) = 0;
 
     /** @short Abort an in-progress changeset */
-    virtual void abortChangeset(const TemporaryChangesetId rev) = 0;
+    virtual void abortCurrentChangeset() = 0;
 };
 
 }
