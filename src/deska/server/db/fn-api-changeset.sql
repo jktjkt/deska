@@ -21,12 +21,13 @@ CREATE TABLE version (
 CREATE TABLE changeset (
 	-- number - id version
 	version bigint
-		CONSTRAINT session_id_fk_version REFERENCES version(id),
+		CONSTRAINT changeset_id_fk_version REFERENCES version(id),
 	-- user - must be unique, use it for pk
 	username text
-		CONSTRAINT session_pk PRIMARY KEY
+		CONSTRAINT changeset_pk PRIMARY KEY,
+	-- backend pid - like session id
+	pid int
 );
-
 
 
 --
@@ -85,6 +86,22 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+--
+-- get my version id
+--
+CREATE FUNCTION my_version()
+RETURNS integer
+AS
+$$
+DECLARE ver integer;
+BEGIN
+	SELECT version INTO ver FROM changeset
+		WHERE username = current_user AND pid = pg_backend_pid();
+	RETURN ver;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
 -- API part here
 SET search_path TO api,deska;
 --
@@ -97,39 +114,24 @@ $$
 DECLARE ver integer;
 BEGIN
 	SELECT add_version() INTO ver;
-	INSERT INTO changeset (username,version)
-		VALUES (current_user,ver);
-	RETURN 1;
-END
-$$
-LANGUAGE plpgsql SECURITY DEFINER;
-
---
--- get my version id
---
-CREATE FUNCTION my_version()
-RETURNS integer
-AS
-$$
-DECLARE ver integer;
-BEGIN
-	SELECT version INTO ver FROM changeset
-		WHERE username = current_user;
+	INSERT INTO changeset (username,version,pid)
+		VALUES (current_user,ver,pg_backend_pid());
 	RETURN ver;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+
 --
 -- abort changeset, for api, same as close
 --
-CREATE FUNCTION abortChangeset()
+CREATE FUNCTION abortCurrentChangeset()
 RETURNS integer
 AS
 $$
 BEGIN
-	DELETE FROM changeset
-		WHERE username = current_user;
+	UPDATE changeset SET pid = NULL
+		WHERE version = my_version();
 	RETURN 1;
 END
 $$
