@@ -10,7 +10,7 @@ CREATE TABLE version (
 		CONSTRAINT version_pk PRIMARY KEY,
 	-- human readable id
 	num int
-		CONSTRAINT version_number_unique UNIQUE,
+		CONSTRAINT version_numberunique UNIQUE,
 	-- who a whet created
 	username text,
 	created timestamp without time zone NOT NULL DEFAULT now(),
@@ -23,10 +23,10 @@ CREATE TABLE changeset (
 	version bigint
 		CONSTRAINT changeset_id_fk_version REFERENCES version(id),
 	-- user - must be unique, use it for pk
-	username text
-		CONSTRAINT changeset_pk PRIMARY KEY,
+	username text NOT NULL,
 	-- backend pid - like session id
 	pid int
+		CONSTRAINT changeset_pid_pk PRIMARY KEY
 );
 
 
@@ -43,8 +43,8 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
-	INSERT INTO version (note)
-		VALUES ('');
+	INSERT INTO version (note,username)
+		VALUES ('',current_user);
 	SELECT max(id) INTO ver FROM version;
 	RETURN ver;
 END
@@ -121,17 +121,52 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+--
+-- resume to changeset
+--
+CREATE FUNCTION resumeChangeset(id integer)
+RETURNS integer
+AS
+$$
+BEGIN
+	INSERT INTO changeset (username,version,pid)
+		VALUES (current_user,id,pg_backend_pid());
+	RETURN 1;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- abort changeset, for api, same as close
+-- detach changeset, same as close_changeset
+--
+CREATE FUNCTION detachFromCurrentChangeset(message text)
+RETURNS integer
+AS
+$$
+BEGIN
+	UPDATE version SET note = message
+		WHERE id = my_version(); 
+	PERFORM close_changeset();
+	RETURN 1;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- abort changeset, same as close_changeset
 --
 CREATE FUNCTION abortCurrentChangeset()
 RETURNS integer
 AS
 $$
+DECLARE ver integer;
 BEGIN
-	UPDATE changeset SET pid = NULL
-		WHERE version = my_version();
+	-- we need to keep version id and then delete it in this order (due to fk)
+	SELECT my_version() INTO ver;
+	DELETE FROM changeset
+		WHERE version = ver;
+	DELETE FROM version
+		WHERE id = ver;
 	RETURN 1;
 END
 $$
