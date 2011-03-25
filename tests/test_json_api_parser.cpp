@@ -75,6 +75,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
     expected.push_back("foo bar");
     vector<Identifier> res = j->kindNames();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Test that kindAttributes() retrieves data */
@@ -90,6 +91,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixture)
     expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Test that kindAtttributes() can catch wrong referenced objects */
@@ -99,6 +101,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixture)
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
             "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"getKindAttributes\"}");
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
+    expectEmpty();
 }
 
 /** @short Test that kindRelations() can fetch data */
@@ -115,6 +118,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixture)
     expected.push_back(ObjectRelation::templatized("by-which-kind", "my-attribute"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Test that kindInstances() returns a reasonable result */
@@ -128,6 +132,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixture)
     expected.push_back("ahoj");
     vector<Identifier> res = j->kindInstances("blah", RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Test that kindInstances() fails when faced with wrong revision */
@@ -136,6 +141,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixture)
     expectWrite("{\"command\":\"getKindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}");
     expectRead("{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"getKindInstances\", \"revision\": \"r333\"}");
     BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
+    expectEmpty();
 }
 
 /** @short Basic test for objectData() */
@@ -162,6 +168,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixture)
         ++i1;
         ++i2;
     }
+    expectEmpty();
 }
 
 /** @short Basic test for resolvedObjectData() */
@@ -179,6 +186,7 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixture)
     // at yet another place. Let's stick with strings and don't expect to see detailed error reporting here.
     BOOST_REQUIRE_EQUAL(res.size(), expected.size());
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    expectEmpty();
 }
 
 /** @short Basic test for findOverridenAttrs() */
@@ -193,6 +201,7 @@ BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixture)
     expected.push_back("aaa");
     vector<Identifier> res = j->findOverriddenAttrs("k", "o", "aa");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Basic test for findNonOverridenAttrs() */
@@ -207,6 +216,7 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixture)
     expected.push_back("aaaaa");
     vector<Identifier> res = j->findNonOverriddenAttrs("k", "o", "aa");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
 }
 
 /** @short Basic test for createObject() */
@@ -215,8 +225,7 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixture)
     expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}");
     expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}");
     j->createObject("k", "o");
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for deleteObject() */
@@ -225,8 +234,7 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixture)
     expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}");
     expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}");
     j->deleteObject("k", "o");
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for renameObject() */
@@ -235,8 +243,7 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixture)
     expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}");
     expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}");
     j->renameObject("kind", "ooooold", "new");
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for removeAttribute() */
@@ -245,8 +252,7 @@ BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixture)
     expectWrite("{\"command\":\"removeObjectAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}");
     expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeObjectAttribute\", \"result\": true}");
     j->removeAttribute("kind", "obj", "fancyAttr");
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short A three-member tuple for holding JSON input/output and the corresponding Deska::Value */
@@ -273,8 +279,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixture)
         expectWrite(value.jsonIn);
         expectRead(value.jsonOut);
         j->setAttribute("k", "o", "a", value.v);
-        BOOST_CHECK(jsonDbInput.empty());
-        BOOST_CHECK(jsonDbOutput.empty());
+        expectEmpty();
     }
 }
 
@@ -284,8 +289,7 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsStartChangeset\"}");
     expectRead("{\"response\": \"vcsStartChangeset\", \"revision\": \"tmp333\"}");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for commitChangeset() */
@@ -294,8 +298,7 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsCommitChangeset\"}");
     expectRead("{\"response\": \"vcsCommitChangeset\", \"revision\": \"r666\"}");
     BOOST_CHECK_EQUAL(j->commitChangeset(), RevisionId(666));
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for reabseChangeset() */
@@ -304,8 +307,7 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsRebaseChangeset\",\"currentRevision\":\"r666\"}");
     expectRead("{\"response\": \"vcsRebaseChangeset\", \"currentRevision\": \"r666\", \"revision\": \"tmp333666\" }");
     BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for pendingChangesetsByMyself() */
@@ -319,8 +321,7 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixture)
     expected.push_back(TemporaryChangesetId(3));
     vector<TemporaryChangesetId> res = j->pendingChangesetsByMyself();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for resumeChangeset() */
@@ -329,8 +330,7 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsResumePendingChangeset\",\"revision\":\"tmp123\"}");
     expectRead("{\"response\": \"vcsResumePendingChangeset\", \"revision\": \"tmp123\"}");
     j->resumeChangeset(TemporaryChangesetId(123));
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for detachFromActiveChangeset() */
@@ -339,8 +339,7 @@ BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
     expectRead("{\"response\": \"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
     j->detachFromActiveChangeset("foobar");
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Basic test for abortCurrentChangeset() */
@@ -349,8 +348,7 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixture)
     expectWrite("{\"command\":\"vcsAbortCurrentChangeset\"}");
     expectRead("{\"response\": \"vcsAbortCurrentChangeset\"}");
     j->abortCurrentChangeset();
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Verify correctness of parsing of revisions from JSON */
@@ -363,8 +361,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixture)
     h.write("r", r).extract(&r).valueShouldMatch = false;
     h.work();
     BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    expectEmpty();
 }
 
 /** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
@@ -398,7 +395,6 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixture)
             // this is actually what we want
             //std::cerr << "OK: " << e.what() << std::endl;
         }
-        BOOST_CHECK(jsonDbInput.empty());
-        BOOST_CHECK(jsonDbOutput.empty());
+        expectEmpty();
     }
 }
