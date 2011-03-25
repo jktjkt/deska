@@ -15,9 +15,9 @@ class DB:
 		"commitChangeset": [],
 		#"rebaseChangeset": [],
 		#"pendingChangesetsByMyself": [],
-		#"resumeChangeset": [],
-		#"detachFromActiveChangeset": [],
-		"abortChangeset": []
+		"resumeChangeset": ["revision"],
+		"detachFromCurrentChangeset": [],
+		"abortCurrentChangeset": []
 	})
 	data_methods = dict({
 		"objectData": ["kindName", "objectName"],
