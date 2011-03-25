@@ -26,10 +26,12 @@
 #include <boost/noncopyable.hpp>
 #include <boost/signals2.hpp>
 
-#include "deska/db/Api.h"
+#include "deska/db/Objects.h"
 
 namespace Deska
 {
+class Api;
+
 namespace CLI
 {
 

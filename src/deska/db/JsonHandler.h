@@ -22,7 +22,8 @@
 #ifndef DESKA_JSONHANDLER_H
 #define DESKA_JSONHANDLER_H
 
-#include "Api.h"
+#include "deska/db/Objects.h"
+#include "deska/db/Revisions.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
 
 namespace Deska

@@ -25,10 +25,11 @@
 #include <queue>
 #include <boost/signals2/connection.hpp>
 #include <boost/signals2/trackable.hpp>
-#include "deska/db/Api.h"
+#include "deska/db/Objects.h"
 #include "MockParserEvent.h"
 
 namespace Deska {
+class Api;
 namespace CLI {
 class Parser;
 }

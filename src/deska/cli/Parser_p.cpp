@@ -23,6 +23,7 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p.h"
+#include "deska/db/Api.h"
 
 //#define PARSER_DEBUG
 //#define PARSER_PRINT_ERRORS

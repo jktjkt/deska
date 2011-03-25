@@ -24,7 +24,7 @@
 
 #include <iosfwd>
 #include "deska/cli/Exceptions.h"
-#include "deska/db/Api.h"
+#include "deska/db/Objects.h"
 
 /** @short Helper class representing a signal emitted by the Parser being tested */
 class MockParserEvent
