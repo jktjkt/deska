@@ -79,6 +79,8 @@ json_spirit::Object JsonApiParser::readJsonObject() const
     json_spirit::Value res;
     try {
         json_spirit::read_or_throw(readString(), res);
+        // FIXME: convert this to iteratos, as this method would happily parse "{}{" and not report back
+        // that the "{" was silently ignored
     } catch (const json_spirit::Error_position &e) {
         // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
         std::ostringstream s;
