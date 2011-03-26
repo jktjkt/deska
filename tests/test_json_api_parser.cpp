@@ -333,12 +333,12 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixture)
     expectEmpty();
 }
 
-/** @short Basic test for detachFromActiveChangeset() */
-BOOST_FIXTURE_TEST_CASE(json_detachFromActiveChangeset, JsonApiTestFixture)
+/** @short Basic test for detachFromCurrentChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_detachFromCurrentChangeset, JsonApiTestFixture)
 {
-    expectWrite("{\"command\":\"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
-    expectRead("{\"response\": \"vcsDetachFromActiveChangeset\",\"commitMessage\":\"foobar\"}");
-    j->detachFromActiveChangeset("foobar");
+    expectWrite("{\"command\":\"vcsDetachFromCurrentChangeset\",\"commitMessage\":\"foobar\"}");
+    expectRead("{\"response\": \"vcsDetachFromCurrentChangeset\",\"commitMessage\":\"foobar\"}");
+    j->detachFromCurrentChangeset("foobar");
     expectEmpty();
 }
 
