@@ -179,7 +179,7 @@ void FakeApi::resumeChangeset(const TemporaryChangesetId revision)
 {
 }
 
-void FakeApi::detachFromCurrentChangeset(const std::string &message)
+void FakeApi::detachFromCurrentChangeset(const std::string &commitMessage)
 {
 }
 
