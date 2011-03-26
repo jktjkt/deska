@@ -1,5 +1,7 @@
 import psycopg2
 
+conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
+
 class DB:
 	methods = dict({
 		"kindNames": [],
@@ -26,9 +28,8 @@ class DB:
 		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
 	})
 	def __init__(self):
-		print "conntect to db"
-		self.conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
-		self.mark = self.conn.cursor()
+		print "conntect to cursor"
+		self.mark = conn.cursor()
 		self.mark.execute("SET search_path TO api,genproc,history,deska,production;")
 
 	# has api this method?
@@ -88,10 +89,8 @@ class DB:
 			
 		return res
 	
-	def close(self):
-		self.mark.close()
-		self.conn.commit()
-		self.conn.close()
+	def commit(self):
+		conn.commit()
 
 
 

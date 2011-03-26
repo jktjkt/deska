@@ -26,7 +26,7 @@ jsn = Jsn(data)
 print jsn.process()
 
 #data = '{"command": "commitChangeset"}'
-data = '{"command": "abortChangeset"}'
+data = '{"command": "abortCurrentChangeset"}'
 jsn = Jsn(data)
 print jsn.process()
 
