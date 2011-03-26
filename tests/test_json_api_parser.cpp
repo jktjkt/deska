@@ -364,6 +364,25 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixture)
     expectEmpty();
 }
 
+/** @short Make sure we scream loudly when faced with invalid JSON data */
+BOOST_FIXTURE_TEST_CASE(json_malformed_json, JsonApiTestFixture)
+{
+    std::vector<std::string> data;
+    data.push_back("");
+    data.push_back("{");
+    data.push_back("{\"command\":");
+    data.push_back("{\"command\":\"c");
+    data.push_back("{\"command\":\"c\"");
+    data.push_back("{\"command\":\"c\",");
+    BOOST_FOREACH(const std::string &line, data) {
+        expectWrite("{\"command\":\"vcsAbortCurrentChangeset\"}");
+        expectRead(line);
+        // FIXME: distinguish between "JSON parsing error" and "data error in a well-formed JSON"
+        BOOST_CHECK_THROW(j->abortCurrentChangeset(), JsonParseError);
+        expectEmpty();
+    }
+}
+
 /** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixture)
 {
