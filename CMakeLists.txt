@@ -30,6 +30,7 @@ add_definitions(-D_GLIBCXX_DEBUG)
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
 )
 
 set(libDeskaDb_SRCS
@@ -40,6 +41,7 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/CachingJsonApi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ProcessIO.cpp
 )
 
 set(libDeskaCliParser_SRCS
