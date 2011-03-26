@@ -222,59 +222,7 @@ class Table:
 		IF NOT FOUND THEN
 			SELECT name INTO value
 			FROM {tbl}
-			WHERE uid = {tbl}_name;
-		END IF;		
-		RETURN value;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
-	#template for function getting uid of object embed into another
-	get_uid_string = '''CREATE FUNCTION
-	{tbl}_get_uid(IN name_ text)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		value bigint;
-	BEGIN
-		SELECT my_version() INTO ver;
-		SELECT uid INTO value
-			FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
-		--if the value isn't in current version then it should be found in production
-		IF NOT FOUND THEN
-			SELECT uid INTO value
-			FROM {tbl}
-			WHERE name = name_;
-		END IF;		
-		RETURN value;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
-	#template string for get functions
-	get_name_string = '''CREATE FUNCTION
-	{tbl}_get_name(IN {tbl}_uid bigint)
-	RETURNS text
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		value text;
-	BEGIN
-		SELECT my_version() INTO ver;
-		SELECT name INTO value
-			FROM {tbl}_history
-			WHERE uid = {tbl}_uid AND version = ver;
-		--if the value isn't in current version then it should be found in production
-		IF NOT FOUND THEN
-			SELECT name INTO value
-			FROM {tbl}
-			WHERE uid = {tbl}_name;
+			WHERE uid = {tbl}_uid;
 		END IF;		
 		RETURN value;
 	END
@@ -488,13 +436,37 @@ class Table:
 		del collist['name']
 		if len(collist) == 0:
 			return ""
-		cols = ",".join(collist)
-		coltype_string = "{colname} {coltype}"
-		coltypeslist = list()
+
+		# replace uid of referenced object its name
+		# old column : new column selector
+		newcollist = dict()
+		for refs in self.fks.att:
+			tbl = self.fks.tbl[refs]
+			if self.fks.ratt[refs] != list(['uid']):
+				raise Exception("ref to not uid column")
+			for col in self.fks.att[refs]:
+				collist[col] = 'text'
+				newcol = tbl + "_get_name(" + col + ") as " + col 
+				newcollist[col] = newcol
+		
+		# create col: type dict
+		coltypeslist = dict()
 		for col in collist:
-			coltypeslist.append(coltype_string.format(colname = col, coltype = collist[col]))
-		coltypes = ",\n".join(coltypeslist)
-		return self.get_data_type_string.format(tbl = self.name, columns = coltypes) + "\n" + self.get_data_string.format(tbl = self.name, columns = cols)
+			coltypeslist[col] = " ".join([col,collist[col]])
+
+		# prepare: values = keys
+		keys = collist.keys()
+		keys.sort()
+		collist = dict(zip(keys,keys))
+		# replace old cols with new 
+		for col in newcollist:
+			collist[col] = newcollist[col]
+
+		coltypes = ",\n".join(coltypeslist.values())
+		cols = ",".join(collist.values())
+		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
+		cols_def = self.get_data_string.format(tbl = self.name, columns = cols)
+		return type_def + "\n" + cols_def
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
