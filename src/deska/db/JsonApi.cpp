@@ -77,7 +77,14 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
     json_spirit::Value res;
-    json_spirit::read(readString(), res);
+    try {
+        json_spirit::read_or_throw(readString(), res);
+    } catch (const json_spirit::Error_position &e) {
+        // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
+        std::ostringstream s;
+        s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
+        throw JsonParseError(s.str());
+    }
     const json_spirit::Object &o = res.get_obj();
     // FIXME: check for the j_errorPrefix here
     return o;
