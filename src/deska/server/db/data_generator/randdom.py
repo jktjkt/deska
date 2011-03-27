@@ -23,6 +23,13 @@ class rlist(list):
 		for i in range(0,size):
 			ret.append(self.ritem())
 		return ret
+	
+	def extend(self,boost):
+		l = list()
+		for item in self.data:
+			for i in range(boost):
+				l.append(item + "_" + str(i))
+		self.data = l 
 
 
 class Names(rlist):
@@ -127,12 +134,12 @@ class Dates(rlist):
 		return "{D}/{M}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
 
 class Interfaces(rlist):
-	def __init__(self,source,num = 4):
-		self.name = Names(source)
+	def __init__(self,names,num = 4):
+		self.names = names
 		self.num = Numbers(num)
 
 	def ritem(self):
-		return "{name}->eth{num}".format(name = self.name.ritem(), num = self.num.ritem())
+		return "{name}->eth{num}".format(name = self.names.ritem(), num = self.num.ritem())
 
 	def rset(self,size):
 		s = set(self.rlist(size))
