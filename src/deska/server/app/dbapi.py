@@ -28,7 +28,6 @@ class DB:
 		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
 	})
 	def __init__(self):
-		print "conntect to cursor"
 		self.mark = conn.cursor()
 		self.mark.execute("SET search_path TO api,genproc,history,deska,production;")
 
@@ -45,8 +44,6 @@ class DB:
 		# cast to string
 		args = map(str,args)
 		self.mark.callproc(name,args)
-		print self.mark.statusmessage
-		print self.mark.query
 		self.res = self.mark.fetchall()
 		return len(self.res)*len(self.res[0])
 	
@@ -61,8 +58,6 @@ class DB:
 		del args[0]
 		args = map(str,args)
 		self.mark.callproc(fname, args)
-		print self.mark.statusmessage
-		print self.mark.query
 		self.res = self.mark.fetchall()
 		return len(self.res)*len(self.res[0])
 	
