@@ -151,6 +151,35 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	# template string for get data functions with embed flag
+	get_embed_data_string = '''CREATE FUNCTION
+	{tbl}_get_data(IN name_ text)
+	RETURNS SETOF {tbl}_type
+	AS
+	$$
+	DECLARE	ver bigint;
+		parrent_uid bigint;
+		parrent_name text;
+		base_name text;
+	BEGIN
+		SELECT my_version() INTO ver;
+		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
+		SELECT host_get_uid(parrent_name) INTO parrent_uid;
+		RETURN QUERY 
+			SELECT {columns} FROM {tbl}_history
+				WHERE name = base_name AND host = parrent_uid AND version = ver
+			UNION
+			SELECT {columns} FROM {tbl}
+				WHERE name = base_name AND host = parrent_uid
+					--AND NOT IN ... FIXME!!! - better concept
+			-- this might help
+			LIMIT 1
+			;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 	#template string for get functions
 	get_string = '''CREATE FUNCTION
 	{tbl}_get_{colname}(IN name_ text)
@@ -446,8 +475,14 @@ class Table:
 				raise Exception("ref to not uid column")
 			for col in self.fks.att[refs]:
 				collist[col] = 'text'
-				newcol = tbl + "_get_name(" + col + ") as " + col 
-				newcollist[col] = newcol
+				if "rembed_" in refs:
+					# delete this col from output
+					del collist[col]
+					get_data_string = self.get_embed_data_string
+				else:
+					newcol = tbl + "_get_name(" + col + ") as " + col 
+					newcollist[col] = newcol
+					get_data_string = self.get_data_string
 		
 		# create col: type dict
 		coltypeslist = dict()
@@ -465,7 +500,7 @@ class Table:
 		coltypes = ",\n".join(coltypeslist.values())
 		cols = ",".join(collist.values())
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
-		cols_def = self.get_data_string.format(tbl = self.name, columns = cols)
+		cols_def = get_data_string.format(tbl = self.name, columns = cols)
 		return type_def + "\n" + cols_def
 
 	def gen_get(self,col_name):
