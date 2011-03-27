@@ -55,7 +55,7 @@ template <typename Iterator>
 class ObjectErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short An error has occured during parsing a top-level object
@@ -69,7 +69,7 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds,
-        ParserImpl<Iterator> *parser ) const;
+        const std::string &kindName, ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -79,7 +79,7 @@ template <typename Iterator>
 class KeyErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short An error has occured while parsing a name of an attribute
@@ -93,7 +93,7 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
-        ParserImpl<Iterator> *parser ) const;
+        const std::string &kindName, ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -103,7 +103,7 @@ template <typename Iterator>
 class ValueErrorHandler
 {
 public:
-    template <typename, typename, typename, typename, typename>
+    template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
     /** @short An error has occured while parsing an attribute's value
@@ -115,8 +115,8 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        ParserImpl<Iterator> *parser ) const;
+        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+            const std::string &attributeName, ParserImpl<Iterator> *parser ) const;
 };
 
 
@@ -144,11 +144,11 @@ template <typename Iterator>
 class ParseError
 {
 public:
-    ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what );
+    ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what, const std::string &attributeName );
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds );
+        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds, const std::string &kindName );
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes );
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName );
 
     std::string toString();
 
@@ -164,6 +164,7 @@ private:
     Iterator m_start;
     Iterator m_end;
     Iterator m_errorPos;
+    std::string context;
 };
 
 

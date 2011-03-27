@@ -99,7 +99,7 @@ const qi::rule<Iterator, std::string(), ascii::space_type>& PredefinedRules<Iter
 
 template <typename Iterator>
 AttributesParser<Iterator>::AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent ):
-    AttributesParser<Iterator>::base_type( start ), m_parent( parent )
+    AttributesParser<Iterator>::base_type( start ), m_name( kindName ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -125,8 +125,9 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
     phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>( start, keyErrorHandler( _1, _2, _3, _4, phoenix::ref( attributes ), m_parent ) );
-    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, m_parent ) );
+    on_error<fail>( start, keyErrorHandler( _1, _2, _3, _4, phoenix::ref( attributes ),
+        phoenix::ref( m_name ), m_parent ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, phoenix::ref( currentAttributeName ), m_parent ) );
 }
 
 
@@ -149,7 +150,7 @@ void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, 
 
 template <typename Iterator>
 KindsOnlyParser<Iterator>::KindsOnlyParser( const std::string &kindName, ParserImpl<Iterator> *parent):
-    KindsOnlyParser<Iterator>::base_type( start ), m_parent( parent )
+    KindsOnlyParser<Iterator>::base_type( start ), m_name( kindName ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -175,8 +176,9 @@ KindsOnlyParser<Iterator>::KindsOnlyParser( const std::string &kindName, ParserI
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>( start, objectErrorHandler( _1, _2, _3, _4, phoenix::ref( kinds ), m_parent ) );
-    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, m_parent ) );
+    on_error<fail>( start, objectErrorHandler( _1, _2, _3, _4, phoenix::ref( kinds ),
+        phoenix::ref( m_name ), m_parent ) );
+    on_error<fail>( dispatch, valueErrorHandler( _1, _2, _3, _4, phoenix::ref( currentKindName ), m_parent ) );
 }
 
 

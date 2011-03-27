@@ -115,6 +115,7 @@ private:
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type> > > dispatch;
 
     std::string currentAttributeName;
+    std::string m_name;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -153,6 +154,7 @@ private:
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > > dispatch;
 
     std::string currentKindName;
+    std::string m_name;
 
     ParserImpl<Iterator> *m_parent;
 };
