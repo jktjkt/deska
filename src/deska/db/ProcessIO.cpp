@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <iostream>
 #include "ProcessIO.h"
 #include "3rd-party/process/boost/process.hpp"
 
@@ -51,13 +52,16 @@ ProcessIO::~ProcessIO()
 
 void ProcessIO::writeData(const std::string &data)
 {
-    childProcess->get_stdin() << data;
+    std::cerr << "writeData " << data << std::endl;
+    childProcess->get_stdin() << data << std::flush;
 }
 
 std::string ProcessIO::readData()
 {
+    std::cerr << "readData..." << std::endl;
     std::string res;
     childProcess->get_stdout() >> res;
+    std::cerr << "...got " << res << std::endl;
     return res;
 }
 

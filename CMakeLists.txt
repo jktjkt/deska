@@ -42,6 +42,7 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/CachingJsonApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ProcessIO.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection.cpp
 )
 
 set(libDeskaCliParser_SRCS
@@ -55,14 +56,21 @@ set(deskaCliParserDemo_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
+set(deskaIoDemo_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/main.cpp
+)
+
 add_subdirectory(src/3rd-party/json_spirit_4.04/json_spirit)
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb json_spirit)
+target_link_libraries(DeskaDb json_spirit boost_system)
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
 target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
+
+add_executable(deska-io-demo ${deskaIoDemo_SRCS})
+target_link_libraries(deska-io-demo DeskaCliParser DeskaDb)
 
 enable_testing()
 add_subdirectory(tests)
