@@ -317,7 +317,10 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
         if ( !parsingSucceeded ) {
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
-            for( std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it ) {
+            for( typename std::vector<ParseError<Iterator> >::iterator
+                it = parseErrors.begin();
+                it != parseErrors.end();
+                ++it ) {
                 std::cout << it->toString() << std::endl;
             }
 #endif

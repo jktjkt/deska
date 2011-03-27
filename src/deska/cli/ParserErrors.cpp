@@ -166,5 +166,7 @@ template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, it
 
 template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, ParserImpl<iterator_type>* parser ) const;
 
+template std::string ParseError<iterator_type>::toString();
+
 }
 }
