@@ -81,9 +81,9 @@ InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList, std::vecto
 void InfoExtractor::element( spirit::utf8_string const& tag, spirit::utf8_string const& value, int ) const
 {
     if ( !value.empty() )
-        kList->push_back( "\"" + value + "\"" );
+        kList->push_back(value);
     else
-        tList->push_back( "<" + tag + ">" );
+        tList->push_back(tag);
 }
 
 
@@ -135,8 +135,10 @@ std::string ParseError<Iterator>::toString()
 {
     std::ostringstream sout;
     sout << "Error while parsing " << parseErrorTypeToString(errorType) << ". Expected one of [";
-    std::copy( expectedKeywords.begin(), expectedKeywords.end(), std::ostream_iterator<std::string>(sout, " ") );
-    std::copy( expectedTypes.begin(), expectedTypes.end(), std::ostream_iterator<std::string>(sout, " ") );
+    for( std::vector<std::string>::iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
+        sout << "\"" << *it << "\" ";
+    for( std::vector<std::string>::iterator it = expectedTypes.begin(); it != expectedTypes.end(); ++it )
+        sout << "<" << *it << "> ";
     sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
     return sout.str();
 }
@@ -156,7 +158,7 @@ template <typename Iterator>
 void ParseError<Iterator>::extractKindName( const std::string &name,
     const qi::rule<Iterator, std::string(), ascii::space_type> &rule )
 {
-    expectedKeywords.push_back( "\"" + name + "\"" );
+    expectedKeywords.push_back(name);
 }
 
 
@@ -165,7 +167,7 @@ template <typename Iterator>
 void ParseError<Iterator>::extractAttributeName( const std::string &name,
     const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule )
 {
-    expectedKeywords.push_back( "\"" + name + "\"" );
+    expectedKeywords.push_back(name);
 }
 
 
