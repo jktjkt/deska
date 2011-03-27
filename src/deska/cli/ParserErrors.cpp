@@ -74,7 +74,7 @@ InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList ):
 
 void InfoExtractor::element( spirit::utf8_string const& tag, spirit::utf8_string const& value, int ) const
 {
-    if ( value.empty() )
+    if ( !value.empty() )
         list->push_back( "\"" + value + "\"" );
     else
         list->push_back( "<" + tag + ">" );
