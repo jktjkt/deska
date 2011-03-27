@@ -55,7 +55,7 @@ static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
 static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
 static std::string j_cmd_pendingChangesetsByMyself = "vcsGetPendingChangesetsByMyself";
 static std::string j_cmd_resumeChangeset = "vcsResumePendingChangeset";
-static std::string j_cmd_detachFromActiveChangeset = "vcsDetachFromActiveChangeset";
+static std::string j_cmd_detachFromCurrentChangeset = "vcsDetachFromCurrentChangeset";
 static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
 
 namespace Deska {
@@ -77,7 +77,16 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
     json_spirit::Value res;
-    json_spirit::read(readString(), res);
+    try {
+        json_spirit::read_or_throw(readString(), res);
+        // FIXME: convert this to iteratos, as this method would happily parse "{}{" and not report back
+        // that the "{" was silently ignored
+    } catch (const json_spirit::Error_position &e) {
+        // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
+        std::ostringstream s;
+        s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
+        throw JsonParseError(s.str());
+    }
     const json_spirit::Object &o = res.get_obj();
     // FIXME: check for the j_errorPrefix here
     return o;
@@ -268,9 +277,9 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
     h.work();
 }
 
-void JsonApiParser::detachFromActiveChangeset(const std::string &commitMessage)
+void JsonApiParser::detachFromCurrentChangeset(const std::string &commitMessage)
 {
-    JsonHandler h(this, j_cmd_detachFromActiveChangeset);
+    JsonHandler h(this, j_cmd_detachFromCurrentChangeset);
     h.write(j_commitMessage, commitMessage);
     h.work();
 }
