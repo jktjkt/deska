@@ -16,9 +16,9 @@ class DB:
 		"startChangeset": [],
 		"commitChangeset": [],
 		#"rebaseChangeset": [],
-		#"pendingChangesetsByMyself": [],
+		"pendingChangesets": [],
 		"resumeChangeset": ["revision"],
-		"detachFromCurrentChangeset": [],
+		"detachFromCurrentChangeset": ["message"],
 		"abortCurrentChangeset": []
 	})
 	data_methods = dict({
@@ -39,7 +39,7 @@ class DB:
 	def run_method(self,name,args):
 		# have we the exact needed arguments
 		if set(self.methods[name]) != set(args.keys()):
-			raise "args are not good"
+			raise Exception("run_method: args are not good")
 		# sort args 
 		args = [args[i] for i in self.methods[name]]
 		# cast to string
@@ -53,7 +53,7 @@ class DB:
 	def run_data_method(self,name,args):
 		# this code is provisorium, rewrite before merge into master
 		if set(self.data_methods[name]) != set(args.keys()):
-			raise "args are not good"
+			raise Exception("run_data_method: args are not good")
 		# sort args 
 		args = [args[i] for i in self.data_methods[name]]
 		# cast to string
