@@ -145,8 +145,8 @@ void AttributesParser<Iterator>::parsedAttribute( const std::string &parameter, 
 
 
 template <typename Iterator>
-KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iterator> *parent):
-    KindsParser<Iterator>::base_type( start ), m_parent( parent )
+KindsOnlyParser<Iterator>::KindsOnlyParser( const std::string &kindName, ParserImpl<Iterator> *parent):
+    KindsOnlyParser<Iterator>::base_type( start ), m_parent( parent )
 {
     using qi::_1;
     using qi::_2;
@@ -168,7 +168,7 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
     start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
     dispatch = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, phoenix::ref( currentKindName ) ) ]
-        > lazy( _a )[ phoenix::bind( &KindsParser::parsedKind, this, phoenix::ref( currentKindName ), _1 ) ] );
+        > lazy( _a )[ phoenix::bind( &KindsOnlyParser::parsedKind, this, phoenix::ref( currentKindName ), _1 ) ] );
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
@@ -179,7 +179,7 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
 
 
 template <typename Iterator>
-void KindsParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
+void KindsOnlyParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser )
 {
     kinds.add( kindName, identifierParser );
 }
@@ -187,7 +187,7 @@ void KindsParser<Iterator>::addKind(const std::string &kindName, qi::rule<Iterat
 
 
 template <typename Iterator>
-void KindsParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
+void KindsOnlyParser<Iterator>::parsedKind( const std::string &kindName, const std::string &objectName )
 {
     m_parent->categoryEntered( kindName, objectName );
 }
@@ -195,23 +195,23 @@ void KindsParser<Iterator>::parsedKind( const std::string &kindName, const std::
 
 
 template <typename Iterator>
-KindParser<Iterator>::KindParser( const std::string &kindName, AttributesParser<Iterator> *attributesParser,
-    KindsParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
-    KindParser<Iterator>::base_type( start ), m_parent( parent )
+WholeKindParser<Iterator>::WholeKindParser( const std::string &kindName, AttributesParser<Iterator> *attributesParser,
+    KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent ):
+    WholeKindParser<Iterator>::base_type( start ), m_parent( parent )
 {
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
     this->name( kindName );
 
     start =( ( +( *attributesParser ) >> -( *nestedKinds ) )
-        | ( ( *nestedKinds )[ phoenix::bind( &KindParser::parsedSingleKind, this ) ] )
-        | ( qi::lit("end")[ phoenix::bind( &KindParser::parsedEnd, this ) ] ) );
+        | ( ( *nestedKinds )[ phoenix::bind( &WholeKindParser::parsedSingleKind, this ) ] )
+        | ( qi::lit("end")[ phoenix::bind( &WholeKindParser::parsedEnd, this ) ] ) );
 }
 
 
 
 template <typename Iterator>
-void KindParser<Iterator>::parsedEnd()
+void WholeKindParser<Iterator>::parsedEnd()
 {
     m_parent->categoryLeft();
 }
@@ -219,7 +219,7 @@ void KindParser<Iterator>::parsedEnd()
 
 
 template <typename Iterator>
-void KindParser<Iterator>::parsedSingleKind()
+void WholeKindParser<Iterator>::parsedSingleKind()
 {
     m_parent->parsedSingleKind();
 }
@@ -231,7 +231,7 @@ template <typename Iterator>
 ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 {
     predefinedRules = new PredefinedRules<Iterator>();
-    topLevelParser = new KindsParser<Iterator>( std::string( "" ), this );
+    topLevelParser = new KindsOnlyParser<Iterator>( std::string( "" ), this );
 
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
@@ -245,10 +245,10 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
         attributesParsers[ *it ] = new AttributesParser<Iterator>( *it, this );
         addKindAttributes( *it, attributesParsers[ *it ] );
 
-        kindsParsers[ *it ] = new KindsParser<Iterator>( *it, this );
-        addNestedKinds( *it, kindsParsers[ *it ] );
+        kindsOnlyParsers[ *it ] = new KindsOnlyParser<Iterator>( *it, this );
+        addNestedKinds( *it, kindsOnlyParsers[ *it ] );
 
-        kindParsers[ *it ] = new KindParser<Iterator>( *it, attributesParsers[ *it ], kindsParsers[ *it ], this );
+        wholeKindParsers[ *it ] = new WholeKindParser<Iterator>( *it, attributesParsers[ *it ], kindsOnlyParsers[ *it ], this );
     }
 }
 
@@ -261,12 +261,12 @@ ParserImpl<Iterator>::~ParserImpl()
         it != attributesParsers.end(); ++it ) {
         delete it->second;
     }
-    for( typename std::map<std::string, KindParser<Iterator>* >::iterator it = kindParsers.begin();
-        it != kindParsers.end(); ++it ) {
+    for( typename std::map<std::string, WholeKindParser<Iterator>* >::iterator it = wholeKindParsers.begin();
+        it != wholeKindParsers.end(); ++it ) {
         delete it->second;
     }
-    for( typename std::map<std::string, KindsParser<Iterator>* >::iterator it = kindsParsers.begin();
-        it != kindsParsers.end(); ++it ) {
+    for( typename std::map<std::string, KindsOnlyParser<Iterator>* >::iterator it = kindsOnlyParsers.begin();
+        it != kindsOnlyParsers.end(); ++it ) {
         delete it->second;
     }
 
@@ -308,7 +308,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 #ifdef PARSER_DEBUG
             std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
 #endif
-            parsingSucceeded = phrase_parse( iter, end, *( kindParsers[ contextStack.back().kind ] ), ascii::space );
+            parsingSucceeded = phrase_parse( iter, end, *( wholeKindParsers[ contextStack.back().kind ] ), ascii::space );
         }
 
         // Some bad input
@@ -434,14 +434,14 @@ void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesPa
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsParser<Iterator>* kindsParser)
+void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser)
 {
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
     for( std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
         std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
         for( std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
             if( ( itr->kind == Db::RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
-                kindsParser->addKind( *it, predefinedRules->getObjectIdentifier() );
+                kindsOnlyParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
 #endif
@@ -466,17 +466,17 @@ template void AttributesParser<iterator_type>::addAtrribute( const std::string &
 
 template void AttributesParser<iterator_type>::parsedAttribute(const std::string &parameter, Db::Value &value );
 
-template KindsParser<iterator_type>::KindsParser( const std::string &kindName, ParserImpl<iterator_type> *parent );
+template KindsOnlyParser<iterator_type>::KindsOnlyParser( const std::string &kindName, ParserImpl<iterator_type> *parent );
 
-template void KindsParser<iterator_type>::addKind( const std::string &kindName,qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
+template void KindsOnlyParser<iterator_type>::addKind( const std::string &kindName,qi::rule<iterator_type, std::string(), ascii::space_type> identifierParser );
 
-template void KindsParser<iterator_type>::parsedKind(const std::string &kindName, const std::string &objectName );
+template void KindsOnlyParser<iterator_type>::parsedKind(const std::string &kindName, const std::string &objectName );
 
-template KindParser<iterator_type>::KindParser( const std::string &kindName, AttributesParser<iterator_type> *attributesParser, KindsParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent );
+template WholeKindParser<iterator_type>::WholeKindParser( const std::string &kindName, AttributesParser<iterator_type> *attributesParser, KindsOnlyParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent );
 
-template void KindParser<iterator_type>::parsedEnd();
+template void WholeKindParser<iterator_type>::parsedEnd();
 
-template void KindParser<iterator_type>::parsedSingleKind();
+template void WholeKindParser<iterator_type>::parsedSingleKind();
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
@@ -500,7 +500,7 @@ template void ParserImpl<iterator_type>::addParseError( const ParseError<iterato
 
 template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindName, AttributesParser<iterator_type>* attributesParser );
 
-template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsParser<iterator_type>* kindsParser );
+template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsOnlyParser<iterator_type>* kindsOnlyParser );
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
 
