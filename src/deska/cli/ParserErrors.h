@@ -128,12 +128,13 @@ This class is used as a visitor of boost::spirit::info to extract keywords from 
 class InfoExtractor
 {
 public:
-    InfoExtractor( std::vector<std::string> *keywordsList );
+    InfoExtractor( std::vector<std::string> *keywordsList, std::vector<std::string> *typesList );
 
     void element( spirit::utf8_string const& tag, spirit::utf8_string const& value, int ) const;
 
 private:
-    std::vector<std::string> *list;
+    std::vector<std::string> *kList;
+    std::vector<std::string> *tList;
 };
 
 
@@ -156,6 +157,7 @@ private:
     void extractAttributeName( const std::string &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule );
 
     ParseErrorType errorType;
+    std::vector<std::string> expectedTypes;
     std::vector<std::string> expectedKeywords;
     Iterator m_start;
     Iterator m_end;

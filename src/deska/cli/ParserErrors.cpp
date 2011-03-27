@@ -65,8 +65,8 @@ void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Itera
 
 
 
-InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList ):
-    list(keywordsList)
+InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList, std::vector<std::string> *typesList ):
+    kList(keywordsList), tList(typesList)
 {
 }
 
@@ -75,9 +75,9 @@ InfoExtractor::InfoExtractor( std::vector<std::string> *keywordsList ):
 void InfoExtractor::element( spirit::utf8_string const& tag, spirit::utf8_string const& value, int ) const
 {
     if ( !value.empty() )
-        list->push_back( "\"" + value + "\"" );
+        kList->push_back( "\"" + value + "\"" );
     else
-        list->push_back( "<" + tag + ">" );
+        tList->push_back( "<" + tag + ">" );
 }
 
 
@@ -86,7 +86,7 @@ template <typename Iterator>
 ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what ):
     errorType(PARSE_ERROR_TYPE_VALUE_TYPE), m_start(start), m_end(end), m_errorPos(errorPos)
 {
-    InfoExtractor extractor( &expectedKeywords );
+    InfoExtractor extractor( &expectedKeywords, &expectedTypes );
     spirit::basic_info_walker<InfoExtractor> walker( extractor, what.tag, 0 );
     boost::apply_visitor( walker, what.value );
 }
@@ -130,6 +130,7 @@ std::string ParseError<Iterator>::toString()
     std::ostringstream sout;
     sout << "Error while parsing " << parseErrorTypeToString(errorType) << ". Expected one of [";
     std::copy( expectedKeywords.begin(), expectedKeywords.end(), std::ostream_iterator<std::string>(sout, " ") );
+    std::copy( expectedTypes.begin(), expectedTypes.end(), std::ostream_iterator<std::string>(sout, " ") );
     sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
     return sout.str();
 }
