@@ -152,6 +152,8 @@ public:
 
     std::string toString();
 
+    bool valid();
+
 private:
     void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
     void extractAttributeName( const std::string &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule );

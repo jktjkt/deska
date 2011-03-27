@@ -41,7 +41,9 @@ void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iter
     const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds,
     ParserImpl<Iterator> *parser ) const
 {
-    parser->addParseError( ParseError<Iterator>( start, end, errorPos, what, kinds ) );
+    ParseError<Iterator> error( start, end, errorPos, what, kinds );
+    if ( error.valid() )
+        parser->addParseError( error );
 }
 
 
@@ -51,7 +53,9 @@ void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterato
     const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
     ParserImpl<Iterator> *parser ) const
 {
-    parser->addParseError( ParseError<Iterator>( start, end, errorPos, what, attributes ) );
+    ParseError<Iterator> error( start, end, errorPos, what, attributes );
+    if ( error.valid() )
+        parser->addParseError( error );
 }
 
 
@@ -60,7 +64,9 @@ template <typename Iterator>
 void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     ParserImpl<Iterator> *parser ) const
 {
-    parser->addParseError( ParseError<Iterator>( start, end, errorPos, what ) );
+    ParseError<Iterator> error( start, end, errorPos, what );
+    if ( error.valid() )
+        parser->addParseError( error );
 }
 
 
@@ -133,6 +139,15 @@ std::string ParseError<Iterator>::toString()
     std::copy( expectedTypes.begin(), expectedTypes.end(), std::ostream_iterator<std::string>(sout, " ") );
     sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
     return sout.str();
+}
+
+
+
+/** @short Tests if error is a real error, or only consequence of failing alternatives or lazy in the parser */
+template <typename Iterator>
+bool ParseError<Iterator>::valid()
+{
+    return ( !expectedKeywords.empty() || !expectedTypes.empty() );
 }
 
 
