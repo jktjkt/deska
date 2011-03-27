@@ -103,7 +103,6 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
     using qi::_3;
     using qi::_4;
     using qi::_a;
-    using qi::_b;
     using qi::eps;
     using qi::raw;
     using qi::eoi;
@@ -118,8 +117,8 @@ AttributesParser<Iterator>::AttributesParser( const std::string &kindName, Parse
 
     start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
-    dispatch = ( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, _b ) ]
-        > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, _b, _1 ) ] ) );
+    dispatch = ( ( raw[ attributes[ _a = _1 ] ][ rangeToString( _1, phoenix::ref( currentAttributeName ) ) ]
+        > lazy( _a )[ phoenix::bind( &AttributesParser::parsedAttribute, this, phoenix::ref( currentAttributeName ), _1 ) ] ) );
 
     phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
@@ -154,7 +153,6 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
     using qi::_3;
     using qi::_4;
     using qi::_a;
-    using qi::_b;
     using qi::eps;
     using qi::raw;
     using qi::eoi;
@@ -169,8 +167,8 @@ KindsParser<Iterator>::KindsParser( const std::string &kindName, ParserImpl<Iter
 
     start = ( eps( !_a ) > dispatch >> -eoi[ _a = true ] );
 
-    dispatch = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, _b ) ]
-        > lazy( _a )[ phoenix::bind( &KindsParser::parsedKind, this, _b, _1 ) ] );
+    dispatch = ( raw[ kinds[ _a = _1 ] ][ rangeToString( _1, phoenix::ref( currentKindName ) ) ]
+        > lazy( _a )[ phoenix::bind( &KindsParser::parsedKind, this, phoenix::ref( currentKindName ), _1 ) ] );
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
