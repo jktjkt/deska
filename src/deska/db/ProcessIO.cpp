@@ -27,10 +27,38 @@ namespace Db {
 
 ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
 {
+    namespace bp = boost::process;
+    BOOST_ASSERT(!arguments.empty());
+    bp::context ctx;
+    ctx.environment = bp::self::get_environment();
+    ctx.stdout_behavior = bp::capture_stream();
+    ctx.stdin_behavior = bp::capture_stream();
+    ctx.stderr_behavior = bp::inherit_stream();
+    // FIXME: change this to react to stderr traffic by throwing an expcetion, but only when there's any other traffic going on
+
+    // The first "argument" is actually a process' name, but boost::process expects them separate
+    std::string exe = arguments.front();
+
+    // FIXME: this is extremely ugly, but apparently required because there's no default constructor for the bp::process
+    // [add a link to the boost-users post here when it makes it to archives]
+    childProcess.reset(new bp::child(bp::launch(exe, arguments, ctx)));
 }
 
 ProcessIO::~ProcessIO()
 {
+    childProcess->terminate();
+}
+
+void ProcessIO::writeData(const std::string &data)
+{
+    childProcess->get_stdin() << data;
+}
+
+std::string ProcessIO::readData()
+{
+    std::string res;
+    childProcess->get_stdout() >> res;
+    return res;
 }
 
 }

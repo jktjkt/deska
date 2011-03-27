@@ -24,6 +24,13 @@
 
 #include <string>
 #include <vector>
+#include <tr1/memory>
+
+namespace boost {
+namespace process {
+class child;
+}
+}
 
 namespace Deska {
 namespace Db {
@@ -34,6 +41,19 @@ class ProcessIO
 public:
     ProcessIO(const std::vector<std::string> &arguments);
     virtual ~ProcessIO();
+
+    /** @short Read stuff from the child process
+
+    Note that the usual semantics of the read() apply here as well, notably that this call could easily return no data even
+    though more are on the fly. This one is to be fixed later.
+    */
+    std::string readData();
+
+    /** @short Write data to the child process */
+    void writeData(const std::string &data);
+
+private:
+    std::tr1::shared_ptr<boost::process::child> childProcess;
 };
 
 }
