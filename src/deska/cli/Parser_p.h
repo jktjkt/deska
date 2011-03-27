@@ -67,6 +67,9 @@ public:
 
 private:
 
+    qi::rule<Iterator, std::string(), ascii::space_type> tQuotedString;
+    qi::rule<Iterator, std::string(), ascii::space_type> tIdentifier;
+
     std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> > rulesMap;
     qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
 
