@@ -1,32 +1,20 @@
 from apijson import Jsn
 
-data = '{"command": "startChangeset"}'
-jsn = Jsn(data)
-print jsn.process()
+data = list([
+	'{"command": "startChangeset"}',
+	'{"command": "kindAttributes", "kindAttributes": { "kindName": "vendor"} }',
+	'{"command": "createObject", "createObject": { "kindName": "vendor", "objectName": "DELL"} }',
+	'{"command": "createObject", "createObject": { "kindName": "hardware", "objectName": "hp2"} }',
+	'{"command": "setAttribute", "setAttribute": {"kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}}',
+	'{"command": "objectData", "objectData": { "kindName": "hardware", "objectName": "hp2"} }',
+	'{"command": "detachFromCurrentChangeset", "detachFromCurrentChangeset": { "message": "test message"}}',
+	'{"command": "pendingChangesets"}'
+])
 
-data = '{"command": "kindAttributes", "kindAttributes": { "kindName": "vendor"} }'
-jsn = Jsn(data)
-print jsn.process()
-
-#data = '{"command": "setAttribute", "setAttribute": {"kindName":"vendor", "objectName":"DELL", "attributeName": "name", "Value":"xxx"}}'
-data = '{"command": "createObject", "createObject": { "kindName": "vendor", "objectName": "DELL"} }'
-jsn = Jsn(data)
-print jsn.process()
-
-data = '{"command": "createObject", "createObject": { "kindName": "hardware", "objectName": "hp2"} }'
-jsn = Jsn(data)
-print jsn.process()
-
-data = '{"command": "setAttribute", "setAttribute": {"kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}}'
-jsn = Jsn(data)
-print jsn.process()
-
-data = '{"command": "objectData", "objectData": { "kindName": "hardware", "objectName": "hp2"} }'
-jsn = Jsn(data)
-print jsn.process()
-
-#data = '{"command": "commitChangeset"}'
-data = '{"command": "abortChangeset"}'
-jsn = Jsn(data)
-print jsn.process()
+for i in data:
+	print "\033[1;31mINPUT:\033[1;m"
+	print i
+	jsn = Jsn(i)
+	print "\033[1;31mOUTPUT:\033[1;m"
+	print jsn.process()
 

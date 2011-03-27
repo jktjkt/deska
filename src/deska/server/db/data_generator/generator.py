@@ -90,7 +90,7 @@ SELECT startChangeset();
 	def add_interfaces(self, count = 0):
 		if (count == 0):			
 			count = self.count * 6
-		names = Interfaces(self.host,10)
+		names = Interfaces(self.host)
 		# gen set of N random (and unique) names
 		self.interface = names.rset(count) 
 		str1 = map(self.interface_add_template.format, self.interface)
