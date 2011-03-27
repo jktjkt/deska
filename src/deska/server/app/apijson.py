@@ -45,6 +45,6 @@ class Jsn:
 	def process(self):
 		res = self.command()
 		jsn = self.responce(res)
-		self.db.close()
+		self.db.commit()
 		return jsn
 

@@ -149,6 +149,7 @@ CREATE FUNCTION commitChangeset()
 		self.sql.write(table.gen_commit())
 		self.py.write(api.gen_commit())
 		self.sql.write(table.gen_names())
+		self.sql.write(table.gen_get_name())
 		return
 	
 	def gen_commit(self):

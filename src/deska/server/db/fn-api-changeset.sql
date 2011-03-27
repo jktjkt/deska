@@ -3,6 +3,8 @@ SET search_path TO deska;
 
 CREATE SEQUENCE version_num;
 
+CREATE TYPE changeset_status AS ENUM ( 'COMMITED', 'DETACHED', 'INPROGRESS' );
+
 -- vendors of hw -- versioning table
 CREATE TABLE version (
 	-- internal id
@@ -13,6 +15,7 @@ CREATE TABLE version (
 		CONSTRAINT version_numberunique UNIQUE,
 	-- who a whet created
 	username text,
+	status changeset_status NOT NULL DEFAULT 'INPROGRESS',
 	created timestamp without time zone NOT NULL DEFAULT now(),
 	note text
 );
@@ -63,7 +66,7 @@ BEGIN
 	SELECT my_version() INTO ver;
 	SELECT nextval('version_num') INTO ret;
 	UPDATE version SET username = current_user,
-			num = ret
+			num = ret, status = 'COMMITED'
 		WHERE id = ver; 
 	PERFORM close_changeset();
 	RETURN ret;
@@ -124,13 +127,15 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- resume to changeset
 --
-CREATE FUNCTION resumeChangeset(id integer)
+CREATE FUNCTION resumeChangeset(id_ integer)
 RETURNS integer
 AS
 $$
 BEGIN
+	UPDATE version SET status = 'INPROGRESS'
+		WHERE id = id_; 
 	INSERT INTO changeset (username,version,pid)
-		VALUES (current_user,id,pg_backend_pid());
+		VALUES (current_user,id_,pg_backend_pid());
 	RETURN 1;
 END
 $$
@@ -144,7 +149,7 @@ RETURNS integer
 AS
 $$
 BEGIN
-	UPDATE version SET note = message
+	UPDATE version SET note = message, status = 'DETACHED'
 		WHERE id = my_version(); 
 	PERFORM close_changeset();
 	RETURN 1;
@@ -168,6 +173,25 @@ BEGIN
 	DELETE FROM version
 		WHERE id = ver;
 	RETURN 1;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TYPE changeset_info AS (
+id bigint,
+username text,
+status changeset_status,
+created timestamp,
+note text
+);
+
+CREATE OR REPLACE FUNCTION pendingChangesets()
+RETURNS SETOF changeset_info
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT id,username,status,created,note FROM version
+		WHERE status != 'COMMITED';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

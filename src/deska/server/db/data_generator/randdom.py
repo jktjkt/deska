@@ -128,7 +128,7 @@ class Dates(rlist):
 
 class Interfaces(rlist):
 	def __init__(self,source,num = 4):
-		self.name = Names(source)
+		self.name = source
 		self.num = Numbers(num)
 
 	def ritem(self):

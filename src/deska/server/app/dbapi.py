@@ -1,5 +1,7 @@
 import psycopg2
 
+conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
+
 class DB:
 	methods = dict({
 		"kindNames": [],
@@ -14,9 +16,9 @@ class DB:
 		"startChangeset": [],
 		"commitChangeset": [],
 		#"rebaseChangeset": [],
-		#"pendingChangesetsByMyself": [],
+		"pendingChangesets": [],
 		"resumeChangeset": ["revision"],
-		"detachFromCurrentChangeset": [],
+		"detachFromCurrentChangeset": ["message"],
 		"abortCurrentChangeset": []
 	})
 	data_methods = dict({
@@ -26,9 +28,7 @@ class DB:
 		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
 	})
 	def __init__(self):
-		print "conntect to db"
-		self.conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
-		self.mark = self.conn.cursor()
+		self.mark = conn.cursor()
 		self.mark.execute("SET search_path TO api,genproc,history,deska,production;")
 
 	# has api this method?
@@ -38,21 +38,19 @@ class DB:
 	def run_method(self,name,args):
 		# have we the exact needed arguments
 		if set(self.methods[name]) != set(args.keys()):
-			raise "args are not good"
+			raise Exception("run_method: args are not good")
 		# sort args 
 		args = [args[i] for i in self.methods[name]]
 		# cast to string
 		args = map(str,args)
 		self.mark.callproc(name,args)
-		print self.mark.statusmessage
-		print self.mark.query
 		self.res = self.mark.fetchall()
 		return len(self.res)*len(self.res[0])
 	
 	def run_data_method(self,name,args):
 		# this code is provisorium, rewrite before merge into master
 		if set(self.data_methods[name]) != set(args.keys()):
-			raise "args are not good"
+			raise Exception("run_data_method: args are not good")
 		# sort args 
 		args = [args[i] for i in self.data_methods[name]]
 		# cast to string
@@ -60,8 +58,6 @@ class DB:
 		del args[0]
 		args = map(str,args)
 		self.mark.callproc(fname, args)
-		print self.mark.statusmessage
-		print self.mark.query
 		self.res = self.mark.fetchall()
 		return len(self.res)*len(self.res[0])
 	
@@ -88,10 +84,8 @@ class DB:
 			
 		return res
 	
-	def close(self):
-		self.mark.close()
-		self.conn.commit()
-		self.conn.close()
+	def commit(self):
+		conn.commit()
 
 
 
