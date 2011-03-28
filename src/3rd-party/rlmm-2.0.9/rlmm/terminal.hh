@@ -25,6 +25,7 @@
 # include <rlmm/util.hh>
 #endif
 
+#include <stdio.h>
 
 namespace rlmm
 {

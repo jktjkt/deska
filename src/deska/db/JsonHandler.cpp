@@ -230,20 +230,15 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 
 JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
-    jsonFieldRead(name), jsonFieldWrite(name), extractor(0)
+    jsonFieldRead(name), jsonFieldWrite(name)
 {
-}
-
-JsonField::~JsonField()
-{
-    delete extractor;
 }
 
 /** @short Register this field for future extraction to the indicated location */
 template<typename T>
 JsonField &JsonField::extract(T *where)
 {
-    extractor = new SpecializedExtractor<T>(where);
+    extractor.reset(new SpecializedExtractor<T>(where));
     return *this;
 }
 

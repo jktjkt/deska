@@ -29,13 +29,9 @@ using json_spirit::Pair;
 
 static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
-static std::string j_newObjectName = "newObjectName";
 static std::string j_attrName = "attributeName";
-static std::string j_attrData = "attributeData";
 static std::string j_revision = "revision";
-static std::string j_currentRevision = "currentRevision";
 static std::string j_errorPrefix = "error";
-static std::string j_commitMessage = "commitMessage";
 
 static std::string j_cmd_kindNames = "getTopLevelObjectNames";
 static std::string j_cmd_kindAttributes = "getKindAttributes";
@@ -206,7 +202,7 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     JsonHandler h(this, j_cmd_renameObject);
     h.write(j_kindName, kindName);
     h.write(j_objName, oldName);
-    h.write(j_newObjectName, newName);
+    h.write("newObjectName", newName);
     h.expectTrue("result");
     h.work();
 }
@@ -228,7 +224,7 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.write(j_attrData, value);
+    h.write("attributeData", value);
     h.expectTrue("result");
     h.work();
 }
@@ -242,11 +238,12 @@ TemporaryChangesetId JsonApiParser::startChangeset()
     return revision;
 }
 
-RevisionId JsonApiParser::commitChangeset()
+RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     RevisionId revision = RevisionId::null;
     JsonHandler h(this, j_cmd_commitChangeset);
     h.read(j_revision).extract(&revision);
+    h.write("commitMessage", commitMessage);
     h.work();
     return revision;
 }
@@ -255,7 +252,7 @@ TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision
 {
     TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandler h(this, j_cmd_rebaseChangeset);
-    h.write(j_currentRevision, oldRevision);
+    h.write("currentRevision", oldRevision);
     h.read(j_revision).extract(&revision);
     h.work();
     return revision;
@@ -277,10 +274,10 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
     h.work();
 }
 
-void JsonApiParser::detachFromCurrentChangeset(const std::string &commitMessage)
+void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
 {
     JsonHandler h(this, j_cmd_detachFromCurrentChangeset);
-    h.write(j_commitMessage, commitMessage);
+    h.write("message", message);
     h.work();
 }
 
