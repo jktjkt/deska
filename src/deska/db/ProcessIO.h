@@ -24,13 +24,9 @@
 
 #include <string>
 #include <vector>
+#include <boost/optional.hpp>
 #include <tr1/memory>
-
-namespace boost {
-namespace process {
-class child;
-}
-}
+#include "3rd-party/process/boost/process.hpp"
 
 namespace Deska {
 namespace Db {
@@ -53,7 +49,12 @@ public:
     void writeData(const std::string &data);
 
 private:
-    std::tr1::shared_ptr<boost::process::child> childProcess;
+    /** @short Identification of the launched child process
+
+    We've got to use boost::optional here because the boost::process::child has no default constructor,
+    see http://lists.boost.org/boost-users/2011/03/67265.php for details
+    */
+    boost::optional<boost::process::child> childProcess;
 };
 
 }

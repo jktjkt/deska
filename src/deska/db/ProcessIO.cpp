@@ -21,7 +21,6 @@
 
 #include <iostream>
 #include "ProcessIO.h"
-#include "3rd-party/process/boost/process.hpp"
 
 namespace Deska {
 namespace Db {
@@ -40,9 +39,7 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
     // The first "argument" is actually a process' name, but boost::process expects them separate
     std::string exe = arguments.front();
 
-    // FIXME: this is extremely ugly, but apparently required because there's no default constructor for the bp::process
-    // http://lists.boost.org/boost-users/2011/03/67265.php
-    childProcess.reset(new bp::child(bp::launch(exe, arguments, ctx)));
+    childProcess = bp::launch(exe, arguments, ctx);
 }
 
 ProcessIO::~ProcessIO()
