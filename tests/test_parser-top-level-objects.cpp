@@ -285,7 +285,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFix
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
-    expectParseError(Deska::Cli::NestingError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -298,7 +298,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::NestingError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
