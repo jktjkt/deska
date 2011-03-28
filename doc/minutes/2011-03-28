@@ -1,0 +1,125 @@
+Schuze Deska, 2011-03-28 FZU
+----------------------------
+
+Pritomni: vsichni
+
+
+Ukoly z minula:
+---------------
+
+Martina: oddelovac na "->"
+    - je
+Martina: vylistovani argumentu u embed objektu nema ukazovat dvojice (parent,
+        jmeno), ale jenom jednu vec
+    - vysvetlili jsme si, co to vubec znamena
+    - Lukas udelal
+Martina: zdokumentovat po sobe kod
+    - neni
+Martina: pouzit generator na zjisteni, co je dobre indexovat,...
+    - neni
+Lukas: zdokumentovat po sobe kod
+    - neni
+Lukas: pouzit generator na zjisteni, co je dobre indexovat,...
+    - castecne
+Lukas: upravit generovani pro templaty
+    - vyhled, neni
+Lukas: uprava generatoru atd, aby se dal mergnout get_functions
+    - je
+Honza: smazat branche server-app-devel, data_generator a event. dalsi
+    - ano
+Honza: vyzkousi DB
+    - neni
+Honza: smerovat k funkcnimu IO k deska serveru (#142)
+    - smerujeme
+Honza: rozsireni API smerem k dotazum na revize (#143)
+    - neni
+Honza: docasne revize v API (#141)
+    - hotovo
+Honza: abortChangeset se zmeni na abortCurrentChangeset (#141)
+    - hotovo
+Honza: detachFromActiveChangeset() ma zrat string message (#141)
+    - hotovo
+Honza: vymyslet nam plan, jak a co chcem delat, vyklikat v Redmine,...
+    - hotovo
+Honza: tab completion: premyslet, jak udelat (#101)
+    - neni
+Tomas: unit testy maji prochazet (#119)
+    - neni
+Tomas: #120
+    - je
+Tomas: dokumentace kodu
+    - neni
+Tomas: event. readline
+    - neni
+
+Diskuse:
+--------
+
+Zaver o provadeni zmen mezi SQL a C++ castmi je, ze je fajn a vitano, kdyz chce
+kdokoli udelat zmenu, o ktere si mysli, ze je dobre; zaroven ale preferujeme,
+aby se takove zmeny, u kterych si clovek neni zcela jisty (napr. proto, ze ji
+uplne dukladne netestoval), udelal do extra branche.
+
+Dostupnost:
+-----------
+
+Do prazdnin:
+
+Lukas: do prazdnin tu cca tyden nebude, nevi kdy
+Martina: 6. - 10. dubna pryc, cca. 16. - 26. cervna pryc
+Honza: 2. - 6. kvetna pryc
+Tomas: kazdy tyden do prazdnin k dispozici
+
+Prazdniny:
+
+Honza: prvnich 14 dni pryc, pak alepson dalsi tyden ci dva, mozna vic
+Martina: asi 14 dni pryc
+Lukas: nevi
+Tomas: v cervenci asi 2 tydny pryc, v srpnu pravdepodobne bude
+
+Dalsi:
+------
+
+- Lukas: argument "commitMessage" u detachCurrentChangeset bude "message".
+
+- templaty delat az po vyreseni historie a verzovani
+
+- Dotazy na verzovani: vzdy vrati "seznam modifikaci", bude to seznam struktur
+typu create/delete/modify. Pokud bude v pozadavku navic nastaven flag "vrat
+puvodni podobu", kazdy objekt bude navic obsahovat prave tohle.
+
+Ukoly na priste:
+----------------
+
+Lukas: vyzkousi, jak se Pythoni JSON parsing stavi k tomu, ze dostane jenom cast
+    stringu (obdoba problemu, na ktery narazil Honza v C++ implementaci) (#163)
+Lukas: zdokumentovat po sobe kod
+Lukas: upravit generovani pro templaty (#158)
+Lukas: meta planovaci ticket :) pro templatovani v SQLku
+Lukas: pracovat na #157, spolecne L + M
+
+Martina: zdokumentovat po sobe kod
+Martina: castovani (#125)
+Martina: implementovat volitelny argument revision (#156)
+Martina: zakazani/povoleni constraintu a indexu pro ucely performance testu atd (#164)
+Martina: pracovat na #157, spolecne L + M
+
+Honza: smerovat k funkcnimu IO k deska serveru (#142)
+Honza: upravit commitChangeset(), pridat argumeent commitMessage, zmena na
+    "message" u detach... (#161)
+Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
+    Lukasovo vystupu v JSONu (#143)
+Honza: rozsireni API smerem k dotazum na revize (#143)
+Honza: vyzkousi DB
+Honza: readline-- do cmake (#162)
+
+Tomas: prochazeni unit testy (#119)
+Tomas: json_spirit a hlaseni neuplnych dat (#160)
+Tomas: dokumentace kodu (#159)
+Tomas: tab completion (#101)
+Tomas: event. readline
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 4. dubna FZU, mozna se bude muset zmenit, protoze Lukas
