@@ -41,7 +41,7 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
     std::string exe = arguments.front();
 
     // FIXME: this is extremely ugly, but apparently required because there's no default constructor for the bp::process
-    // [add a link to the boost-users post here when it makes it to archives]
+    // http://lists.boost.org/boost-users/2011/03/67265.php
     childProcess.reset(new bp::child(bp::launch(exe, arguments, ctx)));
 }
 
