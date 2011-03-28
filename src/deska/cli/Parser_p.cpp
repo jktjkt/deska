@@ -294,6 +294,8 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     Iterator iter = line.begin();
     Iterator end = line.end(); 
+
+    parseErrors.clear();
     
     bool parsingSucceeded;
     int parsingIterations = 0;
@@ -326,6 +328,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
                 it = parseErrors.begin();
                 it != parseErrors.end();
                 ++it ) {
+
                 std::cout << it->toString() << std::endl;
             }
 #endif
