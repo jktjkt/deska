@@ -21,7 +21,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <boost/bind.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "ParserErrors.h"
 #include "Parser_p.h"
@@ -105,7 +105,8 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
     const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds, const std::string &kindName ):
     errorType(PARSE_ERROR_TYPE_KIND), m_start(start), m_end(end), m_errorPos(errorPos), context(kindName)
 {
-    kinds.for_each( boost::bind( &ParseError<Iterator>::extractKindName, this, _1, _2 ) );
+    using namespace boost::phoenix::arg_names;
+    kinds.for_each( boost::phoenix::bind( &ParseError<Iterator>::extractKindName, this, arg1, arg2 ) );
 }
 
 
@@ -114,7 +115,8 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
     const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName ):
     errorType(PARSE_ERROR_TYPE_ATTRIBUTE), m_start(start), m_end(end), m_errorPos(errorPos), context(kindName)
 {
-    attributes.for_each( boost::bind( &ParseError<Iterator>::extractAttributeName, this, _1, _2 ) );
+    using namespace boost::phoenix::arg_names;
+    attributes.for_each( boost::phoenix::bind( &ParseError<Iterator>::extractAttributeName, this, arg1, arg2 ) );
 }
 
 std::string parseErrorTypeToString(const ParseErrorType errorType)
