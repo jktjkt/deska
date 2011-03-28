@@ -22,6 +22,7 @@
 #ifndef DESKA_JSONHANDLER_H
 #define DESKA_JSONHANDLER_H
 
+#include <tr1/memory>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
@@ -41,10 +42,9 @@ struct JsonField
     bool valueShouldMatch;
     std::string jsonFieldRead, jsonFieldWrite;
     json_spirit::Value jsonValue;
-    JsonExtractor *extractor;
+    std::tr1::shared_ptr<JsonExtractor> extractor;
 
     JsonField(const std::string &name);
-    ~JsonField();
 
     template<typename T> JsonField &extract(T *where);
 };
