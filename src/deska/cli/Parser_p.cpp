@@ -73,7 +73,7 @@ PredefinedRules<Iterator>::PredefinedRules()
         [ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[Db::TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
-    objectIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
+    objectIdentifier %= tIdentifier.alias();
     objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
 }
 
