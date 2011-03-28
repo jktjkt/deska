@@ -2,6 +2,7 @@
 #include <string>
 #include "deska/db/FakeApi.h"
 #include "Parser.h"
+#include "Exceptions.h"
 
 
 
@@ -32,8 +33,19 @@ int main()
     while ( getline( std::cin, str ) ) {
         if ( str.size() == 1 && ( str[ 0 ] == 'q' || str[ 0 ] == 'Q' ) )
             break;
-        
-        parser.parseLine( str );
+
+        try {
+            parser.parseLine( str );
+        }
+        catch( UndefinedAttributeError e ) {
+            std::cout << e.dump() << std::endl;
+        }
+        catch( InvalidAttributeDataTypeError e ) {
+            std::cout << e.dump() << std::endl;
+        }
+        catch( InvalidObjectKind e ) {
+            std::cout << e.dump() << std::endl;
+        }
 
         context = parser.currentContextStack();
         for( std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it ) {
