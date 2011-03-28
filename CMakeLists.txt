@@ -60,10 +60,8 @@ set(deskaIoDemo_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/main.cpp
 )
 
-add_subdirectory(src/3rd-party/json_spirit_4.04/json_spirit)
-
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb json_spirit boost_system)
+target_link_libraries(DeskaDb boost_system)
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})

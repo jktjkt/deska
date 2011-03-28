@@ -25,7 +25,7 @@
 #include <stdexcept>
 #include <boost/signals2.hpp>
 #include "Api.h"
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit.h"
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
 
 namespace Deska {
 namespace Db {

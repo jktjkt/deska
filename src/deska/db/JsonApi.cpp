@@ -19,6 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_reader_template.h"
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
 #include "JsonHandler.h"
 
@@ -71,14 +73,14 @@ JsonApiParser::~JsonApiParser()
 
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    writeString(json_spirit::write(o, json_spirit::remove_trailing_zeros));
+    writeString(json_spirit::write_string(json_spirit::Value(o), json_spirit::remove_trailing_zeros));
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
     json_spirit::Value res;
     try {
-        json_spirit::read_or_throw(readString(), res);
+        json_spirit::read_string_or_throw(readString(), res);
         // FIXME: convert this to iteratos, as this method would happily parse "{}{" and not report back
         // that the "{" was silently ignored
     } catch (const json_spirit::Error_position &e) {
