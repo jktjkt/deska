@@ -150,9 +150,16 @@ public:
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName );
 
-    std::string toString();
+    ParseErrorType getType() const;
+    Iterator getErrorPosition() const;
+    std::vector<std::string> getExpectedTypes() const;
+    std::vector<std::string> getExpectedKeywords() const;
 
-    bool valid();
+    std::string toString() const;
+    // FIXME: Maybe rewrite in some other, better way.
+    std::string toCombinedString( const ParseError<Iterator> &kindError ) const;
+
+    bool valid() const;
 
 private:
     void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
