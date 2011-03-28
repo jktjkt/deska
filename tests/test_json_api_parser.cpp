@@ -295,9 +295,9 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixture)
 /** @short Basic test for commitChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixture)
 {
-    expectWrite("{\"command\":\"vcsCommitChangeset\"}");
-    expectRead("{\"response\": \"vcsCommitChangeset\", \"revision\": \"r666\"}");
-    BOOST_CHECK_EQUAL(j->commitChangeset(), RevisionId(666));
+    expectWrite("{\"command\":\"vcsCommitChangeset\",\"commitMessage\":\"description\"}");
+    expectRead("{\"response\": \"vcsCommitChangeset\", \"revision\": \"r666\", \"commitMessage\":\"description\"}");
+    BOOST_CHECK_EQUAL(j->commitChangeset("description"), RevisionId(666));
     expectEmpty();
 }
 

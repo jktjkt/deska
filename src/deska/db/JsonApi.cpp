@@ -238,11 +238,12 @@ TemporaryChangesetId JsonApiParser::startChangeset()
     return revision;
 }
 
-RevisionId JsonApiParser::commitChangeset()
+RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     RevisionId revision = RevisionId::null;
     JsonHandler h(this, j_cmd_commitChangeset);
     h.read(j_revision).extract(&revision);
+    h.write("commitMessage", commitMessage);
     h.work();
     return revision;
 }

@@ -72,7 +72,7 @@ public:
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
-    virtual RevisionId commitChangeset();
+    virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision);
     virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself();
     virtual void resumeChangeset(const TemporaryChangesetId revision);

@@ -184,9 +184,11 @@ public:
      * This operation will commit the temporary changeset (ie. everything since the corresponding
      * startChangeset()) into the production DB, creating an identifiable revision in the process.
      *
+     * @arg commitMessage Human-readable message to associate with the changeset
+     *
      * @returns identification of a persistent revision we just created
      * */
-    virtual RevisionId commitChangeset() = 0;
+    virtual RevisionId commitChangeset(const std::string &commitMessage) = 0;
 
     /** @short Make current in-progress changeset appear as a child of a specified revision
      *
