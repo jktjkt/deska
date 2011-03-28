@@ -147,9 +147,11 @@ ParseErrorType ParseError<Iterator>::getType() const
 
 
 template <typename Iterator>
-Iterator ParseError<Iterator>::getErrorPosition() const
+Iterator ParseError<Iterator>::getErrorPosition( const std::string &line ) const
 {
-    return m_errorPos;
+    if(line.size() < (m_end - m_errorPos))
+        throw std::out_of_range("Parse error position exceeds the size of parsed line.");
+    return (line.end() - (m_end - m_errorPos));
 }
 
 
@@ -257,7 +259,7 @@ template void ValueErrorHandler<iterator_type>::operator()( iterator_type start,
 
 template ParseErrorType ParseError<iterator_type>::getType() const;
 
-template iterator_type ParseError<iterator_type>::getErrorPosition() const;
+template iterator_type ParseError<iterator_type>::getErrorPosition( const std::string &line ) const;
 
 template std::vector<std::string> ParseError<iterator_type>::getExpectedTypes() const;
 

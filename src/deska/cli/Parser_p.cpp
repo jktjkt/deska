@@ -342,7 +342,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 #ifdef PARSER_DEBUG
                         std::cout << it->toString() << std::endl;
 #endif
-                        throw InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition() );
+                        throw InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) );
                         break;
                     }   
             }
@@ -352,9 +352,9 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
                         std::cout << parseErrors[0].toString() << std::endl;
 #endif
                         if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
-                            throw UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition() );
+                            throw UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
                         else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
-                            throw InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition() );
+                            throw InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
                         else
                             throw std::domain_error("ParseErrorType out of range");
 
@@ -364,7 +364,7 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
                         std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif
                         throw UndefinedAttributeError(
-                            parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition() );
+                            parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) );
                     }
                 }
 

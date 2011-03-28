@@ -151,7 +151,7 @@ public:
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName );
 
     ParseErrorType getType() const;
-    Iterator getErrorPosition() const;
+    Iterator getErrorPosition( const std::string &line ) const;
     std::vector<std::string> getExpectedTypes() const;
     std::vector<std::string> getExpectedKeywords() const;
 
