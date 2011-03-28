@@ -318,6 +318,8 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
     const std::string line = "interface eth0 mac \"foo\" bar baz\r\n";
     const std::string::const_iterator it = line.begin() + line.find("bar");
     parser->parseLine(line);
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("mac", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Attribute \"bar\" not defined for object of type \"interface\".", line, it));
     expectCategoryLeft();
     expectNothingElse();
