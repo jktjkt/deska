@@ -42,7 +42,7 @@ It looks like one can't create stuff like CachingApi<JsonApiParser> p( [JsonApiP
 so we have to stick with having having this "decorator" implemented as a dumb class setting the type of the base class in
 stone.
 */
-class CachingJsonApi: public JsonApiParser
+class CachingJsonApi: public JsonApiParser, boost::noncopyable
 {
 public:
     CachingJsonApi();
