@@ -26,8 +26,8 @@
 #include "ParserErrors.h"
 #include "Parser_p.h"
 
-#define PARSER_DEBUG
-#define PARSER_PRINT_ERRORS
+//#define PARSER_DEBUG
+//#define PARSER_PRINT_ERRORS
 
 namespace Deska
 {
