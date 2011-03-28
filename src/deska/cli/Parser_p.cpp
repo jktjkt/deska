@@ -53,19 +53,24 @@ public:
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
+    tQuotedString %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    tIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
+
     rulesMap[Db::TYPE_INT] = qi::int_
         [ qi::_val = phoenix::static_cast_<int>( qi::_1 ) ];
     rulesMap[Db::TYPE_INT].name( "integer" );
 
     // FIXME: consider allowing trivial words without quotes
-    rulesMap[Db::TYPE_STRING] %= qi::lexeme[ '"' >> +( ascii::char_ - '"' ) >> '"' ];
+    rulesMap[Db::TYPE_STRING] = tQuotedString
+        [ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[Db::TYPE_STRING].name( "quoted string" );
 
     rulesMap[Db::TYPE_DOUBLE] = qi::double_
         [ qi::_val = phoenix::static_cast_<double>( qi::_1 ) ];
     rulesMap[Db::TYPE_DOUBLE].name( "double" );
 
-    rulesMap[Db::TYPE_IDENTIFIER] %= qi::lexeme[ +( ascii::alnum | '_' ) ];
+    rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
+        [ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[Db::TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
     objectIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
