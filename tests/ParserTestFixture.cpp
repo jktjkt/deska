@@ -19,8 +19,9 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/test/test_tools.hpp>
-#include <boost/bind.hpp>
 
 #include "ParserTestFixture.h"
 #include "deska/cli/Parser.h"
@@ -29,6 +30,10 @@
 ParserTestFixture::ParserTestFixture()
 {
     using namespace Deska::Db;
+    using boost::phoenix::bind;
+    using boost::phoenix::arg_names::_1;
+    using boost::phoenix::arg_names::_2;
+
     FakeApi *fake = new FakeApi();
     fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
@@ -42,11 +47,12 @@ ParserTestFixture::ParserTestFixture()
     db = fake;
 
     parser = new Deska::Cli::Parser(db);
-    parser->categoryEntered.connect(boost::bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
-    parser->categoryLeft.connect(boost::bind(&ParserTestFixture::slotParserCategoryLeft, this));
-    parser->attributeSet.connect(boost::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
-    attrCheckContextConnection = parser->attributeSet.connect(boost::bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
-    parser->parseError.connect(boost::bind(&ParserTestFixture::slotParserError, this, _1));
+    parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
+    parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
+    // this one has to be fully qualified to prevent ambiguity...
+    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
+    attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->parseError.connect(bind(&ParserTestFixture::slotParserError, this, _1));
 }
 
 ParserTestFixture::~ParserTestFixture()
