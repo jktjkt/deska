@@ -277,7 +277,9 @@ void JsonHandler::receive()
         if (rule == fields.end()) {
             // No such rule
             std::ostringstream s;
-            s << "Unhandled JSON field '" << node.name_ << "'";
+            s << "JSON field '" << node.name_ << "' is not in the list of fields expected at this context:" << std::endl;
+            std::transform(fields.begin(), fields.end(), std::ostream_iterator<std::string>(s, "\n"),
+                           bind(&JsonField::jsonFieldRead, arg_names::_1));
             throw JsonParseError(s.str());
         }
 
@@ -293,6 +295,7 @@ void JsonHandler::receive()
             // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
             if (!(node.value_ == rule->jsonValue)) {
                 std::ostringstream s;
+                // FIXME: print the value here; this could be tricky as not all of them could be converted to string
                 s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
                 throw JsonParseError(s.str());
             }
