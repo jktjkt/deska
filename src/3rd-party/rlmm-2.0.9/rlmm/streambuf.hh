@@ -40,6 +40,8 @@
 # include <rlmm/history.hh>
 #endif
 
+#include <stdio.h>
+
 /** @file   streambuf.hh
     @author Christian Holm
     @date   Mon Oct  7 23:18:23 2002
