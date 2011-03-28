@@ -36,9 +36,6 @@ struct JsonApiTestFixture
     JsonApiTestFixture();
     ~JsonApiTestFixture();
 
-    void slotWrite(const std::string &jsonDataToWrite);
-    std::string slotRead();
-
     void expectRead(const std::string &str);
     void expectWrite(const std::string &str);
     void expectEmpty();
@@ -47,6 +44,9 @@ struct JsonApiTestFixture
 
     std::queue<std::string> jsonDbInput;
     std::queue<std::string> jsonDbOutput;
+
+    std::istringstream readStream;
+    std::ostringstream writeStream;
 };
 
 #endif // DESKA_TEST_JSONAPITESTFIXTURE_H

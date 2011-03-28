@@ -47,19 +47,14 @@ ProcessIO::~ProcessIO()
     childProcess->terminate();
 }
 
-void ProcessIO::writeData(const std::string &data)
+std::ostream *ProcessIO::writeStream()
 {
-    std::cerr << "writeData " << data << std::endl;
-    childProcess->get_stdin() << data << std::flush;
+    return &childProcess->get_stdin();
 }
 
-std::string ProcessIO::readData()
+std::istream *ProcessIO::readStream()
 {
-    std::cerr << "readData..." << std::endl;
-    std::string res;
-    childProcess->get_stdout() >> res;
-    std::cerr << "...got " << res << std::endl;
-    return res;
+    return &childProcess->get_stdout();
 }
 
 }

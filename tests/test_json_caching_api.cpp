@@ -55,8 +55,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
     // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
     delete j;
     j = new Deska::Db::CachingJsonApi();
-    j->writeString.connect(boost::bind(&JsonApiTestFixture::slotWrite, this, _1));
-    j->readString.connect(boost::bind(&JsonApiTestFixture::slotRead, this));
+    // FIXME: update streams here
 
     // Now, the first call to the API will request everything. Let's start with the kind names, for example.
     vector<Identifier> kindNames = j->kindNames();

@@ -19,8 +19,6 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 #include "Connection.h"
 #include "ProcessIO.h"
 
@@ -39,10 +37,7 @@ Connection::Connection(): io(0)
     args.push_back("first-conversation.py");*/
 
     io = new ProcessIO(args);
-
-    using namespace boost::phoenix;
-    writeString.connect(bind(&ProcessIO::writeData, io, arg_names::_1));
-    readString.connect(bind(&ProcessIO::readData, io));
+    setStreams(io->writeStream(), io->readStream());
 }
 
 Connection::~Connection()

@@ -23,7 +23,6 @@
 #define DESKA_JSONAPI_H
 
 #include <stdexcept>
-#include <boost/signals2.hpp>
 #include "Api.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
 
@@ -79,17 +78,7 @@ public:
     virtual void detachFromCurrentChangeset(const std::string &commitMessage);
     virtual void abortCurrentChangeset();
 
-    /** @short Write JSON data to the DB server
-     *
-     * This signal is emitted when the JSON implementation of the Deska DB API needs to send a JSON request to the Deska DB.
-     */
-    boost::signals2::signal<void (const std::string &jsonDataToWrite)> writeString;
-    /** @short Ask for JSON data from the DB server
-     *
-     * This signal is used to request data from the remote DB server over the JSON protocol. No arguments are passed, but the
-     * attached slot should return a signle string when all data were received.
-     */
-    boost::signals2::signal<std::string (), boost::signals2::last_value<std::string> > readString;
+    void setStreams(std::ostream *writeStream, std::istream *readStream);
 
 private:
     /** @short The implementation wants to send a JSON object */
@@ -98,6 +87,8 @@ private:
     json_spirit::Object readJsonObject() const;
 
     friend class JsonHandler;
+    std::ostream *m_writeStream;
+    std::istream *m_readStream;
 };
 
 }

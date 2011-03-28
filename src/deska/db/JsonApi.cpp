@@ -63,7 +63,7 @@ static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
 namespace Deska {
 namespace Db {
 
-JsonApiParser::JsonApiParser()
+JsonApiParser::JsonApiParser(): m_writeStream(0), m_readStream(0)
 {
 }
 
@@ -71,16 +71,25 @@ JsonApiParser::~JsonApiParser()
 {
 }
 
+void JsonApiParser::setStreams(std::ostream *writeStream, std::istream *readStream)
+{
+    m_writeStream = writeStream;
+    m_readStream = readStream;
+}
+
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    writeString(json_spirit::write_string(json_spirit::Value(o), json_spirit::remove_trailing_zeros));
+    BOOST_ASSERT(m_writeStream);
+    json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
+    m_writeStream->flush();
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
+    BOOST_ASSERT(m_readStream);
     json_spirit::Value res;
     try {
-        json_spirit::read_string_or_throw(readString(), res);
+        json_spirit::read_stream_or_throw(*m_readStream, res);
         // FIXME: convert this to iteratos, as this method would happily parse "{}{" and not report back
         // that the "{" was silently ignored
     } catch (const json_spirit::Error_position &e) {
