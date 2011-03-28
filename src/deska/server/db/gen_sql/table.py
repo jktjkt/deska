@@ -145,7 +145,7 @@ class Table:
 			
 		IF NOT FOUND THEN
 			SELECT {columns} INTO data FROM {tbl}
-				WHERE name = name_ AND name;
+				WHERE name = name_;
 		END IF;
 		
 		RETURN data;
@@ -177,7 +177,6 @@ class Table:
 			SELECT {columns} INTO data FROM {tbl}_history
 			WHERE name = base_name AND host = parrent_uid AND version = ver;
 		END IF;
-		
 		RETURN data;
 	END
 	$$
