@@ -234,7 +234,7 @@ public:
      * @see abortChangeset();
      * @see resumeChangeset();
      */
-    virtual void detachFromCurrentChangeset(const std::string &commitMessage) = 0;
+    virtual void detachFromCurrentChangeset(const std::string &message) = 0;
 
     /** @short Abort an in-progress changeset */
     virtual void abortCurrentChangeset() = 0;

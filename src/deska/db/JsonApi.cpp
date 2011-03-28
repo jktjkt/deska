@@ -277,10 +277,10 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
     h.work();
 }
 
-void JsonApiParser::detachFromCurrentChangeset(const std::string &commitMessage)
+void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
 {
     JsonHandler h(this, j_cmd_detachFromCurrentChangeset);
-    h.write(j_commitMessage, commitMessage);
+    h.write("message", message);
     h.work();
 }
 
