@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, ParserTestFixture)
     const std::string::const_iterator it = line.begin() + line.find("xx");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Expecting integer as a data type for the \"id\" argument.", line, it));
+    expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for id. Expected one of [ <integer> ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -189,7 +189,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, ParserTestFixture)
     const std::string::const_iterator it = line.begin() + line.find("isd");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Attribute \"isd\" is not recognized for an object of type \"hardware\".", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -201,7 +201,7 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, ParserTestFixture)
     const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Object \"haware\" not recognized.", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -242,7 +242,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     expectSetAttr("name", "jmeno");
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Attribute \"price\" not defined for object of type \"interface\".", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectCategoryLeft();
     expectCategoryLeft();
     expectNothingElse();
@@ -285,7 +285,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFix
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", 123);
-    expectParseError(Deska::Cli::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectParseError(Deska::Cli::NestingError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -298,7 +298,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::NestingError("Can't embed object of type \"interface\" into \"hardware\".", line, it));
+    expectParseError(Deska::Cli::NestingError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -320,7 +320,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "foo");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Attribute \"bar\" not defined for object of type \"interface\".", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
@@ -400,7 +400,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
     const std::string line = "maaaac \"foo\"\r\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::UndefinedAttributeError("Attribute \"maaaac\" not defined for object of type \"interface\".", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
