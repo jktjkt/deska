@@ -132,20 +132,23 @@ class Table:
 	# template string for get data functions
 	get_data_string = '''CREATE FUNCTION
 	{tbl}_get_data(IN name_ text)
-	RETURNS SETOF {tbl}_type
+	RETURNS {tbl}_type
 	AS
 	$$
 	DECLARE	ver bigint;
+		data {tbl}_type;
 	BEGIN
 		SELECT my_version() INTO ver;
-		RETURN QUERY 
-			SELECT {columns} FROM {tbl}_history
-			WHERE name = name_ AND version = ver
-			UNION
-			SELECT {columns} FROM {tbl}
-			WHERE name = name_ AND name NOT IN 
-				(SELECT name FROM {tbl}_history
-				WHERE name = name_ AND version = ver);
+
+		SELECT {columns} INTO data FROM {tbl}_history
+			WHERE name = name_ AND version = ver;
+			
+		IF NOT FOUND THEN
+			SELECT {columns} INTO data FROM {tbl}
+				WHERE name = name_ AND name;
+		END IF;
+		
+		RETURN data;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -154,27 +157,28 @@ class Table:
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
 	{tbl}_get_data(IN name_ text)
-	RETURNS SETOF {tbl}_type
+	RETURNS {tbl}_type
 	AS
 	$$
 	DECLARE	ver bigint;
 		parrent_uid bigint;
 		parrent_name text;
 		base_name text;
+		data {tbl}_type;
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
 		SELECT host_get_uid(parrent_name) INTO parrent_uid;
-		RETURN QUERY 
-			SELECT {columns} FROM {tbl}_history
-				WHERE name = base_name AND host = parrent_uid AND version = ver
-			UNION
-			SELECT {columns} FROM {tbl}
-				WHERE name = base_name AND host = parrent_uid
-					--AND NOT IN ... FIXME!!! - better concept
-			-- this might help
-			LIMIT 1
-			;
+					
+		SELECT {columns} INTO data FROM {tbl}
+			WHERE name = base_name AND host = parrent_uid;
+
+		IF NOT FOUND THEN
+			SELECT {columns} INTO data FROM {tbl}_history
+			WHERE name = base_name AND host = parrent_uid AND version = ver;
+		END IF;
+		
+		RETURN data;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
