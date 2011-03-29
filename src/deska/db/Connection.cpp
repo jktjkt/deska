@@ -29,7 +29,7 @@ Connection::Connection(): io(0)
 {
     // FIXME: don't hardcode these
     std::vector<std::string> args;
-    // How to use this: run `socat -d -d -d PIPE:foo -` in the build dir before starting this example
+    // How to use this: run `socat -d -d -d - PIPE:foo` in the build dir before starting this example
     args.push_back("/usr/bin/socat");
     args.push_back("-");
     args.push_back("PIPE:foo");
