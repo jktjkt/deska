@@ -32,6 +32,7 @@
 
 #include "Parser.h"
 #include "ParserErrors.h"
+#include "Exceptions.h"
 
 namespace Deska
 {

@@ -110,6 +110,7 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
 }
 
 
+
 template <typename Iterator>
 ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
     const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName ):
@@ -118,6 +119,8 @@ ParseError<Iterator>::ParseError( Iterator start, Iterator end, Iterator errorPo
     using namespace boost::phoenix::arg_names;
     attributes.for_each( boost::phoenix::bind( &ParseError<Iterator>::extractAttributeName, this, arg1, arg2 ) );
 }
+
+
 
 std::string parseErrorTypeToString(const ParseErrorType errorType)
 {
@@ -133,8 +136,44 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
     throw std::domain_error("ParseErrorType out of range");
 }
 
+
+
 template <typename Iterator>
-std::string ParseError<Iterator>::toString()
+ParseErrorType ParseError<Iterator>::getType() const
+{
+    return errorType;
+}
+
+
+
+template <typename Iterator>
+Iterator ParseError<Iterator>::getErrorPosition( const std::string &line ) const
+{
+    if(line.size() < (m_end - m_errorPos))
+        throw std::out_of_range("Parse error position exceeds the size of parsed line.");
+    return (line.end() - (m_end - m_errorPos));
+}
+
+
+
+template <typename Iterator>
+std::vector<std::string> ParseError<Iterator>::getExpectedTypes() const
+{
+    return expectedTypes;
+}
+
+
+
+template <typename Iterator>
+std::vector<std::string> ParseError<Iterator>::getExpectedKeywords() const
+{
+    return expectedKeywords;
+}
+
+
+
+template <typename Iterator>
+std::string ParseError<Iterator>::toString() const
 {
     std::ostringstream sout;
     sout << "Error while parsing " << parseErrorTypeToString(errorType);
@@ -150,12 +189,30 @@ std::string ParseError<Iterator>::toString()
             sout << " for " << context;
             break;
     }
-    sout << ". Expected one of [";
-    for( std::vector<std::string>::iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
+    sout << ". Expected one of [ ";
+    for( std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
         sout << "\"" << *it << "\" ";
-    for( std::vector<std::string>::iterator it = expectedTypes.begin(); it != expectedTypes.end(); ++it )
+    for( std::vector<std::string>::const_iterator it = expectedTypes.begin(); it != expectedTypes.end(); ++it )
         sout << "<" << *it << "> ";
-    sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
+    sout << "].";
+    //sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
+    return sout.str();
+}
+
+
+
+template <typename Iterator>
+std::string ParseError<Iterator>::toCombinedString( const ParseError<Iterator> &kindError ) const
+{
+    std::ostringstream sout;
+    sout << "Error while parsing attribute name or nested kind name in " << context << ". Expected one of [ ";
+    for( std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
+        sout << "\"" << *it << "\" ";
+    std::vector<std::string> expectedKinds = kindError.getExpectedKeywords();
+    for( std::vector<std::string>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it )
+        sout << "\"" << *it << "\" ";
+    sout << "].";
+    //sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
     return sout.str();
 }
 
@@ -163,7 +220,7 @@ std::string ParseError<Iterator>::toString()
 
 /** @short Tests if error is a real error, or only consequence of failing alternatives or lazy in the parser */
 template <typename Iterator>
-bool ParseError<Iterator>::valid()
+bool ParseError<Iterator>::valid() const
 {
     return ( !expectedKeywords.empty() || !expectedTypes.empty() );
 }
@@ -200,7 +257,17 @@ template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, it
 
 template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &attributeName, ParserImpl<iterator_type>* parser ) const;
 
-template std::string ParseError<iterator_type>::toString();
+template ParseErrorType ParseError<iterator_type>::getType() const;
+
+template iterator_type ParseError<iterator_type>::getErrorPosition( const std::string &line ) const;
+
+template std::vector<std::string> ParseError<iterator_type>::getExpectedTypes() const;
+
+template std::vector<std::string> ParseError<iterator_type>::getExpectedKeywords() const;
+
+template std::string ParseError<iterator_type>::toString() const;
+
+template std::string ParseError<iterator_type>::toCombinedString( const ParseError<iterator_type> &kindError ) const;
 
 }
 }

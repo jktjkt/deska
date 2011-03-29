@@ -73,7 +73,7 @@ PredefinedRules<Iterator>::PredefinedRules()
         [ qi::_val = phoenix::static_cast_<std::string>( qi::_1 ) ];
     rulesMap[Db::TYPE_IDENTIFIER].name( "identifier (alphanumerical letters and _)" );
 
-    objectIdentifier %= qi::lexeme[ +( ascii::alnum | '_' ) ];
+    objectIdentifier %= tIdentifier.alias();
     objectIdentifier.name( "object identifier (alphanumerical letters and _)" );
 }
 
@@ -294,6 +294,8 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
     Iterator iter = line.begin();
     Iterator end = line.end(); 
+
+    parseErrors.clear();
     
     bool parsingSucceeded;
     int parsingIterations = 0;
@@ -322,13 +324,50 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
         if ( !parsingSucceeded ) {
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
+#endif
+            // No more than three errors should occure. Three errors occure only when bad identifier of embedded object is set.
+            BOOST_ASSERT( parseErrors.size() <= 3 );
+            // There have to be some ParseError when parsing fails.
+            BOOST_ASSERT( parseErrors.size() != 0 );
+
+            bool argumentTypeError = false;
+
             for( typename std::vector<ParseError<Iterator> >::iterator
                 it = parseErrors.begin();
                 it != parseErrors.end();
                 ++it ) {
-                std::cout << it->toString() << std::endl;
-            }
+
+                    if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
+                        argumentTypeError = true;
+#ifdef PARSER_DEBUG
+                        std::cout << it->toString() << std::endl;
 #endif
+                        throw InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) );
+                        break;
+                    }   
+            }
+                if( !argumentTypeError ) {
+                    if( parseErrors.size() == 1 ) {
+#ifdef PARSER_DEBUG
+                        std::cout << parseErrors[0].toString() << std::endl;
+#endif
+                        if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
+                            throw UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
+                        else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
+                            throw InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
+                        else
+                            throw std::domain_error("ParseErrorType out of range");
+
+                    }
+                    else {
+#ifdef PARSER_DEBUG
+                        std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
+#endif
+                        throw UndefinedAttributeError(
+                            parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) );
+                    }
+                }
+
             break;
         }
 
