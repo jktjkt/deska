@@ -25,6 +25,8 @@
 #include <string>
 #include <queue>
 
+#include "fake_streambuf.h"
+
 namespace Deska {
 namespace Db {
 class JsonApiParser;

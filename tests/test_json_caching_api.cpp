@@ -29,6 +29,34 @@ using std::vector;
 using std::map;
 using namespace Deska::Db;
 
+BOOST_FIXTURE_TEST_CASE(pwn, JsonApiTestFixture)
+{
+    MockStreamBuffer buf(666);
+    /*std::ostream foo(&buf);
+    foo << "blesmrt" << " " << "trojita";
+
+    buf.setInput("blesmrt 333 666 pwnz0r");
+    std::istream bar(&buf);
+    std::string tmp;
+    bar >> tmp;
+    std::cerr << "r1 done" << std::endl;
+    bar >> tmp;
+    std::cerr << "r2 done" << std::endl;
+    bar >> tmp;
+    std::cerr << "r3 done" << std::endl;
+    bar >> tmp;
+    std::cerr << "r4 done" << std::endl;
+    bar >> tmp;
+    std::cerr << "r5 done" << std::endl;*/
+
+    std::istream is(&buf);
+    std::ostream os(&buf);
+    //buf.setInput("pwn");
+    buf.setInput("{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"a\", \"b\"]}");
+    j->setStreams(&os, &is);
+    j->kindNames();
+}
+
 /** @short Make sure that CachingJsonApi's caching really works
 
 This tests tries to verify that when we call any metadata-querying method of the API, the caching layer
