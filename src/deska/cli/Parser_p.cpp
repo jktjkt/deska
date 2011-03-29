@@ -332,41 +332,38 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
 
             bool argumentTypeError = false;
 
-            for( typename std::vector<ParseError<Iterator> >::iterator
-                it = parseErrors.begin();
-                it != parseErrors.end();
-                ++it ) {
+            for (typename std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it ) {
 
-                    if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
-                        argumentTypeError = true;
+                if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
+                    argumentTypeError = true;
 #ifdef PARSER_DEBUG
-                        std::cout << it->toString() << std::endl;
+                    std::cout << it->toString() << std::endl;
 #endif
-                        throw InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) );
-                        break;
-                    }   
-            }
-                if( !argumentTypeError ) {
-                    if( parseErrors.size() == 1 ) {
-#ifdef PARSER_DEBUG
-                        std::cout << parseErrors[0].toString() << std::endl;
-#endif
-                        if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
-                            throw UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
-                        else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
-                            throw InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
-                        else
-                            throw std::domain_error("ParseErrorType out of range");
-
-                    }
-                    else {
-#ifdef PARSER_DEBUG
-                        std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
-#endif
-                        throw UndefinedAttributeError(
-                            parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) );
-                    }
+                    throw InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) );
+                    break;
                 }
+            }
+
+            if( !argumentTypeError ) {
+                if( parseErrors.size() == 1 ) {
+#ifdef PARSER_DEBUG
+                    std::cout << parseErrors[0].toString() << std::endl;
+#endif
+                    if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
+                        throw UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
+                    else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
+                        throw InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) );
+                    else
+                        throw std::domain_error("ParseErrorType out of range");
+
+                } else {
+#ifdef PARSER_DEBUG
+                    std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
+#endif
+                    throw UndefinedAttributeError(
+                                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) );
+                }
+            }
 
             break;
         }
