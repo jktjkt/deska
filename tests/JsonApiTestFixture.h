@@ -24,6 +24,9 @@
 
 #include <string>
 #include <queue>
+#include <boost/iostreams/concepts.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <stdexcept>
 
 namespace Deska {
 namespace Db {
@@ -44,9 +47,72 @@ struct JsonApiTestFixture
 
     std::queue<std::string> jsonDbInput;
     std::queue<std::string> jsonDbOutput;
+};
 
-    std::istringstream readStream;
-    std::ostringstream writeStream;
+
+
+
+struct MockStreamEvent {
+    typedef enum {READ, WRITE} Direction;
+    Direction mode_;
+    std::string data_;
+    std::streamsize offset_;
+
+    MockStreamEvent(const Direction mode, const std::string &data):
+        mode_(mode), data_(data), offset_(0)
+    {
+    }
+};
+
+class MockStreamTuple;
+
+class StreamTupleSource: public boost::iostreams::source {
+public:
+    StreamTupleSource(MockStreamTuple *p):
+        p_(p)
+    {
+    }
+
+    std::streamsize read(char *s, std::streamsize n);
+private:
+    MockStreamTuple *p_;
+};
+
+class StreamTupleSink: public boost::iostreams::sink {
+public:
+    StreamTupleSink(MockStreamTuple *p):
+        p_(p)
+    {
+    }
+
+    std::streamsize write(char *s, std::streamsize n);
+private:
+    MockStreamTuple *p_;
+};
+
+class MockStreamTuple {
+public:
+    MockStreamTuple();
+
+    //std::ostream &ostream();
+    std::istream &istream();
+
+    /** @short Next operation expected from the device is read, and we will return this data */
+    void expectRead(const std::string &s);
+
+    /** @short Next expected operation is a write with this data */
+    void expectWrite(const std::string &s);
+
+    /** @short Scream loudly if there's any pending IO */
+    void verifyEmpty();
+
+private:
+    std::queue<MockStreamEvent> events_;
+    friend class StreamTupleSource;
+    friend class StreamTupleSink;
+    //std::ostream ostream_;
+    boost::iostreams::stream_buffer<StreamTupleSource> ibuf_;
+    std::istream istream_;
 };
 
 #endif // DESKA_TEST_JSONAPITESTFIXTURE_H
