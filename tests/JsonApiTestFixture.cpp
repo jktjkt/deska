@@ -25,19 +25,32 @@
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
-#include <iostream>
-
 JsonApiTestFixture::JsonApiTestFixture()
 {
     j = new Deska::Db::JsonApiParser();
     // FIXME: change this to actually check the data, and provide some output back...
-    //j->setStreams(&writeStream, &readStream);
+    j->setStreams(&writeStream, &readStream);
 }
 
 JsonApiTestFixture::~JsonApiTestFixture()
 {
     delete j;
 }
+
+/*std::string JsonApiTestFixture::slotRead()
+{
+    BOOST_REQUIRE(!jsonDbOutput.empty());
+    std::string res = jsonDbOutput.front();
+    jsonDbOutput.pop();
+    return res;
+}
+
+void JsonApiTestFixture::slotWrite(const std::string &jsonDataToWrite)
+{
+    BOOST_REQUIRE(!jsonDbInput.empty());
+    BOOST_CHECK_EQUAL(jsonDataToWrite, jsonDbInput.front());
+    jsonDbInput.pop();
+}*/
 
 void JsonApiTestFixture::expectEmpty()
 {
@@ -53,61 +66,4 @@ void JsonApiTestFixture::expectRead(const std::string &str)
 void JsonApiTestFixture::expectWrite(const std::string &str)
 {
     jsonDbInput.push(str);
-}
-
-std::streamsize StreamTupleSource::read(char *s, std::streamsize n)
-{
-    std::cerr << "Called read(" << n << ")" << std::endl;
-    if (p_->events_.empty()) {
-        std::cerr << "Tried to read, but no further IO expected" << std::endl;
-        throw "Tried to read, but no further IO expected";
-    }
-    MockStreamEvent &e = p_->events_.front();
-    if (e.mode_ != MockStreamEvent::READ) {
-        std::cerr << "Tried to read, but th expected operation is not a read" << std::endl;
-        throw "Tried to read, but th expected operation is not a read";
-    }
-    std::streamsize toRead = std::min(n, static_cast<std::streamsize>(e.data_.size() - e.offset_));
-    std::cerr << "toRead " << toRead << std::endl;
-    BOOST_ASSERT(toRead > 0);
-    std::copy(e.data_.begin() + e.offset_, e.data_.begin() + e.offset_ + toRead, s);
-    e.offset_ += toRead;
-    if (e.offset_ == e.data_.size()) {
-        std::cerr << "killing line" << std::endl;
-        p_->events_.pop();
-    }
-    std::cerr << "return " << toRead << std::endl;
-    return toRead;
-}
-
-MockStreamTuple::MockStreamTuple():
-   istream_(&ibuf_)
-{
-    ibuf_.open(StreamTupleSource(this));
-}
-
-/*std::ostream &MockStreamTuple::ostream()
-{
-    return ostream_;
-}*/
-
-std::istream &MockStreamTuple::istream()
-{
-    return istream_;
-}
-
-void MockStreamTuple::expectRead(const std::string &s)
-{
-    events_.push(MockStreamEvent(MockStreamEvent::READ, s));
-}
-
-void MockStreamTuple::expectWrite(const std::string &s)
-{
-    events_.push(MockStreamEvent(MockStreamEvent::WRITE, s));
-}
-
-void MockStreamTuple::verifyEmpty()
-{
-    if (!events_.empty())
-        throw std::runtime_error("Some IO did not happen");
 }
