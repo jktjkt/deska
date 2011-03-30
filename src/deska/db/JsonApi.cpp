@@ -81,6 +81,7 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
     BOOST_ASSERT(m_writeStream);
     json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
+    *m_writeStream << "\n";
     m_writeStream->flush();
 }
 
