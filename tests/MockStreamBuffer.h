@@ -1,6 +1,7 @@
 #ifndef DESKA_MOCK_STREAMBUFFER
 #define DESKA_MOCK_STREAMBUFFER
 
+#include <stdexcept>
 #include <streambuf>
 #include <string>
 #include <queue>
@@ -8,12 +9,22 @@
 #include <boost/scoped_array.hpp>
 
 /** @short Internal representation of expectations for the MockStreamBuffer */
-struct MockStreamEvent {
+struct MockStreamEvent
+{
     typedef enum {READ, WRITE, READ_EOF} Direction;
     Direction mode_;
     std::string data_;
     MockStreamEvent(const Direction mode, const std::string &data):
         mode_(mode), data_(data)
+    {
+    }
+};
+
+class MockStreamBufferError: public std::runtime_error
+{
+public:
+    MockStreamBufferError(const std::string &what):
+        std::runtime_error(what)
     {
     }
 };
@@ -167,7 +178,7 @@ protected:
         }
 
         if (events_.empty())
-            throw std::string("real_read: no read expected now");
+            throw MockStreamBufferError("real_read: no read expected now");
 
         if (events_.front().mode_ == MockStreamEvent::READ_EOF) {
             events_.pop();
@@ -176,7 +187,7 @@ protected:
         }
 
         if (events_.front().mode_ != MockStreamEvent::READ)
-            throw std::string("real_read: unexpected read");
+            throw MockStreamBufferError("real_read: unexpected read");
 
         std::string &currentStr = events_.front().data_;
         std::string::iterator it = currentStr.begin();
@@ -210,10 +221,10 @@ protected:
             return 0;
 
         if (events_.empty())
-            throw std::string("real_write: nothing expected now");
+            throw MockStreamBufferError("real_write: nothing expected now");
 
         if (events_.front().mode_ != MockStreamEvent::WRITE)
-            throw std::string("real_write: unexpected write");
+            throw MockStreamBufferError("real_write: unexpected write");
 
         std::string out;
         out.resize(count);
@@ -221,7 +232,7 @@ protected:
         if (events_.front().data_ != out) {
             //std::cerr << "Wrote |" << out << "|" << std::endl;
             //std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
-            throw std::string("real_write: value mismatch");
+            throw MockStreamBufferError("real_write: value mismatch");
         }
         events_.pop();
         return count;
