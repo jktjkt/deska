@@ -49,7 +49,7 @@ public:
 
     @arg bufsize The size of internal buffers, both for reading and writing
     */
-    explicit MockStreamBuffer(std::size_t bufsize = 8192)
+    explicit MockStreamBuffer(std::size_t bufsize)
         :
         bufsize_(bufsize),
         read_buf_(new char[bufsize]),
