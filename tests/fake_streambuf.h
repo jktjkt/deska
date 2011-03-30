@@ -2,13 +2,12 @@
 #define DESKA_MOCK_STREAMBUF
 
 #include <streambuf>
+#include <string>
 #include <queue>
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_array.hpp>
 
-#include <string>
-#include <iostream>
-
+/** @short Internal representation of expectations for the MockStreamBuffer */
 struct MockStreamEvent {
     typedef enum {READ, WRITE, READ_EOF} Direction;
     Direction mode_;
@@ -19,13 +18,26 @@ struct MockStreamEvent {
     }
 };
 
-/** @short */
+/** @short A streambuf implementation for mocking of iostreams
+
+This streambuf is intended to be used in unit testing as the underlying streambuf instance for iostreams. Use the
+expectRead(), expectWrite() and expectReadEof() to simulate the flow of the data (and the ordering of all operations).
+
+Don't forget to issue a sync request to the stream to make sure the data the user under test writes to the ostream is
+actually seen by this buffer; these data are flushed and checked only every bufsize bytes.
+
+Right now, there's a limitation that each write must be smaller than bufsize. FIXME: fix this.
+*/
 class MockStreamBuffer : public std::streambuf, public boost::noncopyable
 {
 
 public:
     typedef int handle_type;
 
+    /** @short Construct a mocked streambuf
+
+    @arg bufsize The size of internal buffers, both for reading and writing
+    */
     explicit MockStreamBuffer(std::size_t bufsize = 8192)
         :
         bufsize_(bufsize),
@@ -37,14 +49,33 @@ public:
         setp(write_buf_.get(), write_buf_.get() + bufsize_);
     }
 
-    virtual ~MockStreamBuffer()
+    /** @short Expect a read request and satisfy it with this data */
+    void expectRead(const std::string &s)
     {
-        sync();
+        events_.push(MockStreamEvent(MockStreamEvent::READ, s));
+    }
+
+    /** @short Expect a write request for this data */
+    void expectWrite(const std::string &s)
+    {
+        events_.push(MockStreamEvent(MockStreamEvent::WRITE, s));
+    }
+
+    /** @short Expect a read request and respond with EOF to that */
+    void expectReadEof()
+    {
+        events_.push(MockStreamEvent(MockStreamEvent::READ_EOF, std::string()));
+    }
+
+    /** @short Returns whether all requested operations were in fact undertaken */
+    bool consumedEverything()
+    {
+        return events_.empty();
     }
 
 protected:
     /**
-     * Reads new data from the native file handle.
+     * Reads new data
      *
      * This operation is called by input methods when there is no more
      * data in the input buffer. The function fills the buffer with new
@@ -61,7 +92,6 @@ protected:
         BOOST_ASSERT(gptr() >= egptr());
 
         bool ok;
-        // FIXME: read here
         ssize_t cnt = real_read(read_buf_.get(), bufsize_);
         ok = (cnt != -1 && cnt != 0);
 
@@ -128,99 +158,74 @@ protected:
         return ok ? 0 : -1;
     }
 
+    /** @short Read data from the expectations queue into an internal buffer */
     ssize_t real_read(char_type *buf, std::size_t count)
     {
-        std::cerr << "real_read for " << count << std::endl;
+        //std::cerr << "real_read for " << count << std::endl;
         if (count == 0) {
             return 0;
         }
 
-        if (events_.empty()) {
+        if (events_.empty())
             throw std::string("real_read: no read expected now");
-        }
 
         if (events_.front().mode_ == MockStreamEvent::READ_EOF) {
             events_.pop();
-            std::cerr << "real_read: EOF" << std::endl;
+            //std::cerr << "real_read: EOF" << std::endl;
             return 0;
         }
 
-        if (events_.front().mode_ != MockStreamEvent::READ) {
+        if (events_.front().mode_ != MockStreamEvent::READ)
             throw std::string("real_read: unexpected read");
-        }
 
         std::string &currentStr = events_.front().data_;
         std::string::iterator it = currentStr.begin();
 
         std::size_t num = std::min(count, currentStr.size());
-        std::cerr << "real_read asked for " << count << ", will read " << num << std::endl;
+        //std::cerr << "real_read asked for " << count << ", will read " << num << std::endl;
         std::string::iterator end = it + num;
-        std::string message;
+        /*std::string message;
         message.resize(num);
-        std::string::iterator dbg = message.begin();
+        std::string::iterator dbg = message.begin();*/
         while (it < end) {
-            *dbg++ = *it;
+            //*dbg++ = *it;
             *buf++ = *it++;
         }
-        std::cerr << "Read |" << message << "|" << std::endl;
+        //std::cerr << "Read |" << message << "|" << std::endl;
 
         if (it == currentStr.end()) {
-            std::cerr << "dropping item" << std::endl;
+            //std::cerr << "dropping item" << std::endl;
             events_.pop();
         } else {
             currentStr = currentStr.substr(it - currentStr.begin());
-            std::cerr << "set substring to |" << currentStr << "|" << std::endl;
+            //std::cerr << "set substring to |" << currentStr << "|" << std::endl;
         }
         return num;
     }
 
+    /** @short Write data from the expectations queue into an internal buffer */
     ssize_t real_write(const char_type *buf, std::size_t count)
     {
-        if (count == 0) {
+        if (count == 0)
             return 0;
-        }
 
-        if (events_.empty()) {
+        if (events_.empty())
             throw std::string("real_write: nothing expected now");
-        }
 
-        if (events_.front().mode_ != MockStreamEvent::WRITE) {
+        if (events_.front().mode_ != MockStreamEvent::WRITE)
             throw std::string("real_write: unexpected write");
-        }
 
         std::string out;
         out.resize(count);
         std::copy(buf, buf + count, out.begin());
         if (events_.front().data_ != out) {
-            std::cerr << "Wrote |" << out << "|" << std::endl;
-            std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
+            //std::cerr << "Wrote |" << out << "|" << std::endl;
+            //std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
             throw std::string("real_write: value mismatch");
         }
         events_.pop();
         return count;
     }
-
-public:
-    void expectReadEof()
-    {
-        events_.push(MockStreamEvent(MockStreamEvent::READ_EOF, std::string()));
-    }
-
-    void expectRead(const std::string &s)
-    {
-        events_.push(MockStreamEvent(MockStreamEvent::READ, s));
-    }
-
-    void expectWrite(const std::string &s)
-    {
-        events_.push(MockStreamEvent(MockStreamEvent::WRITE, s));
-    }
-
-    bool consumedEverything()
-    {
-        return events_.empty();
-    }
-
 
 private:
     /**
