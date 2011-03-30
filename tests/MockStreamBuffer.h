@@ -34,10 +34,9 @@ public:
 This streambuf is intended to be used in unit testing as the underlying streambuf instance for iostreams. Use the
 expectRead(), expectWrite() and expectReadEof() to simulate the flow of the data (and the ordering of all operations).
 
-Don't forget to issue a sync request to the stream to make sure the data the user under test writes to the ostream is
-actually seen by this buffer; these data are flushed and checked only every bufsize bytes.
-
-Right now, there's a limitation that each write must be smaller than bufsize. FIXME: fix this.
+Due to the way the iostreams are architected, a sync request has to be issued by the ostream associated with this streambuf
+in order to actually check that the written data match what is expected.  This can be enforced either by issuing a sync() after
+each completed write to this buffer, or by simply setting the buffer size to be one.
 */
 class MockStreamBuffer : public std::streambuf, public boost::noncopyable
 {
@@ -229,12 +228,17 @@ protected:
         std::string out;
         out.resize(count);
         std::copy(buf, buf + count, out.begin());
-        if (events_.front().data_ != out) {
+
+        std::string expectedIn = events_.front().data_.substr(0, count);
+        if (expectedIn != out) {
             //std::cerr << "Wrote |" << out << "|" << std::endl;
             //std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
             throw MockStreamBufferError("real_write: value mismatch");
         }
-        events_.pop();
+        events_.front().data_ = events_.front().data_.substr(count);
+        if (events_.front().data_.empty()) {
+            events_.pop();
+        }
         return count;
     }
 

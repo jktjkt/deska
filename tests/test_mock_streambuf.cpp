@@ -29,7 +29,7 @@ struct MockStreamFixture {
     std::istream is;
     std::ostream os;
     bool thrown;
-    MockStreamFixture(const std::size_t bufsize=666):
+    MockStreamFixture(const std::size_t bufsize=1):
         buf(bufsize), is(&buf), os(&buf), thrown(false)
     {
     }
@@ -129,8 +129,6 @@ BOOST_FIXTURE_TEST_CASE(unexpected_write, MockStreamFixture)
 {
     try {
         os << 123;
-        // FIXME: remove the need to flush here...
-        os.flush();
     } catch (MockStreamBufferError&) {
         thrown = true;
     }
@@ -146,8 +144,6 @@ BOOST_FIXTURE_TEST_CASE(unexpected_write_instead_of_read, MockStreamFixture)
     buf.expectRead("");
     try {
         os << 666;
-        // FIXME: remove the need to flush here...
-        os.flush();
     } catch (MockStreamBufferError&) {
         thrown = true;
     }
@@ -164,8 +160,6 @@ BOOST_FIXTURE_TEST_CASE(unexpected_write_instead_of_read_eof, MockStreamFixture)
     buf.expectReadEof();
     try {
         os << 666;
-        // FIXME: remove the need to flush here...
-        os.flush();
     } catch (MockStreamBufferError&) {
         thrown = true;
     }
