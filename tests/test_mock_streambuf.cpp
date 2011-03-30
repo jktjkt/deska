@@ -24,7 +24,8 @@
 
 #include "MockStreamBuffer.h"
 
-struct MockStreamFixture {
+struct MockStreamFixture
+{
     MockStreamBuffer buf;
     std::istream is;
     std::ostream os;
@@ -35,8 +36,16 @@ struct MockStreamFixture {
     }
 };
 
+struct MockStreamFixtureNoThrow: public MockStreamFixture
+{
+    MockStreamFixtureNoThrow()
+    {
+        buf.useBoostTestOnThrow();
+    }
+};
+
 /** @short Make sure we can catch a simple write to the stream */
-BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
+BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixtureNoThrow)
 {
     buf.expectWrite("ahoj");
     os << "ahoj" << std::flush;
@@ -45,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
 }
 
 /** @short Test reading into a string, separated by a whitespace */
-BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
+BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixtureNoThrow)
 {
     buf.expectRead("ahoj ");
     std::string tmp;
@@ -58,7 +67,7 @@ BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
 }
 
 /** @short Test reading into a string immediately followed by an EOF */
-BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
+BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixtureNoThrow)
 {
     buf.expectRead("ahoj");
     buf.expectReadEof();
@@ -71,7 +80,7 @@ BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
 }
 
 /** @short Test a simple RW interaction */
-BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixture)
+BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixtureNoThrow)
 {
     buf.expectWrite("foo bar baz");
     buf.expectWrite("pwn");

@@ -7,6 +7,7 @@
 #include <queue>
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_array.hpp>
+#include <boost/test/test_tools.hpp>
 
 /** @short Internal representation of expectations for the MockStreamBuffer */
 struct MockStreamEvent
@@ -52,7 +53,8 @@ public:
         :
         bufsize_(bufsize),
         read_buf_(new char[bufsize]),
-        write_buf_(new char[bufsize])
+        write_buf_(new char[bufsize]),
+        use_test_on_throw_(false)
     {
         BOOST_ASSERT(bufsize_ > 0);
 
@@ -81,6 +83,12 @@ public:
     bool consumedEverything()
     {
         return events_.empty();
+    }
+
+    /** @short Use boost::test macros for reporting error during throw */
+    void useBoostTestOnThrow()
+    {
+        use_test_on_throw_ = true;
     }
 
 protected:
@@ -177,7 +185,7 @@ protected:
         }
 
         if (events_.empty())
-            throw MockStreamBufferError("real_read: no read expected now");
+            throw_("real_read: no read expected now");
 
         if (events_.front().mode_ == MockStreamEvent::READ_EOF) {
             events_.pop();
@@ -186,7 +194,7 @@ protected:
         }
 
         if (events_.front().mode_ != MockStreamEvent::READ)
-            throw MockStreamBufferError("real_read: unexpected read");
+            throw_("real_read: unexpected read");
 
         std::string &currentStr = events_.front().data_;
         std::string::iterator it = currentStr.begin();
@@ -220,10 +228,10 @@ protected:
             return 0;
 
         if (events_.empty())
-            throw MockStreamBufferError("real_write: nothing expected now");
+            throw_("real_write: nothing expected now");
 
         if (events_.front().mode_ != MockStreamEvent::WRITE)
-            throw MockStreamBufferError("real_write: unexpected write");
+            throw_("real_write: unexpected write");
 
         std::string out;
         out.resize(count);
@@ -233,7 +241,7 @@ protected:
         if (expectedIn != out) {
             //std::cerr << "Wrote |" << out << "|" << std::endl;
             //std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
-            throw MockStreamBufferError("real_write: value mismatch");
+            throw_("real_write: value mismatch");
         }
         events_.front().data_ = events_.front().data_.substr(count);
         if (events_.front().data_.empty()) {
@@ -241,6 +249,15 @@ protected:
         }
         return count;
     }
+
+    void throw_(const std::string &message)
+    {
+        if (use_test_on_throw_) {
+            BOOST_FAIL(message);
+        }
+        throw MockStreamBufferError(message);
+    }
+
 
 private:
     /**
@@ -259,6 +276,8 @@ private:
     boost::scoped_array<char> write_buf_;
 
     std::queue<MockStreamEvent> events_;
+
+    bool use_test_on_throw_;
 };
 
 #endif // DESKA_MOCK_STREAMBUFFER
