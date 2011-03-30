@@ -209,6 +209,9 @@ created timestamp,
 note text
 );
 
+--
+-- Return info about not commited changesets
+--
 CREATE FUNCTION pendingChangesets()
 RETURNS SETOF changeset_info
 AS
