@@ -1,5 +1,5 @@
-#ifndef DESKA_MOCK_STREAMBUF
-#define DESKA_MOCK_STREAMBUF
+#ifndef DESKA_MOCK_STREAMBUFFER
+#define DESKA_MOCK_STREAMBUFFER
 
 #include <streambuf>
 #include <string>
@@ -246,4 +246,4 @@ private:
     std::queue<MockStreamEvent> events_;
 };
 
-#endif // DESKA_MOCK_STREAMBUF
+#endif // DESKA_MOCK_STREAMBUFFER

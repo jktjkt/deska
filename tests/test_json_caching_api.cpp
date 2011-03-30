@@ -24,6 +24,8 @@
 #include <boost/test/unit_test.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/CachingJsonApi.h"
+
+#include "MockStreamBuffer.h"
 #include <iostream>
 
 using std::vector;
