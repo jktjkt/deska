@@ -34,7 +34,7 @@ using namespace Deska::Db;
 This tests tries to verify that when we call any metadata-querying method of the API, the caching layer
 will rmember the result and use it for further inquiries.
 */
-BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
+BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
     // At first, it has to find out what the top-level object types are
     expectWrite("{\"command\":\"getTopLevelObjectNames\"}\n");
