@@ -277,9 +277,11 @@ void JsonHandler::receive()
         if (rule == fields.end()) {
             // No such rule
             std::ostringstream s;
-            s << "JSON field '" << node.name_ << "' is not in the list of fields expected at this context:" << std::endl;
-            std::transform(fields.begin(), fields.end(), std::ostream_iterator<std::string>(s, "\n"),
-                           bind(&JsonField::jsonFieldRead, arg_names::_1));
+            s << "JSON field '" << node.name_ << "' is not allowed in this context (expecting one of:";
+            BOOST_FOREACH(const JsonField &f, fields) {
+                s << " " << f.jsonFieldRead;
+            }
+            s << ").";
             throw JsonParseError(s.str());
         }
 
