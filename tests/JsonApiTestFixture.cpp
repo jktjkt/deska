@@ -19,17 +19,13 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/test/test_tools.hpp>
-
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
 JsonApiTestFixture::JsonApiTestFixture():
     mockBuffer(1), readStream(&mockBuffer), writeStream(&mockBuffer)
 {
-    using namespace boost::phoenix;
     j = new Deska::Db::JsonApiParser();
     j->setStreams(&writeStream, &readStream);
 }

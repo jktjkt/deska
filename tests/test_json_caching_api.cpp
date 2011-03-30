@@ -20,8 +20,6 @@
 * */
 
 #include <boost/foreach.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
 #include "JsonApiTestFixture.h"
