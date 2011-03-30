@@ -114,16 +114,16 @@ $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- get my version id
+-- get id of parrent version
 --
 CREATE FUNCTION parrent(ver bigint)
-RETURNS integer
+RETURNS bigint
 AS
 $$
-DECLARE parr integer;
+DECLARE parr bigint;
 BEGIN
-	SELECT parrent INTO parr FROM version
-		WHERE parrent = ver;
+	SELECT p.id INTO parr FROM version p JOIN version v 
+		ON v.id = ver AND v.parrent = p.num;
 	RETURN parr;
 END
 $$
