@@ -25,10 +25,10 @@
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
-JsonApiTestFixture::JsonApiTestFixture()
+JsonApiTestFixture::JsonApiTestFixture():
+    mockBuffer(1), readStream(&mockBuffer), writeStream(&mockBuffer)
 {
     j = new Deska::Db::JsonApiParser();
-    // FIXME: change this to actually check the data, and provide some output back...
     j->setStreams(&writeStream, &readStream);
 }
 
@@ -37,33 +37,17 @@ JsonApiTestFixture::~JsonApiTestFixture()
     delete j;
 }
 
-/*std::string JsonApiTestFixture::slotRead()
-{
-    BOOST_REQUIRE(!jsonDbOutput.empty());
-    std::string res = jsonDbOutput.front();
-    jsonDbOutput.pop();
-    return res;
-}
-
-void JsonApiTestFixture::slotWrite(const std::string &jsonDataToWrite)
-{
-    BOOST_REQUIRE(!jsonDbInput.empty());
-    BOOST_CHECK_EQUAL(jsonDataToWrite, jsonDbInput.front());
-    jsonDbInput.pop();
-}*/
-
 void JsonApiTestFixture::expectEmpty()
 {
-    BOOST_CHECK(jsonDbInput.empty());
-    BOOST_CHECK(jsonDbOutput.empty());
+    BOOST_CHECK(mockBuffer.consumedEverything());
 }
 
 void JsonApiTestFixture::expectRead(const std::string &str)
 {
-    jsonDbOutput.push(str);
+    mockBuffer.expectRead(str);
 }
 
 void JsonApiTestFixture::expectWrite(const std::string &str)
 {
-    jsonDbInput.push(str);
+    mockBuffer.expectWrite(str);
 }
