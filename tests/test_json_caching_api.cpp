@@ -25,35 +25,9 @@
 #include "JsonApiTestFixture.h"
 #include "deska/db/CachingJsonApi.h"
 
-#include "MockStreamBuffer.h"
-#include <iostream>
-
 using std::vector;
 using std::map;
 using namespace Deska::Db;
-
-BOOST_FIXTURE_TEST_CASE(pwn, JsonApiTestFixture)
-{
-    MockStreamBuffer buf(666);
-    std::istream is(&buf);
-    std::ostream os(&buf);
-
-    buf.expectWrite("foo bar baz");
-    buf.expectWrite("pwn");
-    buf.expectRead("abc ");
-    buf.expectReadEof();
-    os << "foo " << "bar " << "baz" << std::flush;
-    os << "pwn" << std::flush;
-
-    std::string tmp;
-    is >> tmp;
-    std::cerr << "first read done: |" << tmp << "| " << is.fail() << std::endl;
-    tmp.clear();
-    is >> tmp;
-    std::cerr << "second read done: |" << tmp << "| " << is.fail() <<std::endl;
-
-    std::cerr << buf.consumedEverything() << std::endl;
-}
 
 /** @short Make sure that CachingJsonApi's caching really works
 

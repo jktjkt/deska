@@ -38,6 +38,7 @@ add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
 deska_test(parser-mock-objects)
+deska_test(mock_streambuf)
 deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
