@@ -83,6 +83,12 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
     json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
     *m_writeStream << "\n";
     m_writeStream->flush();
+    if (m_writeStream->bad())
+        throw JsonParseError("Write error: output stream in 'bad' state");
+    if (m_writeStream->fail())
+        throw JsonParseError("Write error: output stream in 'fail' state");
+    if (m_writeStream->eof())
+        throw JsonParseError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
@@ -101,6 +107,12 @@ json_spirit::Object JsonApiParser::readJsonObject() const
     }
     const json_spirit::Object &o = res.get_obj();
     // FIXME: check for the j_errorPrefix here
+    if (m_readStream->bad())
+        throw JsonParseError("Read error: input stream in 'bad' state");
+    if (m_readStream->fail())
+        throw JsonParseError("Read error: input stream in 'fail' state");
+    if (m_readStream->eof())
+        throw JsonParseError("Read error: EOF");
     return o;
 }
 
