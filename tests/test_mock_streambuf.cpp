@@ -35,7 +35,33 @@ struct MockStreamFixture {
     }
 };
 
-BOOST_FIXTURE_TEST_CASE(pwn, MockStreamFixture)
+BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
+{
+    buf.expectWrite("ahoj");
+    os << "ahoj" << std::flush;
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
+{
+    buf.expectRead("ahoj ");
+    std::string tmp;
+    is >> tmp;
+    BOOST_CHECK_EQUAL(tmp, std::string("ahoj"));
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
+{
+    buf.expectRead("ahoj");
+    buf.expectReadEof();
+    std::string tmp;
+    is >> tmp;
+    BOOST_CHECK_EQUAL(tmp, std::string("ahoj"));
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixture)
 {
     buf.expectWrite("foo bar baz");
     buf.expectWrite("pwn");
@@ -46,11 +72,11 @@ BOOST_FIXTURE_TEST_CASE(pwn, MockStreamFixture)
 
     std::string tmp;
     is >> tmp;
-    std::cerr << "first read done: |" << tmp << "| " << is.fail() << std::endl;
-    tmp.clear();
+    BOOST_CHECK_EQUAL(tmp, "abc");
+    BOOST_CHECK(!is.fail());
+    BOOST_CHECK(!is.eof());
     is >> tmp;
-    std::cerr << "second read done: |" << tmp << "| " << is.fail() <<std::endl;
-
-    std::cerr << buf.consumedEverything() << std::endl;
+    BOOST_CHECK(is.fail());
+    BOOST_CHECK(is.eof());
+    BOOST_CHECK(buf.consumedEverything());
 }
-
