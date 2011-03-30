@@ -24,6 +24,7 @@
 
 #include <string>
 #include <queue>
+#include "MockStreamBuffer.h"
 
 namespace Deska {
 namespace Db {
@@ -36,17 +37,24 @@ struct JsonApiTestFixture
     JsonApiTestFixture();
     ~JsonApiTestFixture();
 
-    void slotWrite(const std::string &jsonDataToWrite);
-    std::string slotRead();
-
     void expectRead(const std::string &str);
     void expectWrite(const std::string &str);
     void expectEmpty();
 
     Deska::Db::JsonApiParser *j;
 
-    std::queue<std::string> jsonDbInput;
-    std::queue<std::string> jsonDbOutput;
+    MockStreamBuffer mockBuffer;
+    std::istream readStream;
+    std::ostream writeStream;
+};
+
+/** @short A fixture that will complain when the streams complain */
+struct JsonApiTestFixtureFailOnStreamThrow: public JsonApiTestFixture
+{
+    JsonApiTestFixtureFailOnStreamThrow()
+    {
+        mockBuffer.useBoostTestOnThrow();
+    }
 };
 
 #endif // DESKA_TEST_JSONAPITESTFIXTURE_H
