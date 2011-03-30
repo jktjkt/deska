@@ -2,11 +2,22 @@
 #define DESKA_MOCK_STREAMBUF
 
 #include <streambuf>
+#include <queue>
 #include <boost/noncopyable.hpp>
 #include <boost/scoped_array.hpp>
 
 #include <string>
 #include <iostream>
+
+struct MockStreamEvent {
+    typedef enum {READ, WRITE, READ_EOF} Direction;
+    Direction mode_;
+    std::string data_;
+    MockStreamEvent(const Direction mode, const std::string &data):
+        mode_(mode), data_(data)
+    {
+    }
+};
 
 /** @short */
 class MockStreamBuffer : public std::streambuf, public boost::noncopyable
@@ -15,7 +26,7 @@ class MockStreamBuffer : public std::streambuf, public boost::noncopyable
 public:
     typedef int handle_type;
 
-    explicit MockStreamBuffer(std::size_t bufsize = 1)
+    explicit MockStreamBuffer(std::size_t bufsize = 8192)
         :
         bufsize_(bufsize),
         read_buf_(new char[bufsize]),
@@ -119,34 +130,95 @@ protected:
 
     ssize_t real_read(char_type *buf, std::size_t count)
     {
-        std::size_t num = std::min(count, static_cast<std::size_t>(input_.end() - it_));
-        //std::cerr << "real_read asked for " << count << ", will read " << num << std::endl;
-        std::string::iterator end = it_ + num;
+        std::cerr << "real_read for " << count << std::endl;
+        if (count == 0) {
+            return 0;
+        }
+
+        if (events_.empty()) {
+            throw std::string("real_read: no read expected now");
+        }
+
+        if (events_.front().mode_ == MockStreamEvent::READ_EOF) {
+            events_.pop();
+            std::cerr << "real_read: EOF" << std::endl;
+            return 0;
+        }
+
+        if (events_.front().mode_ != MockStreamEvent::READ) {
+            throw std::string("real_read: unexpected read");
+        }
+
+        std::string &currentStr = events_.front().data_;
+        std::string::iterator it = currentStr.begin();
+
+        std::size_t num = std::min(count, currentStr.size());
+        std::cerr << "real_read asked for " << count << ", will read " << num << std::endl;
+        std::string::iterator end = it + num;
         std::string message;
         message.resize(num);
         std::string::iterator dbg = message.begin();
-        while (it_ < end) {
-            *dbg++ = *it_;
-            *buf++ = *it_++;
+        while (it < end) {
+            *dbg++ = *it;
+            *buf++ = *it++;
         }
         std::cerr << "Read |" << message << "|" << std::endl;
+
+        if (it == currentStr.end()) {
+            std::cerr << "dropping item" << std::endl;
+            events_.pop();
+        } else {
+            currentStr = currentStr.substr(it - currentStr.begin());
+            std::cerr << "set substring to |" << currentStr << "|" << std::endl;
+        }
         return num;
     }
 
     ssize_t real_write(const char_type *buf, std::size_t count)
     {
+        if (count == 0) {
+            return 0;
+        }
+
+        if (events_.empty()) {
+            throw std::string("real_write: nothing expected now");
+        }
+
+        if (events_.front().mode_ != MockStreamEvent::WRITE) {
+            throw std::string("real_write: unexpected write");
+        }
+
         std::string out;
         out.resize(count);
         std::copy(buf, buf + count, out.begin());
-        std::cerr << "Wrote |" << out << "|" << std::endl;
+        if (events_.front().data_ != out) {
+            std::cerr << "Wrote |" << out << "|" << std::endl;
+            std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
+            throw std::string("real_write: value mismatch");
+        }
+        events_.pop();
         return count;
     }
 
 public:
-    void setInput(const std::string &s)
+    void expectReadEof()
     {
-        input_ = s;
-        it_ = input_.begin();
+        events_.push(MockStreamEvent(MockStreamEvent::READ_EOF, std::string()));
+    }
+
+    void expectRead(const std::string &s)
+    {
+        events_.push(MockStreamEvent(MockStreamEvent::READ, s));
+    }
+
+    void expectWrite(const std::string &s)
+    {
+        events_.push(MockStreamEvent(MockStreamEvent::WRITE, s));
+    }
+
+    bool consumedEverything()
+    {
+        return events_.empty();
     }
 
 
@@ -166,8 +238,7 @@ private:
      */
     boost::scoped_array<char> write_buf_;
 
-    std::string input_;
-    std::string::iterator it_;
+    std::queue<MockStreamEvent> events_;
 };
 
 #endif // DESKA_MOCK_STREAMBUF
