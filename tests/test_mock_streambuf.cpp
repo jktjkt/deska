@@ -28,8 +28,9 @@ struct MockStreamFixture {
     MockStreamBuffer buf;
     std::istream is;
     std::ostream os;
+    bool thrown;
     MockStreamFixture(const std::size_t bufsize=666):
-        buf(bufsize), is(&buf), os(&buf)
+        buf(bufsize), is(&buf), os(&buf), thrown(false)
     {
     }
 };
@@ -40,6 +41,7 @@ BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
     buf.expectWrite("ahoj");
     os << "ahoj" << std::flush;
     BOOST_CHECK(buf.consumedEverything());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
 }
 
 /** @short Test reading into a string, separated by a whitespace */
@@ -52,6 +54,7 @@ BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
     BOOST_CHECK(buf.consumedEverything());
     // we aren't at EOF yet, we're supposed to be at the space
     BOOST_CHECK(!is.eof());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
 }
 
 /** @short Test reading into a string immediately followed by an EOF */
@@ -64,6 +67,7 @@ BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
     BOOST_CHECK_EQUAL(tmp, std::string("ahoj"));
     BOOST_CHECK(buf.consumedEverything());
     BOOST_CHECK(is.eof());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
 }
 
 /** @short Test a simple RW interaction */
@@ -84,5 +88,90 @@ BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixture)
     is >> tmp;
     BOOST_CHECK(is.fail());
     BOOST_CHECK(is.eof());
+    BOOST_CHECK(buf.consumedEverything());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
+}
+
+/** @short Unexpected read */
+BOOST_FIXTURE_TEST_CASE(unexpected_read, MockStreamFixture)
+{
+    try {
+        std::string tmp;
+        is >> tmp;
+    } catch (MockStreamBufferError&) {
+        thrown = true;
+    }
+    //BOOST_CHECK(is.bad());
+    BOOST_CHECK(thrown);
+    BOOST_REQUIRE(is.bad() || os.bad() || thrown);
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+/** @short Unexpected read instead of write */
+BOOST_FIXTURE_TEST_CASE(unexpected_read_instead_of_write, MockStreamFixture)
+{
+    buf.expectWrite("x");
+    try {
+        std::string tmp;
+        is >> tmp;
+    } catch (MockStreamBufferError&) {
+        thrown = true;
+    }
+    //BOOST_CHECK(is.bad());
+    BOOST_CHECK(thrown);
+    BOOST_REQUIRE(is.bad() || os.bad() || thrown);
+    os << "x" << std::flush;
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+/** @short Unexpected write */
+BOOST_FIXTURE_TEST_CASE(unexpected_write, MockStreamFixture)
+{
+    try {
+        os << 123;
+        // FIXME: remove the need to flush here...
+        os.flush();
+    } catch (MockStreamBufferError&) {
+        thrown = true;
+    }
+    BOOST_CHECK(os.bad());
+    //BOOST_CHECK(thrown);
+    BOOST_REQUIRE(is.bad() || os.bad() || thrown);
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+/** @short Unexpected write instead of read */
+BOOST_FIXTURE_TEST_CASE(unexpected_write_instead_of_read, MockStreamFixture)
+{
+    buf.expectRead("");
+    try {
+        os << 666;
+        // FIXME: remove the need to flush here...
+        os.flush();
+    } catch (MockStreamBufferError&) {
+        thrown = true;
+    }
+    BOOST_CHECK(os.bad());
+    //BOOST_CHECK(thrown);
+    BOOST_REQUIRE(is.bad() || os.bad() || thrown);
+    BOOST_CHECK_EQUAL(is.get(), std::istream::traits_type::eof());
+    BOOST_CHECK(buf.consumedEverything());
+}
+
+/** @short Unexpected write instead of reading an EOF */
+BOOST_FIXTURE_TEST_CASE(unexpected_write_instead_of_read_eof, MockStreamFixture)
+{
+    buf.expectReadEof();
+    try {
+        os << 666;
+        // FIXME: remove the need to flush here...
+        os.flush();
+    } catch (MockStreamBufferError&) {
+        thrown = true;
+    }
+    BOOST_CHECK(os.bad());
+    //BOOST_CHECK(thrown);
+    BOOST_REQUIRE(is.bad() || os.bad() || thrown);
+    BOOST_CHECK_EQUAL(is.get(), std::istream::traits_type::eof());
     BOOST_CHECK(buf.consumedEverything());
 }
