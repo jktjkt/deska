@@ -23,7 +23,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "MockStreamBuffer.h"
-#include <iostream>
 
 struct MockStreamFixture {
     MockStreamBuffer buf;
