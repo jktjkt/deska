@@ -35,6 +35,7 @@ struct MockStreamFixture {
     }
 };
 
+/** @short Make sure we can catch a simple write to the stream */
 BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
 {
     buf.expectWrite("ahoj");
@@ -42,6 +43,7 @@ BOOST_FIXTURE_TEST_CASE(simple_write, MockStreamFixture)
     BOOST_CHECK(buf.consumedEverything());
 }
 
+/** @short Test reading into a string, separated by a whitespace */
 BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
 {
     buf.expectRead("ahoj ");
@@ -49,8 +51,11 @@ BOOST_FIXTURE_TEST_CASE(simple_read_space, MockStreamFixture)
     is >> tmp;
     BOOST_CHECK_EQUAL(tmp, std::string("ahoj"));
     BOOST_CHECK(buf.consumedEverything());
+    // we aren't at EOF yet, we're supposed to be at the space
+    BOOST_CHECK(!is.eof());
 }
 
+/** @short Test reading into a string immediately followed by an EOF */
 BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
 {
     buf.expectRead("ahoj");
@@ -59,8 +64,10 @@ BOOST_FIXTURE_TEST_CASE(simple_read_eof, MockStreamFixture)
     is >> tmp;
     BOOST_CHECK_EQUAL(tmp, std::string("ahoj"));
     BOOST_CHECK(buf.consumedEverything());
+    BOOST_CHECK(is.eof());
 }
 
+/** @short Test a simple RW interaction */
 BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixture)
 {
     buf.expectWrite("foo bar baz");
