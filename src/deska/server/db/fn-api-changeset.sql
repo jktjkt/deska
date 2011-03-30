@@ -19,6 +19,11 @@ CREATE TABLE version (
 	created timestamp without time zone NOT NULL DEFAULT now(),
 	note text
 );
+ALTER TABLE version ADD COLUMN
+	-- revision of db, when new changset is started
+	parrent int
+		-- onlz for commited (with num assigned)
+		CONSTRAINT version_parrent_uid REFERENCES version(num);
 
 -- current changesets
 CREATE TABLE changeset (
@@ -45,9 +50,12 @@ RETURNS integer
 AS
 $$
 DECLARE ver integer;
+DECLARE parr integer;
 BEGIN
-	INSERT INTO version (note,username)
-		VALUES ('',current_user);
+	SELECT max(num) INTO parr FROM version;
+	INSERT INTO version (note,username,parrent)
+		VALUES ('',current_user,parr);
+	-- FIXME: read it frpm sequence directly
 	SELECT max(id) INTO ver FROM version;
 	RETURN ver;
 END
@@ -101,6 +109,22 @@ BEGIN
 	SELECT version INTO ver FROM changeset
 		WHERE username = current_user AND pid = pg_backend_pid();
 	RETURN ver;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- get my version id
+--
+CREATE FUNCTION parrent(ver bigint)
+RETURNS integer
+AS
+$$
+DECLARE parr integer;
+BEGIN
+	SELECT parrent INTO parr FROM version
+		WHERE parrent = ver;
+	RETURN parr;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -185,7 +209,7 @@ created timestamp,
 note text
 );
 
-CREATE OR REPLACE FUNCTION pendingChangesets()
+CREATE FUNCTION pendingChangesets()
 RETURNS SETOF changeset_info
 AS
 $$
