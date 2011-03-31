@@ -98,11 +98,9 @@ class Table:
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
 		IF NOT FOUND THEN
-		--	INSERT INTO {tbl}_history (uid,version)
-		--		VALUES (rowuid,ver);
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version < parrent(ver);
+					WHERE uid = rowuid AND version <= parrent(ver);
 		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
@@ -123,10 +121,19 @@ class Table:
 	DECLARE	ver bigint;
 		refuid bigint;
 		rowuid bigint;
+		tmp bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT {reftbl}_get_uid(value) INTO refuid;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM {tbl}_history
+			WHERE uid = rowuid AND version = ver;
+		IF NOT FOUND THEN
+			INSERT INTO {tbl}_history ({columns},version)
+				SELECT {columns},ver FROM {tbl}_history
+					WHERE uid = rowuid AND version <= parrent(ver);
+		END IF;
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
 		--TODO if there is nothing in current version???
@@ -471,7 +478,7 @@ class Table:
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())
 
 	def gen_set_ref_uid(self,col_name, reftable):
-		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable)
+		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable, columns = self.get_columns())
 
 	def gen_get_object_data(self):
 		collist = self.col.copy()
