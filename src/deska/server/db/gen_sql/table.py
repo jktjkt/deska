@@ -36,7 +36,7 @@ class Fks():
 		# workround for add fks to objects from earlier changesets
 		#self.att[con] = "version"
 		#self.ratt[con] = "version"
-		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {rtbl}_history({ratt})"
+		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {rtbl}_history({ratt}) DEFERRABLE INITIALLY DEFERRED"
 		atts = ",".join(self.att[con])
 		ratts = ",".join(self.ratt[con])
 		str = str.format(name = con,rtbl = self.tbl[con],att = atts, ratt = ratts)
@@ -90,9 +90,20 @@ class Table:
 	$$
 	DECLARE	ver bigint;
 		rowuid bigint;
+		tmp bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM {tbl}_history
+			WHERE uid = rowuid AND version = ver;
+		IF NOT FOUND THEN
+		--	INSERT INTO {tbl}_history (uid,version)
+		--		VALUES (rowuid,ver);
+			INSERT INTO {tbl}_history ({columns},version)
+				SELECT {columns},ver FROM {tbl}_history
+					WHERE uid = rowuid AND version < parrent(ver);
+		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
 		--TODO if there is nothing in current version???
@@ -425,7 +436,7 @@ class Table:
 		self.pkset[con] = "version"
 		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
 		str = str + ",".join(self.pkset[con])
-		return str + ")"
+		return str + ") DEFERRABLE INITIALLY DEFERRED"
 
 	def gen_drop_notnull(self):
 		nncol = self.col.copy()
@@ -457,7 +468,7 @@ class Table:
 		return self.del_string.format(tbl = self.name)
 
 	def gen_set(self,col_name):
-		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
+		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())
 
 	def gen_set_ref_uid(self,col_name, reftable):
 		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable)
