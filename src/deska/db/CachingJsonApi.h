@@ -22,6 +22,7 @@
 #ifndef DESKA_DB_CACHINGAPI_H
 #define DESKA_DB_CACHINGAPI_H
 
+#include <boost/noncopyable.hpp>
 #include "JsonApi.h"
 
 namespace Deska {

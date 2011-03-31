@@ -20,8 +20,6 @@
 * */
 
 #include <boost/foreach.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 #define BOOST_TEST_MODULE example
 #include <boost/test/unit_test.hpp>
 #include "JsonApiTestFixture.h"
@@ -36,30 +34,28 @@ using namespace Deska::Db;
 This tests tries to verify that when we call any metadata-querying method of the API, the caching layer
 will rmember the result and use it for further inquiries.
 */
-BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixture)
+BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
     // At first, it has to find out what the top-level object types are
-    expectWrite("{\"command\":\"getTopLevelObjectNames\"}");
-    expectRead("{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"a\", \"b\"]}");
+    expectWrite("{\"command\":\"getTopLevelObjectNames\"}\n");
+    expectRead("{\"response\": \"getTopLevelObjectNames\", \"topLevelObjectKinds\": [\"a\", \"b\"]}\n");
     // The, for each of them, it asks for a list of attributes, and then for a list of relations.
     // Start with "a":
-    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"a\"}");
+    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"a\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"a\", \"response\": \"getKindAttributes\"}");
-    expectWrite("{\"command\":\"getKindRelations\",\"kindName\":\"a\"}");
-    expectRead("{\"kindName\": \"a\", \"kindRelations\": [[\"IS_TEMPLATE\", \"b\"]], \"response\": \"getKindRelations\"}");
+            "\"price\": \"double\"}, \"kindName\": \"a\", \"response\": \"getKindAttributes\"}\n");
+    expectWrite("{\"command\":\"getKindRelations\",\"kindName\":\"a\"}\n");
+    expectRead("{\"kindName\": \"a\", \"kindRelations\": [[\"IS_TEMPLATE\", \"b\"]], \"response\": \"getKindRelations\"}\n");
     // ...and move to "b":
-    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"b\"}");
-    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"kindName\": \"b\", \"response\": \"getKindAttributes\"}");
-    expectWrite("{\"command\":\"getKindRelations\",\"kindName\":\"b\"}");
-    expectRead("{\"kindName\": \"b\", \"kindRelations\": [[\"TEMPLATIZED\", \"a\", \"name_of_a\"]], \"response\": \"getKindRelations\"}");
+    expectWrite("{\"command\":\"getKindAttributes\",\"kindName\":\"b\"}\n");
+    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"kindName\": \"b\", \"response\": \"getKindAttributes\"}\n");
+    expectWrite("{\"command\":\"getKindRelations\",\"kindName\":\"b\"}\n");
+    expectRead("{\"kindName\": \"b\", \"kindRelations\": [[\"TEMPLATIZED\", \"a\", \"name_of_a\"]], \"response\": \"getKindRelations\"}\n");
 
     // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
     delete j;
     j = new Deska::Db::CachingJsonApi();
-    using boost::phoenix::arg_names::_1;
-    j->writeString.connect(boost::phoenix::bind(&JsonApiTestFixture::slotWrite, this, _1));
-    j->readString.connect(boost::phoenix::bind(&JsonApiTestFixture::slotRead, this));
+    j->setStreams(&writeStream, &readStream);
 
     // Now, the first call to the API will request everything. Let's start with the kind names, for example.
     vector<Identifier> kindNames = j->kindNames();

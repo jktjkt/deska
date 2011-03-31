@@ -19,6 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_reader_template.h"
+#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
 #include "JsonHandler.h"
 
@@ -57,7 +59,7 @@ static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
 namespace Deska {
 namespace Db {
 
-JsonApiParser::JsonApiParser()
+JsonApiParser::JsonApiParser(): m_writeStream(0), m_readStream(0)
 {
 }
 
@@ -65,18 +67,32 @@ JsonApiParser::~JsonApiParser()
 {
 }
 
+void JsonApiParser::setStreams(std::ostream *writeStream, std::istream *readStream)
+{
+    m_writeStream = writeStream;
+    m_readStream = readStream;
+}
+
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    writeString(json_spirit::write(o, json_spirit::remove_trailing_zeros));
+    BOOST_ASSERT(m_writeStream);
+    json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
+    *m_writeStream << "\n";
+    m_writeStream->flush();
+    if (m_writeStream->bad())
+        throw JsonParseError("Write error: output stream in 'bad' state");
+    if (m_writeStream->fail())
+        throw JsonParseError("Write error: output stream in 'fail' state");
+    if (m_writeStream->eof())
+        throw JsonParseError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
+    BOOST_ASSERT(m_readStream);
     json_spirit::Value res;
     try {
-        json_spirit::read_or_throw(readString(), res);
-        // FIXME: convert this to iteratos, as this method would happily parse "{}{" and not report back
-        // that the "{" was silently ignored
+        json_spirit::read_stream_or_throw(*m_readStream, res);
     } catch (const json_spirit::Error_position &e) {
         // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
         std::ostringstream s;
@@ -85,6 +101,12 @@ json_spirit::Object JsonApiParser::readJsonObject() const
     }
     const json_spirit::Object &o = res.get_obj();
     // FIXME: check for the j_errorPrefix here
+    if (m_readStream->bad())
+        throw JsonParseError("Read error: input stream in 'bad' state");
+    if (m_readStream->fail())
+        throw JsonParseError("Read error: input stream in 'fail' state");
+    if (m_readStream->eof())
+        throw JsonParseError("Read error: EOF");
     return o;
 }
 
