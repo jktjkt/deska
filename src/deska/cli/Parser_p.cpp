@@ -329,47 +329,10 @@ void ParserImpl<Iterator>::parseLine( const std::string &line )
             BOOST_ASSERT( parseErrors.size() <= 3 );
             // There have to be some ParseError when parsing fails.
             BOOST_ASSERT( parseErrors.size() != 0 );
-
-            bool argumentTypeError = false;
-
-            for (typename std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it ) {
-
-                if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
-                    argumentTypeError = true;
-#ifdef PARSER_DEBUG
-                    std::cout << it->toString() << std::endl;
-#endif
-                    m_parser->parseError(InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) ));
-                    break;
-                }
-            }
-
-            if( !argumentTypeError ) {
-                if( parseErrors.size() == 1 ) {
-#ifdef PARSER_DEBUG
-                    std::cout << parseErrors[0].toString() << std::endl;
-#endif
-                    if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
-                        m_parser->parseError(UndefinedAttributeError( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
-                    else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
-                        m_parser->parseError(InvalidObjectKind( parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
-                    else
-                        throw std::domain_error("ParseErrorType out of range");
-
-                } else {
-#ifdef PARSER_DEBUG
-                    std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
-#endif
-                    m_parser->parseError(UndefinedAttributeError(
-                                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) ));
-                }
-            }
-
+            reportParseError(line);
             break;
         }
-
         parseErrors.clear();
-
     }
 
     if( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
@@ -495,6 +458,52 @@ void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsOnlyParser
 
 
 
+template <typename Iterator>
+void ParserImpl<Iterator>::reportParseError( const std::string& line )
+{
+    if(parseErrors.size() <= 3)
+        throw std::out_of_range("Parse error reporting: Too much errors on stack!");
+    if(parseErrors.size() != 0)
+        throw std::out_of_range("Parse error reporting: No errors to report!");
+
+    bool argumentTypeError = false;
+
+    for (typename std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it) {
+        if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
+            argumentTypeError = true;
+#ifdef PARSER_DEBUG
+            std::cout << it->toString() << std::endl;
+#endif
+            m_parser->parseError(InvalidAttributeDataTypeError( it->toString(), line, it->getErrorPosition( line ) ));
+            break;
+        }
+    }
+
+    if( !argumentTypeError ) {
+        if( parseErrors.size() == 1 ) {
+#ifdef PARSER_DEBUG
+            std::cout << parseErrors[0].toString() << std::endl;
+#endif
+            if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
+                m_parser->parseError(UndefinedAttributeError(
+                    parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
+            else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
+                m_parser->parseError(InvalidObjectKind(
+                    parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
+            else
+                throw std::domain_error("ParseErrorType out of range");
+        } else {
+#ifdef PARSER_DEBUG
+            std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
+#endif
+            m_parser->parseError(UndefinedAttributeError(
+                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].getErrorPosition( line ) ));
+        }
+    }
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template PredefinedRules<iterator_type>::PredefinedRules();
@@ -544,6 +553,8 @@ template void ParserImpl<iterator_type>::addParseError( const ParseError<iterato
 template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindName, AttributesParser<iterator_type>* attributesParser );
 
 template void ParserImpl<iterator_type>::addNestedKinds( std::string &kindName, KindsOnlyParser<iterator_type>* kindsOnlyParser );
+
+template void ParserImpl<iterator_type>::reportParseError( const std::string& line );
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
 

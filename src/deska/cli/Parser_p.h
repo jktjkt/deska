@@ -219,6 +219,8 @@ private:
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
     void addNestedKinds( std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser );
 
+    void reportParseError( const std::string& line );
+
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
