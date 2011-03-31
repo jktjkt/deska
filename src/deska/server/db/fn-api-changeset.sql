@@ -91,7 +91,7 @@ AS
 $$
 BEGIN
 	DELETE FROM changeset
-		WHERE username = current_user;
+		WHERE version = my_version();
 	RETURN 1;
 END
 $$
