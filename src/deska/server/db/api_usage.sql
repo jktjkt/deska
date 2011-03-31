@@ -24,13 +24,17 @@ SELECT * FROM vendor;
 SELECT * FROM hardware;
 
 SELECT startChangeset();
-SELECT deleteObject('hardware','hwDELL');
-SELECT deleteObject('vendor','DELL');
+--SELECT deleteObject('hardware','hwDELL');
+--SELECT deleteObject('vendor','DELL');
 SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
+SELECT setAttribute('hardware','hwDELL','note','test');
+SELECT setAttribute('hardware','hwDELL','vendor','IBM');
 SELECT commitChangeset();
 
 SELECT * FROM vendor_history;
 SELECT * FROM vendor;
+SELECT * FROM hardware_history;
+SELECT * FROM hardware;
 
 END;

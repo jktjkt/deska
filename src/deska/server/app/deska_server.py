@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from apijson import Jsn
 import sys
 
