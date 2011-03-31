@@ -44,7 +44,7 @@ CREATE FUNCTION commitChangeset()
 		{commit_tables}
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
-		PERFORM version_commit();
+		PERFORM create_version();
 		RETURN 1;
 	END
 	$$

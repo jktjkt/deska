@@ -3,38 +3,45 @@ SET search_path TO deska;
 
 CREATE SEQUENCE version_num;
 
-CREATE TYPE changeset_status AS ENUM ( 'COMMITED', 'DETACHED', 'INPROGRESS' );
+CREATE TYPE changeset_status AS ENUM ( 'DETACHED', 'INPROGRESS' );
 
--- vendors of hw -- versioning table
-CREATE TABLE version (
-	-- internal id
-	id bigserial
+-- COMMITED versions
+CREATE TABLE version(
+	id bigint
 		CONSTRAINT version_pk PRIMARY KEY,
 	-- human readable id
 	num int
-		CONSTRAINT version_numberunique UNIQUE,
+		CONSTRAINT version_num_unique UNIQUE
+			DEFAULT nextval('version_num'),
 	-- who a whet created
 	username text,
-	status changeset_status NOT NULL DEFAULT 'INPROGRESS',
+	-- time of commit
 	created timestamp without time zone NOT NULL DEFAULT now(),
-	note text
+	-- commit message text
+	message text
 );
-ALTER TABLE version ADD COLUMN
-	-- revision of db, when new changset is started
-	parrent int
-		-- onlz for commited (with num assigned)
-		CONSTRAINT version_parrent_uid REFERENCES version(num);
 
--- current changesets
-CREATE TABLE changeset (
-	-- number - id version
-	version bigint
-		CONSTRAINT changeset_id_fk_version REFERENCES version(id),
-	-- user - must be unique, use it for pk
+-- INPROGRESS and DETACHED changesets
+CREATE TABLE changeset(
+	-- internal id
+	id bigserial
+		CONSTRAINT changeset_pk PRIMARY KEY,
 	username text NOT NULL,
 	-- backend pid - like session id
 	pid int
-		CONSTRAINT changeset_pid_pk PRIMARY KEY
+		CONSTRAINT changeset_pid_unique UNIQUE,
+	-- revision of db, when new changset is started
+	parrent bigint
+		-- only for commited (with num assigned)
+		CONSTRAINT changeset_parrent_uid REFERENCES version(id),
+	status changeset_status NOT NULL DEFAULT 'INPROGRESS',
+	-- time of creation
+	created timestamp without time zone NOT NULL DEFAULT now(),
+	message text
+		-- check message not null when detached
+		CONSTRAINT changeset_message_not_null
+			CHECK ((length(message) > 0)
+				OR (status = 'INPROGRESS'))
 );
 
 
@@ -43,28 +50,28 @@ CREATE TABLE changeset (
 --
 
 --
--- fuction for create version - and return it's number
+-- fuction for create changeset
 --
-CREATE FUNCTION add_version()
+CREATE FUNCTION create_changeset()
 RETURNS integer
 AS
 $$
-DECLARE ver integer;
 DECLARE parr integer;
+	max integer;
 BEGIN
-	SELECT max(num) INTO parr FROM version;
-	INSERT INTO version (note,username,parrent)
-		VALUES ('',current_user,parr);
-	-- FIXME: read it frpm sequence directly
-	SELECT max(id) INTO ver FROM version;
-	RETURN ver;
+	SELECT max(num) INTO max FROM version;
+	SELECT id INTO parr FROM version
+		WHERE max = num;
+	INSERT INTO changeset (username,parrent,pid)
+		VALUES (session_user,parr,pg_backend_pid());
+	RETURN 1;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
--- fuction for commit version and return human readable number
+-- fuction for commit changeset / create version and return human readable number
 --
-CREATE FUNCTION version_commit()
+CREATE FUNCTION create_version()
 RETURNS integer
 AS
 $$
@@ -72,26 +79,28 @@ DECLARE ver integer;
 	ret integer;
 BEGIN
 	SELECT my_version() INTO ver;
-	SELECT nextval('version_num') INTO ret;
-	UPDATE version SET username = current_user,
-			num = ret, status = 'COMMITED'
-		WHERE id = ver; 
-	PERFORM close_changeset();
+	-- FIXME: add commit message here
+	INSERT INTO version (id,username)
+		SELECT id,username FROM changeset
+			WHERE id = ver;
+	SELECT num INTO ret FROM version
+		WHERE id = ver;
+	PERFORM delete_changeset();
 	RETURN ret;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- close changeset
+-- delete changeset
 --
-CREATE FUNCTION close_changeset()
+CREATE FUNCTION delete_changeset()
 RETURNS integer
 AS
 $$
 BEGIN
 	DELETE FROM changeset
-		WHERE version = my_version();
+		WHERE id = my_version();
 	RETURN 1;
 END
 $$
@@ -106,8 +115,8 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
-	SELECT version INTO ver FROM changeset
-		WHERE username = current_user AND pid = pg_backend_pid();
+	SELECT id INTO ver FROM changeset
+		WHERE pid = pg_backend_pid();
 	RETURN ver;
 END
 $$
@@ -122,8 +131,8 @@ AS
 $$
 DECLARE parr bigint;
 BEGIN
-	SELECT p.id INTO parr FROM version p JOIN version v 
-		ON v.id = ver AND v.parrent = p.num;
+	SELECT parrent INTO parr FROM changeset 
+		WHERE id = ver;
 	RETURN parr;
 END
 $$
@@ -140,9 +149,8 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
-	SELECT add_version() INTO ver;
-	INSERT INTO changeset (username,version,pid)
-		VALUES (current_user,ver,pg_backend_pid());
+	PERFORM create_changeset();
+	SELECT my_version() INTO ver;
 	RETURN ver;
 END
 $$
@@ -156,33 +164,32 @@ RETURNS integer
 AS
 $$
 BEGIN
-	UPDATE version SET status = 'INPROGRESS'
+	UPDATE changeset SET status = 'INPROGRESS',
+		pid = pg_backend_pid(), username = session_user
 		WHERE id = id_; 
-	INSERT INTO changeset (username,version,pid)
-		VALUES (current_user,id_,pg_backend_pid());
 	RETURN 1;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- detach changeset, same as close_changeset
+-- detach changeset
 --
-CREATE FUNCTION detachFromCurrentChangeset(message text)
+CREATE FUNCTION detachFromCurrentChangeset(message_ text)
 RETURNS integer
 AS
 $$
 BEGIN
-	UPDATE version SET note = message, status = 'DETACHED'
+	UPDATE changeset SET message = message_,
+		status = 'DETACHED', pid = NULL
 		WHERE id = my_version(); 
-	PERFORM close_changeset();
 	RETURN 1;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- abort changeset, same as close_changeset
+-- abort changeset, same as delete_changeset
 --
 CREATE FUNCTION abortCurrentChangeset()
 RETURNS integer
@@ -190,35 +197,21 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
-	-- we need to keep version id and then delete it in this order (due to fk)
-	SELECT my_version() INTO ver;
-	DELETE FROM changeset
-		WHERE version = ver;
-	DELETE FROM version
-		WHERE id = ver;
+	PERFORM delete_changeset();
 	RETURN 1;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE TYPE changeset_info AS (
-id bigint,
-username text,
-status changeset_status,
-created timestamp,
-note text
-);
-
 --
 -- Return info about not commited changesets
 --
 CREATE FUNCTION pendingChangesets()
-RETURNS SETOF changeset_info
+RETURNS SETOF changeset
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT id,username,status,created,note FROM version
-		WHERE status != 'COMMITED';
+	RETURN QUERY SELECT * FROM changeset;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
