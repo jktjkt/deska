@@ -100,6 +100,29 @@ public:
 
 /** @short Handle errors while parsing an attribute's value */
 template <typename Iterator>
+class IdentifierErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short An error has occured while parsing an attribute's value
+    *
+    * Prints information about the error.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    */
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const std::string &kindName, const std::vector<std::string> &objectNames, ParserImpl<Iterator> *parser ) const;
+};
+
+
+
+/** @short Handle errors while parsing an attribute's value */
+template <typename Iterator>
 class ValueErrorHandler
 {
 public:
@@ -115,8 +138,8 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-        void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-            const std::string &attributeName, ParserImpl<Iterator> *parser ) const;
+    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const std::string &attributeName, ParserImpl<Iterator> *parser ) const;
 };
 
 

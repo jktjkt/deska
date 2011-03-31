@@ -126,6 +126,12 @@ public:
     */
     void parseLine( const std::string &line );
 
+    /** @short Get list of strings for tab completition of current line
+    *
+    *   @return Vector of strings, that are possible continuations of current line.
+    */
+    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
+
     /** @short The input indicates that the following signals will be related to a particular object
     *
     *   This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it

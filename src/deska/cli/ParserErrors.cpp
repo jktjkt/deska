@@ -61,6 +61,17 @@ void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterato
 
 
 template <typename Iterator>
+void IdentifierErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
+    const std::string &kindName, const std::vector<std::string> &objectNames, ParserImpl<Iterator> *parser ) const
+{
+    ParseError<Iterator> error( start, end, errorPos, what, kindName );
+    if ( error.valid() )
+        parser->addParseError( error );
+}
+
+
+
+template <typename Iterator>
 void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     const std::string &attributeName, ParserImpl<Iterator> *parser ) const
 {
@@ -254,6 +265,8 @@ template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start,
 template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what,
     qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > attributes,
     const std::string &kindName, ParserImpl<iterator_type>* parser ) const;
+
+template void IdentifierErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &kindName, const std::vector<std::string> &objectNames, ParserImpl<iterator_type>* parser ) const;
 
 template void ValueErrorHandler<iterator_type>::operator()( iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &attributeName, ParserImpl<iterator_type>* parser ) const;
 

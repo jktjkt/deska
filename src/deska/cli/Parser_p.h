@@ -209,6 +209,8 @@ public:
     void parsedSingleKind();
 
     void addParseError( const ParseError<Iterator> &error );
+    
+    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
 
 private:
     Parser *m_parser;
@@ -219,6 +221,7 @@ private:
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
     void addNestedKinds( std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser );
 
+    bool parseLineImpl( const std::string &line );
     void reportParseError( const std::string& line );
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
@@ -230,6 +233,8 @@ private:
     std::vector<ContextStackItem> contextStack;
 
     std::vector<ParseError<Iterator> > parseErrors;
+
+    bool dryRun;
 };
 
 }

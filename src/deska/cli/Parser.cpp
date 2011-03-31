@@ -47,6 +47,11 @@ void Parser::parseLine( const std::string &line )
     d_ptr->parseLine(line);
 }
 
+std::vector<std::string> Parser::getTabCompletitionPossibilities( const std::string &line )
+{
+    return d_ptr->getTabCompletitionPossibilities(line);
+}
+
 bool Parser::isNestedInContext() const
 {
     return d_ptr->isNestedInContext();
