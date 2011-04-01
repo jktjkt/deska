@@ -98,7 +98,7 @@ public:
 
 
 
-/** @short Handle errors while parsing an attribute's value */
+/** @short Handle errors while parsing an identifier */
 template <typename Iterator>
 class IdentifierErrorHandler
 {
