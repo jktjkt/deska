@@ -460,7 +460,7 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
 #endif
-            // No more than three errors should occure. Three errors occure only when bad identifier of embedded object is set.
+            // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
             BOOST_ASSERT( parseErrors.size() <= 3 );
             // There have to be some ParseError when parsing fails.
             BOOST_ASSERT( parseErrors.size() != 0 );
