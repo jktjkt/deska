@@ -1,10 +1,8 @@
 #include <iostream>
 #include <string>
 #include "deska/db/FakeApi.h"
+#include "CliInteraction.h"
 #include "Parser.h"
-#include "Exceptions.h"
-
-
 
 int main()
 {
@@ -23,39 +21,10 @@ int main()
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
 
-
     Parser parser( fake );
 
-
-    std::string str;
-    std::cout << "> ";
-    std::vector<ContextStackItem> context;
-    while ( getline( std::cin, str ) ) {
-        if ( str.size() == 1 && ( str[ 0 ] == 'q' || str[ 0 ] == 'Q' ) )
-            break;
-
-        try {
-            parser.parseLine( str );
-        }
-        catch( UndefinedAttributeError e ) {
-            std::cout << e.dump() << std::endl;
-        }
-        catch( InvalidAttributeDataTypeError e ) {
-            std::cout << e.dump() << std::endl;
-        }
-        catch( InvalidObjectKind e ) {
-            std::cout << e.dump() << std::endl;
-        }
-
-        context = parser.currentContextStack();
-        for (std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it) {
-            if (it != context.begin())
-                std::cout << "/";
-            std::cout << it->kind << " " << it->name;
-        }
-        std::cout << "> ";
-    }
-    
+    CliInteraction cli(fake, &parser);
+    cli.run();
 
     delete fake;
 
