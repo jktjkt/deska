@@ -84,6 +84,10 @@ void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &excep
 void ParserTestFixture::expectNothingElse()
 {
     BOOST_CHECK_MESSAGE(parserEvents.empty(), "Expected no more emitted signals");
+    if (!parserEvents.empty()) {
+        // show the first queued event here
+        BOOST_CHECK_EQUAL(MockParserEvent::invalid(), parserEvents.front());
+    }
 }
 
 void ParserTestFixture::expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
