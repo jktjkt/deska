@@ -431,7 +431,7 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
 
     parseErrors.clear();
     
-    bool parsingSucceeded;
+    bool parsingSucceeded = false;
     int parsingIterations = 0;
     std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
 
