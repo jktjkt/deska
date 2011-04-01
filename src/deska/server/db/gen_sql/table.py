@@ -91,6 +91,8 @@ class Table:
 	DECLARE	ver bigint;
 		rowuid bigint;
 		tmp bigint;
+		prev_changeset bigint;
+		parent_changeset bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
@@ -98,9 +100,11 @@ class Table:
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
 		IF NOT FOUND THEN
+			parent_changeset = parrent(ver);
+			prev_changeset = {tbl}_prev_changeset(rowuid,parent_changeset);
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version <= parrent(ver);
+					WHERE uid = rowuid AND version = prev_changeset;
 		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
@@ -122,6 +126,8 @@ class Table:
 		refuid bigint;
 		rowuid bigint;
 		tmp bigint;
+		prev_changeset bigint;
+		parent_changeset bigint;
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT {reftbl}_get_uid(value) INTO refuid;
@@ -130,9 +136,11 @@ class Table:
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
 		IF NOT FOUND THEN
+			parent_changeset = parrent(ver);
+			prev_changeset = {tbl}_prev_changeset(rowuid,parent_changeset);
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version <= parrent(ver);
+					WHERE uid = rowuid AND version = prev_changeset;
 		END IF;
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
