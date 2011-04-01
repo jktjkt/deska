@@ -455,8 +455,8 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
             parsingSucceeded = phrase_parse( iter, end, *( wholeKindParsers[ contextStack.back().kind ] ), ascii::space );
         }
 
-        // Some bad input
         if (!parsingSucceeded) {
+            // Some bad input
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
 #endif
