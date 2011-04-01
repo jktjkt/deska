@@ -160,7 +160,7 @@ ParseErrorType ParseError<Iterator>::getType() const
 template <typename Iterator>
 Iterator ParseError<Iterator>::getErrorPosition( const std::string &line ) const
 {
-    if(line.size() < (m_end - m_errorPos))
+    if (line.size() < static_cast<std::size_t>(m_end - m_errorPos))
         throw std::out_of_range("Parse error position exceeds the size of parsed line.");
     return (line.end() - (m_end - m_errorPos));
 }
