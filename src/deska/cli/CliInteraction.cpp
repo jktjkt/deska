@@ -31,12 +31,26 @@ namespace Deska
 namespace Cli
 {
 
+std::ostream &operator<<(std::ostream &stream, const std::vector<ContextStackItem> &stack)
+{
+    for (std::vector<ContextStackItem>::const_iterator it = stack.begin(); it != stack.end(); ++it) {
+        if (it != stack.begin())
+            stream << " -> ";
+        stream << it->kind << " " << it->name;
+    }
+    return stream;
+}
+
+
 CliInteraction::CliInteraction(Db::Api *api, Parser *parser):
     m_api(api), m_parser(parser)
 {
     using boost::phoenix::bind;
     using boost::phoenix::arg_names::_1;
+    using boost::phoenix::arg_names::_2;
     m_parser->parseError.connect(bind(&CliInteraction::slotParserError, this, _1));
+    // got to fully quallify bind on next line :(
+    m_parser->attributeSet.connect(boost::phoenix::bind(&CliInteraction::slotSetAttribute, this, _1, _2));
 }
 
 void CliInteraction::run()
@@ -51,18 +65,19 @@ void CliInteraction::run()
         m_parser->parseLine(line);
 
         context = m_parser->currentContextStack();
-        for (std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it) {
-            if (it != context.begin())
-                std::cout << " -> ";
-            std::cout << it->kind << " " << it->name;
-        }
-        std::cout << "> ";
+        std::cout << context << "> ";
     }
 }
 
 void CliInteraction::slotParserError(const ParserException &e)
 {
     std::cout << "Parse error: " << e.dump() << std::endl;
+}
+
+void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Value &value)
+{
+    std::cout << "Setting attribute " << m_parser->currentContextStack() << " -> " << name << " to '" << value << "'" << std::endl;
+
 }
 
 }

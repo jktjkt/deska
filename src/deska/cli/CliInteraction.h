@@ -22,7 +22,9 @@
 #ifndef DESKA_CLI_INTERACTION_H
 #define DESKA_CLI_INTERACTION_H
 
+#include <vector>
 #include <boost/noncopyable.hpp>
+#include "deska/db/Objects.h"
 
 namespace Deska {
 namespace Db {
@@ -45,6 +47,7 @@ public:
 
 private:
     void slotParserError(const ParserException &e);
+    void slotSetAttribute(const Db::Identifier &name, const Db::Value &value);
 
 private:
     Db::Api *m_api;
