@@ -230,7 +230,6 @@ BOOST_FIXTURE_TEST_CASE(nested_interface, ParserTestFixture)
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 }
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_inline_with_attr_for_parent, 6);
 /** @short An attribute for parent is listed inline after an embedded object -> fail */
 BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTestFixture)
 {
@@ -249,7 +248,6 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     verifyEmptyStack();
 }
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_immediately_inline, 2);
 /** @short Inline definition of an embedded object given immediately after the parent */
 BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, ParserTestFixture)
 {
@@ -263,7 +261,6 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, ParserTestFixture)
 }
 
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(nested_interface_after_parent_attr_inline, 9);
 /** @short Inline definition of an embedded object after a paren't attr */
 BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFixture)
 {
