@@ -157,21 +157,23 @@ class Table:
 '''
 	# template string for get data functions
 	get_data_string = '''CREATE FUNCTION
-	{tbl}_get_data(IN name_ text)
+	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
 	AS
 	$$
 	DECLARE	ver bigint;
+		obj_uid bigint;
 		data {tbl}_type;
 	BEGIN
-		SELECT my_version() INTO ver;
+		obj_uid = {tbl}_get_uid(name_);
+		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 
 		SELECT {columns} INTO data FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
+			WHERE uid = obj_uid AND version = ver;
 			
 		IF NOT FOUND THEN
 			SELECT {columns} INTO data FROM {tbl}
-				WHERE name = name_;
+				WHERE uid = obj_uid;
 		END IF;
 		
 		RETURN data;
@@ -182,7 +184,7 @@ class Table:
 '''
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
-	{tbl}_get_data(IN name_ text)
+	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
 	AS
 	$$
@@ -190,9 +192,11 @@ class Table:
 		parrent_uid bigint;
 		parrent_name text;
 		base_name text;
+		obj_uid bigint;
 		data {tbl}_type;
 	BEGIN
-		SELECT my_version() INTO ver;
+		obj_uid = {tbl}_get_uid(name_);
+		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
 		SELECT host_get_uid(parrent_name) INTO parrent_uid;
 					
@@ -410,7 +414,8 @@ class Table:
 
 '''
 #template string for getting last id of changeset preceding changeset_id where object with uid was changed
-	prev_changest_string='''CREATE FUNCTION {tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
+	prev_changest_string='''CREATE FUNCTION 
+	{tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
 	RETURNS bigint
 	AS
 	$$
@@ -430,6 +435,51 @@ class Table:
 			JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
 		SELECT ID INTO last_changeset_id FROM version WHERE num = last_change_version;
 		RETURN last_changeset_id;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+	changeset_of_data_version_string = '''CREATE FUNCTION 
+	{tbl}_changeset_of_data_version(obj_uid bigint, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		changeset_id bigint;
+		preceding_changeset bigint;
+		tmp bigint;
+	BEGIN
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			SELECT my_version() INTO changeset_id;
+			--no opened changeset
+			IF changeset_id IS NULL THEN
+				--user wants newest data
+				SELECT MAX(num) INTO version_id FROM version;
+				SELECT ID INTO changeset_id FROM version WHERE num = version_id;
+			ELSE
+				--user wants data in his version, or earlier
+				SELECT uid INTO tmp FROM {tbl}_history WHERE uid = obj_uid AND version = changeset_id;
+				IF NOT FOUND THEN
+					SELECT parrent INTO changeset_id FROM changeset WHERE id = changeset_id;
+				ELSE
+					RETURN changeset_id;
+				END IF;		
+			END IF;
+		ELSE
+			--user wants to see data valid in some commited version
+			SELECT ID INTO changeset_id FROM version WHERE num = from_version;
+			IF NOT FOUND THEN
+				RAISE EXCEPTION 'version with number % does not exist', from_version;
+			END IF;
+		END IF;
+
+		SELECT {tbl}_prev_changeset(obj_uid,changeset_id) INTO preceding_changeset;
+		
+		RETURN preceding_changeset;
 	END;
 	$$
 	LANGUAGE plpgsql;
@@ -580,6 +630,9 @@ class Table:
 
 	def gen_prev_changeset(self):
 		return self.prev_changest_string.format(tbl = self.name)
+
+	def gen_changeset_of_data_version(self):
+		return self.changeset_of_data_version_string.format(tbl = self.name)
 
 
 class Api:

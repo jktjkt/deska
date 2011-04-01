@@ -152,6 +152,7 @@ CREATE FUNCTION commitChangeset()
 		self.sql.write(table.gen_names())
 		self.sql.write(table.gen_get_name())
 		self.sql.write(table.gen_prev_changeset())
+		self.sql.write(table.gen_changeset_of_data_version())
 		return
 	
 	def gen_commit(self):
