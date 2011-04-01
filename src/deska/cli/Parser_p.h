@@ -210,7 +210,7 @@ public:
 
     void addParseError( const ParseError<Iterator> &error );
     
-    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
+    std::vector<std::string> tabCompletitionPossibilities( const std::string &line );
 
 private:
     Parser *m_parser;

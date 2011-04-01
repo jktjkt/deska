@@ -373,7 +373,7 @@ void ParserImpl<Iterator>::addParseError( const ParseError<Iterator> &error )
 
 
 template <typename Iterator>
-std::vector<std::string> ParserImpl<Iterator>::getTabCompletitionPossibilities( const std::string &line )
+std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities( const std::string &line )
 {
     dryRun = true;
     if (parseLineImpl(line))
@@ -577,7 +577,7 @@ template void ParserImpl<iterator_type>::attributeSet( const Db::Identifier &nam
 
 template void ParserImpl<iterator_type>::addParseError( const ParseError<iterator_type> &error );
 
-template std::vector<std::string> ParserImpl<iterator_type>::getTabCompletitionPossibilities( const std::string &line );
+template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities( const std::string &line );
 
 template void ParserImpl<iterator_type>::addKindAttributes( std::string &kindName, AttributesParser<iterator_type>* attributesParser );
 

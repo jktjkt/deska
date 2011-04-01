@@ -130,7 +130,7 @@ public:
     *
     *   @return Vector of strings, that are possible continuations of current line.
     */
-    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
+    std::vector<std::string> tabCompletitionPossibilities( const std::string &line );
 
     /** @short The input indicates that the following signals will be related to a particular object
     *
