@@ -435,7 +435,7 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
     int parsingIterations = 0;
     std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
 
-    while( iter != end ) {
+    while (iter != end) {
         ++parsingIterations;
 #ifdef PARSER_DEBUG
         std::cout << "Parsing: " << std::string( iter, end ) << std::endl;
@@ -464,13 +464,12 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
             // There have to be some ParseError when parsing fails.
             BOOST_ASSERT( parseErrors.size() != 0 );
             break;
-        }
-        else {
+        } else {
             parseErrors.clear();
         }     
     }
 
-    if( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
+    if ( ( parsingIterations == 1 ) && ( previousContextStackSize < contextStack.size() ) ) {
         // Definition of kind found stand-alone on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
