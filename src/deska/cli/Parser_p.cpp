@@ -375,6 +375,7 @@ void ParserImpl<Iterator>::addParseError( const ParseError<Iterator> &error )
 template <typename Iterator>
 std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities( const std::string &line )
 {
+    // FIXME: return correct result
     dryRun = true;
     if (parseLineImpl(line))
         return std::vector<std::string>();
