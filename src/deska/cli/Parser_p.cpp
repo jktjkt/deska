@@ -489,10 +489,10 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError( const std::string& line )
 {
+    if (parseErrors.empty())
+        throw std::out_of_range("Parse error reporting: No errors to report!");
     if (parseErrors.size() >= 3)
         throw std::out_of_range("Parse error reporting: Too many errors on stack!");
-    if (parseErrors.size() != 0)
-        throw std::out_of_range("Parse error reporting: No errors to report!");
 
     bool argumentTypeError = false;
 
