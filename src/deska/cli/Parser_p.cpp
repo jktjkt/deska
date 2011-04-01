@@ -509,17 +509,20 @@ void ParserImpl<Iterator>::reportParseError( const std::string& line )
 
     if (!argumentTypeError) {
         if (parseErrors.size() == 1) {
+            const ParseError<Iterator> &err = parseErrors.front();
 #ifdef PARSER_DEBUG
-            std::cout << parseErrors[0].toString() << std::endl;
+            std::cout << err.toString() << std::endl;
 #endif
-            if (parseErrors[0].errorType() == PARSE_ERROR_TYPE_ATTRIBUTE)
-                m_parser->parseError(UndefinedAttributeError(
-                    parseErrors[0].toString(), line, parseErrors[0].errorPosition( line ) ));
-            else if (parseErrors[0].errorType() == PARSE_ERROR_TYPE_KIND)
-                m_parser->parseError(InvalidObjectKind(
-                    parseErrors[0].toString(), line, parseErrors[0].errorPosition( line ) ));
-            else
+            switch (err.errorType()) {
+            case PARSE_ERROR_TYPE_ATTRIBUTE:
+                m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition(line)));
+                break;
+            case PARSE_ERROR_TYPE_KIND:
+                m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition(line)));
+                break;
+            default:
                 throw std::domain_error("ParseErrorType out of range");
+            }
         } else {
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
