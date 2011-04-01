@@ -286,8 +286,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine( const std::string &line )
 {
     dryRun = false;
-    if (!parseLineImpl(line))
-        reportParseError(line);
+    parseLineImpl(line);
 }
 
 
@@ -464,6 +463,10 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
             BOOST_ASSERT( parseErrors.size() <= 3 );
             // There have to be some ParseError when parsing fails.
             BOOST_ASSERT( parseErrors.size() != 0 );
+
+            if (!dryRun)
+                reportParseError(line);
+
             break;
         } else {
             parseErrors.clear();
