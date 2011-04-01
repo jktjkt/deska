@@ -473,10 +473,11 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
         // Definition of kind found stand-alone on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
-        if ( depthDiff > 0 )
+        if ( depthDiff > 0 ) {
             for( int i = 0; i < depthDiff; ++i ) {
                 categoryLeft();
             }
+        }
     }
 
     return parsingSucceeded;
