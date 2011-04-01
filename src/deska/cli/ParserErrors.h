@@ -173,10 +173,10 @@ public:
     ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName );
 
-    ParseErrorType getType() const;
-    Iterator getErrorPosition( const std::string &line ) const;
-    std::vector<std::string> getExpectedTypes() const;
-    std::vector<std::string> getExpectedKeywords() const;
+    ParseErrorType errorType() const;
+    Iterator errorPosition( const std::string &line ) const;
+    std::vector<std::string> expectedTypes() const;
+    std::vector<std::string> expectedKeywords() const;
 
     std::string toString() const;
     // FIXME: Maybe rewrite in some other, better way.
@@ -188,13 +188,13 @@ private:
     void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
     void extractAttributeName( const std::string &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule );
 
-    ParseErrorType errorType;
-    std::vector<std::string> expectedTypes;
-    std::vector<std::string> expectedKeywords;
+    ParseErrorType m_errorType;
+    std::vector<std::string> m_expectedTypes;
+    std::vector<std::string> m_expectedKeywords;
     Iterator m_start;
     Iterator m_end;
     Iterator m_errorPos;
-    std::string context;
+    std::string m_context;
 };
 
 
