@@ -48,8 +48,8 @@ int main()
         }
 
         context = parser.currentContextStack();
-        for( std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it ) {
-            if ( it != context.begin() )
+        for (std::vector<ContextStackItem>::iterator it = context.begin(); it != context.end(); ++it) {
+            if (it != context.begin())
                 std::cout << "/";
             std::cout << it->kind << " " << it->name;
         }

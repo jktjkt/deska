@@ -242,7 +242,7 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
     // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
 
-    for( std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
+    for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         topLevelParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
         std::cout << "Adding top level kind: " << *it << std::endl;
@@ -263,16 +263,16 @@ ParserImpl<Iterator>::ParserImpl( Parser *parent ): m_parser( parent )
 template <typename Iterator>
 ParserImpl<Iterator>::~ParserImpl()
 {
-    for( typename std::map<std::string, AttributesParser<Iterator>* >::iterator it = attributesParsers.begin();
-        it != attributesParsers.end(); ++it ) {
+    for (typename std::map<std::string, AttributesParser<Iterator>* >::iterator it = attributesParsers.begin();
+        it != attributesParsers.end(); ++it) {
         delete it->second;
     }
-    for( typename std::map<std::string, WholeKindParser<Iterator>* >::iterator it = wholeKindParsers.begin();
-        it != wholeKindParsers.end(); ++it ) {
+    for (typename std::map<std::string, WholeKindParser<Iterator>* >::iterator it = wholeKindParsers.begin();
+        it != wholeKindParsers.end(); ++it) {
         delete it->second;
     }
-    for( typename std::map<std::string, KindsOnlyParser<Iterator>* >::iterator it = kindsOnlyParsers.begin();
-        it != kindsOnlyParsers.end(); ++it ) {
+    for (typename std::map<std::string, KindsOnlyParser<Iterator>* >::iterator it = kindsOnlyParsers.begin();
+        it != kindsOnlyParsers.end(); ++it) {
         delete it->second;
     }
 
@@ -286,7 +286,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine( const std::string &line )
 {
     dryRun = false;
-    if(!parseLineImpl(line))
+    if (!parseLineImpl(line))
         reportParseError(line);
 }
 
@@ -320,7 +320,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered( const Db::Identifier &kind, const Db::Identifier &name )
 {
     contextStack.push_back( ContextStackItem( kind, name ) );
-    if(!dryRun)
+    if (!dryRun)
         m_parser->categoryEntered( kind, name );
 #ifdef PARSER_DEBUG
     std::cout << "Parsed kind: " << kind << ": " << name << std::endl;
@@ -333,7 +333,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::categoryLeft()
 {
     contextStack.pop_back();
-    if(!dryRun)
+    if (!dryRun)
         m_parser->categoryLeft();
 #ifdef PARSER_DEBUG
     std::cout << "Category left" << std::endl;
@@ -345,7 +345,7 @@ void ParserImpl<Iterator>::categoryLeft()
 template <typename Iterator>
 void ParserImpl<Iterator>::attributeSet( const Db::Identifier &name, const Db::Value &value )
 {
-    if(!dryRun)
+    if (!dryRun)
         m_parser->attributeSet( name, value );
 #ifdef PARSER_DEBUG
     std::cout << "Parsed parameter: " << name << "=" << value << std::endl;
@@ -376,7 +376,7 @@ template <typename Iterator>
 std::vector<std::string> ParserImpl<Iterator>::getTabCompletitionPossibilities( const std::string &line )
 {
     dryRun = true;
-    if(parseLineImpl(line))
+    if (parseLineImpl(line))
         return std::vector<std::string>();
 
     return std::vector<std::string>();
@@ -388,7 +388,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(std::string &kindName, AttributesParser<Iterator>* attributesParser )
 {
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes( kindName );
-    for( std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it ) {
+    for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
         attributesParser->addAtrribute( it->name, predefinedRules->getRule( it->type ) );
 #ifdef PARSER_DEBUG
         std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
@@ -402,10 +402,10 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addNestedKinds(std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser)
 {
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
-    for( std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it ) {
-        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it );
-        for( std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr ) {
-            if( ( itr->kind == Db::RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName ) ) {
+    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations( *it);
+        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
+            if (( itr->kind == Db::RELATION_EMBED_INTO ) && ( itr->targetTableName == kindName )) {
                 kindsOnlyParser->addKind( *it, predefinedRules->getObjectIdentifier() );
 #ifdef PARSER_DEBUG
                 std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
@@ -455,7 +455,7 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
         }
 
         // Some bad input
-        if ( !parsingSucceeded ) {
+        if (!parsingSucceeded) {
 #ifdef PARSER_DEBUG
             std::cout << "Parsing failed." << std::endl;
 #endif
@@ -473,8 +473,8 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
         // Definition of kind found stand-alone on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
-        if ( depthDiff > 0 ) {
-            for( int i = 0; i < depthDiff; ++i ) {
+        if (depthDiff > 0) {
+            for (int i = 0; i < depthDiff; ++i) {
                 categoryLeft();
             }
         }
@@ -488,15 +488,15 @@ bool ParserImpl<Iterator>::parseLineImpl( const std::string &line )
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError( const std::string& line )
 {
-    if(parseErrors.size() <= 3)
+    if (parseErrors.size() <= 3)
         throw std::out_of_range("Parse error reporting: Too much errors on stack!");
-    if(parseErrors.size() != 0)
+    if (parseErrors.size() != 0)
         throw std::out_of_range("Parse error reporting: No errors to report!");
 
     bool argumentTypeError = false;
 
     for (typename std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it) {
-        if( it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE ) {
+        if (it->getType() == PARSE_ERROR_TYPE_VALUE_TYPE) {
             argumentTypeError = true;
 #ifdef PARSER_DEBUG
             std::cout << it->toString() << std::endl;
@@ -506,15 +506,15 @@ void ParserImpl<Iterator>::reportParseError( const std::string& line )
         }
     }
 
-    if( !argumentTypeError ) {
-        if( parseErrors.size() == 1 ) {
+    if (!argumentTypeError) {
+        if (parseErrors.size() == 1) {
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toString() << std::endl;
 #endif
-            if( parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE )
+            if (parseErrors[0].getType() == PARSE_ERROR_TYPE_ATTRIBUTE)
                 m_parser->parseError(UndefinedAttributeError(
                     parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
-            else if ( parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND )
+            else if (parseErrors[0].getType() == PARSE_ERROR_TYPE_KIND)
                 m_parser->parseError(InvalidObjectKind(
                     parseErrors[0].toString(), line, parseErrors[0].getErrorPosition( line ) ));
             else

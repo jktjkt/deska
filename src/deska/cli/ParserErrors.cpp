@@ -190,7 +190,7 @@ std::string ParseError<Iterator>::toString() const
     sout << "Error while parsing " << parseErrorTypeToString(errorType);
     switch( errorType ) {
         case PARSE_ERROR_TYPE_KIND:
-            if( context.empty() )
+            if (context.empty())
                 sout << ". Unknown top-level kind";
             else
                 sout << " of nested object in " << context;
@@ -201,9 +201,9 @@ std::string ParseError<Iterator>::toString() const
             break;
     }
     sout << ". Expected one of [ ";
-    for( std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
+    for (std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it)
         sout << "\"" << *it << "\" ";
-    for( std::vector<std::string>::const_iterator it = expectedTypes.begin(); it != expectedTypes.end(); ++it )
+    for (std::vector<std::string>::const_iterator it = expectedTypes.begin(); it != expectedTypes.end(); ++it)
         sout << "<" << *it << "> ";
     sout << "].";
     //sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
@@ -217,10 +217,10 @@ std::string ParseError<Iterator>::toCombinedString( const ParseError<Iterator> &
 {
     std::ostringstream sout;
     sout << "Error while parsing attribute name or nested kind name in " << context << ". Expected one of [ ";
-    for( std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it )
+    for (std::vector<std::string>::const_iterator it = expectedKeywords.begin(); it != expectedKeywords.end(); ++it)
         sout << "\"" << *it << "\" ";
     std::vector<std::string> expectedKinds = kindError.getExpectedKeywords();
-    for( std::vector<std::string>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it )
+    for (std::vector<std::string>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it)
         sout << "\"" << *it << "\" ";
     sout << "].";
     //sout << "] here: " << std::string( m_errorPos, m_end ) << ".";
