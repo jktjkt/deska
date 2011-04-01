@@ -494,21 +494,24 @@ void ParserImpl<Iterator>::reportParseError( const std::string& line )
     if (parseErrors.size() >= 3)
         throw std::out_of_range("Parse error reporting: Too many errors on stack!");
 
-    bool argumentTypeError = false;
-
-    for (typename std::vector<ParseError<Iterator> >::iterator it = parseErrors.begin(); it != parseErrors.end(); ++it) {
-        if (it->errorType() == PARSE_ERROR_TYPE_VALUE_TYPE) {
-            argumentTypeError = true;
+    // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
+    // by an error in the attribute value
+    using namespace boost::phoenix;
+    typename std::vector<ParseError<Iterator> >::iterator it = std::find_if(
+                parseErrors.begin(), parseErrors.end(),
+                bind(&ParseError<Iterator>::errorType, arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE
+                );
+    if (it != parseErrors.end()) {
+        // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
+        // which could be reported by spirit as a result of the error propagation.
 #ifdef PARSER_DEBUG
-            std::cout << it->toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(InvalidAttributeDataTypeError( it->toString(), line, it->errorPosition( line ) ));
-            break;
-        }
-    }
-
-    if (!argumentTypeError) {
+        m_parser->parseError(InvalidAttributeDataTypeError( it->toString(), line, it->errorPosition( line ) ));
+    } else {
+        // There's no trace of an error in the attribute data anywhere
         if (parseErrors.size() == 1) {
+            // whatever it is, let's just store it
             const ParseError<Iterator> &err = parseErrors.front();
 #ifdef PARSER_DEBUG
             std::cout << err.toString() << std::endl;
@@ -521,14 +524,17 @@ void ParserImpl<Iterator>::reportParseError( const std::string& line )
                 m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition(line)));
                 break;
             default:
-                throw std::domain_error("ParseErrorType out of range");
+                throw std::domain_error("Invalid value of ParseErrorType");
             }
-        } else {
+        } else if (parseErrors.size() == 2) {
+            // FIXME: describe what could trigger this branch. Our unit tests don't hit this.
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif
             m_parser->parseError(UndefinedAttributeError(
                 parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition( line ) ));
+        } else {
+            throw std::out_of_range("Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");
         }
     }
 }
