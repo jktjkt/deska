@@ -35,27 +35,6 @@ static std::string j_attrName = "attributeName";
 static std::string j_revision = "revision";
 static std::string j_errorPrefix = "error";
 
-static std::string j_cmd_kindNames = "getTopLevelObjectNames";
-static std::string j_cmd_kindAttributes = "getKindAttributes";
-static std::string j_cmd_kindRelations = "getKindRelations";
-static std::string j_cmd_kindInstances = "getKindInstances";
-static std::string j_cmd_objectData = "getObjectData";
-static std::string j_cmd_resolvedObjectData = "getResolvedObjectData";
-static std::string j_cmd_findObjectsOverridingAttrs = "getObjectsOverridingAttribute";
-static std::string j_cmd_findObjectsNotOverridingAttrs = "getObjectsNotOverridingAttribute";
-static std::string j_cmd_createObject = "createObject";
-static std::string j_cmd_deleteObject = "deleteObject";
-static std::string j_cmd_renameObject = "renameObject";
-static std::string j_cmd_removeAttribute = "removeObjectAttribute";
-static std::string j_cmd_setAttribute = "setObjectAttribute";
-static std::string j_cmd_startChangeset = "vcsStartChangeset";
-static std::string j_cmd_commitChangeset = "vcsCommitChangeset";
-static std::string j_cmd_rebaseChangeset = "vcsRebaseChangeset";
-static std::string j_cmd_pendingChangesetsByMyself = "vcsGetPendingChangesetsByMyself";
-static std::string j_cmd_resumeChangeset = "vcsResumePendingChangeset";
-static std::string j_cmd_detachFromCurrentChangeset = "vcsDetachFromCurrentChangeset";
-static std::string j_cmd_abortCurrentChangeset = "vcsAbortCurrentChangeset";
-
 namespace Deska {
 namespace Db {
 
@@ -113,7 +92,7 @@ json_spirit::Object JsonApiParser::readJsonObject() const
 vector<Identifier> JsonApiParser::kindNames() const
 {
     vector<Identifier> res;
-    JsonHandler h(this, j_cmd_kindNames);
+    JsonHandler h(this, "kindNames");
     h.read("topLevelObjectKinds").extract(&res);
     h.work();
     return res;
@@ -122,7 +101,7 @@ vector<Identifier> JsonApiParser::kindNames() const
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
     vector<KindAttributeDataType> res;
-    JsonHandler h(this, j_cmd_kindAttributes);
+    JsonHandler h(this, "kindAttributes");
     h.write(j_kindName, kindName);
     h.read("kindAttributes").extract(&res);
     h.work();
@@ -132,7 +111,7 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
 vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName ) const
 {
     vector<ObjectRelation> res;
-    JsonHandler h(this, j_cmd_kindRelations);
+    JsonHandler h(this, "kindRelations");
     h.write(j_kindName, kindName);
     h.read("kindRelations").extract(&res);
     h.work();
@@ -142,7 +121,7 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
 vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const RevisionId revision ) const
 {
     vector<Identifier> res;
-    JsonHandler h(this, j_cmd_kindInstances);
+    JsonHandler h(this, "kindInstances");
     h.write(j_kindName, kindName);
     h.write(j_revision, revision);
     h.read("objectInstances").extract(&res);
@@ -153,7 +132,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
     map<Identifier, Value> res;
-    JsonHandler h(this, j_cmd_objectData);
+    JsonHandler h(this, "objectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_revision, revision);
@@ -166,7 +145,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
                                                                       const Identifier &objectName, const RevisionId revision )
 {
     map<Identifier, pair<Identifier, Value> > res;
-    JsonHandler h(this, j_cmd_resolvedObjectData);
+    JsonHandler h(this, "resolvedObjectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_revision, revision);
@@ -179,7 +158,7 @@ vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName
                                                 const Identifier &attributeName)
 {
     vector<Identifier> res;
-    JsonHandler h(this, j_cmd_findObjectsOverridingAttrs);
+    JsonHandler h(this, "findOverriddenAttrs");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
@@ -192,7 +171,7 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
                                                    const Identifier &attributeName)
 {
     vector<Identifier> res;
-    JsonHandler h(this, j_cmd_findObjectsNotOverridingAttrs);
+    JsonHandler h(this, "findNonOverriddenAttrs");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
@@ -203,7 +182,7 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
 {
-    JsonHandler h(this, j_cmd_deleteObject);
+    JsonHandler h(this, "deleteObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.expectTrue("result");
@@ -212,7 +191,7 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
-    JsonHandler h(this, j_cmd_createObject);
+    JsonHandler h(this, "createObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.expectTrue("result");
@@ -221,7 +200,7 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
 {
-    JsonHandler h(this, j_cmd_renameObject);
+    JsonHandler h(this, "renameObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, oldName);
     h.write("newObjectName", newName);
@@ -231,7 +210,7 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
 {
-    JsonHandler h(this, j_cmd_removeAttribute);
+    JsonHandler h(this, "removeAttribute");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
@@ -242,7 +221,7 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
                            const Value &value)
 {
-    JsonHandler h(this, j_cmd_setAttribute);
+    JsonHandler h(this, "setAttribute");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
@@ -254,7 +233,7 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
 TemporaryChangesetId JsonApiParser::startChangeset()
 {
     TemporaryChangesetId revision = TemporaryChangesetId::null;
-    JsonHandler h(this, j_cmd_startChangeset);
+    JsonHandler h(this, "startChangeset");
     h.read(j_revision).extract(&revision);
     h.work();
     return revision;
@@ -263,7 +242,7 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     RevisionId revision = RevisionId::null;
-    JsonHandler h(this, j_cmd_commitChangeset);
+    JsonHandler h(this, "commitChangeset");
     h.read(j_revision).extract(&revision);
     h.write("commitMessage", commitMessage);
     h.work();
@@ -273,7 +252,7 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
 {
     TemporaryChangesetId revision = TemporaryChangesetId::null;
-    JsonHandler h(this, j_cmd_rebaseChangeset);
+    JsonHandler h(this, "rebaseChangeset");
     h.write("currentRevision", oldRevision);
     h.read(j_revision).extract(&revision);
     h.work();
@@ -283,7 +262,7 @@ TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision
 vector<TemporaryChangesetId> JsonApiParser::pendingChangesetsByMyself()
 {
     vector<TemporaryChangesetId> res;
-    JsonHandler h(this, j_cmd_pendingChangesetsByMyself);
+    JsonHandler h(this, "pendingChangesetsByMyself");
     h.read("revisions").extract(&res);
     h.work();
     return res;
@@ -291,21 +270,21 @@ vector<TemporaryChangesetId> JsonApiParser::pendingChangesetsByMyself()
 
 void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
 {
-    JsonHandler h(this, j_cmd_resumeChangeset);
+    JsonHandler h(this, "resumeChangeset");
     h.write(j_revision, revision);
     h.work();
 }
 
 void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
 {
-    JsonHandler h(this, j_cmd_detachFromCurrentChangeset);
+    JsonHandler h(this, "detachFromCurrentChangeset");
     h.write("message", message);
     h.work();
 }
 
 void JsonApiParser::abortCurrentChangeset()
 {
-    JsonHandler h(this, j_cmd_abortCurrentChangeset);
+    JsonHandler h(this, "abortCurrentChangeset");
     h.work();
 }
 
