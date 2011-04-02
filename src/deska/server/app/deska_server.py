@@ -8,5 +8,6 @@ while True:
 	if not line:
 		break
 	jsn = Jsn(line)
-	sys.stdout.write(str(jsn.process()))
+	sys.stdout.write(jsn.process() + "\n")
+	sys.stdout.flush()
 

@@ -46,5 +46,5 @@ class Jsn:
 		res = self.command()
 		jsn = self.responce(res)
 		self.db.commit()
-		return jsn
+		return json.dumps(jsn)
 
