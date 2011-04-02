@@ -5,7 +5,7 @@
 
 import psycopg2
 from table import Table,Api
-  
+
 class Plpy:
 	def __init__(self):
 		try:
@@ -35,7 +35,7 @@ class Schema:
 	commit_string = '''
 -- need this in api schema
 SET search_path TO api,genproc,history,deska,production;
-	
+
 CREATE FUNCTION commitChangeset()
 	RETURNS integer
 	AS
@@ -78,13 +78,13 @@ CREATE FUNCTION commitChangeset()
 
 		# print fks at the end of generation
 		self.sql.write(self.fks)
-		
+
 		self.sql.write(self.gen_commit())
 		self.py.write(self.pygen_commit())
 
 		self.py.close()
 		self.sql.close()
-		return 
+		return
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
@@ -95,7 +95,7 @@ CREATE FUNCTION commitChangeset()
 		table = Table(tbl)
 		# create Api obj
 		api = Api(tbl)
-		
+
 		# add columns
 		for col in tables[:]:
 			table.add_column(col[0],col[1])
@@ -115,7 +115,7 @@ CREATE FUNCTION commitChangeset()
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
 		cols_ref_uid = table.get_cols_reference_uid()
-		for col in tables[:]:			
+		for col in tables[:]:
 			if (col[0] in cols_ref_uid):
 				reftable = cols_ref_uid[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
@@ -128,8 +128,8 @@ CREATE FUNCTION commitChangeset()
 			#get uid of that references uid should not return uid but name of according instance
 			#if (col[0] in cols_ref_embed):
 			self.py.write(api.gen_get(col[0]))
-		
-		#get uid from embed object		
+
+		#get uid from embed object
 		embed_column = table.get_col_embed_reference_uid()
 		if (embed_column != ""):
 			reftable = cols_ref_uid[embed_column[0]]
@@ -140,7 +140,7 @@ CREATE FUNCTION commitChangeset()
 		else:
 			self.sql.write(table.gen_add())
 			self.sql.write(table.gen_get_uid())
-			
+
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
@@ -153,14 +153,14 @@ CREATE FUNCTION commitChangeset()
 		self.sql.write(table.gen_get_name())
 		self.sql.write(table.gen_prev_changeset())
 		return
-	
+
 	def gen_commit(self):
 		commit_table_template = '''PERFORM {tbl}_commit();
-		'''		
+		'''
 		commit_tables=""
 		for table in self.tables:
 			commit_tables = commit_tables + commit_table_template.format(tbl = table)
-		
+
 		return self.commit_string.format(commit_tables = commit_tables)
 
 	def pygen_commit(self):
