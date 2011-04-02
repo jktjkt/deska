@@ -1,6 +1,6 @@
 import psycopg2
 
-conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
+conn = psycopg2.connect("dbname='deska_dev'");
 
 class DB:
 	methods = dict({
