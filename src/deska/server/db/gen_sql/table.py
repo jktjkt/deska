@@ -401,6 +401,32 @@ class Table:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+#template string for getting last id of changeset preceding changeset_id where object with uid was changed
+	prev_changest_string='''CREATE FUNCTION {tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		--is result of function, last changeset where object with uid is changed
+		last_changeset_id bigint;
+		--last version where was the object with uid changed
+		last_change_version bigint;
+	BEGIN
+		SELECT num INTO version_id FROM version WHERE ID = changeset_id;
+		IF NOT FOUND THEN
+			RAISE EXCEPTION 'changeset with version % was not commited', changeset_id;
+		END IF;
+		SELECT MAX(v.num) INTO last_change_version
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
+		SELECT ID INTO last_changeset_id FROM version WHERE num = last_change_version;
+		RETURN last_changeset_id;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
 
 	def __init__(self,name):
 		self.data = dict()
@@ -543,6 +569,9 @@ class Table:
 
 	def gen_names(self):
 		return self.names_string.format(tbl = self.name)
+
+	def gen_prev_changeset(self):
+		return self.prev_changest_string.format(tbl = self.name)
 
 
 class Api:
