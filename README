@@ -9,7 +9,7 @@ Build instructions for the C++ CLI interface:
 2) cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 3) make -j4
 
-Setup for the SQL server side:
+Setup for the SQL server side (see doc/misc/pgsql-setup for details):
 
 1) create db deska_dev, with roles deska_admin and deska_user, create language plpythonu
 2) run src/deska/server/db/create_1.sql 

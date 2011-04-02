@@ -1,33 +1,20 @@
-1) login to deska-dev
-2) su - postgres
-3) users & roles:
+PostgreSQL setup for the Deska server part:
 
-postgres=# CREATE USER kundratj;
+postgres@velbloud ~ $ psql
+postgres=# create user foobar;
 CREATE ROLE
-postgres=# create user hubik;
+postgres=# create role deska_admin;
 CREATE ROLE
-postgres=# create user krejcova;
+postgres=# create role deska_user;
 CREATE ROLE
-postgres=# create user kerpl;
-CREATE ROLE
-postgres=# create role deska_team;
-CREATE ROLE
-postgres=# grant deska_team to hubik, kerpl, krejcova, kundratj;
+postgres=# grant deska_admin to foobar;
 GRANT ROLE
-postgres=# \du
-                                 List of roles
- Role name  | Superuser | Create role | Create DB | Connections |  Member of
-------------+-----------+-------------+-----------+-------------+--------------
- deska_team | no        | no          | no        | no limit    |
- hubik      | no        | no          | no        | no limit    | {deska_team}
- kerpl      | no        | no          | no        | no limit    | {deska_team}
- krejcova   | no        | no          | no        | no limit    | {deska_team}
- kundratj   | no        | no          | no        | no limit    | {deska_team}
- postgres   | yes       | yes         | yes       | no limit    |
-(6 rows)
-postgres=# create DATABASE deska_dev OWNER deska_team;
+postgres=# grant deska_user to foobar;
+GRANT ROLE
+postgres=# create database deska_dev owner deska_admin;
 CREATE DATABASE
 
+postgres@velbloud ~ $ psql deska_dev
+deska_dev=# create language plpythonu;
+CREATE LANGUAGE
 
-Stuff below was done as kundratj:
-deska_dev=> create schema deska_dev authorization deska_team;
