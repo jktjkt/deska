@@ -22,6 +22,8 @@ SELECT * FROM vendor_history;
 SELECT * FROM hardware_history;
 SELECT * FROM vendor;
 SELECT * FROM hardware;
+END;
+BEGIN;
 
 SELECT startChangeset();
 --SELECT deleteObject('hardware','hwDELL');

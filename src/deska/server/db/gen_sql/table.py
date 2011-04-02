@@ -113,7 +113,7 @@ class Table:
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version <= parrent(ver);
+					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parrent(ver));
 		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
@@ -145,7 +145,7 @@ class Table:
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version <= parrent(ver);
+					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parrent(ver));
 		END IF;
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
