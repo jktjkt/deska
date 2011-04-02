@@ -131,8 +131,7 @@ class Dates(rlist):
 		self.D = Numbers(28, 1)
 
 	def ritem(self):
-		#return "{D}/{M}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
-		return "{Y}-{M}-{D}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
+		return "{D}/{M}/{Y}".format(M = self.M.ritem(), D = self.D.ritem(), Y = self.Y.ritem())
 
 class Interfaces(rlist):
 	def __init__(self,names,num = 4):
