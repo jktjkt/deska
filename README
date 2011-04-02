@@ -1,15 +1,16 @@
 This is Deska, a tool for central administration of a grid site; for details,
 please see http://projects.flaska.net/projects/show/deska .
 
-This is free software, dual-licensed under FIXME.
+This is free software, dual-licensed under the GPLv2 and GPLv3.
 
-Build instructions:
+Build instructions for the C++ CLI interface:
 
 1) mkdir _build && cd _build
 2) cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 3) make -j4
 
-DB stuff:
+Setup for the SQL server side:
+
 1) create db deska_dev, with roles deska_admin and deska_user, create language plpythonu
 2) run src/deska/server/db/create_1.sql 
 3) run python src/deska/server/db/gen_sql/gen_stored_proc.py
