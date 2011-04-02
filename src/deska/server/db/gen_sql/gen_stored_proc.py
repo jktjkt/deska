@@ -9,9 +9,7 @@ from table import Table,Api
 class Plpy:
 	def __init__(self):
 		try:
-			#conn = psycopg2.connect("dbname='deska_dev' user='kerpl' host='localhost' port=6666");
-			#conn = psycopg2.connect("dbname='deska' user='martina' host='localhost' password='martina'");
-			conn = psycopg2.connect("dbname='deska_dev' user='deska' host='localhost' password='deska'");
+			conn = psycopg2.connect("dbname='deska_dev'");
 			self.mark = conn.cursor()
 
 		except:
