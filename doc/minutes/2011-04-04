@@ -1,0 +1,118 @@
+Schuze Deska, 2011-04-04 FZU
+----------------------------
+
+Pritomni: Tomas, Honza
+Omluveni: Martina (nemoc), Lukas (?)
+
+
+Ukoly z minula:
+---------------
+
+Lukas a Martina nepritomni, sejdeme se snad nekdy behem tydne, k diskuzi je toho
+dost. Stav ukolu nepisu.
+
+Lukas: vyzkousi, jak se Pythoni JSON parsing stavi k tomu, ze dostane jenom cast
+    stringu (obdoba problemu, na ktery narazil Honza v C++ implementaci) (#163)
+Lukas: zdokumentovat po sobe kod
+Lukas: upravit generovani pro templaty (#158)
+Lukas: meta planovaci ticket :) pro templatovani v SQLku
+Lukas: pracovat na #157, spolecne L + M
+
+Martina: zdokumentovat po sobe kod
+Martina: castovani (#125)
+Martina: implementovat volitelny argument revision (#156)
+Martina: zakazani/povoleni constraintu a indexu pro ucely performance testu atd (#164)
+Martina: pracovat na #157, spolecne L + M
+
+Honza: smerovat k funkcnimu IO k deska serveru (#142)
+    - je
+Honza: upravit commitChangeset(), pridat argumeent commitMessage, zmena na
+    "message" u detach... (#161)
+    - je
+Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
+    Lukasovo vystupu v JSONu (#143)
+    - neni
+Honza: rozsireni API smerem k dotazum na revize (#143)
+    - neni
+Honza: vyzkousi DB
+    - je
+Honza: readline-- do cmake (#162)
+    - header-only, zrejme potreba doresit config.hpp
+
+Tomas: prochazeni unit testy (#119)
+    - je
+Tomas: json_spirit a hlaseni neuplnych dat (#160)
+    - ukradl si Honza
+Tomas: dokumentace kodu (#159)
+    - necommitnuto
+Tomas: tab completion (#101)
+    - hodne na zacatku
+Tomas: event. readline
+    - neni
+
+
+Diskuse:
+--------
+
+Tomas nebyl online, nemoh kompilovat, byl na chalupe bez mailu, tento tyden
+dozene hodiny.
+
+Stav CLI parseru:
+
+Do konce tydne budou prochazet unit testy (s vyjimkou int/string/double chyb
+typu ve variantech), kod bude okomentovany a bude z nej poznat (=Honza pozna),
+co dela. Bude ve stavu, kdy se o nem nebude tvrdit "tohle je rozpracovano",
+pujde o dostatecne finalni verzi. Event. dalsi vyvoj pro tab completion je
+samozrejme mozny.
+
+Stav Py/SQL API: neznamo
+
+Instalace SQL: neznamo
+
+Funkcnost SQL: neznamo
+
+Casovy plan: neprobirali jsme
+
+rlmm:
+
+Je to header-only knihovna, problem s configure.hpp. Prozaitm vyvoj v extra
+branchi, pred pouzitim nutno sputit v adresari s rlmm prikaz ./configure, to
+udela nejake config.hpp. Pracovat normalne s include soubory rlmm, pote
+spravime.
+
+Tab completion:
+
+> hw foo
+........^ tab
+
+-> hw foobar
+-> hw foo [mezera]
+
+> hw foo [mezera]
+.........^ tab
+
+-> hw foo color
+-> hw foo price
+-> hw foo interface
+
+Diskuse o Tomasove praci v nejblizsi dobe.
+
+Ukoly na priste:
+----------------
+
+- Tomas: jak udelat mazani objektu? idealne nejake rozsireni parseru?
+- Tomas: doplneni unit testu pro top-level objekty ze schuzky
+- Tomas: dokumentace kodu (#159)
+- Tomas: tab completion (#101)
+- Tomas: readline
+
+- Honza: pokrok s db-c++ interakci
+- Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
+  Lukasovo vystupu v JSONu (#143)
+- Honza: rozsireni API smerem k dotazum na revize (#143)
+
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 11. dubna FZU, tento tyden pokud mozno schuzka s Martinou a Lukasem
