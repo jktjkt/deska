@@ -412,6 +412,23 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
     verifyEmptyStack();
 }
 
+#if 0
+BOOST_FIXTURE_TEST_CASE(invalid_attr_of_embed_object, ParserTestFixture)
+{
+    parser->parseLine("host 123 int3rf4ce 456\n");
+    expectCategoryEntered("host", "123");
+    //expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+// FIXME: "haware foo"
+// FIXME: "end" na zacatku
+// FIXME: "hardware foo*bar"
+// FIXME: "host hpv2 interface foo*bar"
+#endif
+
 /** @short Verify that we can enter into an embedded context with just a single line */
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
 {
