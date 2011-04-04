@@ -122,7 +122,14 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
+    // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
+    // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
+    // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
+    // require more input on the end of the line, which is side effect of eps usage in this way.
     start = (eps(!_a) > dispatch >> -eoi[_a = true]);
+
+    // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
+    // attribute being parsed.
     dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
         > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
@@ -171,8 +178,14 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
+    // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
+    // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
+    // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
+    // require more input on the end of the line, which is side effect of eps usage in this way.
     start = (eps(!_a) > dispatch >> -eoi[_a = true]);
 
+    // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
+    // attribute being parsed.
     dispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
@@ -532,7 +545,8 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 throw std::domain_error("Invalid value of ParseErrorType");
             }
         } else if (parseErrors.size() == 2) {
-            // FIXME: describe what could trigger this branch. Our unit tests don't hit this.
+            // two errors can occur only when bad identifier of attribute for some kind with embedded kinds is set
+            // PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif
