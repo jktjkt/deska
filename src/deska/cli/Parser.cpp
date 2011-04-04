@@ -30,10 +30,10 @@ namespace Cli
 {
 
 
-Parser::Parser( Db::Api *dbApi )
+Parser::Parser(Db::Api *dbApi)
 {
     m_dbApi = dbApi;
-    BOOST_ASSERT( m_dbApi );
+    BOOST_ASSERT(m_dbApi);
     d_ptr = new ParserImpl<iterator_type>(this);
 }
 
@@ -42,12 +42,12 @@ Parser::~Parser()
     delete d_ptr;
 }
 
-void Parser::parseLine( const std::string &line )
+void Parser::parseLine(const std::string &line)
 {
     d_ptr->parseLine(line);
 }
 
-std::vector<std::string> Parser::tabCompletitionPossibilities( const std::string &line )
+std::vector<std::string> Parser::tabCompletitionPossibilities(const std::string &line)
 {
     return d_ptr->tabCompletitionPossibilities(line);
 }
@@ -82,7 +82,7 @@ bool operator==(const ContextStackItem &a, const ContextStackItem &b)
 
 bool operator!=(const ContextStackItem &a, const ContextStackItem &b)
 {
-    return ! (a==b);
+    return !(a==b);
 }
 
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)

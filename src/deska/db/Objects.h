@@ -62,7 +62,7 @@ typedef std::string Identifier;
  * */
 struct KindAttributeDataType
 {
-    KindAttributeDataType( Identifier _name, Type _type ): name(_name), type(_type)
+    KindAttributeDataType(Identifier _name, Type _type): name(_name), type(_type)
     {
     }
 

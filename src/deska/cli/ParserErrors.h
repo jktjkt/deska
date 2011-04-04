@@ -68,8 +68,8 @@ public:
     *   @param what Expected tokens
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds,
-        const std::string &kindName, ParserImpl<Iterator> *parser ) const;
+        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds,
+        const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -93,7 +93,7 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
-        const std::string &kindName, ParserImpl<Iterator> *parser ) const;
+        const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -115,8 +115,8 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const std::string &kindName, const std::vector<std::string> &objectNames, ParserImpl<Iterator> *parser ) const;
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -138,8 +138,8 @@ public:
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
     */
-    void operator()( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const std::string &attributeName, ParserImpl<Iterator> *parser ) const;
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -151,13 +151,13 @@ This class is used as a visitor of boost::spirit::info to extract keywords from 
 class InfoExtractor
 {
 public:
-    InfoExtractor( std::vector<std::string> *keywordsList, std::vector<std::string> *typesList );
+    InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<Db::Identifier> *typesList);
 
-    void element( spirit::utf8_string const& tag, spirit::utf8_string const& value, int ) const;
+    void element(spirit::utf8_string const& tag, spirit::utf8_string const& value, int) const;
 
 private:
-    std::vector<std::string> *kList;
-    std::vector<std::string> *tList;
+    std::vector<Db::Identifier> *kList;
+    std::vector<Db::Identifier> *tList;
 };
 
 
@@ -167,30 +167,30 @@ template <typename Iterator>
 class ParseError
 {
 public:
-    ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what, const std::string &attributeName );
-    ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > &kinds, const std::string &kindName );
-    ParseError( Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const std::string &kindName );
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what, const Db::Identifier &attributeName);
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName);
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
 
     ParseErrorType errorType() const;
-    Iterator errorPosition( const std::string &line ) const;
-    std::vector<std::string> expectedTypes() const;
-    std::vector<std::string> expectedKeywords() const;
+    Iterator errorPosition(const std::string &line) const;
+    std::vector<Db::Identifier> expectedTypes() const;
+    std::vector<Db::Identifier> expectedKeywords() const;
 
     std::string toString() const;
     // FIXME: Maybe rewrite in some other, better way.
-    std::string toCombinedString( const ParseError<Iterator> &kindError ) const;
+    std::string toCombinedString(const ParseError<Iterator> &kindError) const;
 
     bool valid() const;
 
 private:
-    void extractKindName( const std::string &name, const qi::rule<Iterator, std::string(), ascii::space_type> &rule );
-    void extractAttributeName( const std::string &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule );
+    void extractKindName(const Db::Identifier &name, const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
+    void extractAttributeName(const Db::Identifier &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
 
     ParseErrorType m_errorType;
-    std::vector<std::string> m_expectedTypes;
-    std::vector<std::string> m_expectedKeywords;
+    std::vector<Db::Identifier> m_expectedTypes;
+    std::vector<Db::Identifier> m_expectedKeywords;
     Iterator m_start;
     Iterator m_end;
     Iterator m_errorPos;

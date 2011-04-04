@@ -61,10 +61,10 @@ public:
     *   @param attrType Type of the attribute in question, @see Type
     *   @return Rule that parses specific type of attribute
     */
-    const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule( const Db::Type attrType );
+    const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule(const Db::Type attrType);
 
     /** @short Function for getting rule used to parse identifier of top-level objects */
-    const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
+    const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& getObjectIdentifier();
 
 private:
 
@@ -72,7 +72,7 @@ private:
     qi::rule<Iterator, std::string(), ascii::space_type> tIdentifier;
 
     std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> > rulesMap;
-    qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
+    qi::rule<Iterator, Db::Identifier(), ascii::space_type> objectIdentifier;
 
 };
 
@@ -89,7 +89,7 @@ public:
     *
     *   @param kindName Name of top-level object type, to which the attributes belong
     */
-    AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent );
+    AttributesParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser
     *
@@ -97,7 +97,8 @@ public:
     *   @param attributeParser  Attribute parser obtained from PredefinedRules class
     *   @see PredefinedRules
     */
-    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser );
+    void addAtrribute(const Db::Identifier &attributeName,
+                      qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
 private:
 
@@ -106,8 +107,7 @@ private:
     *   @param parameter Name of the attribute
     *   @param value Parsed value of the attribute
     */
-    void parsedAttribute( const std::string &parameter, Db::Value &value );
-
+    void parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
     qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
 
@@ -115,8 +115,8 @@ private:
 
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type> > > dispatch;
 
-    std::string currentAttributeName;
-    std::string m_name;
+    Db::Identifier currentAttributeName;
+    Db::Identifier m_name;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -131,13 +131,14 @@ class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::local
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table */
-    KindsOnlyParser( const std::string &kindName, ParserImpl<Iterator> *parent );
+    KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser
     *
     *   @param kindName Name of the kind
     */
-    void addKind( const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser );
+    void addKind(const Db::Identifier &kindName,
+                 qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
 
 private:
 
@@ -146,16 +147,15 @@ private:
     *   @param kindName Name of the kind
     *   @param objectName Parsed name of the object
     */
-    void parsedKind( const std::string &kindName, const std::string &objectName );
+    void parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
-    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds;
+    qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds;
 
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > dispatch;
 
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > > dispatch;
-
-    std::string currentKindName;
-    std::string m_name;
+    Db::Identifier currentKindName;
+    Db::Identifier m_name;
 
     ParserImpl<Iterator> *m_parent;
 };
@@ -170,8 +170,8 @@ class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>
 public:
 
     /** @short Constructor initializes the grammar with all rules */
-    WholeKindParser( const std::string &kindName, AttributesParser<Iterator> *attributesParser,
-        KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent );
+    WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
+        KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
 
 private:
 
@@ -194,35 +194,39 @@ template <typename Iterator>
 class ParserImpl: boost::noncopyable
 {
 public:
-    ParserImpl( Parser *parent );
+
+    ParserImpl(Parser *parent);
+
     virtual ~ParserImpl();
 
-    void parseLine( const std::string &line );
+    void parseLine(const std::string &line);
+
     bool isNestedInContext() const;
+
     std::vector<ContextStackItem> currentContextStack() const;
     void clearContextStack();
 
-    void categoryEntered( const Db::Identifier &kind, const Db::Identifier &name );
+    void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
-    void attributeSet( const Db::Identifier &name, const Db::Value &value );
+    void attributeSet(const Db::Identifier &name, const Db::Value &value);
 
     void parsedSingleKind();
 
-    void addParseError( const ParseError<Iterator> &error );
+    void addParseError(const ParseError<Iterator> &error);
     
-    std::vector<std::string> tabCompletitionPossibilities( const std::string &line );
+    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
 
 private:
     Parser *m_parser;
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
-    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributesParser );
+    void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser);
 
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
-    void addNestedKinds( std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser );
+    void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser);
 
-    bool parseLineImpl( const std::string &line );
-    void reportParseError( const std::string& line );
+    bool parseLineImpl(const std::string &line);
+    void reportParseError(const std::string& line);
 
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;

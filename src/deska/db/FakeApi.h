@@ -36,28 +36,28 @@ public:
 
     // Querying schema definition
     virtual std::vector<Identifier> kindNames() const;
-    virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const;
-    virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const;
+    virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const;
+    virtual std::vector<ObjectRelation> kindRelations(const Identifier &kindName) const;
 
     // Returning data for existing objects
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const RevisionId=RevisionId::null ) const;
+    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const RevisionId=RevisionId::null) const;
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null );
+        const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-            const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null );
+            const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
     virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
     virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
 
     // Manipulating objects
-    virtual void deleteObject( const Identifier &kindName, const Identifier &objectName );
-    virtual void createObject( const Identifier &kindName, const Identifier &objectName );
-    virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName );
+    virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void createObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName);
     virtual void removeAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
     virtual void setAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value);
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
