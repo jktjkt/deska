@@ -517,8 +517,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
     using namespace boost::phoenix;
     typename std::vector<ParseError<Iterator> >::iterator it = std::find_if(
                 parseErrors.begin(), parseErrors.end(),
-                bind(&ParseError<Iterator>::errorType, arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE
-                );
+                bind(&ParseError<Iterator>::errorType, arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
         // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
         // which could be reported by spirit as a result of the error propagation.
