@@ -4,7 +4,7 @@
 #
 
 import psycopg2
-from table import Table,Api
+from table import Table
 
 class Plpy:
 	def __init__(self):
@@ -66,7 +66,6 @@ CREATE FUNCTION commitChangeset()
 	# generate sql for all tables
 	def gen_schema(self):
 		self.sql = open('gen_schema.sql','w')
-		self.py = open('db.py','w')
 
 		# print this to add proc into genproc schema
 		self.sql.write("SET search_path TO genproc,history,deska,production;")
@@ -78,9 +77,7 @@ CREATE FUNCTION commitChangeset()
 		self.sql.write(self.fks)
 
 		self.sql.write(self.gen_commit())
-		self.py.write(self.pygen_commit())
 
-		self.py.close()
 		self.sql.close()
 		return
 
@@ -91,8 +88,6 @@ CREATE FUNCTION commitChangeset()
 
 		# create table obj
 		table = Table(tbl)
-		# create Api obj
-		api = Api(tbl)
 
 		# add columns
 		for col in tables[:]:
@@ -122,10 +117,7 @@ CREATE FUNCTION commitChangeset()
 				self.sql.write(table.gen_set(col[0]))
 				self.sql.write(table.gen_get(col[0]))
 
-			self.py.write(api.gen_set(col[0]))
 			#get uid of that references uid should not return uid but name of according instance
-			#if (col[0] in cols_ref_embed):
-			self.py.write(api.gen_get(col[0]))
 
 		#get uid from embed object
 		embed_column = table.get_col_embed_reference_uid()
@@ -142,11 +134,8 @@ CREATE FUNCTION commitChangeset()
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
-		self.py.write(api.gen_get_object_data())
 		self.sql.write(table.gen_del())
-		self.py.write(api.gen_del())
 		self.sql.write(table.gen_commit())
-		self.py.write(api.gen_commit())
 		self.sql.write(table.gen_names())
 		self.sql.write(table.gen_get_name())
 		self.sql.write(table.gen_prev_changeset())
