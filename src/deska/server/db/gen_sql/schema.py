@@ -1,29 +1,5 @@
-#!/usr/bin/python2.4
-#
-# Small script to show PostgreSQL and Psycopg2 together
-#
 
-import psycopg2
 from table import Table
-
-class Plpy:
-	def __init__(self):
-		try:
-			conn = psycopg2.connect("dbname='deska_dev'");
-			self.mark = conn.cursor()
-
-		except:
-			print "I am unable to connect to the database"
-
-	def execute(self,statement):
-		self.mark.execute(statement)
-		try:
-			return self.mark.fetchall()
-		except:
-			return ""
-
-# connect to db
-plpy = Plpy()
 
 class Schema:
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
@@ -49,14 +25,15 @@ CREATE FUNCTION commitChangeset()
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 '''
-	def __init__(self):
-		plpy.execute("SET search_path TO deska,production")
+	def __init__(self,db_connection):
+		self.plpy = db_connection;
+		self.plpy.execute("SET search_path TO deska,production")
 
 		# init set of tables
 		self.tables = set()
 
 		# select all tables
-		record = plpy.execute(self.table_str)
+		record = self.plpy.execute(self.table_str)
 		for tbl in record[:]:
 			self.tables.add(tbl[0])
 
@@ -64,8 +41,8 @@ CREATE FUNCTION commitChangeset()
 		self.fks = ""
 
 	# generate sql for all tables
-	def gen_schema(self):
-		self.sql = open('gen_schema.sql','w')
+	def gen_schema(self,filename):
+		self.sql = open(filename,'w')
 
 		# print this to add proc into genproc schema
 		self.sql.write("SET search_path TO genproc,history,deska,production;")
@@ -84,7 +61,7 @@ CREATE FUNCTION commitChangeset()
 	# generate sql for one table
 	def gen_for_table(self,tbl):
 		# select col info
-		tables = plpy.execute(self.column_str.format(tbl))
+		tables = self.plpy.execute(self.column_str.format(tbl))
 
 		# create table obj
 		table = Table(tbl)
@@ -94,12 +71,12 @@ CREATE FUNCTION commitChangeset()
 			table.add_column(col[0],col[1])
 
 		# add pk constraints
-		constraints = plpy.execute(self.pk_str.format(tbl))
+		constraints = self.plpy.execute(self.pk_str.format(tbl))
 		for col in constraints[:]:
 			table.add_pk(col[0],col[1])
 
 		# add fk constraints
-		constraints = plpy.execute(self.fk_str.format(tbl))
+		constraints = self.plpy.execute(self.fk_str.format(tbl))
 		for col in constraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 
@@ -156,9 +133,3 @@ CREATE FUNCTION commitChangeset()
 	'''
 		return commit_str
 
-
-# just testing it
-schema = Schema()
-
-#schema.gen_for_table('vendor')
-schema.gen_schema()
