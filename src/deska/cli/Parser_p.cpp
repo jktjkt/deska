@@ -224,7 +224,7 @@ WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
-    start =((+(*attributesParser) >> -(*nestedKinds))
+    start = ((+(*attributesParser) >> -(*nestedKinds))
         | ((*nestedKinds)[phoenix::bind(&WholeKindParser::parsedSingleKind, this)])
         | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
 }
