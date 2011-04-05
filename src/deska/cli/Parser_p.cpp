@@ -25,8 +25,7 @@
 #include "Parser_p.h"
 #include "deska/db/Api.h"
 
-//#define PARSER_DEBUG
-//#define PARSER_PRINT_ERRORS
+#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -258,9 +257,6 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
 
     for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
-#ifdef PARSER_DEBUG
-        std::cout << "Adding top level kind: " << *it << std::endl;
-#endif
 
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, this);
         addKindAttributes(*it, attributesParsers[*it]);
@@ -404,9 +400,6 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName, Att
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
         attributesParser->addAtrribute(it->name, predefinedRules->getRule(it->type));
-#ifdef PARSER_DEBUG
-        std::cout << "Adding attribute " << it->name << " to " << kindName << std::endl;
-#endif
     }
 }
 
@@ -421,9 +414,6 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
         for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
             if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->targetTableName == kindName)) {
                 kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
-#ifdef PARSER_DEBUG
-                std::cout << "Embedding kind " << *it << " to " << kindName << std::endl;
-#endif
             }
         }
     }
@@ -434,12 +424,6 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
 template <typename Iterator>
 bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 {
-    // TODO: Only testing implementation. Reimplement.
-#ifdef PARSER_DEBUG
-    std::cout << "Parse line: " << line << std::endl;
-#endif
-
-
     Iterator iter = line.begin();
     Iterator end = line.end(); 
 
@@ -451,28 +435,15 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     while (iter != end) {
         ++parsingIterations;
-#ifdef PARSER_DEBUG
-        std::cout << "Parsing: " << std::string(iter, end) << std::endl;
-#endif
         if (contextStack.empty()) {
             // No context, parse top-level objects
-#ifdef PARSER_DEBUG
-            std::cout << "Parsing top level object..." << std::endl;
-#endif
             parsingSucceeded = phrase_parse(iter, end, *topLevelParser, ascii::space);
         } else {
-            // Context -> parse attributes
-#ifdef PARSER_DEBUG
-            std::cout << "Parsing attributes for \"" << contextStack.back().kind << "\"..." << std::endl;
-#endif
             parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]), ascii::space);
         }
 
         if (!parsingSucceeded) {
             // Some bad input
-#ifdef PARSER_DEBUG
-            std::cout << "Parsing failed." << std::endl;
-#endif
             // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
             BOOST_ASSERT(parseErrors.size() <= 3);
             // There have to be some ParseError when parsing fails.
