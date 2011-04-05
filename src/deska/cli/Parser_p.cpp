@@ -25,7 +25,7 @@
 #include "Parser_p.h"
 #include "deska/db/Api.h"
 
-#define PARSER_DEBUG
+//#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -335,7 +335,7 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
     if (!dryRun)
         m_parser->categoryEntered(kind, name);
 #ifdef PARSER_DEBUG
-    std::cout << "Parsed kind: " << kind << ": " << name << std::endl;
+    std::cout << "Category entered: " << kind << ": " << name << std::endl;
 #endif
 }
 
@@ -360,7 +360,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
     if (!dryRun)
         m_parser->attributeSet(name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Parsed parameter: " << name << "=" << value << std::endl;
+    std::cout << "Set attribute: " << name << "=" << value << std::endl;
 #endif
 }
 
@@ -369,9 +369,6 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
 template <typename Iterator>
 void ParserImpl<Iterator>::parsedSingleKind()
 {
-#ifdef PARSER_DEBUG
-    std::cout << "Parsed single kind" << std::endl;
-#endif
     singleKind = true;
 }
 
@@ -428,11 +425,15 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
 template <typename Iterator>
 bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 {
+#ifdef PARSER_DEBUG
+    std::cout << "Parse line: \"" << line << "\"" << std::endl;
+#endif
+
     Iterator iter = line.begin();
     Iterator end = line.end(); 
 
     parseErrors.clear();
-    
+
     bool parsingSucceeded = false;
     singleKind = false;
     bool topLevel = false;
