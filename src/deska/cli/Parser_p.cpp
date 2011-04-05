@@ -252,18 +252,21 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsOnlyParser<Iterator>(std::string(""),this);
 
-    // Filling the AttributesParsers map
     std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
 
     for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        // Add new kind to the top-level parser
         topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
 
+        // Create attributes parser for new kind
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, this);
         addKindAttributes(*it, attributesParsers[*it]);
 
+        // Create nested kinds parser for the new kind
         kindsOnlyParsers[*it] = new KindsOnlyParser<Iterator>(*it, this);
         addNestedKinds(*it, kindsOnlyParsers[*it]);
 
+        // And combine them in the parser for the whole kind
         wholeKindParsers[*it] = new WholeKindParser<Iterator>(*it, attributesParsers[*it], kindsOnlyParsers[*it], this);
     }
 }
@@ -461,6 +464,11 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
             break;
         } else {
+            // Some errors could be generated even though parsing succeeded, because of the way how boost::spirit
+            // works in case of alternatives grammar. When trying to parse some input, spirit tries to pass it to
+            // the first rule in the grammar and when the rule fails, it tries to pass the input to the next rule.
+            // The next rule can succeed, but an error handler of the first rule is already invoked. So we have to
+            // clear these errors, that are not actual errors.
             parseErrors.clear();
         }     
     }
