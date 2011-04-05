@@ -449,22 +449,14 @@ BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
     verifyEmptyStack();
 }
 
-/** @short Verify that we can enter into an embedded context with just a single line and proceed with attributes */
+/** @short Verify that we can enter into an embedded context with just a single line and set attributes */
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr, ParserTestFixture)
 {
     parser->parseLine("host 123 interface 456 ip \"x\"\n");
     expectCategoryEntered("host", "123");
     expectCategoryEntered("interface", "456");
     expectSetAttr("ip", "x");
-    expectNothingElse();
-    verifyStackTwoLevels("host", "123", "interface", "456");
-
-    parser->parseLine("end\n");
     expectCategoryLeft();
-    expectNothingElse();
-    verifyStackOneLevel("host", "123");
-
-    parser->parseLine("end\n");
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();

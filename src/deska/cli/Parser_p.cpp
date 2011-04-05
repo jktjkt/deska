@@ -369,6 +369,7 @@ void ParserImpl<Iterator>::parsedSingleKind()
 #ifdef PARSER_DEBUG
     std::cout << "Parsed single kind" << std::endl;
 #endif
+    singleKind = true;
 }
 
 
@@ -430,15 +431,21 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     parseErrors.clear();
     
     bool parsingSucceeded = false;
+    singleKind = false;
+    bool topLevel = false;
     int parsingIterations = 0;
     std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
 
     while (iter != end) {
+        singleKind = false;
         ++parsingIterations;
         if (contextStack.empty()) {
             // No context, parse top-level objects
+            topLevel = true;
             parsingSucceeded = phrase_parse(iter, end, *topLevelParser, ascii::space);
         } else {
+            // Context -> parse attributes or nested kinds
+            topLevel = false;
             parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]), ascii::space);
         }
 
@@ -458,7 +465,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }     
     }
 
-    if ((parsingIterations == 1) && (previousContextStackSize < contextStack.size())) {
+    // Invoke categoryLeft signals when parsing in-line definitions
+    if (singleKind || topLevel) {
         // Definition of kind found stand-alone on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;

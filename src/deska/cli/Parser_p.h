@@ -298,6 +298,7 @@ private:
     std::vector<ParseError<Iterator> > parseErrors;
 
     bool dryRun;
+    bool singleKind;
 };
 
 }
