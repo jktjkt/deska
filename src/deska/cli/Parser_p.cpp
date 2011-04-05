@@ -455,14 +455,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
         if (!parsingSucceeded) {
             // Some bad input
-            // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
-            BOOST_ASSERT(parseErrors.size() <= 3);
-            // There have to be some ParseError when parsing fails.
-            BOOST_ASSERT(parseErrors.size() != 0);
-
             if (!dryRun)
                 reportParseError(line);
-
             break;
         } else {
             // Some errors could be generated even though parsing succeeded, because of the way how boost::spirit
@@ -494,10 +488,10 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
-    if (parseErrors.empty())
-        throw std::out_of_range("Parse error reporting: No errors to report!");
-    if (parseErrors.size() >= 3)
-        throw std::out_of_range("Parse error reporting: Too many errors on stack!");
+    // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
+    BOOST_ASSERT(parseErrors.size() <= 3);
+    // There have to be some ParseError when parsing fails.
+    BOOST_ASSERT(parseErrors.size() != 0);
 
     // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
     // by an error in the attribute value
