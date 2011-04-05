@@ -525,8 +525,8 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 throw std::domain_error("Invalid value of ParseErrorType");
             }
         } else if (parseErrors.size() == 2) {
-            // two errors can occur only when bad identifier of attribute for some kind with embedded kinds is set
-            // PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND
+            // Two errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
+            // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND. Lets merge them.
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif

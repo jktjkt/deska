@@ -122,9 +122,11 @@ private:
 
     /** @short Function used as semantic action for each parsed attribute.
     *
+    *   Calls appropriate method in main parser.
+    *
     *   @param parameter Name of the attribute.
     *   @param value Parsed value of the attribute.
-    *   @see Value
+    *   @see Db::Value
     */
     void parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
@@ -178,6 +180,8 @@ private:
 
     /** @short Function used as semantic action for parsed kind.
     *
+    *   Calls appropriate method in main parser and updates context stack.
+    *
     *   @param kindName Name of the kind.
     *   @param objectName Parsed name of the object.
     */
@@ -230,7 +234,9 @@ private:
     void parsedEnd();
 
     /** @short Function used as semantic action when there is only single kind on the line
-               and so parser should nest into this kind.
+    *          and so parser should nest into this kind.
+    *
+    *   Calls appropriate method in main parser.
     */
     void parsedSingleKind();
 
@@ -252,52 +258,124 @@ class ParserImpl: boost::noncopyable
 
 public:
 
+    /** @short Builds the whole parser.
+    *
+    *   Createl all sub grammars using pointer to API from parent.
+    *
+    *   @param parent Pointer to the main parser.
+    */
     ParserImpl(Parser *parent);
 
+    /** @short All created sub gramars are deleted there. */
     virtual ~ParserImpl();
 
+    /** @short Main function of the parser. Parses the whole line and invokes appropriate signals.
+    *
+    *   Sets flag dryRun to false and invokes bool parseLineImpl(const std::string &line).
+    *
+    *   @param line Line to parse.
+    *   @see bool parseLineImpl(const std::string &line)
+    */
     void parseLine(const std::string &line);
 
+    /** @short Function for checking whether the parser is nested or ready to parse top-level object.
+    *
+    *   @return True when the parser is nested, false if it is ready to parse top-level object.
+    */
     bool isNestedInContext() const;
 
+    /** @short Current context stack could be obtained by this function.
+    *
+    *   @return Current context stack.
+    *   @see ContextStackItem
+    */
     std::vector<ContextStackItem> currentContextStack() const;
 
-    void clearContextStack();
+    /** @short Get list of strings for tab completition of current line.
+    *
+    *   Parses line using bool parseLineImpl(const std::string &line) with dryRun flag set to true.
+    *   Vector of possible continuations construction is based on analysis of the last token and
+    *   parse errors.
+    *
+    *   @return Vector of strings, that are possible continuations of current line.
+    *   @see bool parseLineImpl(const std::string &line)
+    */
+    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
 
+    //@{
+    /** @short Functions that only invokes signals of main parser. */
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);
+    //@}
 
+    /** @short Sets flag singleKind to true.
+    *
+    *   Function called when single kind without any attributes was parsed.
+    *   Setting the flag means, that nesting will be permanent.
+    */
     void parsedSingleKind();
 
+    /** @short Function adding any error, that occures during parsing to parseErrors stack.
+    *
+    *   Errors added do not have to be actual errors. Some errors could be generated even though parsing succeeded,
+    *   because of the way how boost::spirit works in case of alternatives grammar. When trying to parse some input,
+    *   spirit tries to pass it to the first rule in the grammar and when the rule fails, it tries to pass the input
+    *   to the next rule. The next rule can succeed, but an error handler of the first rule is already invoked. So we
+    *   have to clear these errors, before call of void reportParseError(const std::string& line) function.
+    *
+    *   @param error Error, that occures during parsing.
+    *   @see void reportParseError(const std::string& line)
+    */
     void addParseError(const ParseError<Iterator> &error);
     
-    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
+    /** @short Clears context stack.
+    *
+    *   For testing purposes.
+    */
+    void clearContextStack();
 
 private:
 
-    Parser *m_parser;
-
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
     void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser);
-
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
     void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser);
 
+    /** @short Parses the whole line and invokes appropriate signals.
+    *
+    *   @param line Line to parse.
+    *   @return True if the parsing succeeded
+    */
     bool parseLineImpl(const std::string &line);
+
+    /** @short Function reporting parse errors to main parser.
+    *   
+    *   Invokes appropriate signal.
+    */
     void reportParseError(const std::string& line);
 
+    //@{
+    /** All rules and grammars, that is the whole parser build of are stored there.
+    *   Only pointers are used in the main parser.
+    */
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
     KindsOnlyParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
+    //@}
 
+    /** The parser context is held there. */
     std::vector<ContextStackItem> contextStack;
-
+    /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
     std::vector<ParseError<Iterator> > parseErrors;
-
+    
+    /** Pointer to main parser for invoking signals. */
+    Parser *m_parser;
+    /** Flag, that disables or enables invoking signals. TRUE -> ENABLE, FALSE -> DISABLE */
     bool dryRun;
+    /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
     bool singleKind;
 };
 
