@@ -81,9 +81,12 @@ PredefinedRules<Iterator>::PredefinedRules()
 template <typename Iterator>
 const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule(const Db::Type attrType)
 {
-    typename std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> >::const_iterator it = rulesMap.find(attrType);
-    BOOST_ASSERT(it != rulesMap.end());
-    return it->second;
+    typename std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> >::const_iterator
+        it = rulesMap.find(attrType);
+    if (it == rulesMap.end())
+        throw std::domain_error("PredefinedRules::getRule: Value type not found in predefind rules map.");
+    else
+        return it->second;
 }
 
 
