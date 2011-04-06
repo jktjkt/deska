@@ -141,9 +141,12 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
         > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
-    phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
+    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
+    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, keyErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
+        phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
@@ -197,9 +200,11 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     dispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
-    phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
+    phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
+    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, objectErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds),
+    on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
         phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
@@ -262,9 +267,9 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsOnlyParser<Iterator>(std::string(""),this);
 
-    std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
+    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
 
-    for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         // Add new kind to the top-level parser
         topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
 
@@ -391,6 +396,13 @@ void ParserImpl<Iterator>::addParseError(const ParseError<Iterator> &error)
 }
 
 
+template <typename Iterator>
+std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
+{
+    return m_parser->m_dbApi->kindNames();
+}
+
+
 
 template <typename Iterator>
 std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(const std::string &line)
@@ -505,10 +517,9 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
     // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
     // by an error in the attribute value
-    using namespace boost::phoenix;
     typename std::vector<ParseError<Iterator> >::iterator it = std::find_if(
-                parseErrors.begin(), parseErrors.end(),
-                bind(&ParseError<Iterator>::errorType, arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
+        parseErrors.begin(), parseErrors.end(),
+        phoenix::bind(&ParseError<Iterator>::errorType, phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
         // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
         // which could be reported by spirit as a result of the error propagation.
@@ -535,8 +546,8 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 throw std::domain_error("Invalid value of ParseErrorType");
             }
         } else if (parseErrors.size() == 2) {
-            // two errors can occur only when bad identifier of attribute for some kind with embedded kinds is set
-            // PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND
+            // Two errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
+            // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND. Lets merge them.
 #ifdef PARSER_DEBUG
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif
@@ -595,6 +606,8 @@ template void ParserImpl<iterator_type>::categoryLeft();
 template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
 
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
+
+template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
 
 template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
 
