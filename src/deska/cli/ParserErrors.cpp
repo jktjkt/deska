@@ -40,6 +40,8 @@ void KindErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterat
     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
     ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case.
     if (error.valid())
         parser->addParseError(error);
 }
@@ -56,11 +58,14 @@ void NestingErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Ite
 
 
 
-void KeyErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-    const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
+template <typename Iterator>
+void AttributeErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
+    const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
     ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case.
     if (error.valid())
         parser->addParseError(error);
 }
@@ -71,9 +76,7 @@ template <typename Iterator>
 void IdentifierErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
     const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, kindName);
-    if (error.valid())
-        parser->addParseError(error);
+    // FIXME: Implement some check of existence of object name and generate error.
 }
 
 
@@ -83,6 +86,8 @@ void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Itera
     const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const
 {
     ParseError<Iterator> error(start, end, errorPos, what, attributeName);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case.
     if (error.valid())
         parser->addParseError(error);
 }

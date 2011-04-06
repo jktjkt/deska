@@ -57,7 +57,7 @@ typedef enum {
 
 
 
-/** @short Handle errors during parsing a kind's name */
+/** @short Handle errors during parsing a kind's name. */
 template <typename Iterator>
 class KindErrorHandler
 {
@@ -65,23 +65,26 @@ public:
     template <typename, typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short An error has occured during parsing a top-level object
+    /** @short Function invoked when some error occures during parsing of kind name.
     *
-    *   Prints information about the error.
+    *   Generates appropriate parse error and pushes it to errors stack.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
+    *   @param kinds Symbols table with possible kind names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds,
+        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
         const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
 
 
-/** @short Handle errors while parsing a name of an attribute */
+/** @short Checks whether bad name of kind or attribute is a bad nesting. */
 template <typename Iterator>
 class NestingErrorHandler
 {
@@ -89,23 +92,53 @@ public:
     template <typename, typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short An error has occured while parsing a name of an attribute
+    /** @short Function invoked when some error occures during parsing of kind name.
     *
-    * Prints information about the error.
+    *   Checks whether parsed token in some kind name and generates appropriate parse error and pushes it
+    *   to errors stack.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
+    *   @param failingToken Potential kind name
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error and obtaining kinds list
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes,
+        const std::string &failingToken, const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
+/** @short Handle errors while parsing a name of an attribute. */
+template <typename Iterator>
+class AttributeErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function invoked when some error occures during parsing of attribute name.
+    *
+    *   Generates appropriate parse error and pushes it to errors stack.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
         const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
 
 
-/** @short Handle errors while parsing an identifier */
+/** @short Handle errors while parsing a kind's identifier. */
 template <typename Iterator>
 class IdentifierErrorHandler
 {
@@ -113,14 +146,15 @@ public:
     template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short An error has occured while parsing an attribute's value
+    /** @short Function invoked when non-existant object name was parsed.
     *
-    * Prints information about the error.
+    *   Generates appropriate parse error and pushes it to errors stack.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
+    *   FIXME: Impement this class
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<Iterator> *parser) const;
@@ -128,7 +162,7 @@ public:
 
 
 
-/** @short Handle errors while parsing an attribute's value */
+/** @short Handle errors while parsing an attribute's value. */
 template <typename Iterator>
 class ValueErrorHandler
 {
@@ -136,14 +170,16 @@ public:
     template <typename, typename, typename, typename, typename, typename>
         struct result { typedef void type; };
 
-    /** @short An error has occured while parsing an attribute's value
+    /** @short An error has occured while parsing an attribute's value.
     *
-    * Prints information about the error.
+    *   Function invoked when bad value type of the attribute was parsed.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
+    *   @param attributeName Name of attribute which value is currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const;
@@ -152,8 +188,9 @@ public:
 
 
 /** @short Extract keywords from boost::spirit::info into a vector of strings
-
-This class is used as a visitor of boost::spirit::info to extract keywords from it to a std::vector passed to the constructor.
+*
+*   This class is used as a visitor of boost::spirit::info to extract keywords from it to a std::vector passed
+*   to the constructor.
 */
 class InfoExtractor
 {
