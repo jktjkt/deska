@@ -357,7 +357,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStream
     expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
     expectRead("{\"response\": \"c\", \"r\": \"tmp3\"}\n");
     TemporaryChangesetId r(123);
-    JsonHandler h(j, "c");
+    JsonHandlerApiWrapper h(j, "c");
     h.write("r", r).extract(&r).valueShouldMatch = false;
     h.work();
     BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
@@ -437,7 +437,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureF
 
         // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
         TemporaryChangesetId r(123);
-        JsonHandler h(j, "c");
+        JsonHandlerApiWrapper h(j, "c");
         // Make sure to explicitly request extraction, but also don't request comparison of JSON serialization
         h.write("r", r).extract(&r).valueShouldMatch = false;
         // ...if we didn't use the valueShouldMatch here, the error would get caught much earlier, even before

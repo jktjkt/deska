@@ -53,19 +53,11 @@ struct JsonField
 class JsonHandler
 {
 public:
-    JsonHandler(const JsonApiParser * const api, const std::string &cmd);
+    JsonHandler();
+    virtual ~JsonHandler();
 
-    /** @short Create JSON string and send it as a command */
-    void send();
-
-    /** @short Request, read and parse the JSON string and process the response */
-    void receive();
-
-    /** @short Send and receive the JSON data */
-    void work();
-
-    /** @short Register a special JSON field for command/response identification */
-    void command(const std::string &cmd);
+    /** @short Parser this value and process the response */
+    void parseJsonObject(const json_spirit::Object &jsonObject);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     JsonField &write(const std::string &name, const std::string &value);
@@ -85,9 +77,29 @@ public:
     /** @short Require a JSON value with value of true */
     JsonField &expectTrue(const std::string &name);
 
+protected:
+    std::vector<JsonField> fields;
+};
+
+class JsonHandlerApiWrapper: public JsonHandler
+{
+public:
+    JsonHandlerApiWrapper(const JsonApiParser * const api, const std::string &cmd);
+
+    /** @short Create JSON string and send it as a command */
+    void send();
+
+    /** @short Request, read and parse the JSON string and process the response */
+    void receive();
+
+    /** @short Send and receive the JSON data */
+    void work();
+
+    /** @short Register a special JSON field for command/response identification */
+    void command(const std::string &cmd);
+
 private:
     const JsonApiParser * const p;
-    std::vector<JsonField> fields;
 };
 
 

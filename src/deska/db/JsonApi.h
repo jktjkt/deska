@@ -86,7 +86,7 @@ private:
     /** @short The implementation tries to obtain the JSON data */
     json_spirit::Object readJsonObject() const;
 
-    friend class JsonHandler;
+    friend class JsonHandlerApiWrapper;
     std::ostream *m_writeStream;
     std::istream *m_readStream;
 };

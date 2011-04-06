@@ -242,12 +242,12 @@ JsonField &JsonField::extract(T *where)
     return *this;
 }
 
-JsonHandler::JsonHandler(const JsonApiParser * const api, const std::string &cmd): p(api)
+JsonHandlerApiWrapper::JsonHandlerApiWrapper(const JsonApiParser * const api, const std::string &cmd): p(api)
 {
     command(cmd);
 }
 
-void JsonHandler::send()
+void JsonHandlerApiWrapper::send()
 {
     json_spirit::Object o;
     BOOST_FOREACH(const JsonField &f, fields) {
@@ -258,12 +258,42 @@ void JsonHandler::send()
     p->sendJsonObject(o);
 }
 
-void JsonHandler::receive()
+void JsonHandlerApiWrapper::receive()
+{
+    parseJsonObject(p->readJsonObject());
+}
+
+void JsonHandlerApiWrapper::work()
+{
+    send();
+    receive();
+}
+
+void JsonHandlerApiWrapper::command(const std::string &cmd)
+{
+    JsonField f(j_command);
+    f.jsonFieldRead = j_response;
+    f.jsonValue = cmd;
+    f.isForSending = true;
+    f.valueShouldMatch = true;
+    fields.push_back(f);
+}
+
+JsonHandler::JsonHandler()
+{
+}
+
+JsonHandler::~JsonHandler()
+{
+}
+
+void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
 {
     using namespace boost::phoenix;
     using namespace arg_names;
 
-    BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
+
+    BOOST_FOREACH(const Pair& node, jsonObject) {
 
         // At first, find a matching rule for this particular key
         std::vector<JsonField>::iterator rule =
@@ -316,22 +346,6 @@ void JsonHandler::receive()
         s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
         throw JsonParseError(s.str());
     }
-}
-
-void JsonHandler::work()
-{
-    send();
-    receive();
-}
-
-void JsonHandler::command(const std::string &cmd)
-{
-    JsonField f(j_command);
-    f.jsonFieldRead = j_response;
-    f.jsonValue = cmd;
-    f.isForSending = true;
-    f.valueShouldMatch = true;
-    fields.push_back(f);
 }
 
 JsonField &JsonHandler::write(const std::string &name, const std::string &value)
