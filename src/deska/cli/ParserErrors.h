@@ -42,15 +42,20 @@ namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
+
+/** @short Type of parse error */
 typedef enum {
+    /** @short Error in a kinds's name */
     PARSE_ERROR_TYPE_KIND,
+    /** @short Error in an attribute's name */
     PARSE_ERROR_TYPE_ATTRIBUTE,
+    /** @short Error in an attribute's value or kind's identifier */
     PARSE_ERROR_TYPE_VALUE_TYPE,
 } ParseErrorType;
 
 
 
-/** @short Handle errors during parsing a top-level objects */
+/** @short Handle errors during parsing a kind's name */
 template <typename Iterator>
 class ObjectErrorHandler
 {
@@ -60,7 +65,7 @@ public:
 
     /** @short An error has occured during parsing a top-level object
     *
-    * Prints information about the error.
+    *   Prints information about the error.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
