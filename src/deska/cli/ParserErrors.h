@@ -43,10 +43,12 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
-/** @short Type of parse error */
+/** @short Type of parse error. */
 typedef enum {
     /** @short Error in a kinds's name */
     PARSE_ERROR_TYPE_KIND,
+    /** @short Error in nesting */
+    PARSE_ERROR_TYPE_NESTING,
     /** @short Error in an attribute's name */
     PARSE_ERROR_TYPE_ATTRIBUTE,
     /** @short Error in an attribute's value or kind's identifier */

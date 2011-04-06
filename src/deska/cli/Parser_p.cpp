@@ -142,8 +142,11 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
         > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
     phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
+    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, keyErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
+        phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
@@ -198,8 +201,10 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
     phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
+    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, objectErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds),
+    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
         phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
@@ -388,6 +393,13 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addParseError(const ParseError<Iterator> &error)
 {
     parseErrors.push_back(error);
+}
+
+
+template <typename Iterator>
+std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
+{
+    return m_parser->m_dbApi->kindNames();
 }
 
 
@@ -594,6 +606,8 @@ template void ParserImpl<iterator_type>::categoryLeft();
 template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
 
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
+
+template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
 
 template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
 

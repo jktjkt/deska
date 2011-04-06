@@ -328,6 +328,14 @@ public:
     *   @see void reportParseError(const std::string& line)
     */
     void addParseError(const ParseError<Iterator> &error);
+
+    /** @short Function for obtaining list of all defined kind names.
+    *   
+    *   For purposes of bad nesting reporting.
+    *
+    *   @return Vector of kind names obtained from API
+    */
+    std::vector<Db::Identifier> getKindNames();
     
     /** @short Clears context stack.
     *
