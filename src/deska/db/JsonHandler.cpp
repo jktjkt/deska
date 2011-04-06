@@ -74,6 +74,50 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+/** @short Convert a json_spirit::Object to Deska::Db::ObjectRelation */
+ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
+{
+    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
+    JsonHandler h;
+    std::string relationKind;
+    h.failOnUnknownFields(false);
+    h.read("relation").extract(&relationKind);
+    h.parseJsonObject(o);
+
+    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
+    h = JsonHandler();
+    h.read("relation");
+
+    // Now process the actual data
+    if (relationKind == "EMBED_INTO") {
+        std::string into;
+        h.read("into").extract(&into);
+        h.parseJsonObject(o);
+        return ObjectRelation::embedInto(into);
+    } else if (relationKind == "IS_TEMPLATE") {
+        std::string toWhichKind;
+        h.read("toWhichKind").extract(&toWhichKind);
+        h.parseJsonObject(o);
+        return ObjectRelation::isTemplate(toWhichKind);
+    } else if (relationKind == "MERGE_WITH") {
+        std::string targetTableName, sourceAttribute;
+        h.read("targetTableName").extract(&targetTableName);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(o);
+        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+    } else if (relationKind == "TEMPLATIZED") {
+        std::string byWhichKind, sourceAttribute;
+        h.read("byWhichKind").extract(&byWhichKind);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(o);
+        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+    } else {
+        std::ostringstream s;
+        s << "Invalid relation kind '" << relationKind << "'";
+        throw JsonParseError(s.str());
+    }
+}
+
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
 {
@@ -166,42 +210,7 @@ template<>
 void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
 {
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        json_spirit::Array relationRecord = item.get_array();
-        switch (relationRecord.size()) {
-        // got to enclose the individual branches in curly braces to be able to use local variables...
-        case 2:
-        {
-            // EMBED_INTO, IS_TEMPLATE
-            std::string kind = relationRecord[0].get_str();
-            if (kind == "EMBED_INTO") {
-                target->push_back(ObjectRelation::embedInto(relationRecord[1].get_str()));
-            } else if (kind == "IS_TEMPLATE") {
-                target->push_back(ObjectRelation::isTemplate(relationRecord[1].get_str()));
-            } else {
-                std::ostringstream s;
-                s << "Invalid relation kind " << kind << " with one argument";
-                throw JsonParseError(s.str());
-            }
-        }
-        break;
-        case 3:
-        {
-            // MERGE_WITH, TEMPLATIZED
-            std::string kind = relationRecord[0].get_str();
-            if (kind == "MERGE_WITH") {
-                target->push_back(ObjectRelation::mergeWith(relationRecord[1].get_str(), relationRecord[2].get_str()));
-            } else if (kind == "TEMPLATIZED") {
-                target->push_back(ObjectRelation::templatized(relationRecord[1].get_str(), relationRecord[2].get_str()));
-            } else {
-                std::ostringstream s;
-                s << "Invalid relation kind " << kind << " with two arguments";
-                throw JsonParseError(s.str());
-            }
-        }
-        break;
-        default:
-            throw JsonParseError("Relation record has invalid number of arguments");
-        }
+        target->push_back(jsonObjectToDeskaObjectRelation(item.get_obj()));
     }
 }
 

@@ -45,12 +45,12 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
             "\"price\": \"double\"}, \"kindName\": \"a\", \"response\": \"kindAttributes\"}\n");
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"a\"}\n");
-    expectRead("{\"kindName\": \"a\", \"kindRelations\": [[\"IS_TEMPLATE\", \"b\"]], \"response\": \"kindRelations\"}\n");
+    expectRead("{\"kindName\": \"a\", \"kindRelations\": [{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\":\"b\"}], \"response\": \"kindRelations\"}\n");
     // ...and move to "b":
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"b\"}\n");
     expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"kindName\": \"b\", \"response\": \"kindAttributes\"}\n");
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindName\": \"b\", \"kindRelations\": [[\"TEMPLATIZED\", \"a\", \"name_of_a\"]], \"response\": \"kindRelations\"}\n");
+    expectRead("{\"kindName\": \"b\", \"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"byWhichKind\":\"a\", \"sourceAttribute\":\"name_of_a\"}], \"response\": \"kindRelations\"}\n");
 
     // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
     delete j;

@@ -108,9 +108,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFail
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
-    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [[\"EMBED_INTO\", \"hardware\"], "
-            "[\"MERGE_WITH\", \"second-kind\", \"my-attribute\"], [\"IS_TEMPLATE\", \"target-kind\"], "
-            "[\"TEMPLATIZED\", \"by-which-kind\", \"my-attribute\"]], \"response\": \"kindRelations\"}\n");
+    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
+            "{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\"}, "
+            "{\"relation\": \"MERGE_WITH\", \"targetTableName\": \"second-kind\", \"sourceAttribute\": \"my-attribute\"}, "
+            "{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\": \"target-kind\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"byWhichKind\": \"by-which-kind\", \"sourceAttribute\": \"my-attribute\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
@@ -119,6 +121,32 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
+}
+
+/** @short Test how kindRelations() handles errors */
+BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStreamThrow)
+{
+    using std::string;
+    using std::make_pair;
+    // We want to test various different error scenarios here
+    typedef std::pair<string,string> PairStringString;
+    vector<PairStringString> data;
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "Mandatory field 'relation' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'into' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation into)."));
+    BOOST_FOREACH(const PairStringString &value, data) {
+        expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
+        expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
+        try {
+            j->kindRelations("identifier");
+            BOOST_ERROR(string("Passing '" + value.first + "' should have thrown an exception."));
+        } catch (JsonParseError &e) {
+            BOOST_CHECK_EQUAL(value.second, e.what());
+        }
+        expectEmpty();
+    }
 }
 
 /** @short Test that kindInstances() returns a reasonable result */
