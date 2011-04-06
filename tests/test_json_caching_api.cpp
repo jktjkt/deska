@@ -38,7 +38,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
     // At first, it has to find out what the top-level object types are
     expectWrite("{\"command\":\"kindNames\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"topLevelObjectKinds\": [\"a\", \"b\"]}\n");
+    expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"a\", \"b\"]}\n");
     // The, for each of them, it asks for a list of attributes, and then for a list of relations.
     // Start with "a":
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"a\"}\n");

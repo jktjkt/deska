@@ -93,7 +93,7 @@ vector<Identifier> JsonApiParser::kindNames() const
 {
     vector<Identifier> res;
     JsonHandler h(this, "kindNames");
-    h.read("topLevelObjectKinds").extract(&res);
+    h.read("kindNames").extract(&res);
     h.work();
     return res;
 }
@@ -124,7 +124,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     JsonHandler h(this, "kindInstances");
     h.write(j_kindName, kindName);
     h.write(j_revision, revision);
-    h.read("objectInstances").extract(&res);
+    h.read("kindInstances").extract(&res);
     h.work();
     return res;
 }
@@ -263,7 +263,7 @@ vector<TemporaryChangesetId> JsonApiParser::pendingChangesetsByMyself()
 {
     vector<TemporaryChangesetId> res;
     JsonHandler h(this, "pendingChangesetsByMyself");
-    h.read("revisions").extract(&res);
+    h.read("pendingChangesetsByMyself").extract(&res);
     h.work();
     return res;
 }
