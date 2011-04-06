@@ -67,7 +67,7 @@ struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindNames\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"topLevelObjectKinds\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
+    expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -125,7 +125,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
-    expectRead("{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r666\"}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r666\"}\n");
     vector<Identifier> expected;
     expected.push_back("foo");
     expected.push_back("bar");
@@ -139,7 +139,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
-    expectRead("{\"kindName\": \"blah\", \"objectInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
     BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
     expectEmpty();
 }
@@ -314,7 +314,7 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesetsByMyself, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"pendingChangesetsByMyself\"}\n");
-    expectRead("{\"response\": \"pendingChangesetsByMyself\", \"revisions\": [\"tmp1\", \"tmp2\", \"tmp3\"]}\n");
+    expectRead("{\"response\": \"pendingChangesetsByMyself\", \"pendingChangesetsByMyself\": [\"tmp1\", \"tmp2\", \"tmp3\"]}\n");
     vector<TemporaryChangesetId> expected;
     expected.push_back(TemporaryChangesetId(1));
     expected.push_back(TemporaryChangesetId(2));

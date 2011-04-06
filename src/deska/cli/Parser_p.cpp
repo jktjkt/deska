@@ -83,10 +83,20 @@ const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterat
 {
     typename std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> >::const_iterator
         it = rulesMap.find(attrType);
-    if (it == rulesMap.end())
-        throw std::domain_error("PredefinedRules::getRule: Value type not found in predefind rules map.");
-    else
+    if (it == rulesMap.end()) {
+        // Normally, we'd simply assert() here (see git history), but this is a place which would get hit
+        // when people add their own low-level data types to Deska. Given that asserts are optimized away
+        // in release mode and that I (Jan) can imagine people not bothering with debug builds (you really
+        // should build in debug, though), it's better to be explicit here and maybe even save some poor
+        // guy some head scratching in future.
+        // So, to some future fellow: if we just saved you time, please buy some beer to Tomas :).
+        std::stringstream ss;
+        ss << "PredefinedRules::getRule: no available grammar rule for parsing of low-level data type " <<
+              attrType << ". See " << __FILE__ << ":" << __LINE__ << " for details.";
+        throw std::domain_error(ss.str());
+    } else {
         return it->second;
+    }
 }
 
 

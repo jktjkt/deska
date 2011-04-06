@@ -237,7 +237,8 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     const std::string::const_iterator it = line.begin() + line.find("price");
     parser->parseLine(line);
     expectCategoryEntered("host", "abcde");
-    expectSetAttr("hardware_id", 123);
+    // hardware_id is an identifier, not an int
+    expectSetAttr("hardware_id", "123");
     expectSetAttr("name", "jmeno");
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
@@ -266,7 +267,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFix
 {
     parser->parseLine("host abcde hardware_id 1 interface eth0 mac \"nejakamac\"\n");
     expectCategoryEntered("host", "abcde");
-    expectSetAttr("hardware_id", 1);
+    expectSetAttr("hardware_id", "1"); // identifier, not an int
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", "nejakamac");
     expectCategoryLeft();
