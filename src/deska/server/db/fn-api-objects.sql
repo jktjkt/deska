@@ -21,7 +21,7 @@ LANGUAGE plpythonu SECURITY DEFINER;
 
 
 CREATE FUNCTION setAttribute(kindname text, objectname text, attributename text, value text)
-RETURNS text
+RETURNS integer
 AS
 $$
 plan = plpy.prepare("SELECT * from getfn('set',$1,$2)", [ "text", "text"])
@@ -34,7 +34,7 @@ $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION removeAttribute(kindname text, objectname text, attributename text)
-RETURNS text
+RETURNS integer
 AS
 $$
 plan = plpy.prepare("SELECT * from getfn('rem',$1,$2)", [ "text", "text"])
@@ -47,7 +47,7 @@ $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION changeObjectName(kindname text, oldname text, newname text)
-RETURNS text
+RETURNS integer
 AS
 $$
 plan = plpy.prepare("SELECT * from getfn('set',$1,$2)", [ "text", "text"])
@@ -60,7 +60,7 @@ $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION createObject(kindname text, objectname text)
-RETURNS text
+RETURNS integer
 AS
 $$
 plan = plpy.prepare("SELECT * from getfn('add',$1)", [ "text"])
@@ -73,7 +73,7 @@ $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
 CREATE FUNCTION deleteObject(kindname text, objectname text)
-RETURNS text
+RETURNS integer
 AS
 $$
 plan = plpy.prepare("SELECT * from getfn('del',$1)", [ "text"])

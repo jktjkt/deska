@@ -11,7 +11,7 @@ CREATE TABLE interface (
 	uid bigint DEFAULT nextval('interface_uid')
 		CONSTRAINT interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name char(64) NOT NULL,
+	name text NOT NULL,
 	-- host
 	-- TODO better use uid
 	host bigint

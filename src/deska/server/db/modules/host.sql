@@ -13,7 +13,7 @@ CREATE TABLE host (
 	uid bigint DEFAULT nextval('host_uid')
 		CONSTRAINT host_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name char(64)
+	name text
 		CONSTRAINT host_name_unique UNIQUE NOT NULL,
 	-- hardwere where it runs
 	-- TODO-virtual host

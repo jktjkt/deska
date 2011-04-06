@@ -30,6 +30,7 @@ Connection::Connection(): io(0)
     // FIXME: don't hardcode these
     std::vector<std::string> args;
     args.push_back("/home/jkt/work/fzu/deska/src/deska/server/app/deska_server.py");
+    #args.push_back("/home/luke/swproj/deska/src/deska/server/app/deska_server.py");
     io = new ProcessIO(args);
     setStreams(io->writeStream(), io->readStream());
 }

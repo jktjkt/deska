@@ -176,7 +176,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 
 --function returns relations of a given kind
 CREATE FUNCTION kindInstances(kindname name)
-RETURNS SETOF char(64)
+RETURNS SETOF text
 AS
 $$
 DECLARE

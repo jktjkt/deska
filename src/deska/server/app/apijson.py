@@ -13,7 +13,7 @@ class Jsn:
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
-			raise "No CMD in json: {jsn}".format(jsn = self.json)
+			raise Exception("No CMD in json: " + self.jsn)
 
 	def command(self):
 		cmd = self.jsn[CMD]
@@ -22,21 +22,19 @@ class Jsn:
 			args = self.jsn[cmd]
 		else:
 			args = dict()
-		if self.db.has(cmd):
-			res = self.db.run(cmd,args)
-			return res
-		else:
-			raise "no command named" + cmd
+		#if self.db.has(cmd):
+		#is it good if we have exceptions? try better try:-)
+		res = self.db.run(cmd,args)
+		return res
 	
 	def responce(self,res):
-		if res > 1:
-			data = self.db.fetchall()	
+		data = self.db.fetchall()
+		if type(data) == int:
+			self.jsn["result"] = data
+		elif type(data) == bool:
+			self.jsn["result"] = data
+		else:
 			self.jsn[self.cmd] = data
-		elif res == 1:
-			self.jsn["result"] = True
-			if self.jsn.has_key(self.cmd):
-				#remove unneded args
-				del self.jsn[self.cmd]
 		# write response instead of command
 		del self.jsn[CMD]
 		self.jsn[RES] = self.cmd

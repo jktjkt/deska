@@ -224,7 +224,7 @@ class Templates:
 	DECLARE
 		{reftbl}_uid bigint;
 		rest_of_name text;
-		{tbl}_name char(64);
+		{tbl}_name text;
 		{tbl}_uid bigint;
 	BEGIN
 		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
@@ -268,7 +268,7 @@ class Templates:
 	DECLARE	ver bigint;
 		{reftbl}_uid bigint;
 		rest_of_name text;
-		{tbl}_name char(64);
+		{tbl}_name text;
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
@@ -327,7 +327,7 @@ class Templates:
 	# template string for names
 	names_string = '''CREATE FUNCTION
 	{tbl}_names()
-	RETURNS SETOF char(64) --FIXME this should be set dynamic
+	RETURNS SETOF text
 	AS
 	$$
 	BEGIN
