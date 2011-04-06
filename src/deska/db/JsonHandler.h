@@ -77,8 +77,12 @@ public:
     /** @short Require a JSON value with value of true */
     JsonField &expectTrue(const std::string &name);
 
+    /** @short Tell this handler whether it should throw an exception when it sees an unrecognized field */
+    void failOnUnknownFields(const bool shouldThrow);
+
 protected:
     std::vector<JsonField> fields;
+    bool m_failOnUnknownFields;
 };
 
 class JsonHandlerApiWrapper: public JsonHandler

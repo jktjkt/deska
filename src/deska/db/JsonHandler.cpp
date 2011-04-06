@@ -304,12 +304,17 @@ void JsonHandlerApiWrapper::command(const std::string &cmd)
     fields.push_back(f);
 }
 
-JsonHandler::JsonHandler()
+JsonHandler::JsonHandler(): m_failOnUnknownFields(true)
 {
 }
 
 JsonHandler::~JsonHandler()
 {
+}
+
+void JsonHandler::failOnUnknownFields(const bool shouldThrow)
+{
+    m_failOnUnknownFields = shouldThrow;
 }
 
 void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
@@ -326,6 +331,10 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
 
         if (rule == fields.end()) {
             // No such rule
+
+            if (!m_failOnUnknownFields)
+                continue;
+
             std::ostringstream s;
             s << "JSON field '" << node.name_ << "' is not allowed in this context (expecting one of:";
             BOOST_FOREACH(const JsonField &f, fields) {
