@@ -35,8 +35,8 @@ namespace Cli
 
 
 template <typename Iterator>
-void ObjectErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
-    const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds,
+void KindErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
+    const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
     ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName);
@@ -265,10 +265,11 @@ void ParseError<Iterator>::extractAttributeName(const Db::Identifier &name,
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template void ObjectErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+template void KindErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+
 template void NestingErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &failingToken, const Db::Identifier &kindName, ParserImpl<iterator_type> *parser) const;
 
-template void KeyErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+template void AttributeErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void IdentifierErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<iterator_type>* parser) const;
 

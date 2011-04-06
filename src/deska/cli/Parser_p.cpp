@@ -141,10 +141,10 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
         > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
-    phoenix::function<KeyErrorHandler<Iterator> > keyErrorHandler = KeyErrorHandler<Iterator>();
+    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, keyErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
     on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
         phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
@@ -200,10 +200,10 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     dispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
-    phoenix::function<ObjectErrorHandler<Iterator> > objectErrorHandler = ObjectErrorHandler<Iterator>();
+    phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
     phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, objectErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds),
+    on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
     on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
         phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));

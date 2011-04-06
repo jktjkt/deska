@@ -59,7 +59,7 @@ typedef enum {
 
 /** @short Handle errors during parsing a kind's name */
 template <typename Iterator>
-class ObjectErrorHandler
+class KindErrorHandler
 {
 public:
     template <typename, typename, typename, typename, typename, typename, typename>
@@ -83,7 +83,7 @@ public:
 
 /** @short Handle errors while parsing a name of an attribute */
 template <typename Iterator>
-class KeyErrorHandler
+class NestingErrorHandler
 {
 public:
     template <typename, typename, typename, typename, typename, typename, typename>
