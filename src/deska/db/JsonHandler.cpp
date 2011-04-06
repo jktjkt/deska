@@ -24,6 +24,7 @@
 // when including everything, but it's a worthwhile sacrifice, as it prevents many nasty
 // errors which are rather hard to debug.
 #include <boost/spirit/include/phoenix.hpp>
+#include <boost/optional.hpp>
 #include "JsonHandler.h"
 #include "JsonApi.h"
 
@@ -93,7 +94,15 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
-
+/** Got to provide a partial specialization in order to be able to define a custom extract() */
+template <typename T>
+class SpecializedExtractor<boost::optional<T> >: public JsonExtractor {
+    boost::optional<T> *target;
+public:
+    /** @short Create an extractor which will save the parsed and converted value to a pointer */
+    SpecializedExtractor(boost::optional<T> *source): target(source) {}
+    virtual void extract(const json_spirit::Value &value);
+};
 
 /** @short Convert JSON into Deska::RevisionId */
 template<>
@@ -226,6 +235,22 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
     // If you get this error, there's no extractor from JSON to the desired type.
     BOOST_STATIC_ASSERT(sizeof(T) == 0);
+}
+
+template<>
+void SpecializedExtractor<std::string>::extract(const json_spirit::Value &value)
+{
+    *target = value.get_str();
+}
+
+template<typename T>
+void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value &value)
+{
+    // this is ugly, but it works and allows us to avoid code duplication
+    T res;
+    SpecializedExtractor<T> extractor(&res);
+    extractor.extract(value);
+    *target = res;
 }
 
 JsonField::JsonField(const std::string &name):
@@ -418,6 +443,7 @@ template JsonField& JsonField::extract(vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(vector<ObjectRelation>*);
 template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
+template JsonField& JsonField::extract(boost::optional<std::string>*);
 
 }
 }
