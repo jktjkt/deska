@@ -267,9 +267,9 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsOnlyParser<Iterator>(std::string(""),this);
 
-    std::vector<std::string> kinds = m_parser->m_dbApi->kindNames();
+    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
 
-    for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         // Add new kind to the top-level parser
         topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
 
