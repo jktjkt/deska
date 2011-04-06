@@ -162,7 +162,7 @@ vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.read("objectInstances").extract(&res);
+    h.read("findOverriddenAttrs").extract(&res);
     h.work();
     return res;
 }
@@ -175,7 +175,7 @@ vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindN
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.read("objectInstances").extract(&res);
+    h.read("findNonOverriddenAttrs").extract(&res);
     h.work();
     return res;
 }
@@ -234,7 +234,7 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 {
     TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandler h(this, "startChangeset");
-    h.read(j_revision).extract(&revision);
+    h.read("startChangeset").extract(&revision);
     h.work();
     return revision;
 }
@@ -243,7 +243,7 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     RevisionId revision = RevisionId::null;
     JsonHandler h(this, "commitChangeset");
-    h.read(j_revision).extract(&revision);
+    h.read("commitChangeset").extract(&revision);
     h.write("commitMessage", commitMessage);
     h.work();
     return revision;
@@ -254,7 +254,7 @@ TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision
     TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandler h(this, "rebaseChangeset");
     h.write("currentRevision", oldRevision);
-    h.read(j_revision).extract(&revision);
+    h.read("rebaseChangeset").extract(&revision);
     h.work();
     return revision;
 }

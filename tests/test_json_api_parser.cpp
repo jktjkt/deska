@@ -194,7 +194,7 @@ BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixtureFailOnStreamT
 {
     expectWrite("{\"command\":\"findOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
     expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
+            "\"findOverriddenAttrs\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -209,7 +209,7 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStre
 {
     expectWrite("{\"command\":\"findNonOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
     expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
+            "\"findNonOverriddenAttrs\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
     vector<Identifier> expected;
     expected.push_back("d");
     expected.push_back("e");
@@ -287,7 +287,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"startChangeset\"}\n");
-    expectRead("{\"response\": \"startChangeset\", \"revision\": \"tmp333\"}\n");
+    expectRead("{\"response\": \"startChangeset\", \"startChangeset\": \"tmp333\"}\n");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     expectEmpty();
 }
@@ -296,7 +296,7 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"commitChangeset\",\"commitMessage\":\"description\"}\n");
-    expectRead("{\"response\": \"commitChangeset\", \"revision\": \"r666\", \"commitMessage\":\"description\"}\n");
+    expectRead("{\"response\": \"commitChangeset\", \"commitChangeset\": \"r666\", \"commitMessage\":\"description\"}\n");
     BOOST_CHECK_EQUAL(j->commitChangeset("description"), RevisionId(666));
     expectEmpty();
 }
@@ -305,7 +305,7 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"rebaseChangeset\",\"currentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"currentRevision\": \"r666\", \"revision\": \"tmp333666\" }\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"currentRevision\": \"r666\", \"rebaseChangeset\": \"tmp333666\" }\n");
     BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
     expectEmpty();
 }

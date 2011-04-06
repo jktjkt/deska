@@ -40,30 +40,30 @@ Ukoly na priste:
 ----------------
 
 Tomasovi zustava:
-- Tomas: jak udelat mazani objektu? idealne nejake rozsireni parseru?
-- Tomas: doplneni unit testu pro top-level objekty ze schuzky
+- Tomas: jak udelat mazani objektu? idealne nejake rozsireni parseru? (#187)
+- Tomas: doplneni unit testu pro top-level objekty ze schuzky (#188)
 - Tomas: dokumentace kodu (#159)
 - Tomas: tab completion (#101)
 - Tomas: readline
 
 Honzovi zustava:
-- Honza: pokrok s db-c++ interakci
+- Honza: pokrok s db-c++ interakci (#142)
 - Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
   Lukasovo vystupu v JSONu (#143)
 - Honza: rozsireni API smerem k dotazum na revize (#143)
 ...a navic pribyva:
-- Honza: napsat dokumentaci JSON API, vcetne motivace, k cemu slouzi
+- Honza: napsat dokumentaci JSON API, vcetne motivace, k cemu slouzi (#183)
 - Honza: zmenit identifikatory v JSON odpovedich, unifikovat jmena vracenych dat
-  s nazvy metod
+  s nazvy metod (#184)
 - Honza: serializace custom trid pres JSON object a ne JSON array, tedy prevod z
-  [EMBED_INTO,...] na {"relation": "EMBED_INTO", ...}
-- Honza: obstarat dump FarmDB pro Desku
+  [EMBED_INTO,...] na {"relation": "EMBED_INTO", ...} (#185)
+- Honza: obstarat dump FarmDB pro Desku (#186)
 
 Lukas ma jako nove:
-- Lukas: #180, prevest JSON odesilany Pythonem na tvar kompatibilni s C++ casti
+- Lukas: prevest JSON odesilany Pythonem na tvar kompatibilni s C++ casti (#180)
 - Lukas: zhodnotit, zda je mozne presunout vytvareni plpythonu procedur pouze do
   casti, kdy se DB zaklada, a ne kdy se meni jeji schema; to by umoznilo
-  efektivni pouziti role deska_admin
+  efektivni pouziti role deska_admin (#177)
 Lukasovi zustava:
 - Lukas: zdokumentovat po sobe kod
 - Lukas: upravit generovani pro templaty (#158)
