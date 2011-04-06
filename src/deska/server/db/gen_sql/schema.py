@@ -51,7 +51,7 @@ CREATE FUNCTION commitChangeset()
 			self.gen_for_table(tbl)
 
 		# print fks at the end of generation
-		self.sql.write(self.fks)
+		#self.sql.write(self.fks)
 
 		self.sql.write(self.gen_commit())
 
