@@ -16,13 +16,13 @@ class DB:
 		"startChangeset": [],
 		"commitChangeset": [],
 		#"rebaseChangeset": [],
-		"pendingChangesets": [],
 		"resumeChangeset": ["revision"],
 		"detachFromCurrentChangeset": ["message"],
 		"abortCurrentChangeset": []
 	})
 	data_methods = dict({
 		"objectData": ["kindName", "objectName"],
+		#"pendingChangesets": [],
 		#"resolvedObjectData": ["kindName", "objectName"],
 		#"findOverriddenAttrs": ["kindName", "objectName", "attributeName"],
 		#"findNonOverriddenAttrs": ["kindName", "objectName", "attributeName"],
