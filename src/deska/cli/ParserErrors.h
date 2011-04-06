@@ -76,6 +76,7 @@ public:
     *   @param kinds Symbols table with possible kind names
     *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
     *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
@@ -104,6 +105,7 @@ public:
     *   @param failingToken Potential kind name
     *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
     *   @param parser Pointer to main parser for purposes of storing generated error and obtaining kinds list
+    *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const std::string &failingToken, const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
@@ -130,6 +132,7 @@ public:
     *   @param attributes Symbols table with possible attributes names
     *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
     *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
@@ -154,10 +157,12 @@ public:
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
     *   @param what Expected tokens
+    *   @see ParseError
     *   FIXME: Impement this class
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<Iterator> *parser) const;
+        const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames,
+        ParserImpl<Iterator> *parser) const;
 };
 
 
@@ -180,6 +185,7 @@ public:
     *   @param what Expected tokens
     *   @param attributeName Name of attribute which value is currently being parsed
     *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const;
@@ -194,13 +200,30 @@ public:
 */
 class InfoExtractor
 {
+
 public:
+
+    /** @short Constructor only saves pointer to lists, where the data will be extracted.
+    *   
+    *   @param keywordsList Pointer to list, where keywords will be extracted
+    *   @param typesList Pointer to list, where names of value types will be extracted
+    */
     InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<Db::Identifier> *typesList);
 
+    /** @short Function used for extractin the keywords from boost::spirit::info.
+    *
+    *   Extracts info into lists given in constructor.
+    *
+    *   @param tag Tag, that is the name of value type, when keyword is empty
+    *   @param value Keyword or empty string
+    */
     void element(spirit::utf8_string const& tag, spirit::utf8_string const& value, int) const;
 
 private:
+
+    /** List for extracted keywords. */
     std::vector<Db::Identifier> *kList;
+    /** List for extracted names of value types. */
     std::vector<Db::Identifier> *tList;
 };
 
@@ -210,10 +233,22 @@ private:
 template <typename Iterator>
 class ParseError
 {
+
 public:
-    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what, const Db::Identifier &attributeName);
+    
+    /** @short Create error using KindErrorHandler when some error occures in kind name parsing.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kinds Symbols table with possible kind names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @see KindErrorHandler
+    */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName);
+        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
+        const Db::Identifier &kindName);
     /** @short Create error using NestingErrorHandler when some error occures in kind name or attribute name parsing
     *          and parsed name corresponds to another defined kind name, that can not be nested in current kind.
     *
@@ -226,29 +261,78 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const std::string &failingToken, const Db::Identifier &kindName);
-        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
+    /** @short Create error using AttributeErrorHandler when some error occures in attribute name parsing.
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
+        const Db::Identifier &kindName);
+    /** @short Create error using ValueErrorHandler when some error occures in attribute's value or kind's
+    *          identifier parsing.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributeName Name of attribute which value is currently being parsed
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const Db::Identifier &attributeName);
+
 
     ParseErrorType errorType() const;
     Iterator errorPosition(const std::string &line) const;
     std::vector<Db::Identifier> expectedTypes() const;
     std::vector<Db::Identifier> expectedKeywords() const;
 
+    /** Converts error to std::string
+    *
+    *   @return Description of the error
+    */
     std::string toString() const;
+
     // FIXME: Maybe rewrite in some other, better way.
     std::string toCombinedString(const ParseError<Iterator> &kindError) const;
 
+    /** @short Tests if error is a real error, or only consequence of usage of eps rule in the parser
+    *
+    *   @return True if the error is real error
+    */
     bool valid() const;
 
 private:
-    void extractKindName(const Db::Identifier &name, const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
-    void extractAttributeName(const Db::Identifier &name, const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
+    /** @short
+    */
+    void extractKindName(const Db::Identifier &name,
+        const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
+    /** @short
+    */
+    void extractAttributeName(const Db::Identifier &name,
+        const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
 
+    /** Error type */
     ParseErrorType m_errorType;
+
+    /** List with expected keywords */
     std::vector<Db::Identifier> m_expectedTypes;
+    /** List with expected value types */
     std::vector<Db::Identifier> m_expectedKeywords;
+
+    /** Begin of the input being parsed when the error occures */
     Iterator m_start;
+    /** End of the input being parsed when the error occures */
     Iterator m_end;
+    /** errorPos Position where the error occures */
     Iterator m_errorPos;
+
+    /** Current context of the parser. Attribute name when parsing attribute's value, or kind name,
+    *   when parsing it's attributes or nested kinds
+    */
     std::string m_context;
 };
 
