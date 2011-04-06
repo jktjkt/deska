@@ -24,6 +24,7 @@
 // when including everything, but it's a worthwhile sacrifice, as it prevents many nasty
 // errors which are rather hard to debug.
 #include <boost/spirit/include/phoenix.hpp>
+#include <boost/optional.hpp>
 #include "JsonHandler.h"
 #include "JsonApi.h"
 
@@ -73,6 +74,50 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+/** @short Convert a json_spirit::Object to Deska::Db::ObjectRelation */
+ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
+{
+    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
+    JsonHandler h;
+    std::string relationKind;
+    h.failOnUnknownFields(false);
+    h.read("relation").extract(&relationKind);
+    h.parseJsonObject(o);
+
+    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
+    h = JsonHandler();
+    h.read("relation");
+
+    // Now process the actual data
+    if (relationKind == "EMBED_INTO") {
+        std::string into;
+        h.read("into").extract(&into);
+        h.parseJsonObject(o);
+        return ObjectRelation::embedInto(into);
+    } else if (relationKind == "IS_TEMPLATE") {
+        std::string toWhichKind;
+        h.read("toWhichKind").extract(&toWhichKind);
+        h.parseJsonObject(o);
+        return ObjectRelation::isTemplate(toWhichKind);
+    } else if (relationKind == "MERGE_WITH") {
+        std::string targetTableName, sourceAttribute;
+        h.read("targetTableName").extract(&targetTableName);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(o);
+        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+    } else if (relationKind == "TEMPLATIZED") {
+        std::string byWhichKind, sourceAttribute;
+        h.read("byWhichKind").extract(&byWhichKind);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(o);
+        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+    } else {
+        std::ostringstream s;
+        s << "Invalid relation kind '" << relationKind << "'";
+        throw JsonParseError(s.str());
+    }
+}
+
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
 {
@@ -93,7 +138,15 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
-
+/** Got to provide a partial specialization in order to be able to define a custom extract() */
+template <typename T>
+class SpecializedExtractor<boost::optional<T> >: public JsonExtractor {
+    boost::optional<T> *target;
+public:
+    /** @short Create an extractor which will save the parsed and converted value to a pointer */
+    SpecializedExtractor(boost::optional<T> *source): target(source) {}
+    virtual void extract(const json_spirit::Value &value);
+};
 
 /** @short Convert JSON into Deska::RevisionId */
 template<>
@@ -157,42 +210,7 @@ template<>
 void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
 {
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        json_spirit::Array relationRecord = item.get_array();
-        switch (relationRecord.size()) {
-        // got to enclose the individual branches in curly braces to be able to use local variables...
-        case 2:
-        {
-            // EMBED_INTO, IS_TEMPLATE
-            std::string kind = relationRecord[0].get_str();
-            if (kind == "EMBED_INTO") {
-                target->push_back(ObjectRelation::embedInto(relationRecord[1].get_str()));
-            } else if (kind == "IS_TEMPLATE") {
-                target->push_back(ObjectRelation::isTemplate(relationRecord[1].get_str()));
-            } else {
-                std::ostringstream s;
-                s << "Invalid relation kind " << kind << " with one argument";
-                throw JsonParseError(s.str());
-            }
-        }
-        break;
-        case 3:
-        {
-            // MERGE_WITH, TEMPLATIZED
-            std::string kind = relationRecord[0].get_str();
-            if (kind == "MERGE_WITH") {
-                target->push_back(ObjectRelation::mergeWith(relationRecord[1].get_str(), relationRecord[2].get_str()));
-            } else if (kind == "TEMPLATIZED") {
-                target->push_back(ObjectRelation::templatized(relationRecord[1].get_str(), relationRecord[2].get_str()));
-            } else {
-                std::ostringstream s;
-                s << "Invalid relation kind " << kind << " with two arguments";
-                throw JsonParseError(s.str());
-            }
-        }
-        break;
-        default:
-            throw JsonParseError("Relation record has invalid number of arguments");
-        }
+        target->push_back(jsonObjectToDeskaObjectRelation(item.get_obj()));
     }
 }
 
@@ -228,6 +246,22 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
     BOOST_STATIC_ASSERT(sizeof(T) == 0);
 }
 
+template<>
+void SpecializedExtractor<std::string>::extract(const json_spirit::Value &value)
+{
+    *target = value.get_str();
+}
+
+template<typename T>
+void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value &value)
+{
+    // this is ugly, but it works and allows us to avoid code duplication
+    T res;
+    SpecializedExtractor<T> extractor(&res);
+    extractor.extract(value);
+    *target = res;
+}
+
 JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
     jsonFieldRead(name), jsonFieldWrite(name)
@@ -242,12 +276,12 @@ JsonField &JsonField::extract(T *where)
     return *this;
 }
 
-JsonHandler::JsonHandler(const JsonApiParser * const api, const std::string &cmd): p(api)
+JsonHandlerApiWrapper::JsonHandlerApiWrapper(const JsonApiParser * const api, const std::string &cmd): p(api)
 {
     command(cmd);
 }
 
-void JsonHandler::send()
+void JsonHandlerApiWrapper::send()
 {
     json_spirit::Object o;
     BOOST_FOREACH(const JsonField &f, fields) {
@@ -258,12 +292,47 @@ void JsonHandler::send()
     p->sendJsonObject(o);
 }
 
-void JsonHandler::receive()
+void JsonHandlerApiWrapper::receive()
+{
+    parseJsonObject(p->readJsonObject());
+}
+
+void JsonHandlerApiWrapper::work()
+{
+    send();
+    receive();
+}
+
+void JsonHandlerApiWrapper::command(const std::string &cmd)
+{
+    JsonField f(j_command);
+    f.jsonFieldRead = j_response;
+    f.jsonValue = cmd;
+    f.isForSending = true;
+    f.valueShouldMatch = true;
+    fields.push_back(f);
+}
+
+JsonHandler::JsonHandler(): m_failOnUnknownFields(true)
+{
+}
+
+JsonHandler::~JsonHandler()
+{
+}
+
+void JsonHandler::failOnUnknownFields(const bool shouldThrow)
+{
+    m_failOnUnknownFields = shouldThrow;
+}
+
+void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
 {
     using namespace boost::phoenix;
     using namespace arg_names;
 
-    BOOST_FOREACH(const Pair& node, p->readJsonObject()) {
+
+    BOOST_FOREACH(const Pair& node, jsonObject) {
 
         // At first, find a matching rule for this particular key
         std::vector<JsonField>::iterator rule =
@@ -271,6 +340,10 @@ void JsonHandler::receive()
 
         if (rule == fields.end()) {
             // No such rule
+
+            if (!m_failOnUnknownFields)
+                continue;
+
             std::ostringstream s;
             s << "JSON field '" << node.name_ << "' is not allowed in this context (expecting one of:";
             BOOST_FOREACH(const JsonField &f, fields) {
@@ -316,22 +389,6 @@ void JsonHandler::receive()
         s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
         throw JsonParseError(s.str());
     }
-}
-
-void JsonHandler::work()
-{
-    send();
-    receive();
-}
-
-void JsonHandler::command(const std::string &cmd)
-{
-    JsonField f(j_command);
-    f.jsonFieldRead = j_response;
-    f.jsonValue = cmd;
-    f.isForSending = true;
-    f.valueShouldMatch = true;
-    fields.push_back(f);
 }
 
 JsonField &JsonHandler::write(const std::string &name, const std::string &value)
@@ -404,6 +461,7 @@ template JsonField& JsonField::extract(vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(vector<ObjectRelation>*);
 template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
+template JsonField& JsonField::extract(boost::optional<std::string>*);
 
 }
 }

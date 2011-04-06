@@ -108,9 +108,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFail
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
-    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [[\"EMBED_INTO\", \"hardware\"], "
-            "[\"MERGE_WITH\", \"second-kind\", \"my-attribute\"], [\"IS_TEMPLATE\", \"target-kind\"], "
-            "[\"TEMPLATIZED\", \"by-which-kind\", \"my-attribute\"]], \"response\": \"kindRelations\"}\n");
+    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
+            "{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\"}, "
+            "{\"relation\": \"MERGE_WITH\", \"targetTableName\": \"second-kind\", \"sourceAttribute\": \"my-attribute\"}, "
+            "{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\": \"target-kind\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"byWhichKind\": \"by-which-kind\", \"sourceAttribute\": \"my-attribute\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
@@ -119,6 +121,32 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
+}
+
+/** @short Test how kindRelations() handles errors */
+BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStreamThrow)
+{
+    using std::string;
+    using std::make_pair;
+    // We want to test various different error scenarios here
+    typedef std::pair<string,string> PairStringString;
+    vector<PairStringString> data;
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "Mandatory field 'relation' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'into' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation into)."));
+    BOOST_FOREACH(const PairStringString &value, data) {
+        expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
+        expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
+        try {
+            j->kindRelations("identifier");
+            BOOST_ERROR(string("Passing '" + value.first + "' should have thrown an exception."));
+        } catch (JsonParseError &e) {
+            BOOST_CHECK_EQUAL(value.second, e.what());
+        }
+        expectEmpty();
+    }
 }
 
 /** @short Test that kindInstances() returns a reasonable result */
@@ -194,7 +222,7 @@ BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixtureFailOnStreamT
 {
     expectWrite("{\"command\":\"findOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
     expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
+            "\"findOverriddenAttrs\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -209,7 +237,7 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStre
 {
     expectWrite("{\"command\":\"findNonOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
     expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"objectInstances\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
+            "\"findNonOverriddenAttrs\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
     vector<Identifier> expected;
     expected.push_back("d");
     expected.push_back("e");
@@ -287,7 +315,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"startChangeset\"}\n");
-    expectRead("{\"response\": \"startChangeset\", \"revision\": \"tmp333\"}\n");
+    expectRead("{\"response\": \"startChangeset\", \"startChangeset\": \"tmp333\"}\n");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     expectEmpty();
 }
@@ -296,7 +324,7 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"commitChangeset\",\"commitMessage\":\"description\"}\n");
-    expectRead("{\"response\": \"commitChangeset\", \"revision\": \"r666\", \"commitMessage\":\"description\"}\n");
+    expectRead("{\"response\": \"commitChangeset\", \"commitChangeset\": \"r666\", \"commitMessage\":\"description\"}\n");
     BOOST_CHECK_EQUAL(j->commitChangeset("description"), RevisionId(666));
     expectEmpty();
 }
@@ -305,7 +333,7 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"rebaseChangeset\",\"currentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"currentRevision\": \"r666\", \"revision\": \"tmp333666\" }\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"currentRevision\": \"r666\", \"rebaseChangeset\": \"tmp333666\" }\n");
     BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
     expectEmpty();
 }
@@ -357,7 +385,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStream
     expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
     expectRead("{\"response\": \"c\", \"r\": \"tmp3\"}\n");
     TemporaryChangesetId r(123);
-    JsonHandler h(j, "c");
+    JsonHandlerApiWrapper h(j, "c");
     h.write("r", r).extract(&r).valueShouldMatch = false;
     h.work();
     BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
@@ -437,7 +465,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureF
 
         // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
         TemporaryChangesetId r(123);
-        JsonHandler h(j, "c");
+        JsonHandlerApiWrapper h(j, "c");
         // Make sure to explicitly request extraction, but also don't request comparison of JSON serialization
         h.write("r", r).extract(&r).valueShouldMatch = false;
         // ...if we didn't use the valueShouldMatch here, the error would get caught much earlier, even before
