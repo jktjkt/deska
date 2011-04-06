@@ -214,7 +214,18 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what, const Db::Identifier &attributeName);
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
         const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName);
+    /** @short Create error using NestingErrorHandler when some error occures in kind name or attribute name parsing
+    *          and parsed name corresponds to another defined kind name, that can not be nested in current kind.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param failingToken Potential kind name
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+        const std::string &failingToken, const Db::Identifier &kindName);
         const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
 
     ParseErrorType errorType() const;
