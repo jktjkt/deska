@@ -57,7 +57,7 @@ CliInteraction::CliInteraction(Db::Api *api, Parser *parser):
     m_parser->categoryEntered.connect(boost::phoenix::bind(&CliInteraction::slotCategoryEntered, this, _1, _2));
 }
 
-void CliInteraction::run()
+void CliInteraction::eventLoop()
 {
     std::string line;
     std::cout << "> ";
@@ -118,6 +118,12 @@ bool CliInteraction::askForConfirmation(const std::string &prompt)
     std::cout << std::endl;
     boost::algorithm::to_lower(answer);
     return answer == "yes" || answer == "y";
+}
+
+void CliInteraction::run()
+{
+    // FIXME: request a list of pending changesets here, talk to the user to select which one to connect to,...
+    eventLoop();
 }
 
 }

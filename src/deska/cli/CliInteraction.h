@@ -54,6 +54,9 @@ private:
     /** @short Ask the user whether she wants to proceed with something */
     bool askForConfirmation(const std::string &prompt);
 
+    /** @short Implementation of the "event loop" which interacts with the user */
+    void eventLoop();
+
 private:
     Db::Api *m_api;
     Parser *m_parser;
