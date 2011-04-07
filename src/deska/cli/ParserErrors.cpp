@@ -242,6 +242,8 @@ std::string ParseError<Iterator>::toString() const
 template <typename Iterator>
 std::string ParseError<Iterator>::toCombinedString(const ParseError<Iterator> &kindError) const
 {
+    BOOST_ASSERT(m_errorType == PARSE_ERROR_TYPE_ATTRIBUTE);
+    BOOST_ASSERT(kindError.errorType() == PARSE_ERROR_TYPE_KIND);
     std::ostringstream sout;
     sout << "Error while parsing attribute name or nested kind name in " << m_context << ". Expected one of [ ";
     for (std::vector<std::string>::const_iterator
