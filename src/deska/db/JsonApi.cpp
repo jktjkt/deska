@@ -123,7 +123,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     vector<Identifier> res;
     JsonHandlerApiWrapper h(this, "kindInstances");
     h.write(j_kindName, kindName);
-    h.write(j_revision, revision);
+    h.writeIfNotZero(j_revision, revision);
     h.read("kindInstances").extract(&res);
     h.work();
     return res;
@@ -135,7 +135,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     JsonHandlerApiWrapper h(this, "objectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.write(j_revision, revision);
+    h.writeIfNotZero(j_revision, revision);
     h.read("objectData").extract(&res);
     h.work();
     return res;
@@ -148,7 +148,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     JsonHandlerApiWrapper h(this, "resolvedObjectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.write(j_revision, revision);
+    h.writeIfNotZero(j_revision, revision);
     h.read("resolvedObjectData").extract(&res);
     h.work();
     return res;

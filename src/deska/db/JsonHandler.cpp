@@ -451,6 +451,21 @@ JsonField &JsonHandler::expectTrue(const std::string &name)
     return *(--fields.end());
 }
 
+boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name, const TemporaryChangesetId value)
+{
+    if (value == TemporaryChangesetId::null)
+        return boost::optional<JsonField&>();
+    else
+        return write(name, value);
+}
+
+boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name, const RevisionId value)
+{
+    if (value == RevisionId::null)
+        return boost::optional<JsonField&>();
+    else
+        return write(name, value);
+}
 
 // Template instances for the linker
 template JsonField& JsonField::extract(vector<TemporaryChangesetId>*);

@@ -22,6 +22,7 @@
 #ifndef DESKA_JSONHANDLER_H
 #define DESKA_JSONHANDLER_H
 
+#include <boost/optional.hpp>
 #include <tr1/memory>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
@@ -79,6 +80,12 @@ public:
 
     /** @short Tell this handler whether it should throw an exception when it sees an unrecognized field */
     void failOnUnknownFields(const bool shouldThrow);
+
+    /** @short If the passed revision is not zero, forward write(), otherwise return empty optional */
+    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const RevisionId value);
+
+    /** @short If the passed temporary changeset is not zero, forward write(), otherwise return empty optional */
+    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const TemporaryChangesetId value);
 
 protected:
     std::vector<JsonField> fields;
