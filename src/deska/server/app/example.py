@@ -16,6 +16,8 @@ data = list([
 	'{"command": "pendingChangesets"}'
 ])
 
+data = list(['{"command": "kindAttributes", "kindName": "vendor" }'])
+
 for i in data:
 	print "\033[1;32mINPUT:\033[1;m" + i
 	jsn = Jsn(i)

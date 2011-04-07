@@ -1,6 +1,11 @@
 import json
 from dbapi import DB
 
+import logging
+LOG_FILENAME = 'deska_server.log'
+logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+
+
 CMD = "command"
 RES = "response"
 
@@ -10,6 +15,7 @@ class Jsn:
 	def __init__(self,data):
 		#FIXME try and error reporting
 		self.db = DB()
+		logging.debug("loading data {d}".format(d = data))
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
@@ -18,16 +24,26 @@ class Jsn:
 	def command(self):
 		cmd = self.jsn[CMD]
 		self.cmd = cmd
+		logging.debug("start command: " + cmd)
 		if self.jsn.has_key(cmd):
 			args = self.jsn[cmd]
+			logging.debug("found arguments {a}".format(a = args))
 		else:
 			args = dict()
+			logging.debug("not found arguments in {a}".format(a = self.jsn))
+		# fuw code before: (FIXME: hotfix)
+		args = self.jsn.copy()
+		del args[CMD]
+		print args
+
 		#if self.db.has(cmd):
 		#is it good if we have exceptions? try better try:-)
 		res = self.db.run(cmd,args)
 		return res
 	
 	def responce(self,res):
+		logging.debug("start response")
+		cmd = self.jsn[CMD]
 		data = self.db.fetchall()
 		if type(data) == int:
 			self.jsn["result"] = data
@@ -44,5 +60,7 @@ class Jsn:
 		res = self.command()
 		jsn = self.responce(res)
 		self.db.commit()
-		return json.dumps(jsn)
+		data = json.dumps(jsn)
+		logging.debug("return json: {d}".format(d = data))
+		return data
 

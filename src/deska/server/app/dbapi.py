@@ -1,5 +1,10 @@
 import psycopg2
 import datetime
+import logging
+
+
+LOG_FILENAME = 'deska_server.log'
+logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 
 conn = psycopg2.connect("dbname='deska_dev'");
 
@@ -36,6 +41,7 @@ class KindAttributesResult(TupleResult):
 		"int8": "int",
 		"int4": "int",
 		"text": "string",
+		"pbchar": "string",
 		"date": "string",
 		"macaddr": "string",
 		"inet": "string"
@@ -101,6 +107,7 @@ class DB:
 
 
 	def run_method(self,name,args):
+		logging.debug("start run_method({n}, {a})".format(n = name, a = args))
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		self.fetch_class = needed_args[0]
@@ -116,6 +123,7 @@ class DB:
 		return 
 
 	def run_data_method(self,name,args):
+		logging.debug("start run_data_method({n}, {a})".format(n = name, a = args))
 		needed_args = self.data_methods[name][:]
 		self.fetch_class = needed_args[0]
 		del needed_args[0]
@@ -144,7 +152,9 @@ class DB:
 	
 	def fetchall(self):
 		cls = self.fetch_class(self.mark)
-		return cls.parse()
+		data = cls.parse()
+		logging.debug("fetchall returning: {d})".format(d = data))
+		return data
 
 	def commit(self):
 		conn.commit()
