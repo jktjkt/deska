@@ -285,9 +285,26 @@ public:
         const Db::Identifier &attributeName);
 
 
+    /** @short Function for obtaining type of the error.
+    *   
+    *   @return Error type
+    *   @see ParseErrorType
+    */
     ParseErrorType errorType() const;
+    /** @short Function for obtaining position in the line, where the error occured.
+    *   
+    *   @return Iterator to the error position
+    */
     Iterator errorPosition(const std::string &line) const;
+    /** @short Function for obtaining expected value types from the error.
+    *
+    *   @return Expected vale types as vector of their names
+    */
     std::vector<std::string> expectedTypes() const;
+    /** @short Function for obtaining expected keywords from the error.
+    *
+    *   @return Expected keywords as vector of identifiers
+    */
     std::vector<Db::Identifier> expectedKeywords() const;
 
     /** Converts error to std::string
@@ -296,6 +313,14 @@ public:
     */
     std::string toString() const;
 
+    /** @short Combines parse error of type PARSE_ERROR_TYPE_ATTRIBUTE with error of type PARSE_ERROR_TYPE_KIND
+    *          into one string for purposes of error reporting to main parser.
+    *
+    *   Function have to be called on grammar of type PARSE_ERROR_TYPE_ATTRIBUTE and attribute have to be of type
+    *   PARSE_ERROR_TYPE_KIND.
+    *
+    *   @param kindError Parse error of type PARSE_ERROR_TYPE_KIND
+    */
     // FIXME: Maybe rewrite in some other, better way.
     std::string toCombinedString(const ParseError<Iterator> &kindError) const;
 
@@ -306,11 +331,23 @@ public:
     bool valid() const;
 
 private:
-    /** @short
+    /** @short Function for extracting kind names from symbols table used in kind grammar.
+    *
+    *   This function should be used for extracting kind names from symbols table using for_each function.
+    *
+    *   @param name Key from the symbols table
+    *   @param rule Value from the symbols table
+    *   @see KindsOnlyParser
     */
     void extractKindName(const Db::Identifier &name,
         const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
-    /** @short
+    /** @short Function for extracting attribute names from symbols table used in attributes grammars.
+    *
+    *   This function should be used for extracting attributes names from symbols table using for_each function.
+    *
+    *   @param name Key from the symbols table
+    *   @param rule Value from the symbols table
+    *   @see AttributesParser
     */
     void extractAttributeName(const Db::Identifier &name,
         const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
