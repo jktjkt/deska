@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
+#include <boost/signals2/trackable.hpp>
 #include "deska/db/Objects.h"
 
 namespace Deska {
@@ -37,7 +38,7 @@ class Parser;
 class ParserException;
 
 /** @short Tie up the real command line and the Parser together */
-class CliInteraction: public boost::noncopyable
+class CliInteraction: public boost::noncopyable, public boost::signals2::trackable
 {
 public:
     CliInteraction(Db::Api *api, Parser *parser);
