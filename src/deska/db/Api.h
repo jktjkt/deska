@@ -204,8 +204,8 @@ public:
      */
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision) = 0;
 
-    /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself() = 0;
+    /** @short Return a list of all pending revisions */
+    virtual std::vector<TemporaryChangesetId> pendingChangesets() = 0;
 
     /** @short Re-open a pre-existing changeset
      *
