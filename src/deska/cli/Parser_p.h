@@ -193,7 +193,8 @@ private:
     /** Rule for parsing kind names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
     /** Rule for parsing object names. */
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > dispatch;
+    qi::rule<Iterator, ascii::space_type,
+             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > dispatch;
 
     /** Name of kind which identifier is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentKindName;
@@ -226,7 +227,7 @@ public:
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
-        KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
+                    KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
 
 private:
 

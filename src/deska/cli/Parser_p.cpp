@@ -144,16 +144,18 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
+                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
     on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
-        phoenix::ref(m_name), m_parent));
+                   phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
 
 
 template <typename Iterator>
-void AttributesParser<Iterator>::addAtrribute(const Db::Identifier &attributeName, qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
+void AttributesParser<Iterator>::addAtrribute(const Db::Identifier &attributeName,
+                                              qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
 {
     attributes.add(attributeName, attributeParser);
 }
@@ -205,7 +207,7 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
     on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
-        phoenix::ref(m_name), m_parent));
+                   phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
 
@@ -282,7 +284,8 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
         addNestedKinds(*it, kindsOnlyParsers[*it]);
 
         // And combine them in the parser for the whole kind
-        wholeKindParsers[*it] = new WholeKindParser<Iterator>(*it, attributesParsers[*it], kindsOnlyParsers[*it], this);
+        wholeKindParsers[*it] = new WholeKindParser<Iterator>(
+            *it, attributesParsers[*it], kindsOnlyParsers[*it], this);
     }
 }
 
@@ -336,9 +339,14 @@ std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::clearContextStack()
+std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(const std::string &line)
 {
-    contextStack.clear();
+    // FIXME: return correct result
+    dryRun = true;
+    if (parseLineImpl(line))
+        return std::vector<std::string>();
+
+    return std::vector<std::string>();
 }
 
 
@@ -405,20 +413,16 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
 
 
 template <typename Iterator>
-std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(const std::string &line)
+void ParserImpl<Iterator>::clearContextStack()
 {
-    // FIXME: return correct result
-    dryRun = true;
-    if (parseLineImpl(line))
-        return std::vector<std::string>();
-
-    return std::vector<std::string>();
+    contextStack.clear();
 }
 
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser)
+void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
+                                             AttributesParser<Iterator>* attributesParser)
 {
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
@@ -554,7 +558,8 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
             m_parser->parseError(UndefinedAttributeError(
                 parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition(line)));
         } else {
-            throw std::out_of_range("Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");
+            throw std::out_of_range(
+                "Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");
         }
     }
 }
@@ -562,6 +567,8 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
 
 /////////////////////////Template instances for linker//////////////////////////
+
+template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
 
 template PredefinedRules<iterator_type>::PredefinedRules();
 
@@ -597,7 +604,7 @@ template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
 template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContextStack() const;
 
-template void ParserImpl<iterator_type>::clearContextStack();
+template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
 
 template void ParserImpl<iterator_type>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
 
@@ -605,11 +612,13 @@ template void ParserImpl<iterator_type>::categoryLeft();
 
 template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
 
+template void ParserImpl<iterator_type>::parsedSingleKind();
+
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
 
-template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
+template void ParserImpl<iterator_type>::clearContextStack();
 
 template void ParserImpl<iterator_type>::addKindAttributes(const Db::Identifier &kindName, AttributesParser<iterator_type>* attributesParser);
 
@@ -618,10 +627,6 @@ template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &ki
 template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 
 template void ParserImpl<iterator_type>::reportParseError(const std::string& line);
-
-template void ParserImpl<iterator_type>::parsedSingleKind();
-
-template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
 
 }
 }
