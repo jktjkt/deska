@@ -48,7 +48,7 @@ class KindAttributesResult(TupleResult):
 		"int8": "int",
 		"int4": "int",
 		"text": "string",
-		"pbchar": "string",
+		"bpchar": "string",
 		"date": "string",
 		"macaddr": "string",
 		"inet": "string"
