@@ -413,22 +413,64 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
     verifyEmptyStack();
 }
 
-#if 0
-BOOST_FIXTURE_TEST_CASE(invalid_attr_of_embed_object, ParserTestFixture)
+/** @short An error in kind name of embedded object */
+BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
 {
-    parser->parseLine("host 123 int3rf4ce 456\n");
+	const std::string line = "host 123 int3rf4ce 456\n";
+	const std::string::const_iterator it = line.begin() + line.find("int3rf4ce");
+    parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    //expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"interface\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
 
-// FIXME: "haware foo"
-// FIXME: "end" na zacatku
-// FIXME: "hardware foo*bar"
-// FIXME: "host hpv2 interface foo*bar"
-#endif
+/** @short An error in kind identifier with single definition on line */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_single_definition, ParserTestFixture)
+{
+	const std::string line = "haware foo\n";
+	const std::string::const_iterator it = line.begin();
+	parser->parseLine(line);
+	expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+	expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short end used when not nested */
+BOOST_FIXTURE_TEST_CASE(error_end_no_context, ParserTestFixture)
+{
+	const std::string line = "end\n";
+	const std::string::const_iterator it = line.begin();
+	parser->parseLine(line);
+	expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));	
+	expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad identifier of top-level object */
+BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixture)
+{
+	const std::string line = "hardware foo*bar\n";
+	const std::string::const_iterator it = line.begin() + line.find("foo*bar");
+	parser->parseLine(line);
+	expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+	expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad identifier of nested object */
+BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixture)
+{
+	const std::string line = "host hpv2 interface foo*bar\n";
+	const std::string::const_iterator it = line.begin() + line.find("foo*bar");
+	parser->parseLine(line);
+	expectCategoryEntered("host", "hpv2");
+	expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+	expectCategoryLeft();
+	expectNothingElse();
+    verifyEmptyStack();
+}
 
 /** @short Verify that we can enter into an embedded context with just a single line */
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
