@@ -20,6 +20,7 @@
 * */
 
 #include <iostream>
+#include <sstream>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -97,12 +98,9 @@ void CliInteraction::slotCategoryEntered(const Db::Identifier &kind, const Db::I
     std::vector<Deska::Db::Identifier> kindInstances = m_api->kindInstances(kind);
     if (std::find(kindInstances.begin(), kindInstances.end(), name) == kindInstances.end()) {
         // Object does not exist -> ask the user here
-        std::cout << kind << " " << name << " does not exist. Create? ";
-        std::string answer;
-        std::cin >> answer;
-        std::cout << std::endl;
-        boost::algorithm::to_lower(answer);
-        if (answer == "yes" || answer == "y") {
+        std::ostringstream ss;
+        ss << kind << " " << name << " does not exist. Create?";
+        if (askForConfirmation(ss.str())) {
             std::cout << "Creating " << kind << " " << name << "." << std::endl;
             m_api->createObject(kind, name);
         } else {
@@ -110,6 +108,16 @@ void CliInteraction::slotCategoryEntered(const Db::Identifier &kind, const Db::I
             m_ignoreParserActions = true;
         }
     }
+}
+
+bool CliInteraction::askForConfirmation(const std::string &prompt)
+{
+    std::cout << prompt << " ";
+    std::string answer;
+    std::cin >> answer;
+    std::cout << std::endl;
+    boost::algorithm::to_lower(answer);
+    return answer == "yes" || answer == "y";
 }
 
 }
