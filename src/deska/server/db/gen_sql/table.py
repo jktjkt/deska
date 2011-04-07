@@ -89,6 +89,7 @@ class Table(constants.Templates):
 		if len(collist) == 0:
 			return ""
 
+		get_data_string = self.get_data_string
 		# replace uid of referenced object its name
 		# old column : new column selector
 		newcollist = dict()
@@ -105,7 +106,6 @@ class Table(constants.Templates):
 				else:
 					newcol = tbl + "_get_name(" + col + ") as " + col 
 					newcollist[col] = newcol
-					get_data_string = self.get_data_string
 		
 		# create col: type dict
 		coltypeslist = dict()
