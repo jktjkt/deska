@@ -259,9 +259,9 @@ TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision
     return revision;
 }
 
-vector<TemporaryChangesetId> JsonApiParser::pendingChangesets()
+vector<PendingChangeset> JsonApiParser::pendingChangesets()
 {
-    vector<TemporaryChangesetId> res;
+    vector<PendingChangeset> res;
     JsonHandlerApiWrapper h(this, "pendingChangesets");
     h.read("pendingChangesets").extract(&res);
     h.work();

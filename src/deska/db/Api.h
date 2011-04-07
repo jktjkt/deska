@@ -205,7 +205,7 @@ public:
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision) = 0;
 
     /** @short Return a list of all pending revisions */
-    virtual std::vector<TemporaryChangesetId> pendingChangesets() = 0;
+    virtual std::vector<PendingChangeset> pendingChangesets() = 0;
 
     /** @short Re-open a pre-existing changeset
      *

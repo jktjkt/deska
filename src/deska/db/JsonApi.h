@@ -73,7 +73,7 @@ public:
     virtual TemporaryChangesetId startChangeset();
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision);
-    virtual std::vector<TemporaryChangesetId> pendingChangesets();
+    virtual std::vector<PendingChangeset> pendingChangesets();
     virtual void resumeChangeset(const TemporaryChangesetId revision);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();

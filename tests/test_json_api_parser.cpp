@@ -342,12 +342,23 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"pendingChangesets\"}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": [\"tmp1\", \"tmp2\", \"tmp3\"]}\n");
-    vector<TemporaryChangesetId> expected;
-    expected.push_back(TemporaryChangesetId(1));
-    expected.push_back(TemporaryChangesetId(2));
-    expected.push_back(TemporaryChangesetId(3));
-    vector<TemporaryChangesetId> res = j->pendingChangesets();
+    expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
+               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"isAttachedNow\": \"DETACHED\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", "
+                   "\"message\": \"this is a commit message, man\"}, "
+               "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"isAttachedNow\": \"INPROGRESS\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"foo\"}"
+               "]}\n");
+    vector<PendingChangeset> expected;
+    expected.push_back(PendingChangeset(
+                           TemporaryChangesetId(123), "user", false,
+                           boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
+                           RevisionId(666), "this is a commit message, man"));
+    expected.push_back(PendingChangeset(
+                           TemporaryChangesetId(333), "bar", true,
+                           boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
+                           RevisionId(666), "foo"));
+    vector<PendingChangeset> res = j->pendingChangesets();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }

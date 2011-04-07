@@ -23,6 +23,7 @@
 #define DESKA_DB_REVISIONS_H
 
 #include <iosfwd>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 namespace Deska {
 namespace Db {
@@ -50,6 +51,28 @@ struct TemporaryChangesetId {
 bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
 bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b);
 std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t);
+
+/** @short Metadata for a pending changeset */
+struct PendingChangeset {
+    /** @short Temporary changeset number */
+    TemporaryChangesetId revision;
+    /** @short Author of the changeset */
+    std::string author;
+    /** @short Is this changeset attached to by someone at this time? */
+    bool isAttachedNow;
+    /** @short Timestamp of when this reviosion was modified the last time */
+    boost::posix_time::ptime timestamp;
+    /** @short Indetification of a revision which serves as a parent for this one */
+    RevisionId parentRevision;
+    /** @short The commit message */
+    std::string message;
+    PendingChangeset(const TemporaryChangesetId revision, const std::string &author, const bool isAttachedNow,
+                     const boost::posix_time::ptime timestamp, const RevisionId parentRevision, const std::string &message);
+};
+
+bool operator==(const PendingChangeset &a, const PendingChangeset &b);
+bool operator!=(const PendingChangeset &a, const PendingChangeset &b);
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset &p);
 
 }
 }

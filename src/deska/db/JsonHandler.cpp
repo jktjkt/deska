@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/foreach.hpp>
 // The Phoenix is rather prone to missing includes. The compilation is roughly 10% slower
 // when including everything, but it's a worthwhile sacrifice, as it prevents many nasty
@@ -118,6 +119,42 @@ ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
     }
 }
 
+/** @short Internal use only: type-safe way of conveying the attached/detached status of a revision
+
+Because the JSON parsing is determined by the underlying type, we have to use something more unique than
+a simple bool for representation of detached/in_progress state of being attached. This enum is fulfilling
+that role, but because the public API of the PendingChangeset uses a simple bool for that purpose, we try
+to keep this one private. Please consider it an implementation detail.
+*/
+typedef enum {ATTACH_ATTACHED, ATTACH_DETACHED} PendingChangesetAttachStatus;
+
+/** @short Convert from json_spirit::Object into Deska::Db::PendingChangeset */
+PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
+{
+    JsonHandler h;
+    TemporaryChangesetId changeset = TemporaryChangesetId::null;
+    std::string author;
+    PendingChangesetAttachStatus attachStatus;
+    boost::posix_time::ptime timestamp;
+    RevisionId parentRevision = RevisionId::null;
+    std::string message;
+    h.read("changeset").extract(&changeset);
+    h.read("author").extract(&author);
+    h.read("isAttachedNow").extract(&attachStatus);
+    h.read("timestamp").extract(&timestamp);
+    h.read("parentRevision").extract(&parentRevision);
+    h.read("message").extract(&message);
+    h.parseJsonObject(o);
+
+    // These asserts are enforced by the JsonHandler, as all fields are required here.
+    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
+    BOOST_ASSERT(parentRevision != RevisionId::null);
+    // This is guaranteed by the extractor
+    BOOST_ASSERT(attachStatus == ATTACH_ATTACHED || attachStatus == ATTACH_DETACHED);
+
+    return PendingChangeset(changeset, author, attachStatus == ATTACH_ATTACHED, timestamp, parentRevision, message);
+}
+
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
 {
@@ -162,17 +199,13 @@ void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Valu
     *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
-/** @short Convert JSON into a vector of Deska::RevisionId */
+/** @short Convert JSON into a vector of Deska::Db::PendingChangeset */
 template<>
-void SpecializedExtractor<std::vector<TemporaryChangesetId> >::extract(const json_spirit::Value &value)
+void SpecializedExtractor<std::vector<PendingChangeset> >::extract(const json_spirit::Value &value)
 {
-    using namespace boost::phoenix;
-    using arg_names::_1;
-    json_spirit::Array data = value.get_array();
-    // Extract the int64_t, convert them into a TemporaryChangesetId and store them into a vector
-    std::transform(data.begin(), data.end(), std::back_inserter(*target),
-                   bind(&TemporaryChangesetId::fromJson, bind(&json_spirit::Value::get_str, _1))
-                   );
+    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
+        target->push_back(jsonObjectToDeskaPendingChangeset(item.get_obj()));
+    }
 }
 
 /** @short Convert JSON into a vector of Deska::Identifier */
@@ -235,6 +268,29 @@ void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extrac
         }
         // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
         (*target)[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
+    }
+}
+
+/** @short Conveert JSON into boost::posix_time::ptime */
+template<>
+void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::Value &value)
+{
+    *target = boost::posix_time::time_from_string(value.get_str());
+}
+
+/** @short Convert from JSON into an internal representation of the attached/detached state */
+template<>
+void SpecializedExtractor<PendingChangesetAttachStatus>::extract(const json_spirit::Value &value)
+{
+    std::string data = value.get_str();
+    if (data == "DETACHED") {
+        *target = ATTACH_DETACHED;
+    } else if (data == "INPROGRESS") {
+        *target = ATTACH_ATTACHED;
+    } else {
+        std::ostringstream ss;
+        ss << "Invalid value for attached status of a pending changeset '" << data << "'";
+        throw JsonParseError(ss.str());
     }
 }
 
@@ -468,7 +524,6 @@ boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name,
 }
 
 // Template instances for the linker
-template JsonField& JsonField::extract(vector<TemporaryChangesetId>*);
 template JsonField& JsonField::extract(RevisionId*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);
 template JsonField& JsonField::extract(vector<Identifier>*);
@@ -477,6 +532,9 @@ template JsonField& JsonField::extract(vector<ObjectRelation>*);
 template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
+template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
+template JsonField& JsonField::extract(PendingChangesetAttachStatus*);
+template JsonField& JsonField::extract(boost::posix_time::ptime*);
 
 }
 }

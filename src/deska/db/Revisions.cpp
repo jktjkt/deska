@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include "Revisions.h"
 
@@ -98,6 +99,30 @@ bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b)
 std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t)
 {
     return stream << "tmp" << t.t;
+}
+
+PendingChangeset::PendingChangeset(const TemporaryChangesetId revision_, const std::string &author_, const bool isAttachedNow_,
+    const boost::posix_time::ptime timestamp_, const RevisionId parentRevision_, const std::string &message_):
+    revision(revision_), author(author_), isAttachedNow(isAttachedNow_), timestamp(timestamp_), parentRevision(parentRevision_), message(message_)
+{
+}
+
+bool operator==(const PendingChangeset &a, const PendingChangeset &b)
+{
+    return a.revision == b.revision && a.author == b.author && a.isAttachedNow == b.isAttachedNow &&
+           a.timestamp == b.timestamp && a.parentRevision == b.parentRevision && a.message == b.message;
+}
+
+bool operator!=(const PendingChangeset &a, const PendingChangeset &b)
+{
+    return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset &p)
+{
+    return stream << "PendingChangeset(" << p.revision << ", " << p.author << ", " <<
+                     (p.isAttachedNow ? "[ATTACHED], " : "") << p.timestamp << ", " <<
+                     p.parentRevision << ", " << p.message << ")";
 }
 
 }

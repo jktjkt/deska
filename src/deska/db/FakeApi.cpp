@@ -170,9 +170,9 @@ TemporaryChangesetId FakeApi::rebaseChangeset(const RevisionId oldRevision)
     return TemporaryChangesetId::null;
 }
 
-std::vector<TemporaryChangesetId> FakeApi::pendingChangesets()
+std::vector<PendingChangeset> FakeApi::pendingChangesets()
 {
-    return std::vector<TemporaryChangesetId>();
+    return std::vector<PendingChangeset>();
 }
 
 void FakeApi::resumeChangeset(const TemporaryChangesetId revision)
