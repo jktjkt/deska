@@ -34,7 +34,6 @@ class Jsn:
 		# fuw code before: (FIXME: hotfix)
 		args = self.jsn.copy()
 		del args[CMD]
-		print args
 
 		#if self.db.has(cmd):
 		#is it good if we have exceptions? try better try:-)
