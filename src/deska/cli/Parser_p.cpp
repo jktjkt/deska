@@ -530,7 +530,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(InvalidAttributeDataTypeError(it->toString(), line, it->errorPosition(line)));
+        m_parser->parseError(InvalidAttributeDataTypeError(it->toString(), line, it->errorPosition()));
     } else {
         // There's no trace of an error in the attribute data anywhere
         if (parseErrors.size() == 1) {
@@ -541,10 +541,10 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #endif
             switch (err.errorType()) {
             case PARSE_ERROR_TYPE_ATTRIBUTE:
-                m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition(line)));
+                m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition()));
                 break;
             case PARSE_ERROR_TYPE_KIND:
-                m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition(line)));
+                m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
                 break;
             default:
                 throw std::domain_error("Invalid value of ParseErrorType");
@@ -556,7 +556,7 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
             std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
 #endif
             m_parser->parseError(UndefinedAttributeError(
-                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition(line)));
+                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition()));
         } else {
             throw std::out_of_range(
                 "Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");

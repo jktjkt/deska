@@ -296,7 +296,7 @@ public:
     *   
     *   @return Iterator to the error position
     */
-    Iterator errorPosition(const std::string &line) const;
+    Iterator errorPosition() const;
     /** @short Function for obtaining expected value types from the error.
     *
     *   @return Expected vale types as vector of their names
