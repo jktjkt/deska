@@ -53,7 +53,13 @@ void NestingErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Ite
                                                const spirit::info &what, const std::string &failingToken,
                                                const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
-    // FIXME: Implement some check of existence of kind name and generate nesting error
+    std::vector<Db::Identifier> definedKinds = parser->getKindNames();
+    typename std::vector<Db::Identifier>::iterator it = std::find(definedKinds.begin(), definedKinds.end(), failingToken);
+    if (it != definedKinds.end()) {
+        ParseError<Iterator> error(start, end, errorPos, what, failingToken, kindName);
+        //parser->addParseError(error);
+        // FIXME: Implement support in the rest of error handler
+    }
 }
 
 
