@@ -87,7 +87,7 @@ class DB:
 	methods = dict({
 		"kindNames": [VectorResult],
 		"kindAttributes": [KindAttributesResult,"kindName"],
-		"kindRelations": [TupleResult,"kindName"],
+		"kindRelations": [MatrixResult,"kindName"],
 		"kindInstances": [VectorResult,"kindName"],
 		"deleteObject": [BoolResult,"kindName","objectName"],
 		"createObject": [BoolResult,"kindName","objectName"],
