@@ -208,7 +208,7 @@ public:
     *   @param keywordsList Pointer to list, where keywords will be extracted
     *   @param typesList Pointer to list, where names of value types will be extracted
     */
-    InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<Db::Identifier> *typesList);
+    InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<std::string> *typesList);
 
     /** @short Function used for extractin the keywords from boost::spirit::info.
     *
@@ -224,7 +224,7 @@ private:
     /** List for extracted keywords. */
     std::vector<Db::Identifier> *kList;
     /** List for extracted names of value types. */
-    std::vector<Db::Identifier> *tList;
+    std::vector<std::string> *tList;
 };
 
 
@@ -287,7 +287,7 @@ public:
 
     ParseErrorType errorType() const;
     Iterator errorPosition(const std::string &line) const;
-    std::vector<Db::Identifier> expectedTypes() const;
+    std::vector<std::string> expectedTypes() const;
     std::vector<Db::Identifier> expectedKeywords() const;
 
     /** Converts error to std::string
@@ -319,7 +319,7 @@ private:
     ParseErrorType m_errorType;
 
     /** List with expected keywords */
-    std::vector<Db::Identifier> m_expectedTypes;
+    std::vector<std::string> m_expectedTypes;
     /** List with expected value types */
     std::vector<Db::Identifier> m_expectedKeywords;
 

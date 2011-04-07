@@ -95,7 +95,7 @@ void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Itera
 
 
 
-InfoExtractor::InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<Db::Identifier> *typesList):
+InfoExtractor::InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<std::string> *typesList):
     kList(keywordsList), tList(typesList)
 {
 }
@@ -201,7 +201,7 @@ std::vector<std::string> ParseError<Iterator>::expectedTypes() const
 
 
 template <typename Iterator>
-std::vector<std::string> ParseError<Iterator>::expectedKeywords() const
+std::vector<Db::Identifier> ParseError<Iterator>::expectedKeywords() const
 {
     return m_expectedKeywords;
 }
@@ -302,7 +302,7 @@ template iterator_type ParseError<iterator_type>::errorPosition(const std::strin
 
 template std::vector<std::string> ParseError<iterator_type>::expectedTypes() const;
 
-template std::vector<std::string> ParseError<iterator_type>::expectedKeywords() const;
+template std::vector<Db::Identifier> ParseError<iterator_type>::expectedKeywords() const;
 
 template std::string ParseError<iterator_type>::toString() const;
 
