@@ -79,6 +79,19 @@ class MatrixResult(Result):
 				if type(i[att]) == datetime.datetime:
 					i[att] = str(i[att])
                         map(line.__setitem__,args,i)
+			# FIXME: temporary workaround
+			# If api doesnot take it
+			# we have to fake it >:-)
+			if line.has_key('relation'):
+				del line['refattname']	
+				del line['attname']	
+				line['into'] = line['refkind']
+				del line['refkind']
+				if line['relation'] == 'INVALID':
+					return list()
+				if line['relation'] == 'EMBED':
+					line['relation'] = 'EMBED_INTO'
+
                         res.append(line)
                 return res
 		

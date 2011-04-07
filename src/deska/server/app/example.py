@@ -7,6 +7,8 @@ data = list([
 	'{"command": "kindAttributes", "kindName": "interface" }',
 	'{"command": "kindAttributes", "kindName": "host"}',
 	'{"command": "kindInstances",  "kindName": "vendor" }',
+	'{"command": "kindRelations", "kindName": "interface" }',
+	'{"command": "kindRelations", "kindName": "vendor" }',
 	'{"command": "startChangeset"}',
 	'{"command": "createObject", "kindName": "vendor", "objectName": "DELL" }',
 	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" }',
