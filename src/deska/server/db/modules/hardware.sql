@@ -11,7 +11,7 @@ CREATE TABLE hardware (
 	uid bigint DEFAULT nextval('hardware_uid')
 		CONSTRAINT hardware_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name char(64)
+	name text
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor bigint 

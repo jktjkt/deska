@@ -1,8 +1,13 @@
 from apijson import Jsn
 
 data = list([
-	'{"command": "startChangeset"}',
+	'{"command": "kindNames"}',
 	'{"command": "kindAttributes", "kindAttributes": { "kindName": "vendor"} }',
+	'{"command": "kindAttributes", "kindAttributes": { "kindName": "hardware"} }',
+	'{"command": "kindAttributes", "kindAttributes": { "kindName": "interface"} }',
+	'{"command": "kindAttributes", "kindAttributes": { "kindName": "host"} }',
+	'{"command": "kindInstances", "kindInstances": { "kindName": "vendor"} }',
+	'{"command": "startChangeset"}',
 	'{"command": "createObject", "createObject": { "kindName": "vendor", "objectName": "DELL"} }',
 	'{"command": "createObject", "createObject": { "kindName": "hardware", "objectName": "hp2"} }',
 	'{"command": "setAttribute", "setAttribute": {"kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}}',
@@ -11,10 +16,10 @@ data = list([
 	'{"command": "pendingChangesets"}'
 ])
 
+data = list(['{"command": "kindAttributes", "kindName": "vendor" }'])
+
 for i in data:
-	print "\033[1;31mINPUT:\033[1;m"
-	print i
+	print "\033[1;32mINPUT:\033[1;m" + i
 	jsn = Jsn(i)
-	print "\033[1;31mOUTPUT:\033[1;m"
-	print jsn.process()
+	print "\033[1;32mOUTPUT:\033[1;m" + "\033[1;33m" + jsn.process() + "\033[1;m"
 

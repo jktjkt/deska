@@ -13,7 +13,7 @@ CREATE TABLE vendor (
 	uid bigint DEFAULT nextval('vendor_uid')
 		CONSTRAINT vendor_pk PRIMARY KEY,
 -- this column is required in all plugins
-	name char(64) 
+	name text
 		CONSTRAINT vendor_name_unique UNIQUE NOT NULL
 
 );
