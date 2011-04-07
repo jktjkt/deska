@@ -47,12 +47,14 @@ public:
     void run();
 
 private:
+    void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotParserError(const ParserException &e);
     void slotSetAttribute(const Db::Identifier &name, const Db::Value &value);
 
 private:
     Db::Api *m_api;
     Parser *m_parser;
+    bool m_ignoreParserActions;
 };
 
 }
