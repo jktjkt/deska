@@ -2,21 +2,21 @@ from apijson import Jsn
 
 data = list([
 	'{"command": "kindNames"}',
-	'{"command": "kindAttributes", "kindAttributes": { "kindName": "vendor"} }',
-	'{"command": "kindAttributes", "kindAttributes": { "kindName": "hardware"} }',
-	'{"command": "kindAttributes", "kindAttributes": { "kindName": "interface"} }',
-	'{"command": "kindAttributes", "kindAttributes": { "kindName": "host"} }',
-	'{"command": "kindInstances", "kindInstances": { "kindName": "vendor"} }',
+	'{"command": "kindAttributes", "kindName": "vendor" }',
+	'{"command": "kindAttributes", "kindName": "hardware" }',
+	'{"command": "kindAttributes", "kindName": "interface" }',
+	'{"command": "kindAttributes", "kindName": "host"}',
+	'{"command": "kindInstances",  "kindName": "vendor" }',
 	'{"command": "startChangeset"}',
-	'{"command": "createObject", "createObject": { "kindName": "vendor", "objectName": "DELL"} }',
-	'{"command": "createObject", "createObject": { "kindName": "hardware", "objectName": "hp2"} }',
-	'{"command": "setAttribute", "setAttribute": {"kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}}',
-	'{"command": "objectData", "objectData": { "kindName": "hardware", "objectName": "hp2"} }',
-	'{"command": "detachFromCurrentChangeset", "detachFromCurrentChangeset": { "message": "test message"}}',
+	'{"command": "createObject", "kindName": "vendor", "objectName": "DELL" }',
+	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" }',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "Value":"HP"}',
+	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
+	'{"command": "detachFromCurrentChangeset", "message": "test message"}',
 	'{"command": "pendingChangesets"}'
 ])
 
-data = list(['{"command": "kindAttributes", "kindName": "vendor" }'])
+#data = list(['{"command": "kindRelations", "kindName": "interface" }'])
 
 for i in data:
 	print "\033[1;32mINPUT:\033[1;m" + i

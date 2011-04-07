@@ -141,7 +141,8 @@ LANGUAGE plpgsql SECURITY DEFINER;
 
 --type for relations of a kind
 CREATE TYPE kind_relation AS(
-relkind text,
+--relkind text,
+relation text,
 attname	text,
 refkind	name,
 refattname	text

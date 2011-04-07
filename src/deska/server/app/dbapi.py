@@ -32,8 +32,15 @@ class VectorResult(Result):
 class TupleResult(Result):
 	def parse(self):
 		res_tuple = dict()
-		for i in self.res:
-			res_tuple[i[0]] = i[1]
+		if not self.res:
+			return res_tuple
+                args = list()
+                # select attribute names
+                for i in self.mark.description:
+                        args.append(i[0])
+		# work with list instead of tuple
+		res = list(self.res[0])
+		map(res_tuple.__setitem__,args,list(res))
 		return res_tuple
 
 class KindAttributesResult(TupleResult):
@@ -71,7 +78,7 @@ class MatrixResult(Result):
 			for att in range(len(i)):
 				if type(i[att]) == datetime.datetime:
 					i[att] = str(i[att])
-                        map(line.__setitem__,args,list(i))
+                        map(line.__setitem__,args,i)
                         res.append(line)
                 return res
 		
@@ -96,7 +103,7 @@ class DB:
 		"pendingChangesets": [MatrixResult]
 	})
 	data_methods = dict({
-		"objectData": [MatrixResult,"kindName", "objectName"]
+		"objectData": [TupleResult,"kindName", "objectName"]
 		#"resolvedObjectData": [MatrixResult,"kindName", "objectName"],
 		#"findOverriddenAttrs": [MatrixResult,"kindName", "objectName", "attributeName"],
 		#"findNonOverriddenAttrs": [MatrixResult,"kindName", "objectName", "attributeName"],
