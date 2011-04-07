@@ -138,7 +138,7 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
     boost::posix_time::ptime timestamp;
     RevisionId parentRevision = RevisionId::null;
     std::string message;
-    // FIXME: issue #190
+    // FIXME: issue #191
     h.read("changeset").extract(&changeset); // "id"?
     h.read("author").extract(&author); // "username"?
     h.read("status").extract(&attachStatus); // ?
