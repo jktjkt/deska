@@ -12,6 +12,7 @@ BEGIN;
 \i fn-strlib.sql
 
 GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
+-- constraints functions
 \i fn-constraints.sql
 
 -- add modules
@@ -22,8 +23,16 @@ GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 
 GRANT ALL ON ALL TABLES IN SCHEMA production TO deska_admin;
 
--- add generated files from modules
---\i gen_schema.sql
---\i usage_scenario.sql
+GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;
 
+-- run this as db root
+
+-- creates functions - string operations
+\i fn-strlib.sql
+
+-- create revision functions
+\i fn-revisions.sql
+
+-- wrapper functions
+\i fn-api-objects.sql
 END;
