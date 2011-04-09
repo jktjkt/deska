@@ -132,7 +132,7 @@ AS
 $$
 DECLARE par bigint;
 BEGIN
-	SELECT parent INTO par FROM changeset 
+	SELECT parentrevision INTO par FROM changeset 
 		WHERE id = ver;
 	RETURN par;
 END
@@ -145,14 +145,14 @@ SET search_path TO api,deska;
 -- start changeset
 --
 CREATE FUNCTION startChangeset()
-RETURNS integer
+RETURNS text
 AS
 $$
 DECLARE ver integer;
 BEGIN
 	PERFORM create_changeset();
 	SELECT my_version() INTO ver;
-	RETURN ver;
+	RETURN id2changeset(ver);
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -160,14 +160,14 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- resume to changeset
 --
-CREATE FUNCTION resumeChangeset(id_ integer)
+CREATE FUNCTION resumeChangeset(id_ text)
 RETURNS integer
 AS
 $$
 BEGIN
 	UPDATE changeset SET status = 'INPROGRESS',
 		pid = pg_backend_pid(), author = session_user
-		WHERE id = id_; 
+		WHERE id = changeset2id(id_); 
 	RETURN 1;
 END
 $$
@@ -198,8 +198,9 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
+	SELECT my_version() INTO ver;
 	PERFORM delete_changeset();
-	RETURN 1;
+	RETURN ver;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

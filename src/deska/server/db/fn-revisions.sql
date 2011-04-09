@@ -29,7 +29,7 @@ CREATE OR REPLACE FUNCTION changeset2id(rev text)
 RETURNS bigint
 AS
 $$
---FIXME: match "tmp"
+#FIXME: match "tmp"
 return rev[3:len(rev)]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
@@ -41,7 +41,7 @@ CREATE OR REPLACE FUNCTION revision2num(rev text)
 RETURNS bigint
 AS
 $$
---FIXME: match "r"
+#FIXME: match "r"
 return rev[1:len(rev)]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
