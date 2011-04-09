@@ -1,6 +1,4 @@
--- drop schemas and clear whole db
+-- drop schemas
 DROP SCHEMA production CASCADE;
 DROP SCHEMA history CASCADE;
 DROP SCHEMA genproc CASCADE;
-DROP SCHEMA deska CASCADE;
-DROP SCHEMA api CASCADE;

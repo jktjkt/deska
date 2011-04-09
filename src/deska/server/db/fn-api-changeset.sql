@@ -234,7 +234,7 @@ RETURNS text
 AS
 $$
 BEGIN
-        RETURN num2revision(commit_all());
+        RETURN num2revision(genproc.commit_all());
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

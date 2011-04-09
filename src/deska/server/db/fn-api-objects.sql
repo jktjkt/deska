@@ -1,4 +1,4 @@
-SET search_path TO api,genproc;
+SET search_path TO deska;
 
 CREATE FUNCTION getfn(fntype text, kindname text, attributename text = '')
 RETURNS text
@@ -17,6 +17,7 @@ return fname
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
+SET search_path TO api,deska;
 
 CREATE FUNCTION setAttribute(kindname text, objectname text, attributename text, value text)
 RETURNS integer
