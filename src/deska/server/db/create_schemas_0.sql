@@ -4,9 +4,9 @@
 -- schema for other functions
 -- here should be all hand writed functions, views, types etc.
 --
-CREATE SCHEMA deska AUTHORIZATION deska_admin;
+CREATE SCHEMA deska;
 
 --
 -- schema for api functions
 --
-CREATE SCHEMA api AUTHORIZATION deska_admin;
+CREATE SCHEMA api;

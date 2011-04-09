@@ -4,16 +4,16 @@
 -- schema for production tables
 -- here place the modules
 --
-CREATE SCHEMA production AUTHORIZATION deska_admin;
+CREATE SCHEMA production ;
 
 --
 -- schema for history tables
 --
-CREATE SCHEMA history AUTHORIZATION deska_admin;
+CREATE SCHEMA history ;
 
 --
 -- schema for generated procedures
 -- this is where generated things are placed
 --
-CREATE SCHEMA genproc AUTHORIZATION deska_admin;
+CREATE SCHEMA genproc ;
 

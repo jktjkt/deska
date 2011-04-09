@@ -360,7 +360,7 @@ class Templates:
 		RETURN last_changeset_id;
 	END;
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 	
 '''
 
