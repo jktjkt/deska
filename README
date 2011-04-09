@@ -12,6 +12,7 @@ Build instructions for the C++ CLI interface:
 Setup for the SQL server side (see doc/misc/pgsql-setup for details):
 
 1) create db deska_dev, with roles deska_admin and deska_user, create language plpythonu
+and as dbroot run src/deska/server/db/create_0.sql
 2) run src/deska/server/db/create_1.sql 
 3) run python src/deska/server/db/gen_sql/gen_stored_proc.py
 4) run src/deska/server/db/create_2.sql
