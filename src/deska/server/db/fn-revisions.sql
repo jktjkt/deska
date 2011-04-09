@@ -46,3 +46,34 @@ return rev[1:len(rev)]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
 
+--
+-- get number from revision id
+--
+CREATE OR REPLACE FUNCTION id2num(id_ bigint)
+RETURNS bigint
+AS
+$$
+DECLARE rev bigint;
+BEGIN
+	SELECT num INTO rev FROM version
+		WHERE id = id_;
+	RETURN rev;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- get id from revision number
+--
+CREATE OR REPLACE FUNCTION num2id(num_ bigint)
+RETURNS bigint
+AS
+$$
+DECLARE rev bigint;
+BEGIN
+	SELECT id INTO rev FROM version
+		WHERE num = num_;
+	RETURN rev;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;

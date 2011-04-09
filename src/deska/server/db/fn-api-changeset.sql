@@ -225,3 +225,16 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- Commit changeset - just run genproc.commit
+--
+CREATE FUNCTION commitChangeset()
+RETURNS text
+AS
+$$
+BEGIN
+        RETURN num2revision(commit_all());
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
