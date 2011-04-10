@@ -10,10 +10,10 @@ m(modules): run action for modules only (default)
 a(ll): run action for whole deska"
 }
 function drop(){
-	psql -d "$DATABASE" "$USER" -f drop_$1.sql 2>&1 > /dev/null | grep -v "cascades"
+	psql -d "$DATABASE" -U "$USER" -f drop_$1.sql 2>&1 > /dev/null | grep -v "cascades"
 }
 function stage(){
-	psql -d "$DATABASE" "$USER" -f create_$1.sql 2>&1 > /dev/null | grep -v NOTICE 
+	psql -d "$DATABASE" -U "$USER" -f create_$1.sql 2>&1 > /dev/null | grep -v NOTICE 
 }
 function generate(){
 	python gen_sql/generator.py
