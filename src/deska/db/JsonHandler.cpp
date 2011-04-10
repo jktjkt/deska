@@ -142,7 +142,7 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
     h.read("author").extract(&author);
     h.read("status").extract(&attachStatus);
     h.read("timestamp").extract(&timestamp);
-    h.read("parentRevision").extract(&parentRevision); // FIXME: #191
+    h.read("parentrevision").extract(&parentRevision); // FIXME: #191
     h.read("message").extract(&message);
     h.read("pid"); // FIXME: #191: merge with "status"
     h.parseJsonObject(o);
@@ -190,6 +190,8 @@ public:
 template<>
 void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 {
+    if (value.type() != json_spirit::str_type)
+        throw JsonParseError("RevisionId is not string");
     *target = RevisionId::fromJson(value.get_str());
 }
 
@@ -197,6 +199,8 @@ void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 template<>
 void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
 {
+    if (value.type() != json_spirit::str_type)
+        throw JsonParseError("TemporaryChangesetId is not string");
     *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
