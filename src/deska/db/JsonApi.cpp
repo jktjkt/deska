@@ -272,6 +272,7 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
 {
     JsonHandlerApiWrapper h(this, "resumeChangeset");
     h.write(j_revision, revision);
+    h.expectTrue("result");
     h.work();
 }
 
@@ -285,6 +286,7 @@ void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
 void JsonApiParser::abortCurrentChangeset()
 {
     JsonHandlerApiWrapper h(this, "abortCurrentChangeset");
+    h.expectTrue("result");
     h.work();
 }
 
