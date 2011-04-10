@@ -51,6 +51,9 @@ private:
     void slotParserError(const ParserException &e);
     void slotSetAttribute(const Db::Identifier &name, const Db::Value &value);
 
+    /** @short Dump everything in the DB */
+    void dumpDbContents();
+
     /** @short Ask the user whether she wants to proceed with something */
     bool askForConfirmation(const std::string &prompt);
 
