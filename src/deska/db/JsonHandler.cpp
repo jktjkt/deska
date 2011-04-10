@@ -138,14 +138,13 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
     boost::posix_time::ptime timestamp;
     RevisionId parentRevision = RevisionId::null;
     std::string message;
-    // FIXME: issue #191
-    h.read("changeset").extract(&changeset); // "id"?
-    h.read("author").extract(&author); // "username"?
-    h.read("status").extract(&attachStatus); // ?
-    h.read("timestamp").extract(&timestamp); // "created"?
-    h.read("parentRevision").extract(&parentRevision); // "parrent"?
+    h.read("changeset").extract(&changeset);
+    h.read("author").extract(&author);
+    h.read("status").extract(&attachStatus);
+    h.read("timestamp").extract(&timestamp);
+    h.read("parentRevision").extract(&parentRevision); // FIXME: #191
     h.read("message").extract(&message);
-    h.read("pid"); // merge with "status"
+    h.read("pid"); // FIXME: #191: merge with "status"
     h.parseJsonObject(o);
 
     // These asserts are enforced by the JsonHandler, as all fields are required here.
