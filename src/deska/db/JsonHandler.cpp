@@ -119,41 +119,33 @@ ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
     }
 }
 
-/** @short Internal use only: type-safe way of conveying the attached/detached status of a revision
-
-Because the JSON parsing is determined by the underlying type, we have to use something more unique than
-a simple bool for representation of detached/in_progress state of being attached. This enum is fulfilling
-that role, but because the public API of the PendingChangeset uses a simple bool for that purpose, we try
-to keep this one private. Please consider it an implementation detail.
-*/
-typedef enum {ATTACH_ATTACHED, ATTACH_DETACHED} PendingChangesetAttachStatus;
-
 /** @short Convert from json_spirit::Object into Deska::Db::PendingChangeset */
 PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
 {
     JsonHandler h;
     TemporaryChangesetId changeset = TemporaryChangesetId::null;
     std::string author;
-    PendingChangesetAttachStatus attachStatus;
     boost::posix_time::ptime timestamp;
     RevisionId parentRevision = RevisionId::null;
     std::string message;
+    PendingChangeset::AttachStatus attachStatus;
+    boost::optional<std::string> activeConnectionInfo;
     h.read("changeset").extract(&changeset);
     h.read("author").extract(&author);
-    h.read("status").extract(&attachStatus);
     h.read("timestamp").extract(&timestamp);
     h.read("parentrevision").extract(&parentRevision); // FIXME: #191
     h.read("message").extract(&message);
-    h.read("pid"); // FIXME: #191: merge with "status"
+    h.read("status").extract(&attachStatus);
+    h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
     h.parseJsonObject(o);
 
     // These asserts are enforced by the JsonHandler, as all fields are required here.
     BOOST_ASSERT(changeset != TemporaryChangesetId::null);
     BOOST_ASSERT(parentRevision != RevisionId::null);
     // This is guaranteed by the extractor
-    BOOST_ASSERT(attachStatus == ATTACH_ATTACHED || attachStatus == ATTACH_DETACHED);
+    BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
 
-    return PendingChangeset(changeset, author, attachStatus == ATTACH_ATTACHED, timestamp, parentRevision, message);
+    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
 }
 
 /** @short Abstract class for conversion between a JSON value and "something" */
@@ -305,15 +297,15 @@ void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::
 
 /** @short Convert from JSON into an internal representation of the attached/detached state */
 template<>
-void SpecializedExtractor<PendingChangesetAttachStatus>::extract(const json_spirit::Value &value)
+void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::str_type)
         throw JsonParseError("Value of expected type PendingChangesetAttachStatus is not a string");
     std::string data = value.get_str();
     if (data == "DETACHED") {
-        *target = ATTACH_DETACHED;
+        *target = PendingChangeset::ATTACH_DETACHED;
     } else if (data == "INPROGRESS") {
-        *target = ATTACH_ATTACHED;
+        *target = PendingChangeset::ATTACH_IN_PROGRESS;
     } else {
         std::ostringstream ss;
         ss << "Invalid value for attached status of a pending changeset '" << data << "'";
@@ -567,7 +559,7 @@ template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
-template JsonField& JsonField::extract(PendingChangesetAttachStatus*);
+template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
 
 }

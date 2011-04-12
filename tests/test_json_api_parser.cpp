@@ -342,22 +342,30 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"pendingChangesets\"}\n");
+    // FIXME: parentRevision, #191
     expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
-               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"isAttachedNow\": \"DETACHED\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", "
-                   "\"message\": \"this is a commit message, man\"}, "
-               "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"isAttachedNow\": \"INPROGRESS\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"foo\"}"
+               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"message\"}, "
+               // The next one is the same, except that we use JSON's null here
+               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"message\", "
+                   "\"activeConnectionInfo\": null}, "
+               "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"status\": \"INPROGRESS\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"foo\", "
+                   "\"activeConnectionInfo\": \"unspecified connection\"}"
                "]}\n");
     vector<PendingChangeset> expected;
     expected.push_back(PendingChangeset(
-                           TemporaryChangesetId(123), "user", false,
+                           TemporaryChangesetId(123), "user",
                            boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
-                           RevisionId(666), "this is a commit message, man"));
+                           RevisionId(666), "message", PendingChangeset::ATTACH_DETACHED, boost::optional<std::string>()));
+    // repeat the first line once again
+    expected.push_back(expected.front());
     expected.push_back(PendingChangeset(
-                           TemporaryChangesetId(333), "bar", true,
+                           TemporaryChangesetId(333), "bar",
                            boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
-                           RevisionId(666), "foo"));
+                           RevisionId(666),"foo", PendingChangeset::ATTACH_IN_PROGRESS,
+                           boost::optional<std::string>("unspecified connection")));
     vector<PendingChangeset> res = j->pendingChangesets();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
