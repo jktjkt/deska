@@ -138,10 +138,44 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+
+
+CREATE TYPE kind_relation AS(
+--relkind text,
+relation text,
+refkind	name
+);
+
+--gets relations between kind kindname and other kinds - type of relation, name of related kind
+CREATE FUNCTION kindRelations(kindname name)
+RETURNS SETOF kind_relation
+AS $$
+DECLARE
+BEGIN
+	RETURN QUERY SELECT 
+			CASE 
+				WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
+				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATE'
+				WHEN conname LIKE 'rembed_%' THEN 'EMBED'
+			END,
+			class2.relname
+			FROM	pg_constraint AS constr
+							--join with TABLE which the contraint is ON
+				join pg_class AS class1 ON (constr.conrelid = class1.oid)	
+				--join with referenced TABLE
+				join pg_class AS class2 ON (constr.confrelid = class2.oid)
+			WHERE contype='f' AND class1.relname = kindname 
+				AND (conname LIKE 'rmerge_%' OR conname LIKE 'rtempl_%' OR conname LIKE 'rembed_%');
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
 --DROP TYPE kind_relation;
 
 --type for relations of a kind
-CREATE TYPE kind_relation AS(
+CREATE TYPE kind_relation_full AS(
 --relkind text,
 relation text,
 attname	text,
@@ -152,8 +186,8 @@ refattname	text
 --DROP FUNCTION get_relations(name);
 
 --function returns relations of a given kind
-CREATE FUNCTION kindRelations(kindname name)
-RETURNS SETOF kind_relation
+CREATE FUNCTION kindRelations_full_info(kindname name)
+RETURNS SETOF kind_relation_full
 AS $$
 DECLARE
 BEGIN
