@@ -1,5 +1,6 @@
 import psycopg2
 import datetime
+import time
 import logging
 
 
@@ -14,6 +15,17 @@ class Result:
 		self.res = db_mark.fetchall()
 	def parse(self):
 		return self.res[0][0]
+	
+	def fixdates(self,lst):
+		# we have to transform datetime from db to timestamp
+		# FIXME: can we do this better
+		for att in range(len(lst)):
+			if type(lst[att]) == datetime.date:
+				lst[att] = time.mktime(lst[att].timetuple())
+			if type(lst[att]) == datetime.datetime:
+				lst[att] = time.mktime(lst[att].timetuple())
+		return lst
+
 
 class BoolResult(Result):
 	def __init__(self,db_mark):
@@ -40,6 +52,8 @@ class TupleResult(Result):
                         args.append(i[0])
 		# work with list instead of tuple
 		res = list(self.res[0])
+		# fix the dates
+		res = self.fixdates(res)
 		map(res_tuple.__setitem__,args,list(res))
 		return res_tuple
 
@@ -74,10 +88,9 @@ class MatrixResult(Result):
                         line = dict()
 			# work with list instead of tuple
 			i = list(i)
-			# FIXME: cli don't understand datetime
-			for att in range(len(i)):
-				if type(i[att]) == datetime.datetime:
-					i[att] = str(i[att])
+			# fix the dates
+			i = self.fixdates(i)
+
                         map(line.__setitem__,args,i)
 			# FIXME: temporary workaround
 			# If api doesnot take it
