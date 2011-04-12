@@ -342,16 +342,15 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"pendingChangesets\"}\n");
-    // FIXME: parentRevision, #191
     expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
                "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"message\"}, "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\"}, "
                // The next one is the same, except that we use JSON's null here
                "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"message\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\", "
                    "\"activeConnectionInfo\": null}, "
                "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"status\": \"INPROGRESS\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentrevision\": \"r666\", \"message\": \"foo\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"foo\", "
                    "\"activeConnectionInfo\": \"unspecified connection\"}"
                "]}\n");
     vector<PendingChangeset> expected;

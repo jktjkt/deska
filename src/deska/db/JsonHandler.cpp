@@ -133,7 +133,7 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
     h.read("changeset").extract(&changeset);
     h.read("author").extract(&author);
     h.read("timestamp").extract(&timestamp);
-    h.read("parentrevision").extract(&parentRevision); // FIXME: #191
+    h.read("parentRevision").extract(&parentRevision);
     h.read("message").extract(&message);
     h.read("status").extract(&attachStatus);
     h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
