@@ -7,7 +7,7 @@ class Schema:
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	commit_string = '''
-CREATE FUNCTION commit_all()
+CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
 	AS
 	$$
@@ -17,7 +17,7 @@ CREATE FUNCTION commit_all()
 		{commit_tables}
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
-		SELECT create_version() INTO rev;
+		SELECT create_version(message) INTO rev;
 		RETURN rev;
 	END
 	$$

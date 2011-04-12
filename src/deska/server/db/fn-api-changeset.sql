@@ -1,7 +1,7 @@
 -- switch to deska_dev SCHEMA
 SET search_path TO deska;
 
-CREATE SEQUENCE version_num;
+CREATE SEQUENCE version_num MINVALUE 0;
 
 CREATE TYPE changeset_status AS ENUM ( 'DETACHED', 'INPROGRESS' );
 
@@ -18,7 +18,8 @@ CREATE TABLE version(
 	-- time of commit
 	timestamp timestamp without time zone NOT NULL DEFAULT now(),
 	-- commit message text
-	message text
+	--FIXME: is better "" instead of NULL - see #191, fix to "" for now
+	message text NOT NULL DEFAULT ""
 );
 
 -- INPROGRESS and DETACHED changesets
@@ -72,7 +73,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- fuction for commit changeset / create version and return human readable number
 --
-CREATE FUNCTION create_version()
+CREATE FUNCTION create_version(message_ text)
 RETURNS integer
 AS
 $$
@@ -84,6 +85,8 @@ BEGIN
 	INSERT INTO version (id,author)
 		SELECT id,author FROM changeset
 			WHERE id = ver;
+	UPDATE version SET message = message_
+		WHERE id = ver;
 	SELECT num INTO ret FROM version
 		WHERE id = ver;
 	PERFORM delete_changeset();
@@ -209,7 +212,7 @@ CREATE TYPE changeset_type AS (
 changeset text,
 author text,
 status changeset_status,
-parentrevision bigint,
+"parentRevision" text,
 timestamp timestamp,
 message text
 );
@@ -221,7 +224,7 @@ RETURNS SETOF changeset_type
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT id2changeset(id),author,status,parentrevision,timestamp,message FROM changeset;
+	RETURN QUERY SELECT id2changeset(id),author,status,num2revision(parentRevision),timestamp,message FROM changeset;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -229,12 +232,12 @@ LANGUAGE plpgsql SECURITY DEFINER;
 --
 -- Commit changeset - just run genproc.commit
 --
-CREATE FUNCTION commitChangeset()
+CREATE FUNCTION commitChangeset(commitMessage_ text)
 RETURNS text
 AS
 $$
 BEGIN
-        RETURN num2revision(genproc.commit_all());
+        RETURN num2revision(genproc.commit_all(commitMessage_));
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
