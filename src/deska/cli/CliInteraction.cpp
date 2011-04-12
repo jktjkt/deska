@@ -104,8 +104,8 @@ void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Valu
     if (m_ignoreParserActions)
         return;
 
-    std::cout << "Setting attribute " << m_parser->currentContextStack() << " -> " << name << " to '" << value << "'" << std::endl;
-
+    // FIXME: work with the context stack
+    m_api->setAttribute(m_parser->currentContextStack().back().kind, m_parser->currentContextStack().back().name, name, value);
 }
 
 void CliInteraction::slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
@@ -140,10 +140,9 @@ bool CliInteraction::askForConfirmation(const std::string &prompt)
 void CliInteraction::run()
 {
     // FIXME: request a list of pending changesets here, talk to the user to select which one to connect to,...
-    // FIXME: the format of pending changesets is broken, see #191
-    /*BOOST_FOREACH(Deska::Db::PendingChangeset changeset, m_api->pendingChangesets()) {
+    BOOST_FOREACH(Deska::Db::PendingChangeset changeset, m_api->pendingChangesets()) {
         std::cout << changeset << std::endl;
-    }*/
+    }
     std::string choice;
     std::cout << "What changeset to attach to? (create, no, revision number) " << std::endl;
     std::cin >> choice;
