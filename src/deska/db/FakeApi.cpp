@@ -145,7 +145,7 @@ void FakeApi::removeAttribute(const Identifier &kindName, const Identifier &obje
 
 
 void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
-                           const Value &value)
+                           const Value &attributeData)
 {
 }
 

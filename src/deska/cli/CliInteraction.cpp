@@ -99,13 +99,13 @@ void CliInteraction::slotParserError(const ParserException &e)
     std::cout << "Parse error: " << e.dump() << std::endl;
 }
 
-void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Value &value)
+void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Value &attributeData)
 {
     if (m_ignoreParserActions)
         return;
 
     // FIXME: work with the context stack
-    m_api->setAttribute(m_parser->currentContextStack().back().kind, m_parser->currentContextStack().back().name, name, value);
+    m_api->setAttribute(m_parser->currentContextStack().back().kind, m_parser->currentContextStack().back().name, name, attributeData);
 }
 
 void CliInteraction::slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name)

@@ -215,13 +215,13 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
 }
 
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
-                           const Value &value)
+                           const Value &attributeData)
 {
     JsonHandlerApiWrapper h(this, "setAttribute");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.write("attributeData", value);
+    h.write("attributeData", attributeData);
     h.work();
 }
 

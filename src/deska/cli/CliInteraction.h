@@ -49,7 +49,7 @@ public:
 private:
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotParserError(const ParserException &e);
-    void slotSetAttribute(const Db::Identifier &name, const Db::Value &value);
+    void slotSetAttribute(const Db::Identifier &name, const Db::Value &attributeData);
 
     /** @short Dump everything in the DB */
     void dumpDbContents();

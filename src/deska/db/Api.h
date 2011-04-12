@@ -164,7 +164,7 @@ public:
 
     /** @short Set an attribute that belongs to some object to a new value */
     virtual void setAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData) = 0;
 
 
 

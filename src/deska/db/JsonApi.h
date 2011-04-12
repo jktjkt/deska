@@ -67,7 +67,7 @@ public:
     virtual void removeAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
     virtual void setAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value );
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData );
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
