@@ -338,11 +338,18 @@ void SpecializedExtractor<std::string>::extract(const json_spirit::Value &value)
 template<typename T>
 void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value &value)
 {
-    // this is ugly, but it works and allows us to avoid code duplication
-    T res;
-    SpecializedExtractor<T> extractor(&res);
-    extractor.extract(value);
-    *target = res;
+    if (value.is_null()) {
+        // The JSON null is mapped to an empty optional
+        target->reset();
+        return;
+    } else {
+        // We have a value, so let's try to parse it
+        // this is ugly, but it works and allows us to avoid code duplication
+        T res;
+        SpecializedExtractor<T> extractor(&res);
+        extractor.extract(value);
+        *target = res;
+    }
 }
 
 JsonField::JsonField(const std::string &name):
