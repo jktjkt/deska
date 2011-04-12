@@ -1,7 +1,7 @@
 -- switch to deska_dev SCHEMA
 SET search_path TO deska;
 
-CREATE SEQUENCE version_num MINVALUE 0;
+CREATE SEQUENCE version_num;
 
 CREATE TYPE changeset_status AS ENUM ( 'DETACHED', 'INPROGRESS' );
 
@@ -19,7 +19,7 @@ CREATE TABLE version(
 	timestamp timestamp without time zone NOT NULL DEFAULT now(),
 	-- commit message text
 	--FIXME: is better "" instead of NULL - see #191, fix to "" for now
-	message text NOT NULL DEFAULT ""
+	message text NOT NULL DEFAULT ''
 );
 
 -- INPROGRESS and DETACHED changesets
