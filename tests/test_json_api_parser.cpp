@@ -251,7 +251,7 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStre
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\"}\n");
     j->createObject("k", "o");
     expectEmpty();
 }
@@ -260,7 +260,7 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\"}\n");
     j->deleteObject("k", "o");
     expectEmpty();
 }
@@ -269,7 +269,7 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }
@@ -278,7 +278,7 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"removeAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}\n");
-    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeAttribute\", \"result\": true}\n");
+    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeAttribute\"}\n");
     j->removeAttribute("kind", "obj", "fancyAttr");
     expectEmpty();
 }
@@ -299,7 +299,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     vector<SetAttrTestData> data;
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
-            "\"response\": \"setAttribute\", \"result\": true, \"attributeData\": ";
+            "\"response\": \"setAttribute\", \"attributeData\": ";
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", "some string"));
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", 123));
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", 333.666));

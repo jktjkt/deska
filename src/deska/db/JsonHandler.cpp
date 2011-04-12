@@ -524,15 +524,6 @@ JsonField &JsonHandler::read(const std::string &name)
     return *(--fields.end());
 }
 
-JsonField &JsonHandler::expectTrue(const std::string &name)
-{
-    JsonField f(name);
-    fields.push_back(f);
-    f.valueShouldMatch = true;
-    f.jsonValue = true;
-    return *(--fields.end());
-}
-
 boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name, const TemporaryChangesetId value)
 {
     if (value == TemporaryChangesetId::null)

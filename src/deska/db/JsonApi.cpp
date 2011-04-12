@@ -185,7 +185,6 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     JsonHandlerApiWrapper h(this, "deleteObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -194,7 +193,6 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
     JsonHandlerApiWrapper h(this, "createObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -204,7 +202,6 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.write(j_kindName, kindName);
     h.write(j_objName, oldName);
     h.write("newObjectName", newName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -214,7 +211,6 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -226,7 +222,6 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
     h.write("attributeData", value);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -272,7 +267,6 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
 {
     JsonHandlerApiWrapper h(this, "resumeChangeset");
     h.write(j_revision, revision);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -286,7 +280,6 @@ void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
 void JsonApiParser::abortCurrentChangeset()
 {
     JsonHandlerApiWrapper h(this, "abortCurrentChangeset");
-    h.expectTrue("result");
     h.work();
 }
 
