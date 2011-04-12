@@ -75,7 +75,7 @@ public:
      *
      * The returned data is a list of <name, datatype> pairs.
      * */
-    virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const = 0;
+    virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const = 0;
 
 
     /** @short Retrieve relations between different Kinds
@@ -83,13 +83,13 @@ public:
      * This function returns a list of relations for the specified kind of entities -- for more
      * details and examples, see the ObjectRelation struct.
      * */
-    virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const = 0;
+    virtual std::vector<ObjectRelation> kindRelations(const Identifier &kindName) const = 0;
 
 
     // Returning data for existing objects
 
     /** @short Get identifiers of all concrete objects of a given Kind */
-    virtual std::vector<Identifier> kindInstances( const Identifier &kindName, const RevisionId = RevisionId::null ) const = 0;
+    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const RevisionId = RevisionId::null) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
@@ -97,7 +97,7 @@ public:
      * resolvedObjectData() for template support.
      * */
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -115,7 +115,7 @@ public:
      *      ...
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
 
     /** @short Get a list of identifiers of objects which explicitly override a given attribute 
      *
@@ -133,7 +133,7 @@ public:
      *
      * */
     virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
 
     /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
      *
@@ -145,26 +145,26 @@ public:
      * @see findOverriddenAttrs()
      * */
     virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
 
     // Manipulating objects
 
     /** @short Delete an item from one of the lists of objects */
-    virtual void deleteObject( const Identifier &kindName, const Identifier &objectName ) = 0;
+    virtual void deleteObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
     /** @short Create new object */
-    virtual void createObject( const Identifier &kindName, const Identifier &objectName ) = 0;
+    virtual void createObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
     /** @short Change object's name */
-    virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName ) = 0;
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName) = 0;
 
     /** @short Remove an attribute from one instance of an object */
     virtual void removeAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
 
     /** @short Set an attribute that belongs to some object to a new value */
     virtual void setAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value ) = 0;
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &value) = 0;
 
 
 
@@ -204,8 +204,8 @@ public:
      */
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision) = 0;
 
-    /** @short Return a list of pending revisions started by current user */
-    virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself() = 0;
+    /** @short Return a list of all pending revisions */
+    virtual std::vector<PendingChangeset> pendingChangesets() = 0;
 
     /** @short Re-open a pre-existing changeset
      *

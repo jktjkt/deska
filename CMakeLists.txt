@@ -24,7 +24,7 @@ project(deska)
 cmake_minimum_required(VERSION 2.6)
 
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
-add_definitions(-D_GLIBCXX_DEBUG)
+add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
@@ -50,25 +50,19 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliInteraction.cpp
 )
 
 set(deskaCliParserDemo_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
-set(deskaIoDemo_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/main.cpp
-)
-
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb boost_system)
+target_link_libraries(DeskaDb boost_system boost_date_time)
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
 target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
-
-add_executable(deska-io-demo ${deskaIoDemo_SRCS})
-target_link_libraries(deska-io-demo DeskaCliParser DeskaDb)
 
 enable_testing()
 add_subdirectory(tests)

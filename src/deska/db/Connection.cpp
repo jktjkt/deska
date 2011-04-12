@@ -29,13 +29,7 @@ Connection::Connection(): io(0)
 {
     // FIXME: don't hardcode these
     std::vector<std::string> args;
-    // How to use this: run `socat -d -d -d - PIPE:foo` in the build dir before starting this example
-    args.push_back("/usr/bin/socat");
-    args.push_back("-");
-    args.push_back("PIPE:foo");
-    /*args.push_back("/usr/bin/python");
-    args.push_back("first-conversation.py");*/
-
+    args.push_back("/home/jkt/work/fzu/deska/src/deska/server/app/deska_server.py");
     io = new ProcessIO(args);
     setStreams(io->writeStream(), io->readStream());
 }

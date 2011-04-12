@@ -23,6 +23,8 @@
 #define DESKA_DB_REVISIONS_H
 
 #include <iosfwd>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/optional.hpp>
 
 namespace Deska {
 namespace Db {
@@ -50,6 +52,42 @@ struct TemporaryChangesetId {
 bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
 bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b);
 std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t);
+
+/** @short Metadata for a pending changeset */
+struct PendingChangeset {
+    /** @short Attached/detached state of a changeset */
+    typedef enum {ATTACH_IN_PROGRESS, ATTACH_DETACHED} AttachStatus;
+
+    /** @short Temporary changeset number */
+    TemporaryChangesetId revision;
+    /** @short Author of the changeset */
+    std::string author;
+    /** @short Timestamp of when this reviosion was modified the last time */
+    boost::posix_time::ptime timestamp;
+    /** @short Indetification of a revision which serves as a parent for this one */
+    RevisionId parentRevision;
+    /** @short The commit message */
+    std::string message;
+    /** @short Is this changeset attached to by someone at this time? */
+    AttachStatus attachStatus;
+    /** @short Optional free-text identification of who is currently attached to this changeset
+
+    This field is meant as a debug hint for specifying who is currently working on this changeset.
+    The specification does not mandate any particular form for the format of this field. It is recomended
+    that DB implementations return something that a human user could use to locate a user who is currently
+    connected to the database.
+    */
+    boost::optional<std::string> activeConnectionInfo;
+
+    PendingChangeset(const TemporaryChangesetId revision, const std::string &author, const boost::posix_time::ptime timestamp,
+                     const RevisionId parentRevision, const std::string &message, const AttachStatus attachStatus,
+                     const boost::optional<std::string> &activeConnectionInfo);
+};
+
+bool operator==(const PendingChangeset &a, const PendingChangeset &b);
+bool operator!=(const PendingChangeset &a, const PendingChangeset &b);
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset &p);
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset::AttachStatus status);
 
 }
 }

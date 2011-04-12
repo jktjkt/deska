@@ -3,7 +3,7 @@
 --
 -- these functions should be in schema deska
 --
-SET search_path TO deska,production;
+SET search_path TO deska;
 --
 -- function returns info about tables in db
 --
@@ -100,6 +100,7 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+SET search_path TO api,deska;
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --
@@ -141,7 +142,8 @@ LANGUAGE plpgsql SECURITY DEFINER;
 
 --type for relations of a kind
 CREATE TYPE kind_relation AS(
-relkind text,
+--relkind text,
+relation text,
 attname	text,
 refkind	name,
 refattname	text
@@ -176,7 +178,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 
 --function returns relations of a given kind
 CREATE FUNCTION kindInstances(kindname name)
-RETURNS SETOF char(64)
+RETURNS SETOF text
 AS
 $$
 DECLARE

@@ -73,7 +73,7 @@ public:
     virtual TemporaryChangesetId startChangeset();
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision);
-    virtual std::vector<TemporaryChangesetId> pendingChangesetsByMyself();
+    virtual std::vector<PendingChangeset> pendingChangesets();
     virtual void resumeChangeset(const TemporaryChangesetId revision);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
@@ -86,7 +86,7 @@ private:
     /** @short The implementation tries to obtain the JSON data */
     json_spirit::Object readJsonObject() const;
 
-    friend class JsonHandler;
+    friend class JsonHandlerApiWrapper;
     std::ostream *m_writeStream;
     std::istream *m_readStream;
 };

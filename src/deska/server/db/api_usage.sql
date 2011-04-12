@@ -3,9 +3,6 @@ SET search_path TO api,genproc,history,deska,production;
 BEGIN;
 SELECT startChangeset();
 
--- works?
-SELECT my_version();
-
 -- some changes follows
 SELECT createObject('vendor','DELL');
 SELECT createObject('hardware','hwDELL');
@@ -18,10 +15,8 @@ SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
 -- end session, part of vendor commit? of vendor commit part of this?
 SELECT commitChangeset();
 
-SELECT * FROM vendor_history;
-SELECT * FROM hardware_history;
-SELECT * FROM vendor;
-SELECT * FROM hardware;
+END;
+BEGIN;
 
 SELECT startChangeset();
 --SELECT deleteObject('hardware','hwDELL');
@@ -31,10 +26,5 @@ SELECT createObject('vendor','IBM');
 SELECT setAttribute('hardware','hwDELL','note','test');
 SELECT setAttribute('hardware','hwDELL','vendor','IBM');
 SELECT commitChangeset();
-
-SELECT * FROM vendor_history;
-SELECT * FROM vendor;
-SELECT * FROM hardware_history;
-SELECT * FROM hardware;
 
 END;

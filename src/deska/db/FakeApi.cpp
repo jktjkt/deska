@@ -49,18 +49,18 @@ vector<Identifier> FakeApi::kindNames() const
     using namespace boost::phoenix;
     using namespace arg_names;
     vector<Identifier> res;
-    transform( attrs.begin(), attrs.end(), back_inserter(res),
-               bind( &map<string, vector<KindAttributeDataType> >::value_type::first, arg1 )
-               );
+    transform(attrs.begin(), attrs.end(), back_inserter(res),
+               bind(&map<string, vector<KindAttributeDataType> >::value_type::first, arg1)
+              );
     return res;
 }
 
 
 
-vector<KindAttributeDataType> FakeApi::kindAttributes( const Identifier &kindName ) const
+vector<KindAttributeDataType> FakeApi::kindAttributes(const Identifier &kindName) const
 {
-    map<string, vector<KindAttributeDataType> >::const_iterator it = attrs.find( kindName );
-    if ( it == attrs.end() )
+    map<string, vector<KindAttributeDataType> >::const_iterator it = attrs.find(kindName);
+    if (it == attrs.end())
         return vector<KindAttributeDataType>();
     else
         return it->second;
@@ -68,10 +68,10 @@ vector<KindAttributeDataType> FakeApi::kindAttributes( const Identifier &kindNam
 
 
 
-vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) const
+vector<ObjectRelation> FakeApi::kindRelations(const Identifier &kindName) const
 {
-    map<string, vector<ObjectRelation> >::const_iterator it = relations.find( kindName );
-    if ( it == relations.end() )
+    map<string, vector<ObjectRelation> >::const_iterator it = relations.find(kindName);
+    if (it == relations.end())
         return vector<ObjectRelation>();
     else
         return it->second;
@@ -79,7 +79,7 @@ vector<ObjectRelation> FakeApi::kindRelations( const Identifier &kindName ) cons
 
 
 
-vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const RevisionId ) const
+vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const RevisionId) const
 {
     vector<Identifier> empty;
     return empty;
@@ -87,7 +87,7 @@ vector<Identifier> FakeApi::kindInstances( const Identifier &kindName, const Rev
 
 
 
-map<Identifier, Value> FakeApi::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId )
+map<Identifier, Value> FakeApi::objectData(const Identifier &kindName, const Identifier &objectName, const RevisionId)
 {
     map<Identifier, Value> empty;
     return empty;
@@ -122,19 +122,19 @@ vector<Identifier> FakeApi::findNonOverriddenAttrs(const Identifier &kindName, c
 
 
 
-void FakeApi::deleteObject( const Identifier &kindName, const Identifier &objectName )
+void FakeApi::deleteObject(const Identifier &kindName, const Identifier &objectName)
 {
 }
 
 
 
-void FakeApi::createObject( const Identifier &kindName, const Identifier &objectName )
+void FakeApi::createObject(const Identifier &kindName, const Identifier &objectName)
 {
 }
 
 
 
-void FakeApi::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
+void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName)
 {
 }
 
@@ -170,9 +170,9 @@ TemporaryChangesetId FakeApi::rebaseChangeset(const RevisionId oldRevision)
     return TemporaryChangesetId::null;
 }
 
-std::vector<TemporaryChangesetId> FakeApi::pendingChangesetsByMyself()
+std::vector<PendingChangeset> FakeApi::pendingChangesets()
 {
-    return std::vector<TemporaryChangesetId>();
+    return std::vector<PendingChangeset>();
 }
 
 void FakeApi::resumeChangeset(const TemporaryChangesetId revision)

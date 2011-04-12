@@ -116,7 +116,7 @@ class Parser: boost::noncopyable
 {
 public:
     /** @short Initialize the Parser with DB scheme information retrieved via the Deska API */
-    Parser( Db::Api* dbApi );
+    Parser(Db::Api* dbApi);
 
     virtual ~Parser();
 
@@ -124,13 +124,13 @@ public:
     *
     *   As a result of this parsing, events could get triggered and the state may change.
     */
-    void parseLine( const std::string &line );
+    void parseLine(const std::string &line);
 
     /** @short Get list of strings for tab completition of current line
     *
     *   @return Vector of strings, that are possible continuations of current line.
     */
-    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
+    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
 
     /** @short The input indicates that the following signals will be related to a particular object
     *
@@ -138,7 +138,7 @@ public:
     *   reads a line like "host hpv2".  The first argument is the name of the object kind ("hardware" in this case)
     *   and the second one is the object's identifier ("hpv2").
     */
-    boost::signals2::signal<void ( const Db::Identifier &kind, const Db::Identifier &name )> categoryEntered;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name)> categoryEntered;
 
     /** @short Leaving a context
     *
@@ -152,7 +152,7 @@ public:
     *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
     *   of the attribute and the second one the attribute value.
     */
-    boost::signals2::signal<void ( const Db::Identifier &name, const Db::Value &value )> attributeSet;
+    boost::signals2::signal<void (const Db::Identifier &name, const Db::Value &value)> attributeSet;
 
     /** @short An error during parsing
     *

@@ -84,6 +84,10 @@ void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &excep
 void ParserTestFixture::expectNothingElse()
 {
     BOOST_CHECK_MESSAGE(parserEvents.empty(), "Expected no more emitted signals");
+    if (!parserEvents.empty()) {
+        // show the first queued event here
+        BOOST_CHECK_EQUAL(MockParserEvent::invalid(), parserEvents.front());
+    }
 }
 
 void ParserTestFixture::expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
@@ -108,8 +112,6 @@ void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exce
 
 void ParserTestFixture::expectHelper(const MockParserEvent &e)
 {
-    // We would like to continue with the test suite after hitting the first error, and
-    // BOOST_REQUIRE doesn't allow masking via BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES...
     BOOST_CHECK( ! parserEvents.empty() );
     bool shouldPop = ! parserEvents.empty();
     MockParserEvent other = shouldPop ? parserEvents.front() : MockParserEvent::invalid();

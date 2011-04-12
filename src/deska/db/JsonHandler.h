@@ -22,6 +22,7 @@
 #ifndef DESKA_JSONHANDLER_H
 #define DESKA_JSONHANDLER_H
 
+#include <boost/optional.hpp>
 #include <tr1/memory>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
@@ -53,19 +54,11 @@ struct JsonField
 class JsonHandler
 {
 public:
-    JsonHandler(const JsonApiParser * const api, const std::string &cmd);
+    JsonHandler();
+    virtual ~JsonHandler();
 
-    /** @short Create JSON string and send it as a command */
-    void send();
-
-    /** @short Request, read and parse the JSON string and process the response */
-    void receive();
-
-    /** @short Send and receive the JSON data */
-    void work();
-
-    /** @short Register a special JSON field for command/response identification */
-    void command(const std::string &cmd);
+    /** @short Parser this value and process the response */
+    void parseJsonObject(const json_spirit::Object &jsonObject);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     JsonField &write(const std::string &name, const std::string &value);
@@ -82,12 +75,39 @@ public:
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
 
-    /** @short Require a JSON value with value of true */
-    JsonField &expectTrue(const std::string &name);
+    /** @short Tell this handler whether it should throw an exception when it sees an unrecognized field */
+    void failOnUnknownFields(const bool shouldThrow);
+
+    /** @short If the passed revision is not zero, forward write(), otherwise return empty optional */
+    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const RevisionId value);
+
+    /** @short If the passed temporary changeset is not zero, forward write(), otherwise return empty optional */
+    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const TemporaryChangesetId value);
+
+protected:
+    std::vector<JsonField> fields;
+    bool m_failOnUnknownFields;
+};
+
+class JsonHandlerApiWrapper: public JsonHandler
+{
+public:
+    JsonHandlerApiWrapper(const JsonApiParser * const api, const std::string &cmd);
+
+    /** @short Create JSON string and send it as a command */
+    void send();
+
+    /** @short Request, read and parse the JSON string and process the response */
+    void receive();
+
+    /** @short Send and receive the JSON data */
+    void work();
+
+    /** @short Register a special JSON field for command/response identification */
+    void command(const std::string &cmd);
 
 private:
     const JsonApiParser * const p;
-    std::vector<JsonField> fields;
 };
 
 

@@ -55,7 +55,7 @@ std::string ParserException::dumpHelper(const std::string &className) const
 {
     std::ostringstream ss;
     ss << className << ": " << m;
-    if ( ! input.empty() ) {
+    if (!input.empty()) {
         ss << " when parsing\n";
         ss << input << "\nat offset " << static_cast<int>(pos - input.begin());
     }

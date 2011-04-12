@@ -46,195 +46,346 @@ namespace qi = boost::spirit::qi;
 
 
 
-/** @short Predefined rules for parsing single parameters */
+/** @short Predefined rules for parsing single attribute values and identifiers.
+*   
+*   Any new type have to be defined here.
+*   String types have to be defined using one extra rule in this way:
+*       qi::rule<Iterator, std::string(), ascii::space_type> tStringValue %= ....
+*       rulesMap[Db::TYPE_NAME] = tStringValue[qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+*   This is because of proper initialization of boost::variant and because without the extra rule boost will
+*   push every character in the variant separately, that is very unefficient.
+*/
 template <typename Iterator>
 class PredefinedRules
 {
 
 public:
 
-    /** @short Fills internal map with predefined rules, that can be used to parse attributes of top-level objects */
+    /** @short Fills internal map with predefined rules. */
     PredefinedRules();
 
-    /** @short Function for getting single rules, that can be used in attributes grammar
+    /** @short Function for getting single rules, that can be used in attributes grammar.
     *
-    *   @param attrType Type of the attribute in question, @see Type
-    *   @return Rule that parses specific type of attribute
+    *   @param attrType Type of the attribute in question, @see Type.
+    *   @return Rule that parses specific type of attribute.
     */
-    const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule( const Db::Type attrType );
+    const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule(const Db::Type attrType);
 
-    /** @short Function for getting rule used to parse identifier of top-level objects */
-    const qi::rule<Iterator, std::string(), ascii::space_type>& getObjectIdentifier();
+    /** @short Function for getting rule used to parse identifier of top-level objects. */
+    const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& getObjectIdentifier();
 
 private:
 
+    //@{
+    /** Extra rules used for definition of string types. */
     qi::rule<Iterator, std::string(), ascii::space_type> tQuotedString;
     qi::rule<Iterator, std::string(), ascii::space_type> tIdentifier;
+    //@}
 
+    /** Map where all rules are stored, @see Type. */
     std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> > rulesMap;
-    qi::rule<Iterator, std::string(), ascii::space_type> objectIdentifier;
+    /** Rule for parsing identifiers of top-level objects. */
+    qi::rule<Iterator, Db::Identifier(), ascii::space_type> objectIdentifier;
 
 };
 
 
 
-/** @short Parser for set of attributes of specific top-level grammar */
+/** @short Parser for set of attributes of specific top-level grammar.
+*
+*   This grammar parses only one pair from set of <attribute_name attribute_value> definitions.
+*   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*/
 template <typename Iterator>
 class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
 
-    /** @short Constructor only initializes the grammar with empty symbols table
+    /** @short Constructor only initializes the grammar with empty symbols table.
     *
-    *   @param kindName Name of top-level object type, to which the attributes belong
+    *   @param kindName Name of top-level object type, to which the attributes belong.
+    *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    AttributesParser( const std::string &kindName, ParserImpl<Iterator> *parent );
+    AttributesParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
-    /** @short Function used for filling of symbols table of the parser
+    /** @short Function used for filling of symbols table of the parser.
     *
-    *   @param attributeName Name of the attribute
-    *   @param attributeParser  Attribute parser obtained from PredefinedRules class
+    *   @param attributeName Name of the attribute.
+    *   @param attributeParser Attribute parser obtained from PredefinedRules class.
     *   @see PredefinedRules
     */
-    void addAtrribute( const std::string &attributeName, qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser );
+    void addAtrribute(const Db::Identifier &attributeName,
+                      qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
 private:
 
-    /** @short Function used as semantic action for each parsed attribute
+    /** @short Function used as semantic action for each parsed attribute.
     *
-    *   @param parameter Name of the attribute
-    *   @param value Parsed value of the attribute
+    *   Calls appropriate method in main parser.
+    *
+    *   @param parameter Name of the attribute.
+    *   @param value Parsed value of the attribute.
+    *   @see Db::Value
     */
-    void parsedAttribute( const std::string &parameter, Db::Value &value );
+    void parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
-
+    /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
 
+    /** Rule for parsing attribute names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
-
+    /** Rule for parsing attribute values. */
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type> > > dispatch;
 
-    std::string currentAttributeName;
-    std::string m_name;
+    /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
+    Db::Identifier currentAttributeName;
+    /** Name of the top-level object, whose attributes are parsed by this grammar.
+    *   This variable is used for error handling.
+    */
+    Db::Identifier m_name;
 
+    /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;
 };
 
 
 
-/** @short Parser for kinds definitions. Parses only set of kind names without their attributes or nested kinds. */
+/** @short Parser for kinds definitions.
+*
+*   This grammar parses only one pair from set of <kind_name object_name> definitions.
+*/
 template <typename Iterator>
 class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
 
-    /** @short Constructor only initializes the grammar with empty symbols table */
-    KindsOnlyParser( const std::string &kindName, ParserImpl<Iterator> *parent );
-
-    /** @short Function used for filling of symbols table of the parser
+    /** @short Constructor only initializes the grammar with empty symbols table.
     *
-    *   @param kindName Name of the kind
+    *   @param kindName Name of top-level object type, to which the parser belongs in case of parser for nested kinds.
+    *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    void addKind( const std::string &kindName, qi::rule<Iterator, std::string(), ascii::space_type> identifierParser );
+    KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+
+    /** @short Function used for filling of symbols table of the parser.
+    *
+    *   @param kindName Name of the kind.
+    *   @param identifierParser Identifier parser obtained from PredefinedRules class.
+    */
+    void addKind(const Db::Identifier &kindName,
+                 qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
 
 private:
 
-    /** @short Function used as semantic action for parsed kind
+    /** @short Function used as semantic action for parsed kind.
     *
-    *   @param kindName Name of the kind
-    *   @param objectName Parsed name of the object
+    *   Calls appropriate method in main parser and updates context stack.
+    *
+    *   @param kindName Name of the kind.
+    *   @param objectName Parsed name of the object.
     */
-    void parsedKind( const std::string &kindName, const std::string &objectName );
+    void parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
-    qi::symbols<char, qi::rule<Iterator, std::string(), ascii::space_type> > kinds;
+    /** Kind name - identifier type pairs definitions for purposes of Nabialek trick. */
+    qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds;
 
+    /** Rule for parsing kind names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
+    /** Rule for parsing object names. */
+    qi::rule<Iterator, ascii::space_type,
+             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > dispatch;
 
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, std::string(), ascii::space_type> > > dispatch;
+    /** Name of kind which identifier is being currently parsed. This variable is used for error handling. */
+    Db::Identifier currentKindName;
+    /** Name of the top-level object, whose nested kind definitions are parsed by this grammar.
+    *   This variable is used for error handling.
+    */
+    Db::Identifier m_name;
 
-    std::string currentKindName;
-    std::string m_name;
-
+    /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;
 };
 
 
 
-/** @short Parser for set of attributes and nested objects of specific top-level grammar */
+/** @short Parser for set of attributes and nested objects of specific top-level grammar.
+*
+*   Combines all needed grammars into one parser for parsing the whole kind with its all attributes and nested kinds.
+*/
 template <typename Iterator>
 class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>
 {
 
 public:
 
-    /** @short Constructor initializes the grammar with all rules */
-    WholeKindParser( const std::string &kindName, AttributesParser<Iterator> *attributesParser,
-        KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent );
+    /** @short Constructor initializes the grammar with all rules.
+    *
+    *   @param kindName Name of top-level object type, to which the parser belongs.
+    *   @param attributesParser Grammar used for parsing of attributes of the kind.
+    *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
+    *   @param parent Pointer to main parser for calling its functions as semantic actions.
+    */
+    WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
+                    KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
 
 private:
 
-    /** @short Function used as semantic action for parsed end keyword */
+    /** @short Function used as semantic action for parsed end keyword. */
     void parsedEnd();
 
-    /** @short Function used as semantic action when there is only single kind on the line and so parser
-    *          should nest into this kind
+    /** @short Function used as semantic action when there is only single kind on the line
+    *          and so parser should nest into this kind.
+    *
+    *   Calls appropriate method in main parser.
     */
     void parsedSingleKind();
 
     qi::rule<Iterator, ascii::space_type > start;
 
+    /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;
 };
 
 
 
+/** @short The main class containing all grammars, holding context and calling the grammars on the input.
+*
+*   
+*/
 template <typename Iterator>
 class ParserImpl: boost::noncopyable
 {
+
 public:
-    ParserImpl( Parser *parent );
+
+    /** @short Builds the whole parser.
+    *
+    *   Createl all sub grammars using pointer to API from parent.
+    *
+    *   @param parent Pointer to the main parser.
+    */
+    ParserImpl(Parser *parent);
+
+    /** @short All created sub gramars are deleted there. */
     virtual ~ParserImpl();
 
-    void parseLine( const std::string &line );
+    /** @short Main function of the parser. Parses the whole line and invokes appropriate signals.
+    *
+    *   Sets flag dryRun to false and invokes bool parseLineImpl(const std::string &line).
+    *
+    *   @param line Line to parse.
+    *   @see bool parseLineImpl(const std::string &line)
+    */
+    void parseLine(const std::string &line);
+
+    /** @short Function for checking whether the parser is nested or ready to parse top-level object.
+    *
+    *   @return True when the parser is nested, false if it is ready to parse top-level object.
+    */
     bool isNestedInContext() const;
+
+    /** @short Current context stack could be obtained by this function.
+    *
+    *   @return Current context stack.
+    *   @see ContextStackItem
+    */
     std::vector<ContextStackItem> currentContextStack() const;
-    void clearContextStack();
 
-    void categoryEntered( const Db::Identifier &kind, const Db::Identifier &name );
+    /** @short Get list of strings for tab completition of current line.
+    *
+    *   Parses line using bool parseLineImpl(const std::string &line) with dryRun flag set to true.
+    *   Vector of possible continuations construction is based on analysis of the last token and
+    *   parse errors.
+    *
+    *   @return Vector of strings, that are possible continuations of current line.
+    *   @see bool parseLineImpl(const std::string &line)
+    */
+    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
+
+    //@{
+    /** @short Functions that only invokes signals of main parser. */
+    void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
-    void attributeSet( const Db::Identifier &name, const Db::Value &value );
+    void attributeSet(const Db::Identifier &name, const Db::Value &value);
+    //@}
 
+    /** @short Sets flag singleKind to true.
+    *
+    *   Function called when single kind without any attributes was parsed.
+    *   Setting the flag means, that nesting will be permanent.
+    */
     void parsedSingleKind();
 
-    void addParseError( const ParseError<Iterator> &error );
+    /** @short Function adding any error, that occures during parsing to parseErrors stack.
+    *
+    *   Errors added do not have to be actual errors. Some errors could be generated even though parsing succeeded,
+    *   because of the way how boost::spirit works in case of alternatives grammar. When trying to parse some input,
+    *   spirit tries to pass it to the first rule in the grammar and when the rule fails, it tries to pass the input
+    *   to the next rule. The next rule can succeed, but an error handler of the first rule is already invoked. So we
+    *   have to clear these errors, before call of void reportParseError(const std::string& line) function.
+    *
+    *   @param error Error, that occures during parsing.
+    *   @see void reportParseError(const std::string& line)
+    */
+    void addParseError(const ParseError<Iterator> &error);
+
+    /** @short Function for obtaining list of all defined kind names.
+    *   
+    *   For purposes of bad nesting reporting.
+    *
+    *   @return Vector of kind names obtained from API
+    */
+    std::vector<Db::Identifier> getKindNames();
     
-    std::vector<std::string> getTabCompletitionPossibilities( const std::string &line );
+    /** @short Clears context stack.
+    *
+    *   For testing purposes.
+    */
+    void clearContextStack();
 
 private:
-    Parser *m_parser;
 
-    /** @short Fills symbols table of specific attribute parser with all attributes of given kind */
-    void addKindAttributes( std::string &kindName, AttributesParser<Iterator>* attributesParser );
+    /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
+    void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser);
+    /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
+    void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser);
 
-    /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind */
-    void addNestedKinds( std::string &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser );
+    /** @short Parses the whole line and invokes appropriate signals.
+    *
+    *   @param line Line to parse.
+    *   @return True if the parsing succeeded
+    */
+    bool parseLineImpl(const std::string &line);
 
-    bool parseLineImpl( const std::string &line );
-    void reportParseError( const std::string& line );
+    /** @short Function reporting parse errors to main parser.
+    *   
+    *   Invokes appropriate signal.
+    */
+    void reportParseError(const std::string& line);
 
+    //@{
+    /** All rules and grammars, that is the whole parser build of are stored there.
+    *   Only pointers are used in the main parser.
+    */
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
     KindsOnlyParser<Iterator> *topLevelParser;
     PredefinedRules<Iterator> *predefinedRules;
+    //@}
 
+    /** The parser context is held there. */
     std::vector<ContextStackItem> contextStack;
-
+    /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
     std::vector<ParseError<Iterator> > parseErrors;
-
+    
+    /** Pointer to main parser for invoking signals. */
+    Parser *m_parser;
+    /** Flag, that disables or enables invoking signals. TRUE -> ENABLE, FALSE -> DISABLE */
     bool dryRun;
+    /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
+    bool singleKind;
 };
 
 }

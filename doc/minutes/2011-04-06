@@ -1,0 +1,77 @@
+Schuze Deska, 2011-04-06, Stara Posta
+-------------------------------------
+
+Pritomni: Lukas, Honza
+Omluveni: Martina (svatba), Tomas (byl v pondeli)
+
+
+Diskuse:
+--------
+
+Diskuse o formatovani JSONu. JSON je nase jedine oficialni API, ma odpovidat
+potrebam jeho uzivatelu a ne internim vlastnostem SQL databazi obecne; proto
+dava smysl, aby navratova hodnota byla velice podobna vyslednemu tvaru objektu
+(napr. "placaty" seznam stringu) oproti genericke strukture. Nekde stejne bude
+muset byt implementovany prevod mezi "SQL tabulkou" a "objektem z vyssiho
+programovaciho jazyka". Dohodli jsme se, ze po JSONu pujdou objekty v peknem
+tvaru.
+
+Serializace do JSON API bude funkci datoveho typu, ne implementovane metody. To
+dodrzuje soucasna C++ i Python/SQL cast, Lukas dobre pojmenoval myslenku. Tedy
+napr. vector<string> ["bude", "vzdycky", "takhle"], at uz jde o jakoukoli
+metodu.
+
+Je dobre napsat nejakou motivaci, proc ten JSON vlastne mame.
+
+Diskuse o praci na projektu a rozdilech mezi "open source pristupem" a
+"korporatnim pristupem". Podle Lukase je problem, ze nevi o tom, co lide delaji,
+a jak zmeny, ktere ucini nekdo jiny, ovlivni jeho praci. Zminil, ze si nebyl
+vedom toho, ze Honza vytvoril navrh pro format JSONu, a kdyz na nej narazil,
+prislo mu rozumne z nej vzit pouze kus, protoze zbytek povazoval za neaktualni.
+Navrhuje, aby kazdy pred schuzkou poslal predem mailem infromaci o tom, co
+udelal. Dalsi z navrhu byl, pokud commit do gitu neco duleziteho dela, poslat o
+tom extra mail.
+
+Honzuv nazor je takovy, ze mel jasneji a durazneji zminit, ze JSON je hotovy, a
+ze to, co Honza napsal jako jeho format, je platne. Honza rika, ze je dobry
+napad, aby na schuzce kazdy rekl, co presne udelal.
+
+Ukoly na priste:
+----------------
+
+Tomasovi zustava:
+- Tomas: jak udelat mazani objektu? idealne nejake rozsireni parseru? (#187)
+- Tomas: doplneni unit testu pro top-level objekty ze schuzky (#188)
+- Tomas: dokumentace kodu (#159)
+- Tomas: tab completion (#101)
+- Tomas: readline
+
+Honzovi zustava:
+- Honza: pokrok s db-c++ interakci (#142)
+- Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
+  Lukasovo vystupu v JSONu (#143)
+- Honza: rozsireni API smerem k dotazum na revize (#143)
+...a navic pribyva:
+- Honza: napsat dokumentaci JSON API, vcetne motivace, k cemu slouzi (#183)
+- Honza: zmenit identifikatory v JSON odpovedich, unifikovat jmena vracenych dat
+  s nazvy metod (#184)
+- Honza: serializace custom trid pres JSON object a ne JSON array, tedy prevod z
+  [EMBED_INTO,...] na {"relation": "EMBED_INTO", ...} (#185)
+- Honza: obstarat dump FarmDB pro Desku (#186)
+
+Lukas ma jako nove:
+- Lukas: prevest JSON odesilany Pythonem na tvar kompatibilni s C++ casti (#180)
+- Lukas: zhodnotit, zda je mozne presunout vytvareni plpythonu procedur pouze do
+  casti, kdy se DB zaklada, a ne kdy se meni jeji schema; to by umoznilo
+  efektivni pouziti role deska_admin (#177)
+Lukasovi zustava:
+- Lukas: zdokumentovat po sobe kod
+- Lukas: upravit generovani pro templaty (#158)
+- Lukas: pracovat na #157, spolecne L + M
+
+Martina je nemocna a pak bude pryc.
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 11. dubna na MFF, se Zavoralem

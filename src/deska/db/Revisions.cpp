@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include "Revisions.h"
 
@@ -98,6 +99,45 @@ bool operator!=(const TemporaryChangesetId a, const TemporaryChangesetId b)
 std::ostream& operator<<(std::ostream &stream, const TemporaryChangesetId t)
 {
     return stream << "tmp" << t.t;
+}
+
+PendingChangeset::PendingChangeset(const TemporaryChangesetId revision_, const std::string &author_,
+    const boost::posix_time::ptime timestamp_, const RevisionId parentRevision_, const std::string &message_,
+    const AttachStatus attachStatus_, const boost::optional<std::string> &activeConnection_):
+    revision(revision_), author(author_), timestamp(timestamp_), parentRevision(parentRevision_), message(message_),
+    attachStatus(attachStatus_), activeConnectionInfo(activeConnection_)
+{
+}
+
+bool operator==(const PendingChangeset &a, const PendingChangeset &b)
+{
+    return a.revision == b.revision && a.author == b.author && a.timestamp == b.timestamp &&
+           a.parentRevision == b.parentRevision && a.message == b.message &&
+           a.attachStatus == b.attachStatus && a.activeConnectionInfo == b.activeConnectionInfo;
+}
+
+bool operator!=(const PendingChangeset &a, const PendingChangeset &b)
+{
+    return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset &p)
+{
+    return stream << "PendingChangeset(" << p.revision << ", " << p.author << ", " <<
+                     p.timestamp << ", " << p.parentRevision << ", " << p.message << ", " <<
+                     p.attachStatus << ", " <<
+                     (!p.activeConnectionInfo ? std::string("[null]") : *p.activeConnectionInfo) << ")";
+}
+
+std::ostream& operator<<(std::ostream &stream, const PendingChangeset::AttachStatus status)
+{
+    switch (status) {
+    case PendingChangeset::ATTACH_DETACHED:
+        return stream << "DETACHED";
+    case PendingChangeset::ATTACH_IN_PROGRESS:
+        return stream << "IN_PROGRESS";
+    }
+    return stream << "[Invalid PendingChangeset::AttachStatus: " << static_cast<int>(status) << "]";
 }
 
 }
