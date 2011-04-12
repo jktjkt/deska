@@ -96,12 +96,8 @@ class MatrixResult(Result):
 			# If api doesnot take it
 			# we have to fake it >:-)
 			if line.has_key('relation'):
-				del line['refattname']	
-				del line['attname']	
 				line['into'] = line['refkind']
 				del line['refkind']
-				if line['relation'] == 'INVALID':
-					return list()
 				if line['relation'] == 'EMBED':
 					line['relation'] = 'EMBED_INTO'
 
