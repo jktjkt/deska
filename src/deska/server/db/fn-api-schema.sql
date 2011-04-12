@@ -147,25 +147,15 @@ refkind	name
 );
 
 --gets relations between kind kindname and other kinds - type of relation, name of related kind
-CREATE FUNCTION kindRelations(kindname name)
+CREATE OR REPLACE FUNCTION kindRelations(kindname name)
 RETURNS SETOF kind_relation
 AS $$
 DECLARE
 BEGIN
-	RETURN QUERY SELECT 
-			CASE 
-				WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
-				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATE'
-				WHEN conname LIKE 'rembed_%' THEN 'EMBED'
-			END,
-			class2.relname
-			FROM	pg_constraint AS constr
-							--join with TABLE which the contraint is ON
-				join pg_class AS class1 ON (constr.conrelid = class1.oid)	
-				--join with referenced TABLE
-				join pg_class AS class2 ON (constr.confrelid = class2.oid)
-			WHERE contype='f' AND class1.relname = kindname 
-				AND (conname LIKE 'rmerge_%' OR conname LIKE 'rtempl_%' OR conname LIKE 'rembed_%');
+	RETURN QUERY 
+		SELECT relation, refkind 
+		FROM kindRelations_full_info(kindname)
+			WHERE relation <> 'INVALID';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
