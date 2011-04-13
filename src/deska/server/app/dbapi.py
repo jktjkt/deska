@@ -21,9 +21,11 @@ class Result:
 		# FIXME: can we do this better
 		for att in range(len(lst)):
 			if type(lst[att]) == datetime.date:
-				lst[att] = time.mktime(lst[att].timetuple())
+				#lst[att] = time.mktime(lst[att].timetuple())
+				lst[att] = str(lst[att])
 			if type(lst[att]) == datetime.datetime:
-				lst[att] = time.mktime(lst[att].timetuple())
+				#lst[att] = time.mktime(lst[att].timetuple())
+				lst[att] = str(lst[att])
 		return lst
 
 
