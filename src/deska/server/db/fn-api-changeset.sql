@@ -19,7 +19,7 @@ CREATE TABLE version(
 	timestamp timestamp without time zone NOT NULL DEFAULT now(),
 	-- commit message text
 	--FIXME: is better "" instead of NULL - see #191, fix to "" for now
-	message text NOT NULL DEFAULT ''
+	message text
 );
 
 -- INPROGRESS and DETACHED changesets
@@ -38,7 +38,7 @@ CREATE TABLE changeset(
 	status changeset_status NOT NULL DEFAULT 'INPROGRESS',
 	-- time of creation
 	timestamp timestamp without time zone NOT NULL DEFAULT now(),
-	message text
+	message text NOT NULL DEFAULT ''
 		-- check message not null when detached
 		CONSTRAINT changeset_message_not_null
 			CHECK ((length(message) > 0)
