@@ -114,7 +114,9 @@ CREATE FUNCTION commit_all()
 		self.sql.write(table.gen_names())
 		self.sql.write(table.gen_get_name())
 		self.sql.write(table.gen_prev_changeset())
+		self.sql.write(table.gen_prev_changeset_by_name())
 		self.sql.write(table.gen_changeset_of_data_version())
+		self.sql.write(table.gen_changeset_of_data_version_by_name())
 		return
 
 	def gen_commit(self):

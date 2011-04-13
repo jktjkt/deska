@@ -184,58 +184,18 @@ class Templates:
 	AS
 	$$
 	DECLARE
-		ver bigint;
 		changeset_id bigint;
-		version_id bigint;
 		value bigint;
-		last_change_version bigint;
 		deleted bit(1);
 	BEGIN
 	--from_version is user id of version
 	--we need id of changeset
-		IF from_version = 0 THEN
-			SELECT my_version() INTO changeset_id;
-			--no opened changeset
-			IF changeset_id IS NULL THEN
-				--user wants newest data
-				SELECT MAX(num) INTO version_id FROM version;
-				SELECT ID INTO changeset_id FROM version WHERE num = version_id;
-			ELSE
-				--user wants data in his version, or earlier
-				SELECT uid INTO value FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
-				IF NOT FOUND THEN
-					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
-				ELSE
-					RETURN value;
-				END IF;		
-			END IF;
-		ELSE
-			--user wants to see data valid in some commited version
-			SELECT ID INTO changeset_id FROM version WHERE num = from_version;
-			IF NOT FOUND THEN
-				RAISE EXCEPTION 'version with number % does not exist', from_version;
-			END IF;
-		END IF;
+		
+		--changeset_id id of changeset with last change of object with name name_
+		changeset_id = {tbl}_changeset_of_data_version_by_name(name_, from_version);
 
-		--if we continue here, we have in changeset_id id of changeset which is bound of what current user can see
-		--find boundery version
-		SELECT num INTO version_id FROM version WHERE ID = changeset_id;
-		IF NOT FOUND THEN
-			RAISE EXCEPTION 'changeset with version % was not commited', changeset_id;
-		END IF;
+		SELECT uid, dest_bit INTO value, deleted FROM {tbl}_history WHERE version = changeset_id AND name = name_;
 		
-		SELECT MAX(v.num) INTO last_change_version
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
-		IF last_change_version IS NULL THEN
-			RAISE EXCEPTION '{tbl} with name % does not exist in this version', name_;
-		END IF;
-		
-		SELECT obj_history.uid, obj_history.dest_bit INTO value, deleted
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id)
-			WHERE num = last_change_version;
-			
 		IF deleted = B'1' THEN
 			RAISE EXCEPTION '{tbl} with name % does not exist in this version', name_;
 		END IF;
@@ -285,8 +245,8 @@ class Templates:
 	BEGIN
 		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		
-		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
-		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
+		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid, {tbl}_uid 
+		FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
 			SELECT uid INTO {tbl}_uid
 			FROM {tbl}
@@ -394,33 +354,8 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-#template string for getting last id of changeset preceding changeset_id where object with uid was changed
-	prev_changest_string='''CREATE FUNCTION 
-	{tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		--is result of function, last changeset where object with uid is changed
-		last_changeset_id bigint;
-		--last version where was the object with uid changed
-		last_change_version bigint;
-	BEGIN
-		SELECT num INTO version_id FROM version WHERE ID = changeset_id;
-		IF NOT FOUND THEN
-			RAISE EXCEPTION 'changeset with version % was not commited', changeset_id;
-		END IF;
-		SELECT MAX(v.num) INTO last_change_version
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
-		SELECT ID INTO last_changeset_id FROM version WHERE num = last_change_version;
-		RETURN last_changeset_id;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
+
+#template for getting number of version, when was object modified before given version was commited
 	changeset_of_data_version_string = '''CREATE FUNCTION 
 	{tbl}_changeset_of_data_version(obj_uid bigint, from_version bigint = 0)
 	RETURNS bigint
@@ -452,10 +387,7 @@ class Templates:
 			END IF;
 		ELSE
 			--user wants to see data valid in some commited version
-			SELECT ID INTO changeset_id FROM version WHERE num = from_version;
-			IF NOT FOUND THEN
-				RAISE EXCEPTION 'version with number % does not exist', from_version;
-			END IF;
+			changeset_id  = num2id(from_version);
 		END IF;
 
 		SELECT {tbl}_prev_changeset(obj_uid,changeset_id) INTO preceding_changeset;
@@ -467,4 +399,102 @@ class Templates:
 	
 '''
 
+#template string for getting last id of changeset preceding changeset_id where object with uid was changed
+	prev_changest_string='''CREATE FUNCTION 
+	{tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		--is result of function, last changeset where object with uid is changed
+		last_changeset_id bigint;
+		--last version where was the object with uid changed
+		last_change_version bigint;
+	BEGIN
+		version_id = (changeset_id);
+	
+		SELECT MAX(v.num) INTO last_change_version
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
+			
+		last_changeset_id  = num2id(last_change_version);
 
+		RETURN last_changeset_id;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+
+#template string for getting last id of changeset preceding changeset_id where object with name_ was changed
+	prev_changest_by_name_string='''CREATE FUNCTION 
+	{tbl}_prev_changeset_by_name(name_ text, changeset_id bigint)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		--is result of function, last changeset where object with uid is changed
+		last_changeset_id bigint;
+		--last version where was the object with uid changed
+		last_change_version bigint;
+	BEGIN
+		version_id = id2num(changeset_id);
+		
+		SELECT MAX(v.num) INTO last_change_version
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
+		
+		last_changeset_id  = num2id(last_change_version);
+		
+		RETURN last_changeset_id;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+
+	changeset_of_data_version_by_name_string = '''CREATE FUNCTION 
+	{tbl}_changeset_of_data_version_by_name(name_ text, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		changeset_id bigint;
+		preceding_changeset bigint;
+		tmp bigint;
+	BEGIN
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			SELECT my_version() INTO changeset_id;
+			--no opened changeset
+			IF changeset_id IS NULL THEN
+				--user wants newest data
+				SELECT MAX(num) INTO version_id FROM version;
+				changeset_id = num2id(version_id);
+			ELSE
+				--user wants data in his version, or earlier
+				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
+				IF NOT FOUND THEN
+					--object was not modified in changeset which user just works on
+					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
+				ELSE
+					RETURN changeset_id;
+				END IF;		
+			END IF;
+		ELSE
+			--user wants to see data valid in some commited version
+			changeset_id  = num2id(from_version);
+		END IF;
+
+		SELECT {tbl}_prev_changeset_by_name(name_,changeset_id) INTO preceding_changeset;
+		
+		RETURN preceding_changeset;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''

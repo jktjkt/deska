@@ -151,6 +151,11 @@ class Table(constants.Templates):
 	def gen_prev_changeset(self):
 		return self.prev_changest_string.format(tbl = self.name)
 
+	def gen_prev_changeset_by_name(self):
+		return self.prev_changest_by_name_string.format(tbl = self.name)
+
 	def gen_changeset_of_data_version(self):
 		return self.changeset_of_data_version_string.format(tbl = self.name)
 
+	def gen_changeset_of_data_version_by_name(self):
+		return self.changeset_of_data_version_by_name_string.format(tbl = self.name)
