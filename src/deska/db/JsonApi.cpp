@@ -79,7 +79,6 @@ json_spirit::Object JsonApiParser::readJsonObject() const
         throw JsonParseError(s.str());
     }
     const json_spirit::Object &o = res.get_obj();
-    // FIXME: check for the j_errorPrefix here
     if (m_readStream->bad())
         throw JsonParseError("Read error: input stream in 'bad' state");
     if (m_readStream->fail())

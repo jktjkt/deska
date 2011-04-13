@@ -376,6 +376,7 @@ void JsonHandlerApiWrapper::send()
 
 void JsonHandlerApiWrapper::receive()
 {
+    // FIXME: check for the j_errorPrefix here
     parseJsonObject(p->readJsonObject());
 }
 
