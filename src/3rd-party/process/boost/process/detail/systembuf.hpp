@@ -33,6 +33,7 @@
 #include <boost/noncopyable.hpp> 
 #include <boost/scoped_array.hpp> 
 #include <boost/assert.hpp> 
+#include <boost/signals2/signal.hpp>
 #include <streambuf> 
 #include <cstddef> 
 
@@ -122,6 +123,12 @@ protected:
         bool ok; 
 #if defined(BOOST_POSIX_API) 
         ssize_t cnt = ::read(handle_, read_buf_.get(), bufsize_); 
+        if (!event_read_data.empty()) {
+            std::string buf;
+            buf.resize(cnt);
+            buf.assign(read_buf_.get(), cnt);
+            event_read_data(buf);
+        }
         ok = (cnt != -1 && cnt != 0); 
 #elif defined(BOOST_WINDOWS_API) 
         DWORD cnt; 
@@ -190,8 +197,14 @@ protected:
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ok = ::write(handle_, pbase(), cnt) == cnt; 
-#elif defined(BOOST_WINDOWS_API) 
+        ok = ::write(handle_, pbase(), cnt) == cnt;
+        if (!event_wrote_data.empty()) {
+            std::string buf;
+            buf.resize(cnt);
+            buf.assign(pbase(), cnt);
+            event_wrote_data(buf);
+        }
+#elif defined(BOOST_WINDOWS_API)
         DWORD rcnt; 
         BOOL res = ::WriteFile(handle_, pbase(), cnt, &rcnt, NULL); 
         ok = (res && static_cast<long>(rcnt) == cnt); 
@@ -222,7 +235,11 @@ private:
      * Internal buffer used during write operations. 
      */ 
     boost::scoped_array<char> write_buf_; 
-}; 
+
+public:
+    boost::signals2::signal<void (const std::string& data)> event_read_data;
+    boost::signals2::signal<void (const std::string& data)> event_wrote_data;
+};
 
 } 
 } 
