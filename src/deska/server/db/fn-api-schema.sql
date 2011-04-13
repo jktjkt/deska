@@ -133,7 +133,8 @@ RETURN QUERY SELECT attname,typname
 			JOIN pg_tables AS tab ON (schemaname='production' and cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
-		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
+		-- don't return also uid and name columns - internal
+		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name');
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
