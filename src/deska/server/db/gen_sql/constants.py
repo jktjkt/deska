@@ -83,23 +83,29 @@ class Templates:
 {columns}
 );
 '''
+	get_data_type_string='''CREATE TYPE {tbl}_type AS(
+{columns}
+);
+'''
 	# template string for get data functions
 	get_data_string = '''CREATE FUNCTION
-	{tbl}_get_data(IN name_ text)
+	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
 	AS
 	$$
 	DECLARE	ver bigint;
+		obj_uid bigint;
 		data {tbl}_type;
 	BEGIN
-		SELECT my_version() INTO ver;
+		obj_uid = {tbl}_get_uid(name_);
+		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 
 		SELECT {columns} INTO data FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
+			WHERE uid = obj_uid AND version = ver;
 			
 		IF NOT FOUND THEN
 			SELECT {columns} INTO data FROM {tbl}
-				WHERE name = name_;
+				WHERE uid = obj_uid;
 		END IF;
 		
 		RETURN data;
@@ -110,26 +116,28 @@ class Templates:
 '''
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
-	{tbl}_get_data(IN name_ text)
+	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
 	AS
 	$$
 	DECLARE	ver bigint;
-		parent_uid bigint;
-		parent_name text;
+		parrent_uid bigint;
+		parrent_name text;
 		base_name text;
+		obj_uid bigint;
 		data {tbl}_type;
 	BEGIN
-		SELECT my_version() INTO ver;
-		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parent_name,base_name;
-		SELECT host_get_uid(parent_name) INTO parent_uid;
+		obj_uid = {tbl}_get_uid(name_);
+		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
+		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
+		SELECT host_get_uid(parrent_name) INTO parrent_uid;
 					
 		SELECT {columns} INTO data FROM {tbl}
-			WHERE name = base_name AND host = parent_uid;
+			WHERE name = base_name AND host = parrent_uid;
 
 		IF NOT FOUND THEN
 			SELECT {columns} INTO data FROM {tbl}_history
-			WHERE name = base_name AND host = parent_uid AND version = ver;
+			WHERE name = base_name AND host = parrent_uid AND version = ver;
 		END IF;
 		RETURN data;
 	END
