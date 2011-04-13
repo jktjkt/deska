@@ -79,10 +79,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	get_data_type_string='''CREATE TYPE {tbl}_type AS(
-{columns}
-);
-'''
+
 	get_data_type_string='''CREATE TYPE {tbl}_type AS(
 {columns}
 );
@@ -182,24 +179,67 @@ class Templates:
 	#template string for get_uid functions (for name finds corresponding uid)
 	#not for kind that are embed into another
 	get_uid_string = '''CREATE FUNCTION
-	{tbl}_get_uid(IN name_ text)
+	{tbl}_get_uid(IN name_ text, from_version bigint = 0)
 	RETURNS bigint
 	AS
 	$$
 	DECLARE
 		ver bigint;
+		changeset_id bigint;
+		version_id bigint;
 		value bigint;
+		last_change_version bigint;
+		deleted bit(1);
 	BEGIN
-		SELECT my_version() INTO ver;
-		SELECT uid INTO value
-			FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
-		--if the value isn't in current version then it should be found in production
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			SELECT my_version() INTO changeset_id;
+			--no opened changeset
+			IF changeset_id IS NULL THEN
+				--user wants newest data
+				SELECT MAX(num) INTO version_id FROM version;
+				SELECT ID INTO changeset_id FROM version WHERE num = version_id;
+			ELSE
+				--user wants data in his version, or earlier
+				SELECT uid INTO value FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
+				IF NOT FOUND THEN
+					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
+				ELSE
+					RETURN value;
+				END IF;		
+			END IF;
+		ELSE
+			--user wants to see data valid in some commited version
+			SELECT ID INTO changeset_id FROM version WHERE num = from_version;
+			IF NOT FOUND THEN
+				RAISE EXCEPTION 'version with number % does not exist', from_version;
+			END IF;
+		END IF;
+
+		--if we continue here, we have in changeset_id id of changeset which is bound of what current user can see
+		--find boundery version
+		SELECT num INTO version_id FROM version WHERE ID = changeset_id;
 		IF NOT FOUND THEN
-			SELECT uid INTO value
-			FROM {tbl}
-			WHERE name = name_;
-		END IF;		
+			RAISE EXCEPTION 'changeset with version % was not commited', changeset_id;
+		END IF;
+		
+		SELECT MAX(v.num) INTO last_change_version
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
+		IF last_change_version IS NULL THEN
+			RAISE EXCEPTION '{tbl} with name % does not exist in this version', name_;
+		END IF;
+		
+		SELECT obj_history.uid, obj_history.dest_bit INTO value, deleted
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id)
+			WHERE num = last_change_version;
+			
+		IF deleted = B'1' THEN
+			RAISE EXCEPTION '{tbl} with name % does not exist in this version', name_;
+		END IF;
+		
 		RETURN value;
 	END
 	$$
@@ -305,22 +345,12 @@ class Templates:
 	DECLARE
 		ver bigint;
 		rowuid bigint;
-		tmp bigint;
 	BEGIN	
 		SELECT my_version() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
-		SELECT uid INTO tmp FROM {tbl}_history
-			WHERE uid = rowuid AND version = ver;
-		--object with given name was not modified in this version
-		--we need to get its current data to this version
-		IF NOT FOUND THEN
-			INSERT INTO {tbl}_history ({columns},version)
-				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
-		END IF;
-		UPDATE {tbl}_history SET dest_bit = B'1'
-			WHERE uid = rowuid AND version = ver;
+		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
+			VALUES (rowuid, name_, ver, '1');
 		RETURN 1;
 	END
 	$$
@@ -415,7 +445,7 @@ class Templates:
 				--user wants data in his version, or earlier
 				SELECT uid INTO tmp FROM {tbl}_history WHERE uid = obj_uid AND version = changeset_id;
 				IF NOT FOUND THEN
-					SELECT parrent INTO changeset_id FROM changeset WHERE id = changeset_id;
+					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
 				ELSE
 					RETURN changeset_id;
 				END IF;		
