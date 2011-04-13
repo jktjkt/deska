@@ -33,6 +33,8 @@ class Templates:
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
@@ -40,7 +42,6 @@ class Templates:
 		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
-		--TODO if there is nothing in current version???
 		RETURN 1;
 	END
 	$$
@@ -72,7 +73,6 @@ class Templates:
 		END IF;
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
-		--TODO if there is nothing in current version???
 		RETURN 1;
 	END
 	$$
@@ -96,17 +96,20 @@ class Templates:
 	DECLARE	ver bigint;
 		obj_uid bigint;
 		data {tbl}_type;
+		deleted bit(1);
 	BEGIN
 		obj_uid = {tbl}_get_uid(name_);
 		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 
+		SELECT dest_bit INTO deleted FROM {tbl}_history
+			WHERE uid = obj_uid AND version = ver;		
+
+		IF deleted = B'1' THEN
+			RAISE EXCEPTION '{tbl} with name % does not exist',name_;
+		END IF;
+
 		SELECT {columns} INTO data FROM {tbl}_history
 			WHERE uid = obj_uid AND version = ver;
-			
-		IF NOT FOUND THEN
-			SELECT {columns} INTO data FROM {tbl}
-				WHERE uid = obj_uid;
-		END IF;
 		
 		RETURN data;
 	END
@@ -126,19 +129,24 @@ class Templates:
 		base_name text;
 		obj_uid bigint;
 		data {tbl}_type;
+		deleted bit(1);
 	BEGIN
 		obj_uid = {tbl}_get_uid(name_);
 		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
-		SELECT host_get_uid(parrent_name) INTO parrent_uid;
-					
-		SELECT {columns} INTO data FROM {tbl}
-			WHERE name = base_name AND host = parrent_uid;
+		--TODO get name of name of parent table that is tbl embed into
+		SELECT {embedtbl}_get_uid(parrent_name) INTO parrent_uid;
 
-		IF NOT FOUND THEN
-			SELECT {columns} INTO data FROM {tbl}_history
+		SELECT dest_bit INTO deleted FROM {tbl}_history
 			WHERE name = base_name AND host = parrent_uid AND version = ver;
+
+		IF deleted = B'1' THEN
+			RAISE EXCEPTION '{tbl} with name % does not exist',name_;
 		END IF;
+		
+		SELECT {columns} INTO data FROM {tbl}_history
+			WHERE name = base_name AND host = parrent_uid AND version = ver;
+
 		RETURN data;
 	END
 	$$
@@ -294,14 +302,25 @@ class Templates:
 	RETURNS integer
 	AS
 	$$
-	DECLARE id bigint;
+	DECLARE
 		ver bigint;
+		rowuid bigint;
+		tmp bigint;
 	BEGIN	
 		SELECT my_version() INTO ver;
-		SELECT max(uid) INTO id FROM {tbl}_history
-			WHERE name = name_;
-		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
-			VALUES (id, name_, ver, '1');
+		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM {tbl}_history
+			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version
+		IF NOT FOUND THEN
+			INSERT INTO {tbl}_history ({columns},version)
+				SELECT {columns},ver FROM {tbl}_history
+					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
+		END IF;
+		UPDATE {tbl}_history SET dest_bit = B'1'
+			WHERE uid = rowuid AND version = ver;
 		RETURN 1;
 	END
 	$$
