@@ -20,6 +20,8 @@
 * */
 
 #include <iostream>
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
 #include "ProcessIO.h"
 
 namespace Deska {
@@ -40,6 +42,9 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
     std::string exe = arguments.front();
 
     childProcess = bp::launch(exe, arguments, ctx);
+    using namespace boost::phoenix;
+    dynamic_cast<bp::detail::systembuf*>(childProcess->get_stdin().rdbuf())->event_wrote_data.connect(bind(&ProcessIO::slotWroteData, this, arg_names::_1));
+    dynamic_cast<bp::detail::systembuf*>(childProcess->get_stdout().rdbuf())->event_read_data.connect(bind(&ProcessIO::slotReadData, this, arg_names::_1));
 }
 
 ProcessIO::~ProcessIO()
@@ -55,6 +60,16 @@ std::ostream *ProcessIO::writeStream()
 std::istream *ProcessIO::readStream()
 {
     return &childProcess->get_stdout();
+}
+
+void ProcessIO::slotReadData(const std::string &data)
+{
+    std::cerr << "R " << data << std::flush;
+}
+
+void ProcessIO::slotWroteData(const std::string &data)
+{
+    std::cerr << "W " << data << std::flush;
 }
 
 }

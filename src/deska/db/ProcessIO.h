@@ -41,6 +41,8 @@ public:
     std::istream *readStream();
     std::ostream *writeStream();
 
+    void slotReadData(const std::string &data);
+    void slotWroteData(const std::string &data);
 private:
     /** @short Identification of the launched child process
 
