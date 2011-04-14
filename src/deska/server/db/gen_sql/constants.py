@@ -233,7 +233,7 @@ class Templates:
 
 '''
 	#template for function getting uid of object embed into another
-	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_get_uid(full_name text)
+	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_get_uid(full_name text, from_version bigint = 0)
 	RETURNS bigint
 	AS
 	$$
@@ -242,16 +242,14 @@ class Templates:
 		rest_of_name text;
 		{tbl}_name text;
 		{tbl}_uid bigint;
+		changeset_id bigint;
 	BEGIN
-		SELECT embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
-		
-		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid, {tbl}_uid 
-		FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
-		IF NOT FOUND THEN
-			SELECT uid INTO {tbl}_uid
-			FROM {tbl}
-			WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
-		END IF;		
+		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
+		--finds uid of object which is thisone embed into
+		SELECT {reftbl}_get_uid(rest_of_name, from_version) INTO {reftbl}_uid;
+		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
+		changeset_id = {tbl}_changeset_of_data_version_by_name({tbl}_name, {reftbl}_uid, from_version);
+		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
 		RETURN {tbl}_uid;
 	END;
 	$$
@@ -491,6 +489,77 @@ class Templates:
 		END IF;
 
 		SELECT {tbl}_prev_changeset_by_name(name_,changeset_id) INTO preceding_changeset;
+		
+		RETURN preceding_changeset;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+#template string for getting last id of changeset preceding changeset_id where object with name_ was changed
+	prev_changest_by_name_embed_string='''CREATE FUNCTION 
+	{tbl}_prev_changeset_by_name(name_ text, refuid bigint, changeset_id bigint)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		--is result of function, last changeset where object with uid is changed
+		last_changeset_id bigint;
+		--last version where was the object with uid changed
+		last_change_version bigint;
+	BEGIN
+		version_id = id2num(changeset_id);
+		
+		SELECT MAX(v.num) INTO last_change_version
+		FROM {tbl}_history obj_history
+			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id AND {column} = refuid);
+		
+		last_changeset_id  = num2id(last_change_version);
+		
+		RETURN last_changeset_id;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+
+	changeset_of_data_version_by_name_embed_string = '''CREATE FUNCTION 
+	{tbl}_changeset_of_data_version_by_name(name_ text, refuid bigint, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		version_id bigint;
+		changeset_id bigint;
+		preceding_changeset bigint;
+		tmp bigint;
+	BEGIN
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			SELECT my_version() INTO changeset_id;
+			--no opened changeset
+			IF changeset_id IS NULL THEN
+				--user wants newest data
+				SELECT MAX(num) INTO version_id FROM version;
+				changeset_id = num2id(version_id);
+			ELSE
+				--user wants data in his version, or earlier
+				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND {column} = refuid AND version = changeset_id;
+				IF NOT FOUND THEN
+					--object was not modified in changeset which user just works on
+					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
+				ELSE
+					RETURN changeset_id;
+				END IF;		
+			END IF;
+		ELSE
+			--user wants to see data valid in some commited version
+			changeset_id  = num2id(from_version);
+		END IF;
+
+		SELECT {tbl}_prev_changeset_by_name(name_, refuid, changeset_id) INTO preceding_changeset;
 		
 		RETURN preceding_changeset;
 	END;

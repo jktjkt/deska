@@ -159,3 +159,9 @@ class Table(constants.Templates):
 
 	def gen_changeset_of_data_version_by_name(self):
 		return self.changeset_of_data_version_by_name_string.format(tbl = self.name)
+		
+	def gen_prev_changeset_by_name_embed(self, refcolumn, reftable):
+		return self.prev_changest_by_name_embed_string.format(tbl = self.name, column = refcolumn ,reftbl = reftable)
+
+	def gen_changeset_of_data_version_by_name_embed(self, refcolumn, reftable):
+		return self.changeset_of_data_version_by_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
