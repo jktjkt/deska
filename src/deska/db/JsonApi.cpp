@@ -73,9 +73,16 @@ json_spirit::Object JsonApiParser::readJsonObject() const
     try {
         json_spirit::read_stream_or_throw(*m_readStream, res);
     } catch (const json_spirit::Error_position &e) {
-        // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
         std::ostringstream s;
         s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
+        throw JsonSyntaxError(s.str());
+    } catch (const std::string &e) {
+        std::ostringstream s;
+        s << "JSON parsing error: " << e;
+        throw JsonSyntaxError(s.str());
+    } catch (const std::runtime_error &e) {
+        std::ostringstream s;
+        s << "JSON parsing error: runtime_error: " << e.what();
         throw JsonSyntaxError(s.str());
     }
     if (m_readStream->bad())
