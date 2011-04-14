@@ -19,7 +19,6 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <iostream>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include "ProcessIO.h"
@@ -64,12 +63,10 @@ std::istream *ProcessIO::readStream()
 
 void ProcessIO::slotReadData(const std::string &data)
 {
-    std::cerr << "R " << data << std::flush;
 }
 
 void ProcessIO::slotWroteData(const std::string &data)
 {
-    std::cerr << "W " << data << std::flush;
 }
 
 }
