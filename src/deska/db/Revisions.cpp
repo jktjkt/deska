@@ -26,6 +26,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
 #include "Revisions.h"
+#include "JsonApi.h"
 
 namespace Deska {
 namespace Db {
@@ -38,12 +39,12 @@ template<typename T> T extractRevisionFromJson(const std::string &prefix, const 
         } catch (const boost::bad_lexical_cast &) {
             std::ostringstream s;
             s << "Value \"" << jsonStr << "\" can't be interpreted as a " << name << ".";
-            throw std::domain_error(s.str());
+            throw JsonStructureError(s.str());
         }
     } else {
         std::ostringstream s;
         s << "Value \"" << jsonStr << "\" does not look like a valid " << name << ".";
-        throw std::domain_error(s.str());
+        throw JsonStructureError(s.str());
     }
 
 }

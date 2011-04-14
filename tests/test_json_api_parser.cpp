@@ -490,7 +490,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureF
         try {
             h.work();
             BOOST_ERROR(std::string("Passing '" + s + "' should have thrown an exception."));
-        } catch (std::domain_error &e) {
+        } catch (JsonStructureError &e) {
             // this is actually what we want
             //std::cerr << "OK: " << e.what() << std::endl;
         }
