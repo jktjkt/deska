@@ -42,7 +42,6 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
 
     childProcess = bp::launch(exe, arguments, ctx);
     using namespace boost::phoenix;
-    dynamic_cast<bp::detail::systembuf*>(childProcess->get_stdin().rdbuf())->event_wrote_data.connect(bind(&ProcessIO::slotWroteData, this, arg_names::_1));
     dynamic_cast<bp::detail::systembuf*>(childProcess->get_stdout().rdbuf())->event_read_data.connect(bind(&ProcessIO::slotReadData, this, arg_names::_1));
 }
 
@@ -62,10 +61,6 @@ std::istream *ProcessIO::readStream()
 }
 
 void ProcessIO::slotReadData(const std::string &data)
-{
-}
-
-void ProcessIO::slotWroteData(const std::string &data)
 {
 }
 
