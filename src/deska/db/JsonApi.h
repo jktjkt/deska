@@ -32,8 +32,9 @@ namespace Db {
 /** @short An error occured during parsing of the server's response */
 class JsonParseError: public std::runtime_error
 {
-public:
+protected:
     JsonParseError(const std::string &message);
+public:
     virtual ~JsonParseError() throw ();
 };
 
