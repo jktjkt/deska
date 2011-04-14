@@ -35,7 +35,7 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
     ctx.stdout_behavior = bp::capture_stream();
     ctx.stdin_behavior = bp::capture_stream();
     ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an expcetion, but only when there's any other traffic going on
+    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
 
     // The first "argument" is actually a process' name, but boost::process expects them separate
     std::string exe = arguments.front();
