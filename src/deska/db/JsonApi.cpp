@@ -78,14 +78,13 @@ json_spirit::Object JsonApiParser::readJsonObject() const
         s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
         throw JsonParseError(s.str());
     }
-    const json_spirit::Object &o = res.get_obj();
     if (m_readStream->bad())
         throw JsonParseError("Read error: input stream in 'bad' state");
     if (m_readStream->fail())
         throw JsonParseError("Read error: input stream in 'fail' state");
     if (m_readStream->eof())
         throw JsonParseError("Read error: EOF");
-    return o;
+    return res.get_obj();
 }
 
 vector<Identifier> JsonApiParser::kindNames() const
