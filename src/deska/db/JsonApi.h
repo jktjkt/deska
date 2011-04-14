@@ -34,10 +34,13 @@ namespace Db {
 /** @short An error occured during parsing of the server's response */
 class JsonParseError: public std::runtime_error
 {
+    std::string m_completeError;
 protected:
     JsonParseError(const std::string &message);
 public:
     virtual ~JsonParseError() throw ();
+    virtual const char* what() const throw();
+    void addRawJsonData(const std::string &data);
 };
 
 /** @short The received data cannot be converted to JSON

@@ -294,6 +294,18 @@ JsonParseError::~JsonParseError() throw ()
 {
 }
 
+void JsonParseError::addRawJsonData(const std::string &data)
+{
+    std::ostringstream ss;
+    ss << std::runtime_error::what() << std::endl << "Raw JSON data read from the process: '" << data << "'";
+    m_completeError = ss.str();
+}
+
+const char* JsonParseError::what() const throw()
+{
+    return m_completeError.empty() ? std::runtime_error::what() : m_completeError.c_str();
+}
+
 JsonSyntaxError::JsonSyntaxError(const std::string &message): JsonParseError(message)
 {
 }
