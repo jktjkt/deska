@@ -377,7 +377,25 @@ void JsonHandlerApiWrapper::send()
 void JsonHandlerApiWrapper::receive()
 {
     // FIXME: check for the j_errorPrefix here
-    parseJsonObject(p->readJsonObject());
+    try {
+        parseJsonObject(p->readJsonObject());
+    } catch (const JsonSyntaxError &e) {
+        if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+            std::ostringstream s;
+            s << e.what() << std::endl << "Raw JSON data read from the process: '" << *rawJson << "'";
+            throw JsonSyntaxError(s.str());
+        } else {
+            throw;
+        }
+    } catch (const JsonStructureError &e) {
+        if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+            std::ostringstream s;
+            s << e.what() << std::endl << "Raw JSON data read from the process: '" << *rawJson << "'";
+            throw JsonStructureError(s.str());
+        } else {
+            throw;
+        }
+    }
 }
 
 void JsonHandlerApiWrapper::work()

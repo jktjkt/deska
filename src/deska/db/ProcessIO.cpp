@@ -57,11 +57,18 @@ std::ostream *ProcessIO::writeStream()
 
 std::istream *ProcessIO::readStream()
 {
+    m_recentlyReadData.clear();
     return &childProcess->get_stdout();
 }
 
 void ProcessIO::slotReadData(const std::string &data)
 {
+    m_recentlyReadData.append(data);
+}
+
+std::string ProcessIO::recentlyReadData() const
+{
+    return m_recentlyReadData;
 }
 
 }

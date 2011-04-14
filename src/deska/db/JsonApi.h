@@ -23,6 +23,8 @@
 #define DESKA_JSONAPI_H
 
 #include <stdexcept>
+#include <boost/signals2/signal.hpp>
+#include <boost/signals2/last_value.hpp>
 #include "Api.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
 
@@ -98,7 +100,19 @@ public:
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
-    void setStreams(std::ostream *writeStream, std::istream *readStream);
+    /** @short Request stream for reading JSON data */
+    boost::signals2::signal<std::istream *(), boost::signals2::last_value<std::istream*> > willRead;
+    /** @short Request stream for writing JSON data */
+    boost::signals2::signal<std::ostream *(), boost::signals2::last_value<std::ostream*> > willWrite;
+    /** @short Request a copy of data someone just read from the stream
+
+    It turns out that it is very hard to get access to data someone just retrieved from a std::istream instance
+    over its iterators; we weren't able to safely do that via boost's multi_pass iterator due to the risk of blocking.
+    Therefore, this signal will be called "ex-post" when the JSON parsing (which uses iterators for reading from the
+    stream) fails for some reason. The return value of this signal (if usable) will be used to provide better error
+    messages when the JSON parsing/handling fails for some reason.
+    */
+    boost::signals2::signal<std::string ()> wantJustReadData;
 
 private:
     /** @short The implementation wants to send a JSON object */
@@ -107,8 +121,6 @@ private:
     json_spirit::Object readJsonObject() const;
 
     friend class JsonHandlerApiWrapper;
-    std::ostream *m_writeStream;
-    std::istream *m_readStream;
 };
 
 }

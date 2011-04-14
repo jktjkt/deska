@@ -38,7 +38,7 @@ static std::string j_errorPrefix = "error";
 namespace Deska {
 namespace Db {
 
-JsonApiParser::JsonApiParser(): m_writeStream(0), m_readStream(0)
+JsonApiParser::JsonApiParser()
 {
 }
 
@@ -46,32 +46,28 @@ JsonApiParser::~JsonApiParser()
 {
 }
 
-void JsonApiParser::setStreams(std::ostream *writeStream, std::istream *readStream)
-{
-    m_writeStream = writeStream;
-    m_readStream = readStream;
-}
-
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    BOOST_ASSERT(m_writeStream);
-    json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
-    *m_writeStream << "\n";
-    m_writeStream->flush();
-    if (m_writeStream->bad())
+    std::ostream *writeStream = willWrite();
+    BOOST_ASSERT(writeStream);
+    json_spirit::write_stream(json_spirit::Value(o), *writeStream, json_spirit::remove_trailing_zeros);
+    *writeStream << "\n";
+    writeStream->flush();
+    if (writeStream->bad())
         throw JsonSyntaxError("Write error: output stream in 'bad' state");
-    if (m_writeStream->fail())
+    if (writeStream->fail())
         throw JsonSyntaxError("Write error: output stream in 'fail' state");
-    if (m_writeStream->eof())
+    if (writeStream->eof())
         throw JsonSyntaxError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
-    BOOST_ASSERT(m_readStream);
+    std::istream *readStream = willRead();
+    BOOST_ASSERT(readStream);
     json_spirit::Value res;
     try {
-        json_spirit::read_stream_or_throw(*m_readStream, res);
+        json_spirit::read_stream_or_throw(*readStream, res);
     } catch (const json_spirit::Error_position &e) {
         std::ostringstream s;
         s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
@@ -85,11 +81,11 @@ json_spirit::Object JsonApiParser::readJsonObject() const
         s << "JSON parsing error: runtime_error: " << e.what();
         throw JsonSyntaxError(s.str());
     }
-    if (m_readStream->bad())
+    if (readStream->bad())
         throw JsonSyntaxError("Read error: input stream in 'bad' state");
-    if (m_readStream->fail())
+    if (readStream->fail())
         throw JsonSyntaxError("Read error: input stream in 'fail' state");
-    if (m_readStream->eof())
+    if (readStream->eof())
         throw JsonSyntaxError("Read error: EOF");
     return res.get_obj();
 }
