@@ -71,7 +71,7 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     } else if (v.type() == json_spirit::real_type) {
         return v.get_real();
     } else {
-        throw JsonParseError("Unsupported type of attribute data");
+        throw JsonStructureError("Unsupported type of attribute data");
     }
 }
 
@@ -115,7 +115,7 @@ ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
     } else {
         std::ostringstream s;
         s << "Invalid relation kind '" << relationKind << "'";
-        throw JsonParseError(s.str());
+        throw JsonStructureError(s.str());
     }
 }
 
@@ -183,7 +183,7 @@ template<>
 void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::str_type)
-        throw JsonParseError("Value of expected type RevisionId is not a string");
+        throw JsonStructureError("Value of expected type RevisionId is not a string");
     *target = RevisionId::fromJson(value.get_str());
 }
 
@@ -192,7 +192,7 @@ template<>
 void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::str_type)
-        throw JsonParseError("Value of expected type TemporaryChangesetId is not a string");
+        throw JsonStructureError("Value of expected type TemporaryChangesetId is not a string");
     *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
@@ -201,10 +201,10 @@ template<>
 void SpecializedExtractor<std::vector<PendingChangeset> >::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::array_type)
-        throw JsonParseError("Value of expected type Array of Pending Changesets is not an array");
+        throw JsonStructureError("Value of expected type Array of Pending Changesets is not an array");
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
         if (item.type() != json_spirit::obj_type)
-            throw JsonParseError("Value of expected type Pending Changeset is not an object");
+            throw JsonStructureError("Value of expected type Pending Changeset is not an object");
         target->push_back(jsonObjectToDeskaPendingChangeset(item.get_obj()));
     }
 }
@@ -222,10 +222,10 @@ template<>
 void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::obj_type)
-        throw JsonParseError("Value of expected type Array of Data Types is not an array");
+        throw JsonStructureError("Value of expected type Array of Data Types is not an array");
     BOOST_FOREACH(const Pair &item, value.get_obj()) {
         if (item.value_.type() != json_spirit::str_type)
-            throw JsonParseError("Value of expected type Data Type is not string");
+            throw JsonStructureError("Value of expected type Data Type is not string");
         std::string datatype = item.value_.get_str();
         if (datatype == "string") {
             target->push_back(KindAttributeDataType(item.name_, TYPE_STRING));
@@ -238,7 +238,7 @@ void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const js
         } else {
             std::ostringstream s;
             s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
-            throw JsonParseError(s.str());
+            throw JsonStructureError(s.str());
         }
     }
 }
@@ -248,10 +248,10 @@ template<>
 void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::array_type)
-        throw JsonParseError("Value of expected type Array of Object Relations is not an array");
+        throw JsonStructureError("Value of expected type Array of Object Relations is not an array");
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
         if (item.type() != json_spirit::obj_type)
-            throw JsonParseError("Value of expected type Object Relation is not an object");
+            throw JsonStructureError("Value of expected type Object Relation is not an object");
         target->push_back(jsonObjectToDeskaObjectRelation(item.get_obj()));
     }
 }
@@ -261,7 +261,7 @@ template<>
 void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::obj_type)
-        throw JsonParseError("Value of expected type Object of Deska Values is not an object");
+        throw JsonStructureError("Value of expected type Object of Deska Values is not an object");
     BOOST_FOREACH(const Pair &item, value.get_obj()) {
         // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
         (*target)[item.name_] = jsonValueToDeskaValue(item.value_);
@@ -273,13 +273,13 @@ template<>
 void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::obj_type)
-        throw JsonParseError("Value of expected type Object of tuples (Identifier, Deska Value) is not an object");
+        throw JsonStructureError("Value of expected type Object of tuples (Identifier, Deska Value) is not an object");
     BOOST_FOREACH(const Pair &item, value.get_obj()) {
         if (item.value_.type() != json_spirit::array_type)
-            throw JsonParseError("Value of expected type (Identifier, Deska Value) is not an array");
+            throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
         json_spirit::Array a = item.value_.get_array();
         if (a.size() != 2) {
-            throw JsonParseError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
+            throw JsonStructureError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
         }
         // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
         (*target)[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
@@ -291,7 +291,7 @@ template<>
 void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::str_type)
-        throw JsonParseError("Value of expected type Timestamp is not a string");
+        throw JsonStructureError("Value of expected type Timestamp is not a string");
     *target = boost::posix_time::time_from_string(value.get_str());
 }
 
@@ -300,7 +300,7 @@ template<>
 void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_spirit::Value &value)
 {
     if (value.type() != json_spirit::str_type)
-        throw JsonParseError("Value of expected type PendingChangesetAttachStatus is not a string");
+        throw JsonStructureError("Value of expected type PendingChangesetAttachStatus is not a string");
     std::string data = value.get_str();
     if (data == "DETACHED") {
         *target = PendingChangeset::ATTACH_DETACHED;
@@ -309,7 +309,7 @@ void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_sp
     } else {
         std::ostringstream ss;
         ss << "Invalid value for attached status of a pending changeset '" << data << "'";
-        throw JsonParseError(ss.str());
+        throw JsonStructureError(ss.str());
     }
 }
 
@@ -433,14 +433,14 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
                 s << " " << f.jsonFieldRead;
             }
             s << ").";
-            throw JsonParseError(s.str());
+            throw JsonStructureError(s.str());
         }
 
         if (rule->isAlreadyReceived) {
             // Duplicate rule
             std::ostringstream s;
             s << "Duplicate JSON field '" << node.name_ << "'";
-            throw JsonParseError(s.str());
+            throw JsonStructureError(s.str());
         }
 
         // Check the value
@@ -450,7 +450,7 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
                 std::ostringstream s;
                 // FIXME: print the value here; this could be tricky as not all of them could be converted to string
                 s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
-                throw JsonParseError(s.str());
+                throw JsonStructureError(s.str());
             }
         }
 
@@ -470,7 +470,7 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
     if ( rule != fields.end() ) {
         std::ostringstream s;
         s << "Mandatory field '" << rule->jsonFieldRead << "' not present in the response";
-        throw JsonParseError(s.str());
+        throw JsonStructureError(s.str());
     }
 }
 

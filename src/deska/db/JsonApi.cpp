@@ -59,11 +59,11 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
     *m_writeStream << "\n";
     m_writeStream->flush();
     if (m_writeStream->bad())
-        throw JsonParseError("Write error: output stream in 'bad' state");
+        throw JsonSyntaxError("Write error: output stream in 'bad' state");
     if (m_writeStream->fail())
-        throw JsonParseError("Write error: output stream in 'fail' state");
+        throw JsonSyntaxError("Write error: output stream in 'fail' state");
     if (m_writeStream->eof())
-        throw JsonParseError("Write error: EOF");
+        throw JsonSyntaxError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
@@ -76,14 +76,14 @@ json_spirit::Object JsonApiParser::readJsonObject() const
         // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
         std::ostringstream s;
         s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
-        throw JsonParseError(s.str());
+        throw JsonSyntaxError(s.str());
     }
     if (m_readStream->bad())
-        throw JsonParseError("Read error: input stream in 'bad' state");
+        throw JsonSyntaxError("Read error: input stream in 'bad' state");
     if (m_readStream->fail())
-        throw JsonParseError("Read error: input stream in 'fail' state");
+        throw JsonSyntaxError("Read error: input stream in 'fail' state");
     if (m_readStream->eof())
-        throw JsonParseError("Read error: EOF");
+        throw JsonSyntaxError("Read error: EOF");
     return res.get_obj();
 }
 
@@ -288,6 +288,22 @@ JsonParseError::JsonParseError(const std::string &message): std::runtime_error(m
 }
 
 JsonParseError::~JsonParseError() throw ()
+{
+}
+
+JsonSyntaxError::JsonSyntaxError(const std::string &message): JsonParseError(message)
+{
+}
+
+JsonSyntaxError::~JsonSyntaxError() throw ()
+{
+}
+
+JsonStructureError::JsonStructureError(const std::string &message): JsonParseError(message)
+{
+}
+
+JsonStructureError::~JsonStructureError() throw ()
 {
 }
 

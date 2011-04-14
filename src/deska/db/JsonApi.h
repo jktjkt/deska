@@ -37,6 +37,25 @@ public:
     virtual ~JsonParseError() throw ();
 };
 
+/** @short The received data cannot be converted to JSON
+
+This exception indicates that the data we received are not syntacticaly valid JSON data.
+*/
+class JsonSyntaxError: public JsonParseError
+{
+public:
+    JsonSyntaxError(const std::string &message);
+    virtual ~JsonSyntaxError() throw ();
+};
+
+/** @short The received JSON data does not conform to the Deska DBAPI specification */
+class JsonStructureError: public JsonParseError
+{
+public:
+    JsonStructureError(const std::string &message);
+    virtual ~JsonStructureError() throw ();
+};
+
 /** @short Database API implemented through the JSON */
 class JsonApiParser: public Api
 {

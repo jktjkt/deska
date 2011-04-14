@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFail
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
             "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"kindAttributes\"}\n");
-    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
+    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
     expectEmpty();
 }
 
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
         try {
             j->kindRelations("identifier");
             BOOST_ERROR(string("Passing '" + value.first + "' should have thrown an exception."));
-        } catch (JsonParseError &e) {
+        } catch (JsonStructureError &e) {
             BOOST_CHECK_EQUAL(value.second, e.what());
         }
         expectEmpty();
@@ -168,7 +168,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
     expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
+    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonStructureError);
     expectEmpty();
 }
 
@@ -425,8 +425,7 @@ struct MalformedJsonFixture: public JsonApiTestFixtureFailOnStreamThrow {
         if (!line.empty())
             expectRead(line);
         mockBuffer.expectReadEof();
-        // FIXME: distinguish between "JSON parsing error" and "data error in a well-formed JSON"
-        BOOST_CHECK_THROW(j->abortCurrentChangeset(), JsonParseError);
+        BOOST_CHECK_THROW(j->abortCurrentChangeset(), JsonSyntaxError);
         BOOST_CHECK(readStream.eof());
         BOOST_CHECK(!readStream.bad());
         BOOST_CHECK(writeStream.good());
