@@ -452,7 +452,21 @@ BOOST_FIXTURE_TEST_CASE(error_end_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixture)
 {
 	const std::string line = "hardware foo*bar\n";
-	const std::string::const_iterator it = line.begin() + line.find("foo*bar");
+	const std::string::const_iterator it = line.begin() + line.find("*bar");
+	parser->parseLine(line);
+	expectCategoryEntered("hardware", "foo");
+	expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+	expectCategoryLeft();
+	//expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+	expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad identifier of top-level object */
+BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTestFixture)
+{
+	const std::string line = "hardware *bar\n";
+	const std::string::const_iterator it = line.begin() + line.find("*bar");
 	parser->parseLine(line);
 	expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
 	expectNothingElse();
@@ -463,10 +477,13 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixt
 BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixture)
 {
 	const std::string line = "host hpv2 interface foo*bar\n";
-	const std::string::const_iterator it = line.begin() + line.find("foo*bar");
+	const std::string::const_iterator it = line.begin() + line.find("*bar");
 	parser->parseLine(line);
 	expectCategoryEntered("host", "hpv2");
-	expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+	expectCategoryEntered("interface", "foo");
+	expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
+	expectCategoryLeft();
+	//expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
 	expectCategoryLeft();
 	expectNothingElse();
     verifyEmptyStack();
