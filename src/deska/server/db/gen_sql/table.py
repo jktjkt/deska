@@ -74,7 +74,10 @@ class Table(constants.Templates):
 		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_del(self):
-		return self.del_string.format(tbl = self.name)
+		return self.del_string.format(tbl = self.name, delim = constants.DELIMITER)
+
+	def gen_del_embed(self, col_name, reftable):
+		return self.del_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())

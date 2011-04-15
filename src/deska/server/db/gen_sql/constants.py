@@ -243,13 +243,20 @@ class Templates:
 		{tbl}_name text;
 		{tbl}_uid bigint;
 		changeset_id bigint;
+		deleted bit(1);
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		--finds uid of object which is thisone embed into
 		SELECT {reftbl}_get_uid(rest_of_name, from_version) INTO {reftbl}_uid;
+
 		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
 		changeset_id = {tbl}_changeset_of_data_version_by_name({tbl}_name, {reftbl}_uid, from_version);
-		SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
+		
+		SELECT uid, dest_bit INTO {tbl}_uid, deleted FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
+		IF deleted = B'1' THEN
+			RAISE EXCEPTION '{tbl} with name % does not exist in this version', full_name;
+		END IF;
+
 		RETURN {tbl}_uid;
 	END;
 	$$
@@ -303,12 +310,39 @@ class Templates:
 	DECLARE
 		ver bigint;
 		rowuid bigint;
+		local_name text;
 	BEGIN	
 		SELECT my_version() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
 		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
 			VALUES (rowuid, name_, ver, '1');
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	# template string for del function
+	del_embed_string = '''CREATE FUNCTION
+	{tbl}_del(IN full_name text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		rowuid bigint;
+		{reftbl}_uid bigint;
+		{tbl}_name text;
+		rest_of_name text;
+	BEGIN	
+		SELECT my_version() INTO ver;
+		SELECT {tbl}_get_uid(full_name) INTO rowuid;
+		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
+		-- try if there is already line for current version
+		{reftbl}_uid = {reftbl}_get_uid(rest_of_name);
+		INSERT INTO {tbl}_history (uid, name, {column}, version, dest_bit)
+			VALUES (rowuid, {tbl}_name, {reftbl}_uid, ver, '1');
 		RETURN 1;
 	END
 	$$
