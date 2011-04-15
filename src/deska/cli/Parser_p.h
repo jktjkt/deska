@@ -249,6 +249,38 @@ private:
 
 
 
+/** @short Parser for parsing function words, that can be typed at the beginning of any line.
+*
+*   Parser works as alternatives parser with all words inside and invokes appropriate actions.
+*/
+template <typename Iterator>
+class FunctionWordsParser: public qi::grammar<Iterator, ascii::space_type>
+{
+
+public:
+
+    /** @short Constructor initializes the grammar with all rules.
+    *
+    *   @param parent Pointer to main parser for calling its functions as semantic actions.
+    */
+    FunctionWordsParser(ParserImpl<Iterator> *parent);
+
+private:
+
+    /** @short Function used as semantic action for parsed "delete" function word. */
+    void actionDelete();
+
+    /** @short Function used as semantic action for parsed "show" function word. */
+    void actionShow();
+
+    qi::rule<Iterator, ascii::space_type > start;
+
+    /** Pointer to main parser for calling its functions as semantic actions. */
+    ParserImpl<Iterator> *m_parent;
+};
+
+
+
 /** @short The main class containing all grammars, holding context and calling the grammars on the input.
 *
 *   
@@ -330,6 +362,12 @@ public:
     */
     void addParseError(const ParseError<Iterator> &error);
 
+    /** @short Function for changing parsing mode of the parser.
+    *
+    *   @param mode Parsing mode
+    */
+    void setParsingMode(ParsingMode mode);
+
     /** @short Function for obtaining list of all defined kind names.
     *   
     *   For purposes of bad nesting reporting.
@@ -372,6 +410,7 @@ private:
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
     KindsOnlyParser<Iterator> *topLevelParser;
+    FunctionWordsParser<Iterator> *functionWordsParser;
     PredefinedRules<Iterator> *predefinedRules;
     //@}
 
@@ -386,6 +425,8 @@ private:
     bool dryRun;
     /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
     bool singleKind;
+    /** Current parsing mode. @see ParsingMode */
+    ParsingMode parsingMode;
 };
 
 }

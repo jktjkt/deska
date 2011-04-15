@@ -264,10 +264,37 @@ void WholeKindParser<Iterator>::parsedSingleKind()
 
 
 template <typename Iterator>
+FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
+    FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
+{
+    start = ((qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
+           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)]));
+}
+
+
+
+template <typename Iterator>
+void FunctionWordsParser<Iterator>::actionDelete()
+{
+    m_parent->setParsingMode(PARSING_MODE_DELETE);
+}
+
+
+
+template <typename Iterator>
+void FunctionWordsParser<Iterator>::actionShow()
+{
+    m_parent->setParsingMode(PARSING_MODE_SHOW);
+}
+
+
+
+template <typename Iterator>
 ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
 {
     predefinedRules = new PredefinedRules<Iterator>();
     topLevelParser = new KindsOnlyParser<Iterator>(std::string(""),this);
+    functionWordsParser = new FunctionWordsParser<Iterator>(this);
 
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
 
@@ -308,6 +335,7 @@ ParserImpl<Iterator>::~ParserImpl()
     }
 
     delete topLevelParser;
+    delete functionWordsParser;
     delete predefinedRules;
 }
 
@@ -404,6 +432,15 @@ void ParserImpl<Iterator>::addParseError(const ParseError<Iterator> &error)
 }
 
 
+
+template <typename Iterator>
+void ParserImpl<Iterator>::setParsingMode(ParsingMode mode)
+{
+    parsingMode = mode;
+}
+
+
+
 template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
 {
@@ -460,11 +497,20 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     parseErrors.clear();
 
+    parsingMode = PARSING_MODE_STANDARD;
     bool parsingSucceeded = false;
     singleKind = false;
     bool topLevel = false;
     int parsingIterations = 0;
+    bool functionWordParsed = false;
     std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
+
+    // Check if there are any function words at the beginning of the line.
+    functionWordParsed = phrase_parse(iter, end, *functionWordsParser, ascii::space);
+
+    // Function word "show" parsed alone
+    if ((iter == end) && (parsingMode == PARSING_MODE_SHOW) && (functionWordParsed))
+        return true;
 
     while (iter != end) {
         singleKind = false;
@@ -476,7 +522,17 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         } else {
             // Context -> parse attributes or nested kinds
             topLevel = false;
-            parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]), ascii::space);
+            switch (parsingMode) {
+                case PARSING_MODE_STANDARD:
+                    parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]), ascii::space);
+                    break;
+                case PARSING_MODE_DELETE:
+                case PARSING_MODE_SHOW:
+                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]), ascii::space);
+                    break;
+                default:
+                    throw std::domain_error("Invalid value of parsingMode");
+            }        
         }
 
         if (!parsingSucceeded) {
@@ -494,9 +550,26 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }     
     }
 
+    if (!dryRun) {
+        // Emit signals, when there is some function word used.
+        switch (parsingMode) {
+            case PARSING_MODE_STANDARD:
+                // No special signal to be triggered inthis case.
+                break;
+            case PARSING_MODE_DELETE:
+                m_parser->functionDelete();
+                break;
+            case PARSING_MODE_SHOW:
+                m_parser->functionShow();
+                break;
+            default:
+                throw std::domain_error("Invalid value of parsingMode");
+        } 
+    }
+
     // Invoke categoryLeft signals when parsing in-line definitions
-    if (singleKind || topLevel) {
-        // Definition of kind found stand-alone on one line -> nest permanently
+    if ((parsingMode == PARSING_MODE_STANDARD) && (singleKind || topLevel)) {
+        // Definition of kind found stand-alone in standard mode on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
         if (depthDiff > 0) {
@@ -594,6 +667,12 @@ template void WholeKindParser<iterator_type>::parsedEnd();
 
 template void WholeKindParser<iterator_type>::parsedSingleKind();
 
+template FunctionWordsParser<iterator_type>::FunctionWordsParser(ParserImpl<iterator_type> *parent);
+
+template void FunctionWordsParser<iterator_type>::actionDelete();
+
+template void FunctionWordsParser<iterator_type>::actionShow();
+
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
 template ParserImpl<iterator_type>::~ParserImpl();
@@ -615,6 +694,8 @@ template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name
 template void ParserImpl<iterator_type>::parsedSingleKind();
 
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
+
+template void ParserImpl<iterator_type>::setParsingMode(ParsingMode mode);
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
 

@@ -55,6 +55,19 @@ std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
 bool operator==(const ContextStackItem &a, const ContextStackItem &b);
 bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
 
+/** @short Modes of parsing.
+*   
+*   Mode determines, what kind of input parser expects.
+*/
+typedef enum {
+    /** @short Standard mode expects kinds including their attributes. */
+    PARSING_MODE_STANDARD,
+    /** @short Delete mode expects kinds with nested kinds with no attributes. */
+    PARSING_MODE_DELETE,
+    /** @short Show mode expects kinds with nested kinds with no attributes. */
+    PARSING_MODE_SHOW,
+} ParsingMode;
+
 /** @short Process the CLI input and generate events based on the parsed data
 
 This class is fed by individual lines of user input (or the configuration file). It will parse
@@ -159,6 +172,18 @@ public:
     *   The current user input has triggered an error during parsing.
     */
     boost::signals2::signal<void (const ParserException &err)> parseError;
+
+    /** @short Show attributes and nested kinds of an object in the current context
+    *
+    *   The signal is triggered when keyword "show" was found on the beginning of the line
+    */
+    boost::signals2::signal<void ()> functionShow;
+
+    /** @short Delete object in current context
+    *
+    *   The signal is triggered when keyword "delete" was found on the beginning of the line
+    */
+    boost::signals2::signal<void ()> functionDelete;
 
     /** @short True if the parser is currently nested in some block
     *
