@@ -516,7 +516,11 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     // Function word "show" parsed alone
     if ((iter == end) && (parsingMode == PARSING_MODE_SHOW) && (functionWordParsed))
+    {
+            if (!dryRun)
+                m_parser->functionShow();
         return true;
+    }
 
     while (iter != end) {
         singleKind = false;
@@ -556,7 +560,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }     
     }
 
-    if (!dryRun) {
+    if ((!dryRun) && (parsingSucceeded)) {
         // Emit signals, when there is some function word used.
         switch (parsingMode) {
             case PARSING_MODE_STANDARD:
