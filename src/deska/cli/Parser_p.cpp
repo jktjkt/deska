@@ -375,12 +375,35 @@ std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
 template <typename Iterator>
 std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(const std::string &line)
 {
-    // FIXME: return correct result
-    dryRun = true;
-    if (parseLineImpl(line))
-        return std::vector<std::string>();
+    if (line.empty()) {
+        std::vector<std::string> possibilities;
+        insertTabPossibilitiesOfCurrentContext(possibilities);
+        possibilities.push_back("delete");
+        possibilities.push_back("show");
+        return possibilities;
+    }
 
-    return std::vector<std::string>();
+    dryRun = true;
+    bool parsingSucceeded;
+    parsingSucceeded = parseLineImpl(line);
+    if (parsingSucceeded) {
+        if (*(line.end()-1) == ' ') {
+            std::vector<std::string> possibilities;
+            insertTabPossibilitiesOfCurrentContext(possibilities);
+            return possibilities;
+        } else {
+            // FIXME: return correct result
+            return std::vector<std::string>();
+        }
+    } else {
+        if (*(line.end()-1) == ' ') {
+            // Parsing failed and last character is space -> no completition possibilites shoul be returned
+            return std::vector<std::string>();
+        } else {
+            // FIXME: return correct result
+            return std::vector<std::string>();
+        }
+    }  
 }
 
 
@@ -668,6 +691,36 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
 
 
+template <typename Iterator>
+void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities)
+{
+    if (contextStack.empty()) {
+        // No context -> add names of top-level kinds
+        std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+        for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+            possibilities.push_back(*it);
+        }
+    } else {
+        // Add names of attributes of current kind
+        std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
+        for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+            possibilities.push_back(it->name);
+        }
+        // Add names of nested kinds of current kind
+        std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+        for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+            std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
+            for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
+                if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->targetTableName == contextStack.back().kind)) {
+                    possibilities.push_back(*it);
+                }
+            }
+        }
+    }
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
@@ -739,6 +792,8 @@ template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &ki
 template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 
 template void ParserImpl<iterator_type>::reportParseError(const std::string& line);
+
+template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities);
 
 }
 }
