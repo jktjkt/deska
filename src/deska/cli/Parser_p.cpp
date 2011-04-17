@@ -537,11 +537,13 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             topLevel = false;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
-                    parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]), ascii::space);
+                    parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
+                                                    ascii::space);
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
-                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]), ascii::space);
+                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
+                                                    ascii::space);
                     break;
                 default:
                     throw std::domain_error("Invalid value of parsingMode");
