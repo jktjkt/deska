@@ -375,13 +375,40 @@ class Templates:
 '''
 	# template string for names
 	names_string = '''CREATE FUNCTION
-	{tbl}_names()
+	{tbl}_names(from_version bigint = 0)
 	RETURNS SETOF text
 	AS
 	$$
+	DECLARE
+		parent_changeset bigint;
+		current_changeset bigint;
 	BEGIN
-		RETURN QUERY SELECT name FROM {tbl};
-	END
+		IF from_version = 0 THEN
+			current_changeset = my_version();
+			IF current_changeset IS NULL THEN
+			--names from poduction
+				RETURN QUERY SELECT name FROM hardware;
+			ELSE
+				parent_changeset = parent(current_changeset);
+				from_version = id2num(parent_changeset);		
+			END IF;
+		ELSE
+			current_changeset = NULL;
+		END IF;
+
+		RETURN QUERY SELECT name FROM {tbl}_history WHERE version = current_changeset AND dest_bit = '0'
+		UNION
+		SELECT name
+		FROM {tbl}_history h JOIN version v ON (h.version = v.id and h.version <= from_version) 
+		WHERE v.id = (
+				SELECT max(version) 
+				FROM {tbl}_history h2 
+					JOIN version v2 ON (h2.version <= from_version AND h2.version = v2.id AND h2.uid = h.uid)
+			)
+			AND dest_bit = '0' AND h.uid NOT IN(
+				SELECT uid FROM {tbl}_history WHERE version = current_changeset
+			);
+	END;
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
