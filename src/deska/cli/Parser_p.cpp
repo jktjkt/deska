@@ -145,7 +145,7 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<rethrow>(start, attributeErrorHandler(_1, _2, _3, _4,
+    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
                                                    phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
     // In case of enabling error handler for nesting, on_error<fail> for attributeErrorHandler have to be changed
     // to on_error<rethrow>.
