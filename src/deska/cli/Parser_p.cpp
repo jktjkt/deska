@@ -517,6 +517,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     // Function word "show" parsed alone
     if ((iter == end) && (parsingMode == PARSING_MODE_SHOW) && (functionWordParsed))
     {
+#ifdef PARSER_DEBUG
+            std::cout << "Action Show" << std::endl;
+#endif
             if (!dryRun)
                 m_parser->functionShow();
         return true;
@@ -567,9 +570,15 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 // No special signal to be triggered inthis case.
                 break;
             case PARSING_MODE_DELETE:
+#ifdef PARSER_DEBUG
+                std::cout << "Action Delete" << std::endl;
+#endif
                 m_parser->functionDelete();
                 break;
             case PARSING_MODE_SHOW:
+#ifdef PARSER_DEBUG
+                std::cout << "Action Show" << std::endl;
+#endif
                 m_parser->functionShow();
                 break;
             default:
