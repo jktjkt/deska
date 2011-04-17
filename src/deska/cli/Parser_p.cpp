@@ -123,6 +123,7 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     using qi::eoi;
     using qi::on_error;
     using qi::fail;
+    using qi::rethrow;
 
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
@@ -142,12 +143,14 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
         > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
-    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
+    //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
-                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
-    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
-                   phoenix::ref(m_name), m_parent));
+    on_error<rethrow>(start, attributeErrorHandler(_1, _2, _3, _4,
+                                                   phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    // In case of enabling error handler for nesting, on_error<fail> for attributeErrorHandler have to be changed
+    // to on_error<rethrow>.
+    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
+    //                                          phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
@@ -184,6 +187,7 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     using qi::eoi;
     using qi::on_error;
     using qi::fail;
+    using qi::rethrow;
 
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
@@ -203,11 +207,13 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
         > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
 
     phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
-    phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
+    //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
-    on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
-                   phoenix::ref(m_name), m_parent));
+    // In case of enabling error handler for nesting, on_error<fail> for kindErrorHandler have to be changed
+    // to on_error<rethrow>.
+    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
+    //                                          phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
 
