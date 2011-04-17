@@ -74,7 +74,10 @@ class Table(constants.Templates):
 		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_del(self):
-		return self.del_string.format(tbl = self.name)
+		return self.del_string.format(tbl = self.name, delim = constants.DELIMITER)
+
+	def gen_del_embed(self, col_name, reftable):
+		return self.del_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())
@@ -90,6 +93,7 @@ class Table(constants.Templates):
 			return ""
 
 		get_data_string = self.get_data_string
+		embed_table = ""
 		# replace uid of referenced object its name
 		# old column : new column selector
 		newcollist = dict()
@@ -103,6 +107,7 @@ class Table(constants.Templates):
 					# delete this col from output
 					del collist[col]
 					get_data_string = self.get_embed_data_string
+					embed_table = tbl
 				else:
 					newcol = tbl + "_get_name(" + col + ") as " + col 
 					newcollist[col] = newcol
@@ -123,7 +128,7 @@ class Table(constants.Templates):
 		coltypes = ",\n".join(coltypeslist.values())
 		cols = ",".join(collist.values())
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
-		cols_def = get_data_string.format(tbl = self.name, columns = cols)
+		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
 		return type_def + "\n" + cols_def
 
 	def gen_get(self,col_name):
@@ -149,3 +154,17 @@ class Table(constants.Templates):
 	def gen_prev_changeset(self):
 		return self.prev_changest_string.format(tbl = self.name)
 
+	def gen_prev_changeset_by_name(self):
+		return self.prev_changest_by_name_string.format(tbl = self.name)
+
+	def gen_changeset_of_data_version(self):
+		return self.changeset_of_data_version_string.format(tbl = self.name)
+
+	def gen_changeset_of_data_version_by_name(self):
+		return self.changeset_of_data_version_by_name_string.format(tbl = self.name)
+		
+	def gen_prev_changeset_by_name_embed(self, refcolumn, reftable):
+		return self.prev_changest_by_name_embed_string.format(tbl = self.name, column = refcolumn ,reftbl = reftable)
+
+	def gen_changeset_of_data_version_by_name_embed(self, refcolumn, reftable):
+		return self.changeset_of_data_version_by_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
