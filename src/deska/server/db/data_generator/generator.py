@@ -7,8 +7,8 @@ from randdom import Names, Macs, IPv4s, Dates, Numbers, Interfaces
 script_template = '''SET search_path TO api,genproc,history,deska,production;
 SELECT startChangeset();
 {data}
-SELECT commitChangeset();
- '''
+SELECT commitChangeset('FINISH');
+'''
 
 class Generator():
 
@@ -28,7 +28,7 @@ SELECT interface_set_ip('{0}','{1}');
 SELECT interface_set_mac('{0}','{2}');
 '''
 	commit_template = '''
-SELECT commitChangeset();
+SELECT commitChangeset('commit');
 SELECT startChangeset();
 '''
 	def __init__(self, count = 2):

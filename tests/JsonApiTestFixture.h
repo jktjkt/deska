@@ -46,6 +46,10 @@ struct JsonApiTestFixture
     MockStreamBuffer mockBuffer;
     std::istream readStream;
     std::ostream writeStream;
+
+    std::istream *getReadStream();
+    std::ostream *getWriteStream();
+    void bindStreams();
 };
 
 /** @short A fixture that will complain when the streams complain */

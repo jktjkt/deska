@@ -1,0 +1,94 @@
+Schuze Deska, 2011-04-11, MFF
+-----------------------------
+
+Pritomni: vsichni
+
+Diskuse:
+--------
+
+Delete objektu:
+
+Identifikatory objektu: vynutit kontrolu tvaru stringu i do databaze
+
+PendingChangesets: enum pro IN_PROGRESS/DETACHED, vedle toho bude textova
+informace udavajici blizsi detaily o vlastniku/autoru/..., ktera nebude mit
+pevne danou strukturu; v teto chvili bude obsahovat pouze cislo, PID SQL
+procesu, v budoucnu se muze dat rozsirit o dalsi debug informace (IP adresa,...)
+
+Prenos relaci pres JSON: extra hodnoty (nazev tabulky, sloupecku,...) nejsou
+potreba
+
+Ukoly z minula:
+---------------
+
+- Tomas: jak udelat mazani objektu? idealne nejake rozsireni parseru? (#187)
+    - pracuje
+- Tomas: doplneni unit testu pro top-level objekty ze schuzky (#188)
+    - hotovo
+- Tomas: dokumentace kodu (#159)
+    - hotovo
+- Tomas: tab completion (#101)
+    - rozpracovano
+- Tomas: readline
+    - neni
+- Honza: pokrok s db-c++ interakci (#142)
+    - je
+- Honza: upravit C++ API, aby metody pro dotazovani se na revize odpovidaly
+  Lukasovo vystupu v JSONu (#143)
+    - je
+- Honza: rozsireni API smerem k dotazum na revize (#143)
+    - neni
+- Honza: napsat dokumentaci JSON API, vcetne motivace, k cemu slouzi (#183)
+    - ne
+- Honza: zmenit identifikatory v JSON odpovedich, unifikovat jmena vracenych dat
+  s nazvy metod (#184)
+    - je
+- Honza: serializace custom trid pres JSON object a ne JSON array, tedy prevod z
+  [EMBED_INTO,...] na {"relation": "EMBED_INTO", ...} (#185)
+    - je
+- Honza: obstarat dump FarmDB pro Desku (#186)
+    - neni
+
+U Lukase nemam kontrolu ukolu zapsanou, sli jsme za vedoucim.
+
+- Lukas: prevest JSON odesilany Pythonem na tvar kompatibilni s C++ casti (#180)
+- Lukas: zhodnotit, zda je mozne presunout vytvareni plpythonu procedur pouze do
+  casti, kdy se DB zaklada, a ne kdy se meni jeji schema; to by umoznilo
+  efektivni pouziti role deska_admin (#177)
+- Lukas: zdokumentovat po sobe kod
+- Lukas: upravit generovani pro templaty (#158)
+- Lukas: pracovat na #157, spolecne L + M
+
+Martina ukoly tento tyden nemela.
+
+Schuze s vedoucim:
+------------------
+
+Je potreba pripravit rozdeleni Desky na jednotlive casti a k nim priradit
+odpovedne lidi a casovy plan, kdy budou hotove. Dokumentaci zacit psat co
+nejdrive. Schuzky dle potreby a dle vykonane prace.
+
+Komponenty:
+-----------
+
+Prehled je v extra souboru.
+
+Ukoly:
+------
+
+- Honza: formalni popis JSON API (#183)
+- Honza: rozsireni API pro praci s verzemi (#143)
+- Honza: uprava API podle bodu ze schuzky
+- Honza: obstarat dump FarmDB pro Desku (#186)
+- Lukas: "aby fungovala interakce"
+- Martina: doplneni SQL metod, aby nevracely hodnoty, ktere Python API
+  zahazuje/upravuje
+- Martina: doplneni argumentu "revize" pro metody vracejici data objektu
+- Tomas: delete (#187) a dalsi upravy parseru
+- Tomas: tab completion (#101)
+- Tomas: prace na CLI
+
+Pristi schuzka:
+---------------
+
+15.00 pondeli 18. dubna, FZU

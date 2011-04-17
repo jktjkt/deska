@@ -3,7 +3,7 @@
 --
 -- these functions should be in schema deska
 --
-SET search_path TO deska,production;
+SET search_path TO deska;
 --
 -- function returns info about tables in db
 --
@@ -100,6 +100,7 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+SET search_path TO api,deska;
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --
@@ -132,15 +133,40 @@ RETURN QUERY SELECT attname,typname
 			JOIN pg_tables AS tab ON (schemaname='production' and cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
-		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
+		-- don't return also uid and name columns - internal
+		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name');
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+
+
+CREATE TYPE kind_relation AS(
+--relkind text,
+relation text,
+refkind	name
+);
+
+--gets relations between kind kindname and other kinds - type of relation, name of related kind
+CREATE OR REPLACE FUNCTION kindRelations(kindname name)
+RETURNS SETOF kind_relation
+AS $$
+DECLARE
+BEGIN
+	RETURN QUERY 
+		SELECT relation, refkind 
+		FROM kindRelations_full_info(kindname)
+			WHERE relation <> 'INVALID';
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
 --DROP TYPE kind_relation;
 
 --type for relations of a kind
-CREATE TYPE kind_relation AS(
+CREATE TYPE kind_relation_full AS(
 --relkind text,
 relation text,
 attname	text,
@@ -151,8 +177,8 @@ refattname	text
 --DROP FUNCTION get_relations(name);
 
 --function returns relations of a given kind
-CREATE FUNCTION kindRelations(kindname name)
-RETURNS SETOF kind_relation
+CREATE FUNCTION kindRelations_full_info(kindname name)
+RETURNS SETOF kind_relation_full
 AS $$
 DECLARE
 BEGIN

@@ -75,9 +75,6 @@ public:
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
 
-    /** @short Require a JSON value with value of true */
-    JsonField &expectTrue(const std::string &name);
-
     /** @short Tell this handler whether it should throw an exception when it sees an unrecognized field */
     void failOnUnknownFields(const bool shouldThrow);
 

@@ -44,11 +44,8 @@ class Jsn:
 		logging.debug("start response")
 		cmd = self.jsn[CMD]
 		data = self.db.fetchall()
-		if type(data) == int:
-			self.jsn["result"] = data
-		elif type(data) == bool:
-			self.jsn["result"] = data
-		else:
+		# FIXME db stuff shouldn't return these if it is not needed
+		if type(data) not in [int,bool]:
 			self.jsn[self.cmd] = data
 		# write response instead of command
 		del self.jsn[CMD]

@@ -20,6 +20,7 @@
 * */
 
 #include <boost/test/test_tools.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 
@@ -27,7 +28,7 @@ JsonApiTestFixture::JsonApiTestFixture():
     mockBuffer(1), readStream(&mockBuffer), writeStream(&mockBuffer)
 {
     j = new Deska::Db::JsonApiParser();
-    j->setStreams(&writeStream, &readStream);
+    bindStreams();
 }
 
 JsonApiTestFixture::~JsonApiTestFixture()
@@ -48,4 +49,20 @@ void JsonApiTestFixture::expectRead(const std::string &str)
 void JsonApiTestFixture::expectWrite(const std::string &str)
 {
     mockBuffer.expectWrite(str);
+}
+
+std::istream *JsonApiTestFixture::getReadStream()
+{
+    return &readStream;
+}
+
+std::ostream *JsonApiTestFixture::getWriteStream()
+{
+    return &writeStream;
+}
+
+void JsonApiTestFixture::bindStreams()
+{
+    j->willRead.connect(boost::phoenix::bind(&JsonApiTestFixture::getReadStream, this));
+    j->willWrite.connect(boost::phoenix::bind(&JsonApiTestFixture::getWriteStream, this));
 }

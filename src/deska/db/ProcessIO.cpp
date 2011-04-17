@@ -19,7 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <iostream>
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
 #include "ProcessIO.h"
 
 namespace Deska {
@@ -34,12 +35,14 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
     ctx.stdout_behavior = bp::capture_stream();
     ctx.stdin_behavior = bp::capture_stream();
     ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an expcetion, but only when there's any other traffic going on
+    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
 
     // The first "argument" is actually a process' name, but boost::process expects them separate
     std::string exe = arguments.front();
 
     childProcess = bp::launch(exe, arguments, ctx);
+    using namespace boost::phoenix;
+    dynamic_cast<bp::detail::systembuf*>(childProcess->get_stdout().rdbuf())->event_read_data.connect(bind(&ProcessIO::slotReadData, this, arg_names::_1));
 }
 
 ProcessIO::~ProcessIO()
@@ -54,7 +57,18 @@ std::ostream *ProcessIO::writeStream()
 
 std::istream *ProcessIO::readStream()
 {
+    m_recentlyReadData.clear();
     return &childProcess->get_stdout();
+}
+
+void ProcessIO::slotReadData(const std::string &data)
+{
+    m_recentlyReadData.append(data);
+}
+
+std::string ProcessIO::recentlyReadData() const
+{
+    return m_recentlyReadData;
 }
 
 }

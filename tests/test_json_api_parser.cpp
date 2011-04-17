@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFail
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
             "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"kindAttributes\"}\n");
-    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonParseError);
+    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
     expectEmpty();
 }
 
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
         try {
             j->kindRelations("identifier");
             BOOST_ERROR(string("Passing '" + value.first + "' should have thrown an exception."));
-        } catch (JsonParseError &e) {
+        } catch (JsonStructureError &e) {
             BOOST_CHECK_EQUAL(value.second, e.what());
         }
         expectEmpty();
@@ -168,7 +168,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
     expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonParseError);
+    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonStructureError);
     expectEmpty();
 }
 
@@ -251,7 +251,7 @@ BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStre
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\"}\n");
     j->createObject("k", "o");
     expectEmpty();
 }
@@ -260,7 +260,7 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\"}\n");
     j->deleteObject("k", "o");
     expectEmpty();
 }
@@ -269,7 +269,7 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\", \"result\": true}\n");
+    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }
@@ -278,7 +278,7 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"removeAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}\n");
-    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeAttribute\", \"result\": true}\n");
+    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeAttribute\"}\n");
     j->removeAttribute("kind", "obj", "fancyAttr");
     expectEmpty();
 }
@@ -299,7 +299,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     vector<SetAttrTestData> data;
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
-            "\"response\": \"setAttribute\", \"result\": true, \"attributeData\": ";
+            "\"response\": \"setAttribute\", \"attributeData\": ";
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", "some string"));
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", 123));
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", 333.666));
@@ -343,21 +343,28 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamTh
 {
     expectWrite("{\"command\":\"pendingChangesets\"}\n");
     expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
-               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"isAttachedNow\": \"DETACHED\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", "
-                   "\"message\": \"this is a commit message, man\"}, "
-               "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"isAttachedNow\": \"INPROGRESS\", "
-                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"foo\"}"
+               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\"}, "
+               // The next one is the same, except that we use JSON's null here
+               "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\", "
+                   "\"activeConnectionInfo\": null}, "
+               "{\"changeset\":\"tmp333\", \"author\": \"bar\", \"status\": \"INPROGRESS\", "
+                   "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"foo\", "
+                   "\"activeConnectionInfo\": \"unspecified connection\"}"
                "]}\n");
     vector<PendingChangeset> expected;
     expected.push_back(PendingChangeset(
-                           TemporaryChangesetId(123), "user", false,
+                           TemporaryChangesetId(123), "user",
                            boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
-                           RevisionId(666), "this is a commit message, man"));
+                           RevisionId(666), "message", PendingChangeset::ATTACH_DETACHED, boost::optional<std::string>()));
+    // repeat the first line once again
+    expected.push_back(expected.front());
     expected.push_back(PendingChangeset(
-                           TemporaryChangesetId(333), "bar", true,
+                           TemporaryChangesetId(333), "bar",
                            boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
-                           RevisionId(666), "foo"));
+                           RevisionId(666),"foo", PendingChangeset::ATTACH_IN_PROGRESS,
+                           boost::optional<std::string>("unspecified connection")));
     vector<PendingChangeset> res = j->pendingChangesets();
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -418,8 +425,7 @@ struct MalformedJsonFixture: public JsonApiTestFixtureFailOnStreamThrow {
         if (!line.empty())
             expectRead(line);
         mockBuffer.expectReadEof();
-        // FIXME: distinguish between "JSON parsing error" and "data error in a well-formed JSON"
-        BOOST_CHECK_THROW(j->abortCurrentChangeset(), JsonParseError);
+        BOOST_CHECK_THROW(j->abortCurrentChangeset(), JsonSyntaxError);
         BOOST_CHECK(readStream.eof());
         BOOST_CHECK(!readStream.bad());
         BOOST_CHECK(writeStream.good());
@@ -484,7 +490,7 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureF
         try {
             h.work();
             BOOST_ERROR(std::string("Passing '" + s + "' should have thrown an exception."));
-        } catch (std::domain_error &e) {
+        } catch (JsonStructureError &e) {
             // this is actually what we want
             //std::cerr << "OK: " << e.what() << std::endl;
         }

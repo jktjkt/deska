@@ -7,20 +7,18 @@ class Schema:
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	commit_string = '''
--- need this in api schema
-SET search_path TO api,genproc,history,deska,production;
-
-CREATE FUNCTION commitChangeset()
-	RETURNS integer
+CREATE FUNCTION commit_all(message text)
+	RETURNS bigint
 	AS
 	$$
+	DECLARE rev bigint;
 	BEGIN
 		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
-		PERFORM create_version();
-		RETURN 1;
+		SELECT create_version(message) INTO rev;
+		RETURN rev;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;

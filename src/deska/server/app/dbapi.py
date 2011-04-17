@@ -1,5 +1,6 @@
 import psycopg2
 import datetime
+import time
 import logging
 
 
@@ -14,6 +15,19 @@ class Result:
 		self.res = db_mark.fetchall()
 	def parse(self):
 		return self.res[0][0]
+	
+	def fixdates(self,lst):
+		# we have to transform datetime from db to timestamp
+		# FIXME: can we do this better
+		for att in range(len(lst)):
+			if type(lst[att]) == datetime.date:
+				#lst[att] = time.mktime(lst[att].timetuple())
+				lst[att] = str(lst[att])
+			if type(lst[att]) == datetime.datetime:
+				#lst[att] = time.mktime(lst[att].timetuple())
+				lst[att] = str(lst[att])
+		return lst
+
 
 class BoolResult(Result):
 	def __init__(self,db_mark):
@@ -40,6 +54,8 @@ class TupleResult(Result):
                         args.append(i[0])
 		# work with list instead of tuple
 		res = list(self.res[0])
+		# fix the dates
+		res = self.fixdates(res)
 		map(res_tuple.__setitem__,args,list(res))
 		return res_tuple
 
@@ -74,21 +90,16 @@ class MatrixResult(Result):
                         line = dict()
 			# work with list instead of tuple
 			i = list(i)
-			# FIXME: cli don't understand datetime
-			for att in range(len(i)):
-				if type(i[att]) == datetime.datetime:
-					i[att] = str(i[att])
+			# fix the dates
+			i = self.fixdates(i)
+
                         map(line.__setitem__,args,i)
 			# FIXME: temporary workaround
 			# If api doesnot take it
 			# we have to fake it >:-)
 			if line.has_key('relation'):
-				del line['refattname']	
-				del line['attname']	
 				line['into'] = line['refkind']
 				del line['refkind']
-				if line['relation'] == 'INVALID':
-					return list()
 				if line['relation'] == 'EMBED':
 					line['relation'] = 'EMBED_INTO'
 
@@ -106,9 +117,9 @@ class DB:
 		"createObject": [BoolResult,"kindName","objectName"],
 		"renameObject": [BoolResult,"kindName","oldName","newName"],
 		"removeAttribute": [BoolResult,"kindName","objectName","attributeName"],
-		"setAttribute": [BoolResult,"kindName","objectName","attributeName","Value"],
+		"setAttribute": [BoolResult,"kindName","objectName","attributeName","attributeData"],
 		"startChangeset": [Result],
-		"commitChangeset": [Result],
+		"commitChangeset": [Result,"commitMessage"],
 		#"rebaseChangeset": [Result],
 		"resumeChangeset": [Result,"revision"],
 		"detachFromCurrentChangeset": [Result,"message"],

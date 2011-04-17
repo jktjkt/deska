@@ -38,7 +38,7 @@ static std::string j_errorPrefix = "error";
 namespace Deska {
 namespace Db {
 
-JsonApiParser::JsonApiParser(): m_writeStream(0), m_readStream(0)
+JsonApiParser::JsonApiParser()
 {
 }
 
@@ -46,47 +46,48 @@ JsonApiParser::~JsonApiParser()
 {
 }
 
-void JsonApiParser::setStreams(std::ostream *writeStream, std::istream *readStream)
-{
-    m_writeStream = writeStream;
-    m_readStream = readStream;
-}
-
 void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 {
-    BOOST_ASSERT(m_writeStream);
-    json_spirit::write_stream(json_spirit::Value(o), *m_writeStream, json_spirit::remove_trailing_zeros);
-    *m_writeStream << "\n";
-    m_writeStream->flush();
-    if (m_writeStream->bad())
-        throw JsonParseError("Write error: output stream in 'bad' state");
-    if (m_writeStream->fail())
-        throw JsonParseError("Write error: output stream in 'fail' state");
-    if (m_writeStream->eof())
-        throw JsonParseError("Write error: EOF");
+    std::ostream *writeStream = willWrite();
+    BOOST_ASSERT(writeStream);
+    json_spirit::write_stream(json_spirit::Value(o), *writeStream, json_spirit::remove_trailing_zeros);
+    *writeStream << "\n";
+    writeStream->flush();
+    if (writeStream->bad())
+        throw JsonSyntaxError("Write error: output stream in 'bad' state");
+    if (writeStream->fail())
+        throw JsonSyntaxError("Write error: output stream in 'fail' state");
+    if (writeStream->eof())
+        throw JsonSyntaxError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
-    BOOST_ASSERT(m_readStream);
+    std::istream *readStream = willRead();
+    BOOST_ASSERT(readStream);
     json_spirit::Value res;
     try {
-        json_spirit::read_stream_or_throw(*m_readStream, res);
+        json_spirit::read_stream_or_throw(*readStream, res);
     } catch (const json_spirit::Error_position &e) {
-        // FIXME: Exception handling. This one is rather naive approach, see bug #155 for details.
         std::ostringstream s;
         s << "JSON parsing error at line " << e.line_ << " column " << e.column_ << ": " << e.reason_;
-        throw JsonParseError(s.str());
+        throw JsonSyntaxError(s.str());
+    } catch (const std::string &e) {
+        std::ostringstream s;
+        s << "JSON parsing error: " << e;
+        throw JsonSyntaxError(s.str());
+    } catch (const std::runtime_error &e) {
+        std::ostringstream s;
+        s << "JSON parsing error: runtime_error: " << e.what();
+        throw JsonSyntaxError(s.str());
     }
-    const json_spirit::Object &o = res.get_obj();
-    // FIXME: check for the j_errorPrefix here
-    if (m_readStream->bad())
-        throw JsonParseError("Read error: input stream in 'bad' state");
-    if (m_readStream->fail())
-        throw JsonParseError("Read error: input stream in 'fail' state");
-    if (m_readStream->eof())
-        throw JsonParseError("Read error: EOF");
-    return o;
+    if (readStream->bad())
+        throw JsonSyntaxError("Read error: input stream in 'bad' state");
+    if (readStream->fail())
+        throw JsonSyntaxError("Read error: input stream in 'fail' state");
+    if (readStream->eof())
+        throw JsonSyntaxError("Read error: EOF");
+    return res.get_obj();
 }
 
 vector<Identifier> JsonApiParser::kindNames() const
@@ -185,7 +186,6 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     JsonHandlerApiWrapper h(this, "deleteObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -194,7 +194,6 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
     JsonHandlerApiWrapper h(this, "createObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -204,7 +203,6 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.write(j_kindName, kindName);
     h.write(j_objName, oldName);
     h.write("newObjectName", newName);
-    h.expectTrue("result");
     h.work();
 }
 
@@ -214,19 +212,17 @@ void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.expectTrue("result");
     h.work();
 }
 
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
-                           const Value &value)
+                           const Value &attributeData)
 {
     JsonHandlerApiWrapper h(this, "setAttribute");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.write(j_attrName, attributeName);
-    h.write("attributeData", value);
-    h.expectTrue("result");
+    h.write("attributeData", attributeData);
     h.work();
 }
 
@@ -295,6 +291,34 @@ JsonParseError::JsonParseError(const std::string &message): std::runtime_error(m
 }
 
 JsonParseError::~JsonParseError() throw ()
+{
+}
+
+void JsonParseError::addRawJsonData(const std::string &data)
+{
+    std::ostringstream ss;
+    ss << std::runtime_error::what() << std::endl << "Raw JSON data read from the process: '" << data << "'";
+    m_completeError = ss.str();
+}
+
+const char* JsonParseError::what() const throw()
+{
+    return m_completeError.empty() ? std::runtime_error::what() : m_completeError.c_str();
+}
+
+JsonSyntaxError::JsonSyntaxError(const std::string &message): JsonParseError(message)
+{
+}
+
+JsonSyntaxError::~JsonSyntaxError() throw ()
+{
+}
+
+JsonStructureError::JsonStructureError(const std::string &message): JsonParseError(message)
+{
+}
+
+JsonStructureError::~JsonStructureError() throw ()
 {
 }
 

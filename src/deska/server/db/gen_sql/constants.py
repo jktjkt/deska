@@ -36,7 +36,7 @@ class Templates:
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parrent(ver));
+					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
 		END IF;
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
@@ -68,7 +68,7 @@ class Templates:
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parrent(ver));
+					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
 		END IF;
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
@@ -115,21 +115,21 @@ class Templates:
 	AS
 	$$
 	DECLARE	ver bigint;
-		parrent_uid bigint;
-		parrent_name text;
+		parent_uid bigint;
+		parent_name text;
 		base_name text;
 		data {tbl}_type;
 	BEGIN
 		SELECT my_version() INTO ver;
-		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
-		SELECT host_get_uid(parrent_name) INTO parrent_uid;
+		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parent_name,base_name;
+		SELECT host_get_uid(parent_name) INTO parent_uid;
 					
 		SELECT {columns} INTO data FROM {tbl}
-			WHERE name = base_name AND host = parrent_uid;
+			WHERE name = base_name AND host = parent_uid;
 
 		IF NOT FOUND THEN
 			SELECT {columns} INTO data FROM {tbl}_history
-			WHERE name = base_name AND host = parrent_uid AND version = ver;
+			WHERE name = base_name AND host = parent_uid AND version = ver;
 		END IF;
 		RETURN data;
 	END
@@ -360,7 +360,7 @@ class Templates:
 		RETURN last_changeset_id;
 	END;
 	$$
-	LANGUAGE plpgsql;
+	LANGUAGE plpgsql SECURITY DEFINER;
 	
 '''
 

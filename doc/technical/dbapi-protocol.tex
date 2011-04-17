@@ -1,0 +1,225 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech,english]{babel}
+\usepackage{a4wide}
+\usepackage{listings}
+
+\begin{document}
+
+\title{Deska: The Database Access Protocol}
+
+\author{Jan Kundrát}
+
+\maketitle
+
+\begin{abstract}
+This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
+database server.  We discuss the overall design, as well as provide a detailed API reference along with example usage.
+This document is intended to serve as a complete source of information for both DBAPI usage and possible independent
+reimplementation.
+\end{abstract}
+
+\section{Background}
+
+First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
+database, after all, is built on PostgreSQL which already provides a library which can be used to access database
+servers.  However, using a RDBMS-specific transport library would make the Deska application suite needlessly tied to
+one particular database server implementation.  Exposing a low-level SQL-like interface, even when wrapped by stored
+procedures, would make it very hard to prevent users from accessing the database without first going through a
+well-controlled set of entry points.  In addition to that, we argue that it is possible to provide an API which is
+easier and safer to use, compared to the raw SQL usage.
+
+\section{Protocol Overview}
+
+The Deska Database API is modelled after a traditional RPC interface where user invokes a procedure on the remote host
+and waits for its result.  This in turn determines the mode of operation, which happens in {\em command} -- {\em
+response} cycles.  That is, after a client issues a particular command, it will block and wait for the server's
+response.  No form of command pipelining is available at this point, but certain provisions are in place which will
+allow future extensions towards non-blocking operation.
+
+After defining the general mode of operation for an interface, there is a need to establish a method for serialization
+of data sent over the wire.  There are many widely-used ways for serializing commands, from binary-only protocols to the
+XML-RPC family.  For the Deska DB API, we have chosen to use JSON, a fairly recent arrival to the already broad family
+of serialization standards.  The main reason behind this choice is the fact that the protocol itself is reasonably
+terse, so that one can pretty easily look at the raw form of traffic and tell what is going on without using extra tools
+or frameworks.  There is also quite a number of ready-made libraries for JSON parsing, so the JSON itself is as
+ubiquitous as, say, the XML.
+
+Even though the JSON standard itself is well-established, we still had to establish a common way of converting our RPC
+requests to a particular JSON form. To that end, we have chosen to use JSON {\em objects}\footnote{The reader should get
+herself familiar with the notion of JSON before continuing with the rest of this document, as we will not go into much
+detail explaining how low-level JSON works.}, which are merely a sequence of key-value pairs, with key being a string
+identifier and value an arbitrary JSON object.  
+
+Due to certain technical limitations, a simple stream of JSON objects is rather impractical to parse.  In fact, none of
+the common libraries for JSON parsing that we have tried play well with JSON streaming.  Some of these libraries would
+happily attempt to blindly ``read everything'' from a stream, convert that to a string and only then attempt the actual
+parsing.  Needless to say, such an approach will not work at all when the connection expects to exchange several rounds
+of JSON command-response pairs, each of them occurring in response to the previous one.  Even the more advanced JSON
+libraries have issues with parsing a sequence of JSON objects following each other, without any delimiters, as most of
+these tools try to ``peek'' at the next character of the stream input after parsing a full JSON object, while the ``next
+character'' is typically not available at that point.  Therefore, in order to facilitate the usage of these libraries,
+we have chosen to mandate that each complete JSON object at the top-level scope has to be followed by a newline (LF),
+the {\tt ``\textbackslash n''} character.  Given that the newline character will never occur in a serialized JSON data,
+this usage is completely safe and allows the protocol implementations to use per-line parsing for any IO interaction.
+
+\section{JSON Serialization}
+
+This section defines how an abstract notion of a command or response is converted to a JSON object.
+
+\subsection{Commands and Responses}
+
+Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
+the hypothetical command {\tt foo}, which does not accept any commands, will be transmitted in the following form (we
+will omit the trailing line feed for brevity in the following examples):
+
+\begin{lstlisting}
+    {``command'': ``foo''}
+\end{lstlisting}
+
+A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
+response for the above command will look like this:
+
+\begin{lstlisting}
+    {``response'': ``foo''}
+\end{lstlisting}
+
+\subsubsection{Passing Arguments}
+
+Most of the commands will very likely accept some arguments.  These commands are transmitted in a very similar way to
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are also
+repeated in the relevant response:
+
+\begin{lstlisting}
+    {``command'': ``foo'', ``arg1'': ``arg1 value'',
+        ``name of arg2'': ``some value''}
+    {``response'': ``foo'', ``arg1'': ``arg1 value'',
+        ``name of arg2'': ``some value''}
+\end{lstlisting}
+
+The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
+free to add it to make the JSON data more readable, or not include them at all.  In addition, to improve the
+interoperability, the Deska DBAPI mandates that the order of appearance of individual key-value pairs inside a JSON
+object is {\em not} significant, and therefore one is explicitly allowed to use a sequence of {\tt arg2}, {\tt command},
+{\tt arg1} for the example above.  Please note that the order of key-value pairs in the response object can be different
+than in the associated command.
+
+\subsubsection{Returning Data}
+
+So far we have only established procedures which do not return any usable data at all.  In practice, though, most of the
+commands have to return a usable value.  This is achieved by extending the top-level JSON object of the response with a
+single key named after the command, which contains the JSON serialization of the return value.  No other items are
+added, changed or returned.
+
+For example, if the above command was extended with a return value of {\tt string} type, a full command-response pair
+would look like this one:
+
+\begin{lstlisting}
+    {``command'': ``foo'', ``arg1'': ``arg1 value'',
+        ``name of arg2'': ``some value''}
+    {``response'': ``foo'', ``arg1'': ``arg1 value'',
+        ``name of arg2'': ``some value'', ``foo'': ``The returned value''}
+\end{lstlisting}
+
+Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
+
+\subsection{Serializing Data}
+
+So far, we have mentioned that the data are transfered ``serialized as JSON values'', but did not specify how this
+serialization is defined and what the mapping between native data types in a programming language (like an {\tt int}, or
+a {\tt string}) and the JSON is.
+
+\subsubsection{Primitive types}
+
+There are four basic data types in JSON, a {\tt string}, an {\tt integer}, a {\tt float} and a {\tt boolean}.  These
+values are directly used for transport of the corresponding C++ data types.  However, this mapping is not fully
+bidirectional for practical reasons -- one cannot look at the serialized JSON value and deduce what the original data
+type was; a context is required for that operation.  This allows us to ``overload'' these JSON data types and serialize
+multiple source types using a single JSON type.  A typical example of this is any particular C++'s {\tt enum}, whose
+symbolic name is transmitted as a string literal with the matching name.
+
+Suppose the following C++ definition:
+
+\begin{lstlisting}[language=c++]
+    enum Foo {
+        BAR,
+        BAZ
+    };
+\end{lstlisting}
+
+A value of {\tt BAR} is transferred as a JSON string {\tt ``BAR''}.  There is no technical way of distinguishing between
+a value of the {\tt enum Foo} {\tt BAR} and the string literal {\tt BAR}; the difference is always provided by the
+context.
+
+FIXME: date, timestamp,\ldots
+
+\subsubsection{Containers}
+
+The Deska DBAPI supports passing two different kinds of containers, a {\em sequence} and a {\em map}.  The sequence is
+usually represented by the C++'s {\tt std::vector}, while the map maps well to the {\tt std::map}.
+
+A sequence is represented as the JSON's list with the individual list items being the respective serialization of the
+underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2, 3) as the {\tt a1} argument of command
+{\tt foo}:
+
+\begin{lstlisting}
+    {``command'': ``foo'', ``a1'': [1, 2, 3]}
+\end{lstlisting}
+
+A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
+look like this:
+
+\begin{lstlisting}
+    {``command'': ``foo'', ``a1'': [``a'': 1, ``b'': 2, ``c'': 3]}
+\end{lstlisting}
+
+The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
+\rightarrow 2$ and $"c" \rightarrow 3$.  Please note that the order of appearance of these items in a map is undefined,
+as the {\tt std::map} container will not respect the order of insertion.
+
+\subsubsection{Custom Objects}
+
+Custom objects, ie. instances of C++'s classes, are transmitted as JSON objects. Due to various popular JSON
+impleemntations not respecting the order of appearance of individual values, the arguments to a class' constructor are
+passed prefixed by name.  Therefore, given class {\tt Foo} with the following C++ constructor:
+
+\begin{lstlisting}[language=c++]
+    Foo::Foo(int i, const std::string &s);
+\end{lstlisting}
+
+We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
+
+\begin{lstlisting}
+    {``command'': ``foo'', ``a1'': {``i'': 10, ``s'': ``something''}}
+\end{lstlisting}
+
+Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
+information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
+existence of class {\tt Foo} at all.
+
+\subsubsection{Optional Values}
+
+FIXME: talk about {\tt null} and missing arguments
+
+\subsection{Exceptions}
+
+There are certain situations where the execution of a particular command terminates in an unexpected manner.  One reason
+could be that the user of the API has made an error and for example tried to retrieve an object which does not exist, or
+that the execution hit an implementation-specific failure which has to be communicated to the caller, like an error with
+SQL processing.  For this reason and in order to prevent cluttering the API with artificial {\tt NULL} values and
+special placeholders, the Deska DB API supports {\em exceptions}.
+
+FIXME: define and describe how they're transmitted.
+
+\section{Deska DBAPI Reference}
+
+\subsection{The DBAPI at a Glance}
+
+FIXME: high-level overview
+
+\subsection{Reference}
+
+FIXME: list of commands with examples
+
+\end{document}

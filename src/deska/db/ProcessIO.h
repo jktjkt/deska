@@ -31,16 +31,40 @@
 namespace Deska {
 namespace Db {
 
-/** @short Encapsulation of a child process */
+/** @short Encapsulation of a child process
+
+This class encapsulates access to a newly launched child process, and sets up several debugging hooks for retrieving
+the data read from the child process.
+*/
 class ProcessIO
 {
 public:
     ProcessIO(const std::vector<std::string> &arguments);
     virtual ~ProcessIO();
 
+    /** @short Obtain a stream for reading and clear the reading debug buffer
+
+    In addition to returning an istream instance, this function will clear our internal buffer which contains data
+    that anyone retrieved from that stream.
+
+    @see recentlyReadData()
+    */
     std::istream *readStream();
+
+    /** @short Obtain a stream for writing
+
+    No catching of debug data is performed at this point, because it is not needed anywhere (yet).
+    */
     std::ostream *writeStream();
 
+    void slotReadData(const std::string &data);
+
+    /** @short Return the data read since the last call to readStream()
+
+    The "data read" refer to a sequence of bytes really obtained from the underlying pipe and not those actually
+    retrieved from the istream. For now, this limitation, or a bug, is considered to be of little relevance.
+    */
+    std::string recentlyReadData() const;
 private:
     /** @short Identification of the launched child process
 
@@ -48,6 +72,8 @@ private:
     see http://lists.boost.org/boost-users/2011/03/67265.php for details
     */
     boost::optional<boost::process::child> childProcess;
+    /** @short Buffer of recently read data */
+    std::string m_recentlyReadData;
 };
 
 }

@@ -22,6 +22,7 @@
 #include <iostream>
 #include <sstream>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/foreach.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include "CliInteraction.h"
@@ -66,7 +67,23 @@ void CliInteraction::eventLoop()
         if ( line.size() == 1 && ( line[ 0 ] == 'q' || line[ 0 ] == 'Q' ) )
             break;
 
-        m_parser->parseLine(line);
+        if (line == "dump") {
+            dumpDbContents();
+        } else if (line == "commit") {
+            std::string message;
+            std::cout << "Commit message: ";
+            std::cin >> message;
+            m_api->commitChangeset(message);
+        } else if (line == "detach") {
+            std::string message;
+            std::cout << "Log message for detaching: ";
+            std::cin >> message;
+            m_api->detachFromCurrentChangeset(message);
+        } else if (line == "abort") {
+            m_api->abortCurrentChangeset();
+        } else {
+            m_parser->parseLine(line);
+        }
 
         if (m_ignoreParserActions) {
             m_parser->clearContextStack();
@@ -82,13 +99,13 @@ void CliInteraction::slotParserError(const ParserException &e)
     std::cout << "Parse error: " << e.dump() << std::endl;
 }
 
-void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Value &value)
+void CliInteraction::slotSetAttribute(const Db::Identifier &name, const Db::Value &attributeData)
 {
     if (m_ignoreParserActions)
         return;
 
-    std::cout << "Setting attribute " << m_parser->currentContextStack() << " -> " << name << " to '" << value << "'" << std::endl;
-
+    // FIXME: work with the context stack
+    m_api->setAttribute(m_parser->currentContextStack().back().kind, m_parser->currentContextStack().back().name, name, attributeData);
 }
 
 void CliInteraction::slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
@@ -123,7 +140,40 @@ bool CliInteraction::askForConfirmation(const std::string &prompt)
 void CliInteraction::run()
 {
     // FIXME: request a list of pending changesets here, talk to the user to select which one to connect to,...
+    BOOST_FOREACH(Deska::Db::PendingChangeset changeset, m_api->pendingChangesets()) {
+        std::cout << changeset << std::endl;
+    }
+    std::string choice;
+    std::cout << "What changeset to attach to? (create, no, revision number) " << std::endl;
+    std::cin >> choice;
+    boost::algorithm::to_lower(choice);
+    if (choice == "no") {
+        // do nothing
+    } else if (choice == "create") {
+        m_api->startChangeset();
+    } else {
+        std::istringstream ss(choice);
+        unsigned int res;
+        ss >> res;
+        m_api->resumeChangeset(Deska::Db::TemporaryChangesetId(res));
+    }
+
+    // Now that we've established our preconditions, let's enter the event loop
     eventLoop();
+}
+
+void CliInteraction::dumpDbContents()
+{
+    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
+            std::cout << kindName << " " << objectName << std::endl;
+            typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
+            BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(kindName, objectName)) {
+                std::cout << "    " << x.first << " " << x.second << std::endl;
+            }
+            std::cout << "end" << std::endl;
+        }
+    }
 }
 
 }

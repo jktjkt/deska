@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include "Connection.h"
 #include "ProcessIO.h"
 
@@ -31,7 +32,9 @@ Connection::Connection(): io(0)
     std::vector<std::string> args;
     args.push_back("/home/jkt/work/fzu/deska/src/deska/server/app/deska_server.py");
     io = new ProcessIO(args);
-    setStreams(io->writeStream(), io->readStream());
+    willRead.connect(boost::phoenix::bind(&ProcessIO::readStream, *io));
+    willWrite.connect(boost::phoenix::bind(&ProcessIO::writeStream, *io));
+    wantJustReadData.connect(boost::phoenix::bind(&ProcessIO::recentlyReadData, *io));
 }
 
 Connection::~Connection()
