@@ -368,6 +368,12 @@ public:
     */
     void setParsingMode(ParsingMode mode);
 
+    /** @short Function for obtaining parsing mode of the parser.
+    *
+    *   @returns Parsing mode
+    */
+    ParsingMode getParsingMode();
+
     /** @short Function for obtaining list of all defined kind names.
     *   
     *   For purposes of bad nesting reporting.

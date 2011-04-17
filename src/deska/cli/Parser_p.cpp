@@ -448,6 +448,14 @@ void ParserImpl<Iterator>::setParsingMode(ParsingMode mode)
 
 
 template <typename Iterator>
+ParsingMode ParserImpl<Iterator>::getParsingMode()
+{
+    return parsingMode;
+}
+
+
+
+template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
 {
     return m_parser->m_dbApi->kindNames();
@@ -717,6 +725,8 @@ template void ParserImpl<iterator_type>::parsedSingleKind();
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
 
 template void ParserImpl<iterator_type>::setParsingMode(ParsingMode mode);
+
+template ParsingMode ParserImpl<iterator_type>::getParsingMode();
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
 

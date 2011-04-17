@@ -41,8 +41,9 @@ void KindErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterat
 {
     ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
-    // We have to check this case.
-    if (error.valid())
+    // We have to check this case. In case of function words "show" or "delete" for kind with no nested kinds,
+    // empty expected tokens are allowed.
+    if ((error.valid()) || (parser->getParsingMode() == PARSING_MODE_SHOW) || (parser->getParsingMode() == PARSING_MODE_DELETE))
         parser->addParseError(error);
 }
 
