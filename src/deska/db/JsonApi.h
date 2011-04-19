@@ -27,12 +27,19 @@
 #include <boost/signals2/last_value.hpp>
 #include "Api.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
+#include "3rd-party/libebt-1.3.0/libebt/libebt_backtraceable.hh"
 
 namespace Deska {
 namespace Db {
 
+/** @short INTERNAL: tag for the libebt */
+struct JsonExceptionTag {};
+
+/** @short INTERNAL: convenience typedef for exception reporting */
+typedef libebt::BacktraceContext<JsonExceptionTag> JsonContext;
+
 /** @short An error occured during parsing of the server's response */
-class JsonParseError: public std::runtime_error
+class JsonParseError: public std::runtime_error, public libebt::Backtraceable<JsonExceptionTag>
 {
     std::string m_completeError;
 protected:
