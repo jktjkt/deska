@@ -47,8 +47,9 @@ struct JsonWrappedAttributeMap
 struct JsonWrappedAttribute
 {
     Type dataType;
+    Identifier attrName;
     Value value;
-    JsonWrappedAttribute(const Type dataType_);
+    JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_);
 };
 
 /** @short Expecting/requiring/checking/sending one JSON record */

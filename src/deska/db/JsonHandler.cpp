@@ -256,7 +256,7 @@ template<>
 void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
-    JsonContext c1("When extracting an attribute"); // FIXME: add name
+    JsonContext c1("When extracting attribute " + target->attrName);
     switch (target->dataType) {
     case TYPE_STRING:
     case TYPE_IDENTIFIER:
@@ -292,7 +292,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     // At first, allocate space for storing the values. We can't set up the extraction yet
     // because the vector might reallocate memory while it grows, leaving us with dangling pointers.
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
-        wrappedAttrs.push_back(JsonWrappedAttribute(attr.type));
+        wrappedAttrs.push_back(JsonWrappedAttribute(attr.type, attr.name));
     }
 
     // Set up the extractor so that it knows what fields to work with
@@ -642,8 +642,8 @@ JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttribute
 {
 }
 
-JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_):
-    dataType(dataType_)
+JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_):
+    dataType(dataType_), attrName(attrName_)
 {
 }
 
