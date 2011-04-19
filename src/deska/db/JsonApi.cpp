@@ -244,6 +244,7 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
+    JsonContext c1("In commitChangeset() API method");
     RevisionId revision = RevisionId::null;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);

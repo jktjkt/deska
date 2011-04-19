@@ -382,6 +382,7 @@ JsonHandlerApiWrapper::JsonHandlerApiWrapper(const JsonApiParser * const api, co
 
 void JsonHandlerApiWrapper::send()
 {
+    JsonContext c1("When sending JSON data");
     json_spirit::Object o;
     BOOST_FOREACH(const JsonField &f, fields) {
         if (f.isForSending) {
@@ -393,6 +394,7 @@ void JsonHandlerApiWrapper::send()
 
 void JsonHandlerApiWrapper::receive()
 {
+    JsonContext c1("When reading and processing JSON data");
     // FIXME: check for the j_errorPrefix here
     try {
         parseJsonObject(p->readJsonObject());
