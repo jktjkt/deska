@@ -256,6 +256,7 @@ template<>
 void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
+    JsonContext c1("When extracting an attribute"); // FIXME: add name
     switch (target->dataType) {
     case TYPE_STRING:
     case TYPE_IDENTIFIER:
@@ -278,6 +279,7 @@ template<>
 void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
+    JsonContext c1("When extracting attributes");
     JsonHandler h;
     std::vector<JsonWrappedAttribute> wrappedAttrs;
 
