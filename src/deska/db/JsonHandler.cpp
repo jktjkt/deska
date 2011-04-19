@@ -243,6 +243,58 @@ void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const js
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked object attributes */
+template<>
+void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    switch (target->dataType) {
+    case TYPE_STRING:
+    case TYPE_IDENTIFIER:
+        target->value = value.get_str();
+        return;
+    case TYPE_INT:
+        target->value = value.get_int();
+        return;
+    case TYPE_DOUBLE:
+        target->value = value.get_real();
+        return;
+    }
+    std::ostringstream ss;
+    ss << "Unsupported data type " << target->dataType;
+    throw JsonStructureError(ss.str());
+}
+
+/** @short Convert JSON into a wrapped, type-checked vector of attributes */
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonHandler h;
+    std::vector<JsonWrappedAttribute> wrappedAttrs;
+
+    // At first, allocate space for storing the values. We can't set up the extraction yet
+    // because the vector might reallocate memory while it grows, leaving us with dangling pointers.
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        wrappedAttrs.push_back(JsonWrappedAttribute(attr.type));
+    }
+
+    // Set up the extractor so that it knows what fields to work with
+    int i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        h.read(attr.name).extract(&wrappedAttrs[i]);
+    }
+
+    // Do the JSON parsing and verification
+    h.parseJsonObject(value.get_obj());
+
+    // Now copy the results back
+    i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        target->attributes[attr.name] = wrappedAttrs[i].value;
+    }
+}
+
 /** @short Convert JSON into a vector of object relations */
 template<>
 void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
@@ -550,6 +602,16 @@ boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name,
         return write(name, value);
 }
 
+JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
+JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_):
+    dataType(dataType_)
+{
+}
+
 // Template instances for the linker
 template JsonField& JsonField::extract(RevisionId*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);
@@ -562,6 +624,8 @@ template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
+template JsonField& JsonField::extract(JsonWrappedAttribute*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 
 }
 }
