@@ -63,7 +63,7 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
-    JsonContext("When reading JSON object");
+    JsonContext c1("When reading JSON object");
 
     std::istream *readStream = willRead();
     BOOST_ASSERT(readStream);
@@ -103,7 +103,7 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
-    JsonContext("In kindAttributes() API method");
+    JsonContext c1("In kindAttributes() API method");
 
     vector<KindAttributeDataType> res;
     JsonHandlerApiWrapper h(this, "kindAttributes");
@@ -136,7 +136,7 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
-    JsonContext("In objectData() API method");
+    JsonContext c1("In objectData() API method");
 
     map<Identifier, Value> res;
     JsonHandlerApiWrapper h(this, "objectData");
