@@ -260,12 +260,18 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     switch (target->dataType) {
     case TYPE_STRING:
     case TYPE_IDENTIFIER:
+        if (value.type() != json_spirit::str_type)
+            throw JsonStructureError("Attribute value is not string");
         target->value = value.get_str();
         return;
     case TYPE_INT:
+        if (value.type() != json_spirit::int_type)
+            throw JsonStructureError("Attribute value is not an integer");
         target->value = value.get_int();
         return;
     case TYPE_DOUBLE:
+        if (value.type() != json_spirit::real_type)
+            throw JsonStructureError("Attribuet value is not a real");
         target->value = value.get_real();
         return;
     }
