@@ -585,7 +585,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Function delete requires kind as parameter.", line, it));
+    expectParseError(Deska::Cli::ObjectNotFound("Function delete requires kind as parameter.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -599,7 +599,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Function delete requires kind as parameter.", line, it));
+    expectParseError(Deska::Cli::ObjectNotFound("Function delete requires kind as parameter.", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
@@ -723,7 +723,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTe
     const std::string line = "show interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing kind name of nested object in hardware.", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "123");
 }
@@ -736,7 +736,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, Parser
     const std::string line = "show interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing kind name of nested object in hardware.", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "123");
 }
