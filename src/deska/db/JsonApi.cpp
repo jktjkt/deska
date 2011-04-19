@@ -63,6 +63,8 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
+    JsonContext c1("When reading JSON object");
+
     std::istream *readStream = willRead();
     BOOST_ASSERT(readStream);
     json_spirit::Value res;
@@ -101,6 +103,8 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
+    JsonContext c1("In kindAttributes() API method");
+
     vector<KindAttributeDataType> res;
     JsonHandlerApiWrapper h(this, "kindAttributes");
     h.write(j_kindName, kindName);
@@ -132,6 +136,8 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
+    JsonContext c1("In objectData() API method");
+
     map<Identifier, Value> res;
     JsonHandlerApiWrapper h(this, "objectData");
     h.write(j_kindName, kindName);
@@ -238,6 +244,7 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
+    JsonContext c1("In commitChangeset() API method");
     RevisionId revision = RevisionId::null;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);
