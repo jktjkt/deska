@@ -232,14 +232,18 @@ std::string ParseError<Iterator>::toString() const
             sout << " for " << m_context;
             break;
     }
-    sout << ". Expected one of [ ";
-    for (std::vector<std::string>::const_iterator
-        it = m_expectedKeywords.begin(); it != m_expectedKeywords.end(); ++it)
-        sout << "\"" << *it << "\" ";
-    for (std::vector<std::string>::const_iterator
-        it = m_expectedTypes.begin(); it != m_expectedTypes.end(); ++it)
-        sout << "<" << *it << "> ";
-    sout << "].";
+    sout << ".";
+    if (!(m_expectedKeywords.empty()) || !(m_expectedTypes.empty()))
+    {
+        sout << " Expected one of [ ";
+        for (std::vector<std::string>::const_iterator
+            it = m_expectedKeywords.begin(); it != m_expectedKeywords.end(); ++it)
+            sout << "\"" << *it << "\" ";
+        for (std::vector<std::string>::const_iterator
+            it = m_expectedTypes.begin(); it != m_expectedTypes.end(); ++it)
+            sout << "<" << *it << "> ";
+        sout << "].";
+    }
     //sout << "] here: " << std::string(m_errorPos, m_end) << ".";
     return sout.str();
 }
