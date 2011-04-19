@@ -1,0 +1,96 @@
+Schuze Deska, 2011-04-18, FZU
+-----------------------------
+
+Pritomni: osobne Martina, Lukas, Honza; pres EVO Tomas
+
+Prehled, co kdo udelal:
+
+Honza:
+- dokumentace rozdeleni projektu
+- interoperabilita JSONu
+    - null
+    - PendingChangeset, parentrevision, result:true
+- error reporting JSONu:
+    - kopirovaci iteratory: slepa ulicka
+    - boost::process::streambuf
+    - detailnejsi exceptiony
+    - IMHO pouzitelne
+- dump farmdb
+- prace na JSON specifikaci: obecne
+
+Tomas:
+- show/delete/...: signaly bez argumentu
+- tab completion: "funguje s mezerou na konci"
+
+Martina:
+- verzovani
+- kindNames() atd vraci informace i o nove vytvorenych instancich pri
+rozpracovanem changesetu
+- konstruktory pro relace: viz diskuze
+
+Lukas:
+- JSON interoperability:
+    - "r" a "tmp" revize
+    - prvni prazdna revize na zacatku
+    - ...
+- zacal se zabyvat vyjimkami
+
+
+Ukoly z minula:
+---------------
+
+- Honza: formalni popis JSON API (#183)
+    - rozpracovano
+- Honza: rozsireni API pro praci s verzemi (#143)
+    - ne
+- Honza: uprava API podle bodu ze schuzky
+    - hotovo
+- Honza: obstarat dump FarmDB pro Desku (#186)
+    - hotovo
+- Lukas: "aby fungovala interakce"
+    - je
+- Martina: doplneni SQL metod, aby nevracely hodnoty, ktere Python API
+  zahazuje/upravuje
+    - viz diskuze
+- Martina: doplneni argumentu "revize" pro metody vracejici data objektu
+    - je, "myslim", Martina prekontroluje
+- Tomas: delete (#187) a dalsi upravy parseru
+    - je implementovano, je potreba otestovat
+- Tomas: tab completion (#101)
+    - rozpracovano
+- Tomas: prace na CLI
+    - neni nic, dlouze reseno
+
+Diskuse:
+
+- Tomasuv styl prace a jeji mnozstvi
+- exceptions od SQL do JSONu a do C++:
+    "dbException": {"type": "commitNotStarted", "message": "blabla"}
+- Zakazat commit prazdneho changesetu (ulozeni je OK)
+- Tomas: dotaz k testovani: rozsirit podobne, jako je categoryLeft, viz
+  tests/MockParserEvent.h, MockParserEvent::categoryLeft
+- Martina: uprava stored procedures pro relace: poradime se Zavoralem, prozatim
+  zustava hack v .py kodu
+- harmonogram prace: stanoveny milestony m2 - m5 s nejakym nacrtem co a kdy
+
+
+Ukoly:
+------
+
+- Tomas: v utery do ML mail s kalendarem vyvoje CLI
+- Tomas: prace na CLI (veci kolem CLIInteraction, stanoveni formy, jak ma
+  ta aplikace vypadat,...)
+- Honza: milestones do redmine
+- Honza: formalni popis JSON API (#183)
+- Honza: rozsireni API pro praci s verzemi (#143)
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+- Lukas: error reporting
+- Lukas: dokumentace
+- Martina: testy generatoru
+- Martina: dodelat vraceni jmenem pro embedded objekty
+- Martina: diffovani, podle toho, jestli Honza stihne specifikaci
+
+Pristi schuzka:
+---------------
+
+Mimoradne utery 26. unora, 13.00 Stara posta (Opletalova ulice)

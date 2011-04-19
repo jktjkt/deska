@@ -137,6 +137,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.writeIfNotZero(j_revision, revision);
+    // FIXME: change this to check the type specification (#203)
     h.read("objectData").extract(&res);
     h.work();
     return res;
