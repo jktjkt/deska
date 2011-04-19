@@ -137,16 +137,14 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
     JsonContext c1("In objectData() API method");
-
-    map<Identifier, Value> res;
     JsonHandlerApiWrapper h(this, "objectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.writeIfNotZero(j_revision, revision);
-    // FIXME: change this to check the type specification (#203)
+    JsonWrappedAttributeMap res(kindAttributes(kindName));
     h.read("objectData").extract(&res);
     h.work();
-    return res;
+    return res.attributes;
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
