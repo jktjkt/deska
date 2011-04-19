@@ -271,7 +271,7 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         return;
     case TYPE_DOUBLE:
         if (value.type() != json_spirit::real_type)
-            throw JsonStructureError("Attribuet value is not a real");
+            throw JsonStructureError("Attribute value is not a real");
         target->value = value.get_real();
         return;
     }
