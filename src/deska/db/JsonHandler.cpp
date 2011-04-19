@@ -293,6 +293,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     int i = 0;
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         h.read(attr.name).extract(&wrappedAttrs[i]);
+        ++i;
     }
 
     // Do the JSON parsing and verification
@@ -302,6 +303,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     i = 0;
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         target->attributes[attr.name] = wrappedAttrs[i].value;
+        ++i;
     }
 }
 
