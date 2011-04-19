@@ -52,6 +52,8 @@ ParserTestFixture::ParserTestFixture()
     // this one has to be fully qualified to prevent ambiguity...
     parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
     attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
+    parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserError, this, _1));
 }
 
@@ -74,6 +76,16 @@ void ParserTestFixture::slotParserCategoryLeft()
 void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::slotParserFunctionShow()
+{
+    parserEvents.push(MockParserEvent::functionShow());
+}
+
+void ParserTestFixture::slotParserFunctionDelete()
+{
+    parserEvents.push(MockParserEvent::functionDelete());
 }
 
 void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &exception)
@@ -103,6 +115,16 @@ void ParserTestFixture::expectCategoryLeft()
 void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::expectFunctionShow()
+{
+    expectHelper(MockParserEvent::functionShow());
+}
+
+void ParserTestFixture::expectFunctionDelete()
+{
+    expectHelper(MockParserEvent::functionDelete());
 }
 
 void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)

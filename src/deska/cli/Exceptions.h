@@ -68,6 +68,9 @@ DESKA_EXCEPTION(InvalidObjectKind, ParserException);
 /** @short Malformed identifier */
 DESKA_EXCEPTION(MalformedIdentifier, ParserException);
 
+/** @short An object required at this point */
+DESKA_EXCEPTION(ObjectNotFound, ParserException);
+
 /** @short Compare two exceptions for being equal */
 bool operator==(const ParserException &a, const ParserException &b);
 
