@@ -176,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
             "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
@@ -184,6 +184,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["real"] = 100.666;
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
+    expected["baz"] = "id";
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
