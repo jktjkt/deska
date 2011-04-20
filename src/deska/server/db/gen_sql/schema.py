@@ -103,12 +103,16 @@ CREATE FUNCTION commit_all(message text)
 			self.sql.write(table.gen_del_embed(embed_column[0],reftable))
 			#get uid from embed object, again name have to be full
 			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
+			self.sql.write(table.gen_get_name_embed(embed_column[0],reftable))
+			self.sql.write(table.gen_names_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_prev_changeset_by_name_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_changeset_of_data_version_by_name_embed(embed_column[0],reftable))
 		else:
 			self.sql.write(table.gen_add())
 			self.sql.write(table.gen_del())
 			self.sql.write(table.gen_get_uid())
+			self.sql.write(table.gen_get_name())
+			self.sql.write(table.gen_names())
 			self.sql.write(table.gen_prev_changeset_by_name())
 			self.sql.write(table.gen_changeset_of_data_version_by_name())
 
@@ -116,8 +120,6 @@ CREATE FUNCTION commit_all(message text)
 #we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
 		self.sql.write(table.gen_commit())
-		self.sql.write(table.gen_names())
-		self.sql.write(table.gen_get_name())
 		self.sql.write(table.gen_prev_changeset())
 		self.sql.write(table.gen_changeset_of_data_version())
 		return

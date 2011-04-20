@@ -137,6 +137,9 @@ class Table(constants.Templates):
 	def gen_get_name(self):
 		return self.get_name_string.format(tbl = self.name)
 
+	def gen_get_name_embed(self, refcolumn, reftable):
+		return self.get_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
+
 	def gen_get_uid(self):
 		return self.get_uid_string.format(tbl = self.name)
 	
@@ -150,6 +153,9 @@ class Table(constants.Templates):
 
 	def gen_names(self):
 		return self.names_string.format(tbl = self.name)
+
+	def gen_names_embed(self, refcolumn, reftable):
+		return self.names_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_prev_changeset(self):
 		return self.prev_changest_string.format(tbl = self.name)

@@ -208,25 +208,103 @@ class Templates:
 '''
 	#template string for get functions
 	get_name_string = '''CREATE FUNCTION
-	{tbl}_get_name(IN {tbl}_uid bigint)
+	{tbl}_get_name(IN {tbl}_uid bigint, from_version bigint = 0)
 	RETURNS text
 	AS
 	$$
 	DECLARE
 		ver bigint;
 		value text;
+		parent_changeset bigint;
+		current_changeset bigint;
 	BEGIN
-		SELECT my_version() INTO ver;
-		SELECT name INTO value
-			FROM {tbl}_history
-			WHERE uid = {tbl}_uid AND version = ver;
-		--if the value isn't in current version then it should be found in production
+		IF from_version = 0 THEN
+			current_changeset = my_version();
+
+			IF current_changeset IS NULL THEN
+			--name from poduction
+				SELECT name INTO value FROM {tbl} WHERE uid = {tbl}_uid;
+				RETURN value;
+			END IF;
+			
+			parent_changeset = parent(current_changeset);
+			from_version = id2num(parent_changeset);
+		ELSE
+			current_changeset = NULL;
+		END IF;
+
+		SELECT name INTO value FROM {tbl}_history WHERE  uid = {tbl}_uid AND version = current_changeset AND dest_bit = '0';
 		IF NOT FOUND THEN
 			SELECT name INTO value
-			FROM {tbl}
-			WHERE uid = {tbl}_uid;
-		END IF;		
+			FROM {tbl}_history h JOIN version v ON (h.uid = {tbl}_uid AND h.version = v.id AND h.version <= from_version) 
+			WHERE v.id = (
+					SELECT max(version) 
+					FROM {tbl}_history h2 
+						JOIN version v2 ON (h2.version <= from_version AND h2.version = v2.id AND h2.uid = h.uid)
+				)
+				AND dest_bit = '0';
+		END IF;
+		
 		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template string for get functions
+	get_name_embed_string = '''CREATE FUNCTION
+	{tbl}_get_name(IN {tbl}_uid bigint, from_version bigint = 0)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		local_name text = NULL;
+		rest_of_name text;
+		{reftbl}_uid bigint;
+		parent_changeset bigint;
+		current_changeset bigint;
+		--version from which we search for local name
+		version_to_search bigint;
+	BEGIN
+	--from_version we need unchanged for rest_of_name
+		version_to_search = from_version;
+		IF version_to_search = 0 THEN
+			current_changeset = my_version();
+
+			IF current_changeset IS NULL THEN
+			--name from poduction
+				SELECT name, {column} INTO local_name,{reftbl}_uid FROM {tbl} WHERE uid = {tbl}_uid;
+			ELSE
+				parent_changeset = parent(current_changeset);
+				version_to_search = id2num(parent_changeset);
+			END IF;
+		ELSE
+			current_changeset = NULL;
+		END IF;
+
+		IF local_name IS NULL THEN
+			--get local name
+			SELECT name, {column} INTO local_name, {reftbl}_uid FROM {tbl}_history WHERE  uid = {tbl}_uid AND version = current_changeset AND dest_bit = '0';
+			IF NOT FOUND THEN
+				SELECT name, {column} INTO local_name, {reftbl}_uid
+				FROM {tbl}_history h JOIN version v ON (h.uid = {tbl}_uid AND h.version = v.id AND h.version <= version_to_search) 
+				WHERE v.id = (
+						SELECT max(version) 
+						FROM {tbl}_history h2 
+							JOIN version v2 ON (h2.version <= version_to_search AND h2.version = v2.id AND h2.uid = h.uid)
+					)
+					AND dest_bit = '0';
+			END IF;
+		END IF;
+		
+		raise notice 'local_name is %',local_name;
+		
+		
+		rest_of_name = {reftbl}_get_name({reftbl}_uid, from_version);
+		raise notice 'rest_of_name is %', rest_of_name;
+		
+		RETURN join_with_delim(rest_of_name, local_name, '{delim}');
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -385,12 +463,13 @@ class Templates:
 	BEGIN
 		IF from_version = 0 THEN
 			current_changeset = my_version();
+
 			IF current_changeset IS NULL THEN
 			--names from poduction
-				RETURN QUERY SELECT name FROM hardware;
+				RETURN QUERY SELECT name FROM {tbl};
 			ELSE
 				parent_changeset = parent(current_changeset);
-				from_version = id2num(parent_changeset);		
+				from_version = id2num(parent_changeset);					
 			END IF;
 		ELSE
 			current_changeset = NULL;
@@ -409,6 +488,56 @@ class Templates:
 				SELECT uid FROM {tbl}_history WHERE version = current_changeset
 			);
 	END;
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for names
+	names_embed_string = '''CREATE FUNCTION
+	{tbl}_names(from_version bigint = 0)
+	RETURNS SETOF text
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		local_name text = NULL;
+		rest_of_name text;
+		{reftbl}_uid bigint;
+		parent_changeset bigint;
+		current_changeset bigint;
+		--version from which we search for local name
+		version_to_search bigint;
+	BEGIN
+	--from_version we need unchanged for rest_of_name
+		version_to_search = from_version;
+		IF version_to_search = 0 THEN
+			current_changeset = my_version();
+
+			IF current_changeset IS NULL THEN
+			--name from poduction
+				RETURN QUERY SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}') FROM {tbl};
+			ELSE
+				parent_changeset = parent(current_changeset);
+				version_to_search = id2num(parent_changeset);
+			END IF;
+		ELSE
+			current_changeset = NULL;
+		END IF;
+
+		RETURN QUERY SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}')  FROM {tbl}_history WHERE version = current_changeset AND dest_bit = '0'
+		UNION
+		SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}')
+		FROM {tbl}_history h JOIN version v ON (h.version = v.id and h.version <= version_to_search) 
+		WHERE v.id = (
+				SELECT max(version) 
+				FROM {tbl}_history h2 
+					JOIN version v2 ON (h2.version <= version_to_search AND h2.version = v2.id AND h2.uid = h.uid)
+			)
+			AND dest_bit = '0' AND h.uid NOT IN(
+				SELECT uid FROM {tbl}_history WHERE version = current_changeset
+			);
+	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
