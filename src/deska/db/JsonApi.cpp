@@ -316,13 +316,8 @@ const char* JsonParseError::whatWithBacktrace() const throw()
 {
     // We're required not to throw, so we have to use a generic catch-all block here
     try {
-        std::string res = what();
-        if (res.empty())
-            res = std::runtime_error::what();
-
-        // Now we try to extend it with the backtrace information
         std::ostringstream ss;
-        ss << "* " << backtrace("\n * ") << res << std::endl;
+        ss << "* " << backtrace("\n * ") << what() << std::endl;
         return ss.str().c_str();
     } catch (...) {
         return what();
