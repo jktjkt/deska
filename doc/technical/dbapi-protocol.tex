@@ -206,6 +206,15 @@ Again, the user of the Deska DBAPI cannot infer the class name from this value w
 information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
 existence of class {\tt Foo} at all.
 
+Alternatively, certain simpler classes (like the IP addresses or MAC addresses of Ethernet interfaces) are better
+transfered in their canonical string form.  As a rule of thumb, if a particular class has a rich internal structure, or
+is complexity is closer to that of an {\tt Deska::Db::ObjectRelation} than to, for example, {\tt
+boost::posix\_time::ptime}, it's better to use the complex form in preference to the string serialization.
+
+It is also important to note that this section only serves as a generic guideline about how to proceed when implementing
+JSON I/O for custom data types.  Considerable amount of work is required to be able to exchange custom values over JSON,
+see section \ref{sec:json-extending} for details.
+
 \subsubsection{Optional Values}
 
 Certain data fields are designed to allow either a value of the underlying data type, or a special NULL value.  On the
@@ -265,10 +274,16 @@ In general, the following has to be done to add a low-level data type to Deska:
 
 \begin{itemize}
     \item Pick up an identifier to use
-    \item Create the SQL data type and the corresponding C++ class
+    \item Create the SQL data type, if applicable
+    \item Create the corresponding C++ class, if applicable
+    \item Extend the {\tt Deska::Db::Value} variant to include the new type
+    \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
+        into JSON
     \item Create a specialization of the {\tt template<> void SpecializedExtractor<\\
-        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)}
+        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)} which is responsible for
+        proper de-serialization of the JSON values
     \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
+    \item Update the documentation and unit tests
 \end{itemize}
 
 \subsection{Serialization Quick Reference}
@@ -299,7 +314,9 @@ API function.
 
 In addition to the types mentioned above, which are usable and allowed as the data types for objects' attributes, there
 are several ``internal'' data types which are exchanged over JSON, but which cannot be used in the context of
-attributes.  The following types are defined:
+attributes.  These types are typically utilized for transfer of various data fields for internal purposes of the Deska
+DBAPI JSON protocol, like type-safe serialization of revisions, changeset identification, passing along the object kind
+relation information etc.  The following types are defined:
 
 \begin{longtable}{ p{60mm} p{90mm} }
     \caption{JSON serialization of values for internal use} \\
