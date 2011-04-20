@@ -153,11 +153,11 @@ a value of the {\tt enum Foo(BAR)} and the string literal {\tt ``BAR''}; the dif
 context.
 
 The JSON string is further overloaded for serialization of timestamps, ie. particular moments in time.  The C++ API uses
-Boost's {\tt boost::posix\_time::ptime} as a timestamp representation, and serializes the data in the {\tt YYYY-mm-dd
-hh:mm:ss} form, like {\tt 2011-04-07 17:22:33}.
+Boost's {\tt boost::posix\_time::ptime} as a timestamp representation, and serializes the data in the {\tt "YYYY-mm-dd
+hh:mm:ss"} form, like {\tt "2011-04-07 17:22:33"}.
 
-Similarly, a date is stored into the {\tt boost::gregorian::date} and serialized using the {\tt YYYY-mm-dd} form, like
-{\tt 2011-04-07}.
+Similarly, a date is stored into the {\tt boost::gregorian::date} and serialized using the {\tt "YYYY-mm-dd"} form, like
+{\tt "2011-04-07"}.
 
 \subsubsection{Containers}
 
