@@ -47,7 +47,7 @@ protected:
 public:
     virtual ~JsonParseError() throw ();
     virtual const char* what() const throw();
-    virtual const char* whatWithBacktrace() const throw();
+    virtual std::string whatWithBacktrace() const throw();
     void addRawJsonData(const std::string &data);
 };
 

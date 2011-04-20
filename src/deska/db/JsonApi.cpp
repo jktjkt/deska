@@ -312,13 +312,13 @@ const char* JsonParseError::what() const throw()
     return m_completeError.empty() ? std::runtime_error::what() : m_completeError.c_str();
 }
 
-const char* JsonParseError::whatWithBacktrace() const throw()
+std::string JsonParseError::whatWithBacktrace() const throw()
 {
     // We're required not to throw, so we have to use a generic catch-all block here
     try {
         std::ostringstream ss;
         ss << "* " << backtrace("\n * ") << what() << std::endl;
-        return ss.str().c_str();
+        return ss.str();
     } catch (...) {
         return what();
     }
