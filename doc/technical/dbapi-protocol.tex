@@ -61,7 +61,7 @@ libraries have issues with parsing a sequence of JSON objects following each oth
 these tools try to ``peek'' at the next character of the stream input after parsing a full JSON object, while the ``next
 character'' is typically not available at that point.  Therefore, in order to facilitate the usage of these libraries,
 we have chosen to mandate that each complete JSON object at the top-level scope has to be followed by a newline (LF),
-the {\tt ``\textbackslash n''} character.  Given that the newline character will never occur in a serialized JSON data,
+the {\tt "\textbackslash n"} character.  Given that the newline character will never occur in a serialized JSON data,
 this usage is completely safe and allows the protocol implementations to use per-line parsing for any IO interaction.
 
 \section{JSON Serialization}
@@ -75,14 +75,14 @@ the hypothetical command {\tt foo}, which does not accept any commands, will be 
 will omit the trailing line feed for brevity in the following examples):
 
 \begin{lstlisting}
-    {``command'': ``foo''}
+    {"command": "foo"}
 \end{lstlisting}
 
 A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
 response for the above command will look like this:
 
 \begin{lstlisting}
-    {``response'': ``foo''}
+    {"response": "foo"}
 \end{lstlisting}
 
 \subsubsection{Passing Arguments}
@@ -92,10 +92,10 @@ the one we discussed above, with the arguments simply appended to the top-level 
 repeated in the relevant response:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
-    {``response'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
+    {"command": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
+    {"response": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
 \end{lstlisting}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
@@ -116,10 +116,10 @@ For example, if the above command was extended with a return value of {\tt strin
 would look like this one:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
-    {``response'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value'', ``foo'': ``The returned value''}
+    {"command": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
+    {"response": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value", "foo": "The returned value"}
 \end{lstlisting}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
@@ -196,7 +196,7 @@ passed prefixed by name.  Therefore, given class {\tt Foo} with the following C+
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': {``i'': 10, ``s'': ``something''}}
+    {"command": "foo", "a1": {"i": 10, "s": "something"}}
 \end{lstlisting}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
