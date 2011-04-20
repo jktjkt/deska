@@ -464,12 +464,9 @@ void JsonHandlerApiWrapper::receive()
         // FIXME: de-uglify me
         std::cerr << "JSON error:\n * " << e.backtrace("\n * ") << e.what() << std::endl;
 
-        if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+        if (boost::optional<std::string> rawJson = p->wantJustReadData())
             e.addRawJsonData(*rawJson);
-            throw e;
-        } else {
-            throw;
-        }
+        throw;
     }
 }
 
