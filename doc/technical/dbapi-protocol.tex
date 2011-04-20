@@ -284,7 +284,22 @@ that the execution hit an implementation-specific failure which has to be commun
 SQL processing.  For this reason and in order to prevent cluttering the API with artificial {\tt NULL} values and
 special placeholders, the Deska DB API supports {\em exceptions}.
 
-FIXME: define and describe how they're transmitted.
+When the Deska server has encountered an error when processing a particular response, it will return a JSON object in
+the usual form (ie. with {\tt "command"} replaced by {\tt "response"} and the rest of the data left intact), and instead
+of adding the returned data in a key named after the API method, it will create another top-level key called {\tt
+"dbException"} pointing to a JSON object representing an exception.  The new object will have the following structure:
+
+\begin{lstlisting}
+    {"type": "typeOfException", "message": "description"}
+\end{lstlisting}
+
+Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
+with a textual message usable for debugging.  The object might contain more data, which could be used to pass
+computer-readable data to the API user.  Usual rules for representing values apply here.
+
+This is the list of currently defined exceptions, along with their other arguments:
+
+FIXME: create a list of supported exceptions and their optional arguments
 
 \subsection{Adding Supported Types}
 \label{sec:json-extending}
