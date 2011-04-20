@@ -148,8 +148,8 @@ Suppose the following C++ definition:
     };
 \end{lstlisting}
 
-A value of {\tt BAR} is transferred as a JSON string {\tt ``BAR''}.  There is no technical way of distinguishing between
-a value of the {\tt enum Foo(BAR)} and the string literal {\tt ``BAR''}; the difference is always provided by the
+A value of {\tt BAR} is transferred as a JSON string {\tt "BAR"}.  There is no technical way of distinguishing between
+a value of the {\tt enum Foo(BAR)} and the string literal {\tt "BAR"}; the difference is always provided by the
 context.
 
 The JSON string is further overloaded for serialization of timestamps, ie. particular moments in time.  The C++ API uses
@@ -169,14 +169,14 @@ underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2,
 {\tt foo}:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': [1, 2, 3]}
+    {"command": "foo", "a1": [1, 2, 3]}
 \end{lstlisting}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': [``a'': 1, ``b'': 2, ``c'': 3]}
+    {"command": "foo", "a1": ["a": 1, "b": 2, "c": 3]}
 \end{lstlisting}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
