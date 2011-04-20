@@ -461,9 +461,6 @@ void JsonHandlerApiWrapper::receive()
     try {
         parseJsonObject(p->readJsonObject());
     } catch (JsonParseError &e) {
-        // FIXME: de-uglify me
-        std::cerr << "JSON error:\n * " << e.backtrace("\n * ") << e.what() << std::endl;
-
         if (boost::optional<std::string> rawJson = p->wantJustReadData())
             e.addRawJsonData(*rawJson);
         throw;
