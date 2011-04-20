@@ -219,7 +219,59 @@ examples are equivalent, provided that the arguments {\tt a1} is defined an acce
     {"command": "foo"}
 \end{lstlisting}
 
-\subsubsection{Serialization Quick Reference}
+\subsection{Exceptions}
+
+There are certain situations where the execution of a particular command terminates in an unexpected manner.  One reason
+could be that the user of the API has made an error and for example tried to retrieve an object which does not exist, or
+that the execution hit an implementation-specific failure which has to be communicated to the caller, like an error with
+SQL processing.  For this reason and in order to prevent cluttering the API with artificial {\tt NULL} values and
+special placeholders, the Deska DB API supports {\em exceptions}.
+
+When the Deska server has encountered an error when processing a particular response, it will return a JSON object in
+the usual form (ie. with {\tt "command"} replaced by {\tt "response"} and the rest of the data left intact), and instead
+of adding the returned data in a key named after the API method, it will create another top-level key called {\tt
+"dbException"} pointing to a JSON object representing an exception.  The new object will have the following structure:
+
+\begin{lstlisting}
+    {"type": "TypeOfException", "message": "description"}
+\end{lstlisting}
+
+Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
+with a textual message usable for debugging.  The object might contain more data, which could be used to pass
+computer-readable data to the API user.  Usual rules for representing values apply here.
+
+This is the list of currently defined exceptions, along with their other arguments:
+
+\begin{longtable}{ p{36mm} p{70mm} p{40mm} }
+    \caption{List of supported exceptions} \\
+    Exception Name & Meaning & Additional arguments \\
+    \hline
+    \endhead
+    {\tt NotFoundError} & The database does not contain such object & -- \\
+    {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
+        without one & -- \\
+    {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
+    {\tt ServerError} & The server has experienced an internal error & -- \\
+\end{longtable}
+
+\subsection{Adding Low-Level Data Types}
+\label{sec:json-extending}
+
+Adding a low-level data type, ie. an equivalent of a {\tt string}, {\tt int} or similarly defined entity, is also
+possible.  Users are strongly encouraged to contact the Deska project before undertaking these changes, if only to
+prevent possible namespace clashes in future.
+
+In general, the following has to be done to add a low-level data type to Deska:
+
+\begin{itemize}
+    \item Pick up an identifier to use
+    \item Create the SQL data type and the corresponding C++ class
+    \item Create a specialization of the {\tt template<> void SpecializedExtractor<\\
+        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)}
+    \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
+\end{itemize}
+
+\subsection{Serialization Quick Reference}
 \label{sec:json-data-types-reference}
 
 The following table provides a quick and compact overview of the officially supported data types and their respective
@@ -275,36 +327,6 @@ attributes.  The following types are defined:
         {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\}} \\
 \end{longtable}
-
-\subsection{Exceptions}
-
-There are certain situations where the execution of a particular command terminates in an unexpected manner.  One reason
-could be that the user of the API has made an error and for example tried to retrieve an object which does not exist, or
-that the execution hit an implementation-specific failure which has to be communicated to the caller, like an error with
-SQL processing.  For this reason and in order to prevent cluttering the API with artificial {\tt NULL} values and
-special placeholders, the Deska DB API supports {\em exceptions}.
-
-When the Deska server has encountered an error when processing a particular response, it will return a JSON object in
-the usual form (ie. with {\tt "command"} replaced by {\tt "response"} and the rest of the data left intact), and instead
-of adding the returned data in a key named after the API method, it will create another top-level key called {\tt
-"dbException"} pointing to a JSON object representing an exception.  The new object will have the following structure:
-
-\begin{lstlisting}
-    {"type": "typeOfException", "message": "description"}
-\end{lstlisting}
-
-Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
-with a textual message usable for debugging.  The object might contain more data, which could be used to pass
-computer-readable data to the API user.  Usual rules for representing values apply here.
-
-This is the list of currently defined exceptions, along with their other arguments:
-
-FIXME: create a list of supported exceptions and their optional arguments
-
-\subsection{Adding Supported Types}
-\label{sec:json-extending}
-
-FIXME
 
 \section{Deska DBAPI Reference}
 
