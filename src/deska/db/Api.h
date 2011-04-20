@@ -101,7 +101,7 @@ public:
 
     /** @short Get all attributes, including the inherited ones
      *
-     * This function walks through the template hierarchy (@see RELATION_TEMPLATE's documentation)
+     * This function walks through the template hierarchy (see ObjectRelationKind::RELATION_TEMPLATE's documentation)
      * from the bottom up and if a value of an attribute is not explicitly set at the current level,
      * it shall continue upwards until a match for all values is known.
      *
@@ -119,7 +119,7 @@ public:
 
     /** @short Get a list of identifiers of objects which explicitly override a given attribute 
      *
-     * This function walks the inheritance tree (@see RELATION_TEMPLATE) and checks the hierarchy for objects which
+     * This function walks the inheritance tree (see ObjectRelationKind::RELATION_TEMPLATE) and checks the hierarchy for objects which
      * explicitly override a declaration of an attribute value which happened at the specified template level by a new
      * definition in the object itself.
      *
@@ -233,7 +233,7 @@ public:
      * from inside startChangeset().
      *
      * @see startChangeset();
-     * @see abortChangeset();
+     * @see abortCurrentChangeset();
      * @see resumeChangeset();
      */
     virtual void detachFromCurrentChangeset(const std::string &message) = 0;
