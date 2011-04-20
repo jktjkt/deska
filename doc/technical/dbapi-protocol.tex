@@ -205,7 +205,17 @@ existence of class {\tt Foo} at all.
 
 \subsubsection{Optional Values}
 
-FIXME: talk about {\tt null} and missing arguments
+Certain data fields are designed to allow either a value of the underlying data type, or a special NULL value.  On the
+C++ side, this is achieved by wrapping the data type inside a {\tt boost::optional<>} container.  In the JSON
+serialization, the NULL can be simulated in two ways, either by omitting the value altogether, or by using JSON's {\tt
+null} keyword as the JSON value.  The Deska DBAPI does not distinguish between the two conventions, so the following
+examples are equivalent, provided that the arguments {\tt a1} is defined an accept NULL:
+
+\begin{lstlisting}
+    {"command": "foo", "a1": null}
+    {"command": "foo"}
+\end{lstlisting}
+
 
 \subsection{Exceptions}
 
