@@ -4,6 +4,7 @@
 \usepackage[czech,english]{babel}
 \usepackage{a4wide}
 \usepackage{listings}
+\usepackage{longtable}
 
 \begin{document}
 
@@ -128,7 +129,9 @@ Again, the order of appearance of the individual key-value pairs in a particular
 
 So far, we have mentioned that the data are transfered ``serialized as JSON values'', but did not specify how this
 serialization is defined and what the mapping between native data types in a programming language (like an {\tt int}, or
-a {\tt string}), the database server and the JSON transport is.
+a {\tt string}), the database server and the JSON transport is.  The following sections provide detailed information in
+this matter.  For a quick reference, please check the overview tables in section \ref{sec:json-data-types-reference} on
+page~\pageref{sec:json-data-types-reference}.
 
 \subsubsection{Primitive types}
 
@@ -216,6 +219,62 @@ examples are equivalent, provided that the arguments {\tt a1} is defined an acce
     {"command": "foo"}
 \end{lstlisting}
 
+\subsubsection{Serialization Quick Reference}
+\label{sec:json-data-types-reference}
+
+The following table provides a quick and compact overview of the officially supported data types and their respective
+JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
+API function.
+
+\begin{longtable}{ p{18mm} | p{35mm} p{41mm} p{45mm} }
+    \caption{JSON serialization of data types for attribute values} \\
+    Name & SQL Data Type & C++ Data Type & JSON Serialization \\
+    \hline
+    \endhead
+    {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
+    {\tt int} & INT & {\tt int} & {\tt 123} \\
+    {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
+    {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
+    {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
+    {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
+    {\tt enum\_X}\footnote{See section \ref{sec:json-extending} for instructions about how to add new enumerations to both
+        the Deska DB and the C++ library.} & ENUM (``A'', ``B'') & {\tt typedef enum \{A, B\} X} & {\tt "A"} \\
+    {\tt X\_null}\footnote{The {\tt X} notion means that when there's an {\tt X} type defined and not postfixed by {\tt
+        \_null} already, it is allowed to create a new data type by prefixing the original name with {\tt \_null}.} &
+        \textless TYPE\textgreater~without the {\tt NOT~NULL} stanza & {\tt boost::optional<T>} &
+        {\tt null} or the respective serialization for \textless TYPE\textgreater \\
+\end{longtable}
+
+In addition to the types mentioned above, which are usable and allowed as the data types for objects' attributes, there
+are several ``internal'' data types which are exchanged over JSON, but which cannot be used in the context of
+attributes.  The following types are defined:
+
+\begin{longtable}{ p{60mm} p{90mm} }
+    \caption{JSON serialization of values for internal use} \\
+    C++ Data Type & JSON Serialization \\
+    \hline
+    \endhead
+    {\tt Deska::Db::RevisionId} & {\tt "r123"} \\
+    {\tt Deska::Db::TemporaryChangesetId} & {\tt "tmp123"} \\
+    {\tt std::vector<T>} & {\tt [A, B, C]}
+        \newline(With the exact format of A/B/C depending on type~{\tt T})\\
+    {\tt std::map<std::string, T>} & {\tt \{"key1": A, "key2": B, "key3": C\}}
+        \newline(With the exact format of A/B/C depending on type~{\tt T})\\
+    {\tt Deska::Db::PendingChangeset::\newline{~ ~}AttachStatus} &
+        One of {\tt "DETACHED"} or {\tt "INPROGRESS"} \\
+    {\tt Deska::Db::PendingChangeset} &
+        {\tt \{"changeset":"tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
+        "parentRevision": "r666", "message": "message"\}} \\
+    {\tt Deska::Db::KindAttributeDataType} &
+        One of {\tt string}, {\tt int}, {\tt identifier}, {\tt double}, {\tt date}, {\tt timestamp}, {\tt enum\_X} and
+        {\tt X\_null} \\
+    {\tt Deska::Db::ObjectRelation} &
+        One of \newline {\tt\{"relation": "EMBED\_INTO", "into": "hardware"\}}, \newline
+        {\tt\{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}},
+        \newline
+        {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}} \newline or \newline
+        {\tt\{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\}} \\
+\end{longtable}
 
 \subsection{Exceptions}
 
@@ -226,6 +285,11 @@ SQL processing.  For this reason and in order to prevent cluttering the API with
 special placeholders, the Deska DB API supports {\em exceptions}.
 
 FIXME: define and describe how they're transmitted.
+
+\subsection{Adding Supported Types}
+\label{sec:json-extending}
+
+FIXME
 
 \section{Deska DBAPI Reference}
 
