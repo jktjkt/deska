@@ -368,6 +368,26 @@ FIXME: high-level overview
 
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
 
+\deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
+    {Return list of names of configured top-level Kinds.}
+    {Top-level Kinds are entities like enclosure etc, that is, object representing types.  These Kinds could then be
+    instantiated.}
+
+\deskaFunc{kindAttributes}{, "kindName": "something"}
+    {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
+    {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+
+\deskaFunc{kindRelations}{, "kindName": "something"}
+    { [ \\
+            \{"relation": "EMBED\_INTO", "into": "hardware"\}, \\
+            \{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}, \\
+            \{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}, \\
+            \{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\} \\
+            ]}
+    {Retrieve relations between different Kinds}
+    {This function returns a list of relations for the specified kind of entities -- for more details and examples, see the ObjectRelation struct.}
+
 \subsubsection{FIXME: more commands}
 \ldots
 
