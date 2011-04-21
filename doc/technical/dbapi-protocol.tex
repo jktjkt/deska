@@ -384,8 +384,9 @@ make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit 
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 the attempted commit.  In that case, the new commit won't be performed, and after verifying that the changes are still
-valid (FIXME), the user shall use the \deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now
-based on a new, updated permanent revision.
+valid via the diffing functions (see section \ref{sec:api-group-history}), the user shall use the
+\deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now based on a new, updated permanent
+revision.
 
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
