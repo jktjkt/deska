@@ -231,7 +231,9 @@ template<typename T> struct JsonExtractionTraits<std::vector<T> > {
     static std::vector<T> implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting std::vector<T>");
         std::vector<T> res;
+        int i = 0;
         BOOST_FOREACH(const json_spirit::Value &item, v.get_array()) {
+            JsonContext c2("When processing field #" + libebt::stringify(i));
             res.push_back(JsonExtractionTraits<T>::implementation(item));
         }
         return res;
