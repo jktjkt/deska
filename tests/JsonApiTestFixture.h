@@ -29,6 +29,7 @@
 namespace Deska {
 namespace Db {
 class JsonApiParser;
+class JsonParseError;
 }
 }
 
@@ -60,5 +61,7 @@ struct JsonApiTestFixtureFailOnStreamThrow: public JsonApiTestFixture
         mockBuffer.useBoostTestOnThrow();
     }
 };
+
+void handleJsonParseError(const Deska::Db::JsonParseError &e);
 
 #endif // DESKA_TEST_JSONAPITESTFIXTURE_H

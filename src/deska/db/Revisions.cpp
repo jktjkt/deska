@@ -141,5 +141,26 @@ std::ostream& operator<<(std::ostream &stream, const PendingChangeset::AttachSta
     return stream << "[Invalid PendingChangeset::AttachStatus: " << static_cast<int>(status) << "]";
 }
 
+RevisionMetadata::RevisionMetadata(const RevisionId revision_, const std::string &author_,
+    const boost::posix_time::ptime timestamp_, const std::string &commitMessage_):
+    revision(revision_), author(author_), timestamp(timestamp_), commitMessage(commitMessage_)
+{
+}
+
+bool operator==(const RevisionMetadata &a, const RevisionMetadata &b)
+{
+    return a.revision == b.revision && a.author == b.author && a.timestamp == b.timestamp && a.commitMessage == b.commitMessage;
+}
+
+bool operator!=(const RevisionMetadata &a, const RevisionMetadata &b)
+{
+    return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const RevisionMetadata &a)
+{
+    return stream << "RevisionMetadata(" << a.revision << ", " << a.author << ", " << a.timestamp << ", " << a.commitMessage << ")";
+}
+
 }
 }

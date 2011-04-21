@@ -52,6 +52,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     /** @short Handler for Parser's setAttr() signal */
     void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
+    /** @short Handler for Parser's functionShow() */
+    void slotParserFunctionShow();
+    
+    /** @short Handler for Parser's functionDelete() */
+    void slotParserFunctionDelete();
+
     /** @short Handler for Parser's parserError() signal */
     void slotParserError(const Deska::Cli::ParserException &exception);
 
@@ -73,6 +79,18 @@ struct ParserTestFixture: public boost::signals2::trackable
     */
     void expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
+    /** @short Check for functionShow
+
+    @see expectCategoryEntered()
+    */
+    void expectFunctionShow();
+    
+    /** @short Check for functionDelete
+
+    @see expectCategoryEntered()
+    */
+    void expectFunctionDelete();
+    
     /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
 
     @see expectCategoryEntered();

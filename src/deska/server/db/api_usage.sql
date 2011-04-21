@@ -40,7 +40,7 @@ SELECT startChangeset();
 SELECT createObject('interface','hpv2->eth0');
 SELECT commitChangeset('c4');
 END;
---deleTE OF embed into
+--delete of embed into
 BEGIN;
 SELECT startChangeset();
 SELECT deleteObject('interface','hpv2->eth0');

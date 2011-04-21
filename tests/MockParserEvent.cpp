@@ -43,6 +43,16 @@ MockParserEvent MockParserEvent::setAttr(const Deska::Db::Identifier &name, cons
     return res;
 }
 
+MockParserEvent MockParserEvent::functionShow()
+{
+    return MockParserEvent(EVENT_FUNCTION_SHOW);
+}
+
+MockParserEvent MockParserEvent::functionDelete()
+{
+    return MockParserEvent(EVENT_FUNCTION_DELETE);
+}
+
 MockParserEvent MockParserEvent::invalid()
 {
     return MockParserEvent(EVENT_INVALID);
@@ -76,6 +86,12 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_SET_ATTR:
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
+        break;
+    case MockParserEvent::EVENT_FUNCTION_SHOW:
+        out << "functionShow()";
+        break;
+    case MockParserEvent::EVENT_FUNCTION_DELETE:
+        out << "functionDelete()";
         break;
     case MockParserEvent::EVENT_PARSE_ERROR:
         out << "parseError(" << m.message << ")";

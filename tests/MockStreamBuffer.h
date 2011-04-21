@@ -238,11 +238,7 @@ protected:
         std::copy(buf, buf + count, out.begin());
 
         std::string expectedIn = events_.front().data_.substr(0, count);
-        if (expectedIn != out) {
-            //std::cerr << "Wrote |" << out << "|" << std::endl;
-            //std::cerr << "Should have written |" << events_.front().data_ << "|" << std::endl;
-            throw_("real_write: value mismatch");
-        }
+        eq_or_throw_(expectedIn, out, "real_write: value mismatch");
         events_.front().data_ = events_.front().data_.substr(count);
         if (events_.front().data_.empty()) {
             events_.pop();
@@ -254,6 +250,18 @@ protected:
     {
         if (use_test_on_throw_) {
             BOOST_FAIL(message);
+        }
+        throw MockStreamBufferError(message);
+    }
+
+    template<typename T> void eq_or_throw_(const T a, const T b, const std::string &message)
+    {
+        if (a == b)
+            return;
+
+        if (use_test_on_throw_) {
+            BOOST_CHECK_EQUAL(a, b);
+            BOOST_CHECK_EQUAL_COLLECTIONS(a.begin(), a.end(), b.begin(), b.end());
         }
         throw MockStreamBufferError(message);
     }

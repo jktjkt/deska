@@ -75,78 +75,116 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
-/** @short Convert a json_spirit::Object to Deska::Db::ObjectRelation */
-ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
-{
-    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
-    JsonHandler h;
-    std::string relationKind;
-    h.failOnUnknownFields(false);
-    h.read("relation").extract(&relationKind);
-    h.parseJsonObject(o);
+template<typename T> struct JsonExtractionTraits {};
 
-    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
-    h = JsonHandler();
-    h.read("relation");
-
-    // Now process the actual data
-    if (relationKind == "EMBED_INTO") {
-        std::string into;
-        h.read("into").extract(&into);
-        h.parseJsonObject(o);
-        return ObjectRelation::embedInto(into);
-    } else if (relationKind == "IS_TEMPLATE") {
-        std::string toWhichKind;
-        h.read("toWhichKind").extract(&toWhichKind);
-        h.parseJsonObject(o);
-        return ObjectRelation::isTemplate(toWhichKind);
-    } else if (relationKind == "MERGE_WITH") {
-        std::string targetTableName, sourceAttribute;
-        h.read("targetTableName").extract(&targetTableName);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(o);
-        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
-    } else if (relationKind == "TEMPLATIZED") {
-        std::string byWhichKind, sourceAttribute;
-        h.read("byWhichKind").extract(&byWhichKind);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(o);
-        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
-    } else {
-        std::ostringstream s;
-        s << "Invalid relation kind '" << relationKind << "'";
-        throw JsonStructureError(s.str());
+template<> struct JsonExtractionTraits<Identifier> {
+    static std::string name;
+    static Identifier implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting " + name);
+        return v.get_str();
     }
-}
+};
+std::string JsonExtractionTraits<Identifier>::name = "Identifier";
 
-/** @short Convert from json_spirit::Object into Deska::Db::PendingChangeset */
-PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
-{
-    JsonHandler h;
-    TemporaryChangesetId changeset = TemporaryChangesetId::null;
-    std::string author;
-    boost::posix_time::ptime timestamp;
-    RevisionId parentRevision = RevisionId::null;
-    std::string message;
-    PendingChangeset::AttachStatus attachStatus;
-    boost::optional<std::string> activeConnectionInfo;
-    h.read("changeset").extract(&changeset);
-    h.read("author").extract(&author);
-    h.read("timestamp").extract(&timestamp);
-    h.read("parentRevision").extract(&parentRevision);
-    h.read("message").extract(&message);
-    h.read("status").extract(&attachStatus);
-    h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
-    h.parseJsonObject(o);
+template<> struct JsonExtractionTraits<PendingChangeset> {
+    static std::string name;
+    static PendingChangeset implementation(const json_spirit::Value &v) {
+        JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
+        JsonHandler h;
+        TemporaryChangesetId changeset = TemporaryChangesetId::null;
+        std::string author;
+        boost::posix_time::ptime timestamp;
+        RevisionId parentRevision = RevisionId::null;
+        std::string message;
+        PendingChangeset::AttachStatus attachStatus;
+        boost::optional<std::string> activeConnectionInfo;
+        h.read("changeset").extract(&changeset);
+        h.read("author").extract(&author);
+        h.read("timestamp").extract(&timestamp);
+        h.read("parentRevision").extract(&parentRevision);
+        h.read("message").extract(&message);
+        h.read("status").extract(&attachStatus);
+        h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
+        h.parseJsonObject(v.get_obj());
 
-    // These asserts are enforced by the JsonHandler, as all fields are required here.
-    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
-    BOOST_ASSERT(parentRevision != RevisionId::null);
-    // This is guaranteed by the extractor
-    BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
+        // These asserts are enforced by the JsonHandler, as all fields are required here.
+        BOOST_ASSERT(changeset != TemporaryChangesetId::null);
+        BOOST_ASSERT(parentRevision != RevisionId::null);
+        // This is guaranteed by the extractor
+        BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
 
-    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
-}
+        return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
+    }
+};
+std::string JsonExtractionTraits<PendingChangeset>::name = "PendingChangeset";
+
+template<> struct JsonExtractionTraits<ObjectRelation> {
+    static std::string name;
+    static ObjectRelation implementation(const json_spirit::Value &v) {
+        JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
+        // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
+        JsonHandler h;
+        std::string relationKind;
+        h.failOnUnknownFields(false);
+        h.read("relation").extract(&relationKind);
+        h.parseJsonObject(v.get_obj());
+
+        // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
+        h = JsonHandler();
+        h.read("relation");
+
+        // Now process the actual data
+        if (relationKind == "EMBED_INTO") {
+            std::string into;
+            h.read("into").extract(&into);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::embedInto(into);
+        } else if (relationKind == "IS_TEMPLATE") {
+            std::string toWhichKind;
+            h.read("toWhichKind").extract(&toWhichKind);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::isTemplate(toWhichKind);
+        } else if (relationKind == "MERGE_WITH") {
+            std::string targetTableName, sourceAttribute;
+            h.read("targetTableName").extract(&targetTableName);
+            h.read("sourceAttribute").extract(&sourceAttribute);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+        } else if (relationKind == "TEMPLATIZED") {
+            std::string byWhichKind, sourceAttribute;
+            h.read("byWhichKind").extract(&byWhichKind);
+            h.read("sourceAttribute").extract(&sourceAttribute);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+        } else {
+            std::ostringstream s;
+            s << "Invalid relation kind '" << relationKind << "'";
+            throw JsonStructureError(s.str());
+        }
+    }
+};
+std::string JsonExtractionTraits<ObjectRelation>::name = "ObjectRelation";
+
+template<> struct JsonExtractionTraits<RevisionMetadata> {
+    static std::string name;
+    static RevisionMetadata implementation(const json_spirit::Value &v) {
+        JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
+        JsonHandler h;
+        RevisionId revision = RevisionId::null;
+        std::string author;
+        boost::posix_time::ptime timestamp;
+        std::string commitMessage;
+        h.read("revision").extract(&revision);
+        h.read("author").extract(&author);
+        h.read("timestamp").extract(&timestamp);
+        h.read("commitMessage").extract(&commitMessage);
+        h.parseJsonObject(v.get_obj());
+        BOOST_ASSERT(revision != RevisionId::null);
+        return RevisionMetadata(revision, author, timestamp, commitMessage);
+    }
+};
+std::string JsonExtractionTraits<RevisionMetadata>::name = "RevisionMetadata";
+
 
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
@@ -178,10 +216,23 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
+/** Got to provide a partial specialization in order to be able to define a custom extract() */
+template <typename T>
+class SpecializedExtractor<std::vector<T> >: public JsonExtractor {
+    std::vector<T> *target;
+public:
+    /** @short Create an extractor which will save the parsed and converted value to a pointer */
+    SpecializedExtractor(std::vector<T> *source): target(source) {}
+    virtual void extract(const json_spirit::Value &value);
+};
+
+
+
 /** @short Convert JSON into Deska::RevisionId */
 template<>
 void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting a RevisionId");
     if (value.type() != json_spirit::str_type)
         throw JsonStructureError("Value of expected type RevisionId is not a string");
     *target = RevisionId::fromJson(value.get_str());
@@ -191,39 +242,34 @@ void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
 template<>
 void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting a TemporaryChangesetId");
     if (value.type() != json_spirit::str_type)
         throw JsonStructureError("Value of expected type TemporaryChangesetId is not a string");
     *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
-/** @short Convert JSON into a vector of Deska::Db::PendingChangeset */
-template<>
-void SpecializedExtractor<std::vector<PendingChangeset> >::extract(const json_spirit::Value &value)
+/** @short Generic extractor for list of items */
+template<typename T>
+void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &value)
 {
-    if (value.type() != json_spirit::array_type)
-        throw JsonStructureError("Value of expected type Array of Pending Changesets is not an array");
+    JsonContext c1("When extracting a vector of " + JsonExtractionTraits<T>::name);
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        if (item.type() != json_spirit::obj_type)
-            throw JsonStructureError("Value of expected type Pending Changeset is not an object");
-        target->push_back(jsonObjectToDeskaPendingChangeset(item.get_obj()));
+        target->push_back(JsonExtractionTraits<T>::implementation(item));
     }
 }
 
-/** @short Convert JSON into a vector of Deska::Identifier */
-template<>
-void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::Value &value)
-{
-    json_spirit::Array data = value.get_array();
-    std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
-}
+/** @short Convert JSON into a vector of attribute data types
 
-/** @short Convert JSON into a vector of attribute data types */
+This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
+*/
 template<>
 void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting a vector of Data Types");
     if (value.type() != json_spirit::obj_type)
         throw JsonStructureError("Value of expected type Array of Data Types is not an array");
     BOOST_FOREACH(const Pair &item, value.get_obj()) {
+        JsonContext c2("When handling attribute " + item.name_);
         if (item.value_.type() != json_spirit::str_type)
             throw JsonStructureError("Value of expected type Data Type is not string");
         std::string datatype = item.value_.get_str();
@@ -243,28 +289,65 @@ void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const js
     }
 }
 
-/** @short Convert JSON into a vector of object relations */
+/** @short Convert JSON into a wrapped, type-checked object attributes */
 template<>
-void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
+void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Value &value)
 {
-    if (value.type() != json_spirit::array_type)
-        throw JsonStructureError("Value of expected type Array of Object Relations is not an array");
-    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        if (item.type() != json_spirit::obj_type)
-            throw JsonStructureError("Value of expected type Object Relation is not an object");
-        target->push_back(jsonObjectToDeskaObjectRelation(item.get_obj()));
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attribute " + target->attrName);
+    switch (target->dataType) {
+    case TYPE_STRING:
+    case TYPE_IDENTIFIER:
+        if (value.type() != json_spirit::str_type)
+            throw JsonStructureError("Attribute value is not string");
+        target->value = value.get_str();
+        return;
+    case TYPE_INT:
+        if (value.type() != json_spirit::int_type)
+            throw JsonStructureError("Attribute value is not an integer");
+        target->value = value.get_int();
+        return;
+    case TYPE_DOUBLE:
+        if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
+            throw JsonStructureError("Attribute value is not a real");
+        target->value = value.get_real();
+        return;
     }
+    std::ostringstream ss;
+    ss << "Unsupported data type " << target->dataType;
+    throw JsonStructureError(ss.str());
 }
 
-/** @short Convert JSON into a special data structure representing all attributes of an object */
+/** @short Convert JSON into a wrapped, type-checked vector of attributes */
 template<>
-void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spirit::Value &value)
+void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::Value &value)
 {
-    if (value.type() != json_spirit::obj_type)
-        throw JsonStructureError("Value of expected type Object of Deska Values is not an object");
-    BOOST_FOREACH(const Pair &item, value.get_obj()) {
-        // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-        (*target)[item.name_] = jsonValueToDeskaValue(item.value_);
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attributes");
+    JsonHandler h;
+    std::vector<JsonWrappedAttribute> wrappedAttrs;
+
+    // At first, allocate space for storing the values. We can't set up the extraction yet
+    // because the vector might reallocate memory while it grows, leaving us with dangling pointers.
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        wrappedAttrs.push_back(JsonWrappedAttribute(attr.type, attr.name));
+    }
+
+    // Set up the extractor so that it knows what fields to work with
+    int i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        h.read(attr.name).extract(&wrappedAttrs[i]);
+        ++i;
+    }
+
+    // Do the JSON parsing and verification
+    h.parseJsonObject(value.get_obj());
+
+    // Now copy the results back
+    i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        target->attributes[attr.name] = wrappedAttrs[i].value;
+        ++i;
     }
 }
 
@@ -272,9 +355,11 @@ void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spiri
 template<>
 void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting an array of attributes along with the source revision identification");
     if (value.type() != json_spirit::obj_type)
         throw JsonStructureError("Value of expected type Object of tuples (Identifier, Deska Value) is not an object");
     BOOST_FOREACH(const Pair &item, value.get_obj()) {
+        JsonContext c2("When extracting attribute " + item.name_);
         if (item.value_.type() != json_spirit::array_type)
             throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
         json_spirit::Array a = item.value_.get_array();
@@ -290,6 +375,7 @@ void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extrac
 template<>
 void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting a timestamp");
     if (value.type() != json_spirit::str_type)
         throw JsonStructureError("Value of expected type Timestamp is not a string");
     *target = boost::posix_time::time_from_string(value.get_str());
@@ -299,6 +385,7 @@ void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::
 template<>
 void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting PendingChangesetAttachStatus");
     if (value.type() != json_spirit::str_type)
         throw JsonStructureError("Value of expected type PendingChangesetAttachStatus is not a string");
     std::string data = value.get_str();
@@ -324,12 +411,14 @@ void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 template<>
 void SpecializedExtractor<std::string>::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting a string");
     *target = value.get_str();
 }
 
 template<typename T>
 void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value &value)
 {
+    JsonContext c1("When extracting an optional value");
     if (value.is_null()) {
         // The JSON null is mapped to an empty optional
         target->reset();
@@ -365,6 +454,7 @@ JsonHandlerApiWrapper::JsonHandlerApiWrapper(const JsonApiParser * const api, co
 
 void JsonHandlerApiWrapper::send()
 {
+    JsonContext c1("When sending JSON data");
     json_spirit::Object o;
     BOOST_FOREACH(const JsonField &f, fields) {
         if (f.isForSending) {
@@ -376,16 +466,14 @@ void JsonHandlerApiWrapper::send()
 
 void JsonHandlerApiWrapper::receive()
 {
+    JsonContext c1("When reading and processing JSON data");
     // FIXME: check for the j_errorPrefix here
     try {
         parseJsonObject(p->readJsonObject());
     } catch (JsonParseError &e) {
-        if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+        if (boost::optional<std::string> rawJson = p->wantJustReadData())
             e.addRawJsonData(*rawJson);
-            throw e;
-        } else {
-            throw;
-        }
+        throw;
     }
 }
 
@@ -423,8 +511,10 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
     using namespace boost::phoenix;
     using namespace arg_names;
 
+    JsonContext c1("When parsing JSON object");
 
     BOOST_FOREACH(const Pair& node, jsonObject) {
+        JsonContext c2("When checking JSON key " + node.name_);
 
         // At first, find a matching rule for this particular key
         std::vector<JsonField>::iterator rule =
@@ -465,6 +555,7 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
 
         // Extract the value from JSON
         if (rule->extractor) {
+            JsonContext c3("When extracting the JSON value");
             rule->extractor->extract(node.value_);
         }
 
@@ -550,18 +641,30 @@ boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name,
         return write(name, value);
 }
 
+JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
+JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_):
+    dataType(dataType_), attrName(attrName_)
+{
+}
+
 // Template instances for the linker
 template JsonField& JsonField::extract(RevisionId*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);
 template JsonField& JsonField::extract(vector<Identifier>*);
 template JsonField& JsonField::extract(vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(vector<ObjectRelation>*);
-template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
+template JsonField& JsonField::extract(JsonWrappedAttribute*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
+template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 
 }
 }

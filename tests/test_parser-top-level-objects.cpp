@@ -416,8 +416,8 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
 /** @short An error in kind name of embedded object */
 BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
 {
-	const std::string line = "host 123 int3rf4ce 456\n";
-	const std::string::const_iterator it = line.begin() + line.find("int3rf4ce");
+    const std::string line = "host 123 int3rf4ce 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("int3rf4ce");
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"interface\" ].", line, it));
@@ -429,63 +429,63 @@ BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
 /** @short An error in kind identifier with single definition on line */
 BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_single_definition, ParserTestFixture)
 {
-	const std::string line = "haware foo\n";
-	const std::string::const_iterator it = line.begin();
-	parser->parseLine(line);
-	expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
-	expectNothingElse();
+    const std::string line = "haware foo\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
     verifyEmptyStack();
 }
 
 /** @short end used when not nested */
 BOOST_FIXTURE_TEST_CASE(error_end_no_context, ParserTestFixture)
 {
-	const std::string line = "end\n";
-	const std::string::const_iterator it = line.begin();
-	parser->parseLine(line);
-	expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));	
-	expectNothingElse();
+    const std::string line = "end\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
     verifyEmptyStack();
 }
 
 /** @short Bad identifier of top-level object */
 BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixture)
 {
-	const std::string line = "hardware foo*bar\n";
-	const std::string::const_iterator it = line.begin() + line.find("*bar");
-	parser->parseLine(line);
-	expectCategoryEntered("hardware", "foo");
-	expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-	expectCategoryLeft();
-	//expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
-	expectNothingElse();
+    const std::string line = "hardware foo*bar\n";
+    const std::string::const_iterator it = line.begin() + line.find("*bar");
+    parser->parseLine(line);
+    expectCategoryEntered("hardware", "foo");
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectCategoryLeft();
+    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+    expectNothingElse();
     verifyEmptyStack();
 }
 
 /** @short Bad identifier of top-level object */
 BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTestFixture)
 {
-	const std::string line = "hardware *bar\n";
-	const std::string::const_iterator it = line.begin() + line.find("*bar");
-	parser->parseLine(line);
-	expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
-	expectNothingElse();
+    const std::string line = "hardware *bar\n";
+    const std::string::const_iterator it = line.begin() + line.find("*bar");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <object identifier (alphanumerical letters and _)> ].", line, it));
+    expectNothingElse();
     verifyEmptyStack();
 }
 
 /** @short Bad identifier of nested object */
 BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixture)
 {
-	const std::string line = "host hpv2 interface foo*bar\n";
-	const std::string::const_iterator it = line.begin() + line.find("*bar");
-	parser->parseLine(line);
-	expectCategoryEntered("host", "hpv2");
-	expectCategoryEntered("interface", "foo");
-	expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
-	expectCategoryLeft();
-	//expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
-	expectCategoryLeft();
-	expectNothingElse();
+    const std::string line = "host hpv2 interface foo*bar\n";
+    const std::string::const_iterator it = line.begin() + line.find("*bar");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "hpv2");
+    expectCategoryEntered("interface", "foo");
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
+    expectCategoryLeft();
+    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
     verifyEmptyStack();
 }
 
@@ -520,4 +520,223 @@ BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr, ParserTestFixture)
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
+}
+
+/** @short Verify that we can use function show in no context */
+BOOST_FIXTURE_TEST_CASE(function_show_no_context, ParserTestFixture)
+{
+    parser->parseLine("show\n");
+    expectFunctionShow();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function show in context */
+BOOST_FIXTURE_TEST_CASE(function_show_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    parser->parseLine("show\n");
+    expectFunctionShow();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Verify that we can use function show with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(function_show_param_no_context, ParserTestFixture)
+{
+    parser->parseLine("show host 123\n");
+    expectCategoryEntered("host", "123");
+    expectFunctionShow();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function show with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(function_show_nest_no_context, ParserTestFixture)
+{
+    parser->parseLine("show host 123 interface eth0\n");
+    expectCategoryEntered("host", "123");
+    expectCategoryEntered("interface", "eth0");
+    expectFunctionShow();
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function show with parameter in context */
+BOOST_FIXTURE_TEST_CASE(function_show_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    parser->parseLine("show interface 456\n");
+    expectCategoryEntered("interface", "456");
+    expectFunctionShow();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Verify that we can not use function delete without parameters in no context */
+BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
+{
+    const std::string line = "delete\n";
+    const std::string::const_iterator it = line.end();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::ObjectNotFound("Function delete requires kind as parameter.", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can not use function delete without parameters in context */
+BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
+{
+    
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    const std::string line = "delete\n";
+    const std::string::const_iterator it = line.end();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::ObjectNotFound("Function delete requires kind as parameter.", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Verify that we can use function delete with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(function_delete_param_no_context, ParserTestFixture)
+{
+    parser->parseLine("delete host 123\n");
+    expectCategoryEntered("host", "123");
+    expectFunctionDelete();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function delete with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(function_delete_nest_no_context, ParserTestFixture)
+{
+    parser->parseLine("delete host 123 interface eth0\n");
+    expectCategoryEntered("host", "123");
+    expectCategoryEntered("interface", "eth0");
+    expectFunctionDelete();
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function delete with parameter in context */
+BOOST_FIXTURE_TEST_CASE(function_delete_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    parser->parseLine("delete interface 456\n");
+    expectCategoryEntered("interface", "456");
+    expectFunctionDelete();
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Bad kind name in function delete with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_no_context, ParserTestFixture)
+{
+    const std::string line = "delete hot 123\n";
+    const std::string::const_iterator it = line.begin() + line.find("hot");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad kind name in function delete with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_nest_no_context, ParserTestFixture)
+{
+    const std::string line = "delete host 123 inteface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad kind name in function delete with parameter in context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    const std::string line = "delete inteface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Bad kind name in function show with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_no_context, ParserTestFixture)
+{
+    const std::string line = "show hot 123\n";
+    const std::string::const_iterator it = line.begin() + line.find("hot");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad kind name in function show with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_nest_no_context, ParserTestFixture)
+{
+    const std::string line = "show host 123 inteface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Bad kind name in function show with parameter in context */
+BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    const std::string line = "show inteface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Function show with parameter in context where are no nested kinds */
+BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTestFixture)
+{
+    parser->parseLine("hardware 123\n");
+    expectCategoryEntered("hardware", "123");
+    const std::string line = "show interface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("interface");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "123");
+}
+
+/** @short Function delete with parameter in context where are no nested kinds */
+BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, ParserTestFixture)
+{
+    parser->parseLine("hardware 123\n");
+    expectCategoryEntered("hardware", "123");
+    const std::string line = "show interface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("interface");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "123");
 }

@@ -545,15 +545,30 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     // Check if there are any function words at the beginning of the line.
     functionWordParsed = phrase_parse(iter, end, *functionWordsParser, ascii::space);
 
-    // Function word "show" parsed alone
-    if ((iter == end) && (parsingMode == PARSING_MODE_SHOW) && (functionWordParsed))
+    // Function word parsed alone
+    if ((iter == end) && (functionWordParsed))
     {
+        switch (parsingMode) {
+            case PARSING_MODE_SHOW:
+                // Function show does not require any parameters -> emit signals
 #ifdef PARSER_DEBUG
-            std::cout << "Action Show" << std::endl;
+                std::cout << "Action Show" << std::endl;
 #endif
-            if (!dryRun)
-                m_parser->functionShow();
-        return true;
+                if (!dryRun)
+                    m_parser->functionShow();
+                return true;
+                break;
+            case PARSING_MODE_DELETE:
+                // Function delete requires parameter -> report error
+                m_parser->parseError(ObjectNotFound("Function delete requires kind as parameter.", line, line.end()));
+                break;
+            case PARSING_MODE_STANDARD:
+                // Parsed function word -> parsing mode should change from PARSING_MODE_STANDARD to another
+                throw std::logic_error("Function words should change the parsing mode");
+                break;
+            default:
+                throw std::domain_error("Invalid value of parsingMode");
+        }
     }
 
     while (iter != end) {

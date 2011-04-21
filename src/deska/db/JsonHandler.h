@@ -34,6 +34,24 @@ namespace Db {
 class JsonApiParser;
 class JsonExtractor;
 
+
+/** @short Helper class for type-safe parsing of JSON to a map of Deska object attributes */
+struct JsonWrappedAttributeMap
+{
+    std::vector<KindAttributeDataType> dataTypes;
+    std::map<Identifier, Value> attributes;
+    JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes);
+};
+
+/** @short Helper class for type-safe parsing of JSON to Deska object attribute */
+struct JsonWrappedAttribute
+{
+    Type dataType;
+    Identifier attrName;
+    Value value;
+    JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_);
+};
+
 /** @short Expecting/requiring/checking/sending one JSON record */
 struct JsonField
 {

@@ -50,6 +50,22 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     // The shouldn't be anything else at this point
     expectNothingElse();
     verifyEmptyStack();
+    
+    // Simulate function slots triggered by the Parser
+    slotParserCategoryEntered("a", "b");
+    slotParserFunctionShow();
+    slotParserFunctionDelete();
+    slotParserCategoryLeft();
+    
+    // ...and verify that we indeed received them
+    expectCategoryEntered("a", "b");
+    expectFunctionShow();
+    expectFunctionDelete();
+    expectCategoryLeft();
+
+    // The shouldn't be anything else at this point
+    expectNothingElse();
+    verifyEmptyStack();
 }
 
 /** @short Test the implementation of equality test on caught exceptions */

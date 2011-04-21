@@ -63,6 +63,8 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
 
 json_spirit::Object JsonApiParser::readJsonObject() const
 {
+    JsonContext c1("When reading JSON object");
+
     std::istream *readStream = willRead();
     BOOST_ASSERT(readStream);
     json_spirit::Value res;
@@ -101,6 +103,8 @@ vector<Identifier> JsonApiParser::kindNames() const
 
 vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &kindName ) const
 {
+    JsonContext c1("In kindAttributes() API method");
+
     vector<KindAttributeDataType> res;
     JsonHandlerApiWrapper h(this, "kindAttributes");
     h.write(j_kindName, kindName);
@@ -132,14 +136,15 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
 
 map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, const Identifier &objectName, const RevisionId revision )
 {
-    map<Identifier, Value> res;
+    JsonContext c1("In objectData() API method");
     JsonHandlerApiWrapper h(this, "objectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.writeIfNotZero(j_revision, revision);
+    JsonWrappedAttributeMap res(kindAttributes(kindName));
     h.read("objectData").extract(&res);
     h.work();
-    return res;
+    return res.attributes;
 }
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
@@ -237,6 +242,7 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
+    JsonContext c1("In commitChangeset() API method");
     RevisionId revision = RevisionId::null;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);
@@ -284,6 +290,29 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
+std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
+{
+    JsonContext c1("In listRevisions() API method");
+    std::vector<RevisionMetadata> res;
+    JsonHandlerApiWrapper h(this, "listRevisions");
+    h.read("listRevisions").extract(&res);
+    h.work();
+    return res;
+}
+
+std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
+{
+    // FIXME
+    return std::vector<ObjectModification>();
+}
+
+std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
+{
+    // FIXME
+    return std::vector<ObjectModification>();
+}
+
+
 
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
@@ -304,6 +333,18 @@ void JsonParseError::addRawJsonData(const std::string &data)
 const char* JsonParseError::what() const throw()
 {
     return m_completeError.empty() ? std::runtime_error::what() : m_completeError.c_str();
+}
+
+std::string JsonParseError::whatWithBacktrace() const throw()
+{
+    // We're required not to throw, so we have to use a generic catch-all block here
+    try {
+        std::ostringstream ss;
+        ss << "* " << backtrace("\n * ") << what() << std::endl;
+        return ss.str();
+    } catch (...) {
+        return what();
+    }
 }
 
 JsonSyntaxError::JsonSyntaxError(const std::string &message): JsonParseError(message)

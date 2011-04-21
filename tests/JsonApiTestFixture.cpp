@@ -20,6 +20,7 @@
 * */
 
 #include <boost/test/test_tools.hpp>
+#include <boost/test/unit_test_monitor.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
@@ -29,6 +30,7 @@ JsonApiTestFixture::JsonApiTestFixture():
 {
     j = new Deska::Db::JsonApiParser();
     bindStreams();
+    boost::unit_test::unit_test_monitor.register_exception_translator<Deska::Db::JsonParseError>(&handleJsonParseError);
 }
 
 JsonApiTestFixture::~JsonApiTestFixture()
@@ -65,4 +67,9 @@ void JsonApiTestFixture::bindStreams()
 {
     j->willRead.connect(boost::phoenix::bind(&JsonApiTestFixture::getReadStream, this));
     j->willWrite.connect(boost::phoenix::bind(&JsonApiTestFixture::getWriteStream, this));
+}
+
+void handleJsonParseError(const Deska::Db::JsonParseError &e)
+{
+    BOOST_ERROR(e.whatWithBacktrace());
 }
