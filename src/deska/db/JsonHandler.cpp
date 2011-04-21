@@ -120,37 +120,6 @@ ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
     }
 }
 
-/** @short Convert from json_spirit::Object into Deska::Db::PendingChangeset */
-PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
-{
-    JsonContext c1("When converting a JSON Object into a Deska::Db::PendingChangeset");
-    JsonHandler h;
-    TemporaryChangesetId changeset = TemporaryChangesetId::null;
-    std::string author;
-    boost::posix_time::ptime timestamp;
-    RevisionId parentRevision = RevisionId::null;
-    std::string message;
-    PendingChangeset::AttachStatus attachStatus;
-    boost::optional<std::string> activeConnectionInfo;
-    h.read("changeset").extract(&changeset);
-    h.read("author").extract(&author);
-    h.read("timestamp").extract(&timestamp);
-    h.read("parentRevision").extract(&parentRevision);
-    h.read("message").extract(&message);
-    h.read("status").extract(&attachStatus);
-    h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
-    h.parseJsonObject(o);
-
-    // These asserts are enforced by the JsonHandler, as all fields are required here.
-    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
-    BOOST_ASSERT(parentRevision != RevisionId::null);
-    // This is guaranteed by the extractor
-    BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
-
-    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
-}
-
-
 template<typename T> struct JsonExtractionTraits {};
 
 template<> struct JsonExtractionTraits<Identifier> {
@@ -165,8 +134,31 @@ std::string JsonExtractionTraits<Identifier>::name = "Identifier";
 template<> struct JsonExtractionTraits<PendingChangeset> {
     static std::string name;
     static PendingChangeset implementation(const json_spirit::Value &v) {
-        JsonContext c1("When extracting " + name);
-        return jsonObjectToDeskaPendingChangeset(v.get_obj());
+        JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
+        JsonHandler h;
+        TemporaryChangesetId changeset = TemporaryChangesetId::null;
+        std::string author;
+        boost::posix_time::ptime timestamp;
+        RevisionId parentRevision = RevisionId::null;
+        std::string message;
+        PendingChangeset::AttachStatus attachStatus;
+        boost::optional<std::string> activeConnectionInfo;
+        h.read("changeset").extract(&changeset);
+        h.read("author").extract(&author);
+        h.read("timestamp").extract(&timestamp);
+        h.read("parentRevision").extract(&parentRevision);
+        h.read("message").extract(&message);
+        h.read("status").extract(&attachStatus);
+        h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
+        h.parseJsonObject(v.get_obj());
+
+        // These asserts are enforced by the JsonHandler, as all fields are required here.
+        BOOST_ASSERT(changeset != TemporaryChangesetId::null);
+        BOOST_ASSERT(parentRevision != RevisionId::null);
+        // This is guaranteed by the extractor
+        BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
+
+        return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
     }
 };
 std::string JsonExtractionTraits<PendingChangeset>::name = "PendingChangeset";
