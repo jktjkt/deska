@@ -13,7 +13,7 @@ SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
 
 -- commit
 -- end session, part of vendor commit? of vendor commit part of this?
-SELECT commitChangeset();
+SELECT commitChangeset('');
 
 END;
 BEGIN;
@@ -25,6 +25,6 @@ SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
 SELECT setAttribute('hardware','hwDELL','note','test');
 SELECT setAttribute('hardware','hwDELL','vendor','IBM');
-SELECT commitChangeset();
+SELECT commitChangeset('');
 
 END;
