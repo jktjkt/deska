@@ -238,6 +238,26 @@ template<typename T> struct JsonExtractionTraits<std::vector<T> > {
     }
 };
 
+template<> struct JsonExtractionTraits<std::map<Identifier,pair<Identifier,Value> > > {
+    static std::map<Identifier,pair<Identifier,Value> > implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting std::map<Identifier,pair<Identifier,Value> >");
+        std::map<Identifier,pair<Identifier,Value> > res;
+        BOOST_FOREACH(const Pair &item, v.get_obj()) {
+            JsonContext c2("When extracting attribute " + item.name_);
+            if (item.value_.type() != json_spirit::array_type)
+                throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
+            json_spirit::Array a = item.value_.get_array();
+            if (a.size() != 2) {
+                throw JsonStructureError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
+            }
+            // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
+            res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
+        }
+        return res;
+    }
+};
+
+
 
 
 /** @short Abstract class for conversion between a JSON value and "something" */
@@ -354,25 +374,6 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
-/** @short Convert JSON into a special data structure representing all attributes of an object along with information where their values come from */
-template<>
-void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting an array of attributes along with the source revision identification");
-    if (value.type() != json_spirit::obj_type)
-        throw JsonStructureError("Value of expected type Object of tuples (Identifier, Deska Value) is not an object");
-    BOOST_FOREACH(const Pair &item, value.get_obj()) {
-        JsonContext c2("When extracting attribute " + item.name_);
-        if (item.value_.type() != json_spirit::array_type)
-            throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
-        json_spirit::Array a = item.value_.get_array();
-        if (a.size() != 2) {
-            throw JsonStructureError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
-        }
-        // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-        (*target)[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
-    }
-}
 
 /** @short Simple forward for type-safe extracting */
 template<typename T>
