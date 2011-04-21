@@ -391,7 +391,8 @@ Objects can be created via the \deskaFuncRef{createObject} function, deleted thr
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
 can be undone with \deskaFuncRef{removeAttribute}.
 
-FIXME: diffing.
+Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
+\deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
 
 \subsection{API Reference}
 
@@ -457,7 +458,5 @@ History}, section \ref{sec:api-group-history}).
 \label{sec:api-group-history}
 
 Functions for browsing history of individual objects, retrieving lists of differences, etc.
-
-FIXME: \#143
 
 \end{document}
