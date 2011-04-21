@@ -78,16 +78,13 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
 template<typename T> struct JsonExtractionTraits {};
 
 template<> struct JsonExtractionTraits<Identifier> {
-    static std::string name;
     static Identifier implementation(const json_spirit::Value &v) {
-        JsonContext c1("When extracting " + name);
+        JsonContext c1("When extracting Identifier");
         return v.get_str();
     }
 };
-std::string JsonExtractionTraits<Identifier>::name = "Identifier";
 
 template<> struct JsonExtractionTraits<PendingChangeset> {
-    static std::string name;
     static PendingChangeset implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
         JsonHandler h;
@@ -116,10 +113,8 @@ template<> struct JsonExtractionTraits<PendingChangeset> {
         return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
     }
 };
-std::string JsonExtractionTraits<PendingChangeset>::name = "PendingChangeset";
 
 template<> struct JsonExtractionTraits<ObjectRelation> {
-    static std::string name;
     static ObjectRelation implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
         // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
@@ -163,10 +158,8 @@ template<> struct JsonExtractionTraits<ObjectRelation> {
         }
     }
 };
-std::string JsonExtractionTraits<ObjectRelation>::name = "ObjectRelation";
 
 template<> struct JsonExtractionTraits<RevisionMetadata> {
-    static std::string name;
     static RevisionMetadata implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
         JsonHandler h;
@@ -183,7 +176,6 @@ template<> struct JsonExtractionTraits<RevisionMetadata> {
         return RevisionMetadata(revision, author, timestamp, commitMessage);
     }
 };
-std::string JsonExtractionTraits<RevisionMetadata>::name = "RevisionMetadata";
 
 
 /** @short Abstract class for conversion between a JSON value and "something" */
@@ -252,7 +244,7 @@ void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Valu
 template<typename T>
 void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &value)
 {
-    JsonContext c1("When extracting a vector of " + JsonExtractionTraits<T>::name);
+    JsonContext c1("When extracting vector");
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
         target->push_back(JsonExtractionTraits<T>::implementation(item));
     }
