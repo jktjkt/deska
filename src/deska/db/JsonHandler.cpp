@@ -217,6 +217,16 @@ template<> struct JsonExtractionTraits<PendingChangeset::AttachStatus> {
     }
 };
 
+template<typename T> struct JsonExtractionTraits<boost::optional<T> > {
+    static boost::optional<T> implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::optional<T>");
+        if (v.type() == json_spirit::null_type)
+            return boost::optional<T>();
+        else
+            return JsonExtractionTraits<T>::implementation(v);
+    }
+};
+
 
 
 /** @short Abstract class for conversion between a JSON value and "something" */
@@ -241,16 +251,6 @@ public:
 
 /** Got to provide a partial specialization in order to be able to define a custom extract() */
 template <typename T>
-class SpecializedExtractor<boost::optional<T> >: public JsonExtractor {
-    boost::optional<T> *target;
-public:
-    /** @short Create an extractor which will save the parsed and converted value to a pointer */
-    SpecializedExtractor(boost::optional<T> *source): target(source) {}
-    virtual void extract(const json_spirit::Value &value);
-};
-
-/** Got to provide a partial specialization in order to be able to define a custom extract() */
-template <typename T>
 class SpecializedExtractor<std::vector<T> >: public JsonExtractor {
     std::vector<T> *target;
 public:
@@ -267,24 +267,6 @@ void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &va
     JsonContext c1("When extracting vector");
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
         target->push_back(JsonExtractionTraits<T>::implementation(item));
-    }
-}
-
-template<typename T>
-void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting an optional value");
-    if (value.is_null()) {
-        // The JSON null is mapped to an empty optional
-        target->reset();
-        return;
-    } else {
-        // We have a value, so let's try to parse it
-        // this is ugly, but it works and allows us to avoid code duplication
-        T res;
-        SpecializedExtractor<T> extractor(&res);
-        extractor.extract(value);
-        *target = res;
     }
 }
 
