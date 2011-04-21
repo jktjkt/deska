@@ -151,24 +151,6 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
 }
 
 
-/** @short Convert from json_spirit::Object into Deska::Db::RevisionMetadata */
-RevisionMetadata jsonObjectToDeskaRevisionMetadata(const json_spirit::Object &o)
-{
-    JsonContext c1("When converting a JSON Object into a Deska::Db::RevisionMetadata");
-    JsonHandler h;
-    RevisionId revision = RevisionId::null;
-    std::string author;
-    boost::posix_time::ptime timestamp;
-    std::string commitMessage;
-    h.read("revision").extract(&revision);
-    h.read("author").extract(&author);
-    h.read("timestamp").extract(&timestamp);
-    h.read("commitMessage").extract(&commitMessage);
-    h.parseJsonObject(o);
-    BOOST_ASSERT(revision != RevisionId::null);
-    return RevisionMetadata(revision, author, timestamp, commitMessage);
-}
-
 template<typename T> struct JsonExtractionTraits {};
 
 template<> struct JsonExtractionTraits<Identifier> {
@@ -201,8 +183,19 @@ std::string JsonExtractionTraits<ObjectRelation>::name = "ObjectRelation";
 template<> struct JsonExtractionTraits<RevisionMetadata> {
     static std::string name;
     static RevisionMetadata implementation(const json_spirit::Value &v) {
-        JsonContext c1("When extracting " + name);
-        return jsonObjectToDeskaRevisionMetadata(v.get_obj());
+        JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
+        JsonHandler h;
+        RevisionId revision = RevisionId::null;
+        std::string author;
+        boost::posix_time::ptime timestamp;
+        std::string commitMessage;
+        h.read("revision").extract(&revision);
+        h.read("author").extract(&author);
+        h.read("timestamp").extract(&timestamp);
+        h.read("commitMessage").extract(&commitMessage);
+        h.parseJsonObject(v.get_obj());
+        BOOST_ASSERT(revision != RevisionId::null);
+        return RevisionMetadata(revision, author, timestamp, commitMessage);
     }
 };
 std::string JsonExtractionTraits<RevisionMetadata>::name = "RevisionMetadata";
