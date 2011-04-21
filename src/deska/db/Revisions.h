@@ -89,6 +89,24 @@ bool operator!=(const PendingChangeset &a, const PendingChangeset &b);
 std::ostream& operator<<(std::ostream &stream, const PendingChangeset &p);
 std::ostream& operator<<(std::ostream &stream, const PendingChangeset::AttachStatus status);
 
+struct RevisionMetadata {
+    /** @short Revision number */
+    RevisionId revision;
+    /** @short Author of the changeset */
+    std::string author;
+    /** @short Timestamp of when this reviosion was modified the last time */
+    boost::posix_time::ptime timestamp;
+    /** @short The commit message */
+    std::string commitMessage;
+
+    RevisionMetadata(const RevisionId revision, const std::string &author, const boost::posix_time::ptime timestamp,
+                     const std::string &commitMessage);
+};
+
+bool operator==(const RevisionMetadata &a, const RevisionMetadata &b);
+bool operator!=(const RevisionMetadata &a, const RevisionMetadata &b);
+std::ostream& operator<<(std::ostream &stream, const RevisionMetadata &a);
+
 }
 }
 
