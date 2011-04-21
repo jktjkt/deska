@@ -245,7 +245,7 @@ public:
     // Diffing
 
     /** @short Return a list of metadata for matching revisions */
-    virtual std::vector<RevisionMetadata> revisions() = 0;
+    virtual std::vector<RevisionMetadata> listRevisions() = 0;
 
     /** @short Return differences between the database state in the specified versions */
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) = 0;

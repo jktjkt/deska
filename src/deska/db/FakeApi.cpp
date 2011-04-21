@@ -187,7 +187,7 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
-std::vector<RevisionMetadata> FakeApi::revisions()
+std::vector<RevisionMetadata> FakeApi::listRevisions()
 {
     return std::vector<RevisionMetadata>();
 }

@@ -112,7 +112,7 @@ public:
     virtual void abortCurrentChangeset();
 
     // Diffing
-    virtual std::vector<RevisionMetadata> revisions();
+    virtual std::vector<RevisionMetadata> listRevisions();
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b);
     virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a);
 

@@ -290,7 +290,7 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
-std::vector<RevisionMetadata> JsonApiParser::revisions()
+std::vector<RevisionMetadata> JsonApiParser::listRevisions()
 {
     // FIXME
     return std::vector<RevisionMetadata>();
