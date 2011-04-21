@@ -351,20 +351,6 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
-/** @short Convert JSON into a special data structure representing all attributes of an object */
-template<>
-void SpecializedExtractor<std::map<Identifier,Value> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting all attributes");
-    if (value.type() != json_spirit::obj_type)
-        throw JsonStructureError("Value of expected type Object of Deska Values is not an object");
-    BOOST_FOREACH(const Pair &item, value.get_obj()) {
-        JsonContext c2("When extracting attribute " + item.name_);
-        // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-        (*target)[item.name_] = jsonValueToDeskaValue(item.value_);
-    }
-}
-
 /** @short Convert JSON into a special data structure representing all attributes of an object along with information where their values come from */
 template<>
 void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extract(const json_spirit::Value &value)
@@ -671,7 +657,6 @@ template JsonField& JsonField::extract(TemporaryChangesetId*);
 template JsonField& JsonField::extract(vector<Identifier>*);
 template JsonField& JsonField::extract(vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(vector<ObjectRelation>*);
-template JsonField& JsonField::extract(map<Identifier,Value>*);
 template JsonField& JsonField::extract(map<Identifier,pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
