@@ -30,6 +30,11 @@ CreateObjectModification::CreateObjectModification(const Identifier &kindName_, 
 {
 }
 
+bool operator==(const CreateObjectModification &a, const CreateObjectModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName;
+}
+
 std::ostream& operator<<(std::ostream &stream, const CreateObjectModification &mod)
 {
     return stream << "CreateObjectModification(" << mod.kindName << ", " << mod.objectName << ")";
@@ -38,6 +43,11 @@ std::ostream& operator<<(std::ostream &stream, const CreateObjectModification &m
 DeleteObjectModification::DeleteObjectModification(const Identifier &kindName_, const Identifier &objectName_):
     kindName(kindName_), objectName(objectName_)
 {
+}
+
+bool operator==(const DeleteObjectModification &a, const DeleteObjectModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName;
 }
 
 std::ostream& operator<<(std::ostream &stream, const DeleteObjectModification &mod)
@@ -51,6 +61,11 @@ RenameObjectModification::RenameObjectModification(const Identifier &kindName_, 
 {
 }
 
+bool operator==(const RenameObjectModification &a, const RenameObjectModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName && a.oldObjectName == b.oldObjectName;
+}
+
 std::ostream& operator<<(std::ostream &stream, const RenameObjectModification &mod)
 {
     return stream << "RenameObjectModification(" << mod.kindName << ", " << mod.objectName << ", " << mod.oldObjectName << ")";
@@ -60,6 +75,11 @@ RemoveAttributeModification::RemoveAttributeModification(const Identifier &kindN
     const Identifier &attributeName_):
     kindName(kindName_), objectName(objectName_), attributeName(attributeName_)
 {
+}
+
+bool operator==(const RemoveAttributeModification &a, const RemoveAttributeModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName && a.attributeName == b.attributeName;
 }
 
 std::ostream& operator<<(std::ostream &stream, const RemoveAttributeModification &mod)
@@ -75,10 +95,22 @@ SetAttributeModification::SetAttributeModification(const Identifier &kindName_, 
 {
 }
 
+bool operator==(const SetAttributeModification &a, const SetAttributeModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName && a.attributeName == b.attributeName &&
+            a.attributeData == b.attributeData && a.oldAttributeData == b.oldAttributeData;
+}
+
 std::ostream& operator<<(std::ostream &stream, const SetAttributeModification &mod)
 {
     return stream << "SetAttributeModification(" << mod.kindName << ", " << mod.objectName << ", " << mod.attributeName <<
         ", "  << mod.attributeData << ", "  << mod.oldAttributeData << ")";
+}
+
+bool operator!=(const ObjectModification& a, const ObjectModification& b)
+{
+    // boost::variant provides operator==(), but not operator!=()
+    return !(a==b);
 }
 
 }
