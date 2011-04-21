@@ -257,6 +257,36 @@ template<> struct JsonExtractionTraits<std::map<Identifier,pair<Identifier,Value
     }
 };
 
+/** @short Convert JSON into a vector of attribute data types
+
+This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
+*/
+template<> struct JsonExtractionTraits<std::vector<KindAttributeDataType> > {
+    static std::vector<KindAttributeDataType> implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting std::vector<KindAttributeDataType>");
+        std::vector<KindAttributeDataType> res;
+        BOOST_FOREACH(const Pair &item, v.get_obj()) {
+            JsonContext c2("When handling attribute " + item.name_);
+            if (item.value_.type() != json_spirit::str_type)
+                throw JsonStructureError("Value of expected type Data Type is not string");
+            std::string datatype = item.value_.get_str();
+            if (datatype == "string") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_STRING));
+            } else if (datatype == "int") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_INT));
+            } else if (datatype == "identifier") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
+            } else if (datatype == "double") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+            } else {
+                std::ostringstream s;
+                s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
+                throw JsonStructureError(s.str());
+            }
+        }
+        return res;
+    }
+};
 
 
 
@@ -281,36 +311,6 @@ public:
 };
 
 
-/** @short Convert JSON into a vector of attribute data types
-
-This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
-*/
-template<>
-void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a vector of Data Types");
-    if (value.type() != json_spirit::obj_type)
-        throw JsonStructureError("Value of expected type Array of Data Types is not an array");
-    BOOST_FOREACH(const Pair &item, value.get_obj()) {
-        JsonContext c2("When handling attribute " + item.name_);
-        if (item.value_.type() != json_spirit::str_type)
-            throw JsonStructureError("Value of expected type Data Type is not string");
-        std::string datatype = item.value_.get_str();
-        if (datatype == "string") {
-            target->push_back(KindAttributeDataType(item.name_, TYPE_STRING));
-        } else if (datatype == "int") {
-            target->push_back(KindAttributeDataType(item.name_, TYPE_INT));
-        } else if (datatype == "identifier") {
-            target->push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
-        } else if (datatype == "double") {
-            target->push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
-        } else {
-            std::ostringstream s;
-            s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
-            throw JsonStructureError(s.str());
-        }
-    }
-}
 
 /** @short Convert JSON into a wrapped, type-checked object attributes */
 template<>
