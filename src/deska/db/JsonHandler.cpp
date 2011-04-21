@@ -307,9 +307,12 @@ class SpecializedExtractor: public JsonExtractor
 public:
     /** @short Create an extractor which will save the parsed and converted value to a pointer */
     SpecializedExtractor(T *source): target(source) {}
-    virtual void extract(const json_spirit::Value &value);
+    virtual void extract(const json_spirit::Value &value)
+    {
+        JsonContext c1("In SpecializedExtractor<T>");
+        *target = JsonExtractionTraits<T>::implementation(value);
+    }
 };
-
 
 
 /** @short Convert JSON into a wrapped, type-checked object attributes
@@ -379,13 +382,6 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
 }
 
 
-/** @short Simple forward for type-safe extracting */
-template<typename T>
-void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("In SpecializedExtractor<T>");
-    *target = JsonExtractionTraits<T>::implementation(value);
-}
 
 JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
