@@ -75,51 +75,6 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
-/** @short Convert a json_spirit::Object to Deska::Db::ObjectRelation */
-ObjectRelation jsonObjectToDeskaObjectRelation(const json_spirit::Object &o)
-{
-    JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
-    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
-    JsonHandler h;
-    std::string relationKind;
-    h.failOnUnknownFields(false);
-    h.read("relation").extract(&relationKind);
-    h.parseJsonObject(o);
-
-    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
-    h = JsonHandler();
-    h.read("relation");
-
-    // Now process the actual data
-    if (relationKind == "EMBED_INTO") {
-        std::string into;
-        h.read("into").extract(&into);
-        h.parseJsonObject(o);
-        return ObjectRelation::embedInto(into);
-    } else if (relationKind == "IS_TEMPLATE") {
-        std::string toWhichKind;
-        h.read("toWhichKind").extract(&toWhichKind);
-        h.parseJsonObject(o);
-        return ObjectRelation::isTemplate(toWhichKind);
-    } else if (relationKind == "MERGE_WITH") {
-        std::string targetTableName, sourceAttribute;
-        h.read("targetTableName").extract(&targetTableName);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(o);
-        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
-    } else if (relationKind == "TEMPLATIZED") {
-        std::string byWhichKind, sourceAttribute;
-        h.read("byWhichKind").extract(&byWhichKind);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(o);
-        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
-    } else {
-        std::ostringstream s;
-        s << "Invalid relation kind '" << relationKind << "'";
-        throw JsonStructureError(s.str());
-    }
-}
-
 template<typename T> struct JsonExtractionTraits {};
 
 template<> struct JsonExtractionTraits<Identifier> {
@@ -166,8 +121,46 @@ std::string JsonExtractionTraits<PendingChangeset>::name = "PendingChangeset";
 template<> struct JsonExtractionTraits<ObjectRelation> {
     static std::string name;
     static ObjectRelation implementation(const json_spirit::Value &v) {
-        JsonContext c1("When extracting " + name);
-        return jsonObjectToDeskaObjectRelation(v.get_obj());
+        JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
+        // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
+        JsonHandler h;
+        std::string relationKind;
+        h.failOnUnknownFields(false);
+        h.read("relation").extract(&relationKind);
+        h.parseJsonObject(v.get_obj());
+
+        // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
+        h = JsonHandler();
+        h.read("relation");
+
+        // Now process the actual data
+        if (relationKind == "EMBED_INTO") {
+            std::string into;
+            h.read("into").extract(&into);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::embedInto(into);
+        } else if (relationKind == "IS_TEMPLATE") {
+            std::string toWhichKind;
+            h.read("toWhichKind").extract(&toWhichKind);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::isTemplate(toWhichKind);
+        } else if (relationKind == "MERGE_WITH") {
+            std::string targetTableName, sourceAttribute;
+            h.read("targetTableName").extract(&targetTableName);
+            h.read("sourceAttribute").extract(&sourceAttribute);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+        } else if (relationKind == "TEMPLATIZED") {
+            std::string byWhichKind, sourceAttribute;
+            h.read("byWhichKind").extract(&byWhichKind);
+            h.read("sourceAttribute").extract(&sourceAttribute);
+            h.parseJsonObject(v.get_obj());
+            return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+        } else {
+            std::ostringstream s;
+            s << "Invalid relation kind '" << relationKind << "'";
+            throw JsonStructureError(s.str());
+        }
     }
 };
 std::string JsonExtractionTraits<ObjectRelation>::name = "ObjectRelation";
