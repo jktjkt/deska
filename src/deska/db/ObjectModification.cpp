@@ -55,20 +55,20 @@ std::ostream& operator<<(std::ostream &stream, const DeleteObjectModification &m
     return stream << "DeleteObjectModification(" << mod.kindName << ", " << mod.objectName << ")";
 }
 
-RenameObjectModification::RenameObjectModification(const Identifier &kindName_, const Identifier &objectName_,
-                                                   const Identifier &oldObjectName_):
-    kindName(kindName_), objectName(objectName_), oldObjectName(oldObjectName_)
+RenameObjectModification::RenameObjectModification(const Identifier &kindName_, const Identifier &oldObjectName_,
+                                                   const Identifier &newObjectName_):
+    kindName(kindName_), oldObjectName(oldObjectName_), newObjectName(newObjectName_)
 {
 }
 
 bool operator==(const RenameObjectModification &a, const RenameObjectModification &b)
 {
-    return a.kindName == b.kindName && a.objectName == b.objectName && a.oldObjectName == b.oldObjectName;
+    return a.kindName == b.kindName && a.oldObjectName == b.oldObjectName && a.newObjectName == b.newObjectName;
 }
 
 std::ostream& operator<<(std::ostream &stream, const RenameObjectModification &mod)
 {
-    return stream << "RenameObjectModification(" << mod.kindName << ", " << mod.objectName << ", " << mod.oldObjectName << ")";
+    return stream << "RenameObjectModification(" << mod.kindName << ", " << mod.oldObjectName << ", " << mod.newObjectName << ")";
 }
 
 RemoveAttributeModification::RemoveAttributeModification(const Identifier &kindName_, const Identifier &objectName_,

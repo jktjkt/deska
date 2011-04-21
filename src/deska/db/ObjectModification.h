@@ -50,10 +50,10 @@ std::ostream& operator<<(std::ostream &stream, const DeleteObjectModification &m
 
 struct RenameObjectModification {
     Identifier kindName;
-    Identifier objectName;
     Identifier oldObjectName;
+    Identifier newObjectName;
 
-    RenameObjectModification(const Identifier &kindName, const Identifier &objectName, const Identifier &oldObjectName);
+    RenameObjectModification(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
 };
 
 bool operator==(const RenameObjectModification &a, const RenameObjectModification &b);
