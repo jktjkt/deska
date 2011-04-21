@@ -178,6 +178,28 @@ template<> struct JsonExtractionTraits<RevisionMetadata> {
 };
 
 
+template<> struct JsonExtractionTraits<RevisionId> {
+    static RevisionId implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting RevisionId");
+        return RevisionId::fromJson(v.get_str());
+    }
+};
+
+template<> struct JsonExtractionTraits<TemporaryChangesetId> {
+    static TemporaryChangesetId implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting TemporaryChangesetId");
+        return TemporaryChangesetId::fromJson(v.get_str());
+    }
+};
+
+template<> struct JsonExtractionTraits<boost::posix_time::ptime> {
+    static boost::posix_time::ptime implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::posix_time::ptime");
+        return boost::posix_time::time_from_string(v.get_str());
+    }
+};
+
+
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
 {
@@ -219,27 +241,6 @@ public:
 };
 
 
-
-/** @short Convert JSON into Deska::RevisionId */
-template<>
-void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a RevisionId");
-    if (value.type() != json_spirit::str_type)
-        throw JsonStructureError("Value of expected type RevisionId is not a string");
-    *target = RevisionId::fromJson(value.get_str());
-}
-
-/** @short Convert JSON into Deska::TemporaryChangesetId */
-template<>
-void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a TemporaryChangesetId");
-    if (value.type() != json_spirit::str_type)
-        throw JsonStructureError("Value of expected type TemporaryChangesetId is not a string");
-    *target = TemporaryChangesetId::fromJson(value.get_str());
-}
-
 /** @short Generic extractor for list of items */
 template<typename T>
 void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &value)
@@ -267,7 +268,6 @@ void SpecializedExtractor<boost::optional<T> >::extract(const json_spirit::Value
         *target = res;
     }
 }
-
 
 /** @short Convert JSON into a vector of attribute data types
 
@@ -382,16 +382,6 @@ void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extrac
     }
 }
 
-/** @short Conveert JSON into boost::posix_time::ptime */
-template<>
-void SpecializedExtractor<boost::posix_time::ptime>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a timestamp");
-    if (value.type() != json_spirit::str_type)
-        throw JsonStructureError("Value of expected type Timestamp is not a string");
-    *target = boost::posix_time::time_from_string(value.get_str());
-}
-
 /** @short Convert from JSON into an internal representation of the attached/detached state */
 template<>
 void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_spirit::Value &value)
@@ -411,19 +401,12 @@ void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_sp
     }
 }
 
-/** @short Require specialization for all target types during compilation of this translation unit */
+/** @short Simple forward for type-safe extracting */
 template<typename T>
 void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
-    // If you get this error, there's no extractor from JSON to the desired type.
-    BOOST_STATIC_ASSERT(sizeof(T) == 0);
-}
-
-template<>
-void SpecializedExtractor<std::string>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a string");
-    *target = value.get_str();
+    JsonContext c1("In SpecializedExtractor<T>");
+    *target = JsonExtractionTraits<T>::implementation(value);
 }
 
 JsonField::JsonField(const std::string &name):
