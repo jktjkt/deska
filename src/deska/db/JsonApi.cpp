@@ -290,6 +290,29 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
+std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
+{
+    JsonContext c1("In listRevisions() API method");
+    std::vector<RevisionMetadata> res;
+    JsonHandlerApiWrapper h(this, "listRevisions");
+    h.read("listRevisions").extract(&res);
+    h.work();
+    return res;
+}
+
+std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
+{
+    // FIXME
+    return std::vector<ObjectModification>();
+}
+
+std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
+{
+    // FIXME
+    return std::vector<ObjectModification>();
+}
+
+
 
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)

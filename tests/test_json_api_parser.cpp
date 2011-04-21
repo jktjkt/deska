@@ -403,6 +403,24 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStre
     expectEmpty();
 }
 
+/** @short Test listRevisions() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"listRevisions\"}\n");
+    expectRead("{\"response\": \"listRevisions\", \"listRevisions\": ["
+               "{\"revision\": \"r123\", \"author\": \"user\", \"timestamp\": \"2011-04-07 17:22:33\", \"commitMessage\": \"message\"}"
+               "]}\n");
+    std::vector<RevisionMetadata> expected;
+    expected.push_back(RevisionMetadata(
+                           RevisionId(123), "user",
+                           boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
+                           "message"));
+    std::vector<RevisionMetadata> res = j->listRevisions();
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+
 /** @short Verify correctness of parsing of revisions from JSON */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
 {

@@ -4,6 +4,7 @@
 \usepackage[czech,english]{babel}
 \usepackage{a4wide}
 \usepackage{listings}
+\usepackage{longtable}
 
 \begin{document}
 
@@ -61,7 +62,7 @@ libraries have issues with parsing a sequence of JSON objects following each oth
 these tools try to ``peek'' at the next character of the stream input after parsing a full JSON object, while the ``next
 character'' is typically not available at that point.  Therefore, in order to facilitate the usage of these libraries,
 we have chosen to mandate that each complete JSON object at the top-level scope has to be followed by a newline (LF),
-the {\tt ``\textbackslash n''} character.  Given that the newline character will never occur in a serialized JSON data,
+the {\tt "\textbackslash n"} character.  Given that the newline character will never occur in a serialized JSON data,
 this usage is completely safe and allows the protocol implementations to use per-line parsing for any IO interaction.
 
 \section{JSON Serialization}
@@ -75,14 +76,14 @@ the hypothetical command {\tt foo}, which does not accept any commands, will be 
 will omit the trailing line feed for brevity in the following examples):
 
 \begin{lstlisting}
-    {``command'': ``foo''}
+    {"command": "foo"}
 \end{lstlisting}
 
 A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
 response for the above command will look like this:
 
 \begin{lstlisting}
-    {``response'': ``foo''}
+    {"response": "foo"}
 \end{lstlisting}
 
 \subsubsection{Passing Arguments}
@@ -92,10 +93,10 @@ the one we discussed above, with the arguments simply appended to the top-level 
 repeated in the relevant response:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
-    {``response'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
+    {"command": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
+    {"response": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
 \end{lstlisting}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
@@ -116,10 +117,10 @@ For example, if the above command was extended with a return value of {\tt strin
 would look like this one:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value''}
-    {``response'': ``foo'', ``arg1'': ``arg1 value'',
-        ``name of arg2'': ``some value'', ``foo'': ``The returned value''}
+    {"command": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value"}
+    {"response": "foo", "arg1": "arg1 value",
+        "name of arg2": "some value", "foo": "The returned value"}
 \end{lstlisting}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
@@ -128,7 +129,9 @@ Again, the order of appearance of the individual key-value pairs in a particular
 
 So far, we have mentioned that the data are transfered ``serialized as JSON values'', but did not specify how this
 serialization is defined and what the mapping between native data types in a programming language (like an {\tt int}, or
-a {\tt string}), the database server and the JSON transport is.
+a {\tt string}), the database server and the JSON transport is.  The following sections provide detailed information in
+this matter.  For a quick reference, please check the overview tables in section \ref{sec:json-data-types-reference} on
+page~\pageref{sec:json-data-types-reference}.
 
 \subsubsection{Primitive types}
 
@@ -148,11 +151,16 @@ Suppose the following C++ definition:
     };
 \end{lstlisting}
 
-A value of {\tt BAR} is transferred as a JSON string {\tt ``BAR''}.  There is no technical way of distinguishing between
-a value of the {\tt enum Foo} {\tt BAR} and the string literal {\tt BAR}; the difference is always provided by the
+A value of {\tt BAR} is transferred as a JSON string {\tt "BAR"}.  There is no technical way of distinguishing between
+a value of the {\tt enum Foo(BAR)} and the string literal {\tt "BAR"}; the difference is always provided by the
 context.
 
-FIXME: date, timestamp,\ldots
+The JSON string is further overloaded for serialization of timestamps, ie. particular moments in time.  The C++ API uses
+Boost's {\tt boost::posix\_time::ptime} as a timestamp representation, and serializes the data in the {\tt "YYYY-mm-dd
+hh:mm:ss"} form, like {\tt "2011-04-07 17:22:33"}.
+
+Similarly, a date is stored into the {\tt boost::gregorian::date} and serialized using the {\tt "YYYY-mm-dd"} form, like
+{\tt "2011-04-07"}.
 
 \subsubsection{Containers}
 
@@ -164,14 +172,14 @@ underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2,
 {\tt foo}:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': [1, 2, 3]}
+    {"command": "foo", "a1": [1, 2, 3]}
 \end{lstlisting}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': [``a'': 1, ``b'': 2, ``c'': 3]}
+    {"command": "foo", "a1": ["a": 1, "b": 2, "c": 3]}
 \end{lstlisting}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
@@ -191,16 +199,34 @@ passed prefixed by name.  Therefore, given class {\tt Foo} with the following C+
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
 \begin{lstlisting}
-    {``command'': ``foo'', ``a1'': {``i'': 10, ``s'': ``something''}}
+    {"command": "foo", "a1": {"i": 10, "s": "something"}}
 \end{lstlisting}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
 information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
 existence of class {\tt Foo} at all.
 
+Alternatively, certain simpler classes (like the IP addresses or MAC addresses of Ethernet interfaces) are better
+transfered in their canonical string form.  As a rule of thumb, if a particular class has a rich internal structure, or
+is complexity is closer to that of an {\tt Deska::Db::ObjectRelation} than to, for example, {\tt
+boost::posix\_time::ptime}, it's better to use the complex form in preference to the string serialization.
+
+It is also important to note that this section only serves as a generic guideline about how to proceed when implementing
+JSON I/O for custom data types.  Considerable amount of work is required to be able to exchange custom values over JSON,
+see section \ref{sec:json-extending} for details.
+
 \subsubsection{Optional Values}
 
-FIXME: talk about {\tt null} and missing arguments
+Certain data fields are designed to allow either a value of the underlying data type, or a special NULL value.  On the
+C++ side, this is achieved by wrapping the data type inside a {\tt boost::optional<>} container.  In the JSON
+serialization, the NULL can be simulated in two ways, either by omitting the value altogether, or by using JSON's {\tt
+null} keyword as the JSON value.  The Deska DBAPI does not distinguish between the two conventions, so the following
+examples are equivalent, provided that the arguments {\tt a1} is defined an accept NULL:
+
+\begin{lstlisting}
+    {"command": "foo", "a1": null}
+    {"command": "foo"}
+\end{lstlisting}
 
 \subsection{Exceptions}
 
@@ -210,16 +236,228 @@ that the execution hit an implementation-specific failure which has to be commun
 SQL processing.  For this reason and in order to prevent cluttering the API with artificial {\tt NULL} values and
 special placeholders, the Deska DB API supports {\em exceptions}.
 
-FIXME: define and describe how they're transmitted.
+When the Deska server has encountered an error when processing a particular response, it will return a JSON object in
+the usual form (ie. with {\tt "command"} replaced by {\tt "response"} and the rest of the data left intact), and instead
+of adding the returned data in a key named after the API method, it will create another top-level key called {\tt
+"dbException"} pointing to a JSON object representing an exception.  The new object will have the following structure:
 
-\section{Deska DBAPI Reference}
+\begin{lstlisting}
+    {"type": "TypeOfException", "message": "description"}
+\end{lstlisting}
 
-\subsection{The DBAPI at a Glance}
+Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
+with a textual message usable for debugging.  The object might contain more data, which could be used to pass
+computer-readable data to the API user.  Usual rules for representing values apply here.
 
-FIXME: high-level overview
+This is the list of currently defined exceptions, along with their other arguments:
 
-\subsection{Reference}
+\begin{longtable}{ p{36mm} p{70mm} p{40mm} }
+    \caption{List of supported exceptions} \\
+    Exception Name & Meaning & Additional arguments \\
+    \hline
+    \endhead
+    {\tt NotFoundError} & The database does not contain such object & -- \\
+    {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
+        without one & -- \\
+    {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
+    {\tt ServerError} & The server has experienced an internal error & -- \\
+\end{longtable}
 
-FIXME: list of commands with examples
+\subsection{Adding Low-Level Data Types}
+\label{sec:json-extending}
+
+Adding a low-level data type, ie. an equivalent of a {\tt string}, {\tt int} or similarly defined entity, is also
+possible.  Users are strongly encouraged to contact the Deska project before undertaking these changes, if only to
+prevent possible namespace clashes in future.
+
+In general, the following has to be done to add a low-level data type to Deska:
+
+\begin{itemize}
+    \item Pick up an identifier to use
+    \item Create the SQL data type, if applicable
+    \item Create the corresponding C++ class, if applicable
+    \item Extend the {\tt Deska::Db::Value} variant to include the new type
+    \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
+        into JSON
+    \item Create a specialization of the {\tt template<> void SpecializedExtractor<\\
+        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)} which is responsible for
+        proper de-serialization of the JSON values
+    \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
+    \item Update the documentation and unit tests
+\end{itemize}
+
+\subsection{Serialization Quick Reference}
+\label{sec:json-data-types-reference}
+
+The following table provides a quick and compact overview of the officially supported data types and their respective
+JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
+API function.
+
+\begin{longtable}{ p{18mm} | p{35mm} p{41mm} p{45mm} }
+    \caption{JSON serialization of data types for attribute values} \\
+    Name & SQL Data Type & C++ Data Type & JSON Serialization \\
+    \hline
+    \endhead
+    {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
+    {\tt int} & INT & {\tt int} & {\tt 123} \\
+    {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
+    {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
+    {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
+    {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
+    {\tt enum\_X}\footnote{See section \ref{sec:json-extending} for instructions about how to add new enumerations to both
+        the Deska DB and the C++ library.} & ENUM (``A'', ``B'') & {\tt typedef enum \{A, B\} X} & {\tt "A"} \\
+    {\tt X\_null}\footnote{The {\tt X} notion means that when there's an {\tt X} type defined and not postfixed by {\tt
+        \_null} already, it is allowed to create a new data type by prefixing the original name with {\tt \_null}.} &
+        \textless TYPE\textgreater~without the {\tt NOT~NULL} stanza & {\tt boost::optional<T>} &
+        {\tt null} or the respective serialization for \textless TYPE\textgreater \\
+\end{longtable}
+
+In addition to the types mentioned above, which are usable and allowed as the data types for objects' attributes, there
+are several ``internal'' data types which are exchanged over JSON, but which cannot be used in the context of
+attributes.  These types are typically utilized for transfer of various data fields for internal purposes of the Deska
+DBAPI JSON protocol, like type-safe serialization of revisions, changeset identification, passing along the object kind
+relation information etc.  The following types are defined:
+
+\begin{longtable}{ p{60mm} p{90mm} }
+    \caption{JSON serialization of values for internal use} \\
+    C++ Data Type & JSON Serialization \\
+    \hline
+    \endhead
+    {\tt Deska::Db::RevisionId} & {\tt "r123"} \\
+    {\tt Deska::Db::TemporaryChangesetId} & {\tt "tmp123"} \\
+    {\tt std::vector<T>} & {\tt [A, B, C]}
+        \newline(With the exact format of A/B/C depending on type~{\tt T})\\
+    {\tt std::map<std::string, T>} & {\tt \{"key1": A, "key2": B, "key3": C\}}
+        \newline(With the exact format of A/B/C depending on type~{\tt T})\\
+    {\tt Deska::Db::PendingChangeset::\newline{~ ~}AttachStatus} &
+        One of {\tt "DETACHED"} or {\tt "INPROGRESS"} \\
+    {\tt Deska::Db::PendingChangeset} &
+        {\tt \{"changeset":"tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
+        "parentRevision": "r666", "message": "message"\}} \\
+    {\tt Deska::Db::KindAttributeDataType} &
+        One of {\tt string}, {\tt int}, {\tt identifier}, {\tt double}, {\tt date}, {\tt timestamp}, {\tt enum\_X} and
+        {\tt X\_null} \\
+    {\tt Deska::Db::ObjectRelation} &
+        One of \newline {\tt\{"relation": "EMBED\_INTO", "into": "hardware"\}}, \newline
+        {\tt\{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}},
+        \newline
+        {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}} \newline or \newline
+        {\tt\{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\}} \\
+\end{longtable}
+
+\section{Database Interface}
+
+The Deska DBAPI provides functions for accessing the information contained in the database.
+
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
+\subsection{The Deska DBAPI at a Glance}
+
+The API can be divided into a few groups.  The first part are commands for querying the database scheme which are
+described in section \ref{sec:api-group-dbscheme}, these commands informs you about what kinds of top-level objects are
+defined, what relations have been defined among them and which attributes belong to each object.  Second part of the API
+(section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
+part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
+part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
+results and the last part (section \ref{sec:api-group-history}) discusses browsing history.
+
+Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
+are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
+``belong'' to other objects, and therefore are best represented as an embedded part, should call
+\deskaFuncRef{kindRelations} to fetch that information.  Finally, calling \deskaFuncRef{kindAttributes} for each
+top-level object will return attributes valid at the scope of each object.
+
+After establishing the metadata structure, applications which require only read-only access can proceed with retrieving
+individual objects' data.  The API provides a few functions for that, starting with the \deskaFuncRef{kindInstances} for
+determining identifiers (names) of particular objects, \deskaFuncRef{objectData} for fetching values of object's
+attributes, \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
+resolving inherited values from object templates, and also \deskaFuncRef{findOverriddenAttrs} and
+\deskaFuncRef{findNonOverriddenAttrs} for assessing the impact of changes to an individual object's attribute.
+
+Before potentially using any methods for object modification, each application has to open a changeset to work in.  The
+application can achieve that either by calling the \deskaFuncRef{startChangeset}, or possibly by attaching into one of
+the already-created changesets (listed by \deskaFuncRef{pendingChangesets}) through \deskaFuncRef{resumeChangeset}.
+Should the user decide not to need the pending changeset anymore, she can call the \deskaFuncRef{abortCurrentChangeset}
+to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
+changeset, preserving the modifications for a later commit.  When all changes were performed and the user decides to
+make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them.
+
+It is possible that someone has already committed a new version after our original user created a changeset, but before
+the attempted commit.  In that case, the new commit won't be performed, and after verifying that the changes are still
+valid (FIXME), the user shall use the \deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now
+based on a new, updated permanent revision.
+
+Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
+renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
+can be undone with \deskaFuncRef{removeAttribute}.
+
+FIXME: diffing.
+
+\subsection{API Reference}
+
+\newcommand{\deskaFunc}[5]
+{\paragraph{#1}\label{sec:api-ref-#1}
+
+{#4}
+
+{#5}
+
+\subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
+
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}, "{#1}": {#3}\}}
+
+}
+
+% usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
+\setcounter{secnumdepth}{4}
+
+\subsubsection{Querying the Database Scheme}
+\label{sec:api-group-dbscheme}
+
+Functions in this group are used to query the scheme of the database, ie. a list of allowed objects, their attributes
+and the defined object relations.
+
+\deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
+    {Return list of names of configured top-level Kinds.}
+    {Top-level Kinds are entities like enclosure etc, that is, object representing types.  These Kinds could then be
+    instantiated.}
+
+\deskaFunc{kindAttributes}{, "kindName": "something"}
+    {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
+    {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+
+\deskaFunc{kindRelations}{, "kindName": "something"}
+    { [ \\
+            \{"relation": "EMBED\_INTO", "into": "hardware"\}, \\
+            \{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}, \\
+            \{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}, \\
+            \{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\} \\
+            ]}
+    {Retrieve relations between different Kinds}
+    {This function returns a list of relations for the specified kind of entities -- for more details and examples, see the ObjectRelation struct.}
+
+\subsubsection{Retrieving Object Data}
+\label{sec:api-group-data-retrieval}
+
+Functions from this group are used for fetching actual data from the database.
+
+\subsubsection{Performing Modifications}
+\label{sec:api-group-data-modification}
+
+Any function which modifies objects stored in the Deska database belongs to this group.
+
+\subsubsection{Version Control}
+\label{sec:api-group-vcs}
+
+This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
+History}, section \ref{sec:api-group-history}).
+
+\subsubsection{Querying History}
+\label{sec:api-group-history}
+
+Functions for browsing history of individual objects, retrieving lists of differences, etc.
+
+FIXME: \#143
 
 \end{document}
