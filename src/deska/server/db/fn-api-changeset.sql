@@ -63,9 +63,17 @@ BEGIN
 	SELECT max(num) INTO max FROM version;
 	SELECT id INTO parr FROM version
 		WHERE max = num;
+	IF NOT FOUND THEN
+		-- not found parent revision
+		RAISE SQLSTATE '10001';
+	END IF;
 	INSERT INTO changeset (author,parentRevision,pid)
 		VALUES (session_user,parr,pg_backend_pid());
 	RETURN 1;
+EXCEPTION
+	WHEN unique_violation THEN
+		-- already assigned changeset
+		RAISE SQLSTATE '10002';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -89,8 +97,13 @@ BEGIN
 		WHERE id = ver;
 	SELECT num INTO ret FROM version
 		WHERE id = ver;
+	IF NOT FOUND THEN
+		-- create version not successfull
+		RAISE SQLSTATE '10004';
+	END IF;
 	PERFORM delete_changeset();
 	RETURN ret;
+	--FIXME: Exceptions
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -106,6 +119,7 @@ BEGIN
 	DELETE FROM changeset
 		WHERE id = my_version();
 	RETURN 1;
+	--FIXME: Exceptions
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -121,6 +135,10 @@ DECLARE ver integer;
 BEGIN
 	SELECT id INTO ver FROM changeset
 		WHERE pid = pg_backend_pid();
+	IF NOT FOUND THEN
+		-- no changeset assigned
+		RAISE SQLSTATE '10003';
+	END IF;
 	RETURN ver;
 END
 $$
@@ -137,6 +155,10 @@ DECLARE par bigint;
 BEGIN
 	SELECT parentrevision INTO par FROM changeset 
 		WHERE id = ver;
+	IF NOT FOUND THEN
+		-- not found parent revision
+		RAISE SQLSTATE '10001';
+	END IF;
 	RETURN par;
 END
 $$

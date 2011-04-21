@@ -30,6 +30,11 @@ RETURNS bigint
 AS
 $$
 #FIXME: match "tmp"
+if len(rev) < 4:
+	plpy.SPIError(55555)
+	plpy.error(10005)
+	return 0
+
 return rev[3:len(rev)]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
