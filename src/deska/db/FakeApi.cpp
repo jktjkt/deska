@@ -187,5 +187,21 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
+std::vector<RevisionMetadata> FakeApi::revisions()
+{
+    return std::vector<RevisionMetadata>();
+}
+
+std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId a, const RevisionId b)
+{
+    return std::vector<ObjectModification>();
+}
+
+std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a)
+{
+    return std::vector<ObjectModification>();
+}
+
+
 }
 }

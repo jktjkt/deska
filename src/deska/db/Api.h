@@ -28,6 +28,7 @@
 
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 
 /*
  * TODO items for the DB API:
@@ -240,6 +241,17 @@ public:
 
     /** @short Abort an in-progress changeset */
     virtual void abortCurrentChangeset() = 0;
+
+    // Diffing
+
+    /** @short Return a list of metadata for matching revisions */
+    virtual std::vector<RevisionMetadata> revisions() = 0;
+
+    /** @short Return differences between the database state in the specified versions */
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) = 0;
+
+    /** @short Return differences created in a temporary changeset */
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) = 0;
 };
 
 }

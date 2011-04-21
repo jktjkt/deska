@@ -68,6 +68,11 @@ public:
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
+    // Diffing
+    virtual std::vector<RevisionMetadata> revisions();
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b);
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a);
+
     // These members should be accessible for modifications from the test suite
 
     /** @short Attributes of various top-level objects */

@@ -111,6 +111,11 @@ public:
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
+    // Diffing
+    virtual std::vector<RevisionMetadata> revisions();
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b);
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a);
+
     /** @short Request stream for reading JSON data */
     boost::signals2::signal<std::istream *(), boost::signals2::last_value<std::istream*> > willRead;
     /** @short Request stream for writing JSON data */
