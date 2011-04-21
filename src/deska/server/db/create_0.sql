@@ -34,4 +34,9 @@ GRANT USAGE ON SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;
 
+-- create first empty initial revision 0
+SET search_path TO api,deska,genproc,history,production;
+INSERT INTO version (id,author,message)
+        VALUES ('0',current_user,'Initial revision');
+
 END;

@@ -13,7 +13,7 @@ function drop(){
 	psql -d "$DATABASE" -U "$USER" -f drop_$1.sql 2>&1 > /dev/null | grep -v "cascades"
 }
 function stage(){
-	psql -d "$DATABASE" -U "$USER" -f create_$1.sql 2>&1 > /dev/null | grep -v NOTICE 
+	psql -d "$DATABASE" -U "$USER" -f create_$1.sql 2>&1 > /dev/null | grep -v NOTICE | grep -v "current transaction is aborted"
 }
 function generate(){
 	python gen_sql/generator.py

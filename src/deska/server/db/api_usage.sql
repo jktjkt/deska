@@ -13,7 +13,7 @@ SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
 
 -- commit
 -- end session, part of vendor commit? of vendor commit part of this?
-SELECT commitChangeset();
+SELECT commitChangeset('c1');
 
 END;
 BEGIN;
@@ -25,6 +25,24 @@ SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
 SELECT setAttribute('hardware','hwDELL','note','test');
 SELECT setAttribute('hardware','hwDELL','vendor','IBM');
-SELECT commitChangeset();
+SELECT commitChangeset('c2');
 
+END;
+
+BEGIN;
+SELECT startChangeset();
+SELECT createObject('host','hpv2');
+SELECT setAttribute('host','hpv2','hardware','hwDELL');
+SELECT commitChangeset('c3');
+END;
+BEGIN;
+SELECT startChangeset();
+SELECT createObject('interface','hpv2->eth0');
+SELECT commitChangeset('c4');
+END;
+--deleTE OF embed into
+BEGIN;
+SELECT startChangeset();
+SELECT deleteObject('interface','hpv2->eth0');
+SELECT commitChangeset('c4');
 END;
