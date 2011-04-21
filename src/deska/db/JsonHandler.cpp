@@ -348,7 +348,12 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     throw JsonStructureError(ss.str());
 }
 
-/** @short Convert JSON into a wrapped, type-checked vector of attributes */
+/** @short Convert JSON into a wrapped, type-checked vector of attributes
+
+This function is special, as it needs access to already existing target in order to be able to read the type
+information from somewhere. This means that we can't use the generic way of merely forwarding a call to
+JsonExtractionTraits<T>::implementation because that copies stuff by value.
+*/
 template<>
 void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::Value &value)
 {
