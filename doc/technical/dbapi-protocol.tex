@@ -345,16 +345,58 @@ relation information etc.  The following types are defined:
         {\tt\{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\}} \\
 \end{longtable}
 
-\section{Deska DBAPI Reference}
+\section{Database Interface}
 
-\subsection{The DBAPI at a Glance}
+The Deska DBAPI provides functions for accessing the information contained in the database.
 
-FIXME: high-level overview
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
+\subsection{The Deska DBAPI at a Glance}
+
+The API can be divided into a few groups.  The first part are commands for querying the database scheme which are
+described in section \ref{sec:api-group-dbscheme}, these commands informs you about what kinds of top-level objects are
+defined, what relations have been defined among them and which attributes belong to each object.  Second part of the API
+(section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
+part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
+part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
+results and the last part (section \ref{sec:api-group-history}) discusses browsing history.
+
+Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
+are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
+``belong'' to other objects, and therefore are best represented as an embedded part, should call
+\deskaFuncRef{kindRelations} to fetch that information.  Finally, calling \deskaFuncRef{kindAttributes} for each
+top-level object will return attributes valid at the scope of each object.
+
+After establishing the metadata structure, applications which require only read-only access can proceed with retrieving
+individual objects' data.  The API provides a few functions for that, starting with the \deskaFuncRef{kindInstances} for
+determining identifiers (names) of particular objects, \deskaFuncRef{objectData} for fetching values of object's
+attributes, \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
+resolving inherited values from object templates, and also \deskaFuncRef{findOverriddenAttrs} and
+\deskaFuncRef{findNonOverriddenAttrs} for assessing the impact of changes to an individual object's attribute.
+
+Before potentially using any methods for object modification, each application has to open a changeset to work in.  The
+application can achieve that either by calling the \deskaFuncRef{startChangeset}, or possibly by attaching into one of
+the already-created changesets (listed by \deskaFuncRef{pendingChangesets}) through \deskaFuncRef{resumeChangeset}.
+Should the user decide not to need the pending changeset anymore, she can call the \deskaFuncRef{abortCurrentChangeset}
+to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
+changeset, preserving the modifications for a later commit.  When all changes were performed and the user decides to
+make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them.
+
+It is possible that someone has already committed a new version after our original user created a changeset, but before
+the attempted commit.  In that case, the new commit won't be performed, and after verifying that the changes are still
+valid (FIXME), the user shall use the \deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now
+based on a new, updated permanent revision.
+
+Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
+renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
+can be undone with \deskaFuncRef{removeAttribute}.
+
+FIXME: diffing.
 
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
-{\paragraph{#1}\label{sec:api-#1}
+{\paragraph{#1}\label{sec:api-ref-#1}
 
 {#4}
 
@@ -367,10 +409,13 @@ FIXME: high-level overview
 }
 
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
+\setcounter{secnumdepth}{4}
 
 \subsubsection{Querying the Database Scheme}
+\label{sec:api-group-dbscheme}
 
-\setcounter{secnumdepth}{4}
+Functions in this group are used to query the scheme of the database, ie. a list of allowed objects, their attributes
+and the defined object relations.
 
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds.}
@@ -392,7 +437,27 @@ FIXME: high-level overview
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kind of entities -- for more details and examples, see the ObjectRelation struct.}
 
-\subsubsection{FIXME: more commands}
-\ldots
+\subsubsection{Retrieving Object Data}
+\label{sec:api-group-data-retrieval}
+
+Functions from this group are used for fetching actual data from the database.
+
+\subsubsection{Performing Modifications}
+\label{sec:api-group-data-modification}
+
+Any function which modifies objects stored in the Deska database belongs to this group.
+
+\subsubsection{Version Control}
+\label{sec:api-group-vcs}
+
+This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
+History}, section \ref{sec:api-group-history}).
+
+\subsubsection{Querying History}
+\label{sec:api-group-history}
+
+Functions for browsing history of individual objects, retrieving lists of differences, etc.
+
+FIXME: \#143
 
 \end{document}
