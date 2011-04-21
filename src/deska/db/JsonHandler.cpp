@@ -199,6 +199,25 @@ template<> struct JsonExtractionTraits<boost::posix_time::ptime> {
     }
 };
 
+template<> struct JsonExtractionTraits<PendingChangeset::AttachStatus> {
+    static PendingChangeset::AttachStatus implementation(const json_spirit::Value &value) {
+        JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
+        if (value.type() != json_spirit::str_type)
+            throw JsonStructureError("Value of expected type PendingChangesetAttachStatus is not a string");
+        std::string data = value.get_str();
+        if (data == "DETACHED") {
+            return PendingChangeset::ATTACH_DETACHED;
+        } else if (data == "INPROGRESS") {
+            return PendingChangeset::ATTACH_IN_PROGRESS;
+        } else {
+            std::ostringstream ss;
+            ss << "Invalid value for attached status of a pending changeset '" << data << "'";
+            throw JsonStructureError(ss.str());
+        }
+    }
+};
+
+
 
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
@@ -379,25 +398,6 @@ void SpecializedExtractor<std::map<Identifier,pair<Identifier,Value> > >::extrac
         }
         // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
         (*target)[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
-    }
-}
-
-/** @short Convert from JSON into an internal representation of the attached/detached state */
-template<>
-void SpecializedExtractor<PendingChangeset::AttachStatus>::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting PendingChangesetAttachStatus");
-    if (value.type() != json_spirit::str_type)
-        throw JsonStructureError("Value of expected type PendingChangesetAttachStatus is not a string");
-    std::string data = value.get_str();
-    if (data == "DETACHED") {
-        *target = PendingChangeset::ATTACH_DETACHED;
-    } else if (data == "INPROGRESS") {
-        *target = PendingChangeset::ATTACH_IN_PROGRESS;
-    } else {
-        std::ostringstream ss;
-        ss << "Invalid value for attached status of a pending changeset '" << data << "'";
-        throw JsonStructureError(ss.str());
     }
 }
 
