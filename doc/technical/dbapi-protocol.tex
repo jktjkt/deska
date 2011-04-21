@@ -354,19 +354,23 @@ FIXME: high-level overview
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
-{\subsubsection{#1}\label{sec:api-#1}
+{\paragraph{#1}\label{sec:api-#1}
 
-{\bf Synopsis:} {#4}
+{#4}
 
 {#5}
 
-{\em Sample JSON input:} {\tt \{"command": "{#1}"{#2}\}}
+\subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
 
-{\em Sample JSON output:} {\tt \{"response": "{#1}"{#2}, "{#1}": {#3}\}}
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}, "{#1}": {#3}\}}
 
 }
 
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
+
+\subsubsection{Querying the Database Scheme}
+
+\setcounter{secnumdepth}{4}
 
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds.}
