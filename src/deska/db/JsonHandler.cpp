@@ -227,6 +227,17 @@ template<typename T> struct JsonExtractionTraits<boost::optional<T> > {
     }
 };
 
+template<typename T> struct JsonExtractionTraits<std::vector<T> > {
+    static std::vector<T> implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting std::vector<T>");
+        std::vector<T> res;
+        BOOST_FOREACH(const json_spirit::Value &item, v.get_array()) {
+            res.push_back(JsonExtractionTraits<T>::implementation(item));
+        }
+        return res;
+    }
+};
+
 
 
 /** @short Abstract class for conversion between a JSON value and "something" */
@@ -249,26 +260,6 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
-/** Got to provide a partial specialization in order to be able to define a custom extract() */
-template <typename T>
-class SpecializedExtractor<std::vector<T> >: public JsonExtractor {
-    std::vector<T> *target;
-public:
-    /** @short Create an extractor which will save the parsed and converted value to a pointer */
-    SpecializedExtractor(std::vector<T> *source): target(source) {}
-    virtual void extract(const json_spirit::Value &value);
-};
-
-
-/** @short Generic extractor for list of items */
-template<typename T>
-void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting vector");
-    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        target->push_back(JsonExtractionTraits<T>::implementation(item));
-    }
-}
 
 /** @short Convert JSON into a vector of attribute data types
 
