@@ -150,6 +150,37 @@ PendingChangeset jsonObjectToDeskaPendingChangeset(const json_spirit::Object &o)
     return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
 }
 
+
+template<typename T> struct JsonExtractionTraits {};
+
+template<> struct JsonExtractionTraits<Identifier> {
+    static std::string name;
+    static Identifier implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting " + name);
+        return v.get_str();
+    }
+};
+std::string JsonExtractionTraits<Identifier>::name = "Identifier";
+
+template<> struct JsonExtractionTraits<PendingChangeset> {
+    static std::string name;
+    static PendingChangeset implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting " + name);
+        return jsonObjectToDeskaPendingChangeset(v.get_obj());
+    }
+};
+std::string JsonExtractionTraits<PendingChangeset>::name = "PendingChangeset";
+
+template<> struct JsonExtractionTraits<ObjectRelation> {
+    static std::string name;
+    static ObjectRelation implementation(const json_spirit::Value &v) {
+        JsonContext c1("When extracting " + name);
+        return jsonObjectToDeskaObjectRelation(v.get_obj());
+    }
+};
+std::string JsonExtractionTraits<ObjectRelation>::name = "ObjectRelation";
+
+
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor
 {
@@ -180,6 +211,18 @@ public:
     virtual void extract(const json_spirit::Value &value);
 };
 
+/** Got to provide a partial specialization in order to be able to define a custom extract() */
+template <typename T>
+class SpecializedExtractor<std::vector<T> >: public JsonExtractor {
+    std::vector<T> *target;
+public:
+    /** @short Create an extractor which will save the parsed and converted value to a pointer */
+    SpecializedExtractor(std::vector<T> *source): target(source) {}
+    virtual void extract(const json_spirit::Value &value);
+};
+
+
+
 /** @short Convert JSON into Deska::RevisionId */
 template<>
 void SpecializedExtractor<RevisionId>::extract(const json_spirit::Value &value)
@@ -200,30 +243,20 @@ void SpecializedExtractor<TemporaryChangesetId>::extract(const json_spirit::Valu
     *target = TemporaryChangesetId::fromJson(value.get_str());
 }
 
-/** @short Convert JSON into a vector of Deska::Db::PendingChangeset */
-template<>
-void SpecializedExtractor<std::vector<PendingChangeset> >::extract(const json_spirit::Value &value)
+/** @short Generic extractor for list of items */
+template<typename T>
+void SpecializedExtractor<std::vector<T> >::extract(const json_spirit::Value &value)
 {
-    JsonContext c1("When extracting a vector of PendingChangeset");
-    if (value.type() != json_spirit::array_type)
-        throw JsonStructureError("Value of expected type Array of Pending Changesets is not an array");
+    JsonContext c1("When extracting a vector of " + JsonExtractionTraits<T>::name);
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        if (item.type() != json_spirit::obj_type)
-            throw JsonStructureError("Value of expected type Pending Changeset is not an object");
-        target->push_back(jsonObjectToDeskaPendingChangeset(item.get_obj()));
+        target->push_back(JsonExtractionTraits<T>::implementation(item));
     }
 }
 
-/** @short Convert JSON into a vector of Deska::Identifier */
-template<>
-void SpecializedExtractor<std::vector<Identifier> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a vector of Identifiers");
-    json_spirit::Array data = value.get_array();
-    std::transform(data.begin(), data.end(), std::back_inserter(*target), std::mem_fun_ref(&json_spirit::Value::get_str));
-}
+/** @short Convert JSON into a vector of attribute data types
 
-/** @short Convert JSON into a vector of attribute data types */
+This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
+*/
 template<>
 void SpecializedExtractor<std::vector<KindAttributeDataType> >::extract(const json_spirit::Value &value)
 {
@@ -310,20 +343,6 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         target->attributes[attr.name] = wrappedAttrs[i].value;
         ++i;
-    }
-}
-
-/** @short Convert JSON into a vector of object relations */
-template<>
-void SpecializedExtractor<std::vector<ObjectRelation> >::extract(const json_spirit::Value &value)
-{
-    JsonContext c1("When extracting a list of ObjectRelation");
-    if (value.type() != json_spirit::array_type)
-        throw JsonStructureError("Value of expected type Array of Object Relations is not an array");
-    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
-        if (item.type() != json_spirit::obj_type)
-            throw JsonStructureError("Value of expected type Object Relation is not an object");
-        target->push_back(jsonObjectToDeskaObjectRelation(item.get_obj()));
     }
 }
 
