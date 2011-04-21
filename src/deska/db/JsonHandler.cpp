@@ -312,7 +312,11 @@ public:
 
 
 
-/** @short Convert JSON into a wrapped, type-checked object attributes */
+/** @short Convert JSON into a wrapped, type-checked object attributes
+
+This function is special, as it needs access to already existing data; that's why it's implemented in this place,
+unlike the generic way of going through the JsonExtractionTraits<T>.
+*/
 template<>
 void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Value &value)
 {
