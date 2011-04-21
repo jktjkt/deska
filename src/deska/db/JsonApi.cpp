@@ -290,19 +290,19 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
-std::vector<RevisionMetadata> JsonApiParser::listRevisions()
+std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
 {
     // FIXME
     return std::vector<RevisionMetadata>();
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b)
+std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
 {
     // FIXME
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a)
+std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
 {
     // FIXME
     return std::vector<ObjectModification>();

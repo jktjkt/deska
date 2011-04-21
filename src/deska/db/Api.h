@@ -245,13 +245,13 @@ public:
     // Diffing
 
     /** @short Return a list of metadata for matching revisions */
-    virtual std::vector<RevisionMetadata> listRevisions() = 0;
+    virtual std::vector<RevisionMetadata> listRevisions() const = 0;
 
     /** @short Return differences between the database state in the specified versions */
-    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) = 0;
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const = 0;
 
     /** @short Return differences created in a temporary changeset */
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) = 0;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const = 0;
 };
 
 }

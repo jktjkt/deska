@@ -112,9 +112,9 @@ public:
     virtual void abortCurrentChangeset();
 
     // Diffing
-    virtual std::vector<RevisionMetadata> listRevisions();
-    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b);
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a);
+    virtual std::vector<RevisionMetadata> listRevisions() const;
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const;
 
     /** @short Request stream for reading JSON data */
     boost::signals2::signal<std::istream *(), boost::signals2::last_value<std::istream*> > willRead;
