@@ -27,12 +27,19 @@
 #include <boost/signals2/last_value.hpp>
 #include "Api.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
+#include "3rd-party/libebt-1.3.0/libebt/libebt_backtraceable.hh"
 
 namespace Deska {
 namespace Db {
 
+/** @short INTERNAL: tag for the libebt */
+struct JsonExceptionTag {};
+
+/** @short INTERNAL: convenience typedef for exception reporting */
+typedef libebt::BacktraceContext<JsonExceptionTag> JsonContext;
+
 /** @short An error occured during parsing of the server's response */
-class JsonParseError: public std::runtime_error
+class JsonParseError: public std::runtime_error, public libebt::Backtraceable<JsonExceptionTag>
 {
     std::string m_completeError;
 protected:
@@ -40,6 +47,7 @@ protected:
 public:
     virtual ~JsonParseError() throw ();
     virtual const char* what() const throw();
+    virtual std::string whatWithBacktrace() const throw();
     void addRawJsonData(const std::string &data);
 };
 
@@ -102,6 +110,11 @@ public:
     virtual void resumeChangeset(const TemporaryChangesetId revision);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
+
+    // Diffing
+    virtual std::vector<RevisionMetadata> listRevisions() const;
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const;
 
     /** @short Request stream for reading JSON data */
     boost::signals2::signal<std::istream *(), boost::signals2::last_value<std::istream*> > willRead;

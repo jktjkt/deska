@@ -62,6 +62,9 @@ DECLARE rev bigint;
 BEGIN
 	SELECT num INTO rev FROM version
 		WHERE id = id_;
+	IF NOT FOUND THEN
+		RAISE EXCEPTION 'changeset with version % was not commited', id_;
+	END IF;
 	RETURN rev;
 END
 $$
@@ -78,6 +81,9 @@ DECLARE rev bigint;
 BEGIN
 	SELECT id INTO rev FROM version
 		WHERE num = num_;
+	IF NOT FOUND THEN
+		RAISE EXCEPTION 'version with changeset num % was not commited', num_;
+	END IF;
 	RETURN rev;
 END
 $$

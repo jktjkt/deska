@@ -175,8 +175,13 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
+    // The JsonApiParser needs to know type information for the individual object kinds
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
+            "\"real\": \"double\", \"price\": \"double\"}, \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
             "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
@@ -184,6 +189,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["real"] = 100.666;
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
+    expected["baz"] = "id";
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -396,6 +402,24 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStre
     j->abortCurrentChangeset();
     expectEmpty();
 }
+
+/** @short Test listRevisions() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"listRevisions\"}\n");
+    expectRead("{\"response\": \"listRevisions\", \"listRevisions\": ["
+               "{\"revision\": \"r123\", \"author\": \"user\", \"timestamp\": \"2011-04-07 17:22:33\", \"commitMessage\": \"message\"}"
+               "]}\n");
+    std::vector<RevisionMetadata> expected;
+    expected.push_back(RevisionMetadata(
+                           RevisionId(123), "user",
+                           boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
+                           "message"));
+    std::vector<RevisionMetadata> res = j->listRevisions();
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
 
 /** @short Verify correctness of parsing of revisions from JSON */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
