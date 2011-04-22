@@ -347,6 +347,21 @@ relation information etc.  The following types are defined:
         {\tt \{"revision": }RevisionId{\tt, "author": }Identifier{\tt, "timestamp": }timestamp{\tt,
         "commitMessage": }string{\tt\}}
         \\
+    {\tt Deska::Db::ObjectModification} &
+        One of \newline
+        {\tt \{"command": "createObject", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "deleteObject", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "renameObject", "kindName": }Identifier{\tt, "oldObjectName": }Identifier{\tt,
+        "newObjectName": }{\tt Identifier\}}, \newline
+        or \newline
+        {\tt \{"command": "removeAttribute", "kindName": }Indetifier{\tt, "objectName": }Identifier{\tt,
+        "attributeName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
+
 \end{longtable}
 
 \section{Database Interface}
