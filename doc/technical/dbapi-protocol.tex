@@ -470,6 +470,33 @@ FIXME
 
 Functions for browsing history of individual objects, retrieving lists of differences, etc.
 
-FIXME
+\deskaFunc{listRevisions}{}
+    {[
+    \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
+    ]}
+    {Return a list of metadata for matching revisions}
+    {This function returns a list of metadata for revisions matching the search criteria.  Given that there is currently
+    no way to specify the search options (FIXME: add optional arguments?), the function will currently return metadata
+    for all persistent revisions.}
+
+\deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
+    \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
+    \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
+    \{"command": "removeAttribute", "kindName": "k4", "objectName": "o4", "attributeName": "fancyAttr"\}, \\
+    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
+        "attributeData": "new", "oldAttributeData": "old"\} \\
+    ]}
+    {Return differences between the database state in the specified versions}
+    {This function will produce a list of differences between the database state in the two indicated revisions.  The
+    returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
+    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
+    object has been created and its attribute set to a particular value, the creation shall be present before the record
+    for setting an attribute.
+
+    FIXME: more information goes here\ldots}
+
+FIXME: dataDifferenceInTemporaryChangeset
 
 \end{document}
