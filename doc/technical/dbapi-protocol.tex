@@ -279,9 +279,8 @@ In general, the following has to be done to add a low-level data type to Deska:
     \item Extend the {\tt Deska::Db::Value} variant to include the new type
     \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
         into JSON
-    \item Create a specialization of the {\tt template<> void SpecializedExtractor<\\
-        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)} which is responsible for
-        proper de-serialization of the JSON values
+    \item Create a specialization of the {\tt template<> struct JsonExtractionTraits<ObjectModification>} and its {\tt
+        implementation()} method which is responsible for proper de-serialization of the JSON values
     \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
     \item Update the documentation and unit tests
 \end{itemize}
