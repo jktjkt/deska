@@ -8,6 +8,7 @@ logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 
 CMD = "command"
 RES = "response"
+ERR = "error"
 
 class Jsn:
 	# dict of commands
@@ -43,7 +44,16 @@ class Jsn:
 	def responce(self,res):
 		logging.debug("start response")
 		cmd = self.jsn[CMD]
-		data = self.db.fetchall()
+		try:
+			data = self.db.fetchall()
+		except Exception, e:
+			# write error instead of command
+			del self.jsn[CMD]
+			self.jsn[ERR] = cmd
+			# only first part now
+			self.jsn[cmd] = str(e).split('\n')[0]
+			return self.jsn
+
 		# FIXME db stuff shouldn't return these if it is not needed
 		if type(data) not in [int,bool]:
 			self.jsn[self.cmd] = data
