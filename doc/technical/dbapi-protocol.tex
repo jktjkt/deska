@@ -332,8 +332,9 @@ relation information etc.  The following types are defined:
     {\tt Deska::Db::PendingChangeset::\newline{~ ~}AttachStatus} &
         One of {\tt "DETACHED"} or {\tt "INPROGRESS"} \\
     {\tt Deska::Db::PendingChangeset} &
-        {\tt \{"changeset":"tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
-        "parentRevision": "r666", "message": "message"\}} \\
+        {\tt \{"changeset": }TemporaryChangesetId{\tt, "author": }string{\tt, "status": }
+        PendingChangeset::AttachStatus{\tt, "timestamp": }timestamp{\tt, "parentRevision": }RevisionId{\tt, "message": }
+        string {\tt\}} \\
     {\tt Deska::Db::KindAttributeDataType} &
         One of {\tt string}, {\tt int}, {\tt identifier}, {\tt double}, {\tt date}, {\tt timestamp}, {\tt enum\_X} and
         {\tt X\_null} \\
