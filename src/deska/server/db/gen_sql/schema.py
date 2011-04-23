@@ -12,7 +12,14 @@ CREATE FUNCTION commit_all(message text)
 	AS
 	$$
 	DECLARE rev bigint;
+		last_rev bigint;
+		parent bigint;
 	BEGIN
+		SELECT max(id) INTO last_rev FROM version;
+		parent = parent(my_version());
+		IF parent != last_rev THEN
+			RAISE SQLSTATE '10007' USING MESSAGE = 'You must run rebase before commit.';
+		END IF;
 		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
 		-- should we check constraint before version_commit?
