@@ -29,11 +29,9 @@ CREATE OR REPLACE FUNCTION changeset2id(rev text)
 RETURNS bigint
 AS
 $$
-#FIXME: match "tmp"
-if len(rev) < 4:
-	plpy.SPIError(55555)
-	plpy.error(10005)
-	return 0
+import re
+if not re.match('tmp\d',rev):
+	plpy.error('"{rev}" is not valid changeset id,'.format(rev = rev))
 
 return rev[3:len(rev)]
 $$
@@ -46,7 +44,10 @@ CREATE OR REPLACE FUNCTION revision2num(rev text)
 RETURNS bigint
 AS
 $$
-#FIXME: match "r"
+import re
+if not re.match('r\d',rev):
+	plpy.error('"{rev}" is not valid changeset id,'.format(rev = rev))
+
 return rev[1:len(rev)]
 $$
 LANGUAGE plpythonu SECURITY DEFINER;
