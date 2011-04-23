@@ -600,7 +600,7 @@ class Templates:
 		--last version where was the object with uid changed
 		last_change_version bigint;
 	BEGIN
-		version_id = (changeset_id);
+		version_id = id2num(changeset_id);
 	
 		SELECT MAX(v.num) INTO last_change_version
 		FROM {tbl}_history obj_history
