@@ -65,7 +65,7 @@ BEGIN
 		WHERE max = num;
 	IF NOT FOUND THEN
 		-- not found parent revision
-		RAISE SQLSTATE '10001';
+		RAISE SQLSTATE '10001' USING MESSAGE = 'No parent revision.';
 	END IF;
 	INSERT INTO changeset (author,parentRevision,pid)
 		VALUES (session_user,parr,pg_backend_pid());
@@ -73,7 +73,7 @@ BEGIN
 EXCEPTION
 	WHEN unique_violation THEN
 		-- already assigned changeset
-		RAISE SQLSTATE '10002';
+		RAISE SQLSTATE '10002' USING MESSAGE = 'You have already assigned one changeset.';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -99,7 +99,7 @@ BEGIN
 		WHERE id = ver;
 	IF NOT FOUND THEN
 		-- create version not successfull
-		RAISE SQLSTATE '10004';
+		RAISE SQLSTATE '10004' USING MESSAGE = 'Error while creating revision.';
 	END IF;
 	PERFORM delete_changeset();
 	RETURN ret;
@@ -137,7 +137,7 @@ BEGIN
 		WHERE pid = pg_backend_pid();
 	IF NOT FOUND THEN
 		-- no changeset assigned
-		RAISE SQLSTATE '10003';
+		RAISE SQLSTATE '10003' USING MESSAGE = 'You do not have open any changeset.';
 	END IF;
 	RETURN ver;
 END
@@ -157,7 +157,7 @@ BEGIN
 		WHERE id = ver;
 	IF NOT FOUND THEN
 		-- not found parent revision
-		RAISE SQLSTATE '10001';
+		RAISE SQLSTATE '10001' USING MESSAGE = 'No parent found.';
 	END IF;
 	RETURN par;
 END
@@ -189,11 +189,21 @@ CREATE FUNCTION resumeChangeset(id_ text)
 RETURNS integer
 AS
 $$
+DECLARE chid bigint;
 BEGIN
+	chid = changeset2id(id_);
 	UPDATE changeset SET status = 'INPROGRESS',
 		pid = pg_backend_pid(), author = session_user
-		WHERE id = changeset2id(id_); 
+		WHERE id = chid; 
+	IF NOT FOUND THEN
+		-- no changeset of this name
+		RAISE SQLSTATE '10006' USING MESSAGE = 'No changeset of this name.';
+	END IF;
 	RETURN 1;
+EXCEPTION
+        WHEN unique_violation THEN
+	        -- already assigned changeset
+		RAISE SQLSTATE '10002' USING MESSAGE = 'You have already assigned one changeset.';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
