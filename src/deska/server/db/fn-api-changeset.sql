@@ -115,9 +115,11 @@ CREATE FUNCTION delete_changeset()
 RETURNS integer
 AS
 $$
+DECLARE ver bigint;
 BEGIN
+	ver = my_version();
 	DELETE FROM changeset
-		WHERE id = my_version();
+		WHERE id = ver;
 	RETURN 1;
 	--FIXME: Exceptions
 END
