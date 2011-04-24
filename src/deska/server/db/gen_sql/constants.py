@@ -30,6 +30,9 @@ class Templates:
 	BEGIN
 		SELECT my_version() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		IF NOT FOUND THEN
+			RAISE EXCEPTION 'No {tbl} named %. Create it first',name_;	
+		END IF;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
@@ -603,8 +606,11 @@ class Templates:
 		version_id = id2num(changeset_id);
 	
 		SELECT MAX(v.num) INTO last_change_version
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
+			FROM {tbl}_history obj_history
+				JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
+		IF last_change_version IS NULL THEN
+			RAISE EXCEPTION 'Object % not exist, you should create it first.',name_;
+		END IF;
 			
 		last_changeset_id  = num2id(last_change_version);
 
@@ -629,11 +635,12 @@ class Templates:
 		last_change_version bigint;
 	BEGIN
 		version_id = id2num(changeset_id);
-		
 		SELECT MAX(v.num) INTO last_change_version
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
-		
+			FROM {tbl}_history obj_history
+				JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
+		IF last_change_version IS NULL THEN
+			RAISE EXCEPTION 'Object % not exist, you should create it first.',name_;
+		END IF;
 		last_changeset_id  = num2id(last_change_version);
 		
 		RETURN last_changeset_id;
