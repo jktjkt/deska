@@ -122,6 +122,9 @@ CREATE FUNCTION commit_all(message text)
 		self.sql.write(table.gen_commit())
 		self.sql.write(table.gen_prev_changeset())
 		self.sql.write(table.gen_changeset_of_data_version())
+		self.sql.write(table.gen_diff_deleted())
+		self.sql.write(table.gen_diff_created())
+		self.sql.write(table.gen_diff_set_attribute())
 		return
 
 	def gen_commit(self):

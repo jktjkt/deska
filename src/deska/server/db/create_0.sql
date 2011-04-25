@@ -8,6 +8,7 @@ BEGIN;
 -- create functions
 \i fn-api-schema.sql
 
+
 --creates functions - string operations
 \i fn-strlib.sql
 

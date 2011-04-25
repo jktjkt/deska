@@ -1,6 +1,9 @@
 BEGIN;
 
-SET search_path TO pgtap,genproc,history,deska,production;
+--  \i /home/martina/pgtap/pgtap-0.24/pgtap.sql
+
+SET search_path TO api, pgtap,genproc,history,deska,production;
+
 
 --action is indicator of operation done with object
 --I object was inserted
@@ -32,7 +35,7 @@ $$
 DECLARE
 BEGIN
 	
-	PERFORM start_changeset();
+	PERFORM startchangeset();
 
 	-- some changes follows
 	PERFORM vendor_add('DELL');
@@ -41,7 +44,7 @@ BEGIN
 	PERFORM vendor_commit();
 
 	-- end session, part of vendor commit? of vendor commit part of this?
-	PERFORM version_commit();
+	PERFORM commitchangeset('');
 	
 	PREPARE expnames  AS SELECT name FROM pgtap.vendor_test1 WHERE action ='I';
 	PREPARE retnames AS SELECT name FROM production.vendor;
@@ -50,12 +53,12 @@ BEGIN
 	DEALLOCATE expnames;
 	DEALLOCATE retnames;
 
-	PERFORM start_changeset();
+	PERFORM startchangeset();
 	PERFORM vendor_del('DELL');
 	PERFORM vendor_add('HP');
 	PERFORM vendor_add('IBM');
 	PERFORM vendor_commit();
-	PERFORM version_commit();
+	PERFORM commitchangeset('');
 
 
 

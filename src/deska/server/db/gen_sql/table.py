@@ -130,6 +130,20 @@ class Table(constants.Templates):
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
 		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
 		return type_def + "\n" + cols_def
+	
+	def gen_diff_set_attribute(self):
+		collist = self.col.copy()
+		del collist['uid']
+		del collist['name']
+		if len(collist) == 0:
+			return ""
+		
+		cols_changes = ""
+		for col in collist:
+			 cols_changes = cols_changes + self.one_column_change_string.format(column = col)
+		
+		return self.diff_set_attribute_string.format(tbl = self.name, columns_changes = cols_changes)
+
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
@@ -174,3 +188,10 @@ class Table(constants.Templates):
 
 	def gen_changeset_of_data_version_by_name_embed(self, refcolumn, reftable):
 		return self.changeset_of_data_version_by_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
+
+	def gen_diff_deleted(self):
+		return self.diff_deleted_string.format(tbl = self.name)
+		
+	def gen_diff_created(self):
+		return self.diff_created_string.format(tbl = self.name)
+

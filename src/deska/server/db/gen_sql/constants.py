@@ -479,7 +479,7 @@ class Templates:
 		UNION
 		SELECT name
 		FROM {tbl}_history h JOIN version v ON (h.version = v.id and h.version <= from_version) 
-		WHERE v.id = (
+		WHERE v.num = (
 				SELECT max(version) 
 				FROM {tbl}_history h2 
 					JOIN version v2 ON (h2.version <= from_version AND h2.version = v2.id AND h2.uid = h.uid)
@@ -529,7 +529,7 @@ class Templates:
 		UNION
 		SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}')
 		FROM {tbl}_history h JOIN version v ON (h.version = v.id and h.version <= version_to_search) 
-		WHERE v.id = (
+		WHERE v.num = (
 				SELECT max(version) 
 				FROM {tbl}_history h2 
 					JOIN version v2 ON (h2.version <= version_to_search AND h2.version = v2.id AND h2.uid = h.uid)
@@ -756,4 +756,130 @@ class Templates:
 	$$
 	LANGUAGE plpgsql;
 	
+'''
+ #template for getting deleted objects between two versions
+	diff_deleted_string = '''CREATE FUNCTION 
+	 {tbl}_diff_deleted(from_version bigint, to_version bigint)
+	 RETURNS SETOF text
+	 AS
+	 $$
+	 BEGIN
+	 RETURN QUERY SELECT h.name 
+	 FROM {tbl}_history h 
+		  JOIN version v ON (h.version = v.id) 
+	 WHERE dest_bit = '1' AND v.num = (
+		  SELECT max(v2.num) 
+		  FROM {tbl}_history h2 
+				JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
+		  WHERE v2.num >from_version AND v2.num <= to_version)
+	 -- exists max version <= from_version, where not dest_bit ='0'
+	 AND EXISTS ( 	
+		  SELECT v_ex.num 
+		  FROM {tbl}_history h_ex
+		  JOIN version v_ex ON (h_ex.uid = h.uid AND h_ex.version = v_ex.id) 
+		  WHERE v_ex.num = (
+				SELECT max(v2_ex.num) 
+				FROM {tbl}_history h2_ex
+					 JOIN version v2_ex ON (h2_ex.uid = h_ex.uid AND h2_ex.version = v2_ex.id AND v2_ex.num <= from_version)  
+		  AND h_ex.dest_bit = '0'
+		  )
+	 );
+	 END;
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
+ #template for getting created objects between two versions
+	diff_created_string = '''CREATE FUNCTION 
+	{tbl}_diff_created(from_version bigint, to_version bigint)
+	 RETURNS SETOF text
+	 AS
+	 $$
+	 BEGIN
+	 RETURN QUERY SELECT h.name 
+	 FROM {tbl}_history h 
+		  JOIN version v ON (h.version = v.id) 
+	 WHERE dest_bit = '0' AND v.num = (
+		  SELECT max(v2.num) 
+		  FROM {tbl}_history h2 
+				JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
+		  WHERE v2.num >from_version AND v2.num <= to_version)
+	 AND NOT EXISTS ( 	
+		  SELECT v_ex.num 
+		  FROM {tbl}_history h_ex
+		  JOIN version v_ex ON (h_ex.uid = h.uid AND h_ex.version = v_ex.id) 
+		  WHERE v_ex.num = (
+				SELECT max(v2_ex.num) 
+				FROM {tbl}_history h2_ex
+					 JOIN version v2_ex ON (h2_ex.uid = h_ex.uid AND h2_ex.version = v2_ex.id AND v2_ex.num <= from_version)  
+		  --for case of recreated object which should continue
+		  AND h_ex.dest_bit = '0'
+		  )
+	 );
+
+	 END;
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
+	one_column_change_string = '''
+	 IF (old_data.{column} <> new_data.{column}) OR ((old_data.{column} IS NULL OR new_data.{column} IS NULL) 
+		  AND NOT(old_data.{column} IS NULL AND new_data.{column} IS NULL))
+	 THEN
+		  result.attribute = '{column}';
+		  result.old_data = old_data.{column};
+		  result.new_data = new_data.{column};
+		  RETURN NEXT result;			
+	 END IF;
+	 
+'''
+
+#template for getting created objects between two versions
+	diff_set_attribute_string = '''CREATE FUNCTION 
+	{tbl}_diff_set_attributes(from_version bigint, to_version bigint)
+	 RETURNS SETOF diff_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		  old_data {tbl}_history%rowtype;
+		  new_data {tbl}_history%rowtype;
+		  result diff_set_attribute_type;
+	 BEGIN
+		  result.kind = '{tbl}';
+		  FOR new_data IN SELECT h.*
+					 FROM {tbl}_history h
+						  JOIN version v ON (h.version = v.id) 
+					 WHERE dest_bit = '0' AND v.num = (
+						  SELECT max(v2.num) 
+						  FROM {tbl}_history h2 
+						  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
+						  WHERE v2.num >from_version AND v2.num <= to_version)
+		  LOOP
+				SELECT h.* INTO old_data
+				FROM {tbl}_history h
+					 JOIN version v ON (h.version = v.id) 
+				WHERE h.uid = new_data.uid AND dest_bit = '0' AND v.num = (
+					 SELECT max(v2.num) 
+					 FROM {tbl}_history h2 
+						  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
+					 WHERE v2.num <=from_version);
+
+				IF (old_data IS NOT NULL) AND (old_data.name <> new_data.name) THEN
+					 --first change is changed name
+					 result.name = old_data.name;
+					 result.attribute = 'name';
+					 result.old_data = old_data.name;
+					 result.new_data = new_data.name;
+					 RETURN NEXT result;
+				END IF;
+					 
+				result.name = new_data.name;
+				{columns_changes}
+		  END LOOP;	
+	 END
+	 $$
+	 LANGUAGE plpgsql; 
+
 '''
