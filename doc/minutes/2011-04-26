@@ -1,0 +1,94 @@
+Schuze Deska, 2011-04-26, Stara Posta
+-------------------------------------
+
+Pritomni: Martina, Lukas, Honza
+Omluveni: Tomas (nemoc)
+
+Prehled, co kdo udelal:
+
+Honza:
+- mail Zavoralovi s prehledem prace a planem do budoucna
+- refactoring konverze rozparsovanych JSON objektu do C++ trid
+- navrh rozhrani pro diffovani, specifikace + implementace
+- specifikace protokolu a Deska DBAPI
+- error handling od DB do JSONu
+- vyrazne lepsi error reporting u problemu v JSON parsovani
+
+Lukas:
+- error reporting
+    - problem s vyjimkami, vyjimky z PlPython nejdou odchytit, ma pomoct
+    Python-3 PgPython
+- koukal na diffovani
+
+Martina:
+- diffovani
+- embedded objekty
+- testy generatoru
+
+Ukoly z minula:
+---------------
+
+- Tomas: v utery do ML mail s kalendarem vyvoje CLI
+    - vysloveno, ze souhlasi
+- Tomas: prace na CLI (veci kolem CLIInteraction, stanoveni formy, jak ma
+  ta aplikace vypadat,...)
+    - nemoc
+- Honza: milestones do redmine
+    - hotovo
+- Honza: formalni popis JSON API (#183)
+    - rozpracovano, velka cast hotova
+- Honza: rozsireni API pro praci s verzemi (#143)
+    - hotovo
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+    - neni naspecifikovano
+- Lukas: error reporting
+    - rozpracovano
+- Lukas: dokumentace
+    - neni
+- Martina: testy generatoru
+    - rozpracovano, necommitnuto
+- Martina: dodelat vraceni jmenem pro embedded objekty
+    - hotovo
+- Martina: diffovani, podle toho, jestli Honza stihne specifikaci
+    - hotovo pro jednotlive objekty
+
+Diskuse:
+--------
+
+- Lukas: PgPython
+- Honza: otazka, zda resit batch operace formou rozsireni setAttribute() atd
+tak, aby fungovaly nad nejakou mnozinou objektu, resp. rozdelit changeset na
+cast "ceho se tyka" a cast "co dela". Dohodli jsme se, ze to tak neudelame, a
+misto toho bude funkce a la applyChangeset(), ktera dostane data ve stejnem
+formatu, jako je vraci dataDifference().
+- rozsireni API pro argument WHERE
+- diffovani: nove vvytvoreny objekt s nejakym jmenem dostane nove ID, ale dotazy
+na historii "nejakeho objektu" vraci data pro objekty, ktere se "kdykoli
+jmenovaly odpovidajicim zpusobem"
+
+Ukoly:
+------
+
+- Honza: formalni popis JSON API (#183)
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+- Honza: rozsireni API pro aplikaci diffu (#209)
+- Honza: rozsireni API pro WHERE (#210)
+- Honza: CLI refactoring (#197 a dalsi)
+- Honza: poustet testy i pro SQL cast
+- Lukas: neco jako requireMyVersion() kvuli vyjimkam (#211)
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: error reporting (#109), s tim souvisi i #117, klidne si jej preradte
+- Lukas: vymyslet, jak resit WHERE podminky na strane SQL
+- Lukas: prechod na PgPython (#212)
+- Lukas: otestovat diffovani (#214)
+- Martina: testy generatoru (#111)
+- Martina: dodelat diffovani (#213)
+- Martina: vymyslet, jak resit WHERE podminky na strane SQL
+- Martina: dokumentace (#168, 169,...)
+- Martina: testy verzovani vcetne commitu a pending changesetu (#215)
+
+Pristi schuzka:
+---------------
+
+V pondeli 9. ci utery 10. kvetna, nekdy odpoledne na FZU.
+
