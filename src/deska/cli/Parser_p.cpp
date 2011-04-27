@@ -560,7 +560,25 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 break;
             case PARSING_MODE_DELETE:
                 // Function delete requires parameter -> report error
-                m_parser->parseError(ObjectNotFound("Function delete requires kind as parameter.", line, line.end()));
+                if (contextStack.empty()) {
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                } else {
+                    std::vector<Db::Identifier> nestedKinds;
+                    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+                    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+                        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
+                        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin();
+                             itr != relations.end(); ++itr) {
+                            if ((itr->kind == Db::RELATION_EMBED_INTO) &&
+                                (itr->targetTableName == contextStack.back().kind)) {
+                                nestedKinds.push_back(*it);
+                            }
+                        }
+                    }
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
+                }
+                
+                //m_parser->parseError(ObjectNotFound("Function delete requires kind as parameter.", line, line.end()));
                 break;
             case PARSING_MODE_STANDARD:
                 // Parsed function word -> parsing mode should change from PARSING_MODE_STANDARD to another
@@ -685,6 +703,9 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 break;
             case PARSE_ERROR_TYPE_KIND:
                 m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
+                break;
+            case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+                m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
                 break;
             default:
                 throw std::domain_error("Invalid value of ParseErrorType");
