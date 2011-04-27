@@ -279,9 +279,8 @@ In general, the following has to be done to add a low-level data type to Deska:
     \item Extend the {\tt Deska::Db::Value} variant to include the new type
     \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
         into JSON
-    \item Create a specialization of the {\tt template<> void SpecializedExtractor<\\
-        std::vector<KindAttributeDataType>~>::extract(const json\_spirit::Value \&value)} which is responsible for
-        proper de-serialization of the JSON values
+    \item Create a specialization of the {\tt template<> struct JsonExtractionTraits<ObjectModification>} and its {\tt
+        implementation()} method which is responsible for proper de-serialization of the JSON values
     \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
     \item Update the documentation and unit tests
 \end{itemize}
@@ -332,17 +331,37 @@ relation information etc.  The following types are defined:
     {\tt Deska::Db::PendingChangeset::\newline{~ ~}AttachStatus} &
         One of {\tt "DETACHED"} or {\tt "INPROGRESS"} \\
     {\tt Deska::Db::PendingChangeset} &
-        {\tt \{"changeset":"tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
-        "parentRevision": "r666", "message": "message"\}} \\
+        {\tt \{"changeset": }TemporaryChangesetId{\tt, "author": }string{\tt, "status": }
+        PendingChangeset::AttachStatus{\tt, "timestamp": }timestamp{\tt, "parentRevision": }RevisionId{\tt, "message": }
+        string {\tt\}} \\
     {\tt Deska::Db::KindAttributeDataType} &
-        One of {\tt string}, {\tt int}, {\tt identifier}, {\tt double}, {\tt date}, {\tt timestamp}, {\tt enum\_X} and
-        {\tt X\_null} \\
+        One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"}, {\tt "enum\_X"} and
+        {\tt "X\_null"} \\
     {\tt Deska::Db::ObjectRelation} &
-        One of \newline {\tt\{"relation": "EMBED\_INTO", "into": "hardware"\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}},
+        One of \newline {\tt\{"relation": "EMBED\_INTO", "into": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "MERGE\_WITH", "targetTableName": }Identifier{\tt, "sourceAttribute": }Identifier{\tt\}},
         \newline
-        {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}} \newline or \newline
-        {\tt\{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\}} \\
+        {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": }Identifier{\tt\}} \newline or \newline
+        {\tt\{"relation": "TEMPLATIZED", "byWhichKind": }Identifier{\tt, "sourceAttribute": }Identifier{\tt\}} \\
+    {\tt Deska::Db::RevisionMetadata} &
+        {\tt \{"revision": }RevisionId{\tt, "author": }Identifier{\tt, "timestamp": }timestamp{\tt,
+        "commitMessage": }string{\tt\}}
+        \\
+    {\tt Deska::Db::ObjectModification} &
+        One of \newline
+        {\tt \{"command": "createObject", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "deleteObject", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "renameObject", "kindName": }Identifier{\tt, "oldObjectName": }Identifier{\tt,
+        "newObjectName": }{\tt Identifier\}}, \newline
+        or \newline
+        {\tt \{"command": "removeAttribute", "kindName": }Indetifier{\tt, "objectName": }Identifier{\tt,
+        "attributeName": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
+
 \end{longtable}
 
 \section{Database Interface}
@@ -384,14 +403,16 @@ make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit 
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 the attempted commit.  In that case, the new commit won't be performed, and after verifying that the changes are still
-valid (FIXME), the user shall use the \deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now
-based on a new, updated permanent revision.
+valid via the diffing functions (see section \ref{sec:api-group-history}), the user shall use the
+\deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now based on a new, updated permanent
+revision.
 
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
 can be undone with \deskaFuncRef{removeAttribute}.
 
-FIXME: diffing.
+Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
+\deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
 
 \subsection{API Reference}
 
@@ -442,10 +463,14 @@ and the defined object relations.
 
 Functions from this group are used for fetching actual data from the database.
 
+FIXME
+
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
 
 Any function which modifies objects stored in the Deska database belongs to this group.
+
+FIXME
 
 \subsubsection{Version Control}
 \label{sec:api-group-vcs}
@@ -453,11 +478,40 @@ Any function which modifies objects stored in the Deska database belongs to this
 This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
 History}, section \ref{sec:api-group-history}).
 
+FIXME
+
 \subsubsection{Querying History}
 \label{sec:api-group-history}
 
 Functions for browsing history of individual objects, retrieving lists of differences, etc.
 
-FIXME: \#143
+\deskaFunc{listRevisions}{}
+    {[
+    \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
+    ]}
+    {Return a list of metadata for matching revisions}
+    {This function returns a list of metadata for revisions matching the search criteria.  Given that there is currently
+    no way to specify the search options (FIXME: add optional arguments?), the function will currently return metadata
+    for all persistent revisions.}
+
+\deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
+    \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
+    \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
+    \{"command": "removeAttribute", "kindName": "k4", "objectName": "o4", "attributeName": "fancyAttr"\}, \\
+    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
+        "attributeData": "new", "oldAttributeData": "old"\} \\
+    ]}
+    {Return differences between the database state in the specified versions}
+    {This function will produce a list of differences between the database state in the two indicated revisions.  The
+    returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
+    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
+    object has been created and its attribute set to a particular value, the creation shall be present before the record
+    for setting an attribute.
+
+    FIXME: more information goes here\ldots}
+
+FIXME: dataDifferenceInTemporaryChangeset
 
 \end{document}

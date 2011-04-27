@@ -302,14 +302,25 @@ std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
 
 std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
 {
-    // FIXME
-    return std::vector<ObjectModification>();
+    JsonContext c1("In dataDifference API method");
+    std::vector<ObjectModification> res;
+    JsonHandlerApiWrapper h(this, "dataDifference");
+    h.write("revisionA", a);
+    h.write("revisionB", b);
+    h.read("dataDifference").extract(&res);
+    h.work();
+    return res;
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
+std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
 {
-    // FIXME
-    return std::vector<ObjectModification>();
+    JsonContext c1("In dataDifferenceInTemporaryChangeset API method");
+    std::vector<ObjectModification> res;
+    JsonHandlerApiWrapper h(this, "dataDifferenceInTemporaryChangeset");
+    h.write("changeset", changeset);
+    h.read("dataDifferenceInTemporaryChangeset").extract(&res);
+    h.work();
+    return res;
 }
 
 

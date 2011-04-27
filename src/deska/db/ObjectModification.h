@@ -35,6 +35,7 @@ struct CreateObjectModification {
     CreateObjectModification(const Identifier &kindName, const Identifier &objectName);
 };
 
+bool operator==(const CreateObjectModification &a, const CreateObjectModification &b);
 std::ostream& operator<<(std::ostream &stream, const CreateObjectModification &mod);
 
 struct DeleteObjectModification {
@@ -44,16 +45,18 @@ struct DeleteObjectModification {
     DeleteObjectModification(const Identifier &kindName, const Identifier &objectName);
 };
 
+bool operator==(const DeleteObjectModification &a, const DeleteObjectModification &b);
 std::ostream& operator<<(std::ostream &stream, const DeleteObjectModification &mod);
 
 struct RenameObjectModification {
     Identifier kindName;
-    Identifier objectName;
     Identifier oldObjectName;
+    Identifier newObjectName;
 
-    RenameObjectModification(const Identifier &kindName, const Identifier &objectName, const Identifier &oldObjectName);
+    RenameObjectModification(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
 };
 
+bool operator==(const RenameObjectModification &a, const RenameObjectModification &b);
 std::ostream& operator<<(std::ostream &stream, const RenameObjectModification &mod);
 
 struct RemoveAttributeModification {
@@ -64,6 +67,7 @@ struct RemoveAttributeModification {
     RemoveAttributeModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
 };
 
+bool operator==(const RemoveAttributeModification &a, const RemoveAttributeModification &b);
 std::ostream& operator<<(std::ostream &stream, const RemoveAttributeModification &mod);
 
 struct SetAttributeModification {
@@ -77,10 +81,14 @@ struct SetAttributeModification {
                              const Value &attributeData, const Value &oldAttributeData);
 };
 
+bool operator==(const SetAttributeModification &a, const SetAttributeModification &b);
 std::ostream& operator<<(std::ostream &stream, const SetAttributeModification &mod);
 
 typedef boost::variant<CreateObjectModification, DeleteObjectModification, RenameObjectModification, RemoveAttributeModification,
     SetAttributeModification> ObjectModification;
+
+/** @short operator!= is not provided by boost::variant */
+bool operator!=(const ObjectModification& a, const ObjectModification& b);
 
 }
 }
