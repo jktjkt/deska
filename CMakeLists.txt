@@ -74,5 +74,5 @@ add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
 target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
 
-enable_testing()
+include(CTest)
 add_subdirectory(tests)
