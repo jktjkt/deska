@@ -30,6 +30,7 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 
 # RHEL5 with EPEL Boost
 #SET(BOOST_INCLUDEDIR /usr/include/boost141)
+#SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
 FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
