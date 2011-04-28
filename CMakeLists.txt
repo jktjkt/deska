@@ -28,6 +28,20 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+ENDIF(NOT CMAKE_BUILD_TYPE)
+
+# RHEL5 with EPEL Boost
+SET(BOOST_INCLUDEDIR /usr/include/boost141)
+SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
+FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif(Boost_FOUND)
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
@@ -60,11 +74,11 @@ set(deskaCliParserDemo_SRCS
 )
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb boost_system boost_date_time)
+target_link_libraries(DeskaDb ${Boost_LIBRARIES})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
 target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
 
-enable_testing()
+include(CTest)
 add_subdirectory(tests)
