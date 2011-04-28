@@ -616,8 +616,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
         if (!parsingSucceeded) {
             // Some bad input
-            if (!dryRun)
-                reportParseError(line);
             break;
         } else {
             // Some errors could be generated even though parsing succeeded, because of the way how boost::spirit
@@ -627,6 +625,12 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             // clear these errors, that are not actual errors.
             parseErrors.clear();
         }     
+    }
+
+    if (!parsingSucceeded) {
+         // Some bad input
+        if (!dryRun)
+            reportParseError(line);
     }
 
     if ((!dryRun) && (parsingSucceeded)) {

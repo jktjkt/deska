@@ -252,7 +252,7 @@ std::string ParseError<Iterator>::toString() const
             sout << " for " << m_context;
             break;
         case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
-            sout << ". No definition found.";
+            sout << ". No definition found";
             break;
     }
     sout << ".";
