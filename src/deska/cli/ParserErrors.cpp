@@ -126,10 +126,14 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
     switch (errorType) {
         case PARSE_ERROR_TYPE_KIND:
             return "kind name";
+        case PARSE_ERROR_TYPE_NESTING:
+            return "kind name";
         case PARSE_ERROR_TYPE_ATTRIBUTE:
             return "attribute name";
         case PARSE_ERROR_TYPE_VALUE_TYPE:
             return "argument value";
+        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+            return "kind name";
             break;
     }
     throw std::domain_error("ParseErrorType out of range");
@@ -184,6 +188,19 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 
 template <typename Iterator>
+ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
+                                 const std::vector<Db::Identifier> &expectedKinds):
+    m_errorType(PARSE_ERROR_TYPE_OBJECT_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos),
+    m_context(kindName)
+{
+    for (std::vector<Db::Identifier>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it) {
+        m_expectedKeywords.push_back(*it);
+    }
+}
+
+
+
+template <typename Iterator>
 ParseErrorType ParseError<Iterator>::errorType() const
 {
     return m_errorType;
@@ -227,9 +244,15 @@ std::string ParseError<Iterator>::toString() const
             else
                 sout << " of nested object in " << m_context;
             break;
+        case PARSE_ERROR_TYPE_NESTING:
+            sout << " of nested object in " << m_context << ". Bad nesting";
+            break;
         case PARSE_ERROR_TYPE_ATTRIBUTE:
         case PARSE_ERROR_TYPE_VALUE_TYPE:
             sout << " for " << m_context;
+            break;
+        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+            sout << ". No definition found";
             break;
     }
     sout << ".";
@@ -316,6 +339,8 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName);
+
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds);
 
 template ParseErrorType ParseError<iterator_type>::errorType() const;
 
