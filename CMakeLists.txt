@@ -31,6 +31,7 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0
 )
 
 set(libDeskaDb_SRCS
