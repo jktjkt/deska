@@ -25,7 +25,7 @@ macro(deska_test fname)
     add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
     target_link_libraries(test_${fname} ParserTestHelpers ${Boost_LIBRARIES})
-    add_test(test_${fname} test_${fname})
+    add_test(test_${fname} ${CMAKE_CURRENT_BINARY_DIR}/test_${fname})
 endmacro(deska_test)
 
 set(ParserTestHelpers_SRCS
