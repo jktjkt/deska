@@ -29,8 +29,8 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
 # RHEL5 with EPEL Boost
-#SET(BOOST_INCLUDEDIR /usr/include/boost141)
-#SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
+SET(BOOST_INCLUDEDIR /usr/include/boost141)
+SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
 FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
