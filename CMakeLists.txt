@@ -31,7 +31,7 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 # RHEL5 with EPEL Boost
 #SET(BOOST_INCLUDEDIR /usr/include/boost141)
 #SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
-FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time)
+FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
@@ -68,7 +68,7 @@ set(deskaCliParserDemo_SRCS
 )
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb boost_system boost_date_time)
+target_link_libraries(DeskaDb ${Boost_LIBRARIES})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})

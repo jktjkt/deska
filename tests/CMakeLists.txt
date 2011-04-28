@@ -24,7 +24,7 @@ macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
     add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} ParserTestHelpers boost_unit_test_framework)
+    target_link_libraries(test_${fname} ParserTestHelpers ${Boost_LIBRARIES})
     add_test(test_${fname} test_${fname})
 endmacro(deska_test)
 
