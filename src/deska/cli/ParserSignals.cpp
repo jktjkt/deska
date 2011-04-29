@@ -105,6 +105,11 @@ void SignalsHandler::slotFunctionDelete()
 void SignalsHandler::slotParserError(const ParserException &error)
 {
     signalsStack.push_back(ParserSignal(SIGNAL_TYPE_PARSE_ERROR, parser->currentContextStack(), error.dump()));
+
+
+void SignalsHandler::slotParsingFinished()
+{
+
 }
 
 

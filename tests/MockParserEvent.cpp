@@ -53,16 +53,21 @@ MockParserEvent MockParserEvent::functionDelete()
     return MockParserEvent(EVENT_FUNCTION_DELETE);
 }
 
-MockParserEvent MockParserEvent::invalid()
-{
-    return MockParserEvent(EVENT_INVALID);
-}
-
 MockParserEvent MockParserEvent::parserError(const Deska::Cli::ParserException &err)
 {
     MockParserEvent res(EVENT_PARSE_ERROR);
     res.message = err.dump();
     return res;
+}
+
+MockParserEvent MockParserEvent::parsingFinished()
+{
+    return MockParserEvent(EVENT_PARSING_FINISHED);
+}
+
+MockParserEvent MockParserEvent::invalid()
+{
+    return MockParserEvent(EVENT_INVALID);
 }
 
 bool MockParserEvent::operator==(const MockParserEvent &other) const
@@ -95,6 +100,9 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_PARSE_ERROR:
         out << "parseError(" << m.message << ")";
+        break;
+    case MockParserEvent::EVENT_PARSING_FINISHED:
+        out << "parsingFinished()";
         break;
     case MockParserEvent::EVENT_INVALID:
         out << "[no event]";

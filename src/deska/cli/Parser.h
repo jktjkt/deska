@@ -185,6 +185,13 @@ public:
     */
     boost::signals2::signal<void ()> functionDelete;
 
+    /** @short Parsing of current line finished
+    *
+    *   The parser triggeres this signal when parsing of current line is finished regardless
+    *   the parsing succeeded or not.
+    */
+    boost::signals2::signal<void ()> parsingFinished;
+
     /** @short True if the parser is currently nested in some block
     *
     *   The return value is false iff the currentContextStack() would return an empty vector.

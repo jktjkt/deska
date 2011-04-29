@@ -55,6 +55,7 @@ ParserTestFixture::ParserTestFixture()
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserError, this, _1));
+    parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
 }
 
 ParserTestFixture::~ParserTestFixture()
@@ -91,6 +92,11 @@ void ParserTestFixture::slotParserFunctionDelete()
 void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &exception)
 {
     parserEvents.push(MockParserEvent::parserError(exception));
+}
+
+void ParserTestFixture::slotParserParsingFinished()
+{
+    parserEvents.push(MockParserEvent::parsingFinished());
 }
 
 void ParserTestFixture::expectNothingElse()
@@ -130,6 +136,11 @@ void ParserTestFixture::expectFunctionDelete()
 void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)
 {
     expectHelper(MockParserEvent::parserError(exception));
+}
+
+void ParserTestFixture::expectParsingFinished()
+{
+    expectHelper(MockParserEvent::parsingFinished());
 }
 
 void ParserTestFixture::expectHelper(const MockParserEvent &e)
