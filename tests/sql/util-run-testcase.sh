@@ -31,6 +31,6 @@ pushd ../../src/deska/server/db
 popd
 
 #psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
-pg_prove -U $USER -d $DB $1 || die "Test"
+pg_prove -U $SU -d $DB $1 || die "Test"
 
 ./util-delete-database.sh || die "Removing the DB after the test"

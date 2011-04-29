@@ -1,7 +1,5 @@
 BEGIN;
 
-
-SET ROLE TO deska_team;
 \set ECHO
 \set QUIET 1
 

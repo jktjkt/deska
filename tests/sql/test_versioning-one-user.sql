@@ -1,5 +1,7 @@
 BEGIN;
 
+\i util-switch-user.sql
+
 SET search_path TO pgtap,api,genproc,history,deska,production;
 
 --action is indicator of operation done with object
