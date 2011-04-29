@@ -1,6 +1,6 @@
 #/bin/bash
 
-. util-config.sh
+. ./util-config.sh
 
 psql -q -U $SU -c "CREATE USER ${USER};" || die "Create user"
 for role in deska_admin deska_user; do
