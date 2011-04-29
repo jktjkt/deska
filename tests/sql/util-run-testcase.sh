@@ -30,6 +30,7 @@ pushd ../../src/deska/server/db
 ./deska_install.sh install -u $SU -d $DB --all
 popd
 
-psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
+#psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
+pg_prove -U $USER -d $DB $1 || die "Test"
 
 ./util-delete-database.sh || die "Removing the DB after the test"

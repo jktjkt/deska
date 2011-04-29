@@ -51,5 +51,5 @@ deska_test(json_api_parser)
 deska_test(json_caching_api)
 
 if(DEFINED RUN_SQL_TESTS)
-    deska_sql_test(simple-query)
+    deska_sql_test(fn-get-schema)
 endif(DEFINED RUN_SQL_TESTS)
