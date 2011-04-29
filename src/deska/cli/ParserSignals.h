@@ -36,6 +36,7 @@ namespace Deska
 namespace Cli
 {
 
+
 typedef enum {
     /** @short Signal type for categoryEntered() */
     SIGNAL_TYPE_CATEGORY_ENTERED,
@@ -118,9 +119,11 @@ class SignalsHandler
 {
 public:
 
-    SignalsHandler();
+    SignalsHandler(Parser *parser);
 
 private:
+
+    friend class ParserSignal;
 
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
@@ -128,10 +131,11 @@ private:
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotParserError(const ParserException &error);
+    void slotParsingFinished();
 
     std::vector<ParserSignal> signalsStack;
 
-    Parser *parser;
+    Parser *m_parser;
 
 };
 

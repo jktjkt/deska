@@ -61,50 +61,53 @@ ParserSignal::ParserSignal(SignalType type, const std::vector<ContextStackItem> 
 
 
 
-SignalsHandler::SignalsHandler()
+SignalsHandler::SignalsHandler(Parser *parser)
 {
+    m_parser = parser;
 }
 
 
 
 void SignalsHandler::slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_ENTERED, parser->currentContextStack(), kind, name));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_ENTERED, m_parser->currentContextStack(), kind, name));
 }
 
 
 
 void SignalsHandler::slotCategoryLeft()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_LEFT, parser->currentContextStack()));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_LEFT, m_parser->currentContextStack()));
 }
 
 
 
 void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_SET_ATTRIBUTE, parser->currentContextStack(), attribute, value));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_SET_ATTRIBUTE, m_parser->currentContextStack(), attribute, value));
 }
 
 
 
 void SignalsHandler::slotFunctionShow()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_SHOW, parser->currentContextStack()));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_SHOW, m_parser->currentContextStack()));
 }
 
 
 
 void SignalsHandler::slotFunctionDelete()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_DELETE, parser->currentContextStack()));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_DELETE, m_parser->currentContextStack()));
 }
 
 
 
 void SignalsHandler::slotParserError(const ParserException &error)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_PARSE_ERROR, parser->currentContextStack(), error.dump()));
+    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_PARSE_ERROR, m_parser->currentContextStack(), error.dump()));
+}
+
 
 
 void SignalsHandler::slotParsingFinished()
