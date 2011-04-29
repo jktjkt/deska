@@ -7,7 +7,9 @@ SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 SET(CTEST_SOURCE_DIRECTORY "/home/jkt/work/fzu/tests-deska")
 SET(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
 
-set(CTEST_SITE "velbloud.flaska.net")
+find_program(HOSTNAME_CMD NAMES hostname)
+exec_program(${HOSTNAME_CMD} ARGS --fqdn OUTPUT_VARIABLE HOSTNAME)
+set(CTEST_SITE "${HOSTNAME}")
 set(CTEST_BUILD_NAME "linux-gcc-default")
 
 set(CTEST_PROJECT_NAME "Deska")
