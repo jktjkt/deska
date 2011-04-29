@@ -18,7 +18,9 @@ fi
 
 ./util-create-database.sh || die "Preparing the DB environment"
 
-# FIXME: setup deska here
+pushd ../../src/deska/server/db
+./deska_install.sh install -u $SU -d $DB --all
+popd
 
 psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
 
