@@ -16,10 +16,10 @@ fi
 # stuff broken
 ./util-delete-database.sh 2>/dev/null
 
-./util-create-database.sh || die "Cannot prepare the DB environment"
+./util-create-database.sh || die "Preparing the DB environment"
 
 # FIXME: setup deska here
 
-psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL error"
+psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
 
-./util-delete-database.sh || die "Cannot remove the DB after the test"
+./util-delete-database.sh || die "Removing the DB after the test"
