@@ -1,6 +1,6 @@
 /*
-* Copyright (C) 2011 Jan Kundr·t <kundratj@fzu.cz>
-* Copyright (C) 2011 Tom·ö HubÌk <hubik.tomas@gmail.com>
+* Copyright (C) 2011 Jan Kundr√°t <kundratj@fzu.cz>
+* Copyright (C) 2011 Tom√°≈° Hub√≠k <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
