@@ -9,10 +9,10 @@ SET search_path TO pgtap,genproc,history,deska,production;
 
 
 CREATE USER u1;
-GRANT deska_team TO u1;
+GRANT deska_user TO u1;
 
 CREATE USER u2;
-GRANT deska_team TO u2;
+GRANT deska_user TO u2;
 
 
 --action is indicator of operation done with object
