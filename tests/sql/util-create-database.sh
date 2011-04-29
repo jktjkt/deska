@@ -1,5 +1,7 @@
 #/bin/bash
 
+cd `dirname $0`
+
 . ./util-config.sh
 
 psql -q -U $SU -c "CREATE USER ${USER};" || die "Create user"
