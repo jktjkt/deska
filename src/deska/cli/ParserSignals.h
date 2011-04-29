@@ -58,23 +58,56 @@ class ParserSignal
 {
 public:
 
+    /** @short Constructor for storing signal categoryEntered().
+    *
+    *   @param type Signal type
+    *   @param context Current parser context
+    *   @param kind Kind name of object being entered
+    *   @param object Kind instance of object being entered
+    */
     ParserSignal(SignalType type, const std::vector<ContextStackItem> &context,
                  const Db::Identifier &kind, const Db::Identifier &object);
+    /** @short Constructor for storing signal categoryLeft() or functionShow() or functionDelete().
+    *
+    *   @param type Signal type
+    *   @param context Current parser context
+    */
     ParserSignal(SignalType type, const std::vector<ContextStackItem> &context);
+    /** @short Constructor for storing signal setAttribute().
+    *
+    *   @param type Signal type
+    *   @param context Current parser context
+    *   @param attribute Name of attribute being changed
+    *   @param value Value to be set
+    */
     ParserSignal(SignalType type, const std::vector<ContextStackItem> &context,
                  const Db::Identifier &attribute, const Db::Value &value);
+    /** @short Constructor for storing signal parseError().
+    *
+    *   @param type Signal type
+    *   @param context Current parser context
+    *   @param error String dump of parse error
+    */
     ParserSignal(SignalType type, const std::vector<ContextStackItem> &context,
                  const std::string &error);
 
 private:
 
-    std::string parseError;
+    //@{
+    /** Additional information needed to be stored for particular signals.
+    *   Which members will be initialised depends on signal type.
+    */
     Db::Identifier kindName;
     Db::Identifier objectName;
     Db::Identifier attributeName;
     Db::Value setValue;
+    std::string parseError;
+    //@}
+
+    /** Context stack, that was actual when signal was triggered. */
     std::vector<ContextStackItem> contextStack;
 
+    /** Signal type. @see SignalType */
     SignalType signalType;
 };
 
