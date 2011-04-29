@@ -155,7 +155,7 @@ public:
 
     /** @short Leaving a context
     *
-    *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
+    *   The Parser hit a line indicating that the current block should be left. This could be a result of an explicit
     *   "end" line, or a side effect of a standalone, self-contained line.
     */
     boost::signals2::signal<void ()> categoryLeft;
