@@ -28,6 +28,13 @@ macro(deska_test fname)
     add_test(test_${fname} ${CMAKE_CURRENT_BINARY_DIR}/test_${fname})
 endmacro(deska_test)
 
+macro(deska_sql_test fname)
+    add_test(test_sql_${fname}
+        ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-run-testcase.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/sql/test_${fname}.sql
+        )
+endmacro(deska_sql_test)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
@@ -42,3 +49,7 @@ deska_test(mock_streambuf)
 deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
+
+if(DEFINED RUN_SQL_TESTS)
+    deska_sql_test(simple-query)
+endif(DEFINED RUN_SQL_TESTS)
