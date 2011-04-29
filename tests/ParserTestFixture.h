@@ -59,7 +59,10 @@ struct ParserTestFixture: public boost::signals2::trackable
     void slotParserFunctionDelete();
 
     /** @short Handler for Parser's parserError() signal */
-    void slotParserError(const Deska::Cli::ParserException &exception);
+    void slotParserParseError(const Deska::Cli::ParserException &exception);
+    
+    /** @short Handler for Parser's parsingFinished() */
+    void slotParserParsingFinished();
 
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
@@ -96,6 +99,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered();
     */
     void expectParseError(const Deska::Cli::ParserException &exception);
+    
+    /** @short Check for parsingFinished
+
+    @see expectCategoryEntered()
+    */
+    void expectParsingFinished();
 
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e);
