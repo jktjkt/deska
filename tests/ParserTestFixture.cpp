@@ -54,7 +54,7 @@ ParserTestFixture::ParserTestFixture()
     attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
-    parser->parseError.connect(bind(&ParserTestFixture::slotParserError, this, _1));
+    parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
     parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
 }
 
@@ -89,7 +89,7 @@ void ParserTestFixture::slotParserFunctionDelete()
     parserEvents.push(MockParserEvent::functionDelete());
 }
 
-void ParserTestFixture::slotParserError(const Deska::Cli::ParserException &exception)
+void ParserTestFixture::slotParserParseError(const Deska::Cli::ParserException &exception)
 {
     parserEvents.push(MockParserEvent::parserError(exception));
 }
