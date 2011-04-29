@@ -17,3 +17,16 @@ Setup for the SQL server side (see doc/misc/pgsql-setup for details):
 
 if you change modules, run deska_install.sh -d deska_dev -u user restore
 -- user must be deska_admin
+
+Unit test setup:
+----------------
+
+If you want to include unit tests for the SQL side of Deska in `make test` runs, do the following:
+
+1) Install pgTAP with pg_prove
+2) Pass the "-DRUN_SQL_TESTS=1" to cmake
+3) Make sure that the PgSQL server is running and that you can authorize under a
+different user (ie. "trust" instead of "ident" in the pg_hba.conf for local
+connections). Some of the tests require DB superuser.
+4) Run the following exactly once: `./tests/sql/util-create-shared-roles.sh`
+5) Enjoy `make test` runs
