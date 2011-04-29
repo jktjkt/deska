@@ -63,11 +63,11 @@ private:
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
         EVENT_SET_ATTR,
-        /** @short Handler for parseError() */
-        EVENT_FUNCTION_SHOW,
         /** @short Handler for functionShow() */
-        EVENT_FUNCTION_DELETE,
+        EVENT_FUNCTION_SHOW,
         /** @short Handler for functionDelete() */
+        EVENT_FUNCTION_DELETE,
+        /** @short Handler for parseError() */
         EVENT_PARSE_ERROR,
         /** @short Fake, invalid event */
         EVENT_INVALID
