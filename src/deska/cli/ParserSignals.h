@@ -67,15 +67,13 @@ public:
                  const std::string &error);
 
 private:
-
+    SignalType signalType;
+    std::vector<ContextStackItem> contextStack;
     std::string parseError;
     Db::Identifier kindName;
     Db::Identifier objectName;
     Db::Identifier attributeName;
     Db::Value setValue;
-    std::vector<ContextStackItem> contextStack;
-
-    SignalType signalType;
 };
 
 
