@@ -7,9 +7,6 @@ SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 SET(CTEST_SOURCE_DIRECTORY "/home/jkt/work/fzu/tests-deska")
 SET(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
 
-set(CTEST_SITE "velbloud.flaska.net")
-set(CTEST_BUILD_NAME "linux-gcc-default")
-
 set(CTEST_PROJECT_NAME "Deska")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
