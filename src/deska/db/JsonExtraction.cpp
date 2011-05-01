@@ -46,6 +46,11 @@ DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &va
     return value;
 }
 
+// Template instances for the Deska::Db::Value conversions from JSON
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
+
 template <>
 ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
     const Deska::Db::CreateObjectModification &value) const
@@ -541,11 +546,6 @@ template JsonField& JsonField::extract(JsonWrappedAttribute*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(std::vector<ObjectModification>*);
-
-// Template instances for the Deska::Db::Value conversions from JSON
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
 
 }
 }
