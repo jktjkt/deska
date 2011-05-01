@@ -21,10 +21,6 @@
 
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/foreach.hpp>
-// The Phoenix is rather prone to missing includes. The compilation is roughly 10% slower
-// when including everything, but it's a worthwhile sacrifice, as it prevents many nasty
-// errors which are rather hard to debug.
-#include <boost/optional.hpp>
 //#include "JsonExtraction.h"
 #include "JsonHandler.h"
 #include "JsonApi.h"
