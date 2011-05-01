@@ -143,8 +143,10 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
     }
 }
 
+/** @short Define how to extract a custom JSON type into C++ class */
 template<typename T> struct JsonExtractionTraits {};
 
+/** @short Specialization for extracting Identifiers from JSON */
 template<> struct JsonExtractionTraits<Identifier> {
     static Identifier implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting Identifier");
@@ -152,6 +154,7 @@ template<> struct JsonExtractionTraits<Identifier> {
     }
 };
 
+/** @short Specialization for extracting a PendingChangeset representation from JSON */
 template<> struct JsonExtractionTraits<PendingChangeset> {
     static PendingChangeset implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
@@ -182,6 +185,7 @@ template<> struct JsonExtractionTraits<PendingChangeset> {
     }
 };
 
+/** @short Specialization for extracting ObjectRelation into a C++ class from JSON */
 template<> struct JsonExtractionTraits<ObjectRelation> {
     static ObjectRelation implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
@@ -227,6 +231,7 @@ template<> struct JsonExtractionTraits<ObjectRelation> {
     }
 };
 
+/** @short Extract RevisionMetadata from JSON */
 template<> struct JsonExtractionTraits<RevisionMetadata> {
     static RevisionMetadata implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
@@ -245,6 +250,7 @@ template<> struct JsonExtractionTraits<RevisionMetadata> {
     }
 };
 
+/** @short Extract a RevisionId from JSON */
 template<> struct JsonExtractionTraits<RevisionId> {
     static RevisionId implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting RevisionId");
@@ -252,6 +258,7 @@ template<> struct JsonExtractionTraits<RevisionId> {
     }
 };
 
+/** @short Extract a TemporaryChangesetId form JSON */
 template<> struct JsonExtractionTraits<TemporaryChangesetId> {
     static TemporaryChangesetId implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting TemporaryChangesetId");
@@ -259,6 +266,7 @@ template<> struct JsonExtractionTraits<TemporaryChangesetId> {
     }
 };
 
+/** @short Extract timestamp from JSON */
 template<> struct JsonExtractionTraits<boost::posix_time::ptime> {
     static boost::posix_time::ptime implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting boost::posix_time::ptime");
@@ -266,6 +274,7 @@ template<> struct JsonExtractionTraits<boost::posix_time::ptime> {
     }
 };
 
+/** @short Extract PendingChangeset::AttachStatus from JSON */
 template<> struct JsonExtractionTraits<PendingChangeset::AttachStatus> {
     static PendingChangeset::AttachStatus implementation(const json_spirit::Value &value) {
         JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
@@ -284,6 +293,7 @@ template<> struct JsonExtractionTraits<PendingChangeset::AttachStatus> {
     }
 };
 
+/** @short Helper for extracting an optional value */
 template<typename T> struct JsonExtractionTraits<boost::optional<T> > {
     static boost::optional<T> implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting boost::optional<T>");
@@ -294,6 +304,7 @@ template<typename T> struct JsonExtractionTraits<boost::optional<T> > {
     }
 };
 
+/** @short Helper for extracting a vector */
 template<typename T> struct JsonExtractionTraits<std::vector<T> > {
     static std::vector<T> implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting std::vector<T>");
@@ -307,6 +318,7 @@ template<typename T> struct JsonExtractionTraits<std::vector<T> > {
     }
 };
 
+/** @short Helper for extracting attribute definitions */
 template<> struct JsonExtractionTraits<std::map<Identifier,pair<Identifier,Value> > > {
     static std::map<Identifier,pair<Identifier,Value> > implementation(const json_spirit::Value &v) {
         JsonContext c1("When extracting std::map<Identifier,pair<Identifier,Value> >");
@@ -357,6 +369,7 @@ template<> struct JsonExtractionTraits<std::vector<KindAttributeDataType> > {
     }
 };
 
+/** @short Extract ObjectModification from JSON */
 template<> struct JsonExtractionTraits<ObjectModification> {
     static ObjectModification implementation(const json_spirit::Value &v) {
         JsonContext c1("When converting JSON Object into Deska::Db::ObjectModification");
