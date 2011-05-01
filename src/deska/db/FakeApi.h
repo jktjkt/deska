@@ -58,6 +58,7 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);
+    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
