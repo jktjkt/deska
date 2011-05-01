@@ -420,17 +420,22 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
+namespace {
+std::string exampleJsonDiff =
+    "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
+    "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
+    "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
+    "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
+    "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
+    // FIXME: test that the conversion checks and respects the data type
+}
+
 /** @short Test dataDifference() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\"}\n");
     expectRead("{\"response\": \"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"dataDifference\": ["
-               "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
-               "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
-               "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-               "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
-               "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}"
-               // FIXME: test that the conversion checks and respects the data type
+               + exampleJsonDiff +
                "]}\n");
     std::vector<ObjectModification> expected;
     expected.push_back(CreateObjectModification("k1", "o1"));
@@ -448,12 +453,7 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
 {
     expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\"}\n");
     expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\", \"dataDifferenceInTemporaryChangeset\": ["
-               "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
-               "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
-               "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-               "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
-               "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}"
-               // FIXME: test that the conversion checks and respects the data type
+               + exampleJsonDiff +
                "]}\n");
     std::vector<ObjectModification> expected;
     expected.push_back(CreateObjectModification("k1", "o1"));
@@ -469,15 +469,8 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
 /** @short Test applyBatchedChanges() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
 {
-    std::string modList =
-            "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
-            "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
-            "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-            "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
-            "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
-            // FIXME: test that the conversion checks and respects the data type
-    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + modList + "]}\n");
-    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + modList + "]}\n");
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + exampleJsonDiff + "]}\n");
+    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + exampleJsonDiff + "]}\n");
     std::vector<ObjectModification> modifications;
     modifications.push_back(CreateObjectModification("k1", "o1"));
     modifications.push_back(DeleteObjectModification("k2", "o2"));
