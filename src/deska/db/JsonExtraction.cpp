@@ -521,16 +521,6 @@ JsonField &JsonField::extract(T *where)
     return *this;
 }
 
-JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
-    dataTypes(dataTypes_)
-{
-}
-
-JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_):
-    dataType(dataType_), attrName(attrName_)
-{
-}
-
 // Template instances for the linker
 template JsonField& JsonField::extract(RevisionId*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);

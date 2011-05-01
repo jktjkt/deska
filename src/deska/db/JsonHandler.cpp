@@ -248,5 +248,17 @@ boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name,
         return write(name, value);
 }
 
+
+JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
+JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_):
+    dataType(dataType_), attrName(attrName_)
+{
+}
+
+
 }
 }
