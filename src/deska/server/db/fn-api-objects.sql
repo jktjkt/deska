@@ -31,12 +31,16 @@ def main(kindname,objectname,attributename,value):
 	res = plan(kindname, attributename)
 	fname = res[0]["getfn"]
 	try:
-		plan2 = prepare("SELECT * from " + fname + "($1,$2)")
-		res = plan2(objectname, value)
+		with xact():
+			plan2 = prepare("SELECT * from " + fname + "($1,$2)")
+			res = plan2(objectname, value)
 		return str(res[0])
 	except Postgres.Exception as dberr:
-		pass
-		return "test"
+		if dberr.pg_errordata.code == "42883":
+			pass
+		else:
+			raise
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
 $$
 LANGUAGE python SECURITY DEFINER;
 
