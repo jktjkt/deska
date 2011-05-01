@@ -21,7 +21,7 @@
 
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/foreach.hpp>
-//#include "JsonExtraction.h"
+#include "JsonExtraction.h"
 #include "JsonHandler.h"
 #include "JsonApi.h"
 
@@ -31,30 +31,20 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
-/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
-struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+/** @short Simply use json_spirit::Value's overloaded constructor */
+template <typename T>
+DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
 {
-    /** @short Simply use json_spirit::Value's overloaded constructor */
-    template <typename T>
-    result_type operator()(const T &value) const
-    {
-        // A strange thing -- when the operator() is not const-qualified, it won't compile.
-        // Too bad that the documentation doesn't mention that. Could it be related to the
-        // fact that the variant we operate on is itself const? But why is there the
-        // requirement to const-qualify the operator() and not only the value it reads?
-        //
-        // How come that this builds fine:
-        // template <typename T>
-        // result_type operator()(T &value) const
-        return value;
-    }
-};
-
-/** @short Variant visitor for converting from Deska::Db::ObjectModification to json_spirit::Value */
-struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::Value>
-{
-    template <typename T> result_type operator()(const T&) const;
-};
+    // A strange thing -- when the operator() is not const-qualified, it won't compile.
+    // Too bad that the documentation doesn't mention that. Could it be related to the
+    // fact that the variant we operate on is itself const? But why is there the
+    // requirement to const-qualify the operator() and not only the value it reads?
+    //
+    // How come that this builds fine:
+    // template <typename T>
+    // result_type operator()(T &value) const
+    return value;
+}
 
 template <>
 ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
@@ -134,9 +124,6 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v)
         throw JsonStructureError("Unsupported type of attribute data");
     }
 }
-
-/** @short Define how to extract a custom JSON type into C++ class */
-template<typename T> struct JsonExtractionTraits {};
 
 /** @short Specialization for extracting Identifiers from JSON */
 template<> struct JsonExtractionTraits<Identifier> {
@@ -435,30 +422,12 @@ template<> struct JsonExtractionTraits<Value> {
     }
 };
 
-/** @short Abstract class for conversion between a JSON value and "something" */
-class JsonExtractor
-{
-public:
-    virtual ~JsonExtractor() {}
-    /** @short Read the JSON data, convert them to the target form and store into a variable */
-    virtual void extract(const json_spirit::Value &value) = 0;
-};
-
-/** @short Template class implementing the conversion from JSON to "something" */
 template <typename T>
-class SpecializedExtractor: public JsonExtractor
+void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {
-    T *target;
-public:
-    /** @short Create an extractor which will save the parsed and converted value to a pointer */
-    SpecializedExtractor(T *source): target(source) {}
-    virtual void extract(const json_spirit::Value &value)
-    {
-        JsonContext c1("In SpecializedExtractor<T>");
-        *target = JsonExtractionTraits<T>::implementation(value);
-    }
-};
-
+    JsonContext c1("In SpecializedExtractor<T>");
+    *target = JsonExtractionTraits<T>::implementation(value);
+}
 
 /** @short Convert JSON into a wrapped, type-checked object attributes
 
