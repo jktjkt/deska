@@ -39,7 +39,7 @@ static std::string j_response = "response";
 namespace Deska {
 namespace Db {
 
-/** @short Variant visitor convert a Deska::Value to json_spirit::Value */
+/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
 struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
     /** @short Simply use json_spirit::Value's overloaded constructor */
