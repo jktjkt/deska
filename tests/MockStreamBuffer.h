@@ -15,8 +15,9 @@ struct MockStreamEvent
     typedef enum {READ, WRITE, READ_EOF} Direction;
     Direction mode_;
     std::string data_;
+    std::string::size_type position_;
     MockStreamEvent(const Direction mode, const std::string &data):
-        mode_(mode), data_(data)
+        mode_(mode), data_(data), position_(0)
     {
     }
 };
@@ -196,12 +197,14 @@ protected:
         if (events_.front().mode_ != MockStreamEvent::READ)
             throw_("real_read: unexpected read");
 
-        std::string &currentStr = events_.front().data_;
-        std::string::iterator it = currentStr.begin();
+        const std::string &currentStr = events_.front().data_;
+        std::string::size_type &position = events_.front().position_;
+        std::string::const_iterator it = currentStr.begin() + position;
+        BOOST_ASSERT(it <= currentStr.end());
 
-        std::size_t num = std::min(count, currentStr.size());
+        std::size_t num = std::min(count, currentStr.size() - position);
         //std::cerr << "real_read asked for " << count << ", will read " << num << std::endl;
-        std::string::iterator end = it + num;
+        std::string::const_iterator end = it + num;
         /*std::string message;
         message.resize(num);
         std::string::iterator dbg = message.begin();*/
@@ -212,11 +215,9 @@ protected:
         //std::cerr << "Read |" << message << "|" << std::endl;
 
         if (it == currentStr.end()) {
-            //std::cerr << "dropping item" << std::endl;
             events_.pop();
         } else {
-            currentStr = currentStr.substr(it - currentStr.begin());
-            //std::cerr << "set substring to |" << currentStr << "|" << std::endl;
+            position += num;
         }
         return num;
     }
@@ -237,10 +238,10 @@ protected:
         out.resize(count);
         std::copy(buf, buf + count, out.begin());
 
-        std::string expectedIn = events_.front().data_.substr(0, count);
-        eq_or_throw_(expectedIn, out, "real_write: value mismatch");
-        events_.front().data_ = events_.front().data_.substr(count);
-        if (events_.front().data_.empty()) {
+        BOOST_ASSERT(events_.front().position_ < events_.front().data_.size());
+        eq_or_throw_(out, events_.front().data_, "real_write: value mismatch", events_.front().position_);
+        events_.front().position_ += count;
+        if (events_.front().position_ == events_.front().data_.size()) {
             events_.pop();
         }
         return count;
@@ -254,14 +255,18 @@ protected:
         throw MockStreamBufferError(message);
     }
 
-    void eq_or_throw_(const std::string &a, const std::string &b, const std::string &message)
+    void eq_or_throw_(const std::string &snippet, const std::string &original, const std::string &message,
+                      const std::string::size_type offset)
     {
-        if (a == b)
+        if (snippet == original.substr(offset, snippet.size()))
             return;
 
         if (use_test_on_throw_) {
-            BOOST_CHECK_EQUAL(a, b);
-            BOOST_CHECK_EQUAL_COLLECTIONS(a.begin(), a.end(), b.begin(), b.end());
+            //BOOST_CHECK_EQUAL(a, b);
+            std::string fake = original;
+            fake.replace(offset, std::string::npos, snippet, 0, std::string::npos);
+            BOOST_CHECK_EQUAL_COLLECTIONS(fake.begin(), fake.end(),
+                                          original.begin(), original.begin() + std::min(fake.size(), original.size()));
         }
         throw MockStreamBufferError(message);
     }
