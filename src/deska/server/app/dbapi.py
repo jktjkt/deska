@@ -150,7 +150,12 @@ class DB:
 		args = [args[i] for i in needed_args]
 		# cast to string
 		args = map(str,args)
-		self.mark.callproc(name,args)
+		try:
+			self.mark.callproc(name,args)
+			self.error = False
+		except Exception, e:
+			self.error = e
+			print "error"
 		return 
 
 	def run_data_method(self,name,args):
@@ -182,6 +187,10 @@ class DB:
 			raise Exception("very bad assert here, not run this function without run has() before")
 	
 	def fetchall(self):
+		if self.error:
+			print "pgcode: " + self.error.pgcode
+			print "pgerror: " + self.error.pgerror
+			raise Exception(self.error.pgerror)
 		cls = self.fetch_class(self.mark)
 		data = cls.parse()
 		logging.debug("fetchall returning: {d})".format(d = data))
