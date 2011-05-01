@@ -440,8 +440,8 @@ and the defined object relations.
 
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds.}
-    {Top-level Kinds are entities like enclosure etc, that is, object representing types.  These Kinds could then be
-    instantiated.}
+    {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
+    {\tt kindName} argument to various other functions.}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
