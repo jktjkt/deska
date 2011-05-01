@@ -119,10 +119,10 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     o.push_back(json_spirit::Pair("kindName", value.kindName));
     o.push_back(json_spirit::Pair("objectName", value.objectName));
     o.push_back(json_spirit::Pair("attributeName", value.attributeName));
-    o.push_back(json_spirit::Pair("oldAttributeData",
-                                  boost::apply_visitor(DeskaValueToJsonValue(), value.oldAttributeData)));
     o.push_back(json_spirit::Pair("attributeData",
                                   boost::apply_visitor(DeskaValueToJsonValue(), value.attributeData)));
+    o.push_back(json_spirit::Pair("oldAttributeData",
+                                  boost::apply_visitor(DeskaValueToJsonValue(), value.oldAttributeData)));
     return o;
 }
 
