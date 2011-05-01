@@ -262,9 +262,13 @@ protected:
             return;
 
         if (use_test_on_throw_) {
-            //BOOST_CHECK_EQUAL(a, b);
             std::string fake = original;
             fake.replace(offset, std::string::npos, snippet, 0, std::string::npos);
+            // In order to show context, we will compare the actually processed data ("fake") with all of the
+            // expected data, including part of it which wasn't transmitted yet.
+            // This is meant to make debugging easier.
+            BOOST_CHECK_EQUAL(fake, original);
+            // But then we'll print it as a sequence again, now with correct numbers:
             BOOST_CHECK_EQUAL_COLLECTIONS(fake.begin(), fake.end(),
                                           original.begin(), original.begin() + std::min(fake.size(), original.size()));
         }
