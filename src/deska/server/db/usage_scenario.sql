@@ -6,7 +6,7 @@ BEGIN;
 SELECT start_changeset();
 
 -- works?
-SELECT my_version();
+SELECT get_current_changeset();
 
 -- some changes follows
 SELECT vendor_add('DELL');

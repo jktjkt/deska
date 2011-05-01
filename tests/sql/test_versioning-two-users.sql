@@ -1,18 +1,16 @@
 BEGIN;
 
-
-SET ROLE TO deska_team;
 \set ECHO
 \set QUIET 1
 
-SET search_path TO pgtap,genproc,history,deska,production;
+SET search_path TO pgtap,api,genproc,history,deska,production;
 
 
 CREATE USER u1;
-GRANT deska_team TO u1;
+GRANT deska_user TO u1;
 
 CREATE USER u2;
-GRANT deska_team TO u2;
+GRANT deska_user TO u2;
 
 
 --action is indicator of operation done with object
@@ -32,7 +30,7 @@ BEGIN
 	SET ROLE TO u1;
 
 	--u1 start changeset
-	PERFORM start_changeset();
+	PERFORM startchangeset();
 
 
 	-- u1 add vendor DELL
@@ -51,7 +49,7 @@ BEGIN
 	DEALLOCATE u1names;
 
 
-	PERFORM start_changeset();
+	PERFORM startchangeset();
 	
 	BEGIN
 		PERFORM vendor_del('DELL');
