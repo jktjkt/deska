@@ -31,19 +31,20 @@ SELECT deleteObject('hardware','IBM');
 
 SELECT commitChangeset('2');
 
-CREATE VIEW a AS SELECT * FROM hardware_history WHERE version = 1 AND dest_bit = B'0';
-CREATE VIEW b AS SELECT * FROM hardware_history WHERE version = 2 AND dest_bit = B'0';
-
 END;
-SELECT 'changed:',a.name,b.name FROM a JOIN b ON a.uid = b.uid;
-SELECT 'deleted:',a.name
-	FROM a LEFT OUTER JOIN b ON a.uid = b.uid
-	WHERE b.name IS NULL;
-SELECT 'created',b.name
-	FROM a RIGHT OUTER JOIN b ON a.uid = b.uid
-	WHERE a.name IS NULL;
 
-CREATE OR REPLACE FUNCTION diff()
+CREATE OR REPLACE VIEW a AS SELECT * FROM hardware_history WHERE version <= 22411 AND dest_bit = B'0';
+CREATE OR REPLACE VIEW b AS SELECT * FROM hardware_history WHERE version > 22411 AND version <= 42421 AND dest_bit = B'0';
+
+--SELECT 'changed:',a.name,b.name FROM a JOIN b ON a.uid = b.uid;
+--SELECT 'deleted:',a.name
+--	FROM a LEFT OUTER JOIN b ON a.uid = b.uid
+--	WHERE b.name IS NULL;
+--SELECT 'created',b.name
+--	FROM a RIGHT OUTER JOIN b ON a.uid = b.uid
+--	WHERE a.name IS NULL;
+
+CREATE OR REPLACE FUNCTION diff(x bigint, y bigint)
 RETURNS text
 AS
 $$
@@ -68,4 +69,15 @@ return text
 $$
 LANGUAGE plpythonu;
 
-select diff()
+CREATE OR REPLACE FUNCTION diff_created(from_rev bigint,to_rev bigint)
+RETURNS SETOF hardware_history
+AS
+$$
+BEGIN
+RETURN QUERY SELECT b.*
+      FROM a RIGHT OUTER JOIN b ON a.uid = b.uid
+	        WHERE a.name IS NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
