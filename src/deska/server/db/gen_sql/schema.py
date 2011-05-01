@@ -16,7 +16,7 @@ CREATE FUNCTION commit_all(message text)
 		parent bigint;
 	BEGIN
 		SELECT max(id) INTO last_rev FROM version;
-		parent = parent(my_version());
+		parent = parent(get_current_changeset());
 		IF parent != last_rev THEN
 			RAISE SQLSTATE '10007' USING MESSAGE = 'You must run rebase before commit.';
 		END IF;

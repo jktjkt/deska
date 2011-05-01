@@ -88,7 +88,7 @@ $$
 DECLARE ver integer;
 	ret integer;
 BEGIN
-	SELECT my_version() INTO ver;
+	SELECT get_current_changeset() INTO ver;
 	-- FIXME: add commit message here
 	INSERT INTO version (id,author)
 		SELECT id,author FROM changeset
@@ -117,7 +117,7 @@ AS
 $$
 DECLARE ver bigint;
 BEGIN
-	ver = my_version();
+	ver = get_current_changeset();
 	DELETE FROM changeset
 		WHERE id = ver;
 	RETURN 1;
@@ -127,9 +127,25 @@ $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
+-- get my version id, this can return null
+--
+CREATE FUNCTION get_current_changeset_or_null()
+RETURNS integer
+AS
+$$
+DECLARE ver integer;
+BEGIN
+	SELECT id INTO ver FROM changeset
+		WHERE pid = pg_backend_pid();
+	RETURN ver;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
 -- get my version id
 --
-CREATE FUNCTION my_version()
+CREATE FUNCTION get_current_changeset()
 RETURNS integer
 AS
 $$
@@ -178,7 +194,7 @@ $$
 DECLARE ver integer;
 BEGIN
 	PERFORM create_changeset();
-	SELECT my_version() INTO ver;
+	SELECT get_current_changeset() INTO ver;
 	RETURN id2changeset(ver);
 END
 $$
@@ -220,7 +236,7 @@ $$
 BEGIN
 	UPDATE changeset SET message = message_,
 		status = 'DETACHED', pid = NULL
-		WHERE id = my_version(); 
+		WHERE id = get_current_changeset(); 
 	RETURN 1;
 END
 $$
@@ -235,7 +251,7 @@ AS
 $$
 DECLARE ver integer;
 BEGIN
-	SELECT my_version() INTO ver;
+	SELECT get_current_changeset() INTO ver;
 	PERFORM delete_changeset();
 	RETURN ver;
 END

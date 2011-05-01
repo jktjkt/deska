@@ -28,7 +28,7 @@ class Templates:
 		rowuid bigint;
 		tmp bigint;
 	BEGIN
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		IF NOT FOUND THEN
 			RAISE EXCEPTION 'No {tbl} named %. Create it first',name_;	
@@ -63,7 +63,7 @@ class Templates:
 		rowuid bigint;
 		tmp bigint;
 	BEGIN
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		SELECT {reftbl}_get_uid(value) INTO refuid;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
@@ -163,7 +163,7 @@ class Templates:
 		ver bigint;
 		value {coltype};
 	BEGIN
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		SELECT {colname} INTO value
 			FROM {tbl}_history
 			WHERE name = name_ AND version = ver;
@@ -222,7 +222,7 @@ class Templates:
 		current_changeset bigint;
 	BEGIN
 		IF from_version = 0 THEN
-			current_changeset = my_version();
+			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
 			--name from poduction
@@ -273,7 +273,7 @@ class Templates:
 	--from_version we need unchanged for rest_of_name
 		version_to_search = from_version;
 		IF version_to_search = 0 THEN
-			current_changeset = my_version();
+			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
 			--name from poduction
@@ -352,7 +352,7 @@ class Templates:
 	$$
 	DECLARE	ver bigint;
 	BEGIN
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);
 		RETURN 1;
@@ -374,7 +374,7 @@ class Templates:
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
 		RETURN 1;
 	END
@@ -393,7 +393,7 @@ class Templates:
 		rowuid bigint;
 		local_name text;
 	BEGIN	
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
 		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
@@ -417,7 +417,7 @@ class Templates:
 		{tbl}_name text;
 		rest_of_name text;
 	BEGIN	
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(full_name) INTO rowuid;
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		-- try if there is already line for current version
@@ -438,7 +438,7 @@ class Templates:
 	$$
 	DECLARE	ver bigint;
 	BEGIN
-		SELECT my_version() INTO ver;
+		SELECT get_current_changeset() INTO ver;
 		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
 				WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0';
@@ -465,7 +465,7 @@ class Templates:
 		current_changeset bigint;
 	BEGIN
 		IF from_version = 0 THEN
-			current_changeset = my_version();
+			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
 			--names from poduction
@@ -515,7 +515,7 @@ class Templates:
 	--from_version we need unchanged for rest_of_name
 		version_to_search = from_version;
 		IF version_to_search = 0 THEN
-			current_changeset = my_version();
+			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
 			--name from poduction
@@ -561,7 +561,7 @@ class Templates:
 	--from_version is user id of version
 	--we need id of changeset
 		IF from_version = 0 THEN
-			SELECT my_version() INTO changeset_id;
+			SELECT get_current_changeset_or_null() INTO changeset_id;
 			--no opened changeset
 			IF changeset_id IS NULL THEN
 				--user wants newest data
@@ -664,7 +664,7 @@ class Templates:
 	--from_version is user id of version
 	--we need id of changeset
 		IF from_version = 0 THEN
-			SELECT my_version() INTO changeset_id;
+			SELECT get_current_changeset_or_null() INTO changeset_id;
 			--no opened changeset
 			IF changeset_id IS NULL THEN
 				--user wants newest data
@@ -735,7 +735,7 @@ class Templates:
 	--from_version is user id of version
 	--we need id of changeset
 		IF from_version = 0 THEN
-			SELECT my_version() INTO changeset_id;
+			SELECT get_current_changeset_or_null() INTO changeset_id;
 			--no opened changeset
 			IF changeset_id IS NULL THEN
 				--user wants newest data
