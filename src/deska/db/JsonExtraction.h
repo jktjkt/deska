@@ -58,7 +58,7 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v);
 
 /** @short Define how to extract a custom JSON type into C++ class */
 template<typename T>
-struct JsonExtractionTraits {};
+struct JsonConversionTraits {};
 
 
 /** @short Abstract class for conversion between a JSON value and "something" */

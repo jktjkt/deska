@@ -82,7 +82,7 @@ By default, the JsonHandler will throw an exception when it sees a field which h
 failOnUnknownFields() function to silently accept them.
 
 As described in the Deska documentation, the rules for object serialization are derived from the type of the target
-object. See the documentation of internal templated traits class JsonExtractionTraits for how this conversion works,
+object. See the documentation of internal templated traits class JsonConversionTraits for how this conversion works,
 and consult JsonExtractor/SpecializedExtractor for wrappers that actually save stuff.
 */
 class JsonHandler
