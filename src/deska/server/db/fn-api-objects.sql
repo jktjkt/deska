@@ -15,22 +15,30 @@ else:
 	fname = fn_string.format(kindname,fntype)
 return fname
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE plpython3u SECURITY DEFINER;
 
 SET search_path TO api,deska;
 
 CREATE FUNCTION setAttribute(kindname text, objectname text, attributename text, value text)
-RETURNS integer
+RETURNS text
 AS
 $$
-plan = plpy.prepare("SELECT * from getfn('set',$1,$2)", [ "text", "text"])
-res = plpy.execute(plan, [ kindname, attributename], 1)
-fname = res[0]["getfn"]
-plan = plpy.prepare("SELECT * from " + fname + "($1,$2)", [ "text", "text"])
-res = plpy.execute(plan, [ objectname, value], 1)
-return res[0][fname]
+import Postgres
+
+@pytypes
+def main(kindname,objectname,attributename,value):
+	plan = prepare("SELECT * from getfn('set',$1,$2)")
+	res = plan(kindname, attributename)
+	fname = res[0]["getfn"]
+	try:
+		plan2 = prepare("SELECT * from " + fname + "($1,$2)")
+		res = plan2(objectname, value)
+		return str(res[0])
+	except Postgres.Exception as dberr:
+		pass
+		return "test"
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE python SECURITY DEFINER;
 
 CREATE FUNCTION removeAttribute(kindname text, objectname text, attributename text)
 RETURNS integer
@@ -43,7 +51,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE plpython3u SECURITY DEFINER;
 
 CREATE FUNCTION changeObjectName(kindname text, oldname text, newname text)
 RETURNS integer
@@ -56,7 +64,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text", "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE plpython3u SECURITY DEFINER;
 
 CREATE FUNCTION createObject(kindname text, objectname text)
 RETURNS integer
@@ -69,7 +77,7 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE plpython3u SECURITY DEFINER;
 
 CREATE FUNCTION deleteObject(kindname text, objectname text)
 RETURNS integer
@@ -82,5 +90,5 @@ plan = plpy.prepare("SELECT * from " + fname + "($1)", [ "text"])
 res = plpy.execute(plan, [ objectname], 1)
 return res[0][fname]
 $$
-LANGUAGE plpythonu SECURITY DEFINER;
+LANGUAGE plpython3u SECURITY DEFINER;
 

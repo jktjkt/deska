@@ -13,7 +13,7 @@ ret.append(delimiter.join(str_array[:len(str_array)-1]))
 ret.append(str_array[len(str_array)-1])
 return ret
 $$
-LANGUAGE plpythonu;
+LANGUAGE plpython3u;
 
 CREATE OR REPLACE FUNCTION join_with_delim(str1 text, str2 text, delimiter text)
 RETURNS text
