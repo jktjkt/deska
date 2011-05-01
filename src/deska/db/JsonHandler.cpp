@@ -58,6 +58,74 @@ struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
     }
 };
 
+/** @short Variant visitor for converting from Deska::Db::ObjectModification to json_spirit::Value */
+struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    template <typename T> result_type operator()(const T&) const;
+};
+
+template <>
+ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+    const Deska::Db::CreateObjectModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "createObject"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    return o;
+}
+
+template <>
+ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+    const Deska::Db::DeleteObjectModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "deleteObject"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    return o;
+}
+
+template <>
+ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+    const Deska::Db::RenameObjectModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "renameObject"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("oldObjectName", value.oldObjectName));
+    o.push_back(json_spirit::Pair("newObjectName", value.newObjectName));
+    return o;
+}
+
+template <>
+ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+    const Deska::Db::RemoveAttributeModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "removeAttribute"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    o.push_back(json_spirit::Pair("attributeName", value.attributeName));
+    return o;
+}
+
+template <>
+ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+    const Deska::Db::SetAttributeModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "setAttribute"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    o.push_back(json_spirit::Pair("attributeName", value.attributeName));
+    o.push_back(json_spirit::Pair("oldAttributeData",
+                                  boost::apply_visitor(DeskaValueToJsonValue(), value.oldAttributeData)));
+    o.push_back(json_spirit::Pair("attributeData",
+                                  boost::apply_visitor(DeskaValueToJsonValue(), value.attributeData)));
+    return o;
+}
+
 /** @short Convert a json_spirit::Value to Deska::Value
 
 No type information is checked.
@@ -639,6 +707,20 @@ JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Value &v
 {
     JsonField f(name);
     f.jsonValue = boost::apply_visitor(DeskaValueToJsonValue(), value);
+    f.isForSending = true;
+    f.valueShouldMatch = true;
+    fields.push_back(f);
+    return *(--fields.end());
+}
+
+JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value)
+{
+    JsonField f(name);
+    json_spirit::Array jsonArray;
+    BOOST_FOREACH(const Deska::Db::ObjectModification &item, value) {
+        jsonArray.push_back(boost::apply_visitor(ObjectModificationToJsonValue(), item));
+    }
+    f.jsonValue = jsonArray;
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);

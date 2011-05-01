@@ -233,7 +233,9 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
 
 void JsonApiParser::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
 {
-    // FIXME
+    JsonHandlerApiWrapper h(this, "applyBatchedChanges");
+    h.write("modifications", modifications);
+    h.work();
 }
 
 TemporaryChangesetId JsonApiParser::startChangeset()
