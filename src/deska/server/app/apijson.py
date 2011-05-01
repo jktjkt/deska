@@ -8,7 +8,7 @@ logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 
 CMD = "command"
 RES = "response"
-ERR = "error"
+ERR = "dbException"
 
 class Jsn:
 	# dict of commands
@@ -49,9 +49,10 @@ class Jsn:
 		except Exception, e:
 			# write error instead of command
 			del self.jsn[CMD]
-			self.jsn[ERR] = cmd
 			# only first part now
-			self.jsn[cmd] = str(e).split('\n')[0]
+			self.jsn[ERR] = dict({"message": str(e).split('\n')[0],
+				#FIXME hardcoded type of error
+				"type": "ServerError"})
 			return self.jsn
 
 		# FIXME db stuff shouldn't return these if it is not needed
