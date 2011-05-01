@@ -31,7 +31,7 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		IF NOT FOUND THEN
-			RAISE EXCEPTION 'No {tbl} named %. Create it first',name_;	
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
@@ -105,7 +105,7 @@ class Templates:
 			WHERE uid = obj_uid AND version = ver;		
 
 		IF deleted = B'1' THEN
-			RAISE EXCEPTION '{tbl} with name % does not exist',name_;
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 
 		SELECT {columns} INTO data FROM {tbl}_history
@@ -141,7 +141,7 @@ class Templates:
 			WHERE name = base_name AND host = parrent_uid AND version = ver;
 
 		IF deleted = B'1' THEN
-			RAISE EXCEPTION '{tbl} with name % does not exist',name_;
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 		
 		SELECT {columns} INTO data FROM {tbl}_history
@@ -200,7 +200,7 @@ class Templates:
 		SELECT uid, dest_bit INTO value, deleted FROM {tbl}_history WHERE version = changeset_id AND name = name_;
 		
 		IF deleted = B'1' THEN
-			RAISE EXCEPTION '{tbl} with name % does not exist in this version', name_;
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 		
 		RETURN value;
@@ -335,7 +335,7 @@ class Templates:
 		
 		SELECT uid, dest_bit INTO {tbl}_uid, deleted FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
 		IF deleted = B'1' THEN
-			RAISE EXCEPTION '{tbl} with name % does not exist in this version', full_name;
+			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '10022';
 		END IF;
 
 		RETURN {tbl}_uid;
@@ -609,7 +609,7 @@ class Templates:
 			FROM {tbl}_history obj_history
 				JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
 		IF last_change_version IS NULL THEN
-			RAISE EXCEPTION 'Object % not exist, you should create it first.',name_;
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 			
 		last_changeset_id  = num2id(last_change_version);
@@ -639,7 +639,7 @@ class Templates:
 			FROM {tbl}_history obj_history
 				JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
 		IF last_change_version IS NULL THEN
-			RAISE EXCEPTION 'Object % not exist, you should create it first.',name_;
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 		last_changeset_id  = num2id(last_change_version);
 		

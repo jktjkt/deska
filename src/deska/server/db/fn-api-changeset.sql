@@ -57,16 +57,15 @@ CREATE FUNCTION create_changeset()
 RETURNS integer
 AS
 $$
-DECLARE parr integer;
-	max integer;
+DECLARE max integer;
+	parr integer;
 BEGIN
 	SELECT max(num) INTO max FROM version;
-	SELECT id INTO parr FROM version
-		WHERE max = num;
 	IF NOT FOUND THEN
 		-- not found parent revision
 		RAISE SQLSTATE '10001' USING MESSAGE = 'No parent revision.';
 	END IF;
+	parr = num2id(max);
 	INSERT INTO changeset (author,parentRevision,pid)
 		VALUES (session_user,parr,pg_backend_pid());
 	RETURN 1;
@@ -274,7 +273,7 @@ RETURNS SETOF changeset_type
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT id2changeset(id),author,status,num2revision(parentRevision),timestamp,message FROM changeset;
+	RETURN QUERY SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
