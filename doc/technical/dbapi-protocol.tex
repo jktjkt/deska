@@ -476,6 +476,14 @@ and the defined object relations.
 
 Functions from this group are used for fetching actual data from the database.
 
+\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123"}
+    { ["a", "b", "c"] }
+    {Returns identifiers of all objects of a given kind}
+    {This function returns a list of identifiers describing all objects of a specified kind which are present in the
+    database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
+    depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
+    \pageref{sec:api-revision-semantics} for details.}
+
 FIXME
 
 \subsubsection{Performing Modifications}
