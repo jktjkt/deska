@@ -466,6 +466,28 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
     expectEmpty();
 }
 
+/** @short Test applyBatchedChanges() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
+{
+    std::string modList =
+            "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
+            "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
+            "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
+            "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
+            "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
+            // FIXME: test that the conversion checks and respects the data type
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + modList + "]}\n");
+    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + modList + "]}\n");
+    std::vector<ObjectModification> modifications;
+    modifications.push_back(CreateObjectModification("k1", "o1"));
+    modifications.push_back(DeleteObjectModification("k2", "o2"));
+    modifications.push_back(RenameObjectModification("k3", "ooooold", "new"));
+    modifications.push_back(RemoveAttributeModification("k4", "o4", "fancyAttr"));
+    modifications.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
+    j->applyBatchedChanges(modifications);
+    expectEmpty();
+}
+
 
 /** @short Verify correctness of parsing of revisions from JSON */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
