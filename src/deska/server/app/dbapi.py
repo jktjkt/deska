@@ -155,7 +155,6 @@ class DB:
 			self.error = False
 		except Exception, e:
 			self.error = e
-			print "error"
 		return 
 
 	def run_data_method(self,name,args):
@@ -188,8 +187,8 @@ class DB:
 	
 	def fetchall(self):
 		if self.error:
-			print "pgcode: " + self.error.pgcode
-			print "pgerror: " + self.error.pgerror
+			#print "pgcode: " + self.error.pgcode
+			#print "pgerror: " + self.error.pgerror
 			raise Exception(self.error.pgerror)
 		cls = self.fetch_class(self.mark)
 		data = cls.parse()
