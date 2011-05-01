@@ -72,7 +72,7 @@ This section defines how an abstract notion of a command or response is converte
 \subsection{Commands and Responses}
 
 Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
-the hypothetical command {\tt foo}, which does not accept any commands, will be transmitted in the following form (we
+the hypothetical command {\tt foo}, which does not accept any arguments, will be transmitted in the following form (we
 will omit the trailing line feed for brevity in the following examples):
 
 \begin{lstlisting}
@@ -88,8 +88,8 @@ response for the above command will look like this:
 
 \subsubsection{Passing Arguments}
 
-Most of the commands will very likely accept some arguments.  These commands are transmitted in a very similar way to
-the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are also
+Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  All parameters are also
 repeated in the relevant response:
 
 \begin{lstlisting}
