@@ -254,7 +254,7 @@ protected:
         throw MockStreamBufferError(message);
     }
 
-    template<typename T> void eq_or_throw_(const T a, const T b, const std::string &message)
+    void eq_or_throw_(const std::string &a, const std::string &b, const std::string &message)
     {
         if (a == b)
             return;
