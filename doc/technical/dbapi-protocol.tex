@@ -72,7 +72,7 @@ This section defines how an abstract notion of a command or response is converte
 \subsection{Commands and Responses}
 
 Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
-the hypothetical command {\tt foo}, which does not accept any commands, will be transmitted in the following form (we
+the hypothetical command {\tt foo}, which does not accept any arguments, will be transmitted in the following form (we
 will omit the trailing line feed for brevity in the following examples):
 
 \begin{lstlisting}
@@ -88,8 +88,8 @@ response for the above command will look like this:
 
 \subsubsection{Passing Arguments}
 
-Most of the commands will very likely accept some arguments.  These commands are transmitted in a very similar way to
-the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are also
+Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  All parameters are also
 repeated in the relevant response:
 
 \begin{lstlisting}
@@ -414,6 +414,19 @@ can be undone with \deskaFuncRef{removeAttribute}.
 Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
 \deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
 
+\subsubsection{Revision Semantics}
+\label{sec:api-revision-semantics}
+
+Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to which
+the current query applies.  When the version is not specified, behavior of these commands varies depending on whether
+there is any active changeset associated with current session.  When the session is in the default state, ie. at the
+beginning of the connection when no VCS management has been attempted yet, or after a
+\deskaFuncRef{detachFromCurrentChangeset} succeeded, the implicit revision is fixed at ``latest committed at the time
+the session started''.  After each successful commit of a permanent revision, this number gets updated to the revision
+number of that revision.
+
+FIXME
+
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
@@ -440,8 +453,8 @@ and the defined object relations.
 
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds.}
-    {Top-level Kinds are entities like enclosure etc, that is, object representing types.  These Kinds could then be
-    instantiated.}
+    {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
+    {\tt kindName} argument to various other functions.}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
@@ -463,6 +476,14 @@ and the defined object relations.
 
 Functions from this group are used for fetching actual data from the database.
 
+\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123"}
+    { ["a", "b", "c"] }
+    {Returns identifiers of all objects of a given kind}
+    {This function returns a list of identifiers describing all objects of a specified kind which are present in the
+    database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
+    depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
+    \pageref{sec:api-revision-semantics} for details.}
+
 FIXME
 
 \subsubsection{Performing Modifications}
@@ -476,7 +497,7 @@ FIXME
 \label{sec:api-group-vcs}
 
 This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
-History}, section \ref{sec:api-group-history}).
+History}, section \ref{sec:api-group-history}.
 
 FIXME
 

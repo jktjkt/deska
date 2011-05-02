@@ -420,24 +420,35 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
+namespace {
+std::string exampleJsonDiff =
+    "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
+    "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
+    "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
+    "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
+    "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
+    // FIXME: test that the conversion checks and respects the data type
+
+std::vector<ObjectModification> diffObjects()
+{
+    std::vector<ObjectModification> res;
+    res.push_back(CreateObjectModification("k1", "o1"));
+    res.push_back(DeleteObjectModification("k2", "o2"));
+    res.push_back(RenameObjectModification("k3", "ooooold", "new"));
+    res.push_back(RemoveAttributeModification("k4", "o4", "fancyAttr"));
+    res.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
+    return res;
+}
+}
+
 /** @short Test dataDifference() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\"}\n");
     expectRead("{\"response\": \"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"dataDifference\": ["
-               "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
-               "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
-               "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-               "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
-               "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}"
-               // FIXME: test that the conversion checks and respects the data type
+               + exampleJsonDiff +
                "]}\n");
-    std::vector<ObjectModification> expected;
-    expected.push_back(CreateObjectModification("k1", "o1"));
-    expected.push_back(DeleteObjectModification("k2", "o2"));
-    expected.push_back(RenameObjectModification("k3", "ooooold", "new"));
-    expected.push_back(RemoveAttributeModification("k4", "o4", "fancyAttr"));
-    expected.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
+    std::vector<ObjectModification> expected = diffObjects();
     std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -448,21 +459,20 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
 {
     expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\"}\n");
     expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\", \"dataDifferenceInTemporaryChangeset\": ["
-               "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
-               "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
-               "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-               "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
-               "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}"
-               // FIXME: test that the conversion checks and respects the data type
+               + exampleJsonDiff +
                "]}\n");
-    std::vector<ObjectModification> expected;
-    expected.push_back(CreateObjectModification("k1", "o1"));
-    expected.push_back(DeleteObjectModification("k2", "o2"));
-    expected.push_back(RenameObjectModification("k3", "ooooold", "new"));
-    expected.push_back(RemoveAttributeModification("k4", "o4", "fancyAttr"));
-    expected.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
+    std::vector<ObjectModification> expected = diffObjects();
     std::vector<ObjectModification> res = j->dataDifferenceInTemporaryChangeset(TemporaryChangesetId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test applyBatchedChanges() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + exampleJsonDiff + "]}\n");
+    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + exampleJsonDiff + "]}\n");
+    j->applyBatchedChanges(diffObjects());
     expectEmpty();
 }
 

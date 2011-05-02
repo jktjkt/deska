@@ -25,6 +25,7 @@
 #include <boost/optional.hpp>
 #include <tr1/memory>
 #include "deska/db/Objects.h"
+#include "deska/db/ObjectModification.h"
 #include "deska/db/Revisions.h"
 #include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
 
@@ -33,7 +34,6 @@ namespace Db {
 
 class JsonApiParser;
 class JsonExtractor;
-
 
 /** @short Helper class for type-safe parsing of JSON to a map of Deska object attributes */
 struct JsonWrappedAttributeMap
@@ -68,7 +68,23 @@ struct JsonField
     template<typename T> JsonField &extract(T *where);
 };
 
-/** @short Manager controlling the JSON interaction */
+/** @short Manager controlling the JSON interaction
+
+The JsonHandler class is used to drive conversions between the JSON serialized objects and their C++ representation.
+It deals with JSON *objects* only, ie. it is usable just for a colection of (key, value) pairs.
+
+Use the write() method for specifying a field which shall be converted to JSON, and read() for expecting a value under
+a particular name. Both of these methods return a reference to JsonField, a class which can be used to fine-tune the
+behavior of the JSON convertor. Note that these fields are internally stored in a vector, which is explicitly free to
+re-order them, so don't store a reference to a JsonField anywhere, as it could easily become a dangling one.
+
+By default, the JsonHandler will throw an exception when it sees a field which has not been defined. Use the
+failOnUnknownFields() function to silently accept them.
+
+As described in the Deska documentation, the rules for object serialization are derived from the type of the target
+object. See the documentation of internal templated traits class JsonConversionTraits for how this conversion works,
+and consult JsonExtractor/SpecializedExtractor for wrappers that actually save stuff.
+*/
 class JsonHandler
 {
 public:
@@ -90,6 +106,9 @@ public:
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     JsonField &write(const std::string &name, const Deska::Db::Value &value);
 
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
+    JsonField &write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value);
+
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
 
@@ -107,6 +126,12 @@ protected:
     bool m_failOnUnknownFields;
 };
 
+/** @short Specialization of Jsonhandler which tightly integrates with the JSON API for I/O operations
+
+This class is set up with a few convenience functions which allow for seamless integration with the JsonApiParser class,
+most notably for the IO operations.  Its constructor is also extended with a "command" specifier, which automatically
+sets up a field for the command/response parsing.
+*/
 class JsonHandlerApiWrapper: public JsonHandler
 {
 public:
