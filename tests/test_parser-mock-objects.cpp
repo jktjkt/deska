@@ -76,20 +76,16 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
 BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, ParserTestFixture) {
     // Verify that basic exception handling works well
     slotParserParseError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
-    slotParserParsingFinished();
     expectParseError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
-    expectParsingFinished();
     expectNothingElse();
 
     // Test exception parameters
     std::string s1 = "this is a sample input";
     std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
     slotParserParseError(Deska::Cli::UndefinedAttributeError("some message", s1, it1));
-    slotParserParsingFinished();
     std::string s2 = "this is a sample input";
     std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
     expectParseError(Deska::Cli::UndefinedAttributeError("some message", s2, it2));
-    expectParsingFinished();
     expectNothingElse();
 }
 

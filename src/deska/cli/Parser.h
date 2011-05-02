@@ -187,8 +187,7 @@ public:
 
     /** @short Parsing of current line finished
     *
-    *   The parser triggeres this signal when parsing of current line is finished regardless
-    *   the parsing succeeded or not.
+    *   The parser triggeres this signal when parsing of current line is finished successfully.
     */
     boost::signals2::signal<void ()> parsingFinished;
 

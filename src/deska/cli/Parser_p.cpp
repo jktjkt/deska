@@ -351,8 +351,8 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
     dryRun = false;
-    parseLineImpl(line);
-    m_parser->parsingFinished();
+    if (parseLineImpl(line))
+        m_parser->parsingFinished();
 }
 
 
