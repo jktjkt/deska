@@ -100,12 +100,11 @@ private:
     /** Context stack, that was actual when signal was triggered. */
     std::vector<ContextStackItem> contextStack;
 
-    std::string parseError;
-
     //@{
     /** Additional information needed to be stored for particular signals.
     *   Which members will be initialised depends on signal type.
     */
+    std::string parseError;
     Db::Identifier kindName;
     Db::Identifier objectName;
     Db::Identifier attributeName;

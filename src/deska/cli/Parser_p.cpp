@@ -677,6 +677,10 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
+    // FIXME: Hack. This should not be here.
+    if (parseErrors.empty())
+        return;
+
     // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
     BOOST_ASSERT(parseErrors.size() <= 3);
     // There have to be some ParseError when parsing fails.
