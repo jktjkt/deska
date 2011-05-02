@@ -44,6 +44,7 @@ endif(Boost_FOUND)
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0
 )

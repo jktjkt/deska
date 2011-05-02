@@ -19,8 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_reader_template.h"
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_writer_template.h"
+#include "json_spirit/json_spirit_reader_template.h"
+#include "json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
 #include "JsonHandler.h"
 
