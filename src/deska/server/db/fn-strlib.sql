@@ -1,4 +1,4 @@
-SET search_path TO deska;
+SET search_path TO deska,versioning;
 
 -- get prefix and name from full name of embed object
 CREATE OR REPLACE FUNCTION embed_name(name text,delimiter text)

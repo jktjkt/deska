@@ -1,4 +1,4 @@
-SET search_path TO deska;
+SET search_path TO deska,versioning;
 
 --
 -- get changeset identifier from its id

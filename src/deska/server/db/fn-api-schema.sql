@@ -3,7 +3,7 @@
 --
 -- these functions should be in schema deska
 --
-SET search_path TO deska;
+SET search_path TO deska,versioning;
 --
 -- function returns info about tables in db
 --
@@ -100,7 +100,7 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
-SET search_path TO api,deska;
+SET search_path TO api,deska,versioning;
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --

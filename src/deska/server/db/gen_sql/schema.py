@@ -50,7 +50,7 @@ CREATE FUNCTION commit_all(message text)
 		self.sql = open(filename,'w')
 
 		# print this to add proc into genproc schema
-		self.sql.write("SET search_path TO genproc,history,deska,production;")
+		self.sql.write("SET search_path TO genproc,history,deska,versioning,production;")
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)

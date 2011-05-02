@@ -134,7 +134,7 @@ class DB:
 	})
 	def __init__(self):
 		self.mark = conn.cursor()
-		self.mark.execute("SET search_path TO api,genproc,history,deska,production;")
+		self.mark.execute("SET search_path TO api,genproc,history,deska,versioning,production;")
 
 
 	def run_method(self,name,args):
