@@ -60,9 +60,22 @@ void JsonHandlerApiWrapper::send()
 void JsonHandlerApiWrapper::receive()
 {
     JsonContext c1("When reading and processing JSON data");
-    // FIXME: check for the j_errorPrefix here
+    json_spirit::Object obj;
+
+    // At first, parse the underlying string into a JSON representation...
     try {
-        parseJsonObject(p->readJsonObject());
+        obj = p->readJsonObject();
+    } catch (JsonParseError &e) {
+        if (boost::optional<std::string> rawJson = p->wantJustReadData())
+            e.addRawJsonData(*rawJson);
+        throw;
+    }
+
+    // FIXME: check for errors here
+
+    // Now convert it into the class that we expect
+    try {
+        parseJsonObject(obj);
     } catch (JsonParseError &e) {
         if (boost::optional<std::string> rawJson = p->wantJustReadData())
             e.addRawJsonData(*rawJson);
