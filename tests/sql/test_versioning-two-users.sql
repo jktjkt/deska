@@ -3,7 +3,7 @@ BEGIN;
 \set ECHO
 \set QUIET 1
 
-SET search_path TO pgtap,api,genproc,history,deska,production;
+SET search_path TO public,pgtap,api,genproc,history,deska,production;
 
 
 CREATE USER u1;
@@ -16,7 +16,7 @@ GRANT deska_user TO u2;
 --action is indicator of operation done with object
 --I object was inserted
 --D object was deleted
-CREATE TABLE pgtap.vendor_test(
+CREATE TABLE public.vendor_test(
 	name text,
 	action char(1),
 	username char(2)
@@ -37,12 +37,12 @@ BEGIN
 	PERFORM vendor_add('DELL');
 
 --it is expected that vendor with name DELL was Inserted by user u1
-	INSERT INTO pgtap.vendor_test (name, action, username) VALUES ('DELL','I','u1');
+	INSERT INTO public.vendor_test (name, action, username) VALUES ('DELL','I','u1');
 
 	SET ROLE TO u2;
 
-	PREPARE retnames AS SELECT name FROM production.vendor;
-	PREPARE u1names AS SELECT name FROM pgtap.vendor_test WHERE action='I' AND username='u1';
+	PREPARE retnames AS SELECT vendor_names();
+	PREPARE u1names AS SELECT name FROM public.vendor_test WHERE action='I' AND username='u1';
 	RETURN NEXT set_hasnt( 'retnames', 'u1names', 'uncommited data are NOT in production' );
 
 	DEALLOCATE retnames;
@@ -65,12 +65,12 @@ BEGIN
 	PERFORM version_commit();
 
 	--it is expected that vendor with name HP was Inserted
-	INSERT INTO pgtap.vendor_test (name, action, username) VALUES ('HP','I','u2');
-	INSERT INTO pgtap.vendor_test (name, action, username) VALUES ('IBM','I','u2');
+	INSERT INTO public.vendor_test (name, action, username) VALUES ('HP','I','u2');
+	INSERT INTO public.vendor_test (name, action, username) VALUES ('IBM','I','u2');
 
-	PREPARE expnames  AS SELECT name FROM pgtap.vendor_test WHERE action ='I' AND username='u2';
-	PREPARE exp_not_in_names AS SELECT name FROM pgtap.vendor_test WHERE action ='D' AND username='u2';
-	PREPARE retnames AS SELECT name FROM production.vendor;
+	PREPARE expnames  AS SELECT name FROM public.vendor_test WHERE action ='I' AND username='u2';
+	PREPARE exp_not_in_names AS SELECT name FROM public.vendor_test WHERE action ='D' AND username='u2';
+	PREPARE retnames AS SELECT vendor_names();
 	RETURN NEXT set_has( 'retnames', 'expnames', 'inserted objects by u2 are present' );
 	RETURN NEXT set_hasnt( 'retnames', 'exp_not_in_names', 'deleted objects by u2 are NOT present' );
 
@@ -87,8 +87,8 @@ BEGIN
 	-- u1 version_commit
 	PERFORM version_commit();
 
-	PREPARE expnames  AS SELECT name FROM pgtap.vendor_test WHERE action ='I';
-	PREPARE exp_not_in_names AS SELECT name FROM pgtap.vendor_test WHERE action ='D';
+	PREPARE expnames  AS SELECT name FROM public.vendor_test WHERE action ='I';
+	PREPARE exp_not_in_names AS SELECT name FROM public.vendor_test WHERE action ='D';
 	PREPARE retnames AS SELECT name FROM production.vendor;
 	RETURN NEXT set_has( 'retnames', 'expnames', 'inserted objects are present' );
 	RETURN NEXT set_hasnt( 'retnames', 'exp_not_in_names', 'deleted objects are NOT present' );
