@@ -30,32 +30,55 @@ namespace Cli
 {
 
 
-ParserSignal::ParserSignal(SignalType type, const std::vector<ContextStackItem> &context,
-                           const Db::Identifier &kind, const Db::Identifier &object):
-    signalType(type), contextStack(context), kindName(kind), objectName(object)
+ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<ContextStackItem> &context,
+                                                         const Db::Identifier &kind, const Db::Identifier &object):
+    contextStack(context), kindName(kind), objectName(object)
 {
 }
 
 
 
-ParserSignal::ParserSignal(SignalType type, const std::vector<ContextStackItem> &context):
-    signalType(type), contextStack(context)
+void ParserSignalCategoryEntered::apply(Db::Api *api)
 {
 }
 
 
 
-ParserSignal::ParserSignal(SignalType type, const std::vector<ContextStackItem> &context, 
-                           const Db::Identifier &attribute, const Db::Value &value):
-    signalType(type), contextStack(context), attributeName(attribute), setValue(value)
+ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<ContextStackItem> &context, 
+                                                   const Db::Identifier &attribute, const Db::Value &value):
+    contextStack(context), attributeName(attribute), setValue(value)
 {
 }
 
 
 
-ParserSignal::ParserSignal(SignalType type, const std::vector<ContextStackItem> &context,
-                           const std::string &error):
-    signalType(type), contextStack(context), parseError(error)
+void ParserSignalSetAttribute::apply(Db::Api *api)
+{
+}
+
+
+
+ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<ContextStackItem> &context):
+    contextStack(context)
+{
+}
+
+
+
+void ParserSignalFunctionShow::apply(Db::Api *api)
+{
+}
+
+
+
+ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<ContextStackItem> &context):
+    contextStack(context)
+{
+}
+
+
+
+void ParserSignalFunctionDelete::apply(Db::Api *api)
 {
 }
 
@@ -68,51 +91,65 @@ SignalsHandler::SignalsHandler(Parser *parser)
 
 
 
+ApplyParserSignal::ApplyParserSignal(Db::Api *api): m_api(api)
+{
+}
+
+
+
+template <typename T>
+void ApplyParserSignal::operator()(const T &parserSignal) const
+{
+    parserSignal.apply(m_api);
+}
+
+
+
 void SignalsHandler::slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_ENTERED, m_parser->currentContextStack(), kind, name));
+    signalsStack.push_back(ParserSignalCategoryEntered(m_parser->currentContextStack(), kind, name));
 }
 
 
 
 void SignalsHandler::slotCategoryLeft()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_CATEGORY_LEFT, m_parser->currentContextStack()));
+    // TODO ?
 }
 
 
 
 void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_SET_ATTRIBUTE, m_parser->currentContextStack(), attribute, value));
+    signalsStack.push_back(ParserSignalSetAttribute(m_parser->currentContextStack(), attribute, value));
 }
 
 
 
 void SignalsHandler::slotFunctionShow()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_SHOW, m_parser->currentContextStack()));
+    signalsStack.push_back(ParserSignalFunctionShow(m_parser->currentContextStack()));
 }
 
 
 
 void SignalsHandler::slotFunctionDelete()
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_FUNCTION_DELETE, m_parser->currentContextStack()));
+    signalsStack.push_back(ParserSignalFunctionDelete(m_parser->currentContextStack()));
 }
 
 
 
 void SignalsHandler::slotParserError(const ParserException &error)
 {
-    signalsStack.push_back(ParserSignal(SIGNAL_TYPE_PARSE_ERROR, m_parser->currentContextStack(), error.dump()));
+    // TODO
 }
 
 
 
 void SignalsHandler::slotParsingFinished()
 {
-
+    // TODO
 }
 
 
