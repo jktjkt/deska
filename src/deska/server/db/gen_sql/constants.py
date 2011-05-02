@@ -466,7 +466,7 @@ class Templates:
 
 			IF current_changeset IS NULL THEN
 			--names from poduction
-				RETURN QUERY SELECT name FROM {tbl};
+				RETURN QUERY SELECT name FROM production.{tbl};
 			ELSE
 				parent_changeset = parent(current_changeset);
 				from_version = id2num(parent_changeset);					
