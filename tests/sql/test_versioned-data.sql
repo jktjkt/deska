@@ -77,7 +77,7 @@ DECLARE
 BEGIN
 
 	 PERFORM startChangeset();
-	 changeset1_id = my_version();
+	 changeset1_id = get_current_changeset();
 	 PERFORM vendor_add('DELL');
 	 PERFORM hardware_add('hwDELL');
 	 PERFORM hardware_set_vendor('hwDELL','DELL');
@@ -86,7 +86,7 @@ BEGIN
 	 PERFORM commitChangeset('add vendor dell, hardware hwdell');
 
 	 PERFORM startChangeset();
-	 changeset2_id = my_version();
+	 changeset2_id = get_current_changeset();
 	 PERFORM vendor_add('HP');
 	 PERFORM hardware_add('hwHP');
 	 PERFORM hardware_set_vendor('hwHP','HP');
@@ -101,11 +101,7 @@ BEGIN
 	 INSERT INTO simple_add_set_hardware_names_versions (name, version) VALUES ('hwHP',2);
 	
 	 version1 = id2num(changeset1_id);
-	 raise notice 'version1 %',version1;
 	 CREATE TEMPORARY TABLE version1_vendor_names(name) AS SELECT vendor_names(version1);
-	 raise notice 'vendor_names(version1) %',vendor_names(version1);
-	 select name into pom from vendor_history where version = changeset1_id;
-	 raise notice 'vendor_histor %', pom;
 	 PREPARE retnames AS SELECT * FROM version1_vendor_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names_versions WHERE version = 1;
 	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added vendors are present' );
@@ -113,24 +109,27 @@ BEGIN
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
 
-	 PREPARE retnames AS SELECT hardware_names($1);
+	 CREATE TEMPORARY TABLE version1_hardware_names(name) AS SELECT hardware_names(version1);
+	 PREPARE retnames AS SELECT * FROM version1_hardware_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names_versions WHERE version = 1;
-	 RETURN NEXT set_eq( 'retnames(version1)', 'expnames', 'added hardware is present' );
+	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added hardware is present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
 
 	 version2 = id2num(changeset2_id);
-	 PREPARE retnames(bigint) AS SELECT vendor_names($1);
-	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names_versions WHERE version = 2;
-	 RETURN NEXT set_eq( 'retnames(version2)', 'expnames', 'added vendors are present' );
+	 CREATE TEMPORARY TABLE version2_vendor_names(name) AS SELECT vendor_names(version2);
+	 PREPARE retnames AS SELECT * FROM version2_vendor_names;
+	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names_versions WHERE version <= 2;
+	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added vendors are present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
 
-	 PREPARE retnames(bigint) AS SELECT hardware_names($1);
-	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names_versions WHERE version = 2;
-	 RETURN NEXT set_eq( 'retnames(version2)', 'expnames', 'added hardware is present' );
+	 CREATE TEMPORARY TABLE version2_hardware_names(name) AS SELECT hardware_names(version2);
+	 PREPARE retnames AS SELECT * FROM version2_hardware_names;
+	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names_versions WHERE version <= 2;
+	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added hardware is present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
