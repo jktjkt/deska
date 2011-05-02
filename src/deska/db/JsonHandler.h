@@ -27,7 +27,7 @@
 #include "deska/db/Objects.h"
 #include "deska/db/ObjectModification.h"
 #include "deska/db/Revisions.h"
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
+#include "json_spirit/json_spirit_value.h"
 
 namespace Deska {
 namespace Db {

@@ -30,7 +30,7 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
-      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      "Choose the type of build"
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
@@ -44,6 +44,7 @@ endif(Boost_FOUND)
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0
 )

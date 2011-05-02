@@ -26,8 +26,8 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/signals2/last_value.hpp>
 #include "Api.h"
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
-#include "3rd-party/libebt-1.3.0/libebt/libebt_backtraceable.hh"
+#include "json_spirit/json_spirit_value.h"
+#include "libebt/libebt_backtraceable.hh"
 
 namespace Deska {
 namespace Db {
