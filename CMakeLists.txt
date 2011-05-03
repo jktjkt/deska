@@ -70,6 +70,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
 )
 
 set(deskaCliParserDemo_SRCS
