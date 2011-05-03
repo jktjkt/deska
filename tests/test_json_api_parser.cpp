@@ -476,6 +476,21 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
     expectEmpty();
 }
 
+/** @short Test that we catch reports of server-side exceptions */
+BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
+{
+#define JSON_ERR_TEST(X) \
+    expectWrite("{\"command\":\"startChangeset\"}\n"); \
+    expectRead("{\"dbException\": {\"type\":\"" #X "\",\"message\":\"x\"}}\n"); \
+    BOOST_CHECK_THROW(j->startChangeset(), X); expectEmpty();
+
+    JSON_ERR_TEST(NotFoundError);
+    JSON_ERR_TEST(NoChangesetError);
+    JSON_ERR_TEST(SqlError);
+    JSON_ERR_TEST(ServerError);
+#undef JSON_ERR_TEST
+}
+
 
 /** @short Verify correctness of parsing of revisions from JSON */
 BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
