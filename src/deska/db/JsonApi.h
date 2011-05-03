@@ -38,6 +38,16 @@ struct JsonExceptionTag {};
 /** @short INTERNAL: convenience typedef for exception reporting */
 typedef libebt::BacktraceContext<JsonExceptionTag> JsonContext;
 
+/** @short INTERNAL: convenience class for marking context relevant to both API and JSON */
+class JsonCommandContext
+{
+public:
+    JsonCommandContext(const std::string &ctx);
+private:
+    ApiContext m_apiContext;
+    JsonContext m_jsonContext;
+};
+
 /** @short An error occured during parsing of the server's response */
 class JsonParseError: public std::runtime_error, public libebt::Backtraceable<JsonExceptionTag>
 {
