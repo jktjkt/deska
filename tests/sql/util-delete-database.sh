@@ -4,5 +4,5 @@ cd `dirname $0`
 
 . ./util-config.sh
 
-psql -q -U $SU -c "DROP DATABASE IF EXISTS ${DB};" || die "Drop database"
-psql -q -U $SU -c "DROP USER IF EXISTS ${USER};" || die "Drop user"
+psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};" || die "Drop database"
+psql -q -U $DESKA_SU -c "DROP USER IF EXISTS ${DESKA_USER};" || die "Drop user"

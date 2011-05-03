@@ -24,13 +24,13 @@ fi
 
 ./util-create-database.sh || die "Preparing the DB environment"
 
-psql -q -U $USER -d $DB -f $PGTAP_FILE || die "Installing pgTAP"
+psql -q -U $DESKA_USER -d $DESKA_DB -f $PGTAP_FILE || die "Installing pgTAP"
 
 pushd ../../src/deska/server/db
-./deska_install.sh install -u $SU -d $DB --all
+./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all
 popd
 
-#psql -q -U $USER -d $DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
-pg_prove -U $SU -d $DB $1 || die "Test"
+#psql -q -U $DESKA_USER -d $DESKA_DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
+pg_prove -U $DESKA_SU -d $DESKA_DB $1 || die "Test"
 
 ./util-delete-database.sh || die "Removing the DB after the test"

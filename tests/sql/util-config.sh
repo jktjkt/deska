@@ -5,6 +5,6 @@ die() {
     exit 6
 }
 
-SU=postgres
-DB=nightly_deska
-USER=foobar
+DESKA_SU=postgres
+DESKA_DB=nightly_deska
+DESKA_USER=foobar
