@@ -27,7 +27,7 @@ BEGIN;
 GRANT USAGE ON SCHEMA api TO deska_user;
 
 -- admin can create schemas
-GRANT CREATE ON DATABASE deska_dev TO deska_admin;
+GRANT CREATE ON DATABASE :dbname TO deska_admin;
 -- use deska functions
 GRANT USAGE ON SCHEMA deska TO deska_admin;
 -- have rigths to all tables
