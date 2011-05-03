@@ -10,19 +10,4 @@ for role in deska_admin deska_user; do
 done
 psql -q -U $DESKA_SU -c "CREATE DATABASE ${DESKA_DB} OWNER deska_admin;" || die "Create database"
 
-psql -q -U $DESKA_SU -d $DESKA_DB -c "BEGIN;
-CREATE SCHEMA __python__;
-SET search_path TO __python__;
-CREATE FUNCTION handler() RETURNS LANGUAGE_HANDLER
- LANGUAGE C AS 'python', 'pl_handler';
-CREATE FUNCTION validator(oid) RETURNS VOID
- LANGUAGE C AS 'python', 'pl_validator';
-COMMIT;
-
-BEGIN;
-SET search_path TO __python__;
-CREATE FUNCTION inline(INTERNAL) RETURNS VOID
- LANGUAGE C AS 'python', 'pl_inline';
-CREATE LANGUAGE python
- HANDLER handler INLINE inline VALIDATOR validator;
-COMMIT;" || die "Enabling PgPython"
+psql -q -U $DESKA_SU -d $DESKA_DB -v ON_ERROR_STOP=1 -f ../../src/deska/server/db/enable_pgpython.sql || die "Enable PgPython"
