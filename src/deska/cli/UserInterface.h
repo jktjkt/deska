@@ -25,8 +25,7 @@
 #define DESKA_USER_INTERFACE_H
 
 
-//#include "3rd-party/rlmm-2.0.9/config/config.hh"
-//#include "3rd-party/rlmm-2.0.9/rlmm/readline.hh"
+#include "rlmm/readline.hh"
 
 
 namespace Deska
@@ -36,7 +35,7 @@ namespace Cli
 
 
 
-class UserInterface//: public rlmm::readline
+class UserInterface: public rlmm::readline
 {
 public:
 
