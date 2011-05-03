@@ -10,14 +10,17 @@ m(modules): run action for modules only (default)
 a(ll): run action for whole deska"
 }
 function drop(){
+	echo "Drop stage $1 ..."
 	psql -d "$DATABASE" -U "$USER" -f drop_$1.sql 2>&1 > /dev/null | grep -v "cascades"
 }
 
 function stage(){
+	echo "Stage $1 ..."
 	psql -d "$DATABASE" -U "$USER" -f create_$1.sql 2>&1 > /dev/null | grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
 function generate(){
+	echo "Generating stored procedures ..."
 	python gen_sql/generator.py
 }
 
@@ -102,8 +105,8 @@ then
 	echo "Install DB"
 	if test $TYPE == "A"
 	then
-		stage 0
 		stage "tables"
+		stage 0
 	fi
 	stage 1
 	generate
