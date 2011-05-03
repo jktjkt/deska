@@ -21,7 +21,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python gen_sql/generator.py
+	python gen_sql/generator.py "$DATABASE"
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
@@ -90,7 +90,7 @@ fi
 
 if test $ACTION == "D"
 then
-	echo "Drop DB"
+	echo "Drop DB $DATABASE"
 	if test $TYPE == "A"
 	then
 		drop 0
@@ -102,7 +102,7 @@ fi
 
 if test $ACTION == "I"
 then
-	echo "Install DB"
+	echo "Install DB $DATABASE"
 	if test $TYPE == "A"
 	then
 		stage "tables"
@@ -115,7 +115,7 @@ fi
 
 if test $ACTION == "F"
 then
-	echo "Regenerate DB functions"
+	echo "Regenerate functions in DB $DATABASE"
 	drop 2
 	drop 0
 	stage 0
@@ -124,7 +124,7 @@ fi
 
 if test $ACTION == "R"
 then
-	echo "Restore DB"
+	echo "Restore DB $DATABASE"
 	drop 2
 	drop 1
 	if test $TYPE == "A"
