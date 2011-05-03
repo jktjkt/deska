@@ -4,7 +4,7 @@ import sys
 import random, datetime
 from randdom import Names, Macs, IPv4s, Dates, Numbers, Interfaces
 
-script_template = '''SET search_path TO api,genproc,history,deska,production;
+script_template = '''SET search_path TO api,genproc,history,deska,version,production;
 SELECT startChangeset();
 {data}
 SELECT commitChangeset('FINISH');
