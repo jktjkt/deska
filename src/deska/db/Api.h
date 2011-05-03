@@ -25,6 +25,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include "libebt/libebt_backtraceable.hh"
 
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
@@ -44,6 +45,12 @@
 
 namespace Deska {
 namespace Db {
+
+/** @short INTERNAL: tag for the libebt */
+struct ApiExceptionTag {};
+
+/** @short INTERNAL: convenience typedef for exception reporting */
+typedef libebt::BacktraceContext<ApiExceptionTag> ApiContext;
 
 /** @short Exception occured during processing of the request */
 class RemoteDbError: public std::runtime_error
