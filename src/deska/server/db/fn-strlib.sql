@@ -5,15 +5,20 @@ CREATE OR REPLACE FUNCTION embed_name(name text,delimiter text)
 RETURNS text[]
 AS
 $$
-ret = list()
-str_array = name.split(delimiter)
-if (len(str_array) < 2):
-	raise Exception('Name "{0}" is not fully qualifide (does not containt "{1}").'.format(name,delimiter))
-ret.append(delimiter.join(str_array[:len(str_array)-1]))
-ret.append(str_array[len(str_array)-1])
-return ret
+import Postgres
+
+@pytypes
+def main(name,delimiter):
+	ret = list()
+	str_array = name.split(delimiter)
+	if (len(str_array) < 2):
+		raise Postgres.ERROR('Name "{0}" is not fully qualifide (does not containt "{1}").'.format(name,delimiter),code = 10123)
+
+	ret.append(delimiter.join(str_array[:len(str_array)-1]))
+	ret.append(str_array[len(str_array)-1])
+	return ret
 $$
-LANGUAGE plpython3u;
+LANGUAGE python;
 
 CREATE OR REPLACE FUNCTION join_with_delim(str1 text, str2 text, delimiter text)
 RETURNS text
