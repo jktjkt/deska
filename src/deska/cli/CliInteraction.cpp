@@ -139,27 +139,41 @@ bool CliInteraction::askForConfirmation(const std::string &prompt)
 
 void CliInteraction::run()
 {
-    // FIXME: request a list of pending changesets here, talk to the user to select which one to connect to,...
-    BOOST_FOREACH(Deska::Db::PendingChangeset changeset, m_api->pendingChangesets()) {
-        std::cout << changeset << std::endl;
-    }
-    std::string choice;
-    std::cout << "What changeset to attach to? (create, no, revision number) " << std::endl;
-    std::cin >> choice;
-    boost::algorithm::to_lower(choice);
-    if (choice == "no") {
-        // do nothing
-    } else if (choice == "create") {
-        m_api->startChangeset();
-    } else {
-        std::istringstream ss(choice);
-        unsigned int res;
-        ss >> res;
-        m_api->resumeChangeset(Deska::Db::TemporaryChangesetId(res));
-    }
+    try {
+        // FIXME: request a list of pending changesets here, talk to the user to select which one to connect to,...
+        BOOST_FOREACH(Deska::Db::PendingChangeset changeset, m_api->pendingChangesets()) {
+            std::cout << changeset << std::endl;
+        }
+        std::string choice;
+        std::cout << "What changeset to attach to? (create, no, revision number) " << std::endl;
+        std::cin >> choice;
+        boost::algorithm::to_lower(choice);
+        if (choice == "no") {
+            // do nothing
+        } else if (choice == "create") {
+            m_api->startChangeset();
+        } else {
+            std::istringstream ss(choice);
+            unsigned int res;
+            ss >> res;
+            m_api->resumeChangeset(Deska::Db::TemporaryChangesetId(res));
+        }
 
-    // Now that we've established our preconditions, let's enter the event loop
-    eventLoop();
+        // Now that we've established our preconditions, let's enter the event loop
+        eventLoop();
+    } catch (Deska::Db::NotFoundError &e) {
+        std::cerr << "Object not found: " << e.what() << std::endl;
+        return;
+    } catch (Deska::Db::NoChangesetError &e) {
+        std::cerr << "You aren't associated to a changeset: " << e.what() << std::endl;
+        return;
+    } catch (Deska::Db::SqlError &e) {
+        std::cerr << "Error in executing an SQL statement: " << e.what() << std::endl;
+        return;
+    } catch (Deska::Db::ServerError &e) {
+        std::cerr << "Internal server error: " << e.what() << std::endl;
+        return;
+    }
 }
 
 void CliInteraction::dumpDbContents()
