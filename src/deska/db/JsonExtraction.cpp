@@ -451,7 +451,19 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         if (exceptionClass == "ServerError" ) {
             JsonContext c2("When parsing ServerError");
             h.parseJsonObject(v.get_obj());
-            throw RemoteDbError(message);
+            throw ServerError(message);
+        } else if (exceptionClass == "NotFoundError"){
+            JsonContext c2("When parsing NotFoundError");
+            h.parseJsonObject(v.get_obj());
+            throw NotFoundError(message);
+        } else if (exceptionClass == "NoChangesetError"){
+            JsonContext c2("When parsing NoChangesetError");
+            h.parseJsonObject(v.get_obj());
+            throw NoChangesetError(message);
+        } else if (exceptionClass == "SqlError") {
+            JsonContext c2("When parsing SqlError");
+            h.parseJsonObject(v.get_obj());
+            throw SqlError(message);
         } else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");
