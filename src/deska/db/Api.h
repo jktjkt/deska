@@ -53,11 +53,12 @@ struct ApiExceptionTag {};
 typedef libebt::BacktraceContext<ApiExceptionTag> ApiContext;
 
 /** @short Exception occured during processing of the request */
-class RemoteDbError: public std::runtime_error
+class RemoteDbError: public std::runtime_error, public libebt::Backtraceable<ApiExceptionTag>
 {
 public:
     RemoteDbError(const std::string &message);
     virtual ~RemoteDbError() throw ();
+    virtual std::string whatWithBacktrace() const throw();
 };
 
 #define REMOTEDBEXCEPTION(CLASS) \
