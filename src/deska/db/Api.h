@@ -53,6 +53,25 @@ public:
     virtual ~RemoteDbError() throw ();
 };
 
+#define REMOTEDBEXCEPTION(CLASS) \
+class CLASS: public RemoteDbError \
+{ \
+public: \
+    CLASS(const std::string &message); \
+    virtual ~CLASS() throw (); \
+};
+
+/** @short The database doesn't contian such object */
+REMOTEDBEXCEPTION(NotFoundError)
+/** @short Tried to perform an operation which requires being attached into a pending changeset without one */
+REMOTEDBEXCEPTION(NoChangesetError)
+/** @short Execution of SQL statements resulted in an error */
+REMOTEDBEXCEPTION(SqlError)
+/** @short The server has experienced an internal error */
+REMOTEDBEXCEPTION(ServerError)
+
+#undef REMOTEDBEXCEPTION
+
 
 /** @short Class representing the database API
  *

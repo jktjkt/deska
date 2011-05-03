@@ -40,5 +40,16 @@ RemoteDbError::~RemoteDbError() throw ()
 {
 }
 
+#define REMOTEEXCEPTION(CLASS) \
+CLASS::CLASS(const std::string &message): RemoteDbError(message) {} \
+CLASS::~CLASS() throw () {}
+
+REMOTEEXCEPTION(NotFoundError)
+REMOTEEXCEPTION(NoChangesetError)
+REMOTEEXCEPTION(SqlError)
+REMOTEEXCEPTION(ServerError)
+
+#undef REMOTEEXCEPTION
+
 }
 }
