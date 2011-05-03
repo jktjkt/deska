@@ -60,6 +60,10 @@ Value jsonValueToDeskaValue(const json_spirit::Value &v);
 template<typename T>
 struct JsonConversionTraits {};
 
+// This specialization has to be mentioned in this header file
+template<> struct JsonConversionTraits<RemoteDbError> {
+    static void extract(const json_spirit::Value &v);
+};
 
 /** @short Abstract class for conversion between a JSON value and "something" */
 class JsonExtractor

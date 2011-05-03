@@ -149,6 +149,9 @@ public:
     /** @short Register a special JSON field for command/response identification */
     void command(const std::string &cmd);
 
+    /** @short Check the JSON object for a possible exception embedded in the response */
+    void processPossibleException(const json_spirit::Object &jsonObject);
+
 private:
     const JsonApiParser * const p;
 };

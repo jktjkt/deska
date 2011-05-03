@@ -427,6 +427,44 @@ template<> struct JsonConversionTraits<Value> {
     }
 };
 
+/** @short Hack: use the JSON conversion traits for parsing of "remote errors"
+
+The hack part of this approach is that we can't safely return a whole class here (slicing would happen),
+so we instead make that function return void and throw errors around.
+*/
+void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
+{
+        JsonContext c1("When checking for presence of a RemoteDbError");
+        // At first, check just the kind of the exception
+        JsonHandler h;
+        std::string exceptionClass;
+        h.failOnUnknownFields(false);
+        h.read("type").extract(&exceptionClass);
+        h.parseJsonObject(v.get_obj());
+
+        // Now re-initialize the JSON handler and throw an exception matching the server's response
+        h = JsonHandler();
+        h.read("type"); // throw away
+        // "message" is said to be shared by all server-side errors
+        std::string message;
+        h.read("message").extract(&message);
+        if (exceptionClass == "ServerError" ) {
+            JsonContext c2("When parsing ServerError");
+            h.parseJsonObject(v.get_obj());
+            throw RemoteDbError(message);
+        } else {
+            // Unsupported/unknown/invalid/... class of exception
+            JsonContext c2("When parsing an unknown server-side exception");
+            // We don't have any idea about this exception, so be future-proof and allow optional arguments here
+            h.failOnUnknownFields(false);
+            h.parseJsonObject(v.get_obj());
+            // let's consider this a protocol error for now
+            std::ostringstream ss;
+            ss << "Unknown class of server-side exception '" << exceptionClass << "'. Server's message: " << message;
+            throw JsonStructureError(ss.str());
+        }
+};
+
 template <typename T>
 void SpecializedExtractor<T>::extract(const json_spirit::Value &value)
 {

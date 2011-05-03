@@ -71,7 +71,7 @@ void JsonHandlerApiWrapper::receive()
         throw;
     }
 
-    // FIXME: check for errors here
+    processPossibleException(obj);
 
     // Now convert it into the class that we expect
     try {
@@ -97,6 +97,17 @@ void JsonHandlerApiWrapper::command(const std::string &cmd)
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);
+}
+
+void JsonHandlerApiWrapper::processPossibleException(const json_spirit::Object &jsonObject)
+{
+    BOOST_FOREACH(const json_spirit::Pair &node, jsonObject) {
+        JsonContext c1("When checking JSON key " + node.name_);
+        if (node.name_ != "dbException")
+            continue;
+
+        JsonConversionTraits<RemoteDbError>::extract(node.value_);
+    }
 }
 
 JsonHandler::JsonHandler(): m_failOnUnknownFields(true)
