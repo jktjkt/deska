@@ -4,8 +4,7 @@ import sys
 class Connection:
 	def __init__(self):
 		try:
-			conn = psycopg2.connect("dbname='{0}' user='{1}'".format(
-				sys.argv[1], sys.argv[2]));
+			conn = psycopg2.connect(database=sys.argv[1], user=sys.argv[2])
 			self.mark = conn.cursor()
 
 		except:
