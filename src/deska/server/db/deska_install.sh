@@ -21,7 +21,9 @@ function drop(){
 
 function stage(){
 	echo "Stage $1 ..."
-	psql -d "$DATABASE" -U "$USER" -f create_$1.sql -v dbname="$DATABASE" 2>&1 > /dev/null | grep -v NOTICE | grep -v "current transaction is aborted"
+	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f create_$1.sql -v dbname="$DATABASE" 2>&1 > /dev/null \
+		|| return $? \
+		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
 function generate(){
