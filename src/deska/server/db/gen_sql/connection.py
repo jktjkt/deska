@@ -3,8 +3,8 @@ import sys
 
 class Connection:
 	def __init__(self):
-		conn = psycopg2.connect(database=sys.argv[1], user=sys.argv[2])
 		try:
+			conn = psycopg2.connect(database=sys.argv[1], user=sys.argv[2])
 			self.mark = conn.cursor()
 
 		except:
