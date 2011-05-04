@@ -2,6 +2,59 @@ BEGIN;
 
 \i util-include-path.sql
 
+CREATE TABLE simple_add_set_hardware_names(
+	 name text
+);
+
+CREATE TABLE simple_add_set_vendor_names(
+	 name text
+);
+
+CREATE OR REPLACE FUNCTION pgtap.test_simple_add_set()
+RETURNS SETOF TEXT AS
+$$
+DECLARE
+BEGIN
+
+	 PERFORM startChangeset();
+	 PERFORM vendor_add('DELL');
+	 PERFORM hardware_add('hwDELL');
+	 PERFORM hardware_set_vendor('hwDELL','DELL');
+	 PERFORM hardware_set_purchase('hwDELL','2000-4-8');
+	 PERFORM hardware_set_warranty('hwDELL','2014-7-25');
+	 PERFORM commitChangeset('add vendor dell, hardware hwdell');
+
+	 PERFORM startChangeset();
+	 PERFORM vendor_add('HP');
+	 PERFORM hardware_add('hwHP');
+	 PERFORM hardware_set_vendor('hwHP','HP');
+	 PERFORM hardware_set_purchase('hwHP','2007-10-16');
+	 PERFORM hardware_set_warranty('hwHP','2011-3-16');
+	 PERFORM commitChangeset('add vendor HP, hardware hwhp');
+
+	 INSERT INTO simple_add_set_vendor_names (name) VALUES ('DELL');
+	 INSERT INTO simple_add_set_vendor_names (name) VALUES ('HP');
+
+	 INSERT INTO simple_add_set_hardware_names (name) VALUES ('hwDELL');
+	 INSERT INTO simple_add_set_hardware_names (name) VALUES ('hwHP');
+	
+	 PREPARE retnames AS SELECT vendor_names();
+	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names;
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added vendors are present' );
+
+	 DEALLOCATE retnames;
+	 DEALLOCATE expnames;
+
+	 PREPARE retnames AS SELECT hardware_names();
+	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names;
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added hardware is present' );
+
+	 DEALLOCATE retnames;
+	 DEALLOCATE expnames;
+END;
+$$
+LANGUAGE plpgsql;
+
 CREATE TABLE public.vendor_test_tmp1(
 	name text,
 	action char(1)
@@ -25,7 +78,7 @@ DECLARE
 	 first_changeset text;
 BEGIN
 	PERFORM startchangeset();
-	first_changeset = id2changeset(my_version());
+	first_changeset = id2changeset(get_current_changeset());
 	PERFORM vendor_add('DELL');	
 	PERFORM detachfromcurrentchangeset('vendor DELL added');
 	
@@ -73,8 +126,9 @@ BEGIN
 	--resume tmp1
 	PERFORM resumechangeset(first_changeset);
 	-- tmp1 version_commit
-	PERFORM commitchangeset('add DELL');
-
+	 --HERE SHOULD BE REBASE
+--	PERFORM commitchangeset('add DELL');
+/*
 	PREPARE retnames AS SELECT vendor_names();
 	PREPARE expnames  AS 
 		  SELECT name FROM public.vendor_test_tmp1 WHERE action ='I' 
@@ -90,7 +144,7 @@ BEGIN
 
 	DEALLOCATE expnames;
 	DEALLOCATE retnames;
-	DEALLOCATE exp_not_in_names;
+	DEALLOCATE exp_not_in_names;*/
 
 END;
 $$
