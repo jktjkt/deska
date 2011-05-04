@@ -112,12 +112,12 @@ then
 	echo "Install DB $DATABASE"
 	if test $TYPE == "A"
 	then
-		stage "tables"
-		stage 0
+		stage "tables" || die "Error runnig stage tables"
+		stage 0 || die "Error running stage 0"
 	fi
-	stage 1
+	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
-	stage 2
+	stage 2 || die "Error running stage 2"
 fi
 
 if test $ACTION == "F"
@@ -125,8 +125,8 @@ then
 	echo "Regenerate functions in DB $DATABASE"
 	drop 2
 	drop 0
-	stage 0
-	stage 2
+	stage 0 || die "Error running stage 0"
+	stage 2 || die "Error running stage 2"
 fi
 
 if test $ACTION == "R"
@@ -138,10 +138,10 @@ then
 	then
 		drop 0
 		drop "tables"
-		stage "tables"
-		stage 0
+		stage "tables" || die "Error running stage tables"
+		stage 0 || die "Error running stage 0"
 	fi
-	stage 1
+	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
-	stage 2
+	stage 2 || die "Error running stage 2"
 fi
