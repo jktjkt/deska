@@ -1,8 +1,7 @@
 BEGIN;
 
 \i util-switch-user.sql
-
-SET search_path TO pgtap,api,genproc,history,deska,production,versioning;
+\i util-include-path.sql
 
 --action is indicator of operation done with object
 --I object was inserted

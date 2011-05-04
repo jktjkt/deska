@@ -3,8 +3,7 @@ BEGIN;
 \set ECHO
 \set QUIET 1
 
-SET search_path TO public,pgtap,api,genproc,history,deska,production;
-
+\i util-include-path.sql
 
 CREATE USER u1;
 GRANT deska_user TO u1;

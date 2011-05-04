@@ -1,7 +1,6 @@
 BEGIN;
 
-SET search_path TO pgtap, api, genproc, deska, history, production;
-
+\i util-include-path.sql
 
 CREATE TABLE public.vendor_test_tmp1(
 	name text,

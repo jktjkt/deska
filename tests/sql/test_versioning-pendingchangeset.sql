@@ -1,7 +1,6 @@
 BEGIN;
 
-SET search_path TO pgtap, api, genproc, deska, history, production;
-
+\i util-include-path.sql
 
 CREATE TABLE public.pending_changeset(
 	 chid text,

@@ -1,8 +1,7 @@
 BEGIN;
 
 \i util-switch-user.sql
-
-SET search_path TO pgtap, api, genproc, deska, production;
+\i util-include-path.sql
 
 
 /* ************************************************
