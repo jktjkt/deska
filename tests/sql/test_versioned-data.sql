@@ -1,4 +1,4 @@
-SET search_path TO pgtap,api,genproc,history,deska,production;
+\i util-include-path.sql
 
 BEGIN;
 
