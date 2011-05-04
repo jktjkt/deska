@@ -1,5 +1,10 @@
 #!/bin/sh
 
+function die(){
+    echo "Die: $1" >&2
+    exit 1
+}
+
 function help(){
 	echo "deska_install.sh ACTION [options]
 	ACTION: install | drop | clean | regenerate
@@ -109,7 +114,7 @@ then
 		stage 0
 	fi
 	stage 1
-	generate
+	generate || die "Failed to generate stuff"
 	stage 2
 fi
 
@@ -135,6 +140,6 @@ then
 		stage 0
 	fi
 	stage 1
-	generate
+	generate || die "Failed to generate stuff"
 	stage 2
 fi
