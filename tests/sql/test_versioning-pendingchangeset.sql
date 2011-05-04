@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE TABLE public.pending_changeset(
 	 chid text,
-	 chstatus deska.changeset_status
+	 chstatus versioning.changeset_status
 );
 
 INSERT INTO public.pending_changeset VALUES ('tmpA','INPROGRESS');
