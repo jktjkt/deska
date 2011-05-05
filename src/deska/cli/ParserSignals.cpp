@@ -30,7 +30,7 @@ namespace Cli
 {
 
 
-ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<ContextStackItem> &context,
+ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
     contextStack(context), kindName(kind), objectName(object)
 {
@@ -44,7 +44,7 @@ void ParserSignalCategoryEntered::apply(Db::Api *api)
 
 
 
-ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<ContextStackItem> &context, 
+ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
     contextStack(context), attributeName(attribute), setValue(value)
 {
@@ -58,7 +58,7 @@ void ParserSignalSetAttribute::apply(Db::Api *api)
 
 
 
-ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<ContextStackItem> &context):
+ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context):
     contextStack(context)
 {
 }
@@ -71,7 +71,7 @@ void ParserSignalFunctionShow::apply(Db::Api *api)
 
 
 
-ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<ContextStackItem> &context):
+ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context):
     contextStack(context)
 {
 }

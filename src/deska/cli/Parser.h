@@ -41,20 +41,6 @@ class ParserException;
 typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
 
-/** @short Context nesting */
-struct ContextStackItem
-{
-    ContextStackItem(const Db::Identifier &_kind, const Db::Identifier &_name);
-    ContextStackItem();
-
-    Db::Identifier kind;
-    Db::Identifier name;
-};
-
-std::ostream& operator<<(std::ostream &stream, const ContextStackItem &item);
-bool operator==(const ContextStackItem &a, const ContextStackItem &b);
-bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
-
 /** @short Modes of parsing.
 *   
 *   Mode determines, what kind of input parser expects.
@@ -202,7 +188,7 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector<ContextStackItem> currentContextStack() const;
+    std::vector<Db::ObjectDefinition> currentContextStack() const;
 
     /** @short Moves context to top level */
     void clearContextStack();

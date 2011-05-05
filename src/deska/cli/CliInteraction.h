@@ -29,13 +29,17 @@
 
 namespace Deska {
 namespace Db {
+
 class Api;
+
 }
 
 namespace Cli {
 
 class Parser;
 class ParserException;
+
+
 
 /** @short Tie up the real command line and the Parser together */
 class CliInteraction: public boost::noncopyable, public boost::signals2::trackable
@@ -45,6 +49,13 @@ public:
 
     /** @short Enter the loop and interact with the user */
     void run();
+
+
+    std::vector<Db::ObjectDefinition> getAllObjects();
+
+    std::vector<Db::AttributeDefinition> getAllAttributes(const Db::ObjectDefinition &object);
+
+
 
 private:
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
@@ -65,6 +76,8 @@ private:
     Parser *m_parser;
     bool m_ignoreParserActions;
 };
+
+
 
 }
 
