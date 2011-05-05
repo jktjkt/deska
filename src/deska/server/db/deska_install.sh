@@ -134,11 +134,14 @@ then
 	echo "Restore DB $DATABASE"
 	drop 2
 	drop 1
+	drop "tables"
 	if test $TYPE == "A"
 	then
 		drop 0
-		drop "tables"
-		stage "tables" || die "Error running stage tables"
+	fi
+	stage "tables" || die "Error running stage tables"
+	if test $TYPE == "A"
+	then
 		stage 0 || die "Error running stage 0"
 	fi
 	stage 1 || die "Error running stage 1"
