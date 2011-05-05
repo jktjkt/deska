@@ -119,10 +119,6 @@ ObjectRelation ObjectRelation::templatized(const Identifier &byWhichKind, const 
     return res;
 }
 
-/** @short Private constructor for creating a half-baked object
-
-This is very much needed for ObjectRelation::embedInto.
-*/
 ObjectRelation::ObjectRelation()
 {
 }
