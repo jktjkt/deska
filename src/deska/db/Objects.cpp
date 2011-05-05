@@ -123,5 +123,36 @@ ObjectRelation::ObjectRelation()
 {
 }
 
+ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
+    kind(kindName), name(objectName)
+{
+}
+
+std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o)
+{
+    return stream << o.kind << " " << o.name;
+}
+
+bool operator==(const ObjectDefinition &a, const ObjectDefinition &b)
+{
+    return a.kind == b.kind && a.name == b.name;
+}
+
+bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
+{
+    return !(a==b);
+}
+
+
+AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const Value &assignedValue):
+    attribute(attributeName), value(assignedValue)
+{
+}
+
+std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
+{
+    return stream << a.attribute << " " << a.value;
+}
+
 }
 }

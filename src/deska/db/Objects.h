@@ -172,6 +172,31 @@ bool operator==(const ObjectRelation &a, const ObjectRelation &b);
 bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
 
+
+struct ObjectDefinition
+{
+    ObjectDefinition(const Identifier &kindName, const Identifier &objectName);
+
+    Identifier kind;
+    Identifier name;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o);
+bool operator==(const ObjectDefinition &a, const ObjectDefinition &b);
+bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b);
+
+
+struct AttributeDefinition
+{
+    AttributeDefinition(const Identifier &attributeName, const Value &assignedValue);
+
+    Identifier attribute;
+    Value value;
+};
+
+std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a);
+
+
 }
 }
 
