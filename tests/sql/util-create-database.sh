@@ -10,4 +10,4 @@ for role in deska_admin deska_user; do
 done
 psql -q -U $DESKA_SU -c "CREATE DATABASE ${DESKA_DB} OWNER deska_admin;" || die "Create database"
 
-psql -q -U $DESKA_SU -d $DESKA_DB -v ON_ERROR_STOP=1 -f ../../src/deska/server/db/enable_pgpython.sql || die "Enable PgPython"
+psql -q -U $DESKA_SU -d $DESKA_DB -v ON_ERROR_STOP=1 -f ../../install/pgpython.sql || die "Enable PgPython"

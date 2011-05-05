@@ -12,8 +12,7 @@ if [[ ! -f $1 ]]; then
     die "Locating SQL testcase"
 fi
 
-PG_CONFIG=`which pg_config` 2>/dev/null || die "Locating PG_CONFIG"
-PGTAP_FILE=`$PG_CONFIG --sharedir`/contrib/pgtap.sql
+PGTAP_FILE=../../install/pgtap.sql
 if [[ ! -f $PGTAP_FILE ]]; then
     die "Locating the pgtap.sql"
 fi
