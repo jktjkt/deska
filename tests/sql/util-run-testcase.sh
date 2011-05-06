@@ -29,6 +29,5 @@ else
 	popd
 fi
 
-#psql -q -U $DESKA_USER -d $DESKA_DB -v ON_ERROR_STOP=1 -f $1 || die "SQL exection"
 pg_prove -U $DESKA_SU -d $DESKA_DB $1 || die "Test"
 
