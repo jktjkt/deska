@@ -18,13 +18,13 @@ if [[ -z `find . -atime -1 -name .db_installed` ]]; then
 	./util-delete-database.sh 2>/dev/null
 	./util-create-database.sh || die "Preparing the DB environment"
 
-	pushd ../../src/deska/server/db
+	pushd "${DESKA_SOURCES}/src/deska/server/db"
 	./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
 	popd
 	touch .db_installed
 else
 	# clean db is enough
-	pushd ../../src/deska/server/db
+	pushd "${DESKA_SOURCES}/src/deska/server/db"
 	./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
 	popd
 fi

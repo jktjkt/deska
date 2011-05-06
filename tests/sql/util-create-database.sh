@@ -4,8 +4,8 @@ cd `dirname $0`
 
 . ./util-config.sh
 
-PGTAP_FILE=../../install/pgtap.sql
-PGPYTHON_FILE=../../install/pgpython.sql
+PGTAP_FILE="${DESKA_SOURCES}/install/pgtap.sql"
+PGPYTHON_FILE="${DESKA_SOURCES}/install/pgpython.sql"
 
 psql -q -U $DESKA_SU -c "CREATE USER ${DESKA_USER};" || die "Create user"
 for role in deska_admin deska_user; do
