@@ -366,7 +366,7 @@ bool ParserImpl<Iterator>::isNestedInContext() const
 
 
 template <typename Iterator>
-std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
+std::vector<Db::ObjectDefinition> ParserImpl<Iterator>::currentContextStack() const
 {
     return contextStack;
 }
@@ -412,7 +412,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(cons
 template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    contextStack.push_back(ContextStackItem(kind, name));
+    contextStack.push_back(Db::ObjectDefinition(kind, name));
     if (!dryRun)
         m_parser->categoryEntered(kind, name);
 #ifdef PARSER_DEBUG
@@ -541,7 +541,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     bool topLevel = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
-    std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
+    std::vector<Db::ObjectDefinition>::size_type previousContextStackSize = contextStack.size();
 
     // Check if there are any function words at the beginning of the line.
     functionWordParsed = phrase_parse(iter, end, *functionWordsParser, ascii::space);
@@ -808,7 +808,7 @@ template void ParserImpl<iterator_type>::parseLine(const std::string &line);
 
 template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
-template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContextStack() const;
+template std::vector<Db::ObjectDefinition> ParserImpl<iterator_type>::currentContextStack() const;
 
 template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
 

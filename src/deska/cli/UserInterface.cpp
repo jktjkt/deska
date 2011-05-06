@@ -37,5 +37,28 @@ UserInterface::UserInterface()
 
 
 
+void UserInterface::reportError(const std::string &errorMessage)
+{
+    std::cerr << errorMessage;
+}
+
+
+
+bool UserInterface::askForConfirmation(const std::string &prompt)
+{
+    std::cout << prompt << " ";
+    std::string answer;
+    std::cin >> answer;
+    std::cout << std::endl;
+    boost::algorithm::to_lower(answer);
+    return answer == "yes" || answer == "y";
+}
+
+
+
+
+
+
+
 }
 }

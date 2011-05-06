@@ -24,6 +24,9 @@
 #ifndef DESKA_USER_INTERFACE_H
 #define DESKA_USER_INTERFACE_H
 
+#include <string>
+#include <iostream>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include "rlmm/readline.hh"
 
@@ -40,6 +43,13 @@ class UserInterface: public rlmm::readline
 public:
 
     UserInterface();
+
+    void reportError(const std::string &errorMessage);
+
+    bool askForConfirmation(const std::string &prompt);
+
+    /** @short Dump everything in the DB */
+    void dumpDbContents();
 
 };
 

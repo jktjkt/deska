@@ -50,7 +50,7 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const std::vector<ContextStackItem> &context,
+    ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
@@ -62,7 +62,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -84,7 +84,7 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const std::vector<ContextStackItem> &context,
+    ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -96,7 +96,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -116,7 +116,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const std::vector<ContextStackItem> &context);
+    ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -127,7 +127,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -141,7 +141,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionDelete(const std::vector<ContextStackItem> &context);
+    ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -152,7 +152,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
