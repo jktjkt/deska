@@ -23,7 +23,7 @@ Unit test setup:
 
 If you want to include unit tests for the SQL side of Deska in `make test` runs, do the following:
 
-1) Install pgTAP with pg_prove
+1) Install pgTAP support script pg_prove and don't touch the SQL database
 2) Pass the "-DRUN_SQL_TESTS=1" to cmake
 3) Make sure that the PgSQL server is running and that you can authorize under a
 different user (ie. "trust" instead of "ident" in the pg_hba.conf for local
