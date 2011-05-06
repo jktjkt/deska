@@ -14,4 +14,4 @@ DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC=${DESKA_SQL_TEST_FAST_BUT_NONDETERMINIS
 # Path to the top-level srcdir
 # CMake writes this file from the context of the test directory, hence the
 # requirement of going one level up.
-DESKA_SOURCES=`realpath ${CMAKE_CURRENT_SOURCE_DIRECTORY}/..`
+DESKA_SOURCES=`realpath ${CMAKE_CURRENT_SOURCE_DIR}/..`
