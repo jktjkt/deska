@@ -25,6 +25,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include "libebt/libebt_backtraceable.hh"
 
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
@@ -45,13 +46,39 @@
 namespace Deska {
 namespace Db {
 
+/** @short INTERNAL: tag for the libebt */
+struct ApiExceptionTag {};
+
+/** @short INTERNAL: convenience typedef for exception reporting */
+typedef libebt::BacktraceContext<ApiExceptionTag> ApiContext;
+
 /** @short Exception occured during processing of the request */
-class RemoteDbError: public std::runtime_error
+class RemoteDbError: public std::runtime_error, public libebt::Backtraceable<ApiExceptionTag>
 {
 public:
     RemoteDbError(const std::string &message);
     virtual ~RemoteDbError() throw ();
+    virtual std::string whatWithBacktrace() const throw();
 };
+
+#define REMOTEDBEXCEPTION(CLASS) \
+class CLASS: public RemoteDbError \
+{ \
+public: \
+    CLASS(const std::string &message); \
+    virtual ~CLASS() throw (); \
+};
+
+/** @short The database doesn't contian such object */
+REMOTEDBEXCEPTION(NotFoundError)
+/** @short Tried to perform an operation which requires being attached into a pending changeset without one */
+REMOTEDBEXCEPTION(NoChangesetError)
+/** @short Execution of SQL statements resulted in an error */
+REMOTEDBEXCEPTION(SqlError)
+/** @short The server has experienced an internal error */
+REMOTEDBEXCEPTION(ServerError)
+
+#undef REMOTEDBEXCEPTION
 
 
 /** @short Class representing the database API
@@ -166,6 +193,9 @@ public:
     /** @short Set an attribute that belongs to some object to a new value */
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData) = 0;
+
+    /** @short Apply a list of modifications */
+    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications) = 0;
 
 
 

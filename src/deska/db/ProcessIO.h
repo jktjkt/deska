@@ -26,7 +26,7 @@
 #include <vector>
 #include <boost/optional.hpp>
 #include <tr1/memory>
-#include "3rd-party/process/boost/process.hpp"
+#include "boost/process.hpp"
 
 namespace Deska {
 namespace Db {

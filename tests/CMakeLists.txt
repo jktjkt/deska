@@ -24,9 +24,16 @@ macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
     add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} ParserTestHelpers boost_unit_test_framework)
-    add_test(test_${fname} test_${fname})
+    target_link_libraries(test_${fname} ParserTestHelpers ${Boost_LIBRARIES})
+    add_test(test_${fname} ${CMAKE_CURRENT_BINARY_DIR}/test_${fname})
 endmacro(deska_test)
+
+macro(deska_sql_test fname)
+    add_test(test_sql_${fname}
+        ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-run-testcase.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/sql/test_${fname}.sql
+        )
+endmacro(deska_sql_test)
 
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
@@ -42,3 +49,12 @@ deska_test(mock_streambuf)
 deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
+
+if(DEFINED RUN_SQL_TESTS)
+    deska_sql_test(fn-get-schema)
+    deska_sql_test(versioning-one-user)
+    #deska_sql_test(versioning-two-users)
+    deska_sql_test(versioning-pendingchangeset)
+    deska_sql_test(versioning-pendingchangeset_data)
+    deska_sql_test(versioned-data)
+endif(DEFINED RUN_SQL_TESTS)

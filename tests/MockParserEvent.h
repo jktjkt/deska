@@ -44,12 +44,15 @@ public:
     
     /** @short The functionDelete() signal */
     static MockParserEvent functionDelete();
-    
-    /** @short An empty event for debug printing */
-    static MockParserEvent invalid();
 
     /** @short Parser error */
     static MockParserEvent parserError(const Deska::Cli::ParserException &err);
+    
+    /** @short The parsingFinished() signal */
+    static MockParserEvent parsingFinished();
+    
+    /** @short An empty event for debug printing */
+    static MockParserEvent invalid();
 
     bool operator==(const MockParserEvent &other) const;
 
@@ -63,12 +66,14 @@ private:
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
         EVENT_SET_ATTR,
-        /** @short Handler for parseError() */
-        EVENT_FUNCTION_SHOW,
         /** @short Handler for functionShow() */
-        EVENT_FUNCTION_DELETE,
+        EVENT_FUNCTION_SHOW,
         /** @short Handler for functionDelete() */
+        EVENT_FUNCTION_DELETE,
+        /** @short Handler for parseError() */
         EVENT_PARSE_ERROR,
+        /** @short Handler for parsingFinished() */
+        EVENT_PARSING_FINISHED,
         /** @short Fake, invalid event */
         EVENT_INVALID
     } Event;

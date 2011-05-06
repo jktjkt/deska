@@ -30,7 +30,7 @@ Connection::Connection(): io(0)
 {
     // FIXME: don't hardcode these
     std::vector<std::string> args;
-    args.push_back("/home/jkt/work/fzu/deska/src/deska/server/app/deska_server.py");
+    args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska_server.py");
     io = new ProcessIO(args);
     willRead.connect(boost::phoenix::bind(&ProcessIO::readStream, *io));
     willWrite.connect(boost::phoenix::bind(&ProcessIO::writeStream, *io));

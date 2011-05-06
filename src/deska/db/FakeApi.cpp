@@ -149,7 +149,9 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 {
 }
 
-
+void FakeApi::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
+{
+}
 
 TemporaryChangesetId FakeApi::startChangeset()
 {

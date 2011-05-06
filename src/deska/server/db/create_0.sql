@@ -28,15 +28,12 @@ BEGIN;
 GRANT USAGE ON SCHEMA api TO deska_user;
 
 -- admin can create schemas
-GRANT CREATE ON DATABASE deska_dev TO deska_admin;
+GRANT CREATE ON DATABASE :dbname TO deska_admin;
 -- use deska functions
 GRANT USAGE ON SCHEMA deska TO deska_admin;
 -- have rigths to all tables
 GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;
-
--- create first empty initial revision 0
-INSERT INTO version (id,author,message)
-        VALUES ('0',current_user,'Initial revision');
+GRANT ALL ON ALL TABLES IN SCHEMA versioning TO deska_admin;
 
 END;

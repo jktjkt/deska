@@ -21,7 +21,7 @@ class PkSet(dict):
 			dict.__setitem__(self,name,s)
 
 # class for storing foreign key constraints
-class Fks():
+class Fks:
 	def __init__(self):
 		# attributes in key from local table
 		self.att = PkSet()

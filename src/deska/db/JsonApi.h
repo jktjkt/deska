@@ -26,8 +26,8 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/signals2/last_value.hpp>
 #include "Api.h"
-#include "3rd-party/json_spirit_4.04/json_spirit/json_spirit_value.h"
-#include "3rd-party/libebt-1.3.0/libebt/libebt_backtraceable.hh"
+#include "json_spirit/json_spirit_value.h"
+#include "libebt/libebt_backtraceable.hh"
 
 namespace Deska {
 namespace Db {
@@ -37,6 +37,16 @@ struct JsonExceptionTag {};
 
 /** @short INTERNAL: convenience typedef for exception reporting */
 typedef libebt::BacktraceContext<JsonExceptionTag> JsonContext;
+
+/** @short INTERNAL: convenience class for marking context relevant to both API and JSON */
+class JsonCommandContext
+{
+public:
+    JsonCommandContext(const std::string &ctx);
+private:
+    ApiContext m_apiContext;
+    JsonContext m_jsonContext;
+};
 
 /** @short An error occured during parsing of the server's response */
 class JsonParseError: public std::runtime_error, public libebt::Backtraceable<JsonExceptionTag>
@@ -101,6 +111,7 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData );
+    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();

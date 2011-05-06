@@ -155,7 +155,7 @@ public:
 
     /** @short Leaving a context
     *
-    *   The Parser hit a line indicating that the current block hsould be left. This could be a result of an explicit
+    *   The Parser hit a line indicating that the current block should be left. This could be a result of an explicit
     *   "end" line, or a side effect of a standalone, self-contained line.
     */
     boost::signals2::signal<void ()> categoryLeft;
@@ -184,6 +184,12 @@ public:
     *   The signal is triggered when keyword "delete" was found on the beginning of the line
     */
     boost::signals2::signal<void ()> functionDelete;
+
+    /** @short Parsing of current line finished
+    *
+    *   The parser triggeres this signal when parsing of current line is finished successfully.
+    */
+    boost::signals2::signal<void ()> parsingFinished;
 
     /** @short True if the parser is currently nested in some block
     *

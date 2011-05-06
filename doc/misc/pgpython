@@ -1,0 +1,34 @@
+
+# get sources
+wget http://python.projects.postgresql.org/backend/files/pg-python-1.0.0.tar.bz2
+
+# unpack
+tar -xjvf pg-python-1.0.0.tar.bz2
+
+cd pg-python-1.0.0
+
+# the Holy Unix Trinity
+./configure
+make -j5
+(as root) make install
+
+# db configuration
+psql -d deska_dev -c "
+BEGIN;
+CREATE SCHEMA __python__;
+SET search_path TO __python__;
+CREATE FUNCTION handler() RETURNS LANGUAGE_HANDLER
+ LANGUAGE C AS 'python', 'pl_handler';
+CREATE FUNCTION validator(oid) RETURNS VOID
+ LANGUAGE C AS 'python', 'pl_validator';
+COMMIT;
+
+-- For 9.0 and greater.
+BEGIN;
+SET search_path TO __python__;
+CREATE FUNCTION inline(INTERNAL) RETURNS VOID
+ LANGUAGE C AS 'python', 'pl_inline';
+CREATE LANGUAGE python
+ HANDLER handler INLINE inline VALIDATOR validator;
+COMMIT;
+"

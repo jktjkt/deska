@@ -12,7 +12,14 @@ CREATE FUNCTION commit_all(message text)
 	AS
 	$$
 	DECLARE rev bigint;
+		last_rev bigint;
+		parent bigint;
 	BEGIN
+		SELECT max(id) INTO last_rev FROM version;
+		parent = parent(get_current_changeset());
+		IF parent != last_rev THEN
+			RAISE SQLSTATE '10007' USING MESSAGE = 'You must run rebase before commit.';
+		END IF;
 		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
 		-- should we check constraint before version_commit?
@@ -43,7 +50,7 @@ CREATE FUNCTION commit_all(message text)
 		self.sql = open(filename,'w')
 
 		# print this to add proc into genproc schema
-		self.sql.write("SET search_path TO genproc,history,deska,production;")
+		self.sql.write("SET search_path TO genproc,history,deska,versioning,production;")
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)

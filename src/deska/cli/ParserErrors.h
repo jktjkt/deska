@@ -53,6 +53,8 @@ typedef enum {
     PARSE_ERROR_TYPE_ATTRIBUTE,
     /** @short Error in an attribute's value or kind's identifier */
     PARSE_ERROR_TYPE_VALUE_TYPE,
+    /** @short Error when object definition expected, but not found */
+    PARSE_ERROR_TYPE_OBJECT_NOT_FOUND
 } ParseErrorType;
 
 
@@ -284,6 +286,16 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const Db::Identifier &attributeName);
+    /** @short Create error when object definition expected, but not found.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param kindName Name of kind which nested kinds are currently being parsed
+    *   @param expectedKinds Expected kind names
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
+               const std::vector<Db::Identifier> &expectedKinds);
 
 
     /** @short Function for obtaining type of the error.
