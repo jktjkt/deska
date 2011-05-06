@@ -58,3 +58,29 @@ if(DEFINED RUN_SQL_TESTS)
     deska_sql_test(versioning-pendingchangeset_data)
     deska_sql_test(versioned-data)
 endif(DEFINED RUN_SQL_TESTS)
+
+# Copy files from source directory to destination directory, substituting any
+# variables.  Create destination directory if it does not exist.
+macro(deska_copy_files srcDir destDir)
+    message(STATUS "Configuring directory ${destDir}")
+    make_directory(${destDir})
+
+    file(GLOB templateFiles RELATIVE ${srcDir} ${srcDir}/*)
+    foreach(templateFile ${templateFiles})
+        set(srcTemplatePath ${srcDir}/${templateFile})
+        if(NOT IS_DIRECTORY ${srcTemplatePath})
+            message(STATUS "Copying file ${templateFile}")
+            configure_file(
+                    ${srcTemplatePath}
+                    ${destDir}/${templateFile}
+                    @ONLY)
+        endif(NOT IS_DIRECTORY ${srcTemplatePath})
+    endforeach(templateFile)
+endmacro(deska_copy_files)
+
+deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
+message(STATUS "Writing out test configuration")
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-cmake-options-template.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/sql/util-cmake-options.sh
+)
