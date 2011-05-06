@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function die(){
     echo "Die: $1" >&2
