@@ -9,7 +9,7 @@
 # If your test database gets hosed and you want to force a re-initialization,
 # please have a look at the util-run-testcase.sh for what's the slower mode of
 # operation and reproduce that by hand.
-DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC=${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}
+DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC=${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE}
 
 # Path to the top-level srcdir
 # CMake writes this file from the context of the test directory, hence the
