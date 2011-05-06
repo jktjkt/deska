@@ -31,3 +31,5 @@ different user (ie. "trust" instead of "ident" in the pg_hba.conf for local
 connections). Some of the tests require DB superuser.
 4) Run the following exactly once: `./tests/sql/util-create-shared-roles.sh`
 5) Enjoy `make test` runs
+6) In case the DB setup gets hosed, you can force a one-time regeneration via
+removing the "tests/sql/.db_initialized" file in the build directory.

@@ -7,8 +7,7 @@
 # you to decide whether to enable this flag or not.
 #
 # If your test database gets hosed and you want to force a re-initialization,
-# please have a look at the util-run-testcase.sh for what's the slower mode of
-# operation and reproduce that by hand.
+# simply remove tests/sql/.db_initialized in your build directory.
 DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC=${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE}
 
 # Path to the top-level srcdir
