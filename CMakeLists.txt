@@ -71,9 +71,17 @@ else()
     include_directories(${BOOST_PROCESS_PATH})
 endif()
 
+FIND_PATH(RLMM_PATH rlmm/readline.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9)
+if(NOT RLMM_PATH)
+    message(FATAL "Cannot find readline--, and the internal copy seems unusable")
+else()
+    message(STATUS "Using readline-- from ${RLMM_PATH}")
+    include_directories(${RLMM_PATH})
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9
 )
 
 set(libDeskaDb_SRCS
