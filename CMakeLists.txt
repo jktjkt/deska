@@ -44,11 +44,19 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
 
+FIND_PATH(LIBEBT_PATH libebt/libebt.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0)
+if(NOT LIBEBT_PATH)
+    message(FATAL "Cannot find libebt, and the internal copy seems unusable")
+else()
+    message(STATUS "Using libebt from ${LIBEBT_PATH}")
+    include_directories(${LIBEBT_PATH})
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9
 )
 
