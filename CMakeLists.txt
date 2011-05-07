@@ -62,9 +62,17 @@ else()
     include_directories(${JSON_SPIRIT_PATH})
 endif()
 
+FIND_PATH(BOOST_PROCESS_PATH boost/process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process)
+if(NOT BOOST_PROCESS_PATH)
+    message(FATAL "Cannot find boost::process, and the internal copy seems unusable")
+else()
+    message(STATUS "Using boost::process from ${BOOST_PROCESS_PATH}")
+    include_directories(${BOOST_PROCESS_PATH})
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9
 )
 
