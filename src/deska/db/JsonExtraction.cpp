@@ -452,11 +452,11 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing ServerError");
             h.parseJsonObject(v.get_obj());
             throw ServerError(message);
-        } else if (exceptionClass == "NotFoundError"){
+        } else if (exceptionClass == "NotFoundError") {
             JsonContext c2("When parsing NotFoundError");
             h.parseJsonObject(v.get_obj());
             throw NotFoundError(message);
-        } else if (exceptionClass == "NoChangesetError"){
+        } else if (exceptionClass == "NoChangesetError") {
             JsonContext c2("When parsing NoChangesetError");
             h.parseJsonObject(v.get_obj());
             throw NoChangesetError(message);
