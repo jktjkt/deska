@@ -11,9 +11,9 @@ Build instructions for the C++ CLI interface:
 
 Setup for the SQL server side (see doc/misc/pgsql-setup for details):
 
-1) create db deska_dev, with roles deska_admin and deska_user, create language plpythonu
-2) run deska_install.sh -d deska_dev -u user install --all
--- user must be db root
+1) create db deska_dev, a user with roles deska_admin and deska_user,
+create language pgpython in the deska_dev database
+2) run deska_install.sh -d deska_dev -u postgres install --all
 
 if you change modules, run deska_install.sh -d deska_dev -u user restore
 -- user must be deska_admin
