@@ -53,9 +53,17 @@ else()
     include_directories(${LIBEBT_PATH})
 endif()
 
+FIND_PATH(JSON_SPIRIT_PATH json_spirit/json_spirit_value.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04)
+if(NOT JSON_SPIRIT_PATH)
+    message(FATAL "Cannot find json_spirit, and the internal copy seems unusable")
+else()
+    message(STATUS "Using json_spirit from ${JSON_SPIRIT_PATH}")
+    include_directories(${JSON_SPIRIT_PATH})
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9
 )
