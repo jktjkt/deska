@@ -42,7 +42,8 @@ class UserInterface: public rlmm::readline
 {
 public:
 
-    UserInterface();
+    UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream);
+
 
     void reportError(const std::string &errorMessage);
 
@@ -51,6 +52,11 @@ public:
     /** @short Dump everything in the DB */
     void dumpDbContents();
 
+private:
+
+    std::ostream out;
+    std::ostream err;
+    std::istream in;
 };
 
 

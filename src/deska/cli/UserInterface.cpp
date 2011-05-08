@@ -31,7 +31,10 @@ namespace Cli
 
 
 
-UserInterface::UserInterface()
+UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream):
+    out(outStream.rdbuf()), err(errStream.rdbuf()), in(inStream.rdbuf())
+{
+}
 {
 }
 
@@ -39,17 +42,17 @@ UserInterface::UserInterface()
 
 void UserInterface::reportError(const std::string &errorMessage)
 {
-    std::cerr << errorMessage;
+    err << errorMessage;
 }
 
 
 
 bool UserInterface::askForConfirmation(const std::string &prompt)
 {
-    std::cout << prompt << " ";
+    out << prompt << " ";
     std::string answer;
-    std::cin >> answer;
-    std::cout << std::endl;
+    in >> answer;
+    out << std::endl;
     boost::algorithm::to_lower(answer);
     return answer == "yes" || answer == "y";
 }
