@@ -38,8 +38,37 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<Db::O
 
 
 
-void ParserSignalCategoryEntered::apply(Db::Api *api)
+void ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->applyCategoryEntered(contextStack, kindName, objectName);
+}
+
+
+
+bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->confirmCategoryEntered(contextStack, kindName, objectName);
+}
+
+
+
+ParserSignalCategoryLeft::ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context):
+    contextStack(context)
+{
+}
+
+
+
+void ParserSignalCategoryLeft::apply(SignalsHandler *signalsHandler) const
+{
+    signalsHandler->applyCategoryLeft(contextStack);
+}
+
+
+
+bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->confirmCategoryLeft(contextStack);
 }
 
 
@@ -52,8 +81,16 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<Db::ObjectD
 
 
 
-void ParserSignalSetAttribute::apply(Db::Api *api)
+void ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->applySetAttribute(contextStack, attributeName, setValue);
+}
+
+
+
+bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->confirmSetAttribute(contextStack, attributeName, setValue);
 }
 
 
@@ -65,8 +102,16 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<Db::ObjectD
 
 
 
-void ParserSignalFunctionShow::apply(Db::Api *api)
+void ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->applyFunctionShow(contextStack);
+}
+
+
+
+bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->confirmFunctionShow(contextStack);
 }
 
 
@@ -78,20 +123,21 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<Db::Obj
 
 
 
-void ParserSignalFunctionDelete::apply(Db::Api *api)
+void ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->applyFunctionDelete(contextStack);
 }
 
 
 
-SignalsHandler::SignalsHandler(Parser *parser)
+bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 {
-    m_parser = parser;
+    return signalsHandler->confirmFunctionDelete(contextStack);
 }
 
 
 
-ApplyParserSignal::ApplyParserSignal(Db::Api *api): m_api(api)
+ApplyParserSignal::ApplyParserSignal(SignalsHandler *_signalsHandler): signalsHandler(_signalsHandler)
 {
 }
 
@@ -100,7 +146,30 @@ ApplyParserSignal::ApplyParserSignal(Db::Api *api): m_api(api)
 template <typename T>
 void ApplyParserSignal::operator()(const T &parserSignal) const
 {
-    parserSignal.apply(m_api);
+    parserSignal.apply(signalsHandler);
+}
+
+
+
+ConfirmParserSignal::ConfirmParserSignal(SignalsHandler *_signalsHandler): signalsHandler(_signalsHandler)
+{
+}
+
+
+
+template <typename T>
+bool ConfirmParserSignal::operator()(const T &parserSignal) const
+{
+    return parserSignal.confirm(signalsHandler);
+}
+
+
+
+SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface)
+{
+    m_parser = parser;
+    userInterface = _userInterface;
+    autoCreate = false;
 }
 
 
@@ -114,7 +183,7 @@ void SignalsHandler::slotCategoryEntered(const Db::Identifier &kind, const Db::I
 
 void SignalsHandler::slotCategoryLeft()
 {
-    // TODO ?
+    signalsStack.push_back(ParserSignalCategoryLeft(m_parser->currentContextStack()));
 }
 
 
@@ -142,14 +211,112 @@ void SignalsHandler::slotFunctionDelete()
 
 void SignalsHandler::slotParserError(const ParserException &error)
 {
-    // TODO
+    autoCreate = false;
+    signalsStack.clear();
+    userInterface->reportError(error.dump());
 }
 
 
 
 void SignalsHandler::slotParsingFinished()
 {
-    // TODO
+    autoCreate = false;
+    bool allConfirmed = true;
+    ApplyParserSignal applyParserSignal(this);
+    ConfirmParserSignal confirmParserSignal(this);
+
+    for (std::vector<ParserSignal>::iterator it = signalsStack.begin(); it != signalsStack.end(); ++it) {
+        if (!(boost::apply_visitor(confirmParserSignal, *it))) {
+            allConfirmed = false;
+            break;
+        }
+    }
+
+    if (allConfirmed) {
+        for (std::vector<ParserSignal>::iterator it = signalsStack.begin(); it != signalsStack.end(); ++it) {
+            boost::apply_visitor(applyParserSignal, *it);
+        }
+    }
+
+    signalsStack.clear();
+}
+
+
+
+void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                          const Db::Identifier &kind, const Db::Identifier &object)
+{
+    userInterface->applyCategoryEntered(context, kind, object);
+}
+
+
+
+void SignalsHandler::applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
+{
+}
+
+
+
+void SignalsHandler::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                                       const Db::Identifier &attribute, const Db::Value &value)
+{
+    userInterface->applySetAttribute(context, attribute, value);
+}
+
+
+
+void SignalsHandler::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+{
+    userInterface->applyFunctionShow(context);
+}
+
+
+
+void SignalsHandler::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+{
+    userInterface->applyFunctionDelete(context);
+}
+
+
+
+bool SignalsHandler::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                            const Db::Identifier &kind, const Db::Identifier &object)
+{
+    if (autoCreate)
+        return true;
+    else
+        autoCreate = userInterface->confirmCategoryEntered(context, kind, object);
+    return autoCreate;
+}
+
+
+
+bool SignalsHandler::confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
+{
+    autoCreate = false;
+    return true;
+}
+
+
+
+bool SignalsHandler::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                                         const Db::Identifier &attribute, const Db::Value &value)
+{
+    return userInterface->confirmSetAttribute(context, attribute, value);
+}
+
+
+
+bool SignalsHandler::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+{
+    return userInterface->confirmFunctionShow(context);
+}
+
+
+
+bool SignalsHandler::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+{
+    return userInterface->confirmFunctionDelete(context);
 }
 
 

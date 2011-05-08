@@ -29,6 +29,7 @@
 #include <boost/variant.hpp>
 #include "deska/cli/Parser.h"
 #include "deska/cli/Exceptions.h"
+#include "deska/cli/UserInterface.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Api.h"
 
@@ -37,6 +38,10 @@ namespace Deska
 {
 namespace Cli
 {
+
+
+class SignalsHandler;
+
 
 
 /** @short Represents signal categoryEntered() from the parser. */
@@ -55,9 +60,15 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param _userInterface Pointer to the database
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short If category being entered does not exist, displays create confirmation message.
+    *
+    *   @param _userInterface Pointer to the user interface
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
@@ -69,6 +80,37 @@ private:
     Db::Identifier kindName;
     Db::Identifier objectName;
     //@}
+};
+
+
+
+/** @short Represents signal categoryLeft() from the parser. */
+class ParserSignalCategoryLeft
+{
+public:
+
+    /** @short Constructor for storing signal categoryLeft().
+    *
+    *   @param context Current parser context
+    */
+    ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param _userInterface Pointer to the database
+    */
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short If category being entered does not exist, displays create confirmation message.
+    *
+    *   @param _userInterface Pointer to the user interface
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -89,9 +131,15 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param _userInterface Pointer to the user interface
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short If category being entered does not exist, displays create confirmation message.
+    *
+    *   @param _userInterface Pointer to the user interface
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
@@ -120,9 +168,15 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param _userInterface Pointer to the user interface
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short If category being entered does not exist, displays create confirmation message.
+    *
+    *   @param _userInterface Pointer to the user interface
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
@@ -145,9 +199,15 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param _userInterface Pointer to the user interface
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short If category being entered does not exist, displays create confirmation message.
+    *
+    *   @param _userInterface Pointer to the user interface
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
@@ -158,7 +218,7 @@ private:
 
 
 /** @short Represents one signal from the Parser. */
-typedef boost::variant<ParserSignalCategoryEntered, ParserSignalSetAttribute,
+typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
                        ParserSignalFunctionShow, ParserSignalFunctionDelete> ParserSignal;
 
 
@@ -168,14 +228,34 @@ class ApplyParserSignal: public boost::static_visitor<>
 {
 public:
 
-    ApplyParserSignal(Db::Api *api);
+    ApplyParserSignal(SignalsHandler *_signalsHandler);
 
     template <typename T>
     void operator()(const T &parserSignal) const;
 
 private:
 
-    Db::Api *m_api;
+    SignalsHandler *signalsHandler;
+};
+
+
+
+/** @short Variant visitor for confirmation of each signal.
+*
+*   @see ParserSignalCategoryEntered::confirm()
+*/
+class ConfirmParserSignal: public boost::static_visitor<bool>
+{
+public:
+
+    ConfirmParserSignal(SignalsHandler *_signalsHandler);
+
+    template <typename T>
+    bool operator()(const T &parserSignal) const;
+
+private:
+
+    SignalsHandler *signalsHandler;
 };
 
 
@@ -185,7 +265,23 @@ class SignalsHandler
 {
 public:
 
-    SignalsHandler(Parser *parser);
+    SignalsHandler(Parser *_parser, UserInterface *_userInterface);
+
+    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                              const Db::Identifier &kind, const Db::Identifier &object);
+    void applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                           const Db::Identifier &attribute, const Db::Value &value);
+    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+
+    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                const Db::Identifier &kind, const Db::Identifier &object);
+    bool confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                             const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
 
 private:
 
@@ -197,9 +293,14 @@ private:
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
 
+
     std::vector<ParserSignal> signalsStack;
 
     Parser *m_parser;
+
+    UserInterface *userInterface;
+
+    bool autoCreate;
 
 };
 

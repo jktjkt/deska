@@ -21,6 +21,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <sstream>
+
 #include "UserInterface.h"
 
 
@@ -35,7 +37,87 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
     out(outStream.rdbuf()), err(errStream.rdbuf()), in(inStream.rdbuf())
 {
 }
+
+
+
+void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                         const Db::Identifier &kind, const Db::Identifier &object)
 {
+    std::vector<Db::ObjectDefinition> objects;
+    objects = dbInteraction->getAllObjects();
+    Db::ObjectDefinition category(kind, object);
+
+    if (std::find(objects.begin(), objects.end(), category) == objects.end()) {
+        dbInteraction->createObject(category);
+    }
+}
+
+
+
+void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                                      const Db::Identifier &attribute, const Db::Value &value)
+{
+    dbInteraction->setAttribute(context.back(), Db::AttributeDefinition(attribute, value));
+}
+
+
+
+void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+{
+    printAttributes(context.back());
+}
+
+
+
+void UserInterface::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+{
+    dbInteraction->deleteObject(context.back());
+}
+
+
+
+bool UserInterface::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                           const Db::Identifier &kind, const Db::Identifier &object)
+{
+    // We're entering into some context, so we should check whether the object in question exists, and if it does not,
+    // ask the user whether to create it.
+    std::vector<Db::ObjectDefinition> objects;
+    objects = dbInteraction->getAllObjects();
+    Db::ObjectDefinition category(kind, object);
+
+    if (std::find(objects.begin(), objects.end(), category) != objects.end()) {
+        // Object exists
+        return true;
+    }
+
+    // Object does not exist -> ask the user here
+    std::ostringstream ss;
+    ss << category << " does not exist. Create?";
+    return askForConfirmation(ss.str());    
+}
+
+
+
+bool UserInterface::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                                        const Db::Identifier &attribute, const Db::Value &value)
+{
+    return true;
+}
+
+
+
+bool UserInterface::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+{
+    return true;
+}
+
+
+
+bool UserInterface::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+{
+    std::ostringstream ss;
+    ss << "Are you sure you want to delete object " << context.back() << "?";
+    return askForConfirmation(ss.str());
 }
 
 
@@ -59,7 +141,32 @@ bool UserInterface::askForConfirmation(const std::string &prompt)
 
 
 
+void UserInterface::dumpDbContents()
+{
+    std::vector<Db::ObjectDefinition> objects;
+    objects = dbInteraction->getAllObjects();
+    for (std::vector<Db::ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        out << *it << std::endl;
+        std::vector<Db::AttributeDefinition> attributes;
+        attributes = dbInteraction->getAllAttributes(*it);
+        for (std::vector<Db::AttributeDefinition>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
+            out << "    " << *ita << std::endl;
+        }
+        out << "end" << std::endl;
+        out << std::endl;
+    }
+}
 
+
+
+void UserInterface::printAttributes(const Db::ObjectDefinition &object)
+{
+    std::vector<Db::AttributeDefinition> attributes;
+    attributes = dbInteraction->getAllAttributes(object);
+    for (std::vector<Db::AttributeDefinition>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+        out << *it << std::endl;
+    }
+}
 
 
 

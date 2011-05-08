@@ -50,6 +50,9 @@ public:
     /** @short Enter the loop and interact with the user */
     void run();
 
+    void createObject(const Db::ObjectDefinition &object);
+    void deleteObject(const Db::ObjectDefinition &object);
+    void setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute);
 
     std::vector<Db::ObjectDefinition> getAllObjects();
 

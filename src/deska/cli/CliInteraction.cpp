@@ -177,6 +177,28 @@ void CliInteraction::run()
 }
 
 
+
+void CliInteraction::createObject(const Db::ObjectDefinition &object)
+{
+    m_api->createObject(object.kind, object.name);
+}
+
+
+
+void CliInteraction::deleteObject(const Db::ObjectDefinition &object)
+{
+    m_api->deleteObject(object.kind, object.name);
+}
+
+
+
+void CliInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute)
+{
+    m_api->setAttribute(object.kind, object.name, attribute.attribute, attribute.value);
+}
+
+
+
 std::vector<Db::ObjectDefinition> CliInteraction::getAllObjects()
 {
     std::vector<Db::ObjectDefinition> objects;
