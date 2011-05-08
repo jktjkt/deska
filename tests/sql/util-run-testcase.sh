@@ -34,5 +34,5 @@ else
 	touch $DESKA_DB_STATE_FILE
 fi
 
-pg_prove -U $DESKA_SU -d $DESKA_DB $1 || die "Test"
+pg_prove -U $DESKA_USER -d $DESKA_DB $1 || die "Test"
 
