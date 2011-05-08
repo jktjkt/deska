@@ -579,7 +579,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
                 }
                 
-                //m_parser->parseError(ObjectNotFound("Function delete requires kind as parameter.", line, line.end()));
+                //m_parser->parseError(ObjectDefinitionNotFound("Function delete requires kind as parameter.", line, line.end()));
                 break;
             case PARSING_MODE_STANDARD:
                 // Parsed function word -> parsing mode should change from PARSING_MODE_STANDARD to another
@@ -600,6 +600,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         } else {
             // Context -> parse attributes or nested kinds
             topLevel = false;
+            std::vector<Db::Identifier> instances;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
                     parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
@@ -607,8 +608,15 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
-                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
-                                                    ascii::space);
+                    instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
+                    if (std::find(instances.begin(), instances.end(), contextStack.back().name) != instances.end()) {
+                        parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
+                                                        ascii::space);
+                    } else {
+                        addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size(),
+                                                           contextStack.back().kind, contextStack.back().name));
+                        parsingSucceeded = false;
+                    }
                     break;
                 default:
                     throw std::domain_error("Invalid value of parsingMode");
@@ -712,6 +720,9 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 break;
             case PARSE_ERROR_TYPE_KIND:
                 m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
+                break;
+            case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
+                m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
                 break;
             case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
                 m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
