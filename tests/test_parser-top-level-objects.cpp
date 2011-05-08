@@ -644,7 +644,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -662,7 +662,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing kind name. No definition found. Expected one of [ \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
