@@ -221,3 +221,14 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION 
+hardware_diff_deleted()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name FROM diff_data WHERE new_dest_bit = '1';
+END;
+$$
+LANGUAGE plpgsql; 
