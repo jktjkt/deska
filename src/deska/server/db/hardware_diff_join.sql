@@ -184,7 +184,29 @@ $$
 LANGUAGE python;
 
 
-drop function diff_add(bigint,bigint);
+drop function diff_del(bigint,bigint);
+CREATE OR REPLACE FUNCTION diff_del(x bigint, y bigint)
+RETURNS SETOF text
+AS
+$$
+import Postgres
+@pytypes
+def main(x,y):
+	names = ["name","vendor","note","warranty","purchase"]
+	npart = list(map("dv.{0} AS {0}".format,names))
+	coldef = ",".join(npart)
+	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) AS dv LEFT OUTER JOIN hardware_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE chv.name IS NULL'.format(coldef = coldef))
+	a = plan(x,y)
+
+	for line in a:
+		base = dict()
+		base["command"] = "removeObject"
+		base["kindName"] = "hardware"
+		base["objectName"] = line[names[0]]
+		yield base
+$$
+LANGUAGE python;
+
 CREATE OR REPLACE FUNCTION diff_add(x bigint, y bigint)
 RETURNS SETOF text
 AS
@@ -199,11 +221,23 @@ def main(x,y):
 	a = plan(x,y)
 
 	for line in a:
-		diffline = dict()
-		for col in range(len(names)):
+		#diffline = list()
+		base = dict()
+		base["command"] = "createObject"
+		base["kindName"] = "hardware"
+		base["objectName"] = line[names[0]]
+		yield base
+		#diffline.append(base)
+		#base = base.copy()
+		base["command"] = "setAttribute"
+		for col in range(1,len(names)):
 			if line[col] is not None:
-				diffline[names[col]] = line[col]
-		yield diffline
+				#setd = base.copy()
+				base["value"] = line[col]
+				base["attributeName"] = line[col]
+				yield base
+
+		#yield diffline
 $$
 LANGUAGE python;
 
@@ -211,6 +245,17 @@ LANGUAGE python;
 --select hardware_diff_set_attributes(30,60);
 --drop table diff_data;
 
+create or replace function hardware_diff_set_attributes(from_version bigint, to_version bigint)
+returns setof diff_set_attribute_type
+as
+$$
+begin
+perform init_diff(from_version,to_version);
+return query select * from hardware_diff_set_attributes();
+end
+$$
+language plpgsql;
+ 
 CREATE OR REPLACE FUNCTION 
 hardware_diff_created()
 RETURNS SETOF text
