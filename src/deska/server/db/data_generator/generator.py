@@ -39,7 +39,7 @@ SELECT startChangeset();
 		if (count == 0):			
 			count = self.count
 		names = Names("names.txt")
-		names.extend(1000)
+		#names.extend(1000)
 		# gen set of N random (and unique) names
 		self.vendor = names.rset(count) 
 		str = map(self.vendor_add_template.format, self.vendor)
@@ -119,12 +119,12 @@ SELECT startChangeset();
 			self.data.insert(i,self.commit_template)
 
 	def run(self):
-		generator.add_vendors()
-		generator.add_hardwares()
-		generator.add_hosts()
+		generator.add_vendors(10)
+		generator.add_hardwares(100000)
+	#	generator.add_hosts()
 		# to slow, comment for large data
-		generator.add_interfaces()
-		generator.insert_commits()
+	#	generator.add_interfaces()
+		generator.insert_commits(10000)
 
 generator = Generator(int(sys.argv[1]))
 generator.run()

@@ -90,8 +90,10 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.vendor IS NULL AND new_data.vendor IS NULL))
 	 THEN
 		  result.attribute = 'vendor';
-		  result.old_data = hardware_get_name(old_data.vendor);
-		  result.new_data = hardware_get_name(new_data.vendor);
+		  result.old_data = old_data.vendor;
+		  --result.old_data = hardware_get_name(old_data.vendor);
+		  result.new_data = new_data.vendor;
+		  --result.new_data = hardware_get_name(new_data.vendor);
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -146,30 +148,54 @@ $$
 language plpgsql;
 
 CREATE OR REPLACE FUNCTION diff(x bigint, y bigint)
-RETURNS text
+RETURNS SETOF text
 AS
 $$
-names = ["name","vendor","note","warranty","purchase"]
-oldnames = map(str.__add__,["o"]*len(names),names)
-newnames = map(str.__add__,["n"]*len(names),names)
-opart = map("dv.{0} AS {1}".format,names,oldnames)
-npart = map("chv.{0} AS {1}".format,names,newnames)
-coldef = ",".join(opart) + "," + ",".join(npart)
-plan = plpy.prepare('SELECT {coldef} FROM hardware_data_version($1) dv join hardware_changes_between_versions($1,$2) chv on (dv.uid = chv.uid)'.format(coldef = coldef),["bigint","bigint"])
-a = plpy.execute(plan, [x,y]);
-text = ""
-for i in range(a.nrows()):
-	line = a[i]
-	for col in range(len(names)):
-		if line[oldnames[col]] != line[newnames[col]]:
-			diffline = '{oldname}: "{oldvalue}", {newname}: "{newvalue}"'.format(
-				oldname = oldnames[col], newname = newnames[col],
-				oldvalue = line[oldnames[col]], newvalue = line[newnames[col]])
-			text = text + "\n" + diffline
+import Postgres
+@pytypes
+def main(x,y):
+	names = ["name","vendor","note","warranty","purchase"]
+	oldnames = list(map(str.__add__,["o"]*len(names),names))
+	newnames = list(map(str.__add__,["n"]*len(names),names))
+	opart = list(map("dv.{0} AS {1}".format,names,oldnames))
+	npart = list(map("chv.{0} AS {1}".format,names,newnames))
+	coldef = ",".join(opart) + "," + ",".join(npart)
+	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) dv join hardware_changes_between_versions($1,$2) chv on (dv.uid = chv.uid)'.format(coldef = coldef))
+	a = plan(x,y)
 
-return text
+	for i in range(len(a)):
+		line = a[i]
+		for col in range(len(names)):
+			if line[oldnames[col]] != line[newnames[col]]:
+				diffline = '{oldname}: "{oldvalue}", {newname}: "{newvalue}"'.format(
+					oldname = oldnames[col], newname = newnames[col],
+					oldvalue = line[oldnames[col]], newvalue = line[newnames[col]])
+				yield diffline
 $$
-LANGUAGE plpythonu;
+LANGUAGE python;
+
+
+drop function diff_add(bigint,bigint);
+CREATE OR REPLACE FUNCTION diff_add(x bigint, y bigint)
+RETURNS SETOF text
+AS
+$$
+import Postgres
+@pytypes
+def main(x,y):
+	names = ["name","vendor","note","warranty","purchase"]
+	npart = list(map("chv.{0} AS {0}".format,names))
+	coldef = ",".join(npart)
+	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) AS dv RIGHT OUTER JOIN hardware_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE dv.name IS NULL'.format(coldef = coldef))
+	a = plan(x,y)
+
+	for line in a:
+		for col in range(len(names)):
+			if line[col] is not None:
+				diffline = '{name}: "{value}"'.format(name = names[col], value=line[col])
+				yield diffline
+$$
+LANGUAGE python;
 
 --select init_diff(30,60);
 --select hardware_diff_set_attributes(30,60);
