@@ -190,11 +190,23 @@ def main(x,y):
 	a = plan(x,y)
 
 	for line in a:
-		diffline = dict()
-		for col in range(len(names)):
+		#diffline = list()
+		base = dict()
+		base["command"] = "createObject"
+		base["kindName"] = "hardware"
+		base["objectName"] = line[names[0]]
+		yield base
+		#diffline.append(base)
+		#base = base.copy()
+		base["command"] = "setAttribute"
+		for col in range(1,len(names)):
 			if line[col] is not None:
-				diffline[names[col]] = line[col]
-		yield diffline
+				#setd = base.copy()
+				base["value"] = line[col]
+				base["attributeName"] = line[col]
+				yield base
+
+		#yield diffline
 $$
 LANGUAGE python;
 
