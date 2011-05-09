@@ -192,17 +192,14 @@ $$
 import Postgres
 @pytypes
 def main(x,y):
-	names = ["name","vendor","note","warranty","purchase"]
-	npart = list(map("dv.{0} AS {0}".format,names))
-	coldef = ",".join(npart)
-	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) AS dv LEFT OUTER JOIN hardware_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE chv.name IS NULL'.format(coldef = coldef))
+	plan = prepare("SELECT name FROM hardware_changes_between_versions($1,$2) WHERE dest_bit=B'1'")
 	a = plan(x,y)
 
 	for line in a:
 		base = dict()
 		base["command"] = "removeObject"
 		base["kindName"] = "hardware"
-		base["objectName"] = line[names[0]]
+		base["objectName"] = line["name"]
 		yield base
 $$
 LANGUAGE python;
@@ -251,7 +248,7 @@ as
 $$
 begin
 perform init_diff(from_version,to_version);
-return query select * from hardware_diff_set_attributes();
+return query select * from hardware_diff_deleted();
 end
 $$
 language plpgsql;
@@ -278,4 +275,3 @@ END;
 $$
 LANGUAGE plpgsql; 
 
-select hardware_diff_deleted();

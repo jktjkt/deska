@@ -128,6 +128,7 @@ class DB:
 		# test diff
 		"diff_add": [VectorResult,"from","to"],
 		"diff": [VectorResult,"from","to"],
+		"diff_del": [VectorResult,"from","to"],
 		"hardware_diff_set_attributes": [MatrixResult,"from","to"]
 	})
 	data_methods = dict({
