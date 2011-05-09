@@ -135,7 +135,7 @@ newnames = map(str.__add__,["n"]*len(names),names)
 opart = map("dv.{0} AS {1}".format,names,oldnames)
 npart = map("chv.{0} AS {1}".format,names,newnames)
 coldef = ",".join(opart) + "," + ",".join(npart)
-plan = plpy.prepare('SELECT {coldef} FROM hardware_data_version($1) dv full outer join hardware_changes_between_versions($1,$2) chv on (dv.uid = chv.uid)'.format(coldef = coldef),["bigint","bigint"])
+plan = plpy.prepare('SELECT {coldef} FROM hardware_data_version($1) dv join hardware_changes_between_versions($1,$2) chv on (dv.uid = chv.uid)'.format(coldef = coldef),["bigint","bigint"])
 a = plpy.execute(plan, [x,y]);
 text = ""
 for i in range(a.nrows()):
@@ -151,8 +151,8 @@ return text
 $$
 LANGUAGE plpythonu;
 
-select init_diff(30000,60000);
-select hardware_diff_set_attributes();
-drop table diff_data;
+--select init_diff(30,60);
+--select hardware_diff_set_attributes(30,60);
+--drop table diff_data;
 
  
