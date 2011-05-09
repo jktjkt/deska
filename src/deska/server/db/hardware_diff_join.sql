@@ -245,7 +245,6 @@ LANGUAGE python;
 --select hardware_diff_set_attributes(30,60);
 --drop table diff_data;
 
- 
 create or replace function hardware_diff_set_attributes(from_version bigint, to_version bigint)
 returns setof diff_set_attribute_type
 as
@@ -256,3 +255,25 @@ return query select * from hardware_diff_set_attributes();
 end
 $$
 language plpgsql;
+ 
+CREATE OR REPLACE FUNCTION 
+hardware_diff_created()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT new_name FROM diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION 
+hardware_diff_deleted()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name FROM diff_data WHERE new_dest_bit = '1';
+END;
+$$
+LANGUAGE plpgsql; 
