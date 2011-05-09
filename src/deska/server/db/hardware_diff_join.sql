@@ -37,6 +37,16 @@ end
 $$
 language plpgsql;
 
+-- DROP TYPE genproc.diff_set_attribute_type cascade;
+
+CREATE TYPE genproc.diff_set_attribute_type AS
+   (objkind "name",
+    "objname" text,
+    command text,
+    attribute "name",
+    olddata text,
+    newdata text);
+
 
 CREATE OR REPLACE FUNCTION 
 	hardware_diff_set_attributes()
@@ -48,7 +58,8 @@ CREATE OR REPLACE FUNCTION
 		  new_data hardware_history%rowtype;
 		  result diff_set_attribute_type;
 	 BEGIN
-		  result.kind = 'hardware';
+		  result.command = 'setAttribute';
+		  result.objkind = 'hardware';
 		  FOR old_data.name, old_data.vendor, old_data.purchase, old_data.warranty, old_data.note,
 			new_data.name, new_data.vendor, new_data.purchase, new_data.warranty, new_data.note IN 
 			SELECT old_name, old_vendor, old_purchase, old_warranty, old_note, new_name, new_vendor, new_purchase, new_warranty, new_note
@@ -57,21 +68,21 @@ CREATE OR REPLACE FUNCTION
 		  LOOP
 				IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
 					 --first change is changed name
-					 result.name = old_data.name;
+					 result.objname = old_data.name;
 					 result.attribute = 'name';
-					 result.old_data = old_data.name;
-					 result.new_data = new_data.name;
+					 result.olddata = old_data.name;
+					 result.newdata = new_data.name;
 					 RETURN NEXT result;
 				END IF;
 					 
-				result.name = new_data.name;
+				result.objname = new_data.name;
 				
 	 IF (old_data.warranty <> new_data.warranty) OR ((old_data.warranty IS NULL OR new_data.warranty IS NULL) 
 		  AND NOT(old_data.warranty IS NULL AND new_data.warranty IS NULL))
 	 THEN
 		  result.attribute = 'warranty';
-		  result.old_data = old_data.warranty;
-		  result.new_data = new_data.warranty;
+		  result.olddata = old_data.warranty;
+		  result.newdata = new_data.warranty;
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -80,8 +91,8 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.purchase IS NULL AND new_data.purchase IS NULL))
 	 THEN
 		  result.attribute = 'purchase';
-		  result.old_data = old_data.purchase;
-		  result.new_data = new_data.purchase;
+		  result.olddata = old_data.purchase;
+		  result.newdata = new_data.purchase;
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -90,10 +101,8 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.vendor IS NULL AND new_data.vendor IS NULL))
 	 THEN
 		  result.attribute = 'vendor';
-		  result.old_data = old_data.vendor;
-		  --result.old_data = hardware_get_name(old_data.vendor);
-		  result.new_data = new_data.vendor;
-		  --result.new_data = hardware_get_name(new_data.vendor);
+		  result.olddata = old_data.vendor;
+		  result.newdata = new_data.vendor;
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -102,8 +111,8 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.cpu_num IS NULL AND new_data.cpu_num IS NULL))
 	 THEN
 		  result.attribute = 'cpu_num';
-		  result.old_data = old_data.cpu_num;
-		  result.new_data = new_data.cpu_num;
+		  result.olddata = old_data.cpu_num;
+		  result.newdata = new_data.cpu_num;
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -112,8 +121,8 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.ram IS NULL AND new_data.ram IS NULL))
 	 THEN
 		  result.attribute = 'ram';
-		  result.old_data = old_data.ram;
-		  result.new_data = new_data.ram;
+		  result.olddata = old_data.ram;
+		  result.newdata = new_data.ram;
 		  RETURN NEXT result;			
 	 END IF;
 	 
@@ -122,8 +131,8 @@ CREATE OR REPLACE FUNCTION
 		  AND NOT(old_data.note IS NULL AND new_data.note IS NULL))
 	 THEN
 		  result.attribute = 'note';
-		  result.old_data = old_data.note;
-		  result.new_data = new_data.note;
+		  result.olddata = old_data.note;
+		  result.newdata = new_data.note;
 		  RETURN NEXT result;			
 	 END IF;
 	 
