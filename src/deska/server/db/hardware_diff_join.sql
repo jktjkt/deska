@@ -224,11 +224,13 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION 
 hardware_diff_deleted()
-RETURNS SETOF text
+RETURNS SETOF diff_del_object_type
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT old_name FROM diff_data WHERE new_dest_bit = '1';
+	RETURN QUERY select cast('hardware' as text), old_name,cast('delete' as text) FROM diff_data WHERE new_dest_bit = '1';
 END;
 $$
 LANGUAGE plpgsql; 
+
+select hardware_diff_deleted();
