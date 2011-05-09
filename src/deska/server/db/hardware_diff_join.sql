@@ -190,10 +190,11 @@ def main(x,y):
 	a = plan(x,y)
 
 	for line in a:
+		diffline = dict()
 		for col in range(len(names)):
 			if line[col] is not None:
-				diffline = '{name}: "{value}"'.format(name = names[col], value=line[col])
-				yield diffline
+				diffline[names[col]] = line[col]
+		yield diffline
 $$
 LANGUAGE python;
 
