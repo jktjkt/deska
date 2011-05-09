@@ -124,7 +124,11 @@ class DB:
 		"resumeChangeset": [Result,"revision"],
 		"detachFromCurrentChangeset": [Result,"message"],
 		"abortCurrentChangeset": [Result],
-		"pendingChangesets": [MatrixResult]
+		"pendingChangesets": [MatrixResult],
+		# test diff
+		"diff_add": [VectorResult,"from","to"],
+		"diff": [VectorResult,"from","to"],
+		"hardware_diff_set_attributes": [MatrixResult,"from","to"]
 	})
 	data_methods = dict({
 		"objectData": [TupleResult,"kindName", "objectName"]
