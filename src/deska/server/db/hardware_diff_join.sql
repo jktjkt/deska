@@ -6,36 +6,38 @@ as
 $$
 declare
 begin
-	return query SELECT h.*
-	FROM hardware_history h
-		 JOIN version v ON (h.version = v.id) 
-	WHERE dest_bit = '0' AND v.num = (
-		 SELECT max(v2.num) 
-		 FROM hardware_history h2 
-			  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-		 WHERE v2.num <= data_version);
+	return query select h1.* from hardware_history h1 
+	join version v1 on (v1.id = h1.version)
+	join (select uid, max(num) as maxnum 
+		from hardware_history h join version v on (v.id = h.version )
+		where v.num <= data_version
+		group by uid) vmax1 
+	on (h1.uid = vmax1.uid and v1.num = vmax1.maxnum)
+	WHERE dest_bit = '0';
+
 end
 $$
 language plpgsql;
 
-select hardware_data_version(4);
+--select hardware_data_version(30000);
 
 create or replace function hardware_changes_between_versions(from_version bigint, to_version bigint)
 returns setof hardware_history
 as
 $$
 begin
-	return query SELECT h.*
-	 FROM hardware_history h
-		  JOIN version v ON (h.version = v.id) 
-	 WHERE v.num = (
-		  SELECT max(v2.num) 
-		  FROM hardware_history h2 
-		  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-		  WHERE v2.num >from_version AND v2.num <= to_version);
+	return query select h1.* from hardware_history h1 
+	join version v1 on (v1.id = h1.version)
+	join (select uid, max(num) as maxnum 
+		from hardware_history h join version v on (v.id = h.version )
+		where v.num <= to_version and v.num > from_version
+		group by uid) vmax1 
+	on (h1.uid = vmax1.uid and v1.num = vmax1.maxnum);
 end
 $$
 language plpgsql;
+
+--select hardware_changes_between_versions(30000,60000);
 
 -- DROP TYPE genproc.diff_set_attribute_type cascade;
 
