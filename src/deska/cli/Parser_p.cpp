@@ -597,8 +597,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             parsingSucceeded = phrase_parse(iter, end, *topLevelParser, ascii::space);
         } else {
             // Context -> parse attributes or nested kinds
-            topLevel = false;
-            std::vector<Db::Identifier> instances;
+            topLevel = false;         
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
                     parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
@@ -606,21 +605,35 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
-                    // TODO: Fix tests and debug this.
-                    //instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
-                    //if (std::find(instances.begin(), instances.end(), contextStack.back().name) != instances.end()) {
-                        parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
-                                                        ascii::space);
-                    //} else {
-                    //    addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size(),
-                    //                                       contextStack.back().kind, contextStack.back().name));
-                    //    parsingSucceeded = false;
-                    //}
+                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
+                                                    ascii::space);
                     break;
                 default:
                     throw std::domain_error("Invalid value of parsingMode");
             }        
         }
+
+        // Check for existence of parsed kind instance and add parse error based on parsing mode.
+        // TODO: Fix tests and debug this.
+        /*if (!contextStack.empty() && parsingSucceeded) {
+            std::vector<Db::Identifier> instances;
+            switch (parsingMode) {
+                case PARSING_MODE_STANDARD:
+                    break;
+                case PARSING_MODE_DELETE:
+                case PARSING_MODE_SHOW:
+                    // Modes SHOW and DELETE requires existing kind instances.
+                    instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
+                    if (std::find(instances.begin(), instances.end(), contextStack.back().name) == instances.end()) {
+                        addParseError(ParseError<Iterator>(line.begin(), end, iter,// - contextStack.back().name.size(),
+                                                           contextStack.back().kind, contextStack.back().name));
+                        parsingSucceeded = false;
+                    }
+                    break;
+                default:
+                    throw std::domain_error("Invalid value of parsingMode");
+            }
+        }*/
 
         if (!parsingSucceeded) {
             // Some bad input
