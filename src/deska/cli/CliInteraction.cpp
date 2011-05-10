@@ -28,7 +28,6 @@
 #include "CliInteraction.h"
 #include "Parser.h"
 #include "Exceptions.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -199,6 +198,20 @@ void CliInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::
 
 
 
+void CliInteraction::dumpDbContents()
+{
+    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
+            std::cout << kindName << " " << objectName << std::endl;
+            typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
+            BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(kindName, objectName)) {
+                std::cout << "    " << x.first << " " << x.second << std::endl;
+            }
+            std::cout << "end" << std::endl << std::endl;
+        }
+    }
+}
+
 std::vector<Db::ObjectDefinition> CliInteraction::getAllObjects()
 {
     std::vector<Db::ObjectDefinition> objects;
@@ -222,19 +235,20 @@ std::vector<Db::AttributeDefinition> CliInteraction::getAllAttributes(const Db::
 }
 
 
-void CliInteraction::dumpDbContents()
+
+std::vector<Db::PendingChangeset> CliInteraction::getAllPendingChangesets()
 {
-    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
-            std::cout << kindName << " " << objectName << std::endl;
-            typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
-            BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(kindName, objectName)) {
-                std::cout << "    " << x.first << " " << x.second << std::endl;
-            }
-            std::cout << "end" << std::endl << std::endl;
-        }
-    }
+    return m_api->pendingChangesets();
 }
+
+
+
+Db::TemporaryChangesetId CliInteraction::createNewChangeset()
+{
+    return m_api->startChangeset();
+}
+
+
 
 }
 }

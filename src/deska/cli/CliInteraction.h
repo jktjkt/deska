@@ -25,7 +25,9 @@
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include <boost/signals2/trackable.hpp>
+#include "deska/db/Api.h"
 #include "deska/db/Objects.h"
+#include "deska/db/Revisions.h"
 
 namespace Deska {
 namespace Db {
@@ -54,9 +56,17 @@ public:
     void deleteObject(const Db::ObjectDefinition &object);
     void setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute);
 
+    /** @short Dump everything in the DB */
+    void dumpDbContents();
+
     std::vector<Db::ObjectDefinition> getAllObjects();
 
     std::vector<Db::AttributeDefinition> getAllAttributes(const Db::ObjectDefinition &object);
+
+    
+
+    std::vector<Db::PendingChangeset> getAllPendingChangesets();
+    Db::TemporaryChangesetId createNewChangeset();
 
 
 
@@ -65,8 +75,7 @@ private:
     void slotParserError(const ParserException &e);
     void slotSetAttribute(const Db::Identifier &name, const Db::Value &attributeData);
 
-    /** @short Dump everything in the DB */
-    void dumpDbContents();
+    
 
     /** @short Ask the user whether she wants to proceed with something */
     bool askForConfirmation(const std::string &prompt);
