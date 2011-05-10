@@ -60,13 +60,13 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param _userInterface Pointer to the database
+    *   @param signalsHandler Pointer to the database
     */
     void apply(SignalsHandler *signalsHandler) const;
 
-    /** @short If category being entered does not exist, displays create confirmation message.
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
@@ -97,13 +97,13 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param _userInterface Pointer to the database
+    *   @param signalsHandler Pointer to the database
     */
     void apply(SignalsHandler *signalsHandler) const;
 
-    /** @short If category being entered does not exist, displays create confirmation message.
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
@@ -131,13 +131,13 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     void apply(SignalsHandler *signalsHandler) const;
 
-    /** @short If category being entered does not exist, displays create confirmation message.
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
@@ -168,13 +168,13 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     void apply(SignalsHandler *signalsHandler) const;
 
-    /** @short If category being entered does not exist, displays create confirmation message.
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
@@ -199,13 +199,13 @@ public:
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     void apply(SignalsHandler *signalsHandler) const;
 
-    /** @short If category being entered does not exist, displays create confirmation message.
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
-    *   @param _userInterface Pointer to the user interface
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
@@ -223,18 +223,30 @@ typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, Pa
 
 
 
-/** @short Variant visitor for performing action for parser signals. */
+/** @short Variant visitor for performing action for parser signals.
+*
+*   @see ParserSignalCategoryEntered::apply()
+*/
 class ApplyParserSignal: public boost::static_visitor<>
 {
 public:
 
+    /** Constructor only stores pointer to SignalsHandler for calling action functions.
+    *
+    *   @param _signalsHandler Pointer to SignalsHandler, where the signals are stored
+    */
     ApplyParserSignal(SignalsHandler *_signalsHandler);
 
+    /** @short Function for calling apply() function in signals
+    *
+    *   @param parserSignal Signal, for which the action() function will be called
+    */
     template <typename T>
     void operator()(const T &parserSignal) const;
 
 private:
 
+    /** Pointer to the signals handler for performing actions for signals. */
     SignalsHandler *signalsHandler;
 };
 
@@ -248,13 +260,22 @@ class ConfirmParserSignal: public boost::static_visitor<bool>
 {
 public:
 
+    /** Constructor only stores pointer to SignalsHandler for calling confirm functions.
+    *
+    *   @param _signalsHandler Pointer to SignalsHandler, where the signals are stored
+    */
     ConfirmParserSignal(SignalsHandler *_signalsHandler);
 
+    /** @short Function for calling confirm() function in signals
+    *
+    *   @param parserSignal Signal, for which the confirm() function will be called
+    */
     template <typename T>
     bool operator()(const T &parserSignal) const;
 
 private:
 
+    /** Pointer to the signals handler for performing actions for signals. */
     SignalsHandler *signalsHandler;
 };
 
