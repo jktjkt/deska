@@ -697,7 +697,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
-    // FIXME: Hack. This should not be here.
+    // FIXME: #218 Hack. This should not be here.
+    // Looks like something from CliInteraction runs the CLI parser when the user tries to select a changeset to connect to, and
+    // feeds the CLI parser with an empty input. This is where things break.
     if (parseErrors.empty())
         return;
 
