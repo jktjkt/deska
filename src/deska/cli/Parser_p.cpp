@@ -578,8 +578,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     }
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
                 }
-                
-                //m_parser->parseError(ObjectDefinitionNotFound("Function delete requires kind as parameter.", line, line.end()));
                 break;
             case PARSING_MODE_STANDARD:
                 // Parsed function word -> parsing mode should change from PARSING_MODE_STANDARD to another
