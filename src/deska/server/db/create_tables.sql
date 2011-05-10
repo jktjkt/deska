@@ -1,4 +1,4 @@
-CREATE SCHEMA versioning;
+CREATE SCHEMA versioning AUTHORIZATION deska_admin;
 SET search_path TO versioning;
 
 CREATE SEQUENCE version_num;
