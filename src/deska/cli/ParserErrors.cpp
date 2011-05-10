@@ -204,7 +204,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
-                                 const Db::Identifier &objectName)
+                                 const Db::Identifier &objectName):
+    m_errorType(PARSE_ERROR_TYPE_OBJECT_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos)
 {
     std::ostringstream sout;
     sout << kindName << " " << objectName;

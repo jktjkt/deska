@@ -563,6 +563,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 // Function delete requires parameter -> report error
                 if (contextStack.empty()) {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                    parsingSucceeded = false;
                 } else {
                     std::vector<Db::Identifier> nestedKinds;
                     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
@@ -577,6 +578,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                         }
                     }
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
+                    parsingSucceeded = false;
                 }
                 break;
             case PARSING_MODE_STANDARD:
@@ -614,8 +616,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }
 
         // Check for existence of parsed kind instance and add parse error based on parsing mode.
-        // TODO: Fix tests and debug this.
-        /*if (!contextStack.empty() && parsingSucceeded) {
+        if (!contextStack.empty() && parsingSucceeded) {
             std::vector<Db::Identifier> instances;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
@@ -625,7 +626,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     // Modes SHOW and DELETE requires existing kind instances.
                     instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
                     if (std::find(instances.begin(), instances.end(), contextStack.back().name) == instances.end()) {
-                        addParseError(ParseError<Iterator>(line.begin(), end, iter,// - contextStack.back().name.size(),
+                        addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                            contextStack.back().kind, contextStack.back().name));
                         parsingSucceeded = false;
                     }
@@ -633,7 +634,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 default:
                     throw std::domain_error("Invalid value of parsingMode");
             }
-        }*/
+        }
 
         if (!parsingSucceeded) {
             // Some bad input
