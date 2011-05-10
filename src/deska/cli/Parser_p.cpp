@@ -536,7 +536,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     parseErrors.clear();
 
     parsingMode = PARSING_MODE_STANDARD;
-    bool parsingSucceeded = false;
+    bool parsingSucceeded = true;
     singleKind = false;
     bool topLevel = false;
     int parsingIterations = 0;
