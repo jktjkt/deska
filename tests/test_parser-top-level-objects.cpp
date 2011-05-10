@@ -597,11 +597,14 @@ BOOST_FIXTURE_TEST_CASE(function_show_in_context, ParserTestFixture)
 /** @short Verify that we can use function show with parameter in no context */
 BOOST_FIXTURE_TEST_CASE(function_show_param_no_context, ParserTestFixture)
 {
-    parser->parseLine("show host 123\n");
+    const std::string line = "show host 123\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectFunctionShow();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectFunctionShow();
     expectCategoryLeft();
-    expectParsingFinished();
+    //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -609,13 +612,16 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_no_context, ParserTestFixture)
 /** @short Verify that we can use function show with nesting in no context */
 BOOST_FIXTURE_TEST_CASE(function_show_nest_no_context, ParserTestFixture)
 {
-    parser->parseLine("show host 123 interface eth0\n");
+    const std::string line = "show host 123 interface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectCategoryEntered("interface", "eth0");
-    expectFunctionShow();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectCategoryEntered("interface", "eth0");
+    //expectFunctionShow();
     expectCategoryLeft();
-    expectCategoryLeft();
-    expectParsingFinished();
+    //expectCategoryLeft();
+    //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -628,12 +634,15 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_in_context, ParserTestFixture)
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
-    
-    parser->parseLine("show interface 456\n");
+
+    const std::string line = "show interface 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    parser->parseLine(line);    
     expectCategoryEntered("interface", "456");
-    expectFunctionShow();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectFunctionShow();
     expectCategoryLeft();
-    expectParsingFinished();
+    //expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
@@ -670,11 +679,14 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
 /** @short Verify that we can use function delete with parameter in no context */
 BOOST_FIXTURE_TEST_CASE(function_delete_param_no_context, ParserTestFixture)
 {
-    parser->parseLine("delete host 123\n");
+    const std::string line = "delete host 123\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectFunctionDelete();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectFunctionDelete();
     expectCategoryLeft();
-    expectParsingFinished();
+    //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -682,13 +694,16 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_no_context, ParserTestFixture)
 /** @short Verify that we can use function delete with nesting in no context */
 BOOST_FIXTURE_TEST_CASE(function_delete_nest_no_context, ParserTestFixture)
 {
-    parser->parseLine("delete host 123 interface eth0\n");
+    const std::string line = "delete host 123 interface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectCategoryEntered("interface", "eth0");
-    expectFunctionDelete();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectCategoryEntered("interface", "eth0");
+    //expectFunctionDelete();
     expectCategoryLeft();
-    expectCategoryLeft();
-    expectParsingFinished();
+    //expectCategoryLeft();
+    //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -702,11 +717,14 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_in_context, ParserTestFixture)
     expectNothingElse();
     verifyStackOneLevel("host", "123");
     
-    parser->parseLine("delete interface 456\n");
+    const std::string line = "delete interface 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    parser->parseLine(line);
     expectCategoryEntered("interface", "456");
-    expectFunctionDelete();
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectFunctionDelete();
     expectCategoryLeft();
-    expectParsingFinished();
+    //expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
@@ -726,10 +744,11 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_no_context
 BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_nest_no_context, ParserTestFixture)
 {
     const std::string line = "delete host 123 inteface eth0\n";
-    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    const std::string::const_iterator it = line.begin() + line.find("123");//("inteface");
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
@@ -767,10 +786,11 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_no_context, 
 BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_nest_no_context, ParserTestFixture)
 {
     const std::string line = "show host 123 inteface eth0\n";
-    const std::string::const_iterator it = line.begin() + line.find("inteface");
+    const std::string::const_iterator it = line.begin() + line.find("123");//("inteface");
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
