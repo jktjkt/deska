@@ -302,26 +302,6 @@ template<typename T> struct JsonConversionTraits<std::vector<T> > {
     }
 };
 
-/** @short Helper for extracting attribute definitions */
-template<> struct JsonConversionTraits<std::map<Identifier,std::pair<Identifier,Value> > > {
-    static std::map<Identifier,std::pair<Identifier,Value> > extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting std::map<Identifier,pair<Identifier,Value> >");
-        std::map<Identifier,std::pair<Identifier,Value> > res;
-        BOOST_FOREACH(const Pair &item, v.get_obj()) {
-            JsonContext c2("When extracting attribute " + item.name_);
-            if (item.value_.type() != json_spirit::array_type)
-                throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
-            json_spirit::Array a = item.value_.get_array();
-            if (a.size() != 2) {
-                throw JsonStructureError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
-            }
-            // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-            res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
-        }
-        return res;
-    }
-};
-
 /** @short Convert JSON into a vector of attribute data types
 
 This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
@@ -640,7 +620,6 @@ template JsonField& JsonField::extract(TemporaryChangesetId*);
 template JsonField& JsonField::extract(std::vector<Identifier>*);
 template JsonField& JsonField::extract(std::vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(std::vector<ObjectRelation>*);
-template JsonField& JsonField::extract(std::map<Identifier,std::pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
