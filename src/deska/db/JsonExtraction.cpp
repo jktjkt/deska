@@ -543,6 +543,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
         h.read(attr.name).extract(&wrappedAttrs[i]);
         ++i;
     }
+    // As a side-effect, all of the attributes are marked as required to be present
 
     // Do the JSON parsing and verification
     h.parseJsonObject(value.get_obj());
