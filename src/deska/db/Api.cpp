@@ -46,10 +46,18 @@ std::string RemoteDbError::whatWithBacktrace() const throw()
     try {
         std::ostringstream ss;
         ss << "* " << backtrace("\n * ") << what() << std::endl;
+        if (m_rawResponseData) {
+            ss << "Server response was: " << *m_rawResponseData << std::endl;
+        }
         return ss.str();
     } catch (...) {
         return what();
     }
+}
+
+void RemoteDbError::setRawResponseData(const std::string &data)
+{
+    m_rawResponseData = data;
 }
 
 #define REMOTEEXCEPTION(CLASS) \

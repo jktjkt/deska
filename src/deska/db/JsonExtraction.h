@@ -49,13 +49,6 @@ struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::
 };
 
 
-/** @short Convert a json_spirit::Value to Deska::Value
-
-No type information is checked.
-*/
-Value jsonValueToDeskaValue(const json_spirit::Value &v);
-
-
 /** @short Define how to extract a custom JSON type into C++ class */
 template<typename T>
 struct JsonConversionTraits {};

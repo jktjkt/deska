@@ -161,16 +161,16 @@ void CliInteraction::run()
         // Now that we've established our preconditions, let's enter the event loop
         eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
-        std::cerr << "Object not found:\n " << std::endl << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nObject not found:\n " << std::endl << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::NoChangesetError &e) {
-        std::cerr << "You aren't associated to a changeset:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nYou aren't associated to a changeset:\n " << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::SqlError &e) {
-        std::cerr << "Error in executing an SQL statement:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nError in executing an SQL statement:\n " << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::ServerError &e) {
-        std::cerr << "Internal server error:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nInternal server error:\n " << e.whatWithBacktrace() << std::endl;
         return;
     }
 }
