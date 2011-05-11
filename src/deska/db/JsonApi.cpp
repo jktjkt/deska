@@ -159,14 +159,15 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
 {
     JsonCommandContext c1("resolvedObjectData");
 
-    map<Identifier, pair<Identifier, Value> > res;
+    //map<Identifier, pair<Identifier, Value> > res;
     JsonHandlerApiWrapper h(this, "resolvedObjectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.writeIfNotZero(j_revision, revision);
+    JsonWrappedAttributeMapWithOrigin res(kindAttributes(kindName));
     h.read("resolvedObjectData").extract(&res);
     h.work();
-    return res;
+    return res.attributes;
 }
 
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,

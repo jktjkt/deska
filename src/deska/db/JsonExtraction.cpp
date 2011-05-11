@@ -517,6 +517,24 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     throw JsonStructureError(ss.str());
 }
 
+template<>
+void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attribute " + target->attrName + " with origin information");
+    json_spirit::Array a = value.get_array();
+    if (a.size() != 2) {
+        throw JsonStructureError("Tuple of (origin, value) has length != 2");
+    }
+
+    // Construct a specialized extractor for our base type, which will deal with actually extracting the data
+    SpecializedExtractor<JsonWrappedAttribute> helperExtractor(target);
+    helperExtractor.extract(a[1]);
+
+    // Now file in the origin information
+    target->origin = a[0].get_str();
+}
+
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
 
 This function is special, as it needs access to already existing target in order to be able to read the type
@@ -556,6 +574,32 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attributes");
+    JsonHandler h;
+    std::vector<JsonWrappedAttributeWithOrigin> wrappedAttrs;
+
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        wrappedAttrs.push_back(JsonWrappedAttributeWithOrigin(attr.type, attr.name));
+    }
+
+    int i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        h.read(attr.name).extract(&wrappedAttrs[i]);
+        ++i;
+    }
+
+    h.parseJsonObject(value.get_obj());
+
+    i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
+        ++i;
+    }
+}
 
 
 JsonField::JsonField(const std::string &name):
@@ -585,6 +629,7 @@ template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
 template JsonField& JsonField::extract(JsonWrappedAttribute*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(std::vector<ObjectModification>*);
 

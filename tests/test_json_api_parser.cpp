@@ -208,12 +208,16 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
+               "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+
     expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
-            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", \"666\"]}, \"response\": \"resolvedObjectData\"}\n");
+            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"response\": \"resolvedObjectData\"}\n");
     map<Identifier, std::pair<Identifier,Value> > expected;
     expected["foo"] = std::make_pair("obj-defining-this", "bar");
-    expected["baz"] = std::make_pair("this-obj", "666");
+    expected["baz"] = std::make_pair("this-obj", 666);
     map<Identifier, std::pair<Identifier,Value> > res = j->resolvedObjectData("kk", "oo");
     // In this case, we limit ourselves to string comparisons. There's a map invloved here, which means that
     // BOOST_CHECK_EQUAL_COLLECTIONS is worthless, and there isn't much point in duplicating the whole logic from json_objectData
