@@ -25,6 +25,33 @@
 #include "ParserTestFixture.h"
 
 
+/** @short Verify that parser succeeds when parsing empty string */
+BOOST_FIXTURE_TEST_CASE( parsing_empty_string, ParserTestFixture )
+{
+    parser->parseLine("");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that parser succeeds when parsing empty line */
+BOOST_FIXTURE_TEST_CASE( parsing_empty_line, ParserTestFixture )
+{
+    parser->parseLine("\n");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that parser succeeds when parsing line of whitespaces */
+BOOST_FIXTURE_TEST_CASE( parsing_whitespaces, ParserTestFixture )
+{
+    parser->parseLine("\t  \t \n");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
 /** @short Verify that we don't fail when leaving a context immediately we've entered it */
 BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, ParserTestFixture )
 {
