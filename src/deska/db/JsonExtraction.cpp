@@ -113,23 +113,6 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     return o;
 }
 
-/** @short Convert a json_spirit::Value to Deska::Value
-
-No type information is checked.
-*/
-Value jsonValueToDeskaValue(const json_spirit::Value &v)
-{
-    if (v.type() == json_spirit::str_type) {
-        return v.get_str();
-    } else if (v.type() == json_spirit::int_type) {
-        return v.get_int();
-    } else if (v.type() == json_spirit::real_type) {
-        return v.get_real();
-    } else {
-        throw JsonStructureError("Unsupported type of attribute data");
-    }
-}
-
 /** @short Specialization for extracting Identifiers from JSON */
 template<> struct JsonConversionTraits<Identifier> {
     static Identifier extract(const json_spirit::Value &v) {
@@ -644,7 +627,6 @@ template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
-template JsonField& JsonField::extract(JsonWrappedAttribute*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
