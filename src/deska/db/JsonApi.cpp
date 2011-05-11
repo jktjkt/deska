@@ -424,8 +424,8 @@ JsonStructureError::~JsonStructureError() throw ()
 
 
 JsonCommandContext::JsonCommandContext(const std::string &ctx):
-    m_apiContext(std::string("In ") + ctx + "API method"),
-    m_jsonContext(std::string("In ") + ctx + "API method")
+    m_apiContext(std::string("In ") + ctx + " API method"),
+    m_jsonContext(std::string("In ") + ctx + " API method")
 {
 }
 
