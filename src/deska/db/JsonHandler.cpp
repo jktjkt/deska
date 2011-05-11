@@ -316,7 +316,12 @@ JsonWrappedAttribute JsonWrappedObjectModification::wrappedAttribute(const Ident
     const std::vector<KindAttributeDataType> &attributes = it1->second;
 
     JsonContext c2("When looking up attribute " + attributeName);
-
+    using namespace boost::phoenix;
+    std::vector<KindAttributeDataType>::const_iterator it2 = std::find_if(attributes.begin(), attributes.end(),
+                                                                          bind(&KindAttributeDataType::name, arg_names::arg1) == attributeName);
+    if (it2 == attributes.end())
+        throw JsonStructureError("Attribute " + attributeName + " not recognized");
+    return JsonWrappedAttribute(it2->type, attributeName);
 }
 
 JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
