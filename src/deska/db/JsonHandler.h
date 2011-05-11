@@ -60,7 +60,7 @@ struct JsonWrappedAttribute
     JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_);
 };
 
-/** @short helper class extending the JsonWrappedAttribute with information about the origin of the attribute value */
+/** @short Helper class extending the JsonWrappedAttribute with information about the origin of the attribute value */
 struct JsonWrappedAttributeWithOrigin: public JsonWrappedAttribute
 {
     Identifier origin;
