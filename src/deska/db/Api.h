@@ -59,6 +59,9 @@ public:
     RemoteDbError(const std::string &message);
     virtual ~RemoteDbError() throw ();
     virtual std::string whatWithBacktrace() const throw();
+    void setRawResponseData(const std::string &data);
+private:
+    boost::optional<std::string> m_rawResponseData;
 };
 
 #define REMOTEDBEXCEPTION(CLASS) \
