@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/foreach.hpp>
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
@@ -350,25 +351,37 @@ std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a
 {
     JsonCommandContext c1("dataDifference");
 
-    std::vector<ObjectModification> res;
+    // Request all attributes
+    std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
+    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
+        allAttrTypes[kindName] = kindAttributes(kindName);
+    }
+    JsonWrappedObjectModificationSequence helper(&allAttrTypes);
+
     JsonHandlerApiWrapper h(this, "dataDifference");
     h.write("revisionA", a);
     h.write("revisionB", b);
-    h.read("dataDifference").extract(&res);
+    h.read("dataDifference").extract(&helper);
     h.work();
-    return res;
+    return helper.diff;
 }
 
 std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
 {
     JsonCommandContext c1("dataDifferenceInTemporaryChangeset");
 
-    std::vector<ObjectModification> res;
+    // Request all attributes
+    std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
+    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
+        allAttrTypes[kindName] = kindAttributes(kindName);
+    }
+    JsonWrappedObjectModificationSequence helper(&allAttrTypes);
+
     JsonHandlerApiWrapper h(this, "dataDifferenceInTemporaryChangeset");
     h.write("changeset", changeset);
-    h.read("dataDifferenceInTemporaryChangeset").extract(&res);
+    h.read("dataDifferenceInTemporaryChangeset").extract(&helper);
     h.work();
-    return res;
+    return helper.diff;
 }
 
 

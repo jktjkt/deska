@@ -445,9 +445,28 @@ std::vector<ObjectModification> diffObjects()
 }
 }
 
+void schemeForDiff(JsonApiTestFixtureFailOnStreamThrow &f)
+{
+    f.expectWrite("{\"command\":\"kindNames\"}\n");
+    f.expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"k1\", \"k2\", \"k3\", \"k4\", \"k5\"]}\n");
+
+    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k1\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k1\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k2\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k2\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k3\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k3\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k4\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"fancyAttr\": \"int\"}, \"kindName\": \"k4\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k5\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"a5\": \"string\"}, \"kindName\": \"k5\", \"response\": \"kindAttributes\"}\n");
+
+}
+
 /** @short Test dataDifference() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
+    schemeForDiff(*this);
     expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\"}\n");
     expectRead("{\"response\": \"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"dataDifference\": ["
                + exampleJsonDiff +
@@ -461,6 +480,7 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow
 /** @short Test dataDifferenceInTemporaryChangeset() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
+    schemeForDiff(*this);
     expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\"}\n");
     expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\", \"dataDifferenceInTemporaryChangeset\": ["
                + exampleJsonDiff +

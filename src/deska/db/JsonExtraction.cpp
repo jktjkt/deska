@@ -333,79 +333,84 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
     }
 };
 
-/** @short Extract ObjectModification from JSON */
-template<> struct JsonConversionTraits<ObjectModification> {
-    static ObjectModification extract(const json_spirit::Value &v) {
-        JsonContext c1("When converting JSON Object into Deska::Db::ObjectModification");
-        // At first, check just the "command" field and ignore everything else. That will be used and checked later on.
-        JsonHandler h;
-        std::string modificationKind;
+template<>
+void SpecializedExtractor<JsonWrappedObjectModification>::extract(const json_spirit::Value &v)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When converting JSON Object into Deska::Db::ObjectModification");
+    // At first, check just the "command" field and ignore everything else. That will be used and checked later on.
+    JsonHandler h;
+    std::string modificationKind;
+    h.failOnUnknownFields(false);
+    h.read("command").extract(&modificationKind);
+    h.parseJsonObject(v.get_obj());
+
+    // Got to re-initialize the handler, because it would otherwise claim that "command" was already parsed
+    h = JsonHandler();
+    h.read("command"); // and don't bother with extracting again
+
+    // Now process the actual data
+    if (modificationKind == "createObject") {
+        JsonContext c2("When processing the createObject data");
+        Identifier kindName, objectName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = CreateObjectModification(kindName, objectName);
+    } else if (modificationKind == "deleteObject") {
+        JsonContext c2("When processing the deleteObject data");
+        Identifier kindName, objectName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = DeleteObjectModification(kindName, objectName);
+    } else if (modificationKind == "renameObject") {
+        JsonContext c2("When processing the renameObject data");
+        Identifier kindName, oldObjectName, newObjectName;
+        h.read("kindName").extract(&kindName);
+        h.read("oldObjectName").extract(&oldObjectName);
+        h.read("newObjectName").extract(&newObjectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = RenameObjectModification(kindName, oldObjectName, newObjectName);
+    } else if (modificationKind == "removeAttribute") {
+        JsonContext c2("When processing the removeAttribute data");
+        Identifier kindName, objectName, attributeName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.read("attributeName").extract(&attributeName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = RemoveAttributeModification(kindName,objectName, attributeName);
+    } else if (modificationKind == "setAttribute") {
+        // FIXME: check and preserve the attribute data types here!
+        JsonContext c2("When processing the setAttribute data");
+        Identifier kindName, objectName, attributeName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.read("attributeName").extract(&attributeName);
         h.failOnUnknownFields(false);
-        h.read("command").extract(&modificationKind);
         h.parseJsonObject(v.get_obj());
 
-        // Got to re-initialize the handler, because it would otherwise claim that "command" was already parsed
+        JsonContext c3("When processing the setAttribute data and checking type information");
+
+        // Got to re-init it again; don't bother with extratcing them, though
         h = JsonHandler();
-        h.read("command"); // and don't bother with extracting again
+        h.read("command");
+        h.read("kindName");
+        h.read("objectName");
+        h.read("attributeName");
 
-        // Now process the actual data
-        if (modificationKind == "createObject") {
-            JsonContext c2("When processing the createObject data");
-            Identifier kindName, objectName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.parseJsonObject(v.get_obj());
-            return CreateObjectModification(kindName, objectName);
-        } else if (modificationKind == "deleteObject") {
-            JsonContext c2("When processing the deleteObject data");
-            Identifier kindName, objectName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.parseJsonObject(v.get_obj());
-            return DeleteObjectModification(kindName, objectName);
-        } else if (modificationKind == "renameObject") {
-            JsonContext c2("When processing the renameObject data");
-            Identifier kindName, oldObjectName, newObjectName;
-            h.read("kindName").extract(&kindName);
-            h.read("oldObjectName").extract(&oldObjectName);
-            h.read("newObjectName").extract(&newObjectName);
-            h.parseJsonObject(v.get_obj());
-            return RenameObjectModification(kindName, oldObjectName, newObjectName);
-        } else if (modificationKind == "removeAttribute") {
-            JsonContext c2("When processing the removeAttribute data");
-            Identifier kindName, objectName, attributeName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.read("attributeName").extract(&attributeName);
-            h.parseJsonObject(v.get_obj());
-            return RemoveAttributeModification(kindName,objectName, attributeName);
-        } else if (modificationKind == "setAttribute") {
-            // FIXME: check and preserve the attribute data types here!
-            JsonContext c2("When processing the setAttribute data");
-            Identifier kindName, objectName, attributeName;
-            Value attributeData, oldAttributeData;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.read("attributeName").extract(&attributeName);
-            h.read("attributeData").extract(&attributeData);
-            h.read("oldAttributeData").extract(&oldAttributeData);
-            h.parseJsonObject(v.get_obj());
-            return SetAttributeModification(kindName, objectName, attributeName, attributeData, oldAttributeData);
-        } else {
-            std::ostringstream s;
-            s << "Invalid modification kind '" << modificationKind << "'";
-            throw JsonStructureError(s.str());
-        }
+        JsonWrappedAttribute attributeData = target->wrappedAttribute(kindName, attributeName);
+        JsonWrappedAttribute oldAttributeData = target->wrappedAttribute(kindName, attributeName);
+        h.read("attributeData").extract(&attributeData);
+        h.read("oldAttributeData").extract(&oldAttributeData);
+        h.parseJsonObject(v.get_obj());
+        target->diff = SetAttributeModification(kindName, objectName, attributeName, attributeData.value, oldAttributeData.value);
+    } else {
+        std::ostringstream s;
+        s << "Invalid modification kind '" << modificationKind << "'";
+        throw JsonStructureError(s.str());
     }
-};
-
-template<> struct JsonConversionTraits<Value> {
-    static Value extract(const json_spirit::Value &v) {
-        // FIXME: remove me later
-        JsonContext c1("When converting JSON Object into Deska::Db::Value");
-        return jsonValueToDeskaValue(v);
-    }
-};
+}
 
 /** @short Hack: use the JSON conversion traits for parsing of "remote errors"
 
@@ -600,6 +605,21 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
 }
 
 
+template<>
+void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting a list of differences");
+    int i = 0;
+    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
+        JsonContext c2("When processing diff item #" + libebt::stringify(i));
+        JsonWrappedObjectModification currentDestination(target->dataTypesOfEverything);
+        SpecializedExtractor<JsonWrappedObjectModification> helper(&currentDestination);
+        helper.extract(item);
+        target->diff.push_back(*(currentDestination.diff));
+    }
+}
+
 JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
     jsonFieldRead(name), jsonFieldWrite(name)
@@ -628,7 +648,7 @@ template JsonField& JsonField::extract(JsonWrappedAttribute*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
-template JsonField& JsonField::extract(std::vector<ObjectModification>*);
+template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
 
 }
 }
