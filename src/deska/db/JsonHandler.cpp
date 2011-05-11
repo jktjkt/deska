@@ -302,6 +302,28 @@ JsonWrappedAttributeWithOrigin::JsonWrappedAttributeWithOrigin(const Type dataTy
 {
 }
 
+JsonWrappedObjectModification::JsonWrappedObjectModification(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_):
+    dataTypesOfEverything(dataTypesOfEverything_)
+{
+}
+
+JsonWrappedAttribute JsonWrappedObjectModification::wrappedAttribute(const Identifier &kindName, const Identifier &attributeName) const
+{
+    JsonContext c1("When looking up kind " + kindName);
+    std::map<Identifier, std::vector<KindAttributeDataType> >::const_iterator it1 = dataTypesOfEverything->find(kindName);
+    if (it1 == dataTypesOfEverything->end())
+        throw JsonStructureError("Kind " + kindName + " not recognized");
+    const std::vector<KindAttributeDataType> &attributes = it1->second;
+
+    JsonContext c2("When looking up attribute " + attributeName);
+
+}
+
+JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_):
+    dataTypesOfEverything(dataTypesOfEverything_)
+{
+}
 
 }
 }

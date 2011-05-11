@@ -67,6 +67,27 @@ struct JsonWrappedAttributeWithOrigin: public JsonWrappedAttribute
     JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_);
 };
 
+/** @short Helper class for adding attribute datatype information into object modification record */
+struct JsonWrappedObjectModification
+{
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
+
+    // No default constructor, so we have to make it optional
+    boost::optional<ObjectModification> diff;
+
+    JsonWrappedObjectModification(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
+
+    JsonWrappedAttribute wrappedAttribute(const Identifier &kindName, const Identifier &attributeName) const;
+};
+
+/** @short Helper class adding attribute type information to the list of object modifications */
+struct JsonWrappedObjectModificationSequence
+{
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
+    std::vector<ObjectModification> diff;
+    JsonWrappedObjectModificationSequence(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
+};
+
 /** @short Expecting/requiring/checking/sending one JSON record */
 struct JsonField
 {
