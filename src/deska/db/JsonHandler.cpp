@@ -106,7 +106,16 @@ void JsonHandlerApiWrapper::processPossibleException(const json_spirit::Object &
         if (node.name_ != "dbException")
             continue;
 
-        JsonConversionTraits<RemoteDbError>::extract(node.value_);
+        try {
+            // This will throw the exception
+            JsonConversionTraits<RemoteDbError>::extract(node.value_);
+        } catch (RemoteDbError &e) {
+            // ...but unfortunately it won't include raw JSON data, that's why we add that here
+            if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+                e.setRawResponseData(*rawJson);
+            }
+            throw;
+        }
     }
 }
 
