@@ -517,6 +517,14 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     throw JsonStructureError(ss.str());
 }
 
+/** @short Convert JSON into a wrapped, type-checked object attributes
+
+Similar to SpecializedExtractor<JsonWrappedAttribute>::extract, this function has to be special because it needs certain
+pre-existing information to be available in the target member; that's the only way to retrieve type information about the
+supported attributes.
+
+@see SpecializedExtractor<JsonWrappedAttribute>::extract
+*/
 template<>
 void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_spirit::Value &value)
 {
@@ -574,6 +582,13 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked vector of attributes
+
+Thie functions extends funcitonality provided by the SpecializedExtractor<JsonWrappedAttributeMap>::extract with tracking of the
+"origin" information, ie. what object has defined the current value.
+
+@see SpecializedExtractor<JsonWrappedAttributeMap>::extract
+*/
 template<>
 void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json_spirit::Value &value)
 {
@@ -582,6 +597,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     JsonHandler h;
     std::vector<JsonWrappedAttributeWithOrigin> wrappedAttrs;
 
+    // For details about how this function works, please see SpecializedExtractor<JsonWrappedAttributeMap>::extract
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         wrappedAttrs.push_back(JsonWrappedAttributeWithOrigin(attr.type, attr.name));
     }
@@ -596,6 +612,8 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
 
     i = 0;
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        // This is slightly different than the SpecializedExtractor<JsonWrappedAttributeMap>::extract
+        // in order to accomodate the difference in object layout
         target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
         ++i;
     }
