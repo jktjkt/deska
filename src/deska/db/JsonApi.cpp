@@ -159,7 +159,6 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
 {
     JsonCommandContext c1("resolvedObjectData");
 
-    //map<Identifier, pair<Identifier, Value> > res;
     JsonHandlerApiWrapper h(this, "resolvedObjectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
