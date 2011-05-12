@@ -8,7 +8,7 @@ class ModulGenerator():
 	 create_template = "CREATE TABLE large_modul ( {columns} );"
 	 column_template = "{0} {1}"
 	 large_modul_add_template = "SELECT large_modul_add('{object}');"
-	 large_modul_set_template = "SELECT large_modul_set_{column}('{object}','{val}')";
+	 large_modul_set_template = "SELECT large_modul_set_{column}('{object}','{val}');";
 	 commit_template = '''
 SELECT commitChangeset('commit');
 SELECT startChangeset();
@@ -75,9 +75,9 @@ SELECT startChangeset();
 					 str = self.large_modul_add_template.format(object = obj_name)
 				self.data.append(str)
 				count = count - 1
-				index = Numbers(len(self.data)).rset(len(self.data)/100)
-				for i in index:
-					 self.data.insert(i,self.commit_template)
+		  index = Numbers(len(self.data)).rset(len(self.data)/10)
+		  for i in index:
+				self.data.insert(i,self.commit_template)
 		  self.data.append("SELECT commitChangeset('commit');")
 		  return self.data
 
