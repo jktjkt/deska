@@ -117,7 +117,7 @@ Ukoly:
 - Lukas: error reporting (#109), s tim souvisi i #117, klidne si jej preradte
 - Lukas: dokumentace (#168, 169,...)
 - Lukas: otestovat diffovani (#214)
-- Martina: SQL test, ktery nic nedela
+- Martina: SQL test, ktery nic nedela (#221)
 - Martina: prekontrolovat testy generatoru (#111)
 - Martina: dodelat diffovani (#213)
 - Martina: dokumentace (#168, 169,...)
