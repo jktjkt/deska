@@ -342,9 +342,9 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for reabseChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"rebaseChangeset\",\"currentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"currentRevision\": \"r666\", \"rebaseChangeset\": \"tmp333666\" }\n");
-    BOOST_CHECK_EQUAL(j->rebaseChangeset(RevisionId(666)), TemporaryChangesetId(333666));
+    expectWrite("{\"command\":\"rebaseChangeset\",\"parentRevision\":\"r666\"}\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"parentRevision\": \"r666\"}\n");
+    j->rebaseChangeset(RevisionId(666));
     expectEmpty();
 }
 

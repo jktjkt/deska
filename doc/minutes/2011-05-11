@@ -1,0 +1,129 @@
+Schuze Deska, 2011-05-11 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal:
+
+Honza:
+- Error reporting server-side problemu (#152 a dalsi)
+- Typova kontrola a spravna konverze atributu (#203)
+- Sql unit testy a ctest (`make test`)
+- Instalacni skripty a dokumentace
+- Buildeni s rlmm
+- Pouzivani systemovych knihoven, #208
+- Clanek na CHEP, poznamky od reviewera (rozpracovano)
+- Konecne pouzitelna cesta k deska_server.py v CLI :)
+- FIXME: diff
+
+Tomas:
+- SignalHandler
+- rozdeleni CliInteraction na 3: SignalsHandler, UserInterface, CliInteraction
+- dalsi druhy CLI erroru
+- ladeni testu atd
+- opravy tu a tam
+
+Lukas:
+- rozchazeni testu
+- instalacni skripty
+- vykon diffovani
+- ucesani kodu v branchi s diffovanim
+
+Martina:
+- primarne diffovani
+- unit testy
+- WHERE
+
+
+Ukoly z minula:
+---------------
+
+- Honza: formalni popis JSON API (#183)
+    - neni
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+    - specifikace neni finalni
+- Honza: rozsireni API pro aplikaci diffu (#209)
+    - hotovo
+- Honza: rozsireni API pro WHERE (#210)
+    - neni
+- Honza: CLI refactoring (#197 a dalsi)
+    -> Tomas
+- Honza: poustet testy i pro SQL cast
+    - hotovo, spousta prace
+- Lukas: neco jako requireMyVersion() kvuli vyjimkam (#211)
+    - hotovo
+- Lukas: dokumentace (#168, 169,...)
+    - neni
+- Lukas: error reporting (#109), s tim souvisi i #117, klidne si jej preradte
+    - vyjimky hazi, nejsou druhy
+- Lukas: vymyslet, jak resit WHERE podminky na strane SQL
+    - navrhuje generovat dynamicky; zkracene vyhodnocovani se chova dle manualu
+    pgsql nedeterministicky
+- Lukas: prechod na PgPython (#212)
+    - hotovo
+- Lukas: otestovat diffovani (#214)
+    - neni diffovani -> neni, jsou performance testy na diffovani
+- Martina: testy generatoru (#111)
+    - prekontrolovat, prosim
+- Martina: dodelat diffovani (#213)
+    - rozpracovano
+- Martina: vymyslet, jak resit WHERE podminky na strane SQL
+    - generovanim
+- Martina: dokumentace (#168, 169,...)
+    - neni
+- Martina: testy verzovani vcetne commitu a pending changesetu (#215)
+    - hotovo
+
+Diskuse:
+--------
+
+Honza:
+- odpovidani na maily
+- pokud nejaky den pracujete, vecer sve zmeny vzdy pushnete
+- diskuse okolo oduvodneni "predela se to"
+- testy: rekonstrukce DB vs. perzistence dat
+
+- code sprint? tento tyden to neni aktualni, pokud budeme veci davat dohromady a
+dojde ke skluzu, bylo by to na miste
+
+Lukas: "determinismus" a testy a vytvareni DB
+
+Tomas: v nedeli o pulnoci bude CLI refactorovane
+
+Lukas: DB se dost protahuje, templatovani bude huste
+
+K zamysleni: diffovani a sablony -- souvisi to nejak spolu? Ma diffovani delat
+rozdily "raw objektu", nebo i sablon?
+
+Jak udelat deleteAttribute do CLI?
+ -> "no color" napriklad
+
+Diffovani: jsou dve varianty, obe dve maji sva pro i proti, zatim nevime, jak se to udela, je potreba jeste zkouset
+
+Lukas dal cca 14dni zpatky zamek do commitu
+
+Test case na concurrent commit? pres include .sql a cmake?
+
+Honza: command/response/dbException: ma se zopakovat response?
+
+Ukoly:
+------
+
+- vsichni: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
+- Honza: formalni popis JSON API (#183)
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+- Honza: rozsireni API pro WHERE (#210)
+- Tomas: CLI refactoring
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: error reporting (#109), s tim souvisi i #117, klidne si jej preradte
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: otestovat diffovani (#214)
+- Martina: SQL test, ktery nic nedela (#221)
+- Martina: prekontrolovat testy generatoru (#111)
+- Martina: dodelat diffovani (#213)
+- Martina: dokumentace (#168, 169,...)
+
+Pristi schuzka:
+---------------
+
+Pondeli 16. kvetna, 15.00 FZU
