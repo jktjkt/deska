@@ -109,6 +109,7 @@ Honza: command/response/dbException: ma se zopakovat response?
 Ukoly:
 ------
 
+- vsichni: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
 - Honza: formalni popis JSON API (#183)
 - Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
 - Honza: rozsireni API pro WHERE (#210)
