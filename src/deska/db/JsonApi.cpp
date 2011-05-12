@@ -287,16 +287,13 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
     return revision;
 }
 
-TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
+void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
 {
     JsonCommandContext c1("rebaseChangeset");
 
-    TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandlerApiWrapper h(this, "rebaseChangeset");
-    h.write("currentRevision", oldRevision);
-    h.read("rebaseChangeset").extract(&revision);
+    h.write("parentRevision", parentRevision);
     h.work();
-    return revision;
 }
 
 vector<PendingChangeset> JsonApiParser::pendingChangesets()
