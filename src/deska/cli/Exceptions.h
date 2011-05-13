@@ -69,6 +69,9 @@ DESKA_EXCEPTION(InvalidObjectKind, ParserException);
 DESKA_EXCEPTION(MalformedIdentifier, ParserException);
 
 /** @short An object required at this point */
+DESKA_EXCEPTION(ObjectDefinitionNotFound, ParserException);
+
+/** @short Object does not exist */
 DESKA_EXCEPTION(ObjectNotFound, ParserException);
 
 /** @short Compare two exceptions for being equal */

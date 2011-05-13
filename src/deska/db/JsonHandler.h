@@ -43,6 +43,14 @@ struct JsonWrappedAttributeMap
     JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes);
 };
 
+/** @short Helper class for type-safe parsing of JSON into a representaiton usable for resolvedObjectData() DBAPI method */
+struct JsonWrappedAttributeMapWithOrigin
+{
+    std::vector<KindAttributeDataType> dataTypes;
+    std::map<Identifier, std::pair<Identifier, Value> > attributes;
+    JsonWrappedAttributeMapWithOrigin(const std::vector<KindAttributeDataType> dataTypes);
+};
+
 /** @short Helper class for type-safe parsing of JSON to Deska object attribute */
 struct JsonWrappedAttribute
 {
@@ -50,6 +58,34 @@ struct JsonWrappedAttribute
     Identifier attrName;
     Value value;
     JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_);
+};
+
+/** @short Helper class extending the JsonWrappedAttribute with information about the origin of the attribute value */
+struct JsonWrappedAttributeWithOrigin: public JsonWrappedAttribute
+{
+    Identifier origin;
+    JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_);
+};
+
+/** @short Helper class for adding attribute datatype information into object modification record */
+struct JsonWrappedObjectModification
+{
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
+
+    // No default constructor, so we have to make it optional
+    boost::optional<ObjectModification> diff;
+
+    JsonWrappedObjectModification(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
+
+    JsonWrappedAttribute wrappedAttribute(const Identifier &kindName, const Identifier &attributeName) const;
+};
+
+/** @short Helper class adding attribute type information to the list of object modifications */
+struct JsonWrappedObjectModificationSequence
+{
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
+    std::vector<ObjectModification> diff;
+    JsonWrappedObjectModificationSequence(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
 };
 
 /** @short Expecting/requiring/checking/sending one JSON record */

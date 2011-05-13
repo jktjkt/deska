@@ -30,8 +30,8 @@ endmacro(deska_test)
 
 macro(deska_sql_test fname)
     add_test(test_sql_${fname}
-        ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-run-testcase.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/sql/test_${fname}.sql
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/test_${fname}.sql
         )
 endmacro(deska_sql_test)
 
@@ -50,11 +50,47 @@ deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
 
-if(DEFINED RUN_SQL_TESTS)
+if(RUN_SQL_TESTS)
+    message(STATUS "Will run SQL database tests upon each `make test` run.")
+    if( DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC)
+        message(STATUS "The database re-initialization will not be repeated")
+        # careful here, got to use *another* variable name
+        set(DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE 1)
+    else()
+        message(STATUS "Will re-initialize the database before each test")
+        unset(DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE)
+    endif()
+
     deska_sql_test(fn-get-schema)
     deska_sql_test(versioning-one-user)
     #deska_sql_test(versioning-two-users)
     deska_sql_test(versioning-pendingchangeset)
     deska_sql_test(versioning-pendingchangeset_data)
     deska_sql_test(versioned-data)
-endif(DEFINED RUN_SQL_TESTS)
+endif()
+
+# Copy files from source directory to destination directory, substituting any
+# variables.  Create destination directory if it does not exist.
+macro(deska_copy_files srcDir destDir)
+    message(STATUS "Copying directory ${destDir}")
+    make_directory(${destDir})
+
+    file(GLOB templateFiles RELATIVE ${srcDir} ${srcDir}/*)
+    foreach(templateFile ${templateFiles})
+        set(srcTemplatePath ${srcDir}/${templateFile})
+        if(NOT IS_DIRECTORY ${srcTemplatePath})
+            configure_file(
+                    ${srcTemplatePath}
+                    ${destDir}/${templateFile}
+                    @ONLY)
+        endif(NOT IS_DIRECTORY ${srcTemplatePath})
+    endforeach(templateFile)
+endmacro(deska_copy_files)
+
+deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
+message(STATUS "Writing out test configuration")
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-cmake-options-template.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/sql/util-cmake-options.sh
+)

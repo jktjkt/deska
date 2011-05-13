@@ -83,6 +83,7 @@ DESKA_ECBODY(InvalidAttributeDataTypeError, ParserException);
 DESKA_ECBODY(NestingError, ParserException);
 DESKA_ECBODY(InvalidObjectKind, ParserException);
 DESKA_ECBODY(MalformedIdentifier, ParserException);
+DESKA_ECBODY(ObjectDefinitionNotFound, ParserException);
 DESKA_ECBODY(ObjectNotFound, ParserException);
 
 #undef DESKA_ECBODY

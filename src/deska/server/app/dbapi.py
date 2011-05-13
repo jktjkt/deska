@@ -15,7 +15,7 @@ class Result:
 		self.res = db_mark.fetchall()
 	def parse(self):
 		return self.res[0][0]
-	
+
 	def fixdates(self,lst):
 		# we have to transform datetime from db to timestamp
 		# FIXME: can we do this better
@@ -41,7 +41,7 @@ class VectorResult(Result):
 		vector = list()
 		for i in self.res:
 			vector.append(i[0])
-		return vector 
+		return vector
 
 class TupleResult(Result):
 	def parse(self):
@@ -105,7 +105,7 @@ class MatrixResult(Result):
 
                         res.append(line)
                 return res
-		
+
 
 class DB:
 	methods = dict({
@@ -160,7 +160,7 @@ class DB:
 			self.error = False
 		except Exception, e:
 			self.error = e
-		return 
+		return
 
 	def run_data_method(self,name,args):
 		logging.debug("start run_data_method({n}, {a})".format(n = name, a = args))
@@ -180,7 +180,7 @@ class DB:
 		# cast to string
 		args = map(str,args)
 		self.mark.callproc(fname, args)
-		return 
+		return
 
 	def run(self,name,args):
 		if self.methods.has_key(name):
@@ -189,7 +189,7 @@ class DB:
 			return self.run_data_method(name,args)
 		else:
 			raise Exception("very bad assert here, not run this function without run has() before")
-	
+
 	def fetchall(self):
 		if self.error:
 			#print "pgcode: " + self.error.pgcode

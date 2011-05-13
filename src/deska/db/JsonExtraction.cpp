@@ -113,23 +113,6 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     return o;
 }
 
-/** @short Convert a json_spirit::Value to Deska::Value
-
-No type information is checked.
-*/
-Value jsonValueToDeskaValue(const json_spirit::Value &v)
-{
-    if (v.type() == json_spirit::str_type) {
-        return v.get_str();
-    } else if (v.type() == json_spirit::int_type) {
-        return v.get_int();
-    } else if (v.type() == json_spirit::real_type) {
-        return v.get_real();
-    } else {
-        throw JsonStructureError("Unsupported type of attribute data");
-    }
-}
-
 /** @short Specialization for extracting Identifiers from JSON */
 template<> struct JsonConversionTraits<Identifier> {
     static Identifier extract(const json_spirit::Value &v) {
@@ -302,26 +285,6 @@ template<typename T> struct JsonConversionTraits<std::vector<T> > {
     }
 };
 
-/** @short Helper for extracting attribute definitions */
-template<> struct JsonConversionTraits<std::map<Identifier,std::pair<Identifier,Value> > > {
-    static std::map<Identifier,std::pair<Identifier,Value> > extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting std::map<Identifier,pair<Identifier,Value> >");
-        std::map<Identifier,std::pair<Identifier,Value> > res;
-        BOOST_FOREACH(const Pair &item, v.get_obj()) {
-            JsonContext c2("When extracting attribute " + item.name_);
-            if (item.value_.type() != json_spirit::array_type)
-                throw JsonStructureError("Value of expected type (Identifier, Deska Value) is not an array");
-            json_spirit::Array a = item.value_.get_array();
-            if (a.size() != 2) {
-                throw JsonStructureError("Value of expected type (Identifier, Deska Value) does not have exactly two records");
-            }
-            // FIXME: check type information for the attributes, and even attribute existence. This will require already cached kindAttributes()...
-            res[item.name_] = std::make_pair(a[0].get_str(), jsonValueToDeskaValue(a[1]));
-        }
-        return res;
-    }
-};
-
 /** @short Convert JSON into a vector of attribute data types
 
 This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
@@ -353,79 +316,84 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
     }
 };
 
-/** @short Extract ObjectModification from JSON */
-template<> struct JsonConversionTraits<ObjectModification> {
-    static ObjectModification extract(const json_spirit::Value &v) {
-        JsonContext c1("When converting JSON Object into Deska::Db::ObjectModification");
-        // At first, check just the "command" field and ignore everything else. That will be used and checked later on.
-        JsonHandler h;
-        std::string modificationKind;
+template<>
+void SpecializedExtractor<JsonWrappedObjectModification>::extract(const json_spirit::Value &v)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When converting JSON Object into Deska::Db::ObjectModification");
+    // At first, check just the "command" field and ignore everything else. That will be used and checked later on.
+    JsonHandler h;
+    std::string modificationKind;
+    h.failOnUnknownFields(false);
+    h.read("command").extract(&modificationKind);
+    h.parseJsonObject(v.get_obj());
+
+    // Got to re-initialize the handler, because it would otherwise claim that "command" was already parsed
+    h = JsonHandler();
+    h.read("command"); // and don't bother with extracting again
+
+    // Now process the actual data
+    if (modificationKind == "createObject") {
+        JsonContext c2("When processing the createObject data");
+        Identifier kindName, objectName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = CreateObjectModification(kindName, objectName);
+    } else if (modificationKind == "deleteObject") {
+        JsonContext c2("When processing the deleteObject data");
+        Identifier kindName, objectName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = DeleteObjectModification(kindName, objectName);
+    } else if (modificationKind == "renameObject") {
+        JsonContext c2("When processing the renameObject data");
+        Identifier kindName, oldObjectName, newObjectName;
+        h.read("kindName").extract(&kindName);
+        h.read("oldObjectName").extract(&oldObjectName);
+        h.read("newObjectName").extract(&newObjectName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = RenameObjectModification(kindName, oldObjectName, newObjectName);
+    } else if (modificationKind == "removeAttribute") {
+        JsonContext c2("When processing the removeAttribute data");
+        Identifier kindName, objectName, attributeName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.read("attributeName").extract(&attributeName);
+        h.parseJsonObject(v.get_obj());
+        target->diff = RemoveAttributeModification(kindName,objectName, attributeName);
+    } else if (modificationKind == "setAttribute") {
+        // FIXME: check and preserve the attribute data types here!
+        JsonContext c2("When processing the setAttribute data");
+        Identifier kindName, objectName, attributeName;
+        h.read("kindName").extract(&kindName);
+        h.read("objectName").extract(&objectName);
+        h.read("attributeName").extract(&attributeName);
         h.failOnUnknownFields(false);
-        h.read("command").extract(&modificationKind);
         h.parseJsonObject(v.get_obj());
 
-        // Got to re-initialize the handler, because it would otherwise claim that "command" was already parsed
+        JsonContext c3("When processing the setAttribute data and checking type information");
+
+        // Got to re-init it again; don't bother with extratcing them, though
         h = JsonHandler();
-        h.read("command"); // and don't bother with extracting again
+        h.read("command");
+        h.read("kindName");
+        h.read("objectName");
+        h.read("attributeName");
 
-        // Now process the actual data
-        if (modificationKind == "createObject") {
-            JsonContext c2("When processing the createObject data");
-            Identifier kindName, objectName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.parseJsonObject(v.get_obj());
-            return CreateObjectModification(kindName, objectName);
-        } else if (modificationKind == "deleteObject") {
-            JsonContext c2("When processing the deleteObject data");
-            Identifier kindName, objectName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.parseJsonObject(v.get_obj());
-            return DeleteObjectModification(kindName, objectName);
-        } else if (modificationKind == "renameObject") {
-            JsonContext c2("When processing the renameObject data");
-            Identifier kindName, oldObjectName, newObjectName;
-            h.read("kindName").extract(&kindName);
-            h.read("oldObjectName").extract(&oldObjectName);
-            h.read("newObjectName").extract(&newObjectName);
-            h.parseJsonObject(v.get_obj());
-            return RenameObjectModification(kindName, oldObjectName, newObjectName);
-        } else if (modificationKind == "removeAttribute") {
-            JsonContext c2("When processing the removeAttribute data");
-            Identifier kindName, objectName, attributeName;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.read("attributeName").extract(&attributeName);
-            h.parseJsonObject(v.get_obj());
-            return RemoveAttributeModification(kindName,objectName, attributeName);
-        } else if (modificationKind == "setAttribute") {
-            // FIXME: check and preserve the attribute data types here!
-            JsonContext c2("When processing the setAttribute data");
-            Identifier kindName, objectName, attributeName;
-            Value attributeData, oldAttributeData;
-            h.read("kindName").extract(&kindName);
-            h.read("objectName").extract(&objectName);
-            h.read("attributeName").extract(&attributeName);
-            h.read("attributeData").extract(&attributeData);
-            h.read("oldAttributeData").extract(&oldAttributeData);
-            h.parseJsonObject(v.get_obj());
-            return SetAttributeModification(kindName, objectName, attributeName, attributeData, oldAttributeData);
-        } else {
-            std::ostringstream s;
-            s << "Invalid modification kind '" << modificationKind << "'";
-            throw JsonStructureError(s.str());
-        }
+        JsonWrappedAttribute attributeData = target->wrappedAttribute(kindName, attributeName);
+        JsonWrappedAttribute oldAttributeData = target->wrappedAttribute(kindName, attributeName);
+        h.read("attributeData").extract(&attributeData);
+        h.read("oldAttributeData").extract(&oldAttributeData);
+        h.parseJsonObject(v.get_obj());
+        target->diff = SetAttributeModification(kindName, objectName, attributeName, attributeData.value, oldAttributeData.value);
+    } else {
+        std::ostringstream s;
+        s << "Invalid modification kind '" << modificationKind << "'";
+        throw JsonStructureError(s.str());
     }
-};
-
-template<> struct JsonConversionTraits<Value> {
-    static Value extract(const json_spirit::Value &v) {
-        // FIXME: remove me later
-        JsonContext c1("When converting JSON Object into Deska::Db::Value");
-        return jsonValueToDeskaValue(v);
-    }
-};
+}
 
 /** @short Hack: use the JSON conversion traits for parsing of "remote errors"
 
@@ -452,11 +420,11 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing ServerError");
             h.parseJsonObject(v.get_obj());
             throw ServerError(message);
-        } else if (exceptionClass == "NotFoundError"){
+        } else if (exceptionClass == "NotFoundError") {
             JsonContext c2("When parsing NotFoundError");
             h.parseJsonObject(v.get_obj());
             throw NotFoundError(message);
-        } else if (exceptionClass == "NoChangesetError"){
+        } else if (exceptionClass == "NoChangesetError") {
             JsonContext c2("When parsing NoChangesetError");
             h.parseJsonObject(v.get_obj());
             throw NoChangesetError(message);
@@ -517,6 +485,32 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     throw JsonStructureError(ss.str());
 }
 
+/** @short Convert JSON into a wrapped, type-checked object attributes
+
+Similar to SpecializedExtractor<JsonWrappedAttribute>::extract, this function has to be special because it needs certain
+pre-existing information to be available in the target member; that's the only way to retrieve type information about the
+supported attributes.
+
+@see SpecializedExtractor<JsonWrappedAttribute>::extract
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attribute " + target->attrName + " with origin information");
+    json_spirit::Array a = value.get_array();
+    if (a.size() != 2) {
+        throw JsonStructureError("Tuple of (origin, value) has length != 2");
+    }
+
+    // Construct a specialized extractor for our base type, which will deal with actually extracting the data
+    SpecializedExtractor<JsonWrappedAttribute> helperExtractor(target);
+    helperExtractor.extract(a[1]);
+
+    // Now file in the origin information
+    target->origin = a[0].get_str();
+}
+
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
 
 This function is special, as it needs access to already existing target in order to be able to read the type
@@ -543,6 +537,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
         h.read(attr.name).extract(&wrappedAttrs[i]);
         ++i;
     }
+    // As a side-effect, all of the attributes are marked as required to be present
 
     // Do the JSON parsing and verification
     h.parseJsonObject(value.get_obj());
@@ -555,7 +550,58 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked vector of attributes
 
+Thie functions extends funcitonality provided by the SpecializedExtractor<JsonWrappedAttributeMap>::extract with tracking of the
+"origin" information, ie. what object has defined the current value.
+
+@see SpecializedExtractor<JsonWrappedAttributeMap>::extract
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting attributes");
+    JsonHandler h;
+    std::vector<JsonWrappedAttributeWithOrigin> wrappedAttrs;
+
+    // For details about how this function works, please see SpecializedExtractor<JsonWrappedAttributeMap>::extract
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        wrappedAttrs.push_back(JsonWrappedAttributeWithOrigin(attr.type, attr.name));
+    }
+
+    int i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        h.read(attr.name).extract(&wrappedAttrs[i]);
+        ++i;
+    }
+
+    h.parseJsonObject(value.get_obj());
+
+    i = 0;
+    BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
+        // This is slightly different than the SpecializedExtractor<JsonWrappedAttributeMap>::extract
+        // in order to accomodate the difference in object layout
+        target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
+        ++i;
+    }
+}
+
+
+template<>
+void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting a list of differences");
+    int i = 0;
+    BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
+        JsonContext c2("When processing diff item #" + libebt::stringify(i));
+        JsonWrappedObjectModification currentDestination(target->dataTypesOfEverything);
+        SpecializedExtractor<JsonWrappedObjectModification> helper(&currentDestination);
+        helper.extract(item);
+        target->diff.push_back(*(currentDestination.diff));
+    }
+}
 
 JsonField::JsonField(const std::string &name):
     isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
@@ -577,15 +623,14 @@ template JsonField& JsonField::extract(TemporaryChangesetId*);
 template JsonField& JsonField::extract(std::vector<Identifier>*);
 template JsonField& JsonField::extract(std::vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(std::vector<ObjectRelation>*);
-template JsonField& JsonField::extract(std::map<Identifier,std::pair<Identifier,Value> >*);
 template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
-template JsonField& JsonField::extract(JsonWrappedAttribute*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
-template JsonField& JsonField::extract(std::vector<ObjectModification>*);
+template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
 
 }
 }

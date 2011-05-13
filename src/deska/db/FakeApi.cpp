@@ -167,9 +167,8 @@ RevisionId FakeApi::commitChangeset(const std::string &commitMessage)
 
 
 
-TemporaryChangesetId FakeApi::rebaseChangeset(const RevisionId oldRevision)
+void FakeApi::rebaseChangeset(const RevisionId parentRevision)
 {
-    return TemporaryChangesetId::null;
 }
 
 std::vector<PendingChangeset> FakeApi::pendingChangesets()

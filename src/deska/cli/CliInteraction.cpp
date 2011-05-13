@@ -28,19 +28,18 @@
 #include "CliInteraction.h"
 #include "Parser.h"
 #include "Exceptions.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
 namespace Cli
 {
 
-std::ostream &operator<<(std::ostream &stream, const std::vector<ContextStackItem> &stack)
+std::ostream &operator<<(std::ostream &stream, const std::vector<Db::ObjectDefinition> &stack)
 {
-    for (std::vector<ContextStackItem>::const_iterator it = stack.begin(); it != stack.end(); ++it) {
+    for (std::vector<Db::ObjectDefinition>::const_iterator it = stack.begin(); it != stack.end(); ++it) {
         if (it != stack.begin())
             stream << " -> ";
-        stream << it->kind << " " << it->name;
+        stream << *it;
     }
     return stream;
 }
@@ -62,7 +61,7 @@ void CliInteraction::eventLoop()
 {
     std::string line;
     std::cout << "> ";
-    std::vector<ContextStackItem> context;
+    std::vector<Db::ObjectDefinition> context;
     while ( getline( std::cin, line ) ) {
         if ( line.size() == 1 && ( line[ 0 ] == 'q' || line[ 0 ] == 'Q' ) )
             break;
@@ -162,19 +161,42 @@ void CliInteraction::run()
         // Now that we've established our preconditions, let's enter the event loop
         eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
-        std::cerr << "Object not found:\n " << std::endl << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nObject not found:\n " << std::endl << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::NoChangesetError &e) {
-        std::cerr << "You aren't associated to a changeset:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nYou aren't associated to a changeset:\n " << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::SqlError &e) {
-        std::cerr << "Error in executing an SQL statement:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nError in executing an SQL statement:\n " << e.whatWithBacktrace() << std::endl;
         return;
     } catch (Deska::Db::ServerError &e) {
-        std::cerr << "Internal server error:\n " << e.whatWithBacktrace() << std::endl;
+        std::cerr << "Server reports an error:\nInternal server error:\n " << e.whatWithBacktrace() << std::endl;
         return;
     }
 }
+
+
+
+void CliInteraction::createObject(const Db::ObjectDefinition &object)
+{
+    m_api->createObject(object.kind, object.name);
+}
+
+
+
+void CliInteraction::deleteObject(const Db::ObjectDefinition &object)
+{
+    m_api->deleteObject(object.kind, object.name);
+}
+
+
+
+void CliInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute)
+{
+    m_api->setAttribute(object.kind, object.name, attribute.attribute, attribute.value);
+}
+
+
 
 void CliInteraction::dumpDbContents()
 {
@@ -185,10 +207,48 @@ void CliInteraction::dumpDbContents()
             BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(kindName, objectName)) {
                 std::cout << "    " << x.first << " " << x.second << std::endl;
             }
-            std::cout << "end" << std::endl;
+            std::cout << "end" << std::endl << std::endl;
         }
     }
 }
+
+std::vector<Db::ObjectDefinition> CliInteraction::getAllObjects()
+{
+    std::vector<Db::ObjectDefinition> objects;
+    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
+            objects.push_back(Db::ObjectDefinition(kindName, objectName));
+        }
+    }
+    return objects;
+}
+
+
+std::vector<Db::AttributeDefinition> CliInteraction::getAllAttributes(const Db::ObjectDefinition &object)
+{
+    std::vector<Db::AttributeDefinition> attributes;
+    typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
+    BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
+        attributes.push_back(Db::AttributeDefinition(x.first, x.second));
+    }
+    return attributes;
+}
+
+
+
+std::vector<Db::PendingChangeset> CliInteraction::getAllPendingChangesets()
+{
+    return m_api->pendingChangesets();
+}
+
+
+
+Db::TemporaryChangesetId CliInteraction::createNewChangeset()
+{
+    return m_api->startChangeset();
+}
+
+
 
 }
 }

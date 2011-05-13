@@ -30,6 +30,7 @@
 #include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 
+#include "deska/db/Objects.h"
 #include "Parser.h"
 #include "ParserErrors.h"
 #include "Exceptions.h"
@@ -320,9 +321,9 @@ public:
     /** @short Current context stack could be obtained by this function.
     *
     *   @return Current context stack.
-    *   @see ContextStackItem
+    *   @see Db::ObjectDefinition
     */
-    std::vector<ContextStackItem> currentContextStack() const;
+    std::vector<Db::ObjectDefinition> currentContextStack() const;
 
     /** @short Get list of strings for tab completition of current line.
     *
@@ -429,7 +430,7 @@ private:
     //@}
 
     /** The parser context is held there. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
     /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
     std::vector<ParseError<Iterator> > parseErrors;
     

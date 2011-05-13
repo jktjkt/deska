@@ -44,12 +44,44 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
 
+FIND_PATH(LIBEBT_PATH libebt/libebt.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0)
+if(NOT LIBEBT_PATH)
+    message(FATAL "Cannot find libebt, and the internal copy seems unusable")
+else()
+    message(STATUS "Using libebt from ${LIBEBT_PATH}")
+    include_directories(${LIBEBT_PATH})
+endif()
+
+FIND_PATH(JSON_SPIRIT_PATH json_spirit/json_spirit_value.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04)
+if(NOT JSON_SPIRIT_PATH)
+    message(FATAL "Cannot find json_spirit, and the internal copy seems unusable")
+else()
+    message(STATUS "Using json_spirit from ${JSON_SPIRIT_PATH}")
+    include_directories(${JSON_SPIRIT_PATH})
+endif()
+
+FIND_PATH(BOOST_PROCESS_PATH boost/process.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process)
+if(NOT BOOST_PROCESS_PATH)
+    message(FATAL "Cannot find boost::process, and the internal copy seems unusable")
+else()
+    message(STATUS "Using boost::process from ${BOOST_PROCESS_PATH}")
+    include_directories(${BOOST_PROCESS_PATH})
+endif()
+
+FIND_PATH(RLMM_PATH rlmm/readline.hh
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9)
+if(NOT RLMM_PATH)
+    message(FATAL "Cannot find readline--, and the internal copy seems unusable")
+else()
+    message(STATUS "Using readline-- from ${RLMM_PATH}")
+    include_directories(${RLMM_PATH})
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/json_spirit_4.04
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/process
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9
 )
 
 set(libDeskaDb_SRCS

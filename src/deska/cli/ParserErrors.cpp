@@ -132,8 +132,10 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
             return "attribute name";
         case PARSE_ERROR_TYPE_VALUE_TYPE:
             return "argument value";
-        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+        case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
             return "kind name";
+        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+            return "object name";
             break;
     }
     throw std::domain_error("ParseErrorType out of range");
@@ -190,12 +192,24 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                                  const std::vector<Db::Identifier> &expectedKinds):
-    m_errorType(PARSE_ERROR_TYPE_OBJECT_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos),
+    m_errorType(PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos),
     m_context(kindName)
 {
     for (std::vector<Db::Identifier>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it) {
         m_expectedKeywords.push_back(*it);
     }
+}
+
+
+
+template <typename Iterator>
+ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
+                                 const Db::Identifier &objectName):
+    m_errorType(PARSE_ERROR_TYPE_OBJECT_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos)
+{
+    std::ostringstream sout;
+    sout << kindName << " " << objectName;
+    m_context = sout.str();
 }
 
 
@@ -251,8 +265,11 @@ std::string ParseError<Iterator>::toString() const
         case PARSE_ERROR_TYPE_VALUE_TYPE:
             sout << " for " << m_context;
             break;
-        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+        case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
             sout << ". No definition found";
+            break;
+        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+            sout << ". Object " << m_context << " does not exist";
             break;
     }
     sout << ".";
@@ -341,6 +358,8 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds);
+
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const Db::Identifier &objectName);
 
 template ParseErrorType ParseError<iterator_type>::errorType() const;
 

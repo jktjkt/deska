@@ -366,7 +366,7 @@ bool ParserImpl<Iterator>::isNestedInContext() const
 
 
 template <typename Iterator>
-std::vector<ContextStackItem> ParserImpl<Iterator>::currentContextStack() const
+std::vector<Db::ObjectDefinition> ParserImpl<Iterator>::currentContextStack() const
 {
     return contextStack;
 }
@@ -412,7 +412,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(cons
 template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    contextStack.push_back(ContextStackItem(kind, name));
+    contextStack.push_back(Db::ObjectDefinition(kind, name));
     if (!dryRun)
         m_parser->categoryEntered(kind, name);
 #ifdef PARSER_DEBUG
@@ -536,12 +536,12 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     parseErrors.clear();
 
     parsingMode = PARSING_MODE_STANDARD;
-    bool parsingSucceeded = false;
+    bool parsingSucceeded = true;
     singleKind = false;
     bool topLevel = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
-    std::vector<ContextStackItem>::size_type previousContextStackSize = contextStack.size();
+    std::vector<Db::ObjectDefinition>::size_type previousContextStackSize = contextStack.size();
 
     // Check if there are any function words at the beginning of the line.
     functionWordParsed = phrase_parse(iter, end, *functionWordsParser, ascii::space);
@@ -563,6 +563,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 // Function delete requires parameter -> report error
                 if (contextStack.empty()) {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                    parsingSucceeded = false;
                 } else {
                     std::vector<Db::Identifier> nestedKinds;
                     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
@@ -577,9 +578,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                         }
                     }
                     addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
+                    parsingSucceeded = false;
                 }
-                
-                //m_parser->parseError(ObjectNotFound("Function delete requires kind as parameter.", line, line.end()));
                 break;
             case PARSING_MODE_STANDARD:
                 // Parsed function word -> parsing mode should change from PARSING_MODE_STANDARD to another
@@ -599,7 +599,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             parsingSucceeded = phrase_parse(iter, end, *topLevelParser, ascii::space);
         } else {
             // Context -> parse attributes or nested kinds
-            topLevel = false;
+            topLevel = false;         
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
                     parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
@@ -613,6 +613,27 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 default:
                     throw std::domain_error("Invalid value of parsingMode");
             }        
+        }
+
+        // Check for existence of parsed kind instance and add parse error based on parsing mode.
+        if (!contextStack.empty() && parsingSucceeded) {
+            std::vector<Db::Identifier> instances;
+            switch (parsingMode) {
+                case PARSING_MODE_STANDARD:
+                    break;
+                case PARSING_MODE_DELETE:
+                case PARSING_MODE_SHOW:
+                    // Modes SHOW and DELETE requires existing kind instances.
+                    instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
+                    if (std::find(instances.begin(), instances.end(), contextStack.back().name) == instances.end()) {
+                        addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
+                                                           contextStack.back().kind, contextStack.back().name));
+                        parsingSucceeded = false;
+                    }
+                    break;
+                default:
+                    throw std::domain_error("Invalid value of parsingMode");
+            }
         }
 
         if (!parsingSucceeded) {
@@ -677,10 +698,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
-    // FIXME: Hack. This should not be here.
-    if (parseErrors.empty())
-        return;
-
     // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
     BOOST_ASSERT(parseErrors.size() <= 3);
     // There have to be some ParseError when parsing fails.
@@ -712,6 +729,9 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
                 break;
             case PARSE_ERROR_TYPE_KIND:
                 m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
+                break;
+            case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
+                m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
                 break;
             case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
                 m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
@@ -808,7 +828,7 @@ template void ParserImpl<iterator_type>::parseLine(const std::string &line);
 
 template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
-template std::vector<ContextStackItem> ParserImpl<iterator_type>::currentContextStack() const;
+template std::vector<Db::ObjectDefinition> ParserImpl<iterator_type>::currentContextStack() const;
 
 template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
 

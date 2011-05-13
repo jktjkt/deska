@@ -59,6 +59,9 @@ public:
     RemoteDbError(const std::string &message);
     virtual ~RemoteDbError() throw ();
     virtual std::string whatWithBacktrace() const throw();
+    void setRawResponseData(const std::string &data);
+private:
+    boost::optional<std::string> m_rawResponseData;
 };
 
 #define REMOTEDBEXCEPTION(CLASS) \
@@ -230,10 +233,8 @@ public:
      * changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In order to be able to push J and
      * turn it into a persistent revision, it has to be explicitly marked as derived from X+1, which is exactly what this
      * function performs.
-     *
-     * @returns current revision after the rebasing; this might remain the same, or change to an arbitrary value
      */
-    virtual TemporaryChangesetId rebaseChangeset(const RevisionId oldRevision) = 0;
+    virtual void rebaseChangeset(const RevisionId parentRevision) = 0;
 
     /** @short Return a list of all pending revisions */
     virtual std::vector<PendingChangeset> pendingChangesets() = 0;

@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/foreach.hpp>
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
@@ -159,14 +160,14 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
 {
     JsonCommandContext c1("resolvedObjectData");
 
-    map<Identifier, pair<Identifier, Value> > res;
     JsonHandlerApiWrapper h(this, "resolvedObjectData");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.writeIfNotZero(j_revision, revision);
+    JsonWrappedAttributeMapWithOrigin res(kindAttributes(kindName));
     h.read("resolvedObjectData").extract(&res);
     h.work();
-    return res;
+    return res.attributes;
 }
 
 vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
@@ -286,16 +287,13 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
     return revision;
 }
 
-TemporaryChangesetId JsonApiParser::rebaseChangeset(const RevisionId oldRevision)
+void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
 {
     JsonCommandContext c1("rebaseChangeset");
 
-    TemporaryChangesetId revision = TemporaryChangesetId::null;
     JsonHandlerApiWrapper h(this, "rebaseChangeset");
-    h.write("currentRevision", oldRevision);
-    h.read("rebaseChangeset").extract(&revision);
+    h.write("parentRevision", parentRevision);
     h.work();
-    return revision;
 }
 
 vector<PendingChangeset> JsonApiParser::pendingChangesets()
@@ -350,25 +348,37 @@ std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a
 {
     JsonCommandContext c1("dataDifference");
 
-    std::vector<ObjectModification> res;
+    // Request all attributes
+    std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
+    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
+        allAttrTypes[kindName] = kindAttributes(kindName);
+    }
+    JsonWrappedObjectModificationSequence helper(&allAttrTypes);
+
     JsonHandlerApiWrapper h(this, "dataDifference");
     h.write("revisionA", a);
     h.write("revisionB", b);
-    h.read("dataDifference").extract(&res);
+    h.read("dataDifference").extract(&helper);
     h.work();
-    return res;
+    return helper.diff;
 }
 
 std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
 {
     JsonCommandContext c1("dataDifferenceInTemporaryChangeset");
 
-    std::vector<ObjectModification> res;
+    // Request all attributes
+    std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
+    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
+        allAttrTypes[kindName] = kindAttributes(kindName);
+    }
+    JsonWrappedObjectModificationSequence helper(&allAttrTypes);
+
     JsonHandlerApiWrapper h(this, "dataDifferenceInTemporaryChangeset");
     h.write("changeset", changeset);
-    h.read("dataDifferenceInTemporaryChangeset").extract(&res);
+    h.read("dataDifferenceInTemporaryChangeset").extract(&helper);
     h.work();
-    return res;
+    return helper.diff;
 }
 
 
@@ -424,8 +434,8 @@ JsonStructureError::~JsonStructureError() throw ()
 
 
 JsonCommandContext::JsonCommandContext(const std::string &ctx):
-    m_apiContext(std::string("In ") + ctx + "API method"),
-    m_jsonContext(std::string("In ") + ctx + "API method")
+    m_apiContext(std::string("In ") + ctx + " API method"),
+    m_jsonContext(std::string("In ") + ctx + " API method")
 {
 }
 

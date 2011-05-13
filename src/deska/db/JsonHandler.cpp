@@ -106,7 +106,16 @@ void JsonHandlerApiWrapper::processPossibleException(const json_spirit::Object &
         if (node.name_ != "dbException")
             continue;
 
-        JsonConversionTraits<RemoteDbError>::extract(node.value_);
+        try {
+            // This will throw the exception
+            JsonConversionTraits<RemoteDbError>::extract(node.value_);
+        } catch (RemoteDbError &e) {
+            // ...but unfortunately it won't include raw JSON data, that's why we add that here
+            if (boost::optional<std::string> rawJson = p->wantJustReadData()) {
+                e.setRawResponseData(*rawJson);
+            }
+            throw;
+        }
     }
 }
 
@@ -278,11 +287,48 @@ JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttribute
 {
 }
 
+JsonWrappedAttributeMapWithOrigin::JsonWrappedAttributeMapWithOrigin(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
 JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifier &attrName_):
     dataType(dataType_), attrName(attrName_)
 {
 }
 
+JsonWrappedAttributeWithOrigin::JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_):
+    JsonWrappedAttribute(dataType_, attrName_)
+{
+}
+
+JsonWrappedObjectModification::JsonWrappedObjectModification(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_):
+    dataTypesOfEverything(dataTypesOfEverything_)
+{
+}
+
+JsonWrappedAttribute JsonWrappedObjectModification::wrappedAttribute(const Identifier &kindName, const Identifier &attributeName) const
+{
+    JsonContext c1("When looking up kind " + kindName);
+    std::map<Identifier, std::vector<KindAttributeDataType> >::const_iterator it1 = dataTypesOfEverything->find(kindName);
+    if (it1 == dataTypesOfEverything->end())
+        throw JsonStructureError("Kind " + kindName + " not recognized");
+    const std::vector<KindAttributeDataType> &attributes = it1->second;
+
+    JsonContext c2("When looking up attribute " + attributeName);
+    using namespace boost::phoenix;
+    std::vector<KindAttributeDataType>::const_iterator it2 = std::find_if(attributes.begin(), attributes.end(),
+                                                                          bind(&KindAttributeDataType::name, arg_names::arg1) == attributeName);
+    if (it2 == attributes.end())
+        throw JsonStructureError("Attribute " + attributeName + " not recognized");
+    return JsonWrappedAttribute(it2->type, attributeName);
+}
+
+JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
+    const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_):
+    dataTypesOfEverything(dataTypesOfEverything_)
+{
+}
 
 }
 }

@@ -29,6 +29,7 @@
 #include <boost/variant.hpp>
 #include "deska/cli/Parser.h"
 #include "deska/cli/Exceptions.h"
+#include "deska/cli/UserInterface.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Api.h"
 
@@ -37,6 +38,10 @@ namespace Deska
 {
 namespace Cli
 {
+
+
+class SignalsHandler;
+
 
 
 /** @short Represents signal categoryEntered() from the parser. */
@@ -50,25 +55,62 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const std::vector<ContextStackItem> &context,
+    ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param signalsHandler Pointer to the database
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
     Db::Identifier kindName;
     Db::Identifier objectName;
     //@}
+};
+
+
+
+/** @short Represents signal categoryLeft() from the parser. */
+class ParserSignalCategoryLeft
+{
+public:
+
+    /** @short Constructor for storing signal categoryLeft().
+    *
+    *   @param context Current parser context
+    */
+    ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the database
+    */
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -84,19 +126,25 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const std::vector<ContextStackItem> &context,
+    ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -116,18 +164,24 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const std::vector<ContextStackItem> &context);
+    ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context);
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -141,41 +195,88 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionDelete(const std::vector<ContextStackItem> &context);
+    ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
 
     /** @short Performs action, that is the signal connected with.
     *
-    *   @param api Pointer to the database
+    *   @param signalsHandler Pointer to the signals handler for calling actions
     */
-    void apply(Db::Api *api);
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<ContextStackItem> contextStack;
+    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
 
 /** @short Represents one signal from the Parser. */
-typedef boost::variant<ParserSignalCategoryEntered, ParserSignalSetAttribute,
+typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
                        ParserSignalFunctionShow, ParserSignalFunctionDelete> ParserSignal;
 
 
 
-/** @short Variant visitor for performing action for parser signals. */
+/** @short Variant visitor for performing action for parser signals.
+*
+*   @see ParserSignalCategoryEntered::apply()
+*/
 class ApplyParserSignal: public boost::static_visitor<>
 {
 public:
 
-    ApplyParserSignal(Db::Api *api);
+    /** Constructor only stores pointer to SignalsHandler for calling action functions.
+    *
+    *   @param _signalsHandler Pointer to SignalsHandler, where the signals are stored
+    */
+    ApplyParserSignal(SignalsHandler *_signalsHandler);
 
+    /** @short Function for calling apply() function in signals
+    *
+    *   @param parserSignal Signal, for which the action() function will be called
+    */
     template <typename T>
     void operator()(const T &parserSignal) const;
 
 private:
 
-    Db::Api *m_api;
+    /** Pointer to the signals handler for performing actions for signals. */
+    SignalsHandler *signalsHandler;
+};
+
+
+
+/** @short Variant visitor for confirmation of each signal.
+*
+*   @see ParserSignalCategoryEntered::confirm()
+*/
+class ConfirmParserSignal: public boost::static_visitor<bool>
+{
+public:
+
+    /** Constructor only stores pointer to SignalsHandler for calling confirm functions.
+    *
+    *   @param _signalsHandler Pointer to SignalsHandler, where the signals are stored
+    */
+    ConfirmParserSignal(SignalsHandler *_signalsHandler);
+
+    /** @short Function for calling confirm() function in signals
+    *
+    *   @param parserSignal Signal, for which the confirm() function will be called
+    */
+    template <typename T>
+    bool operator()(const T &parserSignal) const;
+
+private:
+
+    /** Pointer to the signals handler for performing actions for signals. */
+    SignalsHandler *signalsHandler;
 };
 
 
@@ -185,7 +286,23 @@ class SignalsHandler
 {
 public:
 
-    SignalsHandler(Parser *parser);
+    SignalsHandler(Parser *_parser, UserInterface *_userInterface);
+
+    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                              const Db::Identifier &kind, const Db::Identifier &object);
+    void applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                           const Db::Identifier &attribute, const Db::Value &value);
+    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+
+    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                                const Db::Identifier &kind, const Db::Identifier &object);
+    bool confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                             const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
 
 private:
 
@@ -197,9 +314,14 @@ private:
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
 
+
     std::vector<ParserSignal> signalsStack;
 
     Parser *m_parser;
+
+    UserInterface *userInterface;
+
+    bool autoCreate;
 
 };
 

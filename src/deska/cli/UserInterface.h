@@ -24,8 +24,13 @@
 #ifndef DESKA_USER_INTERFACE_H
 #define DESKA_USER_INTERFACE_H
 
+#include <string>
+#include <iostream>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include "rlmm/readline.hh"
+
+#include "CliInteraction.h"
 
 
 namespace Deska
@@ -39,8 +44,38 @@ class UserInterface: public rlmm::readline
 {
 public:
 
-    UserInterface();
+    UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream);
 
+    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                         const Db::Identifier &kind, const Db::Identifier &object);
+    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                      const Db::Identifier &attribute, const Db::Value &value);
+    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+
+    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+                         const Db::Identifier &kind, const Db::Identifier &object);
+    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+                      const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+
+    void reportError(const std::string &errorMessage);
+
+    bool askForConfirmation(const std::string &prompt);
+
+    /** @short Dump everything in the DB */
+    void dumpDbContents();
+
+    void printAttributes(const Db::ObjectDefinition &object);
+
+private:
+
+    CliInteraction *dbInteraction;
+
+    std::ostream out;
+    std::ostream err;
+    std::istream in;
 };
 
 

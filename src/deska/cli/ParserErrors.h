@@ -54,6 +54,8 @@ typedef enum {
     /** @short Error in an attribute's value or kind's identifier */
     PARSE_ERROR_TYPE_VALUE_TYPE,
     /** @short Error when object definition expected, but not found */
+    PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND,
+    /** @short Error when object being used in some function does not exist */
     PARSE_ERROR_TYPE_OBJECT_NOT_FOUND
 } ParseErrorType;
 
@@ -296,6 +298,16 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                const std::vector<Db::Identifier> &expectedKinds);
+    /** @short Create error when object being used in some function does not exist.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param kindName Name of parsed kind
+    *   @param objectName Name of parsed object
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
+               const Db::Identifier &objectName);
 
 
     /** @short Function for obtaining type of the error.
@@ -381,7 +393,8 @@ private:
     Iterator m_errorPos;
 
     /** Current context of the parser. Attribute name when parsing attribute's value, or kind name,
-    *   when parsing it's attributes or nested kinds
+    *   when parsing it's attributes or nested kinds or whole object name, when parsing arguments
+    *   for some function.
     */
     std::string m_context;
 };
