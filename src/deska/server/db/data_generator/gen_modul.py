@@ -52,8 +52,8 @@ SELECT startChangeset();
 		  texts = self.names.rset(count + 1)
 		  self.data.append("SELECT startChangeset();")
 		  while count > 0:
-				r = random.randint(0,4)
-				if (len(objects) > 1) and ((r < 4) or (len(objects) >= object_count) ):
+				r = random.randint(0,15)
+				if (len(objects) > 1) and ((r < 15) or (len(objects) >= object_count) ):
 					 #choos which object should be modified
 					 obj = objects[random.randint(0, len(objects) - 1)]
 					 #choos which column should be set
@@ -77,7 +77,7 @@ SELECT startChangeset();
 					 str = self.large_modul_add_template.format(object = obj_name)
 				self.data.append(str)
 				count = count - 1
-		  index = Numbers(len(self.data)).rset(len(self.data)/10)
+		  index = Numbers(len(self.data)).rset(len(self.data)/5)
 		  for i in index:
 				self.data.insert(i,self.commit_template)
 		  self.data.append("SELECT commitChangeset('commit');")
@@ -85,8 +85,13 @@ SELECT startChangeset();
 
 
 modul_file = open('../modules/large_modul.sql','w')
-modul_file.write("SET search_path TO production;\n")
+modul_file.write('''SET search_path TO production;
+CREATE SEQUENCE large_modul_uid START 1;
+''')
 mg = ModulGenerator(100)
 modul_file.write(mg.gen_table())
-print "SET search_path TO api,genproc,history,deska,versioning,production;"
+modul_file.write("\nALTER TABLE large_modul ALTER COLUMN uid SET DEFAULT nextval('production.large_modul_uid'::regclass);")
+print '''SET search_path TO api,genproc,history,deska,versioning,production;
+SET DATESTYLE TO 'SQL, EUROPEAN';
+'''
 print "\n".join(mg.gen_data(1000000))
