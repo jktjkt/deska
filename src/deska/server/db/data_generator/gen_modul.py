@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 import random, datetime
 from randdom import Names, Dates, Numbers
 
@@ -40,18 +38,22 @@ SELECT startChangeset();
 		  return self.create_template.format(columns = (",\n\t".join(columns_list)))
 
 	 def gen_data(self, count = 10):
+		  random.seed()
 		  objects = list()
 		  object_names = Names("names.txt")
 		  if count > 1000:
-				self.object_names.extend(1000)
-		  objects_list = object_names.rset(count + 1)
+				object_names.extend(1000)
+				self.names.extend(1000)
+		  
+		  object_count = count / 10
+		  objects_list = object_names.rset(object_count)
 		  randdates = Dates()
 		  dates = randdates.rlist(count + 1)
 		  texts = self.names.rset(count + 1)
 		  self.data.append("SELECT startChangeset();")
-		  while count >= 0:
+		  while count > 0:
 				r = random.randint(0,4)
-				if (len(objects) > 1) and (r < 4):
+				if (len(objects) > 1) and ((r < 4) or (len(objects) >= object_count) ):
 					 #choos which object should be modified
 					 obj = objects[random.randint(0, len(objects) - 1)]
 					 #choos which column should be set
@@ -70,7 +72,7 @@ SELECT startChangeset();
 						  value = ""
 					 str = self.large_modul_set_template.format(column = col, object = obj, val = value)
 				else:
-					 obj_name = objects_list[count]
+					 obj_name = objects_list[len(objects)]
 					 objects.append(obj_name)
 					 str = self.large_modul_add_template.format(object = obj_name)
 				self.data.append(str)
@@ -81,6 +83,10 @@ SELECT startChangeset();
 		  self.data.append("SELECT commitChangeset('commit');")
 		  return self.data
 
-mg = ModulGenerator(12)
-print mg.gen_table()
-print "\n".join(mg.gen_data(200))
+
+modul_file = open('../modules/large_modul.sql','w')
+modul_file.write("SET search_path TO production;\n")
+mg = ModulGenerator(100)
+modul_file.write(mg.gen_table())
+print "SET search_path TO api,genproc,history,deska,versioning,production;"
+print "\n".join(mg.gen_data(1000000))
