@@ -20,9 +20,10 @@ $$
 BEGIN
 		RETURN QUERY SELECT relname::text,attname::text,typname::text
 		  FROM pg_class cl 
-		  JOIN pg_namespace nm ON (cl.relnamespace = nm.oid and nm.nspname = 'production')
-		  JOIN pg_attribute att ON (att.attrelid = cl.oid)
-		  JOIN pg_type typ ON (typ.oid = att.atttypid)
+				JOIN pg_namespace nm ON (cl.relnamespace = nm.oid and nm.nspname = 'production')
+				JOIN pg_attribute att ON (att.attrelid = cl.oid)
+				JOIN pg_type typ ON (typ.oid = att.atttypid)
+				JOIN pg_tables tab ON (cl.relname = tab.tablename)
 		  WHERE att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid');
 END
 $$
