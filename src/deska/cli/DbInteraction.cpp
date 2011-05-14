@@ -1,4 +1,6 @@
-/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+/*
+* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -20,7 +22,7 @@
 * */
 
 #include <boost/foreach.hpp>
-#include "CliInteraction.h"
+#include "DbInteraction.h"
 
 namespace Deska
 {
@@ -29,35 +31,35 @@ namespace Cli
 {
 
 
-CliInteraction::CliInteraction(Db::Api *api):
+DbInteraction::DbInteraction(Db::Api *api):
     m_api(api)
 {
 }
 
 
 
-void CliInteraction::createObject(const Db::ObjectDefinition &object)
+void DbInteraction::createObject(const Db::ObjectDefinition &object)
 {
     m_api->createObject(object.kind, object.name);
 }
 
 
 
-void CliInteraction::deleteObject(const Db::ObjectDefinition &object)
+void DbInteraction::deleteObject(const Db::ObjectDefinition &object)
 {
     m_api->deleteObject(object.kind, object.name);
 }
 
 
 
-void CliInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute)
+void DbInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute)
 {
     m_api->setAttribute(object.kind, object.name, attribute.attribute, attribute.value);
 }
 
 
 
-std::vector<Db::ObjectDefinition> CliInteraction::allObjects()
+std::vector<Db::ObjectDefinition> DbInteraction::allObjects()
 {
     std::vector<Db::ObjectDefinition> objects;
     BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
@@ -70,7 +72,7 @@ std::vector<Db::ObjectDefinition> CliInteraction::allObjects()
 
 
 
-std::vector<Db::AttributeDefinition> CliInteraction::allAttributes(const Db::ObjectDefinition &object)
+std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ObjectDefinition &object)
 {
     std::vector<Db::AttributeDefinition> attributes;
     typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
@@ -82,42 +84,42 @@ std::vector<Db::AttributeDefinition> CliInteraction::allAttributes(const Db::Obj
 
 
 
-std::vector<Db::PendingChangeset> CliInteraction::allPendingChangesets()
+std::vector<Db::PendingChangeset> DbInteraction::allPendingChangesets()
 {
     return m_api->pendingChangesets();
 }
 
 
 
-Db::TemporaryChangesetId CliInteraction::createNewChangeset()
+Db::TemporaryChangesetId DbInteraction::createNewChangeset()
 {
     return m_api->startChangeset();
 }
 
 
 
-void CliInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
+void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 {
     m_api->resumeChangeset(changesetId);
 }
 
 
 
-void CliInteraction::commitChangeset(const std::string &message)
+void DbInteraction::commitChangeset(const std::string &message)
 {
     m_api->commitChangeset(message);
 }
 
 
 
-void CliInteraction::detachFromChangeset(const std::string &message)
+void DbInteraction::detachFromChangeset(const std::string &message)
 {
     m_api->detachFromCurrentChangeset(message);
 }
 
 
 
-void CliInteraction::abortChangeset()
+void DbInteraction::abortChangeset()
 {
     m_api->abortCurrentChangeset();
 }

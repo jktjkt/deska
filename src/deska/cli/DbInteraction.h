@@ -1,4 +1,6 @@
-/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+/*
+* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -19,8 +21,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_INTERACTION_H
-#define DESKA_CLI_INTERACTION_H
+#ifndef DESKA_DB_INTERACTION_H
+#define DESKA_DB_INTERACTION_H
 
 #include <vector>
 #include <boost/noncopyable.hpp>
@@ -37,15 +39,15 @@ namespace Cli {
 *
 *   @see UserInterface
 */
-class CliInteraction: public boost::noncopyable
+class DbInteraction: public boost::noncopyable
 {
 public:
-    CliInteraction(Db::Api *api);
 
     /** @short Constructor only initializes pointer to the API.
     *
     *   @param api Pointer to the api for communication with the DB
     */
+    DbInteraction(Db::Api *api);
 
     /** @short Creates new object.
     *
@@ -114,4 +116,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_INTERACTION_H
+#endif  // DESKA_DB_INTERACTION_H

@@ -31,7 +31,7 @@
 
 //#include "rlmm/readline.hh"
 
-#include "CliInteraction.h"
+#include "DbInteraction.h"
 #include "Parser.h"
 #include "Exceptions.h"
 
@@ -62,7 +62,7 @@ public:
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
     */
     UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
-                  CliInteraction *dbInteraction, Parser* parser);
+                  DbInteraction *dbInteraction, Parser* parser);
 
     //@{
     /** @short Functions for confirmation and applying actions connected with parser signals.
@@ -132,7 +132,7 @@ private:
     std::istream in;
     
     /** Pointer to the class used for communication with the database. */
-    CliInteraction *m_dbInteraction;
+    DbInteraction *m_dbInteraction;
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
 };

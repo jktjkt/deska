@@ -35,7 +35,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
-                             CliInteraction *dbInteraction, Parser *parser):
+                             DbInteraction *dbInteraction, Parser *parser):
     out(outStream.rdbuf()), err(errStream.rdbuf()), in(inStream.rdbuf()),
     m_dbInteraction(dbInteraction), m_parser(parser)
 {
