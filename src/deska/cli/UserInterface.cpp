@@ -206,8 +206,12 @@ void UserInterface::run()
         // Print list of pending changesets, so user can choose one
         std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
         out << "Pending changesets: " << std::endl << std::endl;
-        for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
-            out << i << ": " << pendingChangesets[i] << std::endl;
+        if (pendingChangesets.empty()) {
+            out << "No pending changesets." << std::endl;
+        } else {
+            for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
+                out << i << ": " << pendingChangesets[i] << std::endl;
+            }
         }
         out << "n: No changset" << std::endl;
         out << "c: Create new changset" << std::endl << std::endl;
@@ -228,6 +232,7 @@ void UserInterface::run()
                 std::istringstream ss(choice);
                 unsigned int res;
                 ss >> res;
+                // Check whether the input is a number and represents any pending changeset
                 if (!ss.fail() && res < pendingChangesets.size()) {
                     m_dbInteraction->resumeChangeset(pendingChangesets[res].revision);
                     break;
