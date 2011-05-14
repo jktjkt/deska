@@ -170,5 +170,120 @@ void UserInterface::printAttributes(const Db::ObjectDefinition &object)
 
 
 
+void UserInterface::commitChangeset()
+{
+    std::string message;
+    out << "Commit message: ";
+    in >> message;
+    m_dbInteraction->commitChangeset(message);
+}
+
+
+
+void UserInterface::detachFromChangeset()
+{
+    std::string message;
+    out << "Log message for detaching: ";
+    in >> message;
+    m_dbInteraction->detachFromChangeset(message);
+}
+
+
+
+void UserInterface::abortChangeset()
+{
+    m_dbInteraction->abortChangeset();
+}
+
+
+
+void UserInterface::run()
+{
+    try {
+        // Print list of pending changesets, so user can choose one
+        std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
+        out << "Pending changesets: " << std::endl << std::endl;
+        for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
+            out << i << ": " << pendingChangesets[i] << std::endl;
+        }
+        out << "n: No changset" << std::endl;
+        out << "c: Create new changset" << std::endl << std::endl;
+        out << "Changeset to attach to: ";
+        // Waiting until user enteres correct input.
+        for (;;)
+        {
+            std::string choice;
+            in >> choice;
+            boost::algorithm::to_lower(choice);
+            if (choice == "n") {
+                // do nothing
+                break;
+            } else if (choice == "c") {
+                m_dbInteraction->createNewChangeset();
+                break;
+            } else {
+                std::istringstream ss(choice);
+                unsigned int res;
+                ss >> res;
+                if (!ss.fail() && res < pendingChangesets.size()) {
+                    m_dbInteraction->resumeChangeset(pendingChangesets[res].revision);
+                    break;
+                }
+            }
+            reportError("Bad choice input. Try againg.");
+        }
+
+        // Now that we've established our preconditions, let's enter the event loop
+        eventLoop();
+    } catch (Deska::Db::NotFoundError &e) {
+        reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
+        return;
+    } catch (Deska::Db::NoChangesetError &e) {
+        reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
+        return;
+    } catch (Deska::Db::SqlError &e) {
+        reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
+        return;
+    } catch (Deska::Db::ServerError &e) {
+        reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
+        return;
+    }
+}
+
+
+
+void UserInterface::eventLoop()
+{
+    std::string line;
+    out << "> ";
+    std::vector<Db::ObjectDefinition> context;
+    while (getline(in, line)) {
+        if (line == "exit")
+            break;
+
+        if (line == "dump") {
+            dumpDbContents();
+        } else if (line == "commit") {
+            commitChangeset();
+        } else if (line == "detach") {
+            detachFromChangeset();
+        } else if (line == "abort") {
+            abortChangeset();
+        } else {
+            m_parser->parseLine(line);
+        }
+
+        context = m_parser->currentContextStack();
+        for (std::vector<Db::ObjectDefinition>::const_iterator it = context.begin(); it != context.end(); ++it) {
+            if (it != context.begin())
+                out << " -> ";
+            out << *it;
+        }
+        out << "> ";
+    }
+}
+
+
+
 }
 }

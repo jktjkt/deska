@@ -31,6 +31,8 @@
 #include "rlmm/readline.hh"
 
 #include "CliInteraction.h"
+#include "Parser.h"
+#include "Exceptions.h"
 
 
 namespace Deska
@@ -44,7 +46,8 @@ class UserInterface: public rlmm::readline
 {
 public:
 
-    UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream);
+    UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
+                  CliInteraction *dbInteraction, Parser* parser);
 
     void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                          const Db::Identifier &kind, const Db::Identifier &object);
@@ -69,13 +72,22 @@ public:
 
     void printAttributes(const Db::ObjectDefinition &object);
 
-private:
+    void commitChangeset();
+    void detachFromChangeset();
+    void abortChangeset();
 
-    CliInteraction *dbInteraction;
+    void run();
+    void eventLoop();
+
+private:
 
     std::ostream out;
     std::ostream err;
     std::istream in;
+    
+    CliInteraction *m_dbInteraction;
+    Parser* m_parser;
+    
 };
 
 
