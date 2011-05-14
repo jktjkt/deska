@@ -27,8 +27,9 @@
 #include <string>
 #include <iostream>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/noncopyable.hpp>
 
-#include "rlmm/readline.hh"
+//#include "rlmm/readline.hh"
 
 #include "CliInteraction.h"
 #include "Parser.h"
@@ -41,8 +42,7 @@ namespace Cli
 {
 
 
-
-class UserInterface: public rlmm::readline
+class UserInterface: public boost::noncopyable//: public rlmm::readline
 {
 public:
 
