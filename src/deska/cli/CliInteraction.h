@@ -24,48 +24,32 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include <boost/signals2/trackable.hpp>
 #include "deska/db/Api.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
 namespace Deska {
-namespace Db {
-
-class Api;
-
-}
 
 namespace Cli {
 
-class Parser;
-class ParserException;
-
-
 
 /** @short Tie up the real command line and the Parser together */
-class CliInteraction: public boost::noncopyable, public boost::signals2::trackable
+class CliInteraction: public boost::noncopyable
 {
 public:
-    CliInteraction(Db::Api *api, Parser *parser);
-
-    /** @short Enter the loop and interact with the user */
-    void run();
+    CliInteraction(Db::Api *api);
 
     void createObject(const Db::ObjectDefinition &object);
     void deleteObject(const Db::ObjectDefinition &object);
     void setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute);
 
-    /** @short Dump everything in the DB */
-    void dumpDbContents();
+    std::vector<Db::ObjectDefinition> allObjects();
 
-    std::vector<Db::ObjectDefinition> getAllObjects();
-
-    std::vector<Db::AttributeDefinition> getAllAttributes(const Db::ObjectDefinition &object);
+    std::vector<Db::AttributeDefinition> allAttributes(const Db::ObjectDefinition &object);
 
     
 
-    std::vector<Db::PendingChangeset> getAllPendingChangesets();
+    std::vector<Db::PendingChangeset> allPendingChangesets();
     Db::TemporaryChangesetId createNewChangeset();
     void resumeChangeset(const Db::TemporaryChangesetId &changesetId);
     void commitChangeset(const std::string &message);
@@ -75,22 +59,8 @@ public:
 
 
 private:
-    void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
-    void slotParserError(const ParserException &e);
-    void slotSetAttribute(const Db::Identifier &name, const Db::Value &attributeData);
-
-    
-
-    /** @short Ask the user whether she wants to proceed with something */
-    bool askForConfirmation(const std::string &prompt);
-
-    /** @short Implementation of the "event loop" which interacts with the user */
-    void eventLoop();
-
-private:
     Db::Api *m_api;
-    Parser *m_parser;
-    bool m_ignoreParserActions;
+
 };
 
 
