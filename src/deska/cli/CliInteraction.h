@@ -33,42 +33,85 @@ namespace Deska {
 namespace Cli {
 
 
-/** @short Tie up the real command line and the Parser together */
+/** @short Class used for communication with the database to provide all necessary functions to the user interface.
+*
+*   @see UserInterface
+*/
 class CliInteraction: public boost::noncopyable
 {
 public:
     CliInteraction(Db::Api *api);
 
+    /** @short Constructor only initializes pointer to the API.
+    *
+    *   @param api Pointer to the api for communication with the DB
+    */
+
+    /** @short Creates new object.
+    *
+    *   @param object Object to create
+    */
     void createObject(const Db::ObjectDefinition &object);
+    /** @short Deletes object.
+    *
+    *   @param object Object to delete
+    */
     void deleteObject(const Db::ObjectDefinition &object);
+    /** @short Sets attribute value in the object.
+    *
+    *   @param object Object which attribute will be changed
+    *   @param attribute Attribute and value to set
+    */
     void setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute);
 
+    /** @short Obtains list of all objects in the DB.
+    *
+    *   @return Vector of object definitions from the DB
+    */
     std::vector<Db::ObjectDefinition> allObjects();
-
+    /** @short Obtains all attributes of given object.
+    *
+    *   @param object Object for which the attributes are obtained
+    *   @return Vector of all attributes
+    */
     std::vector<Db::AttributeDefinition> allAttributes(const Db::ObjectDefinition &object);
 
-    
-
+    /** @short Function for obtaining all pending chandesets.
+    *
+    *   @return Vector of all pending changesets
+    */
     std::vector<Db::PendingChangeset> allPendingChangesets();
+    /** @short Function for creating and connecting to the new changeset.
+    *
+    *   @return Temporary id of created changeset
+    */
     Db::TemporaryChangesetId createNewChangeset();
+    /** @short Connects to some existing changeset.
+    *
+    *   @param changesetId Id of changeset to connect to
+    */
     void resumeChangeset(const Db::TemporaryChangesetId &changesetId);
+    /** @short Commits current changeset
+    *
+    *   @param message Commit message
+    */
     void commitChangeset(const std::string &message);
+    /** @short Detaches from current changeset
+    *
+    *   @param message Detach message
+    */
     void detachFromChangeset(const std::string &message);
+    /** @short Aborts current changeset. */
     void abortChangeset();
 
-
-
 private:
-    Db::Api *m_api;
 
+    /** Pointer to the api for communication with the DB. */
+    Db::Api *m_api;
 };
 
 
-
 }
-
 }
-
-
 
 #endif  // DESKA_CLI_INTERACTION_H

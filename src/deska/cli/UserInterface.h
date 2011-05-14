@@ -42,13 +42,35 @@ namespace Cli
 {
 
 
+/** @short Class for communication with the user.
+*
+*   User interface uses class Parser for parsing lines, that does not match any keyword, class DbInteraction for
+*   communication with the database and with the Parser communicates through SignalsHandler, that is actively calling
+*   functions for confirmation and applying actions connected with each signal that parser emits.
+*/
 class UserInterface: public boost::noncopyable//: public rlmm::readline
 {
 public:
 
+    /** @short Constructor initializes stream for communication with the user and pointers for parsing
+    *          input and communication with the database.
+    *
+    *   @param outStream Stream for standart output
+    *   @param errStream Stream for error output
+    *   @param inStream Stream for input
+    *   @param dbInteraction Pointer to the class used for communication with the database
+    *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
+    */
     UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
                   CliInteraction *dbInteraction, Parser* parser);
 
+    //@{
+    /** @short Functions for confirmation and applying actions connected with parser signals.
+    *
+    *   @see DbInteraction
+    *   @see ParserSignals
+    *   @see Parser
+    */
     void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                          const Db::Identifier &kind, const Db::Identifier &object);
     void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
@@ -62,32 +84,57 @@ public:
                       const Db::Identifier &attribute, const Db::Value &value);
     bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
     bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    //@}
 
+    /** @short Reports any error to the user (error output).
+    *
+    *   @param errorMessage Error message to report
+    */
     void reportError(const std::string &errorMessage);
 
+    /** @short Displays confirmation message and returns users choice.
+    *
+    *   @param prompt Message to confirm
+    *   @return True if the message was confirmed, else false
+    */
     bool askForConfirmation(const std::string &prompt);
 
     /** @short Dump everything in the DB */
     void dumpDbContents();
-
+    /** @short Print attributes of given object.
+    *
+    *   @param object Object for which the attributes are printed
+    */
     void printAttributes(const Db::ObjectDefinition &object);
 
+    /** @short Make all actions needed to commit current changeset including commit message request. */
     void commitChangeset();
+    /** @short Detaches from current changeset. */
     void detachFromChangeset();
+    /** @short Aborts current changeset. */
     void abortChangeset();
 
+    /** @short Starts the cli after construction.
+    *
+    *   Displays list of pending changesets, connects to one, or creates new and starts event loop.
+    */
     void run();
+    /** @short Function for listening to users input and calling appropriate actions. */
     void eventLoop();
 
 private:
 
+    /** Stream for standart output. */
     std::ostream out;
+    /** Stream for error output. */
     std::ostream err;
+    /** Stream for input. */
     std::istream in;
     
+    /** Pointer to the class used for communication with the database. */
     CliInteraction *m_dbInteraction;
+    /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
-    
 };
 
 

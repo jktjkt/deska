@@ -29,7 +29,6 @@ namespace Cli
 {
 
 
-
 CliInteraction::CliInteraction(Db::Api *api):
     m_api(api)
 {
@@ -122,7 +121,6 @@ void CliInteraction::abortChangeset()
 {
     m_api->abortCurrentChangeset();
 }
-
 
 
 }
