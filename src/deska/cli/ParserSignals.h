@@ -27,6 +27,8 @@
 
 #include <vector>
 #include <boost/variant.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/signals2/trackable.hpp>
 #include "deska/cli/Parser.h"
 #include "deska/cli/Exceptions.h"
 #include "deska/cli/UserInterface.h"
@@ -283,6 +285,7 @@ private:
 
 /** @short Class, that listens to all signals from the Parser and stores them for the purposes of the CLI. */
 class SignalsHandler
+class SignalsHandler: public boost::noncopyable, public boost::signals2::trackable
 {
 public:
 
