@@ -21,6 +21,9 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+
 #include "ParserSignals.h"
 
 
@@ -165,11 +168,18 @@ bool ConfirmParserSignal::operator()(const T &parserSignal) const
 
 
 
-SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface)
-{
-    m_parser = parser;
-    userInterface = _userInterface;
-    autoCreate = false;
+SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
+    m_parser(parser), userInterface(_userInterface), autoCreate(false)
+{   
+    using boost::phoenix::arg_names::_1;
+    using boost::phoenix::arg_names::_2;
+    m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
+    m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
+    m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
+    m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
+    m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
+    m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
+    m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
 }
 
 
