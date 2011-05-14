@@ -267,7 +267,11 @@ void UserInterface::eventLoop()
     out << "> ";
     std::vector<Db::ObjectDefinition> context;
     while (getline(in, line)) {
-        // FIXME: For some reason some times the line is read even though user did not enter anything.
+        // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
+        // Hack for bug #222.
+        if (line.empty())
+            continue;
+
         if (line == "exit") {
             break;
         } else if (line == "dump") {
