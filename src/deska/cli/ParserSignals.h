@@ -283,14 +283,27 @@ private:
 
 
 
-/** @short Class, that listens to all signals from the Parser and stores them for the purposes of the CLI. */
-class SignalsHandler
+/** @short Class, that listens to all signals from the Parser and stores them for the purposes of the CLI.
+*
+*   Each signal is stored and SignalsHandler is waiting for signal parseError() or parsingFinished().
+*   When parseError() signal is caught, SignalsHandler clears its signals stack and reports error to
+*   the UserInterface. When parsingFinished() signal is caught, SignalsHandler goes through the whole signals
+*   stack and calls appropriate actions in UserInterface.
+*/
 class SignalsHandler: public boost::noncopyable, public boost::signals2::trackable
 {
 public:
 
+    /** @short Constructor only initializes pointers handler is working with.
+    *   
+    *   @param _parser Pointer to the Parser for connecting slots to signals
+    *   @param _userInterface Pointer to the user interface class for reporting errors and calling actions
+    *                         for signals.
+    */
     SignalsHandler(Parser *_parser, UserInterface *_userInterface);
 
+    //@{
+    /** @short Functions that only forwards call to the UserInterface. */
     void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                               const Db::Identifier &kind, const Db::Identifier &object);
     void applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
@@ -306,9 +319,12 @@ public:
                              const Db::Identifier &attribute, const Db::Value &value);
     bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
     bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    //@}
 
 private:
 
+    //@{
+    /** @short Slots for signals from the parser. */
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
@@ -316,17 +332,21 @@ private:
     void slotFunctionDelete();
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
+    //@}
 
-
+    /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;
 
+    /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;
-
+    /** Pointer to the user interface for reporting errors and and calling actions for signals. */
     UserInterface *userInterface;
 
+    /** Flag that determines whether user will be asked for confirmation of creating new object or not. */
     bool autoCreate;
 
 };
+
 
 
 }
