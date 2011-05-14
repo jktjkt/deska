@@ -22,6 +22,7 @@
 * */
 
 #include <sstream>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include "UserInterface.h"
 
@@ -46,11 +47,11 @@ void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition>
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
     std::vector<Db::ObjectDefinition> objects;
-    objects = dbInteraction->getAllObjects();
+    objects = m_dbInteraction->allObjects();
     Db::ObjectDefinition category(kind, object);
 
     if (std::find(objects.begin(), objects.end(), category) == objects.end()) {
-        dbInteraction->createObject(category);
+        m_dbInteraction->createObject(category);
     }
 }
 
@@ -59,7 +60,7 @@ void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition>
 void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    dbInteraction->setAttribute(context.back(), Db::AttributeDefinition(attribute, value));
+    m_dbInteraction->setAttribute(context.back(), Db::AttributeDefinition(attribute, value));
 }
 
 
@@ -73,7 +74,7 @@ void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &c
 
 void UserInterface::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
 {
-    dbInteraction->deleteObject(context.back());
+    m_dbInteraction->deleteObject(context.back());
 }
 
 
@@ -84,7 +85,7 @@ bool UserInterface::confirmCategoryEntered(const std::vector<Db::ObjectDefinitio
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
     std::vector<Db::ObjectDefinition> objects;
-    objects = dbInteraction->getAllObjects();
+    objects = m_dbInteraction->allObjects();
     Db::ObjectDefinition category(kind, object);
 
     if (std::find(objects.begin(), objects.end(), category) != objects.end()) {
@@ -126,7 +127,7 @@ bool UserInterface::confirmFunctionDelete(const std::vector<Db::ObjectDefinition
 
 void UserInterface::reportError(const std::string &errorMessage)
 {
-    err << errorMessage;
+    err << errorMessage << std::endl;
 }
 
 
@@ -146,11 +147,11 @@ bool UserInterface::askForConfirmation(const std::string &prompt)
 void UserInterface::dumpDbContents()
 {
     std::vector<Db::ObjectDefinition> objects;
-    objects = dbInteraction->getAllObjects();
+    objects = m_dbInteraction->allObjects();
     for (std::vector<Db::ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         out << *it << std::endl;
         std::vector<Db::AttributeDefinition> attributes;
-        attributes = dbInteraction->getAllAttributes(*it);
+        attributes = m_dbInteraction->allAttributes(*it);
         for (std::vector<Db::AttributeDefinition>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
             out << "    " << *ita << std::endl;
         }
@@ -164,7 +165,7 @@ void UserInterface::dumpDbContents()
 void UserInterface::printAttributes(const Db::ObjectDefinition &object)
 {
     std::vector<Db::AttributeDefinition> attributes;
-    attributes = dbInteraction->getAllAttributes(object);
+    attributes = m_dbInteraction->allAttributes(object);
     for (std::vector<Db::AttributeDefinition>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
         out << *it << std::endl;
     }
