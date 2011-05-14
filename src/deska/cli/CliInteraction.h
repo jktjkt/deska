@@ -67,6 +67,10 @@ public:
 
     std::vector<Db::PendingChangeset> getAllPendingChangesets();
     Db::TemporaryChangesetId createNewChangeset();
+    void resumeChangeset(const Db::TemporaryChangesetId &changesetId);
+    void commitChangeset(const std::string &message);
+    void detachFromChangeset(const std::string &message);
+    void abortChangeset();
 
 
 

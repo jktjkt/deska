@@ -250,5 +250,33 @@ Db::TemporaryChangesetId CliInteraction::createNewChangeset()
 
 
 
+void CliInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
+{
+    m_api->resumeChangeset(changesetId);
+}
+
+
+
+void CliInteraction::commitChangeset(const std::string &message)
+{
+    m_api->commitChangeset(message);
+}
+
+
+
+void CliInteraction::detachFromChangeset(const std::string &message)
+{
+    m_api->detachFromCurrentChangeset(message);
+}
+
+
+
+void CliInteraction::abortChangeset()
+{
+    m_api->abortCurrentChangeset();
+}
+
+
+
 }
 }
