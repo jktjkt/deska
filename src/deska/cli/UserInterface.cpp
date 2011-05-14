@@ -202,6 +202,7 @@ void UserInterface::abortChangeset()
 
 void UserInterface::run()
 {
+    // TODO: Rewrite this function using Redline--
     try {
         // Print list of pending changesets, so user can choose one
         std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
