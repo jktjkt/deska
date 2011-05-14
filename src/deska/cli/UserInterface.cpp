@@ -266,10 +266,9 @@ void UserInterface::eventLoop()
     out << "> ";
     std::vector<Db::ObjectDefinition> context;
     while (getline(in, line)) {
-        if (line == "exit")
+        if (line == "exit") {
             break;
-
-        if (line == "dump") {
+        } else if (line == "dump") {
             dumpDbContents();
         } else if (line == "commit") {
             commitChangeset();
