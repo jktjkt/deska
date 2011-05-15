@@ -80,6 +80,9 @@ else()
     include_directories(${RLMM_PATH})
 endif()
 
+SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+FIND_PACKAGE(Readline REQUIRED)
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -117,7 +120,7 @@ target_link_libraries(DeskaDb ${Boost_LIBRARIES})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli-parser-demo ${deskaCliParserDemo_SRCS})
-target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb)
+target_link_libraries(deska-cli-parser-demo DeskaCliParser DeskaDb ${READLINE_LIBRARY})
 
 include(CTest)
 add_subdirectory(tests)
