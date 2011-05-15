@@ -114,6 +114,9 @@ public:
     /** @short Aborts current changeset. */
     void abortChangeset();
 
+    /** @short Prints help for CLI usage. */
+    void printHelp();
+
     /** @short Starts the cli after construction.
     *
     *   Displays list of pending changesets, connects to one, or creates new and starts event loop.

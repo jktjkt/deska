@@ -200,6 +200,23 @@ void UserInterface::abortChangeset()
 
 
 
+void UserInterface::printHelp()
+{
+    out << "CLI commands:" << std::endl;
+    out << "exit   - Exits the CLI" << std::endl;
+    out << "dump   - Prints everything in the DB" << std::endl;
+    out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
+    out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
+    out << "abort  - Aborts current changeset" << std::endl;
+    out << "help   - Displays this list of commands" << std::endl;
+    out << std::endl;
+    out << "Parser keywords:" << std::endl;
+    out << "delete - Deletes object given as parameter (e.g. delete hardware hp456)" << std::endl;
+    out << "show   - Shows attributes and nested kinds of the object" << std::endl;
+}
+
+
+
 void UserInterface::run()
 {
     // TODO: Rewrite this function using Redline--
