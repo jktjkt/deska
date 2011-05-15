@@ -137,7 +137,6 @@ bool UserInterface::askForConfirmation(const std::string &prompt)
     out << prompt << " ";
     std::string answer;
     in >> answer;
-    out << std::endl;
     boost::algorithm::to_lower(answer);
     return answer == "yes" || answer == "y";
 }
@@ -219,6 +218,10 @@ void UserInterface::printHelp()
 
 void UserInterface::run()
 {
+    char *p = getenv("USER");
+    if (p != 0)
+        out << "Hi " << p << "! ";
+    out << "Welcome to Deska CLI." << std::endl << std::endl;
     // TODO: Rewrite this function using Redline--
     try {
         // Print list of pending changesets, so user can choose one
@@ -299,6 +302,8 @@ void UserInterface::eventLoop()
             detachFromChangeset();
         } else if (line == "abort") {
             abortChangeset();
+        } else if (line == "help") {
+            printHelp();
         } else {
             m_parser->parseLine(line);
         }
