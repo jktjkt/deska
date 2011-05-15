@@ -51,7 +51,7 @@ void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition>
     Db::ObjectDefinition category(kind, object);
 
     if (std::find(objects.begin(), objects.end(), category) == objects.end()) {
-        m_dbInteraction->createObject(category);
+        m_dbInteraction->createObject(context);
     }
 }
 
@@ -60,21 +60,22 @@ void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition>
 void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    m_dbInteraction->setAttribute(context.back(), Db::AttributeDefinition(attribute, value));
+    m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
 }
 
 
 
 void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
 {
-    printAttributes(context.back());
+    printAttributes(context);
+    printNestedKinds(context);
 }
 
 
 
 void UserInterface::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
 {
-    m_dbInteraction->deleteObject(context.back());
+    m_dbInteraction->deleteObject(context);
 }
 
 
@@ -161,11 +162,22 @@ void UserInterface::dumpDbContents()
 
 
 
-void UserInterface::printAttributes(const Db::ObjectDefinition &object)
+void UserInterface::printAttributes(const std::vector<Db::ObjectDefinition> &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
-    attributes = m_dbInteraction->allAttributes(object);
+    attributes = m_dbInteraction->allAttributes(context);
     for (std::vector<Db::AttributeDefinition>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+        out << *it << std::endl;
+    }
+}
+
+
+
+void UserInterface::printNestedKinds(const std::vector<Db::ObjectDefinition> &context)
+{
+    std::vector<Db::ObjectDefinition> kinds;
+    kinds = m_dbInteraction->allNestedKinds(context);
+    for (std::vector<Db::ObjectDefinition>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         out << *it << std::endl;
     }
 }
