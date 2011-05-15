@@ -151,18 +151,19 @@ $$
 declare
 begin
 	create temp table diff_data 
-	AS select dv.uid as old_uid,dv.name as old_name, dv.vendor as old_vendor, dv.warranty as old_warranty, dv.purchase as old_purchase, dv.note as old_note,
-		chv.uid as new_uid,chv.name as new_name,chv.vendor as new_vendor, chv.warranty as new_warranty, chv.purchase as new_purchase, chv.note as new_note
+	AS select dv.uid as old_uid,dv.name as old_name, dv.vendor as old_vendor, dv.warranty as old_warranty, dv.purchase as old_purchase, dv.note as old_note, dv.dest_bit as old_dest_bit,
+		chv.uid as new_uid,chv.name as new_name,chv.vendor as new_vendor, chv.warranty as new_warranty, chv.purchase as new_purchase, chv.note as new_note, chv.dest_bit as new_dest_bit
 		from hardware_data_version(from_version) dv full outer join hardware_changes_between_versions(from_version,to_version) chv on (dv.uid = chv.uid);
 end
 $$
 language plpgsql;
 
-CREATE OR REPLACE FUNCTION diff(x bigint, y bigint)
+CREATE OR REPLACE FUNCTION diff_set(x bigint, y bigint)
 RETURNS SETOF text
 AS
 $$
 import Postgres
+
 @pytypes
 def main(x,y):
 	names = ["name","vendor","note","warranty","purchase"]
@@ -174,13 +175,12 @@ def main(x,y):
 	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) dv join hardware_changes_between_versions($1,$2) chv on (dv.uid = chv.uid)'.format(coldef = coldef))
 	a = plan(x,y)
 
-	for i in range(len(a)):
-		line = a[i]
-		for col in range(len(names)):
-			if line[oldnames[col]] != line[newnames[col]]:
+	for line in a:
+		for old,new in zip(oldnames,newnames):
+			if line[old] != line[new]:
 				diffline = '{oldname}: "{oldvalue}", {newname}: "{newvalue}"'.format(
-					oldname = oldnames[col], newname = newnames[col],
-					oldvalue = line[oldnames[col]], newvalue = line[newnames[col]])
+					oldname = old, newname = new,
+					oldvalue = line[old], newvalue = line[new])
 				yield diffline
 $$
 LANGUAGE python;
@@ -211,32 +211,25 @@ RETURNS SETOF text
 AS
 $$
 import Postgres
+def genset(line,col):
+	return	
+
 @pytypes
 def main(x,y):
-	names = ["name","vendor","note","warranty","purchase"]
+	names = ["vendor","note","warranty","purchase"]
 	npart = list(map("chv.{0} AS {0}".format,names))
 	coldef = ",".join(npart)
-	plan = prepare('SELECT {coldef} FROM hardware_data_version($1) AS dv RIGHT OUTER JOIN hardware_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE dv.name IS NULL'.format(coldef = coldef))
+	plan = prepare('SELECT {coldef},chv.name as name FROM hardware_data_version($1) AS dv RIGHT OUTER JOIN hardware_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE dv.name IS NULL'.format(coldef = coldef))
 	a = plan(x,y)
 
+	setlist = list()
 	for line in a:
-		#diffline = list()
-		base = dict()
-		base["command"] = "createObject"
-		base["kindName"] = "hardware"
-		base["objectName"] = line[names[0]]
-		yield base
-		#diffline.append(base)
-		#base = base.copy()
-		base["command"] = "setAttribute"
-		for col in range(1,len(names)):
-			if line[col] is not None:
-				#setd = base.copy()
-				base["value"] = line[col]
-				base["attributeName"] = line[col]
-				yield base
+		yield '"command":"createObject", "kind": "hardware", "{0}": "{1}"'.format("create",line["name"])
+		setlist.extend(['"command":"setAttribute", "kind": "hardware",, "{0}": "{1}"'.format(new,line[new]) for new in names])
+	for x in setlist:
+		yield x
+		
 
-		#yield diffline
 $$
 LANGUAGE python;
 
@@ -268,11 +261,11 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION 
 hardware_diff_deleted()
-RETURNS SETOF diff_del_object_type
+RETURNS SETOF text
 AS
 $$
 BEGIN
-	RETURN QUERY select cast('hardware' as text), old_name,cast('delete' as text) FROM diff_data WHERE new_dest_bit = '1';
+	RETURN QUERY select old_name FROM diff_data WHERE new_dest_bit = '1';
 END;
 $$
 LANGUAGE plpgsql; 
