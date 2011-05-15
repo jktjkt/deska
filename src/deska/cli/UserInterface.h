@@ -48,7 +48,7 @@ namespace Cli
 *   communication with the database and with the Parser communicates through SignalsHandler, that is actively calling
 *   functions for confirmation and applying actions connected with each signal that parser emits.
 */
-class UserInterface: public boost::noncopyable//: public rlmm::readline
+class UserInterface: public boost::noncopyable//, public rlmm::readline
 {
 public:
 
@@ -138,6 +138,8 @@ private:
     DbInteraction *m_dbInteraction;
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
+
+    std::string prompt;
 };
 
 

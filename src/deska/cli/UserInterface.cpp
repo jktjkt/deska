@@ -37,7 +37,7 @@ namespace Cli
 UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
                              DbInteraction *dbInteraction, Parser *parser):
     out(outStream.rdbuf()), err(errStream.rdbuf()), in(inStream.rdbuf()),
-    m_dbInteraction(dbInteraction), m_parser(parser)
+    m_dbInteraction(dbInteraction), m_parser(parser), prompt("> ");
 {
 }
 
@@ -218,9 +218,9 @@ void UserInterface::printHelp()
 
 void UserInterface::run()
 {
-    char *p = getenv("USER");
-    if (p != 0)
-        out << "Hi " << p << "! ";
+    char *userName = getenv("USER");
+    if (userName != 0)
+        out << "Hi " << userName << "! ";
     out << "Welcome to Deska CLI." << std::endl << std::endl;
     // TODO: Rewrite this function using Redline--
     try {
@@ -284,8 +284,9 @@ void UserInterface::run()
 void UserInterface::eventLoop()
 {
     std::string line;
-    out << "> ";
+    out << prompt;
     std::vector<Db::ObjectDefinition> context;
+    std::ostringstream promptBuilder;
     while (getline(in, line)) {
         // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
         // Hack for bug #222.
@@ -311,10 +312,12 @@ void UserInterface::eventLoop()
         context = m_parser->currentContextStack();
         for (std::vector<Db::ObjectDefinition>::const_iterator it = context.begin(); it != context.end(); ++it) {
             if (it != context.begin())
-                out << " -> ";
-            out << *it;
+                promptBuilder << " -> ";
+            promptBuilder << *it;
         }
-        out << "> ";
+        promptBuilder << "> ";
+        prompt = promptBuilder.str();
+        out << prompt;
     }
 }
 
