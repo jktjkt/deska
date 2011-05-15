@@ -132,10 +132,17 @@ class DB:
 		"diff_add": [VectorResult,"from","to"],
 		"diff_set": [VectorResult,"from","to"],
 		"diff_del": [VectorResult,"from","to"],
+		"lm_diff_add": [VectorResult,"from","to"],
+		"lm_diff_set": [VectorResult,"from","to"],
+		"lm_diff_del": [VectorResult,"from","to"],
 		"init_diff": [Result,"from","to"],
 		"hardware_diff_created": [MatrixResult],
 		"hardware_diff_set_attributes": [MatrixResult],
-		"hardware_diff_deleted": [MatrixResult]
+		"hardware_diff_deleted": [MatrixResult],
+		"large_modul_init_diff": [Result,"from","to"],
+		"large_modul_diff_created": [MatrixResult],
+		"large_modul_diff_set_attributes": [MatrixResult],
+		"large_modul_diff_deleted": [MatrixResult]
 	})
 	data_methods = dict({
 		"objectData": [TupleResult,"kindName", "objectName"]
