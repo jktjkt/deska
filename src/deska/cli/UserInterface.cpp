@@ -322,6 +322,7 @@ void UserInterface::eventLoop()
         }
 
         context = m_parser->currentContextStack();
+        promptBuilder.str("");
         for (std::vector<Db::ObjectDefinition>::const_iterator it = context.begin(); it != context.end(); ++it) {
             if (it != context.begin())
                 promptBuilder << " -> ";
