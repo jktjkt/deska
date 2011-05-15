@@ -484,6 +484,18 @@ Functions from this group are used for fetching actual data from the database.
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
     \pageref{sec:api-revision-semantics} for details.}
 
+\deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
+    {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
+    {Get all attributes for a particular object instance}
+    {This function returns values of all attributes which are defined for the given object.  No template resolving is
+    performed, see \deskaFuncRef{resolvedObjectData} for details.}
+
+\deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
+    {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
+    {Get effective values for all attributes for a particular object instance, taking templates into account}
+    {This function returns effective values of all attributes defined for a particular object or inherited from its
+    template parent along with the identifier of the object at which level the value is specified.}
+
 FIXME
 
 \subsubsection{Performing Modifications}
