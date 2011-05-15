@@ -161,7 +161,7 @@ end
 $$
 language plpgsql;
 
-CREATE OR REPLACE FUNCTION diff_set(x bigint, y bigint)
+CREATE OR REPLACE FUNCTION lm_diff_set(x bigint, y bigint)
 RETURNS SETOF text
 AS
 $$
@@ -189,8 +189,8 @@ $$
 LANGUAGE python;
 
 
-drop function diff_del(bigint,bigint);
-CREATE OR REPLACE FUNCTION diff_del(x bigint, y bigint)
+drop function lm_diff_del(bigint,bigint);
+CREATE OR REPLACE FUNCTION lm_diff_del(x bigint, y bigint)
 RETURNS SETOF text
 AS
 $$
@@ -209,7 +209,7 @@ def main(x,y):
 $$
 LANGUAGE python;
 
-CREATE OR REPLACE FUNCTION diff_add(x bigint, y bigint)
+CREATE OR REPLACE FUNCTION lm_diff_add(x bigint, y bigint)
 RETURNS SETOF text
 AS
 $$
