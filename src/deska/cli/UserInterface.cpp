@@ -137,7 +137,7 @@ bool UserInterface::askForConfirmation(const std::string &prompt)
 {
     out << prompt << " ";
     std::string answer;
-    in >> answer;
+    getline(in, answer);
     boost::algorithm::to_lower(answer);
     return answer == "yes" || answer == "y";
 }
@@ -188,7 +188,7 @@ void UserInterface::commitChangeset()
 {
     std::string message;
     out << "Commit message: ";
-    in >> message;
+    getline(in, message);
     m_dbInteraction->commitChangeset(message);
 }
 
@@ -198,7 +198,7 @@ void UserInterface::detachFromChangeset()
 {
     std::string message;
     out << "Log message for detaching: ";
-    in >> message;
+    getline(in, message);
     m_dbInteraction->detachFromChangeset(message);
 }
 
@@ -253,7 +253,7 @@ void UserInterface::run()
         for (;;)
         {
             std::string choice;
-            in >> choice;
+            getline(in, choice);
             boost::algorithm::to_lower(choice);
             if (choice == "n") {
                 // do nothing
