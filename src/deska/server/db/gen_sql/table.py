@@ -194,4 +194,11 @@ class Table(constants.Templates):
 		
 	def gen_diff_created(self):
 		return self.diff_created_string.format(tbl = self.name)
+		
+	def gen_data_version(self):
+		return self.data_version_function_string.format(tbl = self.name)
+	
+	def gen_data_changes(self):
+		return self.data_changes_function_string.format(tbl = self.name)
+
 

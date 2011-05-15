@@ -884,9 +884,55 @@ class Templates:
 					 
 				result.name = new_data.name;
 				{columns_changes}
-		  END LOOP;	
+		  END LOOP;
 	 END
 	 $$
 	 LANGUAGE plpgsql; 
+
+'''
+
+#template for function, which selects all data from kind table taht are present in version data_version
+#is used in diff functions
+	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint)
+RETURNS SETOF {tbl}_history
+AS
+$$
+BEGIN
+	RETURN QUERY 
+	SELECT h1.* 
+	FROM hardware_history h1 
+		JOIN version v1 ON (v1.id = h1.version)
+		JOIN (	SELECT uid, max(num) AS maxnum 
+				FROM {tbl}_history h JOIN version v ON (v.id = h.version )
+				WHERE v.num <= data_version
+				GROUP BY uid
+			) vmax1 
+		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
+	WHERE dest_bit = '0';
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for function which selects all changes of all objects, that where done between from_version and to_version versions
+#is used in diff functions
+	data_changes_function_string = '''CREATE FUNCTION {tbl}_changes_between_versions(from_version bigint, to_version bigint)
+RETURNS SETOF {tbl}_history
+AS
+$$
+BEGIN
+	RETURN QUERY 
+	SELECT h1.* 
+	FROM {tbl}_history h1 
+		JOIN version v1 on (v1.id = h1.version)
+		JOIN (	SELECT uid, max(num) as maxnum 
+				FROM {tbl}_history h join version v on (v.id = h.version )
+				WHERE v.num <= to_version and v.num > from_version
+				GROUP BY uid) vmax1 
+		ON(h1.uid = vmax1.uid and v1.num = vmax1.maxnum);
+END
+$$
+LANGUAGE plpgsql;
 
 '''
