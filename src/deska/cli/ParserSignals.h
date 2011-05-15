@@ -337,6 +337,9 @@ private:
     /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;
 
+    /** The context is held there. */
+    std::vector<Db::ObjectDefinition> contextStack;
+
     /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;
     /** Pointer to the user interface for reporting errors and and calling actions for signals. */

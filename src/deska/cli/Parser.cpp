@@ -62,6 +62,11 @@ std::vector<Db::ObjectDefinition> Parser::currentContextStack() const
     return d_ptr->currentContextStack();
 }
 
+void Parser::setContextStack(const std::vector<Db::ObjectDefinition> &stack)
+{
+    d_ptr->setContextStack(stack);
+}
+
 void Parser::clearContextStack()
 {
     d_ptr->clearContextStack();

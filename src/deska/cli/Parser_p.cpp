@@ -488,6 +488,14 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
 
 
 template <typename Iterator>
+void ParserImpl<Iterator>::setContextStack(const std::vector<Db::ObjectDefinition> &stack)
+{
+    contextStack = stack;
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::clearContextStack()
 {
     contextStack.clear();
@@ -847,6 +855,8 @@ template void ParserImpl<iterator_type>::setParsingMode(ParsingMode mode);
 template ParsingMode ParserImpl<iterator_type>::getParsingMode();
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::getKindNames();
+
+template void ParserImpl<iterator_type>::setContextStack(const std::vector<Db::ObjectDefinition> &stack);
 
 template void ParserImpl<iterator_type>::clearContextStack();
 

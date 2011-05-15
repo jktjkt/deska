@@ -249,6 +249,9 @@ void SignalsHandler::slotParsingFinished()
     }
 
     signalsStack.clear();
+
+    // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
+    m_parser->setContextStack(contextStack);
 }
 
 
@@ -256,6 +259,7 @@ void SignalsHandler::slotParsingFinished()
 void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
                                           const Db::Identifier &kind, const Db::Identifier &object)
 {
+    contextStack.push_back(Db::ObjectDefinition(kind, object));
     userInterface->applyCategoryEntered(context, kind, object);
 }
 
@@ -263,6 +267,7 @@ void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition
 
 void SignalsHandler::applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
 {
+    contextStack.pop_back();
 }
 
 

@@ -190,6 +190,12 @@ public:
     */
     std::vector<Db::ObjectDefinition> currentContextStack() const;
 
+    /** @short Replaces current context stack with new one.
+    *
+    *   @param stack Vector of object definitions representing new context stack
+    */
+    void setContextStack(const std::vector<Db::ObjectDefinition> &stack);
+
     /** @short Moves context to top level */
     void clearContextStack();
 
