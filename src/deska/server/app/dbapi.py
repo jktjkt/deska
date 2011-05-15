@@ -125,11 +125,17 @@ class DB:
 		"detachFromCurrentChangeset": [Result,"message"],
 		"abortCurrentChangeset": [Result],
 		"pendingChangesets": [MatrixResult],
+		# test listVersions
+		"listVersions": [MatrixResult],
+		"jsnVersions": [Result],
 		# test diff
 		"diff_add": [VectorResult,"from","to"],
-		"diff": [VectorResult,"from","to"],
+		"diff_set": [VectorResult,"from","to"],
 		"diff_del": [VectorResult,"from","to"],
-		"hardware_diff_set_attributes": [MatrixResult,"from","to"]
+		"init_diff": [Result,"from","to"],
+		"hardware_diff_created": [MatrixResult],
+		"hardware_diff_set_attributes": [MatrixResult],
+		"hardware_diff_deleted": [MatrixResult]
 	})
 	data_methods = dict({
 		"objectData": [TupleResult,"kindName", "objectName"]
