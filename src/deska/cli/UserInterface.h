@@ -101,11 +101,17 @@ public:
 
     /** @short Dump everything in the DB */
     void dumpDbContents();
-    /** @short Print attributes of given object.
+    /** @short Print attributes in the context.
     *
-    *   @param object Object for which the attributes are printed
+    *   @param context Path to the object for which the attributes are printed
     */
-    void printAttributes(const Db::ObjectDefinition &object);
+    void printAttributes(const std::vector<Db::ObjectDefinition> &context);
+
+    /** @short Print nested kinds of the object in the context or top-level objects when there is no context.
+    *
+    *   @param context Path to the object for which the attributes are printed
+    */
+    void printNestedKinds(const std::vector<Db::ObjectDefinition> &context);
 
     /** @short Make all actions needed to commit current changeset including commit message request. */
     void commitChangeset();

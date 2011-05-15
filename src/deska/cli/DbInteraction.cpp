@@ -38,23 +38,24 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-void DbInteraction::createObject(const Db::ObjectDefinition &object)
+void DbInteraction::createObject(const std::vector<Db::ObjectDefinition> &context)
 {
-    m_api->createObject(object.kind, object.name);
+    m_api->createObject(context.back().kind, context.back().name);
 }
 
 
 
-void DbInteraction::deleteObject(const Db::ObjectDefinition &object)
+void DbInteraction::deleteObject(const std::vector<Db::ObjectDefinition> &context)
 {
-    m_api->deleteObject(object.kind, object.name);
+    m_api->deleteObject(context.back().kind, context.back().name);
 }
 
 
 
-void DbInteraction::setAttribute(const Db::ObjectDefinition &object, const Db::AttributeDefinition &attribute)
+void DbInteraction::setAttribute(const std::vector<Db::ObjectDefinition> &context,
+                                 const Db::AttributeDefinition &attribute)
 {
-    m_api->setAttribute(object.kind, object.name, attribute.attribute, attribute.value);
+    m_api->setAttribute(context.back().kind, context.back().name, attribute.attribute, attribute.value);
 }
 
 
@@ -80,6 +81,33 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
         attributes.push_back(Db::AttributeDefinition(x.first, x.second));
     }
     return attributes;
+}
+
+
+
+std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const std::vector<Db::ObjectDefinition> &context)
+{
+    std::vector<Db::AttributeDefinition> attributes;
+    if (!context.empty()) {
+        typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
+        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, context.back().name)) {
+            attributes.push_back(Db::AttributeDefinition(x.first, x.second));
+        }
+    }
+    return attributes;
+}
+
+
+
+std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const std::vector<Db::ObjectDefinition> &context)
+{
+    std::vector<Db::ObjectDefinition> kinds;
+    if (!context.empty()) {
+        // TODO: Obtain list of nested kinds.
+    } else {
+        kinds = allObjects();
+    }
+    return kinds;
 }
 
 
