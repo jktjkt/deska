@@ -29,7 +29,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-//#include "rlmm/readline.hh"
+#include "rlmm/readline.hh"
 
 #include "DbInteraction.h"
 #include "Parser.h"
@@ -48,7 +48,7 @@ namespace Cli
 *   communication with the database and with the Parser communicates through SignalsHandler, that is actively calling
 *   functions for confirmation and applying actions connected with each signal that parser emits.
 */
-class UserInterface: public boost::noncopyable//, public rlmm::readline
+class UserInterface: public boost::noncopyable, public rlmm::readline
 {
 public:
 
