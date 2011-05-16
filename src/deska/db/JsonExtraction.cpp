@@ -442,6 +442,10 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
 {
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attribute " + target->attrName);
+    if (value.is_null()) {
+        target->value = Deska::Db::Value();
+        return;
+    }
     switch (target->dataType) {
     case TYPE_STRING:
     case TYPE_IDENTIFIER:
