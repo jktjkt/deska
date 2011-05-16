@@ -189,10 +189,6 @@ public:
     /** @short Change object's name */
     virtual void renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName) = 0;
 
-    /** @short Remove an attribute from one instance of an object */
-    virtual void removeAttribute(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
-
     /** @short Set an attribute that belongs to some object to a new value */
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData) = 0;

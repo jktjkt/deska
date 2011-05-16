@@ -284,15 +284,6 @@ BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
-/** @short Basic test for removeAttribute() */
-BOOST_FIXTURE_TEST_CASE(json_removeAttribute, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"removeAttribute\",\"kindName\":\"kind\",\"objectName\":\"obj\",\"attributeName\":\"fancyAttr\"}\n");
-    expectRead("{\"attributeName\": \"fancyAttr\", \"kindName\": \"kind\", \"objectName\": \"obj\", \"response\": \"removeAttribute\"}\n");
-    j->removeAttribute("kind", "obj", "fancyAttr");
-    expectEmpty();
-}
-
 /** @short A three-member tuple for holding JSON input/output and the corresponding Deska::Value */
 struct SetAttrTestData {
     std::string jsonIn;
@@ -429,7 +420,6 @@ std::string exampleJsonDiff =
     "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
     "{\"command\":\"deleteObject\",\"kindName\":\"k2\",\"objectName\":\"o2\"},"
     "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
-    "{\"command\":\"removeAttribute\",\"kindName\":\"k4\",\"objectName\":\"o4\",\"attributeName\":\"fancyAttr\"},"
     "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
     // FIXME: test that the conversion checks and respects the data type
 
@@ -439,7 +429,6 @@ std::vector<ObjectModification> diffObjects()
     res.push_back(CreateObjectModification("k1", "o1"));
     res.push_back(DeleteObjectModification("k2", "o2"));
     res.push_back(RenameObjectModification("k3", "ooooold", "new"));
-    res.push_back(RemoveAttributeModification("k4", "o4", "fancyAttr"));
     res.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
     return res;
 }

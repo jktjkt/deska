@@ -231,17 +231,6 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
-void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
-{
-    JsonCommandContext c1("removeAttribute");
-
-    JsonHandlerApiWrapper h(this, "removeAttribute");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.work();
-}
-
 void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
                            const Value &attributeData)
 {

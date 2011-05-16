@@ -87,18 +87,6 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
 
 template <>
 ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
-    const Deska::Db::RemoveAttributeModification &value) const
-{
-    json_spirit::Object o;
-    o.push_back(json_spirit::Pair("command", "removeAttribute"));
-    o.push_back(json_spirit::Pair("kindName", value.kindName));
-    o.push_back(json_spirit::Pair("objectName", value.objectName));
-    o.push_back(json_spirit::Pair("attributeName", value.attributeName));
-    return o;
-}
-
-template <>
-ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
     const Deska::Db::SetAttributeModification &value) const
 {
     json_spirit::Object o;
@@ -355,14 +343,6 @@ void SpecializedExtractor<JsonWrappedObjectModification>::extract(const json_spi
         h.read("newObjectName").extract(&newObjectName);
         h.parseJsonObject(v.get_obj());
         target->diff = RenameObjectModification(kindName, oldObjectName, newObjectName);
-    } else if (modificationKind == "removeAttribute") {
-        JsonContext c2("When processing the removeAttribute data");
-        Identifier kindName, objectName, attributeName;
-        h.read("kindName").extract(&kindName);
-        h.read("objectName").extract(&objectName);
-        h.read("attributeName").extract(&attributeName);
-        h.parseJsonObject(v.get_obj());
-        target->diff = RemoveAttributeModification(kindName,objectName, attributeName);
     } else if (modificationKind == "setAttribute") {
         // FIXME: check and preserve the attribute data types here!
         JsonContext c2("When processing the setAttribute data");

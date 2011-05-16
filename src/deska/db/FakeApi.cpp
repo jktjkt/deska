@@ -138,10 +138,6 @@ void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldName
 {
 }
 
-void FakeApi::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
-{
-}
-
 
 
 void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,

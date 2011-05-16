@@ -356,9 +356,6 @@ relation information etc.  The following types are defined:
         {\tt \{"command": "renameObject", "kindName": }Identifier{\tt, "oldObjectName": }Identifier{\tt,
         "newObjectName": }{\tt Identifier\}}, \newline
         or \newline
-        {\tt \{"command": "removeAttribute", "kindName": }Indetifier{\tt, "objectName": }Identifier{\tt,
-        "attributeName": }Identifier{\tt \}}, \newline
-        or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
 
@@ -408,8 +405,8 @@ valid via the diffing functions (see section \ref{sec:api-group-history}), the u
 revision.
 
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
-renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call, which
-can be undone with \deskaFuncRef{removeAttribute}.
+renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
+Certain attributes accept a {\tt NULL} value; to use it, also use \deskaFuncRef{setAttribute}.
 
 Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
 \deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
@@ -532,8 +529,7 @@ Functions for browsing history of individual objects, retrieving lists of differ
     \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
     \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
-    \{"command": "removeAttribute", "kindName": "k4", "objectName": "o4", "attributeName": "fancyAttr"\}, \\
-    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
+    \{"command": "setAttribute", "kindName": "k4", "objectName": "o4", "attributeName": "a4", \\
         "attributeData": "new", "oldAttributeData": "old"\} \\
     ]}
     {Return differences between the database state in the specified versions}
