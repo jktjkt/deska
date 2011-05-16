@@ -306,7 +306,7 @@ void UserInterface::eventLoop()
         if (line.empty())
             continue;
 
-        if (line == "exit") {
+        if (line == "exit" || line == "quit") {
             break;
         } else if (line == "dump") {
             dumpDbContents();
