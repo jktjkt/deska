@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 
 #include "UserInterface.h"
+#include "deska/db/JsonApi.h"
 
 
 namespace Deska
@@ -284,6 +285,10 @@ void UserInterface::run()
         reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::ServerError &e) {
         reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonSyntaxError &e) {
+        reportError("Cannot parse JSON data.\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonStructureError &e) {
+        reportError("Received malformed JSON data:\n" + e.whatWithBacktrace() + "\n");
     }
 }
 
