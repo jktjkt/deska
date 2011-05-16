@@ -198,7 +198,12 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     map<Identifier,Value>::iterator i1 = expected.begin(), i2 = res.begin();
     while (i1 != expected.end()) {
         BOOST_REQUIRE_EQUAL(i1->first, i2->first);
-        boost::apply_visitor(FuzzyTestCompareDeskaValue(), i1->second, i2->second);
+        if (!i1->second || !i2->second) {
+            // compare against a null
+            BOOST_REQUIRE_EQUAL(i1->second, i2->second);
+        } else {
+            boost::apply_visitor(FuzzyTestCompareDeskaValue(), *(i1->second), *(i2->second));
+        }
         ++i1;
         ++i2;
     }
@@ -301,9 +306,9 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
             "\"response\": \"setAttribute\", \"attributeData\": ";
-    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", "some string"));
-    data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", 123));
-    data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", 333.666));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", Deska::Db::Value("some string")));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", Deska::Db::Value(123)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", Deska::Db::Value(333.666)));
     BOOST_FOREACH(const SetAttrTestData &value, data) {
         expectWrite(value.jsonIn);
         expectRead(value.jsonOut);
@@ -429,7 +434,7 @@ std::vector<ObjectModification> diffObjects()
     res.push_back(CreateObjectModification("k1", "o1"));
     res.push_back(DeleteObjectModification("k2", "o2"));
     res.push_back(RenameObjectModification("k3", "ooooold", "new"));
-    res.push_back(SetAttributeModification("k5", "o5", "a5", "new", "old"));
+    res.push_back(SetAttributeModification("k5", "o5", "a5", Deska::Db::Value("new"), Deska::Db::Value("old")));
     return res;
 }
 }

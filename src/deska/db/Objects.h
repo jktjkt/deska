@@ -24,6 +24,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
 namespace Deska {
@@ -34,7 +35,7 @@ namespace Db {
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-typedef boost::variant<std::string,double,int> Value;
+typedef boost::optional<boost::variant<std::string,double,int> > Value;
 
 /** @short Type of an object's attribute */
 typedef enum {
