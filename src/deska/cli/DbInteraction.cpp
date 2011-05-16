@@ -40,6 +40,7 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 void DbInteraction::createObject(const std::vector<Db::ObjectDefinition> &context)
 {
+    BOOST_ASSERT(!context.empty());
     m_api->createObject(context.back().kind, context.back().name);
 }
 
@@ -47,6 +48,7 @@ void DbInteraction::createObject(const std::vector<Db::ObjectDefinition> &contex
 
 void DbInteraction::deleteObject(const std::vector<Db::ObjectDefinition> &context)
 {
+    BOOST_ASSERT(!context.empty());
     m_api->deleteObject(context.back().kind, context.back().name);
 }
 
@@ -55,6 +57,7 @@ void DbInteraction::deleteObject(const std::vector<Db::ObjectDefinition> &contex
 void DbInteraction::setAttribute(const std::vector<Db::ObjectDefinition> &context,
                                  const Db::AttributeDefinition &attribute)
 {
+    BOOST_ASSERT(!context.empty());
     m_api->setAttribute(context.back().kind, context.back().name, attribute.attribute, attribute.value);
 }
 
