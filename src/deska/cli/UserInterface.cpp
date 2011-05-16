@@ -286,9 +286,9 @@ void UserInterface::run()
     } catch (Deska::Db::ServerError &e) {
         reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::JsonSyntaxError &e) {
-        reportError("Cannot parse JSON data.\n" + e.whatWithBacktrace() + "\n");
+        reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::JsonStructureError &e) {
-        reportError("Received malformed JSON data:\n" + e.whatWithBacktrace() + "\n");
+        reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
     }
 }
 
