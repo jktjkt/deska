@@ -278,16 +278,12 @@ void UserInterface::run()
         eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
         reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
-        return;
     } catch (Deska::Db::NoChangesetError &e) {
         reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
-        return;
     } catch (Deska::Db::SqlError &e) {
         reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
-        return;
     } catch (Deska::Db::ServerError &e) {
         reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
-        return;
     }
 }
 
