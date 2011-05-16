@@ -1,0 +1,88 @@
+Schuze Deska, 2011-05-16 FZU
+----------------------------
+
+Pritomni: Lukas, Tomas, Honza
+Pozde: Martina
+
+Prehled, co kdo udelal:
+
+Honza: celkove od stredy skoro nic.
+- rebaseChangeset
+- readline
+- par fixu v CLI
+- malinko dokumentace
+- error reporting
+- PythonAPI
+
+Lukas:
+- bugfixy
+- stress test nahodnych changesetu, pgpythonu dochazi pamet, zrychleno 1500x
+
+Martina:
+- generovani tabulek a dat pro stress test a dat
+- bugfix v dotazech na strukturu tabulek
+- dalsi diffovani
+
+Tomas:
+- CLI refactoring
+- readline a streamy
+- nefunguje embedovani poradne
+
+
+Ukoly z minula:
+---------------
+
+- Honza: formalni popis JSON API (#183)
+    - skoro nic noveho
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+    - neni naspecifikovano
+- Honza: rozsireni API pro WHERE (#210)
+    - neni
+- Tomas: CLI refactoring
+    - hotovo, zbyva opravit tunu chyb
+- Lukas: dokumentace (#168, 169,...)
+    - neni
+- Lukas: error reporting (#109), s tim souvisi i #117, klidne si jej preradte
+    - hotovo
+- Lukas: otestovat diffovani (#214)
+    - zatim neni co
+- Martina: SQL test, ktery nic nedela (#221)
+    - neni
+- Martina: prekontrolovat testy generatoru (#111)
+    - prosim zavrit
+- Martina: dodelat diffovani (#213)
+    - rozpracovano
+- Martina: dokumentace (#168, 169,...)
+    - neni
+
+Diskuse:
+--------
+
+- diffovani a templates: budou dve funkce
+- null v atributech: sjednotit na optional<variant>
+- Pouziti DbInteraction::allObjects() je nestastne
+- branche je potreba mergovat
+- testy k CLI
+- findOverridenAttrs: pridat revizi? nebo pres WHERE?
+- vyhodit removeAttribute
+- testy k DB serveru
+
+Ukoly:
+------
+
+- Lukas, Martina, Tomas: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
+- Honza: formalni popis JSON API (#183)
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+- Honza: rozsireni API pro WHERE (#210)
+- Tomas: dal pokracovat na CLI
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: otestovat diffovani (#214)
+- Martina: SQL test, ktery nic nedela (#221)
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+- Martina: dodelat diffovani (#213)
+- Martina: dokumentace (#168, 169,...)
+
+Pristi schuzka:
+---------------
+
+Pondeli 23. kvetna, 15.00 FZU
