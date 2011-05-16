@@ -134,6 +134,17 @@ class Table(constants.Templates):
 	def gen_diff_set_attribute(self):
 		collist = self.col.copy()
 		del collist['uid']
+			 
+		#old_data.name, old_data.vendor, ..., new_data.name, new_data.vendor, ...
+		old_new_attributes = list(map("old_data.{0}".format,collist))
+		old_new_attributes.extend(list(map("new_data.{0}".format,collist)))
+		old_new_attributes_string = ",".join(old_new_attributes)
+		
+		#old_name, old_vendor, ..., old_note, new_name, new_vendor, ...
+		select_old_new_attributes = list(map("old_{0}".format,collist))
+		select_old_new_attributes.extend(list(map("new_{0}".format,collist)))
+		select_old_new_attributes_string = ",".join(select_old_new_attributes)
+		
 		del collist['name']
 		if len(collist) == 0:
 			return ""
@@ -141,9 +152,17 @@ class Table(constants.Templates):
 		cols_changes = ""
 		for col in collist:
 			 cols_changes = cols_changes + self.one_column_change_string.format(column = col)
-		
-		return self.diff_set_attribute_string.format(tbl = self.name, columns_changes = cols_changes)
 
+		return self.diff_set_attribute_string.format(tbl = self.name, columns_changes = cols_changes, old_new_obj_list = old_new_attributes_string, select_old_new_list = select_old_new_attributes_string)
+
+	def gen_diff_init_function(self):
+		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
+		#with dv (diff version), chv(changes between versions) prefix
+		collist = self.col.copy()
+		select_old_attributes = list(map("dv.{0} AS old_{0}".format,collist))
+		select_new_attributes = list(map("chv.{0} AS new_{0}".format,collist))
+		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+		return self.diff_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])

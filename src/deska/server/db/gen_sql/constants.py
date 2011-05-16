@@ -831,60 +831,49 @@ class Templates:
 
 '''
 
+#template for if constructs in diff_set_attribute
 	one_column_change_string = '''
 	 IF (old_data.{column} <> new_data.{column}) OR ((old_data.{column} IS NULL OR new_data.{column} IS NULL) 
 		  AND NOT(old_data.{column} IS NULL AND new_data.{column} IS NULL))
 	 THEN
 		  result.attribute = '{column}';
-		  result.old_data = old_data.{column};
-		  result.new_data = new_data.{column};
+		  result.olddata = old_data.{column};
+		  result.newdata = new_data.{column};
 		  RETURN NEXT result;			
 	 END IF;
 	 
 '''
 
 #template for getting created objects between two versions
+#return type is defined in file diff.sql and created in create script
 	diff_set_attribute_string = '''CREATE FUNCTION 
-	{tbl}_diff_set_attributes(from_version bigint, to_version bigint)
+	{tbl}_diff_set_attributes()
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$
 	 DECLARE
-		  old_data {tbl}_history%rowtype;
-		  new_data {tbl}_history%rowtype;
-		  result diff_set_attribute_type;
+		old_data {tbl}_history%rowtype;
+		new_data {tbl}_history%rowtype;
+		result diff_set_attribute_type;
 	 BEGIN
-		  result.kind = '{tbl}';
-		  FOR new_data IN SELECT h.*
-					 FROM {tbl}_history h
-						  JOIN version v ON (h.version = v.id) 
-					 WHERE dest_bit = '0' AND v.num = (
-						  SELECT max(v2.num) 
-						  FROM {tbl}_history h2 
-						  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-						  WHERE v2.num >from_version AND v2.num <= to_version)
-		  LOOP
-				SELECT h.* INTO old_data
-				FROM {tbl}_history h
-					 JOIN version v ON (h.version = v.id) 
-				WHERE h.uid = new_data.uid AND dest_bit = '0' AND v.num = (
-					 SELECT max(v2.num) 
-					 FROM {tbl}_history h2 
-						  JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-					 WHERE v2.num <=from_version);
-
-				IF (old_data IS NOT NULL) AND (old_data.name <> new_data.name) THEN
-					 --first change is changed name
-					 result.name = old_data.name;
-					 result.attribute = 'name';
-					 result.old_data = old_data.name;
-					 result.new_data = new_data.name;
-					 RETURN NEXT result;
-				END IF;
-					 
-				result.name = new_data.name;
-				{columns_changes}
-		  END LOOP;
+		result.command = 'setAttribute';
+		result.objkind = '{tbl}';
+		FOR {old_new_obj_list} IN 
+			SELECT {select_old_new_list}
+			FROM diff_data
+			WHERE new_name IS NOT NULL
+		LOOP				
+			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
+					--first change is changed name
+					result.objname = old_data.name;
+					result.attribute = 'name';
+					result.olddata = old_data.name;
+					result.newdata = new_data.name;
+					RETURN NEXT result;
+			END IF;
+			result.objname = new_data.name;
+			{columns_changes}
+		END LOOP;
 	 END
 	 $$
 	 LANGUAGE plpgsql; 
@@ -900,7 +889,7 @@ $$
 BEGIN
 	RETURN QUERY 
 	SELECT h1.* 
-	FROM hardware_history h1 
+	FROM {tbl}_history h1 
 		JOIN version v1 ON (v1.id = h1.version)
 		JOIN (	SELECT uid, max(num) AS maxnum 
 				FROM {tbl}_history h JOIN version v ON (v.id = h.version )
@@ -931,6 +920,21 @@ BEGIN
 				WHERE v.num <= to_version and v.num > from_version
 				GROUP BY uid) vmax1 
 		ON(h1.uid = vmax1.uid and v1.num = vmax1.maxnum);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_init_function_string = '''CREATE FUNCTION {tbl}_init_diff(from_version bigint, to_version bigint)
+RETURNS void AS
+$$
+BEGIN
+	--needs better design
+	CREATE TEMP TABLE diff_data 
+	AS SELECT {diff_columns}
+		FROM {tbl}_data_version(from_version) dv FULL OUTER JOIN {tbl}_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
 END
 $$
 LANGUAGE plpgsql;
