@@ -134,8 +134,9 @@ class DB:
 		"pendingChangesets": [MatrixResult],
 		# test listVersions
 		"listVersions": [MatrixResult],
-		"jsnVersions": [Result],
-		# test diff
+		"jsnVersions": [JsonResult],
+		# test
+		"jsnKindInstances": [JsonResult,"kindName"],
 		"diff_add": [VectorResult,"from","to"],
 		"diff_set": [VectorResult,"from","to"],
 		"diff_del": [VectorResult,"from","to"],

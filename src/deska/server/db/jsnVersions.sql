@@ -1,7 +1,7 @@
-SET search_path TO api,genproc,history,deska,versioning,production;
+SET search_path TO deska,api,genproc,history,versioning,production;
 
-drop function deska.jsnVersions();
-CREATE OR REPLACE FUNCTION deska.jsnVersions()
+drop function jsnVersions();
+CREATE OR REPLACE FUNCTION jsnVersions()
 RETURNS text
 AS
 $$
@@ -22,3 +22,19 @@ def main():
 	return slist
 $$
 LANGUAGE python;
+
+drop function jsnKindInstances(text);
+CREATE OR REPLACE FUNCTION jsnKindInstances(kindName text)
+RETURNS text
+AS
+$$
+import Postgres
+@pytypes
+def main(kindName):
+	plan = prepare("SELECT * FROM kindInstances($1)")
+	a = plan(kindName)
+
+	return list(a)
+$$
+LANGUAGE python;
+
