@@ -47,6 +47,7 @@ def main(x,y):
 	d = dict()
 	d["command"] = "responce"
 	d["data"] = res
+	return str(res)
 
 $$
 LANGUAGE python;
