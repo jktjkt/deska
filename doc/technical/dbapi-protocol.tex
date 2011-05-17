@@ -415,14 +415,13 @@ Results of these modifying operations can be consulted via the \deskaFuncRef{lis
 \label{sec:api-revision-semantics}
 
 Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to which
-the current query applies.  When the version is not specified, behavior of these commands varies depending on whether
-there is any active changeset associated with current session.  When the session is in the default state, ie. at the
-beginning of the connection when no VCS management has been attempted yet, or after a
-\deskaFuncRef{detachFromCurrentChangeset} succeeded, the implicit revision is fixed at ``latest committed at the time
-the session started''.  After each successful commit of a permanent revision, this number gets updated to the revision
-number of that revision.
+the current query applies.  When the version is not specified, the implicit value is fixed at the latest persistent
+revision which was committed at the time the session started.
 
-FIXME
+When user attaches an existing pending changeset, this implicit value changes to the ``parent revision'' of the
+current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
+Detaching from a pending changeset or aborting one sets the implicit revision number of the session to the latest
+commit.
 
 \subsection{API Reference}
 
