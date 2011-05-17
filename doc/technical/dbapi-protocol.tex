@@ -499,7 +499,43 @@ FIXME: do we want to have findOverriddenAttrs and findNonOverriddenAttrs?
 
 Any function which modifies objects stored in the Deska database belongs to this group.
 
-FIXME
+FIXME: change return values of these functions\ldots
+
+\deskaFunc{deleteObject}{, "kindName": "something", "objectName": "name"}
+    {}
+    {Delete an instance of an object}
+    {This function deletes a particular instance of an object of a given type from the database.}
+
+\deskaFunc{createObject}{, "kindName": "something", "objectName": "name"}
+    {}
+    {Create a new instance of an object}
+    {This function creates a new instance of a given object.  All attributes are initially unset, which means that you
+    might have to call \deskaFuncRef{setAttribute} before you will be allowed to commit your changes if some attributes
+    have a constraint not to be NULL.}
+
+\deskaFunc{renameObject}{, "kindName": "something", "oldName": "name", "newName": "name"}
+    {}
+    {Change the name of an object}
+    {This function will rename an object.  All references to the old name are automatically updated to point to the new
+    one.}
+
+\deskaFunc{setAttribute}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "something"}
+    {}
+    {Set an object's attribute to something}
+    {This function will update the value of a particular object's attribute.  To remove an object's attribute, set its
+    value to null.}
+
+\deskaFunc{applyBatchedChanges}{"modifications": [ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
+    \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
+    \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
+    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
+    "attributeData": "new", "oldAttributeData": "old"\} \\
+    ]}
+    {}
+    {Apply a list of batched modifications at once}
+    {Use this function to send a list of modifications to the database in one network operation, potentially saving
+    substantial amounts of time.}
 
 \subsubsection{Version Control}
 \label{sec:api-group-vcs}
