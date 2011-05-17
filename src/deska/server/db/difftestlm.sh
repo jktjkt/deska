@@ -1,10 +1,17 @@
 time psql -d deska_dev luke -c "
 SET search_path TO api,genproc,history,deska,versioning,production;
+select * from lm_diff($1,$2);
+" > test.out2
+
+time psql -d deska_dev luke -c "
+SET search_path TO api,genproc,history,deska,versioning,production;
 select * from large_modul_init_diff($1,$2);
 select * from large_modul_diff_created();
 select * from large_modul_diff_set_attributes();
 select * from large_modul_diff_deleted();
 " > test.out1
+
+exit
 
 time echo '{"command": "large_modul_init_diff", "from":'$1', "to":'$2'}
 {"command": "large_modul_diff_created"}

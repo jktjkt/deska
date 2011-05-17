@@ -1148,6 +1148,50 @@ def main(x,y):
 $$
 LANGUAGE python;
 
+drop function lm_diff(bigint,bigint);
+CREATE OR REPLACE FUNCTION lm_diff(x bigint, y bigint)
+RETURNS SETOF text
+AS
+$$
+import Postgres
+@pytypes
+def main(x,y):
+	plan = prepare("SELECT * FROM large_modul_init_diff($1,$2)")
+	a = plan(x,y)
+	plan = prepare("SELECT * FROM large_modul_diff_created()")
+	a = plan()
+
+	for line in a:
+		base = dict()
+		base["command"] = "createObject"
+		base["kindName"] = "large_modul"
+		base["objectName"] = line["large_modul_diff_created"]
+		yield str(base)
+
+	plan = prepare("SELECT * FROM large_modul_diff_set_attributes()")
+	a = plan()
+
+	for line in a:
+		base = dict()
+		base["command"] = "setAttribute"
+		base["kindName"] = "large_modul"
+		base["attributeName"] = line["attribute"]
+		base["value"] = line["newdata"]
+		base["objectName"] = line["objname"]
+		yield str(base)
+
+	plan = prepare("SELECT * FROM large_modul_diff_deleted()")
+	a = plan()
+
+	for line in a:
+		base = dict()
+		base["command"] = "deleteObject"
+		base["kindName"] = "large_modul"
+		base["objectName"] = line["large_modul_diff_deleted"]
+		yield str(base)
+$$
+LANGUAGE python;
+
 CREATE OR REPLACE FUNCTION lm_diff_add(x bigint, y bigint)
 RETURNS SETOF text
 AS
@@ -1164,13 +1208,10 @@ def main(x,y):
 	plan = prepare('SELECT {coldef},chv.name as name FROM large_modul_data_version($1) AS dv RIGHT OUTER JOIN large_modul_changes_between_versions($1,$2) AS chv ON dv.uid = chv.uid WHERE dv.name IS NULL'.format(coldef = coldef))
 	a = plan(x,y)
 
-	setlist = list()
 	for line in a:
 		yield '"command":"createObject", "kind": "large_modul", "{0}": "{1}"'.format("create",line["name"])
-		setlist.extend(['"command":"setAttribute", "kind": "large_modul",, "{0}": "{1}"'.format(new,line[new]) for new in names])
-	for x in setlist:
-		yield x
-		
+		for new in names:
+			yield '"command":"setAttribute", "kind": "large_modul",, "{0}": "{1}"'.format(new,line[new])
 
 $$
 LANGUAGE python;
