@@ -28,15 +28,6 @@ class Result:
 				lst[att] = str(lst[att])
 		return lst
 
-
-class JsonResult(Result):
-	def __init__(self,db_mark):
-		self.mark = db_mark
-		self.res = db_mark.fetchall()
-	def parse(self):
-		print self.res[0][0]
-		return self.res[0][0]
-
 class BoolResult(Result):
 	def __init__(self,db_mark):
 		self.mark = db_mark
@@ -135,24 +126,8 @@ class DB:
 		"pendingChangesets": [MatrixResult],
 		# test listVersions
 		"listVersions": [MatrixResult],
-		"jsnVersions": [Result],
-		# test diff
-		"diff_add": [VectorResult,"from","to"],
-		"diff_set": [VectorResult,"from","to"],
-		"diff_del": [VectorResult,"from","to"],
-		"lm_diff_add": [VectorResult,"from","to"],
-		"lm_diff_set": [VectorResult,"from","to"],
-		"lm_diff_del": [VectorResult,"from","to"],
-		"lm_diff": [VectorResult,"from","to"],
-		"lm_diff_json": [JsonResult,"from","to"],
-		"init_diff": [Result,"from","to"],
-		"hardware_diff_created": [MatrixResult],
-		"hardware_diff_set_attributes": [MatrixResult],
-		"hardware_diff_deleted": [MatrixResult],
-		"large_modul_init_diff": [Result,"from","to"],
-		"large_modul_diff_created": [MatrixResult],
-		"large_modul_diff_set_attributes": [MatrixResult],
-		"large_modul_diff_deleted": [MatrixResult]
+		"jsnVersions": [Result]
+		#  diff ...
 	})
 	data_methods = dict({
 		"objectData": [TupleResult,"kindName", "objectName"]
