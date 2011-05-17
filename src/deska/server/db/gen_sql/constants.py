@@ -766,68 +766,29 @@ class Templates:
 '''
  #template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION 
-	 {tbl}_diff_deleted(from_version bigint, to_version bigint)
-	 RETURNS SETOF text
-	 AS
-	 $$
-	 BEGIN
-	 RETURN QUERY SELECT h.name 
-	 FROM {tbl}_history h 
-		  JOIN version v ON (h.version = v.id) 
-	 WHERE dest_bit = '1' AND v.num = (
-		  SELECT max(v2.num) 
-		  FROM {tbl}_history h2 
-				JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-		  WHERE v2.num >from_version AND v2.num <= to_version)
-	 -- exists max version <= from_version, where not dest_bit ='0'
-	 AND EXISTS ( 	
-		  SELECT v_ex.num 
-		  FROM {tbl}_history h_ex
-		  JOIN version v_ex ON (h_ex.uid = h.uid AND h_ex.version = v_ex.id) 
-		  WHERE v_ex.num = (
-				SELECT max(v2_ex.num) 
-				FROM {tbl}_history h2_ex
-					 JOIN version v2_ex ON (h2_ex.uid = h_ex.uid AND h2_ex.version = v2_ex.id AND v2_ex.num <= from_version)  
-		  AND h_ex.dest_bit = '0'
-		  )
-	 );
-	 END;
-	 $$
-	 LANGUAGE plpgsql;
+{tbl}_diff_deleted()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
+END;
+$$
+LANGUAGE plpgsql;
 
 '''
 
  #template for getting created objects between two versions
 	diff_created_string = '''CREATE FUNCTION 
-	{tbl}_diff_created(from_version bigint, to_version bigint)
-	 RETURNS SETOF text
-	 AS
-	 $$
-	 BEGIN
-	 RETURN QUERY SELECT h.name 
-	 FROM {tbl}_history h 
-		  JOIN version v ON (h.version = v.id) 
-	 WHERE dest_bit = '0' AND v.num = (
-		  SELECT max(v2.num) 
-		  FROM {tbl}_history h2 
-				JOIN version v2 ON (h2.uid = h.uid AND h2.version = v2.id) 
-		  WHERE v2.num >from_version AND v2.num <= to_version)
-	 AND NOT EXISTS ( 	
-		  SELECT v_ex.num 
-		  FROM {tbl}_history h_ex
-		  JOIN version v_ex ON (h_ex.uid = h.uid AND h_ex.version = v_ex.id) 
-		  WHERE v_ex.num = (
-				SELECT max(v2_ex.num) 
-				FROM {tbl}_history h2_ex
-					 JOIN version v2_ex ON (h2_ex.uid = h_ex.uid AND h2_ex.version = v2_ex.id AND v2_ex.num <= from_version)  
-		  --for case of recreated object which should continue
-		  AND h_ex.dest_bit = '0'
-		  )
-	 );
-
-	 END;
-	 $$
-	 LANGUAGE plpgsql;
+{tbl}_diff_created()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT new_name FROM {tbl}_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
+END;
+$$
+LANGUAGE plpgsql;
 
 '''
 
@@ -860,8 +821,8 @@ class Templates:
 		result.objkind = '{tbl}';
 		FOR {old_new_obj_list} IN 
 			SELECT {select_old_new_list}
-			FROM diff_data
-			WHERE new_name IS NOT NULL
+			FROM {tbl}_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
 		LOOP				
 			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
 					--first change is changed name
@@ -928,14 +889,28 @@ LANGUAGE plpgsql;
 
 #template for function that prepairs temp table for diff functions
 	diff_init_function_string = '''CREATE FUNCTION {tbl}_init_diff(from_version bigint, to_version bigint)
-RETURNS void AS
+RETURNS void
+AS
 $$
 BEGIN
 	--needs better design
-	CREATE TEMP TABLE diff_data 
+	CREATE TEMP TABLE {tbl}_diff_data 
 	AS SELECT {diff_columns}
 		FROM {tbl}_data_version(from_version) dv FULL OUTER JOIN {tbl}_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
 END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	diff_terminate_function_string = '''CREATE FUNCTION 
+{tbl}_terminate_diff()
+RETURNS void
+AS
+$$
+BEGIN
+	DROP TABLE {tbl}_diff_data;
+END;
 $$
 LANGUAGE plpgsql;
 
