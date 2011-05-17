@@ -7,7 +7,7 @@ import logging
 LOG_FILENAME = 'deska_server.log'
 logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
 
-conn = psycopg2.connect("dbname='deska_dev'");
+conn = psycopg2.connect("dbname='deska_test'");
 
 class Result:
 	def __init__(self,db_mark):
@@ -34,6 +34,7 @@ class JsonResult(Result):
 		self.mark = db_mark
 		self.res = db_mark.fetchall()
 	def parse(self):
+		print self.res[0][0]
 		return self.res[0][0]
 
 class BoolResult(Result):

@@ -39,7 +39,7 @@ SELECT startChangeset();
 		if (count == 0):			
 			count = self.count
 		names = Names("names.txt")
-		#names.extend(1000)
+		names.extend(count / 5000)
 		# gen set of N random (and unique) names
 		self.vendor = names.rset(count) 
 		str = map(self.vendor_add_template.format, self.vendor)
@@ -49,7 +49,7 @@ SELECT startChangeset();
 		if (count == 0):			
 			count = self.count * 3
 		names = Names("names.txt")
-		names.extend(1000)
+		names.extend(count / 5000)
 		# gen set of N random (and unique) names
 		self.hardware = names.rset(count) 
 		str1 = map(self.hardware_add_template.format, self.hardware)
@@ -73,7 +73,8 @@ SELECT startChangeset();
 		if (count == 0):			
 			count = self.count * 4
 		names = Names("names.txt")
-		names.extend(1000)
+		names.extend(count / 5000)
+		# gen set of N random (and unique) names
 		# gen set of N random (and unique) names
 		self.host = names.rset(count) 
 		str1 = map(self.host_add_template.format, self.host)
@@ -113,20 +114,27 @@ SELECT startChangeset();
 		
 	def insert_commits(self, count = 0):
 		if (count == 0):			
-			count = self.count * 3
+			count = len(self.data) / 10
 		index = Numbers(len(generator.data)).rset(count)
 		for i in index:
 			self.data.insert(i,self.commit_template)
 
 	def run(self):
-		generator.add_vendors(10)
-		generator.add_hardwares(100000)
-	#	generator.add_hosts()
-		# to slow, comment for large data
-	#	generator.add_interfaces()
-		generator.insert_commits(10000)
+		generator.add_vendors()
+		generator.insert_commits()
+		print script_template.format(data = "\n".join(generator.data))
+		generator.data = list()
+		generator.add_hardwares()
+		generator.insert_commits()
+		print script_template.format(data = "\n".join(generator.data))
+		generator.data = list()
+		generator.add_hosts()
+		generator.insert_commits()
+		print script_template.format(data = "\n".join(generator.data))
+		generator.data = list()
+		generator.add_interfaces()
+		generator.insert_commits()
+		print script_template.format(data = "\n".join(generator.data))
 
 generator = Generator(int(sys.argv[1]))
 generator.run()
-# print
-print script_template.format(data = "\n".join(generator.data))
