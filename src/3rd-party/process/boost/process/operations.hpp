@@ -18,6 +18,11 @@
 #ifndef BOOST_PROCESS_OPERATIONS_HPP 
 #define BOOST_PROCESS_OPERATIONS_HPP 
 
+// The boost::process requires "filesystem v2" instead of "filesystem v3", and v3 is the default in boost-1.46+.
+// The boost developers apparently want to remove v2 in boost 1.48, which is when this code will
+// very likely break horribly. Compatibility ftw!
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include <boost/process/config.hpp> 
 
 #if defined(BOOST_POSIX_API) 
