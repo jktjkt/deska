@@ -543,7 +543,66 @@ Any function which modifies objects stored in the Deska database belongs to this
 This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
 History}, section \ref{sec:api-group-history}.
 
-FIXME
+\deskaFunc{startChangeset}{}
+    {"tmp123"}
+    {Create a temporary changeset for modifying the DB}
+    {This function will create a new changeset and immediately attach current session to it.  All changes performed in
+    the session are stored in the temporary changeset.}
+
+\deskaFunc{commitChangeset}{"commitMessage": "message"}
+    {"r123"}
+    {Commit current in-progress changeset}
+    {This operation will commit the temporary changeset (ie. everything since the corresponding
+    \deskaFuncRef{startChangeset} call) into the production DB.  A new persistent revision will be created.}
+
+\deskaFunc{rebaseChangeset}{"parentRevision": "r666"}
+    {}
+    {Make current in-progress changeset appear as a child of a specified revision}
+    {In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
+    persistent, production revisions unless the latest persistent revision is the same as was present at the time the
+    user started working on her in-progress copy. For example, if there was a revision X and user A started working on a
+    changeset J, and while the J still was not comitted, another user went ahead and created revision X+1, user A won't
+    be able to push her changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In
+    order to be able to push J and turn it into a persistent revision, it has to be explicitly marked as derived from
+    X+1, which is exactly what this function performs.}
+
+\deskaFunc{pendingChangesets}{}
+    {[
+     \{"changeset": "tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
+     "parentRevision": "r666", "message": "message", \\ "activeConnectionInfo": null\}
+    ]}
+    {Return a list of all pending changesets}
+    {This function returns a vector of metadata for all pending changesets which are currently available in the
+    database.  Without further arguments, this function will return information about changesets without any owner
+    filtering.}
+
+\deskaFunc{resumeChangeset}{"revision": "r123"}
+    {}
+    {Re-open a pre-existing changeset}
+    {This function will attach current session to a pre-existing changeset which hasn't been committed yet. An example
+    where doing that would be handy is upon the initial connect to the DB, where the client would typically call
+    pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps
+    because the original session has died.}
+
+\deskaFunc{detachFromCurrentChangeset}{"message": "clarify why"}
+    {}
+    {Detach this session from its active changeset}
+    {This function will detach current session from its associated active changeset.  There could be many changesets in
+    the Deska DB (all stored on the Deska DB server) which might belong to various users.  Each session (ie. a
+    connection to the database) could only have at most one particular changeset associated with itself, and that
+    changeset is called the {\em current} one.  It is the changeset that will receive all updates from the functions
+    which perform database modifications.
+
+    The purpose of this function is to facilitate a way to temporarily detach from a revision which still needs some
+    time before it could be committed. After the former active changeset is detached, it remains available for further
+    processing via the \deskaFuncRef{resumeChangeset} function, but the current session is not associated with an active
+    changeset anymore. This is intended to make sure that user has to explicitly ask for her changes to be "set aside"
+    instead of doing that implicitly from inside \deskaFuncRef{startChangeset}.}
+
+\deskaFunc{abortCurrentChangeset}{}{}
+    {Abort an in-progress changeset}
+    {This function will throw away any changes made so far in the active changeset and remove that changeset from the
+    list of pending changestes.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}
@@ -574,8 +633,13 @@ Functions for browsing history of individual objects, retrieving lists of differ
     object has been created and its attribute set to a particular value, the creation shall be present before the record
     for setting an attribute.
 
-    FIXME: more information goes here\ldots}
+    The format of the returned data is the same as the argument of \deskaFuncRef{applyBatchedChanges}.}
 
-FIXME: dataDifferenceInTemporaryChangeset
+\deskaFunc{dataDifferenceInTemporaryChangeset}{, "changeset": "tmp123"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\} \\
+    ]}
+    {Return differences between the database state in the specified versions}
+    {See \deskaFuncRef{dataDifference} for details.}
 
 \end{document}
