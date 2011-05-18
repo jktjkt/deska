@@ -212,7 +212,7 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
-    JsonCommandContext c1("deleteObject");
+    JsonCommandContext c1("createObject");
 
     JsonHandlerApiWrapper h(this, "createObject");
     h.write(j_kindName, kindName);
