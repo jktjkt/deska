@@ -38,27 +38,28 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-void DbInteraction::createObject(const std::vector<Db::ObjectDefinition> &context)
+void DbInteraction::createObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->createObject(context.back().kind, context.back().name);
+    m_api->createObject(context.back().kind, Db::toPath(context));
 }
 
 
 
-void DbInteraction::deleteObject(const std::vector<Db::ObjectDefinition> &context)
+void DbInteraction::deleteObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->deleteObject(context.back().kind, context.back().name);
+    m_api->deleteObject(context.back().kind, Db::toPath(context));
 }
 
 
 
-void DbInteraction::setAttribute(const std::vector<Db::ObjectDefinition> &context,
+void DbInteraction::setAttribute(const Db::ContextStack &context,
                                  const Db::AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, context.back().name, attribute.attribute, attribute.value);
+    m_api->setAttribute(context.back().kind, Db::toPath(context), attribute.attribute, attribute.value);
+}
 }
 
 
@@ -88,12 +89,12 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 
 
 
-std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const std::vector<Db::ObjectDefinition> &context)
+std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
     if (!context.empty()) {
         typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
-        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, context.back().name)) {
+        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::toPath(context))) {
             attributes.push_back(Db::AttributeDefinition(x.first, x.second));
         }
     }
@@ -102,7 +103,7 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const std::vec
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const std::vector<Db::ObjectDefinition> &context)
+std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::ContextStack &context)
 {
     std::vector<Db::ObjectDefinition> kinds;
     if (!context.empty()) {

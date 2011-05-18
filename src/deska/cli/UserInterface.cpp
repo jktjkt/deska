@@ -44,7 +44,7 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
 
 
 
-void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
     std::vector<Db::ObjectDefinition> objects;
@@ -58,7 +58,7 @@ void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition>
 
 
 
-void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+void UserInterface::applySetAttribute(const Db::ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
@@ -66,7 +66,7 @@ void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &c
 
 
 
-void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     printAttributes(context);
     printNestedKinds(context);
@@ -74,14 +74,14 @@ void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &c
 
 
 
-void UserInterface::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 {
     m_dbInteraction->deleteObject(context);
 }
 
 
 
-bool UserInterface::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
@@ -103,7 +103,7 @@ bool UserInterface::confirmCategoryEntered(const std::vector<Db::ObjectDefinitio
 
 
 
-bool UserInterface::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     return true;
@@ -111,14 +111,14 @@ bool UserInterface::confirmSetAttribute(const std::vector<Db::ObjectDefinition> 
 
 
 
-bool UserInterface::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 {
     return true;
 }
 
 
 
-bool UserInterface::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
     std::ostringstream ss;
     ss << "Are you sure you want to delete object " << context.back() << "?";
@@ -163,7 +163,7 @@ void UserInterface::dumpDbContents()
 
 
 
-void UserInterface::printAttributes(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::printAttributes(const Db::ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
     attributes = m_dbInteraction->allAttributes(context);
@@ -174,7 +174,7 @@ void UserInterface::printAttributes(const std::vector<Db::ObjectDefinition> &con
 
 
 
-void UserInterface::printNestedKinds(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::printNestedKinds(const Db::ContextStack &context)
 {
     std::vector<Db::ObjectDefinition> kinds;
     kinds = m_dbInteraction->allNestedKinds(context);
@@ -298,7 +298,7 @@ void UserInterface::eventLoop()
 {
     std::string line;
     out << prompt;
-    std::vector<Db::ObjectDefinition> context;
+    Db::ContextStack context;
     std::ostringstream promptBuilder;
     while (getline(in, line)) {
         // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
@@ -323,14 +323,7 @@ void UserInterface::eventLoop()
         }
 
         context = m_parser->currentContextStack();
-        promptBuilder.str("");
-        for (std::vector<Db::ObjectDefinition>::const_iterator it = context.begin(); it != context.end(); ++it) {
-            if (it != context.begin())
-                promptBuilder << " -> ";
-            promptBuilder << *it;
-        }
-        promptBuilder << "> ";
-        prompt = promptBuilder.str();
+        prompt = Db::toString(context) + "> ";
         out << prompt;
     }
 }

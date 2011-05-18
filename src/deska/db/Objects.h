@@ -24,6 +24,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <vector>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
@@ -197,6 +198,25 @@ struct AttributeDefinition
 
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a);
 
+
+/** @short Typedef for context stack. */
+typedef std::vector<ObjectDefinition> ContextStack;
+
+/** @short Function for converting context stack into name path to the object on the top.
+*
+*   This function is for obtaining full name from the context stack, so we can pass it to the DB.
+*   
+*   Example: For context stack [host hpv2, interface eth0] will the result of the function be hpv2->eth0
+*
+*   @param contextStack Context stack, where the top object is the one for which we want to get the path.
+*/
+Identifier toPath(const ContextStack &contextStack);
+
+/** @short Function for converting context stack into string representation.
+*
+*   @param contextStack Context stack to convert
+*/
+std::string toString(const ContextStack &contextStack);
 
 }
 }

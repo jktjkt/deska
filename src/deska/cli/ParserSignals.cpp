@@ -33,7 +33,7 @@ namespace Cli
 {
 
 
-ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
     contextStack(context), kindName(kind), objectName(object)
 {
@@ -55,7 +55,7 @@ bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalCategoryLeft::ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context):
+ParserSignalCategoryLeft::ParserSignalCategoryLeft(const Db::ContextStack &context):
     contextStack(context)
 {
 }
@@ -76,7 +76,7 @@ bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context, 
+ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
     contextStack(context), attributeName(attribute), setValue(value)
 {
@@ -98,7 +98,7 @@ bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context):
+ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
     contextStack(context)
 {
 }
@@ -119,7 +119,7 @@ bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context):
+ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &context):
     contextStack(context)
 {
 }
@@ -256,7 +256,7 @@ void SignalsHandler::slotParsingFinished()
 
 
 
-void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+void SignalsHandler::applyCategoryEntered(const Db::ContextStack &context,
                                           const Db::Identifier &kind, const Db::Identifier &object)
 {
     contextStack.push_back(Db::ObjectDefinition(kind, object));
@@ -265,14 +265,14 @@ void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition
 
 
 
-void SignalsHandler::applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
+void SignalsHandler::applyCategoryLeft(const Db::ContextStack &context)
 {
     contextStack.pop_back();
 }
 
 
 
-void SignalsHandler::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+void SignalsHandler::applySetAttribute(const Db::ContextStack &context,
                                        const Db::Identifier &attribute, const Db::Value &value)
 {
     userInterface->applySetAttribute(context, attribute, value);
@@ -280,21 +280,21 @@ void SignalsHandler::applySetAttribute(const std::vector<Db::ObjectDefinition> &
 
 
 
-void SignalsHandler::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+void SignalsHandler::applyFunctionShow(const Db::ContextStack &context)
 {
     userInterface->applyFunctionShow(context);
 }
 
 
 
-void SignalsHandler::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+void SignalsHandler::applyFunctionDelete(const Db::ContextStack &context)
 {
     userInterface->applyFunctionDelete(context);
 }
 
 
 
-bool SignalsHandler::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+bool SignalsHandler::confirmCategoryEntered(const Db::ContextStack &context,
                                             const Db::Identifier &kind, const Db::Identifier &object)
 {
     if (autoCreate)
@@ -306,7 +306,7 @@ bool SignalsHandler::confirmCategoryEntered(const std::vector<Db::ObjectDefiniti
 
 
 
-bool SignalsHandler::confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
+bool SignalsHandler::confirmCategoryLeft(const Db::ContextStack &context)
 {
     autoCreate = false;
     return true;
@@ -314,7 +314,7 @@ bool SignalsHandler::confirmCategoryLeft(const std::vector<Db::ObjectDefinition>
 
 
 
-bool SignalsHandler::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+bool SignalsHandler::confirmSetAttribute(const Db::ContextStack &context,
                                          const Db::Identifier &attribute, const Db::Value &value)
 {
     return userInterface->confirmSetAttribute(context, attribute, value);
@@ -322,14 +322,14 @@ bool SignalsHandler::confirmSetAttribute(const std::vector<Db::ObjectDefinition>
 
 
 
-bool SignalsHandler::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+bool SignalsHandler::confirmFunctionShow(const Db::ContextStack &context)
 {
     return userInterface->confirmFunctionShow(context);
 }
 
 
 
-bool SignalsHandler::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+bool SignalsHandler::confirmFunctionDelete(const Db::ContextStack &context)
 {
     return userInterface->confirmFunctionDelete(context);
 }
