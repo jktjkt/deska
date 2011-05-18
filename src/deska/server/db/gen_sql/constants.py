@@ -805,10 +805,24 @@ LANGUAGE plpgsql;
 	 
 '''
 
+#template for if constructs in diff_set_attribute, this version is for refuid columns
+	one_column_change_ref_uid_string = '''
+	 IF (old_data.{column} <> new_data.{column}) OR ((old_data.{column} IS NULL OR new_data.{column} IS NULL) 
+		  AND NOT(old_data.{column} IS NULL AND new_data.{column} IS NULL))
+	 THEN
+		  result.attribute = '{column}';
+		  result.olddata = {reftbl}_get_name(old_data.{column}, from_version);
+		  result.newdata = {reftbl}_get_name(new_data.{column}, to_version);
+		  RETURN NEXT result;			
+	 END IF;
+	 
+'''
+
+
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
 	diff_set_attribute_string = '''CREATE FUNCTION 
-	{tbl}_diff_set_attributes()
+	{tbl}_diff_set_attributes(from_version bigint, to_version bigint)
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$

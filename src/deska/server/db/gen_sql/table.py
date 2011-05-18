@@ -151,10 +151,22 @@ class Table(constants.Templates):
 		del collist['dest_bit']
 		if len(collist) == 0:
 			return ""
-		
+
+		refuid_collist = list()
 		cols_changes = ""
+		for refs in self.fks.att:
+			tbl = self.fks.tbl[refs]
+			#value of every column that refer to uid should be replaced by name of object with given uid
+			for i in range(len(self.fks.att[refs])):
+				if self.fks.ratt[refs][i] == 'uid':
+					col = self.fks.att[refs][i]
+					if col in collist:
+						del collist[col]
+						#columns that references uid
+						cols_changes = cols_changes + self.one_column_change_ref_uid_string.format(reftbl = tbl, column = col)
+		
 		for col in collist:
-			 cols_changes = cols_changes + self.one_column_change_string.format(column = col)
+			cols_changes = cols_changes + self.one_column_change_string.format(column = col)
 
 		return self.diff_set_attribute_string.format(tbl = self.name, columns_changes = cols_changes, old_new_obj_list = old_new_attributes_string, select_old_new_list = select_old_new_attributes_string)
 
