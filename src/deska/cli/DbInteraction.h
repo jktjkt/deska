@@ -53,18 +53,19 @@ public:
     *
     *   @param context Path and object definition to create
     */
-    void createObject(const std::vector<Db::ObjectDefinition> &context);
+    void createObject(const Db::ContextStack &context);
     /** @short Deletes object.
     *
     *   @param context Path and object definition to delete
     */
-    void deleteObject(const std::vector<Db::ObjectDefinition> &context);
+    void deleteObject(const Db::ContextStack &context);
     /** @short Sets attribute value in the object.
     *
     *   @param context Path to the object which attribute will be changed
     *   @param attribute Attribute and value to set
     */
-    void setAttribute(const std::vector<Db::ObjectDefinition> &context, const Db::AttributeDefinition &attribute);
+    void setAttribute(const Db::ContextStack &context, const Db::AttributeDefinition &attribute);
+
 
     /** @short Obtains list of all objects in the DB.
     *
@@ -82,13 +83,13 @@ public:
     *   @param context Path to the object for which the attributes are obtained
     *   @return Vector of all attributes
     */
-    std::vector<Db::AttributeDefinition> allAttributes(const std::vector<Db::ObjectDefinition> &context);
+    std::vector<Db::AttributeDefinition> allAttributes(const Db::ContextStack &context);
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
-    std::vector<Db::ObjectDefinition> allNestedKinds(const std::vector<Db::ObjectDefinition> &context);
+    std::vector<Db::ObjectDefinition> allNestedKinds(const Db::ContextStack &context);
 
     /** @short Function for obtaining all pending chandesets.
     *
