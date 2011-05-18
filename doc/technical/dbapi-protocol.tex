@@ -5,6 +5,7 @@
 \usepackage{a4wide}
 \usepackage{listings}
 \usepackage{longtable}
+\usepackage{etoolbox}
 
 \begin{document}
 
@@ -434,7 +435,7 @@ commit.
 
 \subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
 
-\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}, "{#1}": {#3}\}}
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
 
 }
 
@@ -499,8 +500,6 @@ FIXME: document output filters (\#210)
 \label{sec:api-group-data-modification}
 
 Any function which modifies objects stored in the Deska database belongs to this group.
-
-FIXME: change return values of these functions\ldots
 
 \deskaFunc{deleteObject}{, "kindName": "something", "objectName": "name"}
     {}
