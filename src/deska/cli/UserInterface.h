@@ -71,19 +71,19 @@ public:
     *   @see ParserSignals
     *   @see Parser
     */
-    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+    void applyCategoryEntered(const Db::ContextStack &context,
                          const Db::Identifier &kind, const Db::Identifier &object);
-    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+    void applySetAttribute(const Db::ContextStack &context,
                       const Db::Identifier &attribute, const Db::Value &value);
-    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    void applyFunctionShow(const Db::ContextStack &context);
+    void applyFunctionDelete(const Db::ContextStack &context);
 
-    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+    bool confirmCategoryEntered(const Db::ContextStack &context,
                          const Db::Identifier &kind, const Db::Identifier &object);
-    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+    bool confirmSetAttribute(const Db::ContextStack &context,
                       const Db::Identifier &attribute, const Db::Value &value);
-    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    bool confirmFunctionShow(const Db::ContextStack &context);
+    bool confirmFunctionDelete(const Db::ContextStack &context);
     //@}
 
     /** @short Reports any error to the user (error output).
@@ -105,13 +105,13 @@ public:
     *
     *   @param context Path to the object for which the attributes are printed
     */
-    void printAttributes(const std::vector<Db::ObjectDefinition> &context);
+    void printAttributes(const Db::ContextStack &context);
 
     /** @short Print nested kinds of the object in the context or top-level objects when there is no context.
     *
     *   @param context Path to the object for which the attributes are printed
     */
-    void printNestedKinds(const std::vector<Db::ObjectDefinition> &context);
+    void printNestedKinds(const Db::ContextStack &context);
 
     /** @short Make all actions needed to commit current changeset including commit message request. */
     void commitChangeset();

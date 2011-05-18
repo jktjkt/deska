@@ -18,6 +18,8 @@
 * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 * Boston, MA 02110-1301, USA.
 * */
+
+#include <sstream>
 #include "Objects.h"
 
 namespace Deska {
@@ -156,6 +158,28 @@ std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
     } else {
         return stream << "no " << a.attribute;
     }
+}
+
+Identifier toPath(const ContextStack &contextStack)
+{
+    std::ostringstream ss;
+    for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
+        if (it != contextStack.begin())
+            ss << "->";
+        ss << it->name;
+    }
+    return ss.str();
+}
+
+std::string toString(const ContextStack &contextStack)
+{
+    std::ostringstream ss;
+    for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
+        if (it != contextStack.begin())
+            ss << "->";
+        ss << *it;
+    }
+    return ss.str();
 }
 
 }
