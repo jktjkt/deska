@@ -60,6 +60,12 @@ void DbInteraction::setAttribute(const Db::ContextStack &context,
     BOOST_ASSERT(!context.empty());
     m_api->setAttribute(context.back().kind, Db::toPath(context), attribute.attribute, attribute.value);
 }
+
+
+
+std::vector<Db::Identifier> DbInteraction::kindInstances(const Db::Identifier &kindName)
+{
+    return m_api->kindInstances(kindName);
 }
 
 

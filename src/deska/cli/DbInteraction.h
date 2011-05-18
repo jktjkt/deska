@@ -66,6 +66,12 @@ public:
     */
     void setAttribute(const Db::ContextStack &context, const Db::AttributeDefinition &attribute);
 
+    /** @short Obtains list of instances of given kind
+    *
+    *   @param kindName Kind for which the instances are obtained
+    *   @return Vector of all instances of the kind
+    */
+    std::vector<Db::Identifier> kindInstances(const Db::Identifier &kindName);
 
     /** @short Obtains list of all objects in the DB.
     *

@@ -47,11 +47,10 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
 void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    Db::ObjectDefinition category(kind, object);
+    std::vector<Db::Identifier> instances;
+    instances = m_dbInteraction->kindInstances(kind);
 
-    if (std::find(objects.begin(), objects.end(), category) == objects.end()) {
+    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
         m_dbInteraction->createObject(context);
     }
 }
@@ -86,18 +85,17 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    Db::ObjectDefinition category(kind, object);
+    std::vector<Db::Identifier> instances;
+    instances = m_dbInteraction->kindInstances(kind);
 
-    if (std::find(objects.begin(), objects.end(), category) != objects.end()) {
+    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) != instances.end()) {
         // Object exists
         return true;
     }
 
     // Object does not exist -> ask the user here
     std::ostringstream ss;
-    ss << category << " does not exist. Create?";
+    ss << Db::ObjectDefinition(kind,object) << " does not exist. Create?";
     return askForConfirmation(ss.str());    
 }
 
@@ -216,6 +214,7 @@ void UserInterface::printHelp()
 {
     out << "CLI commands:" << std::endl;
     out << "exit   - Exits the CLI" << std::endl;
+    out << "quit   - Exits the CLI" << std::endl;
     out << "dump   - Prints everything in the DB" << std::endl;
     out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
     out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
