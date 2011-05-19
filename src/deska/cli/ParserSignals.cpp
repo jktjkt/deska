@@ -43,19 +43,21 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack 
 
 void ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
-    Db::ContextStack stack(contextStack);
-    stack.push_back(Db::ObjectDefinition(kindName, objectName));
-    signalsHandler->userInterface->applyCategoryEntered(stack, kindName, objectName);
+    // At this place, we have to manipulate the signalsHandler's contextStack, not ours
+    signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
+    signalsHandler->userInterface->applyCategoryEntered(signalsHandler->contextStack, kindName, objectName);
 }
 
 
 
 bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
 {
-    if (signalsHandler->autoCreate)
+    if (signalsHandler->autoCreate) {
         return true;
-    else
+    } else {
+        // Careful here -- we have to work with *our* instance of the contextStack, not the signalsHandler's one
         signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(contextStack, kindName, objectName);
+    }
     return signalsHandler->autoCreate;
 }
 
