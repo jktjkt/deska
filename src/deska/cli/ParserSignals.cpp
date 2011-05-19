@@ -35,7 +35,7 @@ namespace Cli
 
 ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
-    contextStack(context), kindName(kind), objectName(object)
+    pastContext(context), kindName(kind), objectName(object)
 {
 }
 
@@ -56,15 +56,14 @@ bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
         return true;
     } else {
         // Careful here -- we have to work with *our* instance of the contextStack, not the signalsHandler's one
-        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(contextStack, kindName, objectName);
+        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(pastContext, kindName, objectName);
     }
     return signalsHandler->autoCreate;
 }
 
 
 
-ParserSignalCategoryLeft::ParserSignalCategoryLeft(const Db::ContextStack &context):
-    contextStack(context)
+ParserSignalCategoryLeft::ParserSignalCategoryLeft()
 {
 }
 
@@ -87,7 +86,7 @@ bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 
 ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
-    contextStack(context), attributeName(attribute), setValue(value)
+    pastContext(context), attributeName(attribute), setValue(value)
 {
 }
 
@@ -95,20 +94,20 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &conte
 
 void ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applySetAttribute(contextStack, attributeName, setValue);
+    signalsHandler->userInterface->applySetAttribute(pastContext, attributeName, setValue);
 }
 
 
 
 bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmSetAttribute(contextStack, attributeName, setValue);
+    return signalsHandler->userInterface->confirmSetAttribute(pastContext, attributeName, setValue);
 }
 
 
 
 ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
-    contextStack(context)
+    pastContext(context)
 {
 }
 
@@ -116,20 +115,20 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &conte
 
 void ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyFunctionShow(contextStack);
+    signalsHandler->userInterface->applyFunctionShow(pastContext);
 }
 
 
 
 bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmFunctionShow(contextStack);
+    return signalsHandler->userInterface->confirmFunctionShow(pastContext);
 }
 
 
 
 ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &context):
-    contextStack(context)
+    pastContext(context)
 {
 }
 
@@ -137,14 +136,14 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &c
 
 void ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyFunctionDelete(contextStack);
+    signalsHandler->userInterface->applyFunctionDelete(pastContext);
 }
 
 
 
 bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmFunctionDelete(contextStack);
+    return signalsHandler->userInterface->confirmFunctionDelete(pastContext);
 }
 
 
@@ -202,7 +201,7 @@ void SignalsHandler::slotCategoryEntered(const Db::Identifier &kind, const Db::I
 
 void SignalsHandler::slotCategoryLeft()
 {
-    signalsStack.push_back(ParserSignalCategoryLeft(m_parser->currentContextStack()));
+    signalsStack.push_back(ParserSignalCategoryLeft());
 }
 
 

@@ -75,7 +75,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -95,7 +95,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalCategoryLeft(const Db::ContextStack &context);
+    ParserSignalCategoryLeft();
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -108,11 +108,6 @@ public:
     *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
-
-private:
-
-    /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack contextStack;
 };
 
 
@@ -146,7 +141,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -183,7 +178,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack contextStack;
+    Db::ContextStack pastContext;
 };
 
 
@@ -214,7 +209,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack contextStack;
+    Db::ContextStack pastContext;
 };
 
 
