@@ -43,14 +43,20 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack 
 
 void ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyCategoryEntered(contextStack, kindName, objectName);
+    Db::ContextStack stack(contextStack);
+    stack.push_back(Db::ObjectDefinition(kindName, objectName));
+    signalsHandler->userInterface->applyCategoryEntered(stack, kindName, objectName);
 }
 
 
 
 bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmCategoryEntered(contextStack, kindName, objectName);
+    if (signalsHandler->autoCreate)
+        return true;
+    else
+        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(contextStack, kindName, objectName);
+    return signalsHandler->autoCreate;
 }
 
 
@@ -64,14 +70,15 @@ ParserSignalCategoryLeft::ParserSignalCategoryLeft(const Db::ContextStack &conte
 
 void ParserSignalCategoryLeft::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyCategoryLeft(contextStack);
+    signalsHandler->contextStack.pop_back();
 }
 
 
 
 bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmCategoryLeft(contextStack);
+    signalsHandler->autoCreate = false;
+    return true;
 }
 
 
@@ -86,14 +93,14 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &conte
 
 void ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applySetAttribute(contextStack, attributeName, setValue);
+    signalsHandler->userInterface->applySetAttribute(contextStack, attributeName, setValue);
 }
 
 
 
 bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmSetAttribute(contextStack, attributeName, setValue);
+    return signalsHandler->userInterface->confirmSetAttribute(contextStack, attributeName, setValue);
 }
 
 
@@ -107,14 +114,14 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &conte
 
 void ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyFunctionShow(contextStack);
+    signalsHandler->userInterface->applyFunctionShow(contextStack);
 }
 
 
 
 bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmFunctionShow(contextStack);
+    return signalsHandler->userInterface->confirmFunctionShow(contextStack);
 }
 
 
@@ -128,14 +135,14 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &c
 
 void ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyFunctionDelete(contextStack);
+    signalsHandler->userInterface->applyFunctionDelete(contextStack);
 }
 
 
 
 bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmFunctionDelete(contextStack);
+    return signalsHandler->userInterface->confirmFunctionDelete(contextStack);
 }
 
 
@@ -253,87 +260,6 @@ void SignalsHandler::slotParsingFinished()
     // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
     m_parser->setContextStack(contextStack);
 }
-
-
-
-void SignalsHandler::applyCategoryEntered(const Db::ContextStack &context,
-                                          const Db::Identifier &kind, const Db::Identifier &object)
-{
-    contextStack.push_back(Db::ObjectDefinition(kind, object));
-    userInterface->applyCategoryEntered(context, kind, object);
-}
-
-
-
-void SignalsHandler::applyCategoryLeft(const Db::ContextStack &context)
-{
-    contextStack.pop_back();
-}
-
-
-
-void SignalsHandler::applySetAttribute(const Db::ContextStack &context,
-                                       const Db::Identifier &attribute, const Db::Value &value)
-{
-    userInterface->applySetAttribute(context, attribute, value);
-}
-
-
-
-void SignalsHandler::applyFunctionShow(const Db::ContextStack &context)
-{
-    userInterface->applyFunctionShow(context);
-}
-
-
-
-void SignalsHandler::applyFunctionDelete(const Db::ContextStack &context)
-{
-    userInterface->applyFunctionDelete(context);
-}
-
-
-
-bool SignalsHandler::confirmCategoryEntered(const Db::ContextStack &context,
-                                            const Db::Identifier &kind, const Db::Identifier &object)
-{
-    if (autoCreate)
-        return true;
-    else
-        autoCreate = userInterface->confirmCategoryEntered(context, kind, object);
-    return autoCreate;
-}
-
-
-
-bool SignalsHandler::confirmCategoryLeft(const Db::ContextStack &context)
-{
-    autoCreate = false;
-    return true;
-}
-
-
-
-bool SignalsHandler::confirmSetAttribute(const Db::ContextStack &context,
-                                         const Db::Identifier &attribute, const Db::Value &value)
-{
-    return userInterface->confirmSetAttribute(context, attribute, value);
-}
-
-
-
-bool SignalsHandler::confirmFunctionShow(const Db::ContextStack &context)
-{
-    return userInterface->confirmFunctionShow(context);
-}
-
-
-
-bool SignalsHandler::confirmFunctionDelete(const Db::ContextStack &context)
-{
-    return userInterface->confirmFunctionDelete(context);
-}
-
 
 
 }

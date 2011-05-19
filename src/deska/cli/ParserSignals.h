@@ -302,25 +302,6 @@ public:
     */
     SignalsHandler(Parser *_parser, UserInterface *_userInterface);
 
-    //@{
-    /** @short Functions that only forwards call to the UserInterface. */
-    void applyCategoryEntered(const Db::ContextStack &context,
-                              const Db::Identifier &kind, const Db::Identifier &object);
-    void applyCategoryLeft(const Db::ContextStack &context);
-    void applySetAttribute(const Db::ContextStack &context,
-                           const Db::Identifier &attribute, const Db::Value &value);
-    void applyFunctionShow(const Db::ContextStack &context);
-    void applyFunctionDelete(const Db::ContextStack &context);
-
-    bool confirmCategoryEntered(const Db::ContextStack &context,
-                                const Db::Identifier &kind, const Db::Identifier &object);
-    bool confirmCategoryLeft(const Db::ContextStack &context);
-    bool confirmSetAttribute(const Db::ContextStack &context,
-                             const Db::Identifier &attribute, const Db::Value &value);
-    bool confirmFunctionShow(const Db::ContextStack &context);
-    bool confirmFunctionDelete(const Db::ContextStack &context);
-    //@}
-
 private:
 
     //@{
@@ -333,6 +314,12 @@ private:
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
     //@}
+
+    friend class ParserSignalCategoryEntered;
+    friend class ParserSignalCategoryLeft;
+    friend class ParserSignalSetAttribute;
+    friend class ParserSignalFunctionShow;
+    friend class ParserSignalFunctionDelete;
 
     /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;
