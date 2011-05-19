@@ -154,7 +154,7 @@ AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const 
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
 {
     if (a.value) {
-        return stream << a.attribute << " " << a.value;
+        return stream << a.attribute << " " << *(a.value);
     } else {
         return stream << "no " << a.attribute;
     }
