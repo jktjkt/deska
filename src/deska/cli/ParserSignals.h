@@ -57,7 +57,7 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+    ParserSignalCategoryEntered(const Db::ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
@@ -75,7 +75,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -95,7 +95,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalCategoryLeft();
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -108,11 +108,6 @@ public:
     *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
-
-private:
-
-    /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -128,7 +123,7 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+    ParserSignalSetAttribute(const Db::ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -146,7 +141,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -166,7 +161,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalFunctionShow(const Db::ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -183,7 +178,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 };
 
 
@@ -197,7 +192,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalFunctionDelete(const Db::ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -214,7 +209,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 };
 
 
@@ -302,25 +297,6 @@ public:
     */
     SignalsHandler(Parser *_parser, UserInterface *_userInterface);
 
-    //@{
-    /** @short Functions that only forwards call to the UserInterface. */
-    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                              const Db::Identifier &kind, const Db::Identifier &object);
-    void applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
-    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                           const Db::Identifier &attribute, const Db::Value &value);
-    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
-
-    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                                const Db::Identifier &kind, const Db::Identifier &object);
-    bool confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
-    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                             const Db::Identifier &attribute, const Db::Value &value);
-    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
-    //@}
-
 private:
 
     //@{
@@ -334,11 +310,17 @@ private:
     void slotParsingFinished();
     //@}
 
+    friend class ParserSignalCategoryEntered;
+    friend class ParserSignalCategoryLeft;
+    friend class ParserSignalSetAttribute;
+    friend class ParserSignalFunctionShow;
+    friend class ParserSignalFunctionDelete;
+
     /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;
 
     /** The context is held there. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack contextStack;
 
     /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;

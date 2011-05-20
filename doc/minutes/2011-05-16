@@ -74,7 +74,13 @@ Ukoly:
 - Honza: formalni popis JSON API (#183)
 - Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
 - Honza: rozsireni API pro WHERE (#210)
+- Honza: funkce pro diffovani pres templaty
+- Honza: null v atributech
+- Honza: findOverridenAttrs a revize vs. WHERE
+- Honza: testy k DB serveru
 - Tomas: dal pokracovat na CLI
+- Tomas: nepouzivat DbInteraction::allObjects() (#226)
+- Tomas: testy k CLI
 - Lukas: dokumentace (#168, 169,...)
 - Lukas: otestovat diffovani (#214)
 - Martina: SQL test, ktery nic nedela (#221)

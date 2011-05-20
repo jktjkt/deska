@@ -1,6 +1,6 @@
 /*
 * Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
-* Copyright (C) 2011 Tomáż Hubík <hubik.tomas@gmail.com>
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -44,21 +44,20 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
 
 
 
-void UserInterface::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    Db::ObjectDefinition category(kind, object);
+    std::vector<Db::Identifier> instances;
+    instances = m_dbInteraction->kindInstances(kind);
 
-    if (std::find(objects.begin(), objects.end(), category) == objects.end()) {
+    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
         m_dbInteraction->createObject(context);
     }
 }
 
 
 
-void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
+void UserInterface::applySetAttribute(const Db::ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
@@ -66,7 +65,7 @@ void UserInterface::applySetAttribute(const std::vector<Db::ObjectDefinition> &c
 
 
 
-void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     printAttributes(context);
     printNestedKinds(context);
@@ -74,36 +73,35 @@ void UserInterface::applyFunctionShow(const std::vector<Db::ObjectDefinition> &c
 
 
 
-void UserInterface::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 {
     m_dbInteraction->deleteObject(context);
 }
 
 
 
-bool UserInterface::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    Db::ObjectDefinition category(kind, object);
+    std::vector<Db::Identifier> instances;
+    instances = m_dbInteraction->kindInstances(kind);
 
-    if (std::find(objects.begin(), objects.end(), category) != objects.end()) {
+    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) != instances.end()) {
         // Object exists
         return true;
     }
 
     // Object does not exist -> ask the user here
     std::ostringstream ss;
-    ss << category << " does not exist. Create?";
+    ss << Db::ObjectDefinition(kind,object) << " does not exist. Create?";
     return askForConfirmation(ss.str());    
 }
 
 
 
-bool UserInterface::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     return true;
@@ -111,14 +109,14 @@ bool UserInterface::confirmSetAttribute(const std::vector<Db::ObjectDefinition> 
 
 
 
-bool UserInterface::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
+bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 {
     return true;
 }
 
 
 
-bool UserInterface::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
+bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
     std::ostringstream ss;
     ss << "Are you sure you want to delete object " << context.back() << "?";
@@ -163,7 +161,7 @@ void UserInterface::dumpDbContents()
 
 
 
-void UserInterface::printAttributes(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::printAttributes(const Db::ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
     attributes = m_dbInteraction->allAttributes(context);
@@ -174,7 +172,7 @@ void UserInterface::printAttributes(const std::vector<Db::ObjectDefinition> &con
 
 
 
-void UserInterface::printNestedKinds(const std::vector<Db::ObjectDefinition> &context)
+void UserInterface::printNestedKinds(const Db::ContextStack &context)
 {
     std::vector<Db::ObjectDefinition> kinds;
     kinds = m_dbInteraction->allNestedKinds(context);
@@ -216,6 +214,7 @@ void UserInterface::printHelp()
 {
     out << "CLI commands:" << std::endl;
     out << "exit   - Exits the CLI" << std::endl;
+    out << "quit   - Exits the CLI" << std::endl;
     out << "dump   - Prints everything in the DB" << std::endl;
     out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
     out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
@@ -298,8 +297,7 @@ void UserInterface::eventLoop()
 {
     std::string line;
     out << prompt;
-    std::vector<Db::ObjectDefinition> context;
-    std::ostringstream promptBuilder;
+    Db::ContextStack context;
     while (getline(in, line)) {
         // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
         // Hack for bug #222.
@@ -323,14 +321,7 @@ void UserInterface::eventLoop()
         }
 
         context = m_parser->currentContextStack();
-        promptBuilder.str("");
-        for (std::vector<Db::ObjectDefinition>::const_iterator it = context.begin(); it != context.end(); ++it) {
-            if (it != context.begin())
-                promptBuilder << " -> ";
-            promptBuilder << *it;
-        }
-        promptBuilder << "> ";
-        prompt = promptBuilder.str();
+        prompt = Db::toString(context) + "> ";
         out << prompt;
     }
 }

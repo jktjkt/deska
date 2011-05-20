@@ -188,13 +188,13 @@ public:
     *   The return value is a vector of items where each item indicates one level of context nesting. The first member
     *   of the pair represents the object kind and the second one contains the object's identifier.
     */
-    std::vector<Db::ObjectDefinition> currentContextStack() const;
+    Db::ContextStack currentContextStack() const;
 
     /** @short Replaces current context stack with new one.
     *
     *   @param stack Vector of object definitions representing new context stack
     */
-    void setContextStack(const std::vector<Db::ObjectDefinition> &stack);
+    void setContextStack(const Db::ContextStack &stack);
 
     /** @short Moves context to top level */
     void clearContextStack();

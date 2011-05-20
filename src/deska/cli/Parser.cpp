@@ -57,12 +57,12 @@ bool Parser::isNestedInContext() const
     return d_ptr->isNestedInContext();
 }
 
-std::vector<Db::ObjectDefinition> Parser::currentContextStack() const
+Db::ContextStack Parser::currentContextStack() const
 {
     return d_ptr->currentContextStack();
 }
 
-void Parser::setContextStack(const std::vector<Db::ObjectDefinition> &stack)
+void Parser::setContextStack(const Db::ContextStack &stack)
 {
     d_ptr->setContextStack(stack);
 }
