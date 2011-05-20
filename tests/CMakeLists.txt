@@ -61,6 +61,10 @@ if(RUN_SQL_TESTS)
         unset(DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE)
     endif()
 
+    # A dummy test at first, just for the DB init, so that it doesn't affect
+    # test timings, and to make sure that DB setup works
+    deska_sql_test(empty)
+
     deska_sql_test(fn-get-schema)
     deska_sql_test(versioning-one-user)
     #deska_sql_test(versioning-two-users)
