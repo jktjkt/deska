@@ -149,8 +149,6 @@ class Table(constants.Templates):
 		
 		del collist['name']
 		del collist['dest_bit']
-		if len(collist) == 0:
-			return ""
 
 		refuid_collist = list()
 		cols_changes = ""
