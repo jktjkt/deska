@@ -7,6 +7,7 @@
 CREATE SCHEMA deska;
 
 --
--- schema for api functions
+-- schemas for api functions
 --
 CREATE SCHEMA api;
+CREATE SCHEMA jsn;
