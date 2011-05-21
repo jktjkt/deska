@@ -31,7 +31,7 @@ BEGIN;
 
 
 -- user can use api fucntions
-GRANT USAGE ON SCHEMA api TO deska_user;
+GRANT USAGE ON SCHEMA jsn TO deska_user;
 
 -- admin can create schemas
 GRANT CREATE ON DATABASE :dbname TO deska_admin;
