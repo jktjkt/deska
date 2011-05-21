@@ -27,6 +27,8 @@
 
 #include <vector>
 #include <boost/variant.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/signals2/trackable.hpp>
 #include "deska/cli/Parser.h"
 #include "deska/cli/Exceptions.h"
 #include "deska/cli/UserInterface.h"
@@ -55,7 +57,7 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+    ParserSignalCategoryEntered(const Db::ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
@@ -73,7 +75,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -93,7 +95,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalCategoryLeft();
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -106,11 +108,6 @@ public:
     *   @param signalsHandler Pointer to the signals handler for calling actions
     */
     bool confirm(SignalsHandler *signalsHandler) const;
-
-private:
-
-    /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
 };
 
 
@@ -126,7 +123,7 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context,
+    ParserSignalSetAttribute(const Db::ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -144,7 +141,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -164,7 +161,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalFunctionShow(const Db::ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -181,7 +178,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 };
 
 
@@ -195,7 +192,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
+    ParserSignalFunctionDelete(const Db::ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -212,7 +209,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack pastContext;
 };
 
 
@@ -281,31 +278,29 @@ private:
 
 
 
-/** @short Class, that listens to all signals from the Parser and stores them for the purposes of the CLI. */
-class SignalsHandler
+/** @short Class, that listens to all signals from the Parser and stores them for the purposes of the CLI.
+*
+*   Each signal is stored and SignalsHandler is waiting for signal parseError() or parsingFinished().
+*   When parseError() signal is caught, SignalsHandler clears its signals stack and reports error to
+*   the UserInterface. When parsingFinished() signal is caught, SignalsHandler goes through the whole signals
+*   stack and calls appropriate actions in UserInterface.
+*/
+class SignalsHandler: public boost::noncopyable, public boost::signals2::trackable
 {
 public:
 
+    /** @short Constructor only initializes pointers handler is working with.
+    *   
+    *   @param _parser Pointer to the Parser for connecting slots to signals
+    *   @param _userInterface Pointer to the user interface class for reporting errors and calling actions
+    *                         for signals.
+    */
     SignalsHandler(Parser *_parser, UserInterface *_userInterface);
-
-    void applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                              const Db::Identifier &kind, const Db::Identifier &object);
-    void applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
-    void applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                           const Db::Identifier &attribute, const Db::Value &value);
-    void applyFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    void applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
-
-    bool confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                                const Db::Identifier &kind, const Db::Identifier &object);
-    bool confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context);
-    bool confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                             const Db::Identifier &attribute, const Db::Value &value);
-    bool confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context);
-    bool confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context);
 
 private:
 
+    //@{
+    /** @short Slots for signals from the parser. */
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
@@ -313,17 +308,30 @@ private:
     void slotFunctionDelete();
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
+    //@}
 
+    friend class ParserSignalCategoryEntered;
+    friend class ParserSignalCategoryLeft;
+    friend class ParserSignalSetAttribute;
+    friend class ParserSignalFunctionShow;
+    friend class ParserSignalFunctionDelete;
 
+    /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;
 
-    Parser *m_parser;
+    /** The context is held there. */
+    Db::ContextStack contextStack;
 
+    /** Pointer to the parser for listening to the signals. */
+    Parser *m_parser;
+    /** Pointer to the user interface for reporting errors and and calling actions for signals. */
     UserInterface *userInterface;
 
+    /** Flag that determines whether user will be asked for confirmation of creating new object or not. */
     bool autoCreate;
 
 };
+
 
 
 }

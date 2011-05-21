@@ -12,7 +12,7 @@ def main(name,delimiter):
 	ret = list()
 	str_array = name.split(delimiter)
 	if (len(str_array) < 2):
-		raise Postgres.ERROR('Name "{0}" is not fully qualifide (does not containt "{1}").'.format(name,delimiter),code = 10123)
+		raise Postgres.ERROR('Name "{0}" is not fully qualified (does not contain "{1}").'.format(name,delimiter),code = 10123)
 
 	ret.append(delimiter.join(str_array[:len(str_array)-1]))
 	ret.append(str_array[len(str_array)-1])

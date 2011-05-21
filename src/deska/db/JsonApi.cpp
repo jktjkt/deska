@@ -212,7 +212,7 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
 
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
-    JsonCommandContext c1("deleteObject");
+    JsonCommandContext c1("createObject");
 
     JsonHandlerApiWrapper h(this, "createObject");
     h.write(j_kindName, kindName);
@@ -228,17 +228,6 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.write(j_kindName, kindName);
     h.write(j_objName, oldName);
     h.write("newObjectName", newName);
-    h.work();
-}
-
-void JsonApiParser::removeAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName)
-{
-    JsonCommandContext c1("removeAttribute");
-
-    JsonHandlerApiWrapper h(this, "removeAttribute");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
     h.work();
 }
 

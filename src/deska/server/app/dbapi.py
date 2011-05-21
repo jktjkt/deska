@@ -174,7 +174,12 @@ class DB:
 		del args[0]
 		# cast to string
 		args = map(str,args)
-		self.mark.callproc(fname, args)
+		logging.debug("run function {f}({a})".format(f = fname, a = args))
+		try:
+			self.mark.callproc(fname, args)
+			self.error = False
+		except Exception, e:
+			self.error = e
 		return
 
 	def run(self,name,args):
@@ -189,6 +194,7 @@ class DB:
 		if self.error:
 			#print "pgcode: " + self.error.pgcode
 			#print "pgerror: " + self.error.pgerror
+			logging.debug("Exception: {d})".format(d = self.error.pgerror))
 			raise Exception(self.error.pgerror)
 		cls = self.fetch_class(self.mark)
 		data = cls.parse()

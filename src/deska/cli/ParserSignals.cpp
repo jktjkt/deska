@@ -1,6 +1,6 @@
 /*
 * Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
-* Copyright (C) 2011 Tomáż Hubík <hubik.tomas@gmail.com>
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -21,6 +21,9 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+
 #include "ParserSignals.h"
 
 
@@ -30,9 +33,9 @@ namespace Cli
 {
 
 
-ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
+ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
-    contextStack(context), kindName(kind), objectName(object)
+    pastContext(context), kindName(kind), objectName(object)
 {
 }
 
@@ -40,20 +43,27 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const std::vector<Db::O
 
 void ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyCategoryEntered(contextStack, kindName, objectName);
+    // At this place, we have to manipulate the signalsHandler's contextStack, not ours
+    signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
+    signalsHandler->userInterface->applyCategoryEntered(signalsHandler->contextStack, kindName, objectName);
 }
 
 
 
 bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmCategoryEntered(contextStack, kindName, objectName);
+    if (signalsHandler->autoCreate) {
+        return true;
+    } else {
+        // Careful here -- we have to work with *our* instance of the contextStack, not the signalsHandler's one
+        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(pastContext, kindName, objectName);
+    }
+    return signalsHandler->autoCreate;
 }
 
 
 
-ParserSignalCategoryLeft::ParserSignalCategoryLeft(const std::vector<Db::ObjectDefinition> &context):
-    contextStack(context)
+ParserSignalCategoryLeft::ParserSignalCategoryLeft()
 {
 }
 
@@ -61,21 +71,22 @@ ParserSignalCategoryLeft::ParserSignalCategoryLeft(const std::vector<Db::ObjectD
 
 void ParserSignalCategoryLeft::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyCategoryLeft(contextStack);
+    signalsHandler->contextStack.pop_back();
 }
 
 
 
 bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmCategoryLeft(contextStack);
+    signalsHandler->autoCreate = false;
+    return true;
 }
 
 
 
-ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<Db::ObjectDefinition> &context, 
+ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
-    contextStack(context), attributeName(attribute), setValue(value)
+    pastContext(context), attributeName(attribute), setValue(value)
 {
 }
 
@@ -83,20 +94,20 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const std::vector<Db::ObjectD
 
 void ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applySetAttribute(contextStack, attributeName, setValue);
+    signalsHandler->userInterface->applySetAttribute(pastContext, attributeName, setValue);
 }
 
 
 
 bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmSetAttribute(contextStack, attributeName, setValue);
+    return signalsHandler->userInterface->confirmSetAttribute(pastContext, attributeName, setValue);
 }
 
 
 
-ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<Db::ObjectDefinition> &context):
-    contextStack(context)
+ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
+    pastContext(context)
 {
 }
 
@@ -104,20 +115,20 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const std::vector<Db::ObjectD
 
 void ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyFunctionShow(contextStack);
+    signalsHandler->userInterface->applyFunctionShow(pastContext);
 }
 
 
 
 bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmFunctionShow(contextStack);
+    return signalsHandler->userInterface->confirmFunctionShow(pastContext);
 }
 
 
 
-ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<Db::ObjectDefinition> &context):
-    contextStack(context)
+ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &context):
+    pastContext(context)
 {
 }
 
@@ -125,14 +136,14 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const std::vector<Db::Obj
 
 void ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->applyFunctionDelete(contextStack);
+    signalsHandler->userInterface->applyFunctionDelete(pastContext);
 }
 
 
 
 bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->confirmFunctionDelete(contextStack);
+    return signalsHandler->userInterface->confirmFunctionDelete(pastContext);
 }
 
 
@@ -165,11 +176,18 @@ bool ConfirmParserSignal::operator()(const T &parserSignal) const
 
 
 
-SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface)
-{
-    m_parser = parser;
-    userInterface = _userInterface;
-    autoCreate = false;
+SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
+    m_parser(parser), userInterface(_userInterface), autoCreate(false)
+{   
+    using boost::phoenix::arg_names::_1;
+    using boost::phoenix::arg_names::_2;
+    m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
+    m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
+    m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
+    m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
+    m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
+    m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
+    m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
 }
 
 
@@ -183,7 +201,7 @@ void SignalsHandler::slotCategoryEntered(const Db::Identifier &kind, const Db::I
 
 void SignalsHandler::slotCategoryLeft()
 {
-    signalsStack.push_back(ParserSignalCategoryLeft(m_parser->currentContextStack()));
+    signalsStack.push_back(ParserSignalCategoryLeft());
 }
 
 
@@ -239,86 +257,10 @@ void SignalsHandler::slotParsingFinished()
     }
 
     signalsStack.clear();
+
+    // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
+    m_parser->setContextStack(contextStack);
 }
-
-
-
-void SignalsHandler::applyCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                                          const Db::Identifier &kind, const Db::Identifier &object)
-{
-    userInterface->applyCategoryEntered(context, kind, object);
-}
-
-
-
-void SignalsHandler::applyCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
-{
-}
-
-
-
-void SignalsHandler::applySetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                                       const Db::Identifier &attribute, const Db::Value &value)
-{
-    userInterface->applySetAttribute(context, attribute, value);
-}
-
-
-
-void SignalsHandler::applyFunctionShow(const std::vector<Db::ObjectDefinition> &context)
-{
-    userInterface->applyFunctionShow(context);
-}
-
-
-
-void SignalsHandler::applyFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
-{
-    userInterface->applyFunctionDelete(context);
-}
-
-
-
-bool SignalsHandler::confirmCategoryEntered(const std::vector<Db::ObjectDefinition> &context,
-                                            const Db::Identifier &kind, const Db::Identifier &object)
-{
-    if (autoCreate)
-        return true;
-    else
-        autoCreate = userInterface->confirmCategoryEntered(context, kind, object);
-    return autoCreate;
-}
-
-
-
-bool SignalsHandler::confirmCategoryLeft(const std::vector<Db::ObjectDefinition> &context)
-{
-    autoCreate = false;
-    return true;
-}
-
-
-
-bool SignalsHandler::confirmSetAttribute(const std::vector<Db::ObjectDefinition> &context,
-                                         const Db::Identifier &attribute, const Db::Value &value)
-{
-    return userInterface->confirmSetAttribute(context, attribute, value);
-}
-
-
-
-bool SignalsHandler::confirmFunctionShow(const std::vector<Db::ObjectDefinition> &context)
-{
-    return userInterface->confirmFunctionShow(context);
-}
-
-
-
-bool SignalsHandler::confirmFunctionDelete(const std::vector<Db::ObjectDefinition> &context)
-{
-    return userInterface->confirmFunctionDelete(context);
-}
-
 
 
 }

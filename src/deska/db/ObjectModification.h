@@ -59,17 +59,6 @@ struct RenameObjectModification {
 bool operator==(const RenameObjectModification &a, const RenameObjectModification &b);
 std::ostream& operator<<(std::ostream &stream, const RenameObjectModification &mod);
 
-struct RemoveAttributeModification {
-    Identifier kindName;
-    Identifier objectName;
-    Identifier attributeName;
-
-    RemoveAttributeModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
-};
-
-bool operator==(const RemoveAttributeModification &a, const RemoveAttributeModification &b);
-std::ostream& operator<<(std::ostream &stream, const RemoveAttributeModification &mod);
-
 struct SetAttributeModification {
     Identifier kindName;
     Identifier objectName;
@@ -84,7 +73,7 @@ struct SetAttributeModification {
 bool operator==(const SetAttributeModification &a, const SetAttributeModification &b);
 std::ostream& operator<<(std::ostream &stream, const SetAttributeModification &mod);
 
-typedef boost::variant<CreateObjectModification, DeleteObjectModification, RenameObjectModification, RemoveAttributeModification,
+typedef boost::variant<CreateObjectModification, DeleteObjectModification, RenameObjectModification,
     SetAttributeModification> ObjectModification;
 
 /** @short operator!= is not provided by boost::variant */

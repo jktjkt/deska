@@ -323,7 +323,7 @@ public:
     *   @return Current context stack.
     *   @see Db::ObjectDefinition
     */
-    std::vector<Db::ObjectDefinition> currentContextStack() const;
+    Db::ContextStack currentContextStack() const;
 
     /** @short Get list of strings for tab completition of current line.
     *
@@ -382,6 +382,12 @@ public:
     *   @return Vector of kind names obtained from API
     */
     std::vector<Db::Identifier> getKindNames();
+
+    /** @short Replaces current context stack with new one.
+    *
+    *   @param stack Vector of object definitions representing new context stack
+    */
+    void setContextStack(const Db::ContextStack &stack);
     
     /** @short Clears context stack.
     *
@@ -430,7 +436,7 @@ private:
     //@}
 
     /** The parser context is held there. */
-    std::vector<Db::ObjectDefinition> contextStack;
+    Db::ContextStack contextStack;
     /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
     std::vector<ParseError<Iterator> > parseErrors;
     
