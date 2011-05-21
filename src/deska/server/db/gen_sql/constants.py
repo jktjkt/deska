@@ -821,8 +821,9 @@ LANGUAGE plpgsql;
 
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
+#parameters are necessery for get_name
 	diff_set_attribute_string = '''CREATE FUNCTION 
-	{tbl}_diff_set_attributes(from_version bigint, to_version bigint)
+	{tbl}_diff_set_attributes(from_version bigint = 0, to_version bigint = 0)
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$
@@ -830,7 +831,15 @@ LANGUAGE plpgsql;
 		old_data {tbl}_history%rowtype;
 		new_data {tbl}_history%rowtype;
 		result diff_set_attribute_type;
+		current_changeset bigint;
 	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF from_version = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset 
+			current_changeset = get_current_changeset();
+			from_version = id2num(parent(current_changeset));
+		END IF;
+		
 		result.command = 'setAttribute';
 		result.objkind = '{tbl}';
 		FOR {old_new_obj_list} IN 
@@ -915,6 +924,27 @@ END
 $$
 LANGUAGE plpgsql;
 
+'''
+
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION deska.{tbl}_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+	changeset_var bigint;
+	from_version bigint;	
+BEGIN
+	changeset_var = get_current_changeset();
+	from_version = id2num(parent(changeset_var));
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS  SELECT {diff_columns}
+		FROM (SELECT * FROM {tbl}_history WHERE version = changeset_var) chv
+			FULL OUTER JOIN {tbl}_data_version(from_version) dv ON (dv.uid = chv.uid);
+END
+$$
+  LANGUAGE plpgsql;
+  
 '''
 
 	diff_terminate_function_string = '''CREATE FUNCTION 
