@@ -821,8 +821,9 @@ LANGUAGE plpgsql;
 
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
+#parameters are necessery for get_name
 	diff_set_attribute_string = '''CREATE FUNCTION 
-	{tbl}_diff_set_attributes(from_version bigint, to_version bigint)
+	{tbl}_diff_set_attributes(from_version bigint = 0, to_version bigint = 0)
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$
@@ -830,7 +831,15 @@ LANGUAGE plpgsql;
 		old_data {tbl}_history%rowtype;
 		new_data {tbl}_history%rowtype;
 		result diff_set_attribute_type;
+		current_changeset bigint;
 	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF from_version = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset 
+			current_changeset = get_current_changeset();
+			from_version = id2num(parent(current_changeset));
+		END IF;
+		
 		result.command = 'setAttribute';
 		result.objkind = '{tbl}';
 		FOR {old_new_obj_list} IN 
