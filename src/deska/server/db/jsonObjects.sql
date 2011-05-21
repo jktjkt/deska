@@ -150,34 +150,32 @@ $$
 import Postgres
 import json
 
-def call(fname,atr1):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = fname),code = 10111)
+def error_json(jsn,typ,message):
+	err = dict()
+	err["type"] = typ
+	err["message"] = message
+	jsn["dbException"] = err
+	return json.dumps(jsn)
 
 @pytypes
 def main(kindName,objectName):
-	plan = prepare("SELECT * FROM {0}_get_data($1)".format(kindName))
-	data = plan(objectName)
+	jsn = dict()
+	jsn["responce"] = "objectData"
+	jsn["objectName"] = objectName
+	jsn["kindName"] = kindName
+
+	try:
+		with xact():
+			plan = prepare("SELECT * FROM {0}_get_data($1)".format(kindName))
+			data = plan(objectName)
+	except Postgres.Exception as dberr:
+		if dberr.pg_errordata.code == "42883":
+			return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
+		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
 
 	data = [str(x) for x in data[0]]
 	res = dict(zip(plan.column_names,data))
-
-	jsn = dict()
-	jsn["responce"] = "objectData"
 	jsn["objectData"] = res
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
