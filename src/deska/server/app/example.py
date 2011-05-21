@@ -17,14 +17,12 @@ data = list([
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011"}',
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "detachFromCurrentChangeset", "message": "test message"}',
-	'{"command": "pendingChangesets"}'
+	'{"command": "pendingChangesets"}',
+	'{"command": "listVersions"}'
 ])
 
 #data = list(['{"command": "pendingChangesets"}'])
 #data = list(['{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}'])
-data = list(['{"command": "kindInstances", "kindName":"vendor"}',
-	'{"command": "listVersions"}'
-])
 
 db = DB("deska_dev")
 
