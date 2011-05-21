@@ -16,7 +16,7 @@ class DB:
                 "deleteObject": ["kindName","objectName"],
                 "createObject": ["kindName","objectName"],
                 "renameObject": ["kindName","oldName","newName"],
-                "setAttribute": ["kindName","objectName","attributeName","Value"],
+                "setAttribute": ["kindName","objectName","attributeName","attributeData"],
                 "startChangeset": [],
                 "commitChangeset": ["commitMessage"],
                 "rebaseChangeset": [],
