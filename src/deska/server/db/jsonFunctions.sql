@@ -1,6 +1,4 @@
-SET search_path TO deska,api,genproc,history,versioning,production;
-DROP SCHEMA jsn CASCADE;
-CREATE SCHEMA jsn;
+SET search_path TO deska,api;
 
 CREATE OR REPLACE FUNCTION jsn.kindNames()
 RETURNS text
@@ -25,7 +23,7 @@ def main():
 	jsn["response"] = "kindNames"
 	return json.dumps(jsn)
 $$
-LANGUAGE python;
+LANGUAGE python SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION jsn.kindAttributes(kindName text)
 RETURNS text
@@ -62,7 +60,7 @@ def main(kindName):
 	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
-LANGUAGE python;
+LANGUAGE python SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION jsn.kindRelations(kindName text)
 RETURNS text
@@ -91,7 +89,7 @@ def main(kindName):
 	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
-LANGUAGE python;
+LANGUAGE python SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION jsn.kindInstances(kindName text)
 RETURNS text
@@ -116,5 +114,5 @@ def main(kindName):
 	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
-LANGUAGE python;
+LANGUAGE python SECURITY DEFINER;
 

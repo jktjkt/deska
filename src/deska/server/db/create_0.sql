@@ -24,6 +24,12 @@ BEGIN;
 -- wrapper functions
 \i fn-api-objects.sql
 
+-- json functions
+\i jsonObjects.sql
+\i jsonVersioning.sql
+\i jsonFunctions.sql
+
+
 -- user can use api fucntions
 GRANT USAGE ON SCHEMA api TO deska_user;
 

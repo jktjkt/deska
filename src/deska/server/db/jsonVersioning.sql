@@ -1,4 +1,4 @@
-SET search_path TO deska,api,genproc,history,versioning,production;
+SET search_path TO deska,api;
 
 CREATE OR REPLACE FUNCTION jsn.startChangeset()
 RETURNS text

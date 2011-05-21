@@ -11,7 +11,7 @@ data = list([
 	'{"command": "kindRelations", "kindName": "interface" }',
 	'{"command": "kindRelations", "kindName": "vendor" }',
 	'{"command": "startChangeset"}',
-	'{"command": "createObject", "kindName": "vendor", "objectName": "DELL" }',
+	'{"command": "createObject", "kindName": "vendor", "objectName": "HP" }',
 	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011"}',

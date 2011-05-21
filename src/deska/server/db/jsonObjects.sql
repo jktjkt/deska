@@ -1,4 +1,4 @@
-SET search_path TO api,deska,genproc,production,history,versioning;
+SET search_path TO api,deska;
 
 CREATE OR REPLACE FUNCTION jsn.setAttribute(kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text

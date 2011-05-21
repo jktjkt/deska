@@ -1,3 +1,4 @@
 -- drop schemas
 DROP SCHEMA deska CASCADE;
+DROP SCHEMA jsn CASCADE;
 DROP SCHEMA api CASCADE;
