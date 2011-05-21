@@ -18,7 +18,8 @@ data = list([
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "detachFromCurrentChangeset", "message": "test message"}',
 	'{"command": "pendingChangesets"}',
-	'{"command": "listVersions"}'
+	'{"command": "listVersions"}',
+	'{"command": "dataDifference", "a":"r1", "b":"r2"}'
 ])
 
 #data = list(['{"command": "pendingChangesets"}'])

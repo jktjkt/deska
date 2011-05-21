@@ -24,6 +24,7 @@ class DB:
                 "resumeChangeset": ["revision"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
+		"dataDifference": ["a", "b"],
 		"objectData": ["kindName", "objectName"],
 		"listVersions": []
 	})
