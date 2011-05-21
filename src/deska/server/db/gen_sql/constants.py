@@ -840,8 +840,6 @@ LANGUAGE plpgsql;
 			from_version = id2num(parent(current_changeset));
 		END IF;
 		
-		result.command = 'setAttribute';
-		result.objkind = '{tbl}';
 		FOR {old_new_obj_list} IN 
 			SELECT {select_old_new_list}
 			FROM {tbl}_diff_data
