@@ -180,3 +180,82 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.dataDifference(a text, b text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+
+def error_json(jsn,typ,message):
+	err = dict()
+	err["type"] = typ
+	err["message"] = message
+	jsn["dbException"] = err
+	return json.dumps(jsn)
+
+def kinds():
+	return list(["vendor","hardware","host","interface"])
+
+def oneKindDiff(kindName,a,b):
+	with xact():
+		init = proc(kindName + "_init_diff(bigint,bigint)")
+		terminate = proc(kindName + "_terminate_diff()")
+		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
+		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
+		revision2num = proc("revision2num(text)")
+		
+		#get changeset ids first
+		a = revision2num(a)
+		b = revision2num(b)
+
+		res = list()
+		
+		init(a,b)
+		for line in created():
+			obj = dict()
+			obj["command"] = "createObject"
+			obj["kindName"] = kindName
+			obj["objecName"] = str(line[0])
+			res.append(obj)
+		for line in setattr(a,b):
+			obj = dict()
+			obj["command"] = "setAttribute"
+			obj["kindName"] = kindName
+			obj["objecName"] = str(line[1])
+			obj["attributeName"] = str(line[3])
+			obj["oldValue"] = str(line[4])
+			obj["newValue"] = str(line[5])
+			res.append(obj)
+		for line in deleted():
+			obj = dict()
+			obj["command"] = "deleteObject"
+			obj["kindName"] = kindName
+			obj["objecName"] = str(line[0])
+			res.append(obj)
+		terminate()
+
+	return res
+
+@pytypes
+def main(a,b):
+	jsn = dict()
+	jsn["responce"] = "dataDifference"
+	jsn["a"] = a
+	jsn["b"] = b
+	
+	res = list()
+	try:
+		for kindName in kinds():
+			res.extend(oneKindDiff(kindName,a,b))
+	except Postgres.Exception as dberr:
+		#if dberr.pg_errordata.code == "42883":
+		#	return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
+		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
+
+	jsn["dataDifference"] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
