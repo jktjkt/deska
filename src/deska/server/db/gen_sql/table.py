@@ -178,7 +178,7 @@ class Table(constants.Templates):
 		select_old_attributes = list(map("dv.{0} AS old_{0}".format,collist))
 		select_new_attributes = list(map("chv.{0} AS new_{0}".format,collist))
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
-		return self.diff_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
+		return self.diff_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes) + self.diff_changeset_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
 		
 	def gen_diff_terminate_function(self):
 		return self.diff_terminate_function_string.format(tbl = self.name)

@@ -917,6 +917,27 @@ LANGUAGE plpgsql;
 
 '''
 
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION deska.{tbl}_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+	changeset_var bigint;
+	from_version bigint;	
+BEGIN
+	changeset_var = get_current_changeset();
+	from_version = id2num(parent(changeset_var));
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS  SELECT {diff_columns}
+		FROM (SELECT * FROM {tbl}_history WHERE version = changeset_var) chv
+			FULL OUTER JOIN {tbl}_data_version(from_version) dv ON (dv.uid = chv.uid);
+END
+$$
+  LANGUAGE plpgsql;
+  
+'''
+
 	diff_terminate_function_string = '''CREATE FUNCTION 
 {tbl}_terminate_diff()
 RETURNS void
