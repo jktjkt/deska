@@ -359,6 +359,20 @@ relation information etc.  The following types are defined:
         or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
+    {\tt Deska::Db::ExpressionKind} &
+        {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
+        {\tt "columnLe"}
+        \\
+    {\tt Deska::Db::Expression} &
+        {\tt \{"condition": }ExpressionKind{\tt, "column": }Identifier{\tt, "value": }Value{\tt \}}
+        \\
+    {\tt Deska::Db::Filter} &
+        One of \newline
+        {\tt \{"operator": "and", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        or \newline
+        {\tt \{"operator": "or", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        or \newline
+        Expression
 
 \end{longtable}
 
