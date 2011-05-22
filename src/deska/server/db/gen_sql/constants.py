@@ -391,45 +391,25 @@ class Templates:
 	DECLARE
 		ver bigint;
 		rowuid bigint;
-		local_name text;
+		tmp bigint;
 	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
-		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
-			VALUES (rowuid, name_, ver, '1');
+		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
+		IF NOT FOUND THEN
+			INSERT INTO {tbl}_history (uid, name, version, dest_bit)
+				VALUES (rowuid, name_, ver, '1');
+		ELSE
+			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
+		END IF;
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	# template string for del function
-	del_embed_string = '''CREATE FUNCTION
-	{tbl}_del(IN full_name text)
-	RETURNS integer
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		rowuid bigint;
-		{reftbl}_uid bigint;
-		{tbl}_name text;
-		rest_of_name text;
-	BEGIN	
-		SELECT get_current_changeset() INTO ver;
-		SELECT {tbl}_get_uid(full_name) INTO rowuid;
-		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
-		-- try if there is already line for current version
-		{reftbl}_uid = {reftbl}_get_uid(rest_of_name);
-		INSERT INTO {tbl}_history (uid, name, {column}, version, dest_bit)
-			VALUES (rowuid, {tbl}_name, {reftbl}_uid, ver, '1');
-		RETURN 1;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
 
-'''
 	# template string for commit function
 	commit_string = '''CREATE FUNCTION
 	{tbl}_commit()
