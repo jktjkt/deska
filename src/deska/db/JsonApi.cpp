@@ -34,6 +34,7 @@ static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
 static std::string j_attrName = "attributeName";
 static std::string j_revision = "revision";
+static std::string j_filter = "filter";
 static std::string j_errorPrefix = "error";
 
 namespace Deska {
@@ -136,6 +137,8 @@ vector<Identifier> JsonApiParser::kindInstances(const Identifier &kindName, cons
     JsonHandlerApiWrapper h(this, "kindInstances");
     h.write(j_kindName, kindName);
     h.writeIfNotZero(j_revision, revision);
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("kindInstances").extract(&res);
     h.work();
     return res;
@@ -261,6 +264,8 @@ vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<
 
     vector<PendingChangeset> res;
     JsonHandlerApiWrapper h(this, "pendingChangesets");
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("pendingChangesets").extract(&res);
     h.work();
     return res;
@@ -298,6 +303,8 @@ std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional
 
     std::vector<RevisionMetadata> res;
     JsonHandlerApiWrapper h(this, "listRevisions");
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("listRevisions").extract(&res);
     h.work();
     return res;

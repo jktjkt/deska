@@ -258,6 +258,16 @@ JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::
     return *(--fields.end());
 }
 
+JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Filter &filter)
+{
+    JsonField f(name);
+    f.jsonValue = boost::apply_visitor(DeskaFilterToJsonValue(), filter);
+    f.isForSending = true;
+    f.valueShouldMatch = true;
+    fields.push_back(f);
+    return *(--fields.end());
+}
+
 JsonField &JsonHandler::read(const std::string &name)
 {
     JsonField f(name);
