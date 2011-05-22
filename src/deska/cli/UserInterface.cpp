@@ -145,34 +145,6 @@ void UserInterface::printNestedKinds(const Db::ContextStack &context)
 
 
 
-void UserInterface::commitChangeset()
-{
-    m_dbInteraction->commitChangeset(io->askForCommitMessage());
-}
-
-
-
-void UserInterface::detachFromChangeset()
-{
-    m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
-}
-
-
-
-void UserInterface::abortChangeset()
-{
-    m_dbInteraction->abortChangeset();
-}
-
-
-
-void UserInterface::printHelp()
-{
-    io->printHelp();
-}
-
-
-
 void UserInterface::run()
 {
     try {
@@ -226,13 +198,13 @@ void UserInterface::eventLoop()
         } else if (line == "dump") {
             dumpDbContents();
         } else if (line == "commit") {
-            commitChangeset();
+            m_dbInteraction->commitChangeset(io->askForCommitMessage());
         } else if (line == "detach") {
-            detachFromChangeset();
+            m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
         } else if (line == "abort") {
-            abortChangeset();
+            m_dbInteraction->abortChangeset();
         } else if (line == "help") {
-            printHelp();
+            io->printHelp();
         } else {
             m_parser->parseLine(line);
         }

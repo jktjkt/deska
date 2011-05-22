@@ -105,13 +105,6 @@ public:
     */
     void printNestedKinds(const Db::ContextStack &context);
 
-    /** @short Make all actions needed to commit current changeset including commit message request. */
-    void commitChangeset();
-    /** @short Detaches from current changeset. */
-    void detachFromChangeset();
-    /** @short Aborts current changeset. */
-    void abortChangeset();
-
     /** @short Prints help for CLI usage. */
     void printHelp();
 
