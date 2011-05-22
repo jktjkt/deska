@@ -751,6 +751,7 @@ RETURNS SETOF text
 AS
 $$
 BEGIN
+	--deleted were between two versions objects that have set dest_bit in new data
 	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
 END;
 $$
@@ -765,6 +766,7 @@ RETURNS SETOF text
 AS
 $$
 BEGIN
+	--created were objects which are in new data and not deleted and are not in old data
 	RETURN QUERY SELECT new_name FROM {tbl}_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
 END;
 $$
@@ -801,7 +803,7 @@ LANGUAGE plpgsql;
 
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
-#parameters are necessery for get_name
+#parameters are necessary for get_name
 	diff_set_attribute_string = '''CREATE FUNCTION 
 	{tbl}_diff_set_attributes(from_version bigint = 0, to_version bigint = 0)
 	 RETURNS SETOF diff_set_attribute_type
@@ -820,11 +822,14 @@ LANGUAGE plpgsql;
 			from_version = id2num(parent(current_changeset));
 		END IF;
 		
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
 		FOR {old_new_obj_list} IN 
 			SELECT {select_old_new_list}
 			FROM {tbl}_diff_data
 			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
 		LOOP				
+			--if name was changed, then this modification would be mentioned with old object name
+			--all other changes are mentioned with new name
 			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
 					--first change is changed name
 					result.objname = old_data.name;
@@ -834,6 +839,7 @@ LANGUAGE plpgsql;
 					RETURN NEXT result;
 			END IF;
 			result.objname = new_data.name;
+			--check if the column was changed
 			{columns_changes}
 		END LOOP;
 	 END
@@ -849,6 +855,8 @@ RETURNS SETOF {tbl}_history
 AS
 $$
 BEGIN
+	--for each object uid finds its last modification before data_version
+	--joins it with history table of its kind to get object data in version data_version
 	RETURN QUERY 
 	SELECT h1.* 
 	FROM {tbl}_history h1 
@@ -873,6 +881,8 @@ RETURNS SETOF {tbl}_history
 AS
 $$
 BEGIN
+	--for each object uid finds its last modification between versions from_version and to_version
+	--joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
 	RETURN QUERY 
 	SELECT h1.* 
 	FROM {tbl}_history h1 
@@ -894,7 +904,7 @@ RETURNS void
 AS
 $$
 BEGIN
-	--needs better design
+	--full outer join of data in from_version and list of changes made between from_version and to_version
 	CREATE TEMP TABLE {tbl}_diff_data 
 	AS SELECT {diff_columns}
 		FROM {tbl}_data_version(from_version) dv FULL OUTER JOIN {tbl}_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
@@ -913,8 +923,10 @@ DECLARE
 	changeset_var bigint;
 	from_version bigint;	
 BEGIN
+	--it's necessary to have opened changeset in witch we would like to see diff
 	changeset_var = get_current_changeset();
 	from_version = id2num(parent(changeset_var));
+	--full outer join of data in parent revision and changes made in opened changeset
 	CREATE TEMP TABLE {tbl}_diff_data 
 	AS  SELECT {diff_columns}
 		FROM (SELECT * FROM {tbl}_history WHERE version = changeset_var) chv
@@ -925,6 +937,7 @@ $$
   
 '''
 
+#template for terminating diff, drops temp table with data for diff functions
 	diff_terminate_function_string = '''CREATE FUNCTION 
 {tbl}_terminate_diff()
 RETURNS void
