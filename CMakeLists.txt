@@ -109,6 +109,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterfaceIO.cpp
 )
 
 set(deskaCli_SRCS
