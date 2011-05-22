@@ -172,6 +172,19 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
     expectEmpty();
 }
 
+/** @short Test that simple filter for IS NULL works fine */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"attr\",\"value\":null}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"condition\": \"columnEq\", \"column\": \"attr\", \"value\": null}}\n");
+    vector<Identifier> expected;
+    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_EQ, "attr", Value())), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
