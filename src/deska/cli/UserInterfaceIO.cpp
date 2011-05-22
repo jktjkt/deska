@@ -58,7 +58,7 @@ bool UserInterfaceIO::confirmDeletion(const Db::ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Are you sure you want to delete object " << object << "?";
-    return askForConfirmation(ss.str()); 
+    return askForConfirmation(ss.str());
 }
 
 
@@ -67,7 +67,7 @@ bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << object << " does not exist. Create?";
-    return askForConfirmation(ss.str()); 
+    return askForConfirmation(ss.str());
 }
 
 
@@ -187,7 +187,7 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel)  
+void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel)
 {
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         printObject(*it, indentLevel);

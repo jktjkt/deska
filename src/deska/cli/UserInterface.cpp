@@ -79,10 +79,10 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    if(m_dbInteraction->objectExists(context))    
+    if (m_dbInteraction->objectExists(context))
         return true;
     // Object does not exist -> ask the user here
-    return io->confirmCreation(Db::ObjectDefinition(kind,object));    
+    return io->confirmCreation(Db::ObjectDefinition(kind,object));
 }
 
 

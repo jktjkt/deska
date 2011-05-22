@@ -127,7 +127,7 @@ public:
     *   @param objects Vector of objects to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel);  
+    void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel);
 
     /** @short Prints an attribute definition with indentation.
     *
