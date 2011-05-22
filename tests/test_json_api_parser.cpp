@@ -158,7 +158,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
     expected.push_back("foo");
     expected.push_back("bar");
     expected.push_back("ahoj");
-    vector<Identifier> res = j->kindInstances("blah", RevisionId(666));
+    vector<Identifier> res = j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -168,7 +168,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
     expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonStructureError);
+    BOOST_CHECK_THROW(j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666)), JsonStructureError);
     expectEmpty();
 }
 

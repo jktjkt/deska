@@ -91,6 +91,7 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ObjectModification.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Api.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/FakeApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonApi.cpp

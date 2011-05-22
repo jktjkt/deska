@@ -27,6 +27,7 @@
 #include <vector>
 #include "libebt/libebt_backtraceable.hh"
 
+#include "deska/db/Filter.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
@@ -120,7 +121,8 @@ public:
     // Returning data for existing objects
 
     /** @short Get identifiers of all concrete objects of a given Kind */
-    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const RevisionId = RevisionId::null) const = 0;
+    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter=boost::optional<Filter>(),
+                                                  const RevisionId=RevisionId::null) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
@@ -203,7 +205,7 @@ public:
     virtual void rebaseChangeset(const RevisionId parentRevision) = 0;
 
     /** @short Return a list of all pending revisions */
-    virtual std::vector<PendingChangeset> pendingChangesets() = 0;
+    virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>()) = 0;
 
     /** @short Re-open a pre-existing changeset
      *
@@ -242,7 +244,7 @@ public:
     // Diffing
 
     /** @short Return a list of metadata for matching revisions */
-    virtual std::vector<RevisionMetadata> listRevisions() const = 0;
+    virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     /** @short Return differences between the database state in the specified versions */
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const = 0;

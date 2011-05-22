@@ -79,7 +79,7 @@ vector<ObjectRelation> FakeApi::kindRelations(const Identifier &kindName) const
 
 
 
-vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const RevisionId) const
+vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId) const
 {
     vector<Identifier> empty;
     return empty;
@@ -149,7 +149,7 @@ void FakeApi::rebaseChangeset(const RevisionId parentRevision)
 {
 }
 
-std::vector<PendingChangeset> FakeApi::pendingChangesets()
+std::vector<PendingChangeset> FakeApi::pendingChangesets(const boost::optional<Filter> &filter)
 {
     return std::vector<PendingChangeset>();
 }
@@ -166,7 +166,7 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
-std::vector<RevisionMetadata> FakeApi::listRevisions() const
+std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filter> &filter) const
 {
     return std::vector<RevisionMetadata>();
 }

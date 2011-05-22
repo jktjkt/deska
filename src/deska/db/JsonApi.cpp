@@ -128,7 +128,7 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     return res;
 }
 
-vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const RevisionId revision ) const
+vector<Identifier> JsonApiParser::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId revision) const
 {
     JsonCommandContext c1("kindInstances");
 
@@ -255,7 +255,7 @@ void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
     h.work();
 }
 
-vector<PendingChangeset> JsonApiParser::pendingChangesets()
+vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<Filter> &filter)
 {
     JsonCommandContext c1("pendingChangesets");
 
@@ -292,7 +292,7 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
-std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
+std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
 {
     JsonCommandContext c1("listRevisions");
 
