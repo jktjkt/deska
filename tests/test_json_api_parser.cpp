@@ -184,6 +184,17 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStr
     expectEmpty();
 }
 
+/** @short Test that simple filter for != string */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"attr\",\"value\":\"foo\"}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"condition\": \"columnNe\", \"column\": \"attr\", \"value\": \"foo\"}}\n");
+    vector<Identifier> expected;
+    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_NE, "attr", Value("foo"))), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
