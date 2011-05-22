@@ -104,24 +104,6 @@ map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(const Iden
 
 
 
-vector<Identifier> FakeApi::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                const Identifier &attributeName)
-{
-    vector<Identifier> empty;
-    return empty;
-}
-
-
-
-vector<Identifier> FakeApi::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                   const Identifier &attributeName)
-{
-    vector<Identifier> empty;
-    return empty;
-}
-
-
-
 void FakeApi::deleteObject(const Identifier &kindName, const Identifier &objectName)
 {
 }

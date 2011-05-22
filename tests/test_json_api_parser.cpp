@@ -232,36 +232,6 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     expectEmpty();
 }
 
-/** @short Basic test for findOverridenAttrs() */
-BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"findOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
-    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"findOverriddenAttrs\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
-    vector<Identifier> expected;
-    expected.push_back("z");
-    expected.push_back("a");
-    expected.push_back("aaa");
-    vector<Identifier> res = j->findOverriddenAttrs("k", "o", "aa");
-    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
-    expectEmpty();
-}
-
-/** @short Basic test for findNonOverridenAttrs() */
-BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"findNonOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
-    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"findNonOverriddenAttrs\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
-    vector<Identifier> expected;
-    expected.push_back("d");
-    expected.push_back("e");
-    expected.push_back("aaaaa");
-    vector<Identifier> res = j->findNonOverriddenAttrs("k", "o", "aa");
-    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
-    expectEmpty();
-}
-
 /** @short Basic test for createObject() */
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {

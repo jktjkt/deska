@@ -148,36 +148,6 @@ public:
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
         const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
 
-    /** @short Get a list of identifiers of objects which explicitly override a given attribute 
-     *
-     * This function walks the inheritance tree (see ObjectRelationKind::RELATION_TEMPLATE) and checks the hierarchy for objects which
-     * explicitly override a declaration of an attribute value which happened at the specified template level by a new
-     * definition in the object itself.
-     *
-     * An example is a template "boxmodel generic-1u" which specifies the height to 1, and a derived "dl360" which has
-     * anything in the "height" attribute. This function's result will include the "dl360" when asked for "what gets
-     * affected by a change of the "height" attribute of the "generic-1u" boxmodel.
-     *
-     * Note that calling this function could be very expensive.
-     *
-     * @see findNonOverriddenAttrs()
-     *
-     * */
-    virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
-
-    /** @short Get a list of identifiers of objects which would be affected by a change in an attribute
-     *
-     * This function serves a similar role to the findOverriddenAttrs, but looks for objects which do not specify any
-     * value for the attribute in question.
-     *
-     * Note that calling this function could be very expensive and it could very easily return vast amounts of data.
-     *
-     * @see findOverriddenAttrs()
-     * */
-    virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName) = 0;
-
     // Manipulating objects
 
     /** @short Delete an item from one of the lists of objects */

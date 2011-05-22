@@ -98,10 +98,6 @@ public:
         const Identifier &kindName, const Identifier &objectName, const RevisionId rev=RevisionId::null );
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
             const Identifier &kindName, const Identifier &objectName, const RevisionId rev=RevisionId::null );
-    virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
-    virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName );
 
     // Manipulating objects
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName );

@@ -170,36 +170,6 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     return res.attributes;
 }
 
-vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                const Identifier &attributeName)
-{
-    JsonCommandContext c1("findOverridenAttrs");
-
-    vector<Identifier> res;
-    JsonHandlerApiWrapper h(this, "findOverriddenAttrs");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.read("findOverriddenAttrs").extract(&res);
-    h.work();
-    return res;
-}
-
-vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                   const Identifier &attributeName)
-{
-    JsonCommandContext c1("findNonOverriddenAttrs");
-
-    vector<Identifier> res;
-    JsonHandlerApiWrapper h(this, "findNonOverriddenAttrs");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.read("findNonOverriddenAttrs").extract(&res);
-    h.work();
-    return res;
-}
-
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
 {
     JsonCommandContext c1("deleteObject");

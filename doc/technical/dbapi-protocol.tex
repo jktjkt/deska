@@ -387,9 +387,8 @@ top-level object will return attributes valid at the scope of each object.
 After establishing the metadata structure, applications which require only read-only access can proceed with retrieving
 individual objects' data.  The API provides a few functions for that, starting with the \deskaFuncRef{kindInstances} for
 determining identifiers (names) of particular objects, \deskaFuncRef{objectData} for fetching values of object's
-attributes, \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
-resolving inherited values from object templates, and also \deskaFuncRef{findOverriddenAttrs} and
-\deskaFuncRef{findNonOverriddenAttrs} for assessing the impact of changes to an individual object's attribute.
+attributes, and \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
+resolving inherited values from object templates.
 
 Before potentially using any methods for object modification, each application has to open a changeset to work in.  The
 application can achieve that either by calling the \deskaFuncRef{startChangeset}, or possibly by attaching into one of
@@ -493,7 +492,6 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.}
 
-FIXME: do we want to have findOverriddenAttrs and findNonOverriddenAttrs?
 FIXME: document output filters (\#210)
 
 \subsubsection{Performing Modifications}
