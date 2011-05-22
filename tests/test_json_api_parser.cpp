@@ -196,6 +196,24 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStr
     expectEmpty();
 }
 
+/** @short Test for AND, less-than and greater-or-equal */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
+                "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
+               "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    vector<Identifier> expected;
+    std::vector<Expression> expressions;
+    expressions.push_back(Expression(FILTER_COLUMN_LT, "attr1", Value(666)));
+    expressions.push_back(Expression(FILTER_COLUMN_GE, "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(expressions)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
