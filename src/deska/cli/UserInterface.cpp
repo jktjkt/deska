@@ -22,10 +22,10 @@
 * */
 
 #include <sstream>
-#include <boost/algorithm/string/case_conv.hpp>
 
 #include "UserInterface.h"
 #include "deska/db/JsonApi.h"
+
 
 
 namespace Deska
@@ -35,10 +35,8 @@ namespace Cli
 
 
 
-UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
-                             DbInteraction *dbInteraction, Parser *parser):
-    out(outStream.rdbuf()), err(errStream.rdbuf()), in(inStream.rdbuf()),
-    m_dbInteraction(dbInteraction), m_parser(parser), prompt("> ")
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
+    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io)
 {
 }
 
@@ -47,12 +45,8 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
 void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    std::vector<Db::Identifier> instances;
-    instances = m_dbInteraction->kindInstances(kind);
-
-    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
+    if (!m_dbInteraction->objectExists(context))
         m_dbInteraction->createObject(context);
-    }
 }
 
 
@@ -85,18 +79,10 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    std::vector<Db::Identifier> instances;
-    instances = m_dbInteraction->kindInstances(kind);
-
-    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) != instances.end()) {
-        // Object exists
+    if(m_dbInteraction->objectExists(context))    
         return true;
-    }
-
     // Object does not exist -> ask the user here
-    std::ostringstream ss;
-    ss << Db::ObjectDefinition(kind,object) << " does not exist. Create?";
-    return askForConfirmation(ss.str());    
+    return io->confirmCreation(Db::ObjectDefinition(kind,object));    
 }
 
 
@@ -118,27 +104,14 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
-    std::ostringstream ss;
-    ss << "Are you sure you want to delete object " << context.back() << "?";
-    return askForConfirmation(ss.str());
+    return io->confirmDeletion(context.back());
 }
 
 
 
 void UserInterface::reportError(const std::string &errorMessage)
 {
-    err << errorMessage << std::endl;
-}
-
-
-
-bool UserInterface::askForConfirmation(const std::string &prompt)
-{
-    out << prompt << " ";
-    std::string answer;
-    getline(in, answer);
-    boost::algorithm::to_lower(answer);
-    return answer == "yes" || answer == "y";
+    io->reportError(errorMessage);
 }
 
 
@@ -148,14 +121,9 @@ void UserInterface::dumpDbContents()
     std::vector<Db::ObjectDefinition> objects;
     objects = m_dbInteraction->allObjects();
     for (std::vector<Db::ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        out << *it << std::endl;
-        std::vector<Db::AttributeDefinition> attributes;
-        attributes = m_dbInteraction->allAttributes(*it);
-        for (std::vector<Db::AttributeDefinition>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
-            out << "    " << *ita << std::endl;
-        }
-        out << "end" << std::endl;
-        out << std::endl;
+        io->printObject(*it, 0);
+        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(*it);
+        io->printAttributes(attributes, 1);
     }
 }
 
@@ -163,42 +131,30 @@ void UserInterface::dumpDbContents()
 
 void UserInterface::printAttributes(const Db::ContextStack &context)
 {
-    std::vector<Db::AttributeDefinition> attributes;
-    attributes = m_dbInteraction->allAttributes(context);
-    for (std::vector<Db::AttributeDefinition>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        out << *it << std::endl;
-    }
+    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
+    io->printAttributes(attributes, 0);
 }
 
 
 
 void UserInterface::printNestedKinds(const Db::ContextStack &context)
 {
-    std::vector<Db::ObjectDefinition> kinds;
-    kinds = m_dbInteraction->allNestedKinds(context);
-    for (std::vector<Db::ObjectDefinition>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-        out << *it << std::endl;
-    }
+    std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
+    io->printObjects(kinds, 0);
 }
 
 
 
 void UserInterface::commitChangeset()
 {
-    std::string message;
-    out << "Commit message: ";
-    getline(in, message);
-    m_dbInteraction->commitChangeset(message);
+    m_dbInteraction->commitChangeset(io->askForCommitMessage());
 }
 
 
 
 void UserInterface::detachFromChangeset()
 {
-    std::string message;
-    out << "Log message for detaching: ";
-    getline(in, message);
-    m_dbInteraction->detachFromChangeset(message);
+    m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
 }
 
 
@@ -212,68 +168,26 @@ void UserInterface::abortChangeset()
 
 void UserInterface::printHelp()
 {
-    out << "CLI commands:" << std::endl;
-    out << "exit   - Exits the CLI" << std::endl;
-    out << "quit   - Exits the CLI" << std::endl;
-    out << "dump   - Prints everything in the DB" << std::endl;
-    out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
-    out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
-    out << "abort  - Aborts current changeset" << std::endl;
-    out << "help   - Displays this list of commands" << std::endl;
-    out << std::endl;
-    out << "Parser keywords:" << std::endl;
-    out << "delete - Deletes object given as parameter (e.g. delete hardware hp456)" << std::endl;
-    out << "show   - Shows attributes and nested kinds of the object" << std::endl;
+    io->printHelp();
 }
 
 
 
 void UserInterface::run()
 {
-    char *userName = getenv("USER");
-    if (userName != 0)
-        out << "Hi " << userName << "! ";
-    out << "Welcome to Deska CLI." << std::endl << std::endl;
-    // TODO: Rewrite this function using Redline--
     try {
-        // Print list of pending changesets, so user can choose one
-        std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
-        out << "Pending changesets: " << std::endl << std::endl;
-        if (pendingChangesets.empty()) {
-            out << "No pending changesets." << std::endl;
-        } else {
-            for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
-                out << i << ": " << pendingChangesets[i] << std::endl;
-            }
-        }
-        out << "n: No changset" << std::endl;
-        out << "c: Create new changset" << std::endl << std::endl;
-        out << "Changeset to attach to: ";
-        // Waiting until user enteres correct input.
-        for (;;)
-        {
-            std::string choice;
-            getline(in, choice);
-            boost::algorithm::to_lower(choice);
-            if (choice == "n") {
-                // do nothing
-                break;
-            } else if (choice == "c") {
-                m_dbInteraction->createNewChangeset();
-                break;
-            } else {
-                std::istringstream ss(choice);
-                unsigned int res;
-                ss >> res;
-                // Check whether the input is a number and represents any pending changeset
-                if (!ss.fail() && res < pendingChangesets.size()) {
-                    m_dbInteraction->resumeChangeset(pendingChangesets[res].revision);
-                    break;
-                }
-            }
-            reportError("Bad choice input. Try againg.");
-        }
+    // Print list of pending changesets, so user can choose one
+    std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
+    int choice = io->chooseChangeset(pendingChangesets);
 
+    if (choice == -2) {
+        // do nothing
+    } else if (choice == -1) {
+        m_dbInteraction->createNewChangeset();
+    } else {
+        m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+    }
+        
         // Now that we've established our preconditions, let's enter the event loop
         eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
@@ -295,10 +209,13 @@ void UserInterface::run()
 
 void UserInterface::eventLoop()
 {
+    // TODO: Rewrite this function using Redline--
+
     std::string line;
-    out << prompt;
+    io->printPrompt(prompt);
     Db::ContextStack context;
-    while (getline(in, line)) {
+    for (;;) {
+        line = io->readLine();
         // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
         // Hack for bug #222.
         if (line.empty())
@@ -321,8 +238,8 @@ void UserInterface::eventLoop()
         }
 
         context = m_parser->currentContextStack();
-        prompt = Db::toString(context) + "> ";
-        out << prompt;
+        prompt = Db::toString(context);
+        io->printPrompt(prompt);
     }
 }
 

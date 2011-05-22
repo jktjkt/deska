@@ -25,6 +25,8 @@ class rlist(list):
 		return ret
 	
 	def extend(self,boost):
+		if boost < 2:
+			return
 		l = list()
 		for item in self.data:
 			for i in range(boost):
