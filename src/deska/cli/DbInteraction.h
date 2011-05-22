@@ -97,6 +97,13 @@ public:
     */
     std::vector<Db::ObjectDefinition> allNestedKinds(const Db::ContextStack &context);
 
+    /** @short Check if object in the context exists or not.
+    *
+    *   @param context Path to the object to search for
+    *   @return True if object exists else false
+    */
+    bool objectExists(const Db::ContextStack &context);
+
     /** @short Function for obtaining all pending chandesets.
     *
     *   @return Vector of all pending changesets

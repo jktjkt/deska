@@ -47,12 +47,8 @@ UserInterface::UserInterface(std::ostream &outStream, std::ostream &errStream, s
 void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    std::vector<Db::Identifier> instances;
-    instances = m_dbInteraction->kindInstances(kind);
-
-    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
+    if (!m_dbInteraction->objectExists(context))
         m_dbInteraction->createObject(context);
-    }
 }
 
 
@@ -85,14 +81,8 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    std::vector<Db::Identifier> instances;
-    instances = m_dbInteraction->kindInstances(kind);
-
-    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) != instances.end()) {
-        // Object exists
+    if(m_dbInteraction->objectExists(context))    
         return true;
-    }
-
     // Object does not exist -> ask the user here
     std::ostringstream ss;
     ss << Db::ObjectDefinition(kind,object) << " does not exist. Create?";
