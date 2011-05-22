@@ -93,17 +93,6 @@ public:
 
     /** @short Dump everything in the DB */
     void dumpDbContents();
-    /** @short Print attributes in the context.
-    *
-    *   @param context Path to the object for which the attributes are printed
-    */
-    void printAttributes(const Db::ContextStack &context);
-
-    /** @short Print nested kinds of the object in the context or top-level objects when there is no context.
-    *
-    *   @param context Path to the object for which the attributes are printed
-    */
-    void printNestedKinds(const Db::ContextStack &context);
 
     /** @short Prints help for CLI usage. */
     void printHelp();

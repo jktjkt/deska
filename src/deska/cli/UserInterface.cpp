@@ -61,8 +61,10 @@ void UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
-    printAttributes(context);
-    printNestedKinds(context);
+    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
+    io->printAttributes(attributes, 0);
+    std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
+    io->printObjects(kinds, 0);
 }
 
 
@@ -125,22 +127,6 @@ void UserInterface::dumpDbContents()
         std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(*it);
         io->printAttributes(attributes, 1);
     }
-}
-
-
-
-void UserInterface::printAttributes(const Db::ContextStack &context)
-{
-    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
-    io->printAttributes(attributes, 0);
-}
-
-
-
-void UserInterface::printNestedKinds(const Db::ContextStack &context)
-{
-    std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-    io->printObjects(kinds, 0);
 }
 
 
