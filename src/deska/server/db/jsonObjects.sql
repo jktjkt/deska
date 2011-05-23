@@ -23,16 +23,16 @@ def call(fname,atr1,atr2):
 	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
-def main(kindName,objectName,attributeName,data):
+def main(kindName,objectName,attributeName,attributeData):
 	fname = kindName+"_set_"+attributeName+"(text,text)"
-	call(fname,objectName,data)
+	call(fname,objectName,attributeData)
 
 	jsn = dict()
 	jsn["response"] = "setAttribute"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
-	jsn["data"] = data
+	jsn["attributeData"] = attributeData
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
