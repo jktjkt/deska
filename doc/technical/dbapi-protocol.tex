@@ -440,6 +440,30 @@ commit.
 
 FIXME: atomicity
 
+\subsubsection{Filtering Results}
+\label{sec:api-filters}
+
+Some functions defined in the DBAPI support reducing the working set of the data that they operate on via {\em filters}.
+These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{dataDifference}, \deskaFuncRef{listRevisions} and
+\deskaFuncRef{pendingChangesets}.  Each of them allows the user to specify a condition which, if present and not null,
+will be applied to the domain of the data they operate on, and records which do not match the user-supplied filter will
+be excluded from further evaluation.  This is intended to serve as an accelerator for operations which are best handled
+with server-side searching.
+
+A basic unit for building filters is a simple {\em expression}.  An expression compares value of an object's property
+against a user-supplied constant using defined comparison operator.  At this time, the defined comparison operators are
+equality, non-equality, being greater/lesser than, and greater-or-equal and less-or-equal.  The constant value against
+which a property is compared can be anything which is acceptable in the context of a Deska attribute value, a revision
+identification, or a temporary changeset identification.  The ``property name'' refers to the identifier of a property;
+in case of regular objects stored in the Deska DB, these are the same as the attribute names.  In case of revisions, the
+filter can query any property that is present in the objects included in the method's output, like revision IDs,
+commit/changeset timestamps, revision authors, etc.
+
+More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
+time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
+operators is not allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
+arises.
+
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
