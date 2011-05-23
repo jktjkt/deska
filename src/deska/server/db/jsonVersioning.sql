@@ -42,7 +42,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.resumeChangeset(id text)
+CREATE OR REPLACE FUNCTION jsn.resumeChangeset(revision text)
 RETURNS text
 AS
 $$
@@ -50,15 +50,15 @@ import Postgres
 import json
 
 @pytypes
-def main(id):
+def main(revision):
 	name = "resumeChangeset"
 	fname = 'api.'+ name + "(text)"
 	func = proc(fname)
-	ver = func(id)
+	ver = func(revision)
 
 	jsn = dict()
 	jsn["response"] = name
-	jsn["id"] = id
+	jsn["revision"] = revision
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
