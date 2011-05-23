@@ -384,13 +384,13 @@ The Deska DBAPI provides functions for accessing the information contained in th
 
 \subsection{The Deska DBAPI at a Glance}
 
-The API can be divided into a few groups.  The first part are commands for querying the database scheme which are
-described in section \ref{sec:api-group-dbscheme}, these commands informs you about what kinds of top-level objects are
-defined, what relations have been defined among them and which attributes belong to each object.  Second part of the API
+The API can be divided into a few groups.  The first part are commands for querying the database scheme, which are
+described in section \ref{sec:api-group-dbscheme}.  These commands inform you about what kinds of top-level objects are
+defined, what relations exist among them and which attributes belong to each object.  Second part of the API
 (section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
 part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
 part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results and the last part (section \ref{sec:api-group-history}) discusses browsing history.
+results.  The last part (section \ref{sec:api-group-history}) discusses browsing the revision history.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
 are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
@@ -409,18 +409,19 @@ application can achieve that either by calling the \deskaFuncRef{startChangeset}
 the already-created changesets (listed by \deskaFuncRef{pendingChangesets}) through \deskaFuncRef{resumeChangeset}.
 Should the user decide not to need the pending changeset anymore, she can call the \deskaFuncRef{abortCurrentChangeset}
 to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
-changeset, preserving the modifications for a later commit.  When all changes were performed and the user decides to
-make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them.
+changeset, preserving the modifications for a later commit.  When all changes have been performed and the user decides to
+make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
-the attempted commit.  In that case, the new commit won't be performed, and after verifying that the changes are still
-valid via the diffing functions (see section \ref{sec:api-group-history}), the user shall use the
+she attempted a commit.  In that case, the new commit won't be performed, and the user should verify that the changes are still
+valid via the diffing functions (see section \ref{sec:api-group-history}).  After the verification, the user shall use the
 \deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now based on a new, updated permanent
-revision.
+revision; this will allow a future \deskaFuncRef{commitChangeset} to succeed.
 
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
-Certain attributes accept a {\tt NULL} value; to use it, also use \deskaFuncRef{setAttribute}.
+Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
+\deskaFuncRef{setAttribute}.
 
 Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
 \deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
@@ -436,6 +437,32 @@ When user attaches an existing pending changeset, this implicit value changes to
 current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
 Detaching from a pending changeset or aborting one sets the implicit revision number of the session to the latest
 commit.
+
+FIXME: atomicity
+
+\subsubsection{Filtering Results}
+\label{sec:api-filters}
+
+Some functions defined in the DBAPI support reducing the working set of the data that they operate on via {\em filters}.
+These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{dataDifference}, \deskaFuncRef{listRevisions} and
+\deskaFuncRef{pendingChangesets}.  Each of them allows the user to specify a condition which, if present and not null,
+will be applied to the domain of the data they operate on, and records which do not match the user-supplied filter will
+be excluded from further evaluation.  This is intended to serve as an accelerator for operations which are best handled
+with server-side searching.
+
+A basic unit for building filters is a simple {\em expression}.  An expression compares value of an object's property
+against a user-supplied constant using defined comparison operator.  At this time, the defined comparison operators are
+equality, non-equality, being greater/lesser than, and greater-or-equal and less-or-equal.  The constant value against
+which a property is compared can be anything which is acceptable in the context of a Deska attribute value, a revision
+identification, or a temporary changeset identification.  The ``property name'' refers to the identifier of a property;
+in case of regular objects stored in the Deska DB, these are the same as the attribute names.  In case of revisions, the
+filter can query any property that is present in the objects included in the method's output, like revision IDs,
+commit/changeset timestamps, revision authors, etc.
+
+More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
+time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
+operators is not allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
+arises.
 
 \subsection{API Reference}
 
