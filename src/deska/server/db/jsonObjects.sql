@@ -223,10 +223,10 @@ def oneKindDiff(kindName,a,b):
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[1])
-			obj["attributeName"] = str(line[3])
-			obj["oldValue"] = str(line[4])
-			obj["newValue"] = str(line[5])
+			obj["objecName"] = str(line[0])
+			obj["attributeName"] = str(line[1])
+			obj["oldValue"] = str(line[2])
+			obj["newValue"] = str(line[3])
 			res.append(obj)
 		for line in deleted():
 			obj = dict()
