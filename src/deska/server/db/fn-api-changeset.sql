@@ -229,6 +229,25 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE TYPE version_type AS (
+version text,
+author text,
+timestamp timestamp,
+message text
+);
+--
+-- Return info about commited changesets
+--
+CREATE FUNCTION listVersions()
+RETURNS SETOF version_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT num2revision(id),author,timestamp,message FROM version;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
 --
 -- Commit changeset - just run genproc.commit
 --

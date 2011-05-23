@@ -8,6 +8,7 @@ BEGIN;
 -- create functions
 \i fn-api-schema.sql
 
+
 --creates functions - string operations
 \i fn-strlib.sql
 
@@ -23,8 +24,14 @@ BEGIN;
 -- wrapper functions
 \i fn-api-objects.sql
 
+-- json functions
+\i jsonObjects.sql
+\i jsonVersioning.sql
+\i jsonFunctions.sql
+
+
 -- user can use api fucntions
-GRANT USAGE ON SCHEMA api TO deska_user;
+GRANT USAGE ON SCHEMA jsn TO deska_user;
 
 -- admin can create schemas
 GRANT CREATE ON DATABASE :dbname TO deska_admin;

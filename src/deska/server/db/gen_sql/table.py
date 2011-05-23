@@ -74,10 +74,7 @@ class Table(constants.Templates):
 		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_del(self):
-		return self.del_string.format(tbl = self.name, delim = constants.DELIMITER)
-
-	def gen_del_embed(self, col_name, reftable):
-		return self.del_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
+		return self.del_string.format(tbl = self.name, columns = self.get_columns())
 
 	def gen_set(self,col_name):
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())
@@ -130,6 +127,70 @@ class Table(constants.Templates):
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
 		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
 		return type_def + "\n" + cols_def
+	
+	#generates function that returns all changes of columns between two versions
+	def gen_diff_set_attribute(self):
+		#collist is list of columns
+		collist = self.col.copy()
+		del collist['uid']
+		#in addition to columns in production table we need although dest_bit column
+		collist['dest_bit'] = 'bit(1)'
+
+		#all attributes of old_data and new_data object (attributes are in collist), used in for clause
+		#old_data.name, old_data.vendor, ..., new_data.name, new_data.vendor, ...
+		old_new_attributes = list(map("old_data.{0}".format,collist))
+		old_new_attributes.extend(list(map("new_data.{0}".format,collist)))
+		old_new_attributes_string = ",".join(old_new_attributes)
+		
+		#data which we would like to select from diff_data table into old_data and new_data
+		#old_name, old_vendor, ..., old_note, new_name, new_vendor, ...
+		select_old_new_attributes = list(map("old_{0}".format,collist))
+		select_old_new_attributes.extend(list(map("new_{0}".format,collist)))
+		select_old_new_attributes_string = ",".join(select_old_new_attributes)
+		
+		#we dont want to check changes of name and dest_bit attributes
+		del collist['name']
+		del collist['dest_bit']
+
+		#for columns which are references to uid of another object
+		#we would like to know change of referenced name not change of referenced uid
+		refuid_collist = list()
+		cols_changes = ""
+		#we would like to find all columns that references uid of some kind
+		#we find them in foreign keys
+		for refs in self.fks.att:
+			tbl = self.fks.tbl[refs]
+			#value of every column that refer to uid should be replaced by name of object with given uid
+			for i in range(len(self.fks.att[refs])):
+				if self.fks.ratt[refs][i] == 'uid':
+					col = self.fks.att[refs][i]
+					if col in collist:
+						del collist[col]
+						#columns that references uid
+						cols_changes = cols_changes + self.one_column_change_ref_uid_string.format(reftbl = tbl, column = col)
+		
+		#for all remaining columns we generate if clause to find possible changes
+		for col in collist:
+			cols_changes = cols_changes + self.one_column_change_string.format(column = col)
+
+		return self.diff_set_attribute_string.format(tbl = self.name, columns_changes = cols_changes, old_new_obj_list = old_new_attributes_string, select_old_new_list = select_old_new_attributes_string)
+
+	#generates function which prepairs temp table with diff data
+	#diff data table is used in diff_created data, diff_deleted and diff_set functions
+	def gen_diff_init_function(self):
+		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
+		#with dv (diff version), chv(changes between versions) prefix
+		collist = self.col.copy()
+		collist['dest_bit'] = 'bit(1)'
+		select_old_attributes = list(map("dv.{0} AS old_{0}".format,collist))
+		select_new_attributes = list(map("chv.{0} AS new_{0}".format,collist))
+		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+		return self.diff_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes) + self.diff_changeset_init_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
+		
+	#generates function terminate_diff which is oposite of init_diff
+	#drops diff_data table
+	def gen_diff_terminate_function(self):
+		return self.diff_terminate_function_string.format(tbl = self.name)
 
 	def gen_get(self,col_name):
 		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
@@ -174,3 +235,19 @@ class Table(constants.Templates):
 
 	def gen_changeset_of_data_version_by_name_embed(self, refcolumn, reftable):
 		return self.changeset_of_data_version_by_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
+
+	#generates function which finds all deleted objects in diff data table
+	def gen_diff_deleted(self):
+		return self.diff_deleted_string.format(tbl = self.name)
+	
+	#generates function which finds all created objects in diff data table
+	def gen_diff_created(self):
+		return self.diff_created_string.format(tbl = self.name)
+		
+	def gen_data_version(self):
+		return self.data_version_function_string.format(tbl = self.name)
+	
+	def gen_data_changes(self):
+		return self.data_changes_function_string.format(tbl = self.name)
+
+

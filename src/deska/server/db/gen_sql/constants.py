@@ -391,45 +391,25 @@ class Templates:
 	DECLARE
 		ver bigint;
 		rowuid bigint;
-		local_name text;
+		tmp bigint;
 	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
-		INSERT INTO {tbl}_history (uid, name, version, dest_bit)
-			VALUES (rowuid, name_, ver, '1');
+		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
+		IF NOT FOUND THEN
+			INSERT INTO {tbl}_history (uid, name, version, dest_bit)
+				VALUES (rowuid, name_, ver, '1');
+		ELSE
+			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
+		END IF;
 		RETURN 1;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	# template string for del function
-	del_embed_string = '''CREATE FUNCTION
-	{tbl}_del(IN full_name text)
-	RETURNS integer
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		rowuid bigint;
-		{reftbl}_uid bigint;
-		{tbl}_name text;
-		rest_of_name text;
-	BEGIN	
-		SELECT get_current_changeset() INTO ver;
-		SELECT {tbl}_get_uid(full_name) INTO rowuid;
-		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
-		-- try if there is already line for current version
-		{reftbl}_uid = {reftbl}_get_uid(rest_of_name);
-		INSERT INTO {tbl}_history (uid, name, {column}, version, dest_bit)
-			VALUES (rowuid, {tbl}_name, {reftbl}_uid, ver, '1');
-		RETURN 1;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
 
-'''
 	# template string for commit function
 	commit_string = '''CREATE FUNCTION
 	{tbl}_commit()
@@ -763,4 +743,210 @@ class Templates:
 	$$
 	LANGUAGE plpgsql;
 	
+'''
+ #template for getting deleted objects between two versions
+	diff_deleted_string = '''CREATE FUNCTION 
+{tbl}_diff_deleted()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	--deleted were between two versions objects that have set dest_bit in new data
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+ #template for getting created objects between two versions
+	diff_created_string = '''CREATE FUNCTION 
+{tbl}_diff_created()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	--created were objects which are in new data and not deleted and are not in old data
+	RETURN QUERY SELECT new_name FROM {tbl}_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for if constructs in diff_set_attribute
+	one_column_change_string = '''
+	 IF (old_data.{column} <> new_data.{column}) OR ((old_data.{column} IS NULL OR new_data.{column} IS NULL) 
+		  AND NOT(old_data.{column} IS NULL AND new_data.{column} IS NULL))
+	 THEN
+		  result.attribute = '{column}';
+		  result.olddata = old_data.{column};
+		  result.newdata = new_data.{column};
+		  RETURN NEXT result;			
+	 END IF;
+	 
+'''
+
+#template for if constructs in diff_set_attribute, this version is for refuid columns
+	one_column_change_ref_uid_string = '''
+	 IF (old_data.{column} <> new_data.{column}) OR ((old_data.{column} IS NULL OR new_data.{column} IS NULL) 
+		  AND NOT(old_data.{column} IS NULL AND new_data.{column} IS NULL))
+	 THEN
+		  result.attribute = '{column}';
+		  result.olddata = {reftbl}_get_name(old_data.{column}, from_version);
+		  result.newdata = {reftbl}_get_name(new_data.{column}, to_version);
+		  RETURN NEXT result;			
+	 END IF;
+	 
+'''
+
+
+#template for getting created objects between two versions
+#return type is defined in file diff.sql and created in create script
+#parameters are necessary for get_name
+	diff_set_attribute_string = '''CREATE FUNCTION 
+	{tbl}_diff_set_attributes(from_version bigint = 0, to_version bigint = 0)
+	 RETURNS SETOF diff_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		old_data {tbl}_history%rowtype;
+		new_data {tbl}_history%rowtype;
+		result diff_set_attribute_type;
+		current_changeset bigint;
+	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF from_version = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset 
+			current_changeset = get_current_changeset();
+			from_version = id2num(parent(current_changeset));
+		END IF;
+		
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
+		FOR {old_new_obj_list} IN 
+			SELECT {select_old_new_list}
+			FROM {tbl}_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
+		LOOP				
+			--if name was changed, then this modification would be mentioned with old object name
+			--all other changes are mentioned with new name
+			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
+					--first change is changed name
+					result.objname = old_data.name;
+					result.attribute = 'name';
+					result.olddata = old_data.name;
+					result.newdata = new_data.name;
+					RETURN NEXT result;
+			END IF;
+			result.objname = new_data.name;
+			--check if the column was changed
+			{columns_changes}
+		END LOOP;
+	 END
+	 $$
+	 LANGUAGE plpgsql; 
+
+'''
+
+#template for function, which selects all data from kind table taht are present in version data_version
+#is used in diff functions
+	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint)
+RETURNS SETOF {tbl}_history
+AS
+$$
+BEGIN
+	--for each object uid finds its last modification before data_version
+	--joins it with history table of its kind to get object data in version data_version
+	RETURN QUERY 
+	SELECT h1.* 
+	FROM {tbl}_history h1 
+		JOIN version v1 ON (v1.id = h1.version)
+		JOIN (	SELECT uid, max(num) AS maxnum 
+				FROM {tbl}_history h JOIN version v ON (v.id = h.version )
+				WHERE v.num <= data_version
+				GROUP BY uid
+			) vmax1 
+		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
+	WHERE dest_bit = '0';
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for function which selects all changes of all objects, that where done between from_version and to_version versions
+#is used in diff functions
+	data_changes_function_string = '''CREATE FUNCTION {tbl}_changes_between_versions(from_version bigint, to_version bigint)
+RETURNS SETOF {tbl}_history
+AS
+$$
+BEGIN
+	--for each object uid finds its last modification between versions from_version and to_version
+	--joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
+	RETURN QUERY 
+	SELECT h1.* 
+	FROM {tbl}_history h1 
+		JOIN version v1 on (v1.id = h1.version)
+		JOIN (	SELECT uid, max(num) as maxnum 
+				FROM {tbl}_history h join version v on (v.id = h.version )
+				WHERE v.num <= to_version and v.num > from_version
+				GROUP BY uid) vmax1 
+		ON(h1.uid = vmax1.uid and v1.num = vmax1.maxnum);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_init_function_string = '''CREATE FUNCTION {tbl}_init_diff(from_version bigint, to_version bigint)
+RETURNS void
+AS
+$$
+BEGIN
+	--full outer join of data in from_version and list of changes made between from_version and to_version
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS SELECT {diff_columns}
+		FROM {tbl}_data_version(from_version) dv FULL OUTER JOIN {tbl}_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION deska.{tbl}_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+	changeset_var bigint;
+	from_version bigint;	
+BEGIN
+	--it's necessary to have opened changeset in witch we would like to see diff
+	changeset_var = get_current_changeset();
+	from_version = id2num(parent(changeset_var));
+	--full outer join of data in parent revision and changes made in opened changeset
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS  SELECT {diff_columns}
+		FROM (SELECT * FROM {tbl}_history WHERE version = changeset_var) chv
+			FULL OUTER JOIN {tbl}_data_version(from_version) dv ON (dv.uid = chv.uid);
+END
+$$
+  LANGUAGE plpgsql;
+  
+'''
+
+#template for terminating diff, drops temp table with data for diff functions
+	diff_terminate_function_string = '''CREATE FUNCTION 
+{tbl}_terminate_diff()
+RETURNS void
+AS
+$$
+BEGIN
+	DROP TABLE {tbl}_diff_data;
+END;
+$$
+LANGUAGE plpgsql;
+
 '''
