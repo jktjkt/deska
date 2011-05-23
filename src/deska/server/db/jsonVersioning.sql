@@ -58,7 +58,7 @@ def main(id):
 
 	jsn = dict()
 	jsn["response"] = name
-	jsn["id"] = id
+	jsn["revision"] = id
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
