@@ -106,7 +106,7 @@ CREATE FUNCTION commit_all(message text)
 			reftable = cols_ref_uid[embed_column[0]]
 			#adding full quolified name with _ delimiter
 			self.sql.write(table.gen_add_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_del_embed())
+			self.sql.write(table.gen_del_embed(embed_column[0],reftable))
 			#get uid from embed object, again name have to be full
 			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_get_name_embed(embed_column[0],reftable))

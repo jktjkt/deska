@@ -212,8 +212,7 @@ class Templates:
 			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
-			--name from poduction
-				SELECT name INTO value FROM {tbl} WHERE uid = {tbl}_uid;
+				SELECT name INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = {tbl}_changeset_of_data_version({tbl}_uid);
 				RETURN value;
 			END IF;
 			
@@ -256,6 +255,7 @@ class Templates:
 		current_changeset bigint;
 		--version from which we search for local name
 		version_to_search bigint;
+		value text;
 	BEGIN
 	--from_version we need unchanged for rest_of_name
 		version_to_search = from_version;
@@ -263,8 +263,9 @@ class Templates:
 			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
-			--name from poduction
-				SELECT name, {column} INTO local_name,{reftbl}_uid FROM {tbl} WHERE uid = {tbl}_uid;
+				SELECT join_with_delim({reftbl}_get_name({column}), name, '{delim}') INTO value FROM {tbl}_history 
+					WHERE uid = {tbl}_uid AND version = {tbl}_changeset_of_data_version({tbl}_uid);
+				RETURN value;
 			ELSE
 				parent_changeset = parent(current_changeset);
 				version_to_search = id2num(parent_changeset);
@@ -408,6 +409,7 @@ class Templates:
 		rowuid bigint;
 		tmp bigint;
 		local_name text;
+		rest_of_name text;
 	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
@@ -415,9 +417,9 @@ class Templates:
 		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
 		IF NOT FOUND THEN
 			--from name of embed object is used only local part
-			SELECT embed_name[2] FROM embed_name(name_,'{delim}') INTO local_name;
-			INSERT INTO {tbl}_history (uid, name, version, dest_bit)
-				VALUES (rowuid, local_name, ver, '1');
+			SELECT embed_name[1], embed_name[2] FROM embed_name(name_,'{delim}') INTO local_name, rest_of_name;
+			INSERT INTO {tbl}_history (uid, name, {refcolumn}, version, dest_bit)
+				VALUES (rowuid, local_name, {reftbl}_get_uid(rest_of_name), ver, '1');
 		ELSE
 			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
 		END IF;
