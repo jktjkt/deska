@@ -452,6 +452,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	# template string for names
 	names_string = '''CREATE FUNCTION
 	{tbl}_names(from_version bigint = 0)
@@ -463,29 +464,28 @@ class Templates:
 		current_changeset bigint;
 	BEGIN
 		IF from_version = 0 THEN
+		-- from_version 0 means actual data for current changeset
 			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
+			--null current changeset means no opened changeset, will get data from production
 			--names from poduction
 				RETURN QUERY SELECT name FROM production.{tbl};
 			ELSE
+				--for opened changeset set from_version to its parent
 				parent_changeset = parent(current_changeset);
-				from_version = id2num(parent_changeset);					
+				from_version = id2num(parent_changeset);
 			END IF;
 		ELSE
 			current_changeset = NULL;
 		END IF;
 
+		--returns union of names in current changeset and names present in from_version (for opened changeset parent revision)
 		RETURN QUERY SELECT name FROM {tbl}_history WHERE version = current_changeset AND dest_bit = '0'
 		UNION
 		SELECT name
-		FROM {tbl}_history h JOIN version v ON (h.version = v.id and v.num <= from_version) 
-		WHERE v.id = (
-				SELECT max(version) 
-				FROM {tbl}_history h2 
-					JOIN version v2 ON (v2.num <= from_version AND h2.version = v2.id AND h2.uid = h.uid)
-			)
-			AND dest_bit = '0' AND h.uid NOT IN(
+		FROM {tbl}_data_version(from_version)
+		WHERE uid NOT IN(
 				SELECT uid FROM {tbl}_history WHERE version = current_changeset
 			);
 	END;
