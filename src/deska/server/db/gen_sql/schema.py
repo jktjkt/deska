@@ -97,7 +97,6 @@ CREATE FUNCTION commit_all(message text)
 				self.sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
 				self.sql.write(table.gen_set(col[0]))
-				self.sql.write(table.gen_get(col[0]))
 
 			#get uid of that references uid should not return uid but name of according instance
 

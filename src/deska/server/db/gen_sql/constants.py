@@ -18,7 +18,7 @@ class Templates:
 	{constraints}
 );
 '''
-	# template string for set function's
+	# template string for set functions
 	set_string = '''CREATE FUNCTION
 	{tbl}_set_{colname}(IN name_ text,IN value text)
 	RETURNS integer
@@ -30,6 +30,7 @@ class Templates:
 	BEGIN
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		--not found in case there is no object with name name_ in history
 		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
@@ -43,6 +44,7 @@ class Templates:
 				SELECT {columns},ver FROM {tbl}_history
 					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
 		END IF;
+		--set new value in {colname} column
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
 			WHERE uid = rowuid AND version = ver;
 		RETURN 1;
@@ -64,16 +66,21 @@ class Templates:
 		tmp bigint;
 	BEGIN
 		SELECT get_current_changeset() INTO ver;
+		--value is name of object in reftable
+		--we need to know uid of referenced object instead of its name
 		SELECT {reftbl}_get_uid(value) INTO refuid;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
 			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version			
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_history
 					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
 		END IF;
+		--set column to refuid - uid of referenced object
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
 		RETURN 1;
@@ -83,11 +90,13 @@ class Templates:
 
 '''
 
+	#template for data_type, given with columns - list of attributes' names and their types
 	get_data_type_string='''CREATE TYPE {tbl}_type AS(
 {columns}
 );
 '''
 	# template string for get data functions
+	# get data of object name_ in given version
 	get_data_string = '''CREATE FUNCTION
 	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
@@ -99,8 +108,11 @@ class Templates:
 		deleted bit(1);
 	BEGIN
 		obj_uid = {tbl}_get_uid(name_);
+		--get changeset id of last modification of object object_uid before from_version
+		--changeset id of data version actual in from_version
 		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
 
+		--is this object present or was deleted
 		SELECT dest_bit INTO deleted FROM {tbl}_history
 			WHERE uid = obj_uid AND version = ver;		
 
@@ -136,7 +148,7 @@ class Templates:
 		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
 		--TODO get name of name of parent table that is tbl embed into
 		SELECT {embedtbl}_get_uid(parrent_name) INTO parrent_uid;
-
+		--is this object present or was deleted
 		SELECT dest_bit INTO deleted FROM {tbl}_history
 			WHERE name = base_name AND host = parrent_uid AND version = ver;
 
@@ -153,32 +165,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
-	#template string for get functions
-	get_string = '''CREATE FUNCTION
-	{tbl}_get_{colname}(IN name_ text)
-	RETURNS {coltype}
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		value {coltype};
-	BEGIN
-		SELECT get_current_changeset() INTO ver;
-		SELECT {colname} INTO value
-			FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
-		--if the value isn't in current version then it should be found in production
-		IF NOT FOUND THEN
-			SELECT {colname} INTO value
-			FROM {tbl}
-			WHERE name = name_;
-		END IF;		
-		RETURN value;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
 
-'''
 	#template string for get_uid functions (for name finds corresponding uid)
 	#not for kind that are embed into another
 	get_uid_string = '''CREATE FUNCTION
