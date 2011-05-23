@@ -157,6 +157,11 @@ def error_json(jsn,typ,message):
 	jsn["dbException"] = err
 	return json.dumps(jsn)
 
+def mystr(s):
+	if s is None:
+		return s
+	return str(s)
+
 @pytypes
 def main(kindName,objectName):
 	jsn = dict()
@@ -173,7 +178,7 @@ def main(kindName,objectName):
 			return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
 		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
 
-	data = [str(x) for x in data[0]]
+	data = [mystr(x) for x in data[0]]
 	res = dict(zip(plan.column_names,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
