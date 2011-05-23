@@ -15,7 +15,7 @@ def main():
 	ver = func()
 
 	jsn = dict()
-	jsn["responce"] = name
+	jsn["response"] = name
 	jsn[name] =str(ver)
 	return json.dumps(jsn)
 $$
@@ -36,7 +36,7 @@ def main():
 	ver = func()
 
 	jsn = dict()
-	jsn["responce"] = name
+	jsn["response"] = name
 	jsn[name] =str(ver)
 	return json.dumps(jsn)
 $$
@@ -57,8 +57,7 @@ def main(id):
 	ver = func(id)
 
 	jsn = dict()
-	jsn["responce"] = name
-	jsn[name] =str(ver)
+	jsn["response"] = name
 	jsn["id"] = id
 	return json.dumps(jsn)
 $$
@@ -79,7 +78,7 @@ def main(commitMessage):
 	ver = func(commitMessage)
 
 	jsn = dict()
-	jsn["responce"] = name
+	jsn["response"] = name
 	jsn[name] =str(ver)
 	jsn["commitMessage"] = commitMessage
 	return json.dumps(jsn)
@@ -101,8 +100,7 @@ def main(message):
 	ver = func(message)
 
 	jsn = dict()
-	jsn["responce"] = name
-	jsn[name] =str(ver)
+	jsn["response"] = name
 	jsn["message"] = message
 	return json.dumps(jsn)
 $$

@@ -23,16 +23,16 @@ def call(fname,atr1,atr2):
 	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
-def main(kindName,objectName,attributeName,data):
+def main(kindName,objectName,attributeName,attributeData):
 	fname = kindName+"_set_"+attributeName+"(text,text)"
-	call(fname,objectName,data)
+	call(fname,objectName,attributeData)
 
 	jsn = dict()
-	jsn["responce"] = "setAttribute"
+	jsn["response"] = "setAttribute"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
-	jsn["data"] = data
+	jsn["attributeData"] = attributeData
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -65,7 +65,7 @@ def main(kindName,oldName,newName):
 	call(fname,oldname,newname)
 
 	jsn = dict()
-	jsn["responce"] = "renameObject"
+	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
 	jsn["oldName"] = oldName
 	jsn["newName"] = newName
@@ -101,7 +101,7 @@ def main(kindName,objectName):
 	call(fname,objectName)
 
 	jsn = dict()
-	jsn["responce"] = "createObject"
+	jsn["response"] = "createObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
@@ -136,7 +136,7 @@ def main(kindName,objectName):
 	call(fname,objectName)
 
 	jsn = dict()
-	jsn["responce"] = "deleteObject"
+	jsn["response"] = "deleteObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
@@ -157,10 +157,15 @@ def error_json(jsn,typ,message):
 	jsn["dbException"] = err
 	return json.dumps(jsn)
 
+def mystr(s):
+	if s is None:
+		return s
+	return str(s)
+
 @pytypes
 def main(kindName,objectName):
 	jsn = dict()
-	jsn["responce"] = "objectData"
+	jsn["response"] = "objectData"
 	jsn["objectName"] = objectName
 	jsn["kindName"] = kindName
 
@@ -173,7 +178,7 @@ def main(kindName,objectName):
 			return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
 		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
 
-	data = [str(x) for x in data[0]]
+	data = [mystr(x) for x in data[0]]
 	res = dict(zip(plan.column_names,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
@@ -241,7 +246,7 @@ def oneKindDiff(kindName,a,b):
 @pytypes
 def main(a,b):
 	jsn = dict()
-	jsn["responce"] = "dataDifference"
+	jsn["response"] = "dataDifference"
 	jsn["a"] = a
 	jsn["b"] = b
 	

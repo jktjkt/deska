@@ -48,11 +48,9 @@ def main(kindName):
 	plan = prepare('SELECT * FROM api.kindAttributes($1)')
 	cur = plan(kindName)
 	
-	res = list()
+	res = dict()
 	for line in cur:
-		typ = dict()
-		typ[str(line[0])] = type_dict[str(line[1])]
-		res.append(typ)
+		res[str(line[0])] = type_dict[str(line[1])]
 
 	jsn = dict()
 	jsn["response"] = name
