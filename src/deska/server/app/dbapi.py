@@ -26,7 +26,7 @@ class DB:
                 "abortCurrentChangeset": [],
 		"dataDifference": ["a", "b"],
 		"objectData": ["kindName", "objectName"],
-		"listVersions": []
+		"listRevisions": []
 	})
 
 	def __init__(self,dbname):

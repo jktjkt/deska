@@ -139,7 +139,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.listVersions()
+CREATE OR REPLACE FUNCTION jsn.listRevisions()
 RETURNS text
 AS
 $$
@@ -148,7 +148,7 @@ import json
 
 @pytypes
 def main():
-	name = "listVersions"
+	name = "listRevisions"
 	plan = prepare("SELECT num2revision(id),author,timestamp,message FROM version")
 	a = plan()
 
