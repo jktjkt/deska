@@ -513,10 +513,11 @@ class Templates:
 	--from_version we need unchanged for rest_of_name
 		version_to_search = from_version;
 		IF version_to_search = 0 THEN
+		-- from_version 0 means actual data for current changeset
 			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
-			--name from poduction
+			--name from production
 				RETURN QUERY SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}') FROM {tbl};
 			ELSE
 				parent_changeset = parent(current_changeset);
@@ -526,16 +527,12 @@ class Templates:
 			current_changeset = NULL;
 		END IF;
 
-		RETURN QUERY SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}')  FROM {tbl}_history WHERE version = current_changeset AND dest_bit = '0'
+		--returns union of names in current changeset and names present in from_version (for opened changeset parent revision)
+		RETURN QUERY SELECT {tbl}_get_name(uid) FROM {tbl}_history WHERE version = current_changeset AND dest_bit = '0'
 		UNION
-		SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}')
-		FROM {tbl}_history h JOIN version v ON (h.version = v.id and v.num <= version_to_search) 
-		WHERE v.id = (
-				SELECT max(version) 
-				FROM {tbl}_history h2 
-					JOIN version v2 ON (v2.num <= version_to_search AND h2.version = v2.id AND h2.uid = h.uid)
-			)
-			AND dest_bit = '0' AND h.uid NOT IN(
+		SELECT {tbl}_get_name(uid, from_version)
+		FROM {tbl}_data_version(version_to_search) 
+		WHERE uid NOT IN(
 				SELECT uid FROM {tbl}_history WHERE version = current_changeset
 			);
 	END
