@@ -25,12 +25,13 @@
 #define DESKA_USER_INTERFACE_H
 
 #include <string>
-#include <iostream>
+
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
 #include "rlmm/readline.hh"
 
+#include "UserInterfaceIO.h"
 #include "DbInteraction.h"
 #include "Parser.h"
 #include "Exceptions.h"
@@ -46,7 +47,8 @@ namespace Cli
 *
 *   User interface uses class Parser for parsing lines, that does not match any keyword, class DbInteraction for
 *   communication with the database and with the Parser communicates through SignalsHandler, that is actively calling
-*   functions for confirmation and applying actions connected with each signal that parser emits.
+*   functions for confirmation and applying actions connected with each signal that parser emits. For  all IO
+*   operations is used class UserInterfaceIO.
 */
 class UserInterface: public boost::noncopyable, public rlmm::readline
 {
@@ -55,14 +57,11 @@ public:
     /** @short Constructor initializes stream for communication with the user and pointers for parsing
     *          input and communication with the database.
     *
-    *   @param outStream Stream for standart output
-    *   @param errStream Stream for error output
-    *   @param inStream Stream for input
     *   @param dbInteraction Pointer to the class used for communication with the database
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
+    *   @param _io Pointer to the UserInterfaceIO class for IO oparations
     */
-    UserInterface(std::ostream &outStream, std::ostream &errStream, std::istream &inStream,
-                  DbInteraction *dbInteraction, Parser* parser);
+    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIO *_io);
 
     //@{
     /** @short Functions for confirmation and applying actions connected with parser signals.
@@ -92,33 +91,8 @@ public:
     */
     void reportError(const std::string &errorMessage);
 
-    /** @short Displays confirmation message and returns users choice.
-    *
-    *   @param prompt Message to confirm
-    *   @return True if the message was confirmed, else false
-    */
-    bool askForConfirmation(const std::string &prompt);
-
     /** @short Dump everything in the DB */
     void dumpDbContents();
-    /** @short Print attributes in the context.
-    *
-    *   @param context Path to the object for which the attributes are printed
-    */
-    void printAttributes(const Db::ContextStack &context);
-
-    /** @short Print nested kinds of the object in the context or top-level objects when there is no context.
-    *
-    *   @param context Path to the object for which the attributes are printed
-    */
-    void printNestedKinds(const Db::ContextStack &context);
-
-    /** @short Make all actions needed to commit current changeset including commit message request. */
-    void commitChangeset();
-    /** @short Detaches from current changeset. */
-    void detachFromChangeset();
-    /** @short Aborts current changeset. */
-    void abortChangeset();
 
     /** @short Prints help for CLI usage. */
     void printHelp();
@@ -133,19 +107,13 @@ public:
 
 private:
 
-    /** Stream for standart output. */
-    std::ostream out;
-    /** Stream for error output. */
-    std::ostream err;
-    /** Stream for input. */
-    std::istream in;
-    
     /** Pointer to the class used for communication with the database. */
     DbInteraction *m_dbInteraction;
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
 
     std::string prompt;
+    UserInterfaceIO *io;
 };
 
 

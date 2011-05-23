@@ -40,15 +40,12 @@ public:
     virtual std::vector<ObjectRelation> kindRelations(const Identifier &kindName) const;
 
     // Returning data for existing objects
-    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const RevisionId=RevisionId::null) const;
+    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter=boost::optional<Filter>(),
+                                                  const RevisionId=RevisionId::null) const;
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
             const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
-    virtual std::vector<Identifier> findOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
-    virtual std::vector<Identifier> findNonOverriddenAttrs(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName);
 
     // Manipulating objects
     virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
@@ -62,13 +59,13 @@ public:
     virtual TemporaryChangesetId startChangeset();
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual void rebaseChangeset(const RevisionId parentRevision);
-    virtual std::vector<PendingChangeset> pendingChangesets();
+    virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
     virtual void resumeChangeset(const TemporaryChangesetId revision);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
     // Diffing
-    virtual std::vector<RevisionMetadata> listRevisions() const;
+    virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
     virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const;
 

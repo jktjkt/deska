@@ -48,6 +48,13 @@ struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::
     result_type operator()(const T&) const;
 };
 
+/** @short Variant visitor for converting Deska::Db::Filter to json_spirit::Value */
+struct DeskaFilterToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    template <typename T>
+    result_type operator()(const T&) const;
+};
+
 
 /** @short Define how to extract a custom JSON type into C++ class */
 template<typename T>

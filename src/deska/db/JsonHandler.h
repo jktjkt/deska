@@ -24,6 +24,7 @@
 
 #include <boost/optional.hpp>
 #include <tr1/memory>
+#include "deska/db/Filter.h"
 #include "deska/db/Objects.h"
 #include "deska/db/ObjectModification.h"
 #include "deska/db/Revisions.h"
@@ -144,6 +145,9 @@ public:
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
     JsonField &write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value);
+
+    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
+    JsonField &write(const std::string &name, const Deska::Db::Filter &filter);
 
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);

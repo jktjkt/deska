@@ -101,6 +101,69 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     return o;
 }
 
+template <>
+DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
+{
+    json_spirit::Object o;
+    std::string comparison;
+    switch (expression.comparison) {
+    case FILTER_COLUMN_EQ:
+        comparison = "columnEq";
+        break;
+    case FILTER_COLUMN_NE:
+        comparison = "columnNe";
+        break;
+    case FILTER_COLUMN_GT:
+        comparison = "columnGt";
+        break;
+    case FILTER_COLUMN_GE:
+        comparison = "columnGe";
+        break;
+    case FILTER_COLUMN_LT:
+        comparison = "columnLt";
+        break;
+    case FILTER_COLUMN_LE:
+        comparison = "columnLe";
+        break;
+    }
+    if (comparison.empty()) {
+        throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
+    }
+    o.push_back(json_spirit::Pair("condition", comparison));
+    o.push_back(json_spirit::Pair("column", expression.column));
+    o.push_back(json_spirit::Pair("value", expression.constantValue ? boost::apply_visitor(DeskaValueToJsonValue(), *(expression.constantValue) ) : json_spirit::Value()));
+    return o;
+};
+
+template <>
+DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::AndFilter &filter) const
+{
+    json_spirit::Array a;
+    DeskaFilterToJsonValue convertor;
+    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
+        a.push_back(convertor(expression));
+    }
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("operator", json_spirit::Value("and")));
+    o.push_back(json_spirit::Pair("operands", a));
+    return o;
+};
+
+template <>
+DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::OrFilter &filter) const
+{
+    json_spirit::Array a;
+    DeskaFilterToJsonValue convertor;
+    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
+        a.push_back(convertor(expression));
+    }
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("operator", json_spirit::Value("or")));
+    o.push_back(json_spirit::Pair("operands", a));
+    return o;
+};
+
+
 /** @short Specialization for extracting Identifiers from JSON */
 template<> struct JsonConversionTraits<Identifier> {
     static Identifier extract(const json_spirit::Value &v) {

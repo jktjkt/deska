@@ -158,7 +158,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
     expected.push_back("foo");
     expected.push_back("bar");
     expected.push_back("ahoj");
-    vector<Identifier> res = j->kindInstances("blah", RevisionId(666));
+    vector<Identifier> res = j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -168,9 +168,70 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFai
 {
     expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
     expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", RevisionId(666)), JsonStructureError);
+    BOOST_CHECK_THROW(j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666)), JsonStructureError);
     expectEmpty();
 }
+
+/** @short Test that simple filter for IS NULL works fine */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"attr\",\"value\":null}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"condition\": \"columnEq\", \"column\": \"attr\", \"value\": null}}\n");
+    vector<Identifier> expected;
+    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_EQ, "attr", Value())), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for != string */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"attr\",\"value\":\"foo\"}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"condition\": \"columnNe\", \"column\": \"attr\", \"value\": \"foo\"}}\n");
+    vector<Identifier> expected;
+    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_NE, "attr", Value("foo"))), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test for AND, less-than and greater-or-equal */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
+                "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
+               "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    vector<Identifier> expected;
+    std::vector<Expression> expressions;
+    expressions.push_back(Expression(FILTER_COLUMN_LT, "attr1", Value(666)));
+    expressions.push_back(Expression(FILTER_COLUMN_GE, "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(expressions)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test for OR, greater-than and less-or-equal */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"column\":\"attr1\",\"value\":666},"
+                "{\"condition\":\"columnLe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": {\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"column\":\"attr1\",\"value\":666},"
+               "{\"condition\":\"columnLe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    vector<Identifier> expected;
+    std::vector<Expression> expressions;
+    expressions.push_back(Expression(FILTER_COLUMN_GT, "attr1", Value(666)));
+    expressions.push_back(Expression(FILTER_COLUMN_LE, "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(expressions)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
@@ -229,36 +290,6 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     // at yet another place. Let's stick with strings and don't expect to see detailed error reporting here.
     BOOST_REQUIRE_EQUAL(res.size(), expected.size());
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
-    expectEmpty();
-}
-
-/** @short Basic test for findOverridenAttrs() */
-BOOST_FIXTURE_TEST_CASE(json_findOverridenAttrs, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"findOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
-    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"findOverriddenAttrs\": [\"z\", \"a\", \"aaa\"], \"objectName\": \"o\", \"response\": \"findOverriddenAttrs\"}\n");
-    vector<Identifier> expected;
-    expected.push_back("z");
-    expected.push_back("a");
-    expected.push_back("aaa");
-    vector<Identifier> res = j->findOverriddenAttrs("k", "o", "aa");
-    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
-    expectEmpty();
-}
-
-/** @short Basic test for findNonOverridenAttrs() */
-BOOST_FIXTURE_TEST_CASE(json_findNonOverridenAttrs, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"findNonOverriddenAttrs\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"aa\"}\n");
-    expectRead("{\"attributeName\": \"aa\", \"kindName\": \"k\", "
-            "\"findNonOverriddenAttrs\": [\"d\", \"e\", \"aaaaa\"], \"objectName\": \"o\", \"response\": \"findNonOverriddenAttrs\"}\n");
-    vector<Identifier> expected;
-    expected.push_back("d");
-    expected.push_back("e");
-    expected.push_back("aaaaa");
-    vector<Identifier> res = j->findNonOverriddenAttrs("k", "o", "aa");
-    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
 

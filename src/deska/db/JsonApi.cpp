@@ -34,6 +34,7 @@ static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
 static std::string j_attrName = "attributeName";
 static std::string j_revision = "revision";
+static std::string j_filter = "filter";
 static std::string j_errorPrefix = "error";
 
 namespace Deska {
@@ -128,7 +129,7 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
     return res;
 }
 
-vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, const RevisionId revision ) const
+vector<Identifier> JsonApiParser::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId revision) const
 {
     JsonCommandContext c1("kindInstances");
 
@@ -136,6 +137,8 @@ vector<Identifier> JsonApiParser::kindInstances( const Identifier &kindName, con
     JsonHandlerApiWrapper h(this, "kindInstances");
     h.write(j_kindName, kindName);
     h.writeIfNotZero(j_revision, revision);
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("kindInstances").extract(&res);
     h.work();
     return res;
@@ -168,36 +171,6 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     h.read("resolvedObjectData").extract(&res);
     h.work();
     return res.attributes;
-}
-
-vector<Identifier> JsonApiParser::findOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                const Identifier &attributeName)
-{
-    JsonCommandContext c1("findOverridenAttrs");
-
-    vector<Identifier> res;
-    JsonHandlerApiWrapper h(this, "findOverriddenAttrs");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.read("findOverriddenAttrs").extract(&res);
-    h.work();
-    return res;
-}
-
-vector<Identifier> JsonApiParser::findNonOverriddenAttrs(const Identifier &kindName, const Identifier &objectName,
-                                                   const Identifier &attributeName)
-{
-    JsonCommandContext c1("findNonOverriddenAttrs");
-
-    vector<Identifier> res;
-    JsonHandlerApiWrapper h(this, "findNonOverriddenAttrs");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.read("findNonOverriddenAttrs").extract(&res);
-    h.work();
-    return res;
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
@@ -285,12 +258,14 @@ void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
     h.work();
 }
 
-vector<PendingChangeset> JsonApiParser::pendingChangesets()
+vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<Filter> &filter)
 {
     JsonCommandContext c1("pendingChangesets");
 
     vector<PendingChangeset> res;
     JsonHandlerApiWrapper h(this, "pendingChangesets");
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("pendingChangesets").extract(&res);
     h.work();
     return res;
@@ -322,12 +297,14 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
-std::vector<RevisionMetadata> JsonApiParser::listRevisions() const
+std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
 {
     JsonCommandContext c1("listRevisions");
 
     std::vector<RevisionMetadata> res;
     JsonHandlerApiWrapper h(this, "listRevisions");
+    if (filter)
+        h.write(j_filter, *filter);
     h.read("listRevisions").extract(&res);
     h.work();
     return res;
