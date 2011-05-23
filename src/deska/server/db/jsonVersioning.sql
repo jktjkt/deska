@@ -58,7 +58,6 @@ def main(id):
 
 	jsn = dict()
 	jsn["response"] = name
-	jsn[name] =str(ver)
 	jsn["id"] = id
 	return json.dumps(jsn)
 $$
@@ -102,7 +101,6 @@ def main(message):
 
 	jsn = dict()
 	jsn["response"] = name
-	jsn[name] =str(ver)
 	jsn["message"] = message
 	return json.dumps(jsn)
 $$
