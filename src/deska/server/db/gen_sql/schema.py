@@ -106,6 +106,7 @@ CREATE FUNCTION commit_all(message text)
 			reftable = cols_ref_uid[embed_column[0]]
 			#adding full quolified name with _ delimiter
 			self.sql.write(table.gen_add_embed(embed_column[0],reftable))
+			self.sql.write(table.gen_del_embed())
 			#get uid from embed object, again name have to be full
 			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_get_name_embed(embed_column[0],reftable))
@@ -114,6 +115,7 @@ CREATE FUNCTION commit_all(message text)
 			self.sql.write(table.gen_changeset_of_data_version_by_name_embed(embed_column[0],reftable))
 		else:
 			self.sql.write(table.gen_add())
+			self.sql.write(table.gen_del())
 			self.sql.write(table.gen_get_uid())
 			self.sql.write(table.gen_get_name())
 			self.sql.write(table.gen_names())
@@ -122,7 +124,6 @@ CREATE FUNCTION commit_all(message text)
 
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
-		self.sql.write(table.gen_del())
 		self.sql.write(table.gen_get_object_data())
 		self.sql.write(table.gen_commit())
 		self.sql.write(table.gen_prev_changeset())

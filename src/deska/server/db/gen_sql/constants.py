@@ -397,6 +397,37 @@ class Templates:
 
 '''
 
+	# template string for del function
+	del_embed_string = '''CREATE FUNCTION
+	{tbl}_del(IN name_ text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+		rowuid bigint;
+		tmp bigint;
+		local_name text;
+	BEGIN	
+		SELECT get_current_changeset() INTO ver;
+		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
+		IF NOT FOUND THEN
+			--from name of embed object is used only local part
+			SELECT embed_name[2] FROM embed_name(name_,'{delim}') INTO local_name;
+			INSERT INTO {tbl}_history (uid, name, version, dest_bit)
+				VALUES (rowuid, local_name, ver, '1');
+		ELSE
+			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
+		END IF;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	# template string for commit function
 	commit_string = '''CREATE FUNCTION
 	{tbl}_commit()
