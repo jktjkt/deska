@@ -31,6 +31,36 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
+std::string jsonValueTypeToString(const json_spirit::Value_type type)
+{
+    switch (type) {
+    case json_spirit::obj_type:
+        return "obj_type";
+    case json_spirit::array_type:
+        return "array_type";
+    case json_spirit::str_type:
+        return "str_type";
+    case json_spirit::bool_type:
+        return "bool_type";
+    case json_spirit::int_type:
+        return "int_type";
+    case json_spirit::real_type:
+        return "real_type";
+    case json_spirit::null_type:
+        return "null_type";
+    }
+    std::ostringstream ss;
+    ss << static_cast<int>(type);
+    return ss.str();
+}
+
+void checkJsonValueType(const json_spirit::Value &v, const json_spirit::Value_type desiredType)
+{
+    if (v.type() != desiredType) {
+        throw JsonStructureError("Expected JSON type " + jsonValueTypeToString(desiredType) + ", got " + jsonValueTypeToString(v.type())+ " instead");
+    }
+}
+
 /** @short Simply use json_spirit::Value's overloaded constructor */
 template <typename T>
 DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
@@ -168,6 +198,7 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
 template<> struct JsonConversionTraits<Identifier> {
     static Identifier extract(const json_spirit::Value &v) {
         JsonContext c1("When extracting Identifier");
+        checkJsonValueType(v, json_spirit::str_type);
         return v.get_str();
     }
 };
@@ -212,6 +243,7 @@ template<> struct JsonConversionTraits<ObjectRelation> {
         std::string relationKind;
         h.failOnUnknownFields(false);
         h.read("relation").extract(&relationKind);
+        checkJsonValueType(v, json_spirit::obj_type);
         h.parseJsonObject(v.get_obj());
 
         // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
@@ -262,6 +294,7 @@ template<> struct JsonConversionTraits<RevisionMetadata> {
         h.read("author").extract(&author);
         h.read("timestamp").extract(&timestamp);
         h.read("commitMessage").extract(&commitMessage);
+        checkJsonValueType(v, json_spirit::obj_type);
         h.parseJsonObject(v.get_obj());
         BOOST_ASSERT(revision != RevisionId::null);
         return RevisionMetadata(revision, author, timestamp, commitMessage);
@@ -272,6 +305,7 @@ template<> struct JsonConversionTraits<RevisionMetadata> {
 template<> struct JsonConversionTraits<RevisionId> {
     static RevisionId extract(const json_spirit::Value &v) {
         JsonContext c1("When extracting RevisionId");
+        checkJsonValueType(v, json_spirit::str_type);
         return RevisionId::fromJson(v.get_str());
     }
 };
@@ -280,6 +314,7 @@ template<> struct JsonConversionTraits<RevisionId> {
 template<> struct JsonConversionTraits<TemporaryChangesetId> {
     static TemporaryChangesetId extract(const json_spirit::Value &v) {
         JsonContext c1("When extracting TemporaryChangesetId");
+        checkJsonValueType(v, json_spirit::str_type);
         return TemporaryChangesetId::fromJson(v.get_str());
     }
 };
@@ -288,6 +323,7 @@ template<> struct JsonConversionTraits<TemporaryChangesetId> {
 template<> struct JsonConversionTraits<boost::posix_time::ptime> {
     static boost::posix_time::ptime extract(const json_spirit::Value &v) {
         JsonContext c1("When extracting boost::posix_time::ptime");
+        checkJsonValueType(v, json_spirit::str_type);
         return boost::posix_time::time_from_string(v.get_str());
     }
 };
@@ -296,8 +332,7 @@ template<> struct JsonConversionTraits<boost::posix_time::ptime> {
 template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
     static PendingChangeset::AttachStatus extract(const json_spirit::Value &value) {
         JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
-        if (value.type() != json_spirit::str_type)
-            throw JsonStructureError("Value of expected type PendingChangesetAttachStatus is not a string");
+        checkJsonValueType(value, json_spirit::str_type);
         std::string data = value.get_str();
         if (data == "DETACHED") {
             return PendingChangeset::ATTACH_DETACHED;
@@ -328,6 +363,7 @@ template<typename T> struct JsonConversionTraits<std::vector<T> > {
         JsonContext c1("When extracting std::vector<T>");
         std::vector<T> res;
         int i = 0;
+        checkJsonValueType(v, json_spirit::array_type);
         BOOST_FOREACH(const json_spirit::Value &item, v.get_array()) {
             JsonContext c2("When processing field #" + libebt::stringify(i));
             res.push_back(JsonConversionTraits<T>::extract(item));
@@ -344,10 +380,10 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
     static std::vector<KindAttributeDataType> extract(const json_spirit::Value &v) {
         JsonContext c1("When extracting std::vector<KindAttributeDataType>");
         std::vector<KindAttributeDataType> res;
+        checkJsonValueType(v, json_spirit::obj_type);
         BOOST_FOREACH(const Pair &item, v.get_obj()) {
             JsonContext c2("When handling attribute " + item.name_);
-            if (item.value_.type() != json_spirit::str_type)
-                throw JsonStructureError("Value of expected type Data Type is not string");
+            checkJsonValueType(item.value_, json_spirit::str_type);
             std::string datatype = item.value_.get_str();
             if (datatype == "string") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_STRING));
@@ -377,6 +413,7 @@ void SpecializedExtractor<JsonWrappedObjectModification>::extract(const json_spi
     std::string modificationKind;
     h.failOnUnknownFields(false);
     h.read("command").extract(&modificationKind);
+    checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
 
     // Got to re-initialize the handler, because it would otherwise claim that "command" was already parsed
@@ -451,6 +488,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         std::string exceptionClass;
         h.failOnUnknownFields(false);
         h.read("type").extract(&exceptionClass);
+        checkJsonValueType(v, json_spirit::obj_type);
         h.parseJsonObject(v.get_obj());
 
         // Now re-initialize the JSON handler and throw an exception matching the server's response
@@ -512,20 +550,28 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     switch (target->dataType) {
     case TYPE_STRING:
     case TYPE_IDENTIFIER:
-        if (value.type() != json_spirit::str_type)
-            throw JsonStructureError("Attribute value is not string");
+    {
+        JsonContext c2("When extracting TYPE_STRING or TYPE_IDENTIFIER");
+        checkJsonValueType(value, json_spirit::str_type);
         target->value = value.get_str();
         return;
+    }
     case TYPE_INT:
-        if (value.type() != json_spirit::int_type)
-            throw JsonStructureError("Attribute value is not an integer");
+    {
+        JsonContext c2("When extracting TYPE_INT");
+        checkJsonValueType(value, json_spirit::int_type);
         target->value = value.get_int();
         return;
+    }
     case TYPE_DOUBLE:
+    {
+        JsonContext c2("When extracting TYPE_DOUBLE");
+        // got to preserve our special case for checking for both possibilities
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");
         target->value = value.get_real();
         return;
+    }
     }
     std::ostringstream ss;
     ss << "Unsupported data type " << target->dataType;
@@ -545,6 +591,7 @@ void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_sp
 {
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attribute " + target->attrName + " with origin information");
+    checkJsonValueType(value, json_spirit::array_type);
     json_spirit::Array a = value.get_array();
     if (a.size() != 2) {
         throw JsonStructureError("Tuple of (origin, value) has length != 2");
@@ -586,6 +633,7 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
     // As a side-effect, all of the attributes are marked as required to be present
 
+    checkJsonValueType(value, json_spirit::obj_type);
     // Do the JSON parsing and verification
     h.parseJsonObject(value.get_obj());
 
@@ -623,6 +671,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
         ++i;
     }
 
+    checkJsonValueType(value, json_spirit::obj_type);
     h.parseJsonObject(value.get_obj());
 
     i = 0;
@@ -641,6 +690,7 @@ void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const 
     BOOST_ASSERT(target);
     JsonContext c1("When extracting a list of differences");
     int i = 0;
+    checkJsonValueType(value, json_spirit::array_type);
     BOOST_FOREACH(const json_spirit::Value &item, value.get_array()) {
         JsonContext c2("When processing diff item #" + libebt::stringify(i));
         JsonWrappedObjectModification currentDestination(target->dataTypesOfEverything);
