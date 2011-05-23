@@ -1,14 +1,6 @@
 BEGIN;
 
-<<<<<<< HEAD:doc/db/pgtap/versioning/oneuser.sql
---  \i /home/martina/pgtap/pgtap-0.24/pgtap.sql
-
-SET search_path TO api, pgtap,genproc,history,deska,production;
-
-=======
-\i util-switch-user.sql
 \i util-include-path.sql
->>>>>>> master:tests/sql/test_versioning-one-user.sql
 
 --action is indicator of operation done with object
 --I object was inserted
@@ -41,23 +33,10 @@ DECLARE
 BEGIN
 	
 	PERFORM startchangeset();
-<<<<<<< HEAD:doc/db/pgtap/versioning/oneuser.sql
-
-=======
->>>>>>> master:tests/sql/test_versioning-one-user.sql
 	-- some changes follows
 	PERFORM vendor_add('DELL');
 	PERFORM commitchangeset('add vendor DELL');
 
-<<<<<<< HEAD:doc/db/pgtap/versioning/oneuser.sql
-	-- commit
-	PERFORM vendor_commit();
-
-	-- end session, part of vendor commit? of vendor commit part of this?
-	PERFORM commitchangeset('');
-	
-=======
->>>>>>> master:tests/sql/test_versioning-one-user.sql
 	PREPARE expnames  AS SELECT name FROM pgtap.vendor_test1 WHERE action ='I';
 	PREPARE retnames AS SELECT name FROM production.vendor;
 	RETURN NEXT set_has( 'retnames', 'expnames', 'all names are present' );
@@ -69,14 +48,7 @@ BEGIN
 	PERFORM vendor_del('DELL');
 	PERFORM vendor_add('HP');
 	PERFORM vendor_add('IBM');
-<<<<<<< HEAD:doc/db/pgtap/versioning/oneuser.sql
-	PERFORM vendor_commit();
-	PERFORM commitchangeset('');
-
-=======
 	PERFORM commitchangeset('add vendor HP,IBM, deleted DELL');
->>>>>>> master:tests/sql/test_versioning-one-user.sql
-
 
 	PREPARE expnames  AS SELECT name FROM pgtap.vendor_test2 WHERE action ='I';
 	PREPARE exp_not_in_names AS SELECT name FROM pgtap.vendor_test2 WHERE action ='D';
