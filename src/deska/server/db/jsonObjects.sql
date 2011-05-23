@@ -28,7 +28,7 @@ def main(kindName,objectName,attributeName,data):
 	call(fname,objectName,data)
 
 	jsn = dict()
-	jsn["responce"] = "setAttribute"
+	jsn["response"] = "setAttribute"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
@@ -65,7 +65,7 @@ def main(kindName,oldName,newName):
 	call(fname,oldname,newname)
 
 	jsn = dict()
-	jsn["responce"] = "renameObject"
+	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
 	jsn["oldName"] = oldName
 	jsn["newName"] = newName
@@ -101,7 +101,7 @@ def main(kindName,objectName):
 	call(fname,objectName)
 
 	jsn = dict()
-	jsn["responce"] = "createObject"
+	jsn["response"] = "createObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
@@ -136,7 +136,7 @@ def main(kindName,objectName):
 	call(fname,objectName)
 
 	jsn = dict()
-	jsn["responce"] = "deleteObject"
+	jsn["response"] = "deleteObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
@@ -160,7 +160,7 @@ def error_json(jsn,typ,message):
 @pytypes
 def main(kindName,objectName):
 	jsn = dict()
-	jsn["responce"] = "objectData"
+	jsn["response"] = "objectData"
 	jsn["objectName"] = objectName
 	jsn["kindName"] = kindName
 
@@ -241,7 +241,7 @@ def oneKindDiff(kindName,a,b):
 @pytypes
 def main(a,b):
 	jsn = dict()
-	jsn["responce"] = "dataDifference"
+	jsn["response"] = "dataDifference"
 	jsn["a"] = a
 	jsn["b"] = b
 	
