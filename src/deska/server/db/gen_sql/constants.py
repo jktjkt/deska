@@ -166,32 +166,6 @@ class Templates:
 
 '''
 
-	#template string for get functions
-	get_string = '''CREATE FUNCTION
-	{tbl}_get_{colname}(IN name_ text)
-	RETURNS {coltype}
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		value {coltype};
-	BEGIN
-		SELECT get_current_changeset() INTO ver;
-		SELECT {colname} INTO value
-			FROM {tbl}_history
-			WHERE name = name_ AND version = ver;
-		--if the value isn't in current version then it should be found in production
-		IF NOT FOUND THEN
-			SELECT {colname} INTO value
-			FROM {tbl}
-			WHERE name = name_;
-		END IF;		
-		RETURN value;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
 	#template string for get_uid functions (for name finds corresponding uid)
 	#not for kind that are embed into another
 	get_uid_string = '''CREATE FUNCTION

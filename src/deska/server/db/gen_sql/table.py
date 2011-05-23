@@ -192,9 +192,6 @@ class Table(constants.Templates):
 	def gen_diff_terminate_function(self):
 		return self.diff_terminate_function_string.format(tbl = self.name)
 
-	def gen_get(self,col_name):
-		return self.get_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name])
-
 	def gen_get_name(self):
 		return self.get_name_string.format(tbl = self.name)
 
