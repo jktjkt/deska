@@ -11,7 +11,7 @@ parser.add_option("-d", "--database", dest="database", default="deska_dev",
                   help="Name of the database to use", metavar="DB")
 parser.add_option("-U", "--username", dest="username",
                   help="User to connect to the DB", metavar="USER")
-parser.add_option("--logfile", dest="logfile",
+parser.add_option("--logfile", dest="logfile", default="deska_server.log",
                   help="File name of the debug log")
 parser.add_option("--log-stderr", dest="log_stderr", action="store_true",
                   default=False, help="Log to standard error")
