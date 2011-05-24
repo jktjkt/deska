@@ -76,7 +76,6 @@ class Templates:
 		--we need to get its current data to this version			
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
-			INSERT INTO {tbl}_history ({columns},version)
 				SELECT {columns},ver FROM {tbl}_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
 		--set column to refuid - uid of referenced object
