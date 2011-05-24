@@ -4,11 +4,18 @@ cd `dirname $0`
 
 . ./util-config.sh
 
-if [[ -z $1 ]]; then
+TESTMODE="${1}"
+TESTCASE="${2}"
+
+if [[ -z "${TESTMODE}" ]]; then
+    die "SQL/DBAPI/whatever selection"
+fi
+
+if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
-if [[ ! -f $1 ]]; then
+if [[ ! -f $TESTCASE ]]; then
     die "Locating SQL testcase"
 fi
 
@@ -34,5 +41,11 @@ else
 	touch $DESKA_DB_STATE_FILE
 fi
 
-pg_prove -U $DESKA_USER -d $DESKA_DB $1 || die "Test"
+case "${TESTMODE}" in
+    sql)
+        pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE || die "Test"
+        ;;
+    *)
+        die "Unknown test"
+esac
 

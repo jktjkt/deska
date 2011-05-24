@@ -31,6 +31,7 @@ endmacro(deska_test)
 macro(deska_sql_test fname)
     add_test(test_sql_${fname}
         ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        sql
         ${CMAKE_CURRENT_BINARY_DIR}/sql/test_${fname}.sql
         )
 endmacro(deska_sql_test)
