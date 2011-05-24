@@ -18,4 +18,13 @@ j = [
          'message': ''}
     ]}
     ),
+    ( # abort this changeset
+    {"command": "abortCurrentChangeset"},
+    {'response': 'abortCurrentChangeset'}
+    ),
+    ( # there should be no pending changesets at this time
+    {"command": "pendingChangesets"},
+    {'response': 'pendingChangesets', "pendingChangesets": []}
+    ),
+
 ]
