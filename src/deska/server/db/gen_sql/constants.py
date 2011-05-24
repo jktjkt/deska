@@ -275,7 +275,7 @@ class Templates:
 		END IF;
 
 		IF local_name IS NULL THEN
-			--get local name
+			--get local name and uid of referenced object
 			SELECT name, {column} INTO local_name, {reftbl}_uid FROM {tbl}_history WHERE  uid = {tbl}_uid AND version = current_changeset AND dest_bit = '0';
 			IF NOT FOUND THEN
 				SELECT name, {column} INTO local_name, {reftbl}_uid
@@ -289,18 +289,16 @@ class Templates:
 			END IF;
 		END IF;
 		
-		raise notice 'local_name is %',local_name;
-		
-		
+		--get name of referenced object
 		rest_of_name = {reftbl}_get_name({reftbl}_uid, from_version);
-		raise notice 'rest_of_name is %', rest_of_name;
-		
+		--join local name of object and name of referenced object to full name of object
 		RETURN join_with_delim(rest_of_name, local_name, '{delim}');
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	#template for function getting uid of object embed into another
 	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_get_uid(full_name text, from_version bigint = 0)
 	RETURNS bigint
