@@ -122,7 +122,7 @@ class Templates:
 				RETURN data;
 			END IF;
 			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(changeset_id));
+			from_version = id2num(parent(current_changeset));
 		END IF;
 
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
