@@ -41,4 +41,5 @@ if __name__ == "__main__":
     j = __import__(TESTCASE).j
     JsonApiTester.testCommunication.__func__.__doc__ = TESTCASE
     suite = unittest.TestLoader().loadTestsFromTestCase(JsonApiTester)
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    sys.exit(not result.wasSuccessful())
