@@ -1,7 +1,10 @@
+import apiUtils
+
 j = [(
     {"command": "kindNames"},
     {'response': 'kindNames',
-     'kindNames': ['interface', 'vendor', 'host', 'hardware']}
+     'kindNames': apiUtils.AnyOrderList(('interface', 'vendor', 'host',
+                                         'hardware'))}
     ),
     ({"command": "kindAttributes", "kindName": "interface"},
      {"kindName": "interface", "kindAttributes":

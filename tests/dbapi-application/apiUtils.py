@@ -21,3 +21,11 @@ class DeskaDbUser(object):
             raise TypeError, "Cannot compare DeskaDbUser with anything but string"
         return other == self.user
 
+class AnyOrderList(object):
+    def __init__(self, items):
+        self.items = frozenset(items)
+
+    def __eq__(self, other):
+        if not isinstance(other, list):
+            raise TypeError, "Cannot compare AnyOrderList with anything but list"
+        return self.items == frozenset(other)
