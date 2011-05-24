@@ -1,3 +1,5 @@
+import apiUtils
+
 j = [
     ( # start with an empty state
     {"command": "pendingChangesets"},
@@ -7,11 +9,13 @@ j = [
     {"command": "startChangeset"},
     {'response': 'startChangeset', "startChangeset": "tmp1"}
     ),
-    # FIXME: this depends on current date
-    #( # verify that it is indeed present
-    #{"command": "pendingChangesets"},
-    #{'response': 'pendingChangesets', "pendingChangesets":
-    # # FIXME: add data here
-    # []}
-    #),
+    ( # verify that it is indeed present
+    {"command": "pendingChangesets"},
+    {'response': 'pendingChangesets', "pendingChangesets": [
+        {'status': 'INPROGRESS', 'changeset': 'tmp1',
+         'author': apiUtils.DeskaDbUser(),
+         'timestamp': apiUtils.CurrentTimestamp(), 'parentRevision': 'r1',
+         'message': ''}
+    ]}
+    ),
 ]
