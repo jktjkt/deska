@@ -218,24 +218,6 @@ class Table(constants.Templates):
 	def gen_names_embed(self, refcolumn, reftable):
 		return self.names_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
-	def gen_prev_changeset(self):
-		return self.prev_changest_string.format(tbl = self.name)
-
-	def gen_prev_changeset_by_name(self):
-		return self.prev_changest_by_name_string.format(tbl = self.name)
-
-	def gen_changeset_of_data_version(self):
-		return self.changeset_of_data_version_string.format(tbl = self.name)
-
-	def gen_changeset_of_data_version_by_name(self):
-		return self.changeset_of_data_version_by_name_string.format(tbl = self.name)
-		
-	def gen_prev_changeset_by_name_embed(self, refcolumn, reftable):
-		return self.prev_changest_by_name_embed_string.format(tbl = self.name, column = refcolumn ,reftbl = reftable)
-
-	def gen_changeset_of_data_version_by_name_embed(self, refcolumn, reftable):
-		return self.changeset_of_data_version_by_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable)
-
 	#generates function which finds all deleted objects in diff data table
 	def gen_diff_deleted(self):
 		return self.diff_deleted_string.format(tbl = self.name)
