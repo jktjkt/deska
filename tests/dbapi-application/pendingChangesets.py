@@ -55,7 +55,7 @@ j = [
         {'status': 'INPROGRESS', 'changeset': 'tmp2',
          'author': apiUtils.DeskaDbUser(),
          'timestamp': apiUtils.CurrentTimestamp(), 'parentRevision': 'r1',
-         'message': ''}
+         'message': 'xyz'}
     ]}
     ),
     # FIXME: simulate what happens when starting a changeset while being
