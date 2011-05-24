@@ -4,14 +4,32 @@ from jsonparser import CommandParser
 from dbapi import DB
 import sys
 import logging
-LOG_FILENAME = 'deska_server.log'
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+from optparse import OptionParser
 
+parser = OptionParser()
+parser.add_option("-d", "--database", dest="database", default="deska_dev",
+                  help="Name of the database to use", metavar="DB")
+parser.add_option("--logfile", dest="logfile",
+                  help="File name of the debug log")
+parser.add_option("--log-stderr", dest="log_stderr", action="store_true",
+                  default=False, help="Log to standard error")
+
+(options, args) = parser.parse_args()
+if (options.log_stderr and options.logfile):
+    # basicConfig() won't add duplicate loggers
+    parser.error("Cannot log to both file and stderr -- too lazy")
+
+if options.logfile:
+    logging.basicConfig(filename = options.logfile, level=logging.DEBUG)
+elif options.log_stderr:
+    logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
+else:
+    logging.basicConfig(stream = sys.stderr, level=logging.CRITICAL)
 
 logging.debug("starting deska server")
 
 try:
-	db = DB("deska_dev")
+	db = DB(options.database)
 except Exception, e:
 	print e
 	sys.exit()
