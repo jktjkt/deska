@@ -47,8 +47,9 @@ case "${TESTMODE}" in
         ;;
     dbapi)
         export DESKA_USER
+        export DESKA_DB
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
-            $DESKA_DB $TESTCASE || die "Test"
+            $TESTCASE || die "Test"
         ;;
     *)
         die "Unknown test"

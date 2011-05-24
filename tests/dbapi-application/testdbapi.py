@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import os
 import select
 import unittest
 import json
@@ -21,7 +22,7 @@ class JsonApiTester(unittest.TestCase):
 
     def setUp(self):
         """Start the process"""
-        self.cmd = [SERVER_PATH, "-d", DBNAME]
+        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER]
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -43,8 +44,9 @@ class JsonApiTester(unittest.TestCase):
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py dbname testcase
     SERVER_PATH = sys.argv[1]
-    DBNAME = sys.argv[2]
-    TESTCASE = sys.argv[3]
+    DBNAME = os.environ["DESKA_DB"]
+    DBUSER = os.environ["DESKA_USER"]
+    TESTCASE = sys.argv[2]
     j = __import__(TESTCASE).j
     JsonApiTester.testCommunication.__func__.__doc__ = TESTCASE
     suite = unittest.TestLoader().loadTestsFromTestCase(JsonApiTester)
