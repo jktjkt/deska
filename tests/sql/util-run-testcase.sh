@@ -45,6 +45,10 @@ case "${TESTMODE}" in
 
         pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE || die "Test"
         ;;
+    dbapi)
+        python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
+            $DESKA_DB $TESTCASE || die "Test"
+        ;;
     *)
         die "Unknown test"
 esac

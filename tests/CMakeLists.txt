@@ -36,6 +36,12 @@ macro(deska_sql_test fname)
         )
 endmacro(deska_sql_test)
 
+macro(deska_dbapi_test fname)
+    add_test(test_dbapi_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        dbapi ${fname})
+endmacro(deska_dbapi_test)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
@@ -72,6 +78,8 @@ if(RUN_SQL_TESTS)
     deska_sql_test(versioning-pendingchangeset)
     deska_sql_test(versioning-pendingchangeset_data)
     deska_sql_test(versioned-data)
+
+    deska_dbapi_test(kindNames)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
