@@ -1,5 +1,6 @@
 import sys
 import subprocess
+import select
 import unittest
 import json
 
@@ -22,7 +23,7 @@ class JsonApiTester(unittest.TestCase):
         """Start the process"""
         self.cmd = [SERVER_PATH, "-d", DBNAME]
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE, stderr=sys.stderr)
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def testCommunication(self):
         """Iterate over the recorded communication and verify that we get the same results back"""
@@ -30,7 +31,13 @@ class JsonApiTester(unittest.TestCase):
             json.dump(items[0], self.p.stdin)
             self.p.stdin.write("\n")
             self.p.stdin.flush()
-            output = json.loads(self.p.stdout.readline())
+            status = select.select((self.p.stdout, self.p.stderr), (), ())
+            if (self.p.stderr in status[0]):
+                err = self.p.stderr.read()
+                raise Exception(err)
+            readJson = self.p.stdout.readline()
+            print readJson
+            output = json.loads(readJson)
             self.assertEqual(deunicodeify(output), items[1])
 
 if __name__ == "__main__":
