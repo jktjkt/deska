@@ -633,7 +633,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 case PARSING_MODE_SHOW:
                     // Modes SHOW and DELETE requires existing kind instances.
                     instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
-                    if (std::find(instances.begin(), instances.end(), contextStack.back().name) == instances.end()) {
+                    if (std::find(instances.begin(), instances.end(), toPath(contextStack)) == instances.end()) {
                         addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                            contextStack.back().kind, contextStack.back().name));
                         parsingSucceeded = false;
