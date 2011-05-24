@@ -14,7 +14,7 @@ try:
 	db = DB("deska_dev")
 except Exception, e:
 	print e
-	exit
+	sys.exit()
 logging.debug("conected to database")
 
 while True:
