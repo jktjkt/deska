@@ -293,7 +293,7 @@ class Templates:
 				RETURN value;
 			END IF;
 			
-			SELECT name INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = current_changeset;
+			SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}') INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = current_changeset;
 			IF FOUND THEN
 				--we have result and can return it
 				RETURN value;
