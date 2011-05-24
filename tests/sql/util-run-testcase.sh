@@ -15,10 +15,6 @@ if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
-if [[ ! -f $TESTCASE ]]; then
-    die "Locating SQL testcase"
-fi
-
 DESKA_DB_STATE_FILE=./.db_initialized
 
 if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
@@ -43,6 +39,10 @@ fi
 
 case "${TESTMODE}" in
     sql)
+        if [[ ! -f $TESTCASE ]]; then
+            die "Locating SQL testcase"
+        fi
+
         pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE || die "Test"
         ;;
     *)
