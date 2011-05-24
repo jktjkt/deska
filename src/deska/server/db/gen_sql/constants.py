@@ -41,8 +41,7 @@ class Templates:
 		--we need to get its current data to this version
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
-				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
+				SELECT {columns},ver FROM {tbl}_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
 		--set new value in {colname} column
 		UPDATE {tbl}_history SET {colname} = CAST (value AS {coltype}), version = ver
@@ -77,8 +76,8 @@ class Templates:
 		--we need to get its current data to this version			
 		IF NOT FOUND THEN
 			INSERT INTO {tbl}_history ({columns},version)
-				SELECT {columns},ver FROM {tbl}_history
-					WHERE uid = rowuid AND version = {tbl}_prev_changeset(rowuid,parent(ver));
+			INSERT INTO {tbl}_history ({columns},version)
+				SELECT {columns},ver FROM {tbl}_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
 		--set column to refuid - uid of referenced object
 		UPDATE {tbl}_history SET {colname} = refuid, version = ver
@@ -313,12 +312,13 @@ class Templates:
 		deleted bit(1);
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
-		--finds uid of object which is thisone embed into
+		--finds uid of object which is this one embed into
 		SELECT {reftbl}_get_uid(rest_of_name, from_version) INTO {reftbl}_uid;
 
 		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
 		changeset_id = {tbl}_changeset_of_data_version_by_name({tbl}_name, {reftbl}_uid, from_version);
 		
+		--checks if object is still present 
 		SELECT uid, dest_bit INTO {tbl}_uid, deleted FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
 		IF deleted = B'1' THEN
 			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '10022';
@@ -651,36 +651,36 @@ class Templates:
 	AS
 	$$
 	DECLARE
-		version_id bigint;
 		changeset_id bigint;
 		preceding_changeset bigint;
 		tmp bigint;
 	BEGIN
-	--from_version is user id of version
+	--from_version is user id of version from which we would like to find max lesser version where object name_ was changed
 	--we need id of changeset
 		IF from_version = 0 THEN
 			SELECT get_current_changeset_or_null() INTO changeset_id;
 			--no opened changeset
 			IF changeset_id IS NULL THEN
 				--user wants newest data
-				SELECT MAX(num) INTO version_id FROM version;
-				changeset_id = num2id(version_id);
+				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
 				--user wants data in his version, or earlier
 				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
 				IF NOT FOUND THEN
 					--object was not modified in changeset which user just works on
-					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
+					SELECT id2num(parentrevision) INTO from_version FROM changeset WHERE id = changeset_id;
 				ELSE
 					RETURN changeset_id;
 				END IF;		
 			END IF;
-		ELSE
-			--user wants to see data valid in some commited version
-			changeset_id  = num2id(from_version);
 		END IF;
 
-		SELECT {tbl}_prev_changeset_by_name(name_,changeset_id) INTO preceding_changeset;
+		SELECT version INTO preceding_changeset
+		FROM {tbl}_data_version(from_version)
+		WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		END IF;
 		
 		RETURN preceding_changeset;
 	END;
@@ -734,24 +734,27 @@ class Templates:
 			--no opened changeset
 			IF changeset_id IS NULL THEN
 				--user wants newest data
-				SELECT MAX(num) INTO version_id FROM version;
-				changeset_id = num2id(version_id);
+				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
 				--user wants data in his version, or earlier
 				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND {column} = refuid AND version = changeset_id;
 				IF NOT FOUND THEN
 					--object was not modified in changeset which user just works on
-					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
+					SELECT id2num(parentrevision) INTO from_version FROM changeset WHERE id = changeset_id;
 				ELSE
 					RETURN changeset_id;
 				END IF;		
 			END IF;
-		ELSE
-			--user wants to see data valid in some commited version
-			changeset_id  = num2id(from_version);
 		END IF;
 
 		SELECT {tbl}_prev_changeset_by_name(name_, refuid, changeset_id) INTO preceding_changeset;
+		
+		SELECT version INTO preceding_changeset
+		FROM {tbl}_data_version(from_version)
+		WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		END IF;
 		
 		RETURN preceding_changeset;
 	END;
@@ -869,20 +872,40 @@ LANGUAGE plpgsql;
 RETURNS SETOF {tbl}_history
 AS
 $$
+DECLARE
+	changeset_id bigint;
 BEGIN
+	IF data_version = 0 THEN
+		SELECT get_current_changeset_or_null() INTO changeset_id;
+		--no opened changeset
+		IF changeset_id IS NULL THEN
+			--user wants newest data
+			SELECT MAX(num) INTO data_version FROM version;
+		ELSE
+			--user wants data from his version and earlier
+			SELECT id2num(parentrevision) INTO data_version FROM changeset WHERE id = changeset_id;
+		END IF;
+	END IF;
+	
 	--for each object uid finds its last modification before data_version
 	--joins it with history table of its kind to get object data in version data_version
 	RETURN QUERY 
-	SELECT h1.* 
-	FROM {tbl}_history h1 
+	SELECT * FROM {tbl}_history
+		WHERE version = changeset_id AND dest_bit = '0'
+	UNION
+	SELECT h1.* FROM {tbl}_history h1 
 		JOIN version v1 ON (v1.id = h1.version)
 		JOIN (	SELECT uid, max(num) AS maxnum 
 				FROM {tbl}_history h JOIN version v ON (v.id = h.version )
 				WHERE v.num <= data_version
 				GROUP BY uid
-			) vmax1 
+			) vmax1
 		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
-	WHERE dest_bit = '0';
+	WHERE dest_bit = '0' 
+		AND h1.uid NOT IN ( 
+			SELECT uid FROM {tbl}_history
+				WHERE version = changeset_id
+		);
 END
 $$
 LANGUAGE plpgsql;
