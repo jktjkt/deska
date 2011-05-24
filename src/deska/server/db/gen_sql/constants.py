@@ -122,7 +122,7 @@ class Templates:
 				RETURN data;
 			END IF;
 			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(changeset_id));
+			from_version = id2num(parent(current_changeset));
 		END IF;
 
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
@@ -246,9 +246,6 @@ class Templates:
 			current_changeset = get_current_changeset_or_null();
 			IF current_changeset IS NULL THEN
 				SELECT name INTO value FROM production.{tbl} WHERE uid = {tbl}_uid;
-				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-				END IF;
 				RETURN value;
 			END IF;
 			
@@ -261,9 +258,6 @@ class Templates:
 		END IF;
 
 		SELECT name INTO value FROM {tbl}_data_version(from_version) WHERE uid = {tbl}_uid;
-		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-		END IF;		
 		RETURN value;
 	END
 	$$
