@@ -104,7 +104,7 @@ BEGIN
 	 CREATE TEMPORARY TABLE version1_vendor_names(name) AS SELECT vendor_names(version1);
 	 PREPARE retnames AS SELECT * FROM version1_vendor_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names_versions WHERE version = 1;
-	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added vendors are present' );
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added vendors are present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
@@ -112,7 +112,7 @@ BEGIN
 	 CREATE TEMPORARY TABLE version1_hardware_names(name) AS SELECT hardware_names(version1);
 	 PREPARE retnames AS SELECT * FROM version1_hardware_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names_versions WHERE version = 1;
-	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added hardware is present' );
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added hardware is present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
@@ -121,7 +121,7 @@ BEGIN
 	 CREATE TEMPORARY TABLE version2_vendor_names(name) AS SELECT vendor_names(version2);
 	 PREPARE retnames AS SELECT * FROM version2_vendor_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_vendor_names_versions WHERE version <= 2;
-	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added vendors are present' );
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added vendors are present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;
@@ -129,7 +129,7 @@ BEGIN
 	 CREATE TEMPORARY TABLE version2_hardware_names(name) AS SELECT hardware_names(version2);
 	 PREPARE retnames AS SELECT * FROM version2_hardware_names;
 	 PREPARE expnames AS SELECT name FROM simple_add_set_hardware_names_versions WHERE version <= 2;
-	 RETURN NEXT results_eq( 'retnames', 'expnames', 'added hardware is present' );
+	 RETURN NEXT set_eq( 'retnames', 'expnames', 'added hardware is present' );
 
 	 DEALLOCATE retnames;
 	 DEALLOCATE expnames;

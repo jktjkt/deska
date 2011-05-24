@@ -111,23 +111,17 @@ CREATE FUNCTION commit_all(message text)
 			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_get_name_embed(embed_column[0],reftable))
 			self.sql.write(table.gen_names_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_prev_changeset_by_name_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_changeset_of_data_version_by_name_embed(embed_column[0],reftable))
 		else:
 			self.sql.write(table.gen_add())
 			self.sql.write(table.gen_del())
 			self.sql.write(table.gen_get_uid())
 			self.sql.write(table.gen_get_name())
 			self.sql.write(table.gen_names())
-			self.sql.write(table.gen_prev_changeset_by_name())
-			self.sql.write(table.gen_changeset_of_data_version_by_name())
 
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.sql.write(table.gen_get_object_data())
 		self.sql.write(table.gen_commit())
-		self.sql.write(table.gen_prev_changeset())
-		self.sql.write(table.gen_changeset_of_data_version())
 		self.sql.write(table.gen_diff_deleted())
 		self.sql.write(table.gen_diff_created())
 		self.sql.write(table.gen_diff_set_attribute())

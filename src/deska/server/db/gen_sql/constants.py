@@ -28,6 +28,7 @@ class Templates:
 		rowuid bigint;
 		tmp bigint;
 	BEGIN
+		--for modifications we need to have opened changeset, this function raises exception in case we don't have
 		SELECT get_current_changeset() INTO ver;
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		--not found in case there is no object with name name_ in history
@@ -100,62 +101,85 @@ class Templates:
 	RETURNS {tbl}_type
 	AS
 	$$
-	DECLARE	ver bigint;
-		obj_uid bigint;
+	DECLARE
+		current_changeset bigint;
 		data {tbl}_type;
-		deleted bit(1);
 	BEGIN
-		obj_uid = {tbl}_get_uid(name_);
-		--get changeset id of last modification of object object_uid before from_version
-		--changeset id of data version actual in from_version
-		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
+		IF from_version = 0 THEN
+			current_changeset = get_current_changeset_or_null();
+			IF current_changeset IS NULL THEN
+				--user wants current data from production
+				SELECT {columns} INTO data FROM production.{tbl} WHERE name = name_;
+				IF NOT FOUND THEN
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+				END IF;
+				RETURN data;
+			END IF;
+			
+			SELECT {columns} INTO data FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN data;
+			END IF;
+			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+			from_version = id2num(parent(changeset_id));
+		END IF;
 
-		--is this object present or was deleted
-		SELECT dest_bit INTO deleted FROM {tbl}_history
-			WHERE uid = obj_uid AND version = ver;		
-
-		IF deleted = B'1' THEN
+		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+			WHERE name = name_;
+		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 
-		SELECT {columns} INTO data FROM {tbl}_history
-			WHERE uid = obj_uid AND version = ver;
-		
 		RETURN data;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
 	{tbl}_get_data(IN name_ text, from_version bigint = 0)
 	RETURNS {tbl}_type
 	AS
 	$$
-	DECLARE	ver bigint;
-		parrent_uid bigint;
-		parrent_name text;
-		base_name text;
+	DECLARE	
+		current_changeset bigint;
 		obj_uid bigint;
 		data {tbl}_type;
-		deleted bit(1);
 	BEGIN
-		obj_uid = {tbl}_get_uid(name_);
-		SELECT {tbl}_changeset_of_data_version(obj_uid,from_version) INTO ver;
-		SELECT embed_name[1],embed_name[2] FROM embed_name(name_,'->') INTO parrent_name,base_name;
-		--TODO get name of name of parent table that is tbl embed into
-		SELECT {embedtbl}_get_uid(parrent_name) INTO parrent_uid;
-		--is this object present or was deleted
-		SELECT dest_bit INTO deleted FROM {tbl}_history
-			WHERE name = base_name AND host = parrent_uid AND version = ver;
-
-		IF deleted = B'1' THEN
+		obj_uid = {tbl}_get_uid(name_, from_version);
+		IF obj_uid IS NULL THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
 		END IF;
 		
-		SELECT {columns} INTO data FROM {tbl}_history
-			WHERE name = base_name AND host = parrent_uid AND version = ver;
+		IF from_version = 0 THEN
+			current_changeset = get_current_changeset_or_null();
+			IF current_changeset IS NULL THEN
+				--user wants current data from production
+				--name in table is only local part of object, we should look for object by uid
+				SELECT {columns} INTO data FROM production.{tbl} WHERE uid = obj_uid;
+				IF NOT FOUND THEN
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+				END IF;				
+				RETURN data;
+			END IF;
+			--first we look for result in current changeset than in parent revision
+			SELECT {columns} INTO data FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN data;
+			END IF;
+			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+			from_version = id2num(parent(current_changeset));
+		END IF;
+		
+		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+			WHERE uid = obj_uid;
+		IF NOT FOUND THEN
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		END IF;
 
 		RETURN data;
 	END
@@ -174,20 +198,33 @@ class Templates:
 	DECLARE
 		changeset_id bigint;
 		value bigint;
-		deleted bit(1);
 	BEGIN
 	--from_version is user id of version
 	--we need id of changeset
-		
-		--changeset_id id of changeset with last change of object with name name_
-		changeset_id = {tbl}_changeset_of_data_version_by_name(name_, from_version);
-
-		SELECT uid, dest_bit INTO value, deleted FROM {tbl}_history WHERE version = changeset_id AND name = name_;
-		
-		IF deleted = B'1' THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				--user wants current uid from production
+				SELECT uid INTO value FROM production.{tbl} WHERE name = name_;
+				IF NOT FOUND THEN
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+				END IF;
+				RETURN value;
+			END IF;
+			
+			SELECT uid INTO value FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN value;
+			END IF;
+			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+			from_version = id2num(parent(changeset_id));
 		END IF;
 		
+		SELECT uid INTO value FROM {tbl}_data_version(from_version) WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		END IF;		
 		RETURN value;
 	END
 	$$
@@ -201,37 +238,32 @@ class Templates:
 	AS
 	$$
 	DECLARE
-		ver bigint;
 		value text;
-		parent_changeset bigint;
 		current_changeset bigint;
 	BEGIN
 		IF from_version = 0 THEN
+			--user wants the most actual data
 			current_changeset = get_current_changeset_or_null();
-
 			IF current_changeset IS NULL THEN
-				SELECT name INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = {tbl}_changeset_of_data_version({tbl}_uid);
+				SELECT name INTO value FROM production.{tbl} WHERE uid = {tbl}_uid;
+				IF NOT FOUND THEN
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+				END IF;
 				RETURN value;
 			END IF;
 			
-			parent_changeset = parent(current_changeset);
-			from_version = id2num(parent_changeset);
-		ELSE
-			current_changeset = NULL;
+			SELECT name INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = current_changeset;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN value;
+			END IF;
+			from_version = id2num(parent(current_changeset));
 		END IF;
 
-		SELECT name INTO value FROM {tbl}_history WHERE  uid = {tbl}_uid AND version = current_changeset AND dest_bit = '0';
+		SELECT name INTO value FROM {tbl}_data_version(from_version) WHERE uid = {tbl}_uid;
 		IF NOT FOUND THEN
-			SELECT name INTO value
-			FROM {tbl}_history h JOIN version v ON (h.uid = {tbl}_uid AND h.version = v.id AND h.version <= from_version) 
-			WHERE v.id = (
-					SELECT max(version) 
-					FROM {tbl}_history h2 
-						JOIN version v2 ON (h2.version <= from_version AND h2.version = v2.id AND h2.uid = h.uid)
-				)
-				AND dest_bit = '0';
-		END IF;
-		
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+		END IF;		
 		RETURN value;
 	END
 	$$
@@ -245,12 +277,10 @@ class Templates:
 	AS
 	$$
 	DECLARE
-		ver bigint;
+		current_changeset bigint;
 		local_name text = NULL;
 		rest_of_name text;
 		{reftbl}_uid bigint;
-		parent_changeset bigint;
-		current_changeset bigint;
 		--version from which we search for local name
 		version_to_search bigint;
 		value text;
@@ -261,31 +291,24 @@ class Templates:
 			current_changeset = get_current_changeset_or_null();
 
 			IF current_changeset IS NULL THEN
-				SELECT join_with_delim({reftbl}_get_name({column}), name, '{delim}') INTO value FROM {tbl}_history 
-					WHERE uid = {tbl}_uid AND version = {tbl}_changeset_of_data_version({tbl}_uid);
+				SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}') INTO value FROM production.{tbl}
+					WHERE uid = {tbl}_uid;
+				IF NOT FOUND THEN
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+				END IF;
 				RETURN value;
-			ELSE
-				parent_changeset = parent(current_changeset);
-				version_to_search = id2num(parent_changeset);
 			END IF;
-		ELSE
-			current_changeset = NULL;
-		END IF;
-
-		IF local_name IS NULL THEN
-			--get local name and uid of referenced object
-			SELECT name, {column} INTO local_name, {reftbl}_uid FROM {tbl}_history WHERE  uid = {tbl}_uid AND version = current_changeset AND dest_bit = '0';
-			IF NOT FOUND THEN
-				SELECT name, {column} INTO local_name, {reftbl}_uid
-				FROM {tbl}_history h JOIN version v ON (h.uid = {tbl}_uid AND h.version = v.id AND h.version <= version_to_search) 
-				WHERE v.id = (
-						SELECT max(version) 
-						FROM {tbl}_history h2 
-							JOIN version v2 ON (h2.version <= version_to_search AND h2.version = v2.id AND h2.uid = h.uid)
-					)
-					AND dest_bit = '0';
+			
+			SELECT name INTO value FROM {tbl}_history WHERE uid = {tbl}_uid AND version = current_changeset;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN value;
 			END IF;
+			version_to_search = id2num(parent(current_changeset));
 		END IF;
+			
+		SELECT name, {column} INTO local_name, {reftbl}_uid FROM {tbl}_data_version(version_to_search)
+			WHERE uid = {tbl}_uid;
 		
 		--get name of referenced object
 		rest_of_name = {reftbl}_get_name({reftbl}_uid, from_version);
@@ -315,11 +338,31 @@ class Templates:
 		SELECT {reftbl}_get_uid(rest_of_name, from_version) INTO {reftbl}_uid;
 
 		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
-		changeset_id = {tbl}_changeset_of_data_version_by_name({tbl}_name, {reftbl}_uid, from_version);
+		--look for object in current_changeset
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				SELECT uid INTO {tbl}_uid FROM {tbl}_history WHERE {column} = {reftbl}_uid AND name = {tbl}_name;
+				IF NOT FOUND THEN
+					--object with this name is not in current changeset, we should look for it in parent version or earlier
+					from_version = id2num(parent(changeset_id));
+				ELSE
+					--we have result and can return it
+					RETURN {tbl}_uid;
+				END IF;
+			END IF;
+		END IF;
 		
 		--checks if object is still present 
+<<<<<<< HEAD
 		SELECT uid, dest_bit INTO {tbl}_uid, deleted FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
 		IF deleted = B'1' THEN
+=======
+		SELECT uid INTO {tbl}_uid FROM {tbl}_data_version(from_version) WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
+		IF NOT FOUND THEN
+>>>>>>> sql_revision
 			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '10022';
 		END IF;
 
@@ -540,228 +583,7 @@ class Templates:
 
 '''
 
-#template for getting number of version, when was object modified before given version was commited
-	changeset_of_data_version_string = '''CREATE FUNCTION 
-	{tbl}_changeset_of_data_version(obj_uid bigint, from_version bigint = 0)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		changeset_id bigint;
-		preceding_changeset bigint;
-		tmp bigint;
-	BEGIN
-	--from_version is user id of version
-	--we need id of changeset
-		IF from_version = 0 THEN
-			SELECT get_current_changeset_or_null() INTO changeset_id;
-			--no opened changeset
-			IF changeset_id IS NULL THEN
-				--user wants newest data
-				SELECT MAX(num) INTO version_id FROM version;
-				SELECT ID INTO changeset_id FROM version WHERE num = version_id;
-			ELSE
-				--user wants data in his version, or earlier
-				SELECT uid INTO tmp FROM {tbl}_history WHERE uid = obj_uid AND version = changeset_id;
-				IF NOT FOUND THEN
-					SELECT parentrevision INTO changeset_id FROM changeset WHERE id = changeset_id;
-				ELSE
-					RETURN changeset_id;
-				END IF;		
-			END IF;
-		ELSE
-			--user wants to see data valid in some commited version
-			changeset_id  = num2id(from_version);
-		END IF;
-
-		SELECT {tbl}_prev_changeset(obj_uid,changeset_id) INTO preceding_changeset;
-		
-		RETURN preceding_changeset;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
-
-#template string for getting last id of changeset preceding changeset_id where object with uid was changed
-	prev_changest_string='''CREATE FUNCTION 
-	{tbl}_prev_changeset(obj_uid bigint, changeset_id bigint)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		--is result of function, last changeset where object with uid is changed
-		last_changeset_id bigint;
-		--last version where was the object with uid changed
-		last_change_version bigint;
-	BEGIN
-		version_id = id2num(changeset_id);
-	
-		SELECT MAX(v.num) INTO last_change_version
-			FROM {tbl}_history obj_history
-				JOIN version v ON (obj_history.uid = obj_uid AND obj_history.version = v.id AND v.num <= version_id);
-		IF last_change_version IS NULL THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-		END IF;
-			
-		last_changeset_id  = num2id(last_change_version);
-
-		RETURN last_changeset_id;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
-
-#template string for getting last id of changeset preceding changeset_id where object with name_ was changed
-	prev_changest_by_name_string='''CREATE FUNCTION 
-	{tbl}_prev_changeset_by_name(name_ text, changeset_id bigint)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		--is result of function, last changeset where object with uid is changed
-		last_changeset_id bigint;
-		--last version where was the object with uid changed
-		last_change_version bigint;
-	BEGIN
-		version_id = id2num(changeset_id);
-		SELECT MAX(v.num) INTO last_change_version
-			FROM {tbl}_history obj_history
-				JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id);
-		IF last_change_version IS NULL THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-		END IF;
-		last_changeset_id  = num2id(last_change_version);
-		
-		RETURN last_changeset_id;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
-
-	changeset_of_data_version_by_name_string = '''CREATE FUNCTION 
-	{tbl}_changeset_of_data_version_by_name(name_ text, from_version bigint = 0)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		changeset_id bigint;
-		preceding_changeset bigint;
-		tmp bigint;
-	BEGIN
-	--from_version is user id of version from which we would like to find max lesser version where object name_ was changed
-	--we need id of changeset
-		IF from_version = 0 THEN
-			SELECT get_current_changeset_or_null() INTO changeset_id;
-			--no opened changeset
-			IF changeset_id IS NULL THEN
-				--user wants newest data
-				SELECT MAX(num) INTO from_version FROM version;
-			ELSE
-				--user wants data in his version, or earlier
-				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND version = changeset_id;
-				IF NOT FOUND THEN
-					--object was not modified in changeset which user just works on
-					SELECT id2num(parentrevision) INTO from_version FROM changeset WHERE id = changeset_id;
-				ELSE
-					RETURN changeset_id;
-				END IF;		
-			END IF;
-		END IF;
-
-		SELECT version INTO preceding_changeset
-		FROM {tbl}_data_version(from_version)
-		WHERE name = name_;
-		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-		END IF;
-		
-		RETURN preceding_changeset;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
-#template string for getting last id of changeset preceding changeset_id where object with name_ was changed
-	prev_changest_by_name_embed_string='''CREATE FUNCTION 
-	{tbl}_prev_changeset_by_name(name_ text, refuid bigint, changeset_id bigint)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		--is result of function, last changeset where object with uid is changed
-		last_changeset_id bigint;
-		--last version where was the object with uid changed
-		last_change_version bigint;
-	BEGIN
-		version_id = id2num(changeset_id);
-		
-		SELECT MAX(v.num) INTO last_change_version
-		FROM {tbl}_history obj_history
-			JOIN version v ON (obj_history.name = name_ AND obj_history.version = v.id AND v.num <= version_id AND {column} = refuid);
-		
-		last_changeset_id  = num2id(last_change_version);
-		
-		RETURN last_changeset_id;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
-
-	changeset_of_data_version_by_name_embed_string = '''CREATE FUNCTION 
-	{tbl}_changeset_of_data_version_by_name(name_ text, refuid bigint, from_version bigint = 0)
-	RETURNS bigint
-	AS
-	$$
-	DECLARE
-		version_id bigint;
-		changeset_id bigint;
-		preceding_changeset bigint;
-		tmp bigint;
-	BEGIN
-	--from_version is user id of version
-	--we need id of changeset
-		IF from_version = 0 THEN
-			SELECT get_current_changeset_or_null() INTO changeset_id;
-			--no opened changeset
-			IF changeset_id IS NULL THEN
-				--user wants newest data
-				SELECT MAX(num) INTO from_version FROM version;
-			ELSE
-				--user wants data in his version, or earlier
-				SELECT uid INTO tmp FROM {tbl}_history WHERE name = name_ AND {column} = refuid AND version = changeset_id;
-				IF NOT FOUND THEN
-					--object was not modified in changeset which user just works on
-					SELECT id2num(parentrevision) INTO from_version FROM changeset WHERE id = changeset_id;
-				ELSE
-					RETURN changeset_id;
-				END IF;		
-			END IF;
-		END IF;
-
-		SELECT {tbl}_prev_changeset_by_name(name_, refuid, changeset_id) INTO preceding_changeset;
-		
-		SELECT version INTO preceding_changeset
-		FROM {tbl}_data_version(from_version)
-		WHERE name = name_;
-		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
-		END IF;
-		
-		RETURN preceding_changeset;
-	END;
-	$$
-	LANGUAGE plpgsql;
-	
-'''
- #template for getting deleted objects between two versions
+#template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION 
 {tbl}_diff_deleted()
 RETURNS SETOF text
@@ -874,18 +696,6 @@ $$
 DECLARE
 	changeset_id bigint;
 BEGIN
-	IF data_version = 0 THEN
-		SELECT get_current_changeset_or_null() INTO changeset_id;
-		--no opened changeset
-		IF changeset_id IS NULL THEN
-			--user wants newest data
-			SELECT MAX(num) INTO data_version FROM version;
-		ELSE
-			--user wants data from his version and earlier
-			SELECT id2num(parentrevision) INTO data_version FROM changeset WHERE id = changeset_id;
-		END IF;
-	END IF;
-	
 	--for each object uid finds its last modification before data_version
 	--joins it with history table of its kind to get object data in version data_version
 	RETURN QUERY 
@@ -900,11 +710,7 @@ BEGIN
 				GROUP BY uid
 			) vmax1
 		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
-	WHERE dest_bit = '0' 
-		AND h1.uid NOT IN ( 
-			SELECT uid FROM {tbl}_history
-				WHERE version = changeset_id
-		);
+	WHERE dest_bit = '0'; 
 END
 $$
 LANGUAGE plpgsql;
