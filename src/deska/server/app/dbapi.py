@@ -25,9 +25,9 @@ class DB:
 		"listRevisions": []
 	})
 
-	def __init__(self,dbname):
+	def __init__(self,**kwargs):
 		try:
-			self.db = psycopg2.connect(database=dbname);
+			self.db = psycopg2.connect(**kwargs);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
 		except Exception, e:

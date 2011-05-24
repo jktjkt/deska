@@ -9,6 +9,8 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("-d", "--database", dest="database", default="deska_dev",
                   help="Name of the database to use", metavar="DB")
+parser.add_option("-U", "--username", dest="username",
+                  help="User to connect to the DB", metavar="USER")
 parser.add_option("--logfile", dest="logfile",
                   help="File name of the debug log")
 parser.add_option("--log-stderr", dest="log_stderr", action="store_true",
@@ -28,8 +30,14 @@ else:
 
 logging.debug("starting deska server")
 
+dbargs = {}
+if options.database:
+    dbargs["database"] = options.database
+if options.username:
+    dbargs["username"] = options.username
+
 try:
-	db = DB(options.database)
+	db = DB(**dbargs)
 except Exception, e:
 	print e
 	sys.exit()
