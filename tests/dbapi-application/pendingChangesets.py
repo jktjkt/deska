@@ -26,8 +26,14 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": []}
     ),
-    # FIXME: try to abort once again; that should fail with some DBAPI error
-    # FIXME: also try to detach, now that there's no changeset
+    #( # abort once again, this will fail
+    #{"command": "abortCurrentChangeset"},
+    #{'response': 'abortCurrentChangeset'} # FIXME: this should fail
+    #),
+    #( # detach once again, this will fail
+    #{"command":"detachFromCurrentChangeset","message":"xyz"},
+    #{'response': 'detachFromCurrentChangeset'} # FIXME: fail
+    #),
     ( # create new changeset once again
     {"command": "startChangeset"},
     {'response': 'startChangeset', "startChangeset": "tmp2"}
@@ -58,6 +64,9 @@ j = [
          'message': 'xyz'}
     ]}
     ),
-    # FIXME: simulate what happens when starting a changeset while being
-    # attached to one
+    #( # create third changeset; this should fail, as we're already in one
+    #{"command": "startChangeset"},
+    #{'response': 'startChangeset', "startChangeset": "tmp3"} # FIXME: fail
+    #),
+
 ]
