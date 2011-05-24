@@ -36,11 +36,7 @@ if options.database:
 if options.username:
     dbargs["username"] = options.username
 
-try:
-	db = DB(**dbargs)
-except Exception, e:
-	print e
-	sys.exit()
+db = DB(**dbargs)
 logging.debug("conected to database")
 
 while True:
