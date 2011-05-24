@@ -79,7 +79,7 @@ if(RUN_SQL_TESTS)
     deska_sql_test(versioning-pendingchangeset_data)
     deska_sql_test(versioned-data)
 
-    deska_dbapi_test(kindNames)
+    deska_dbapi_test(dbScheme)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
