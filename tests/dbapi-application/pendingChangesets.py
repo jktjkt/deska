@@ -53,7 +53,7 @@ j = [
     ),
     ( # attach to tmp2 again
     {"command":"resumeChangeset","revision":"tmp2"},
-    {'response': 'resumeChangeset'}
+    {'response': 'resumeChangeset',"revision":"tmp2"}
     ),
     ( # it should be pending again
     {"command": "pendingChangesets"},
