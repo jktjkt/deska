@@ -58,7 +58,7 @@ def main(revision):
 
 	jsn = dict()
 	jsn["response"] = name
-#	jsn["revision"] = revision
+	jsn["revision"] = revision
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -79,8 +79,8 @@ def main(commitMessage):
 
 	jsn = dict()
 	jsn["response"] = name
-#	jsn[name] =str(ver)
-#	jsn["commitMessage"] = commitMessage
+	jsn[name] =str(ver)
+	jsn["commitMessage"] = commitMessage
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -101,7 +101,7 @@ def main(message):
 
 	jsn = dict()
 	jsn["response"] = name
-#	jsn["message"] = message
+	jsn["message"] = message
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
