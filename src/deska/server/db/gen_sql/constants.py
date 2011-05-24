@@ -355,14 +355,8 @@ class Templates:
 			END IF;
 		END IF;
 		
-		--checks if object is still present 
-<<<<<<< HEAD
-		SELECT uid, dest_bit INTO {tbl}_uid, deleted FROM {tbl}_history WHERE name = {tbl}_name AND {column} = {reftbl}_uid AND version = changeset_id;
-		IF deleted = B'1' THEN
-=======
 		SELECT uid INTO {tbl}_uid FROM {tbl}_data_version(from_version) WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
->>>>>>> sql_revision
 			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '10022';
 		END IF;
 
