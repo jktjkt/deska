@@ -508,10 +508,11 @@ class Templates:
 			--null current changeset means no opened changeset, will get data from production
 			--names from poduction
 				RETURN QUERY SELECT name FROM production.{tbl};
+			ELSE
+				--for opened changeset set from_version to its parent
+				parent_changeset = parent(current_changeset);
+				from_version = id2num(parent_changeset);
 			END IF;
-			--for opened changeset set from_version to its parent
-			parent_changeset = parent(current_changeset);
-			from_version = id2num(parent_changeset);
 		ELSE
 			current_changeset = NULL;
 		END IF;
