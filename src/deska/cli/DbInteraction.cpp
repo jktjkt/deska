@@ -124,6 +124,7 @@ std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::Contex
 
 bool DbInteraction::objectExists(const Db::ContextStack &context)
 {
+    BOOST_ASSERT(!context.empty());
     std::vector<Db::Identifier> instances = kindInstances(context.back().kind);
     if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
         return false;
