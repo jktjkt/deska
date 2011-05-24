@@ -3,10 +3,6 @@ import datetime
 import time
 import logging
 
-
-LOG_FILENAME = 'deska_server.log'
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
-
 class DB:
 	methods = dict({
 		"kindNames": [],

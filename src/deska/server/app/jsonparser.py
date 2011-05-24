@@ -1,9 +1,6 @@
 import json
 
 import logging
-LOG_FILENAME = 'deska_server.log'
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
-
 
 CMD = "command"
 ERR = "dbException"
@@ -28,4 +25,4 @@ class CommandParser:
 		del args[CMD]
 		logging.debug("arguments are {a}".format(a = args))
 		return args
-		
+
