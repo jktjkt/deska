@@ -40,7 +40,7 @@ j = [
     ),
     ( # and detach from it
     {"command":"detachFromCurrentChangeset","message":"xyz"},
-    {'response': 'detachFromCurrentChangeset'}
+    {'response': 'detachFromCurrentChangeset',"message":"xyz"}
     ),
     ( # verify that it's listed in a correct state
     {"command": "pendingChangesets"},
