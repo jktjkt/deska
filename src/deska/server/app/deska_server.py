@@ -34,7 +34,7 @@ dbargs = {}
 if options.database:
     dbargs["database"] = options.database
 if options.username:
-    dbargs["username"] = options.username
+    dbargs["user"] = options.username
 
 db = DB(**dbargs)
 logging.debug("conected to database")
