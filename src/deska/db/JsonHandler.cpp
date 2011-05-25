@@ -233,7 +233,7 @@ JsonField &JsonHandler::write(const std::string &name, const TemporaryChangesetI
 JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Value &value)
 {
     JsonField f(name);
-    f.jsonValue = value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+    f.jsonValue = JsonConversionTraits<Value>::toJson(value);
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);

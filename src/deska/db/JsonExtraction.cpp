@@ -31,6 +31,13 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
+/** @short Convert a Deska::Db::Value into JSON */
+template<> struct JsonConversionTraits<Value> {
+    static json_spirit::Value toJson(const Value &value) {
+        return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+    }
+};
+
 std::string jsonValueTypeToString(const json_spirit::Value_type type)
 {
     switch (type) {
@@ -124,21 +131,14 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     o.push_back(json_spirit::Pair("kindName", value.kindName));
     o.push_back(json_spirit::Pair("objectName", value.objectName));
     o.push_back(json_spirit::Pair("attributeName", value.attributeName));
-    o.push_back(json_spirit::Pair("attributeData",
-                                  value.attributeData ? boost::apply_visitor(DeskaValueToJsonValue(), *(value.attributeData)) : json_spirit::Value()));
-    o.push_back(json_spirit::Pair("oldAttributeData",
-                                  value.oldAttributeData ? boost::apply_visitor(DeskaValueToJsonValue(), *(value.oldAttributeData)) : json_spirit::Value()));
+    o.push_back(json_spirit::Pair("attributeData", JsonConversionTraits<Value>::toJson(value.attributeData)));
+    o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
     return o;
 }
 
 /** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
 struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
-    result_type operator()(const Deska::Db::Value& value) const
-    {
-        return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) :json_spirit::Value();
-    }
-
     template <typename T>
     result_type operator()(const T& value) const
     {
