@@ -139,18 +139,10 @@ struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_
         return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) :json_spirit::Value();
     }
 
-    result_type operator()(const Deska::Db::RevisionId& value) const
+    template <typename T>
+    result_type operator()(const T& value) const
     {
-        std::ostringstream s;
-        s << value;
-        return s.str();
-    }
-
-    result_type operator()(const Deska::Db::TemporaryChangesetId& value) const
-    {
-        std::ostringstream s;
-        s << value;
-        return s.str();
+        return JsonConversionTraits<T>::toJson(value);
     }
 };
 
@@ -331,6 +323,12 @@ template<> struct JsonConversionTraits<RevisionId> {
         checkJsonValueType(v, json_spirit::str_type);
         return RevisionId::fromJson(v.get_str());
     }
+
+    static json_spirit::Value toJson(const RevisionId &revision) {
+        std::ostringstream ss;
+        ss << revision;
+        return ss.str();
+    }
 };
 
 /** @short Extract a TemporaryChangesetId form JSON */
@@ -339,6 +337,12 @@ template<> struct JsonConversionTraits<TemporaryChangesetId> {
         JsonContext c1("When extracting TemporaryChangesetId");
         checkJsonValueType(v, json_spirit::str_type);
         return TemporaryChangesetId::fromJson(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const TemporaryChangesetId &revision) {
+        std::ostringstream ss;
+        ss << revision;
+        return ss.str();
     }
 };
 

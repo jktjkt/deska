@@ -58,7 +58,10 @@ struct DeskaFilterToJsonValue: public boost::static_visitor<json_spirit::Value>
 
 /** @short Define how to extract a custom JSON type into C++ class */
 template<typename T>
-struct JsonConversionTraits {};
+struct JsonConversionTraits {
+    /** @short Specialization for certain types for converting to JSON */
+    static json_spirit::Value toJson(const T& value);
+};
 
 // This specialization has to be mentioned in this header file
 template<> struct JsonConversionTraits<RemoteDbError> {

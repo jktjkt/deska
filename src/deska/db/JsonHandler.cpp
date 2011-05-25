@@ -213,9 +213,7 @@ JsonField &JsonHandler::write(const std::string &name, const std::string &value)
 JsonField &JsonHandler::write(const std::string &name, const RevisionId value)
 {
     JsonField f(name);
-    std::ostringstream s;
-    s << value;
-    f.jsonValue = s.str();
+    f.jsonValue = JsonConversionTraits<RevisionId>::toJson(value);
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);
@@ -225,9 +223,7 @@ JsonField &JsonHandler::write(const std::string &name, const RevisionId value)
 JsonField &JsonHandler::write(const std::string &name, const TemporaryChangesetId value)
 {
     JsonField f(name);
-    std::ostringstream s;
-    s << value;
-    f.jsonValue = s.str();
+    f.jsonValue = JsonConversionTraits<TemporaryChangesetId>::toJson(value);
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);
