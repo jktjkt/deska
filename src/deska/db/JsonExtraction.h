@@ -33,14 +33,6 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
-/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
-struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
-{
-    /** @short Simply use json_spirit::Value's overloaded constructor */
-    template <typename T>
-    result_type operator()(const T &value) const;
-};
-
 /** @short Variant visitor for converting from Deska::Db::ObjectModification to json_spirit::Value */
 struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::Value>
 {

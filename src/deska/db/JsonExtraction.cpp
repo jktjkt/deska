@@ -31,6 +31,34 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
+/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
+struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    /** @short Simply use json_spirit::Value's overloaded constructor */
+    template <typename T>
+    result_type operator()(const T &value) const;
+};
+
+/** @short Simply use json_spirit::Value's overloaded constructor */
+template <typename T>
+DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
+{
+    // A strange thing -- when the operator() is not const-qualified, it won't compile.
+    // Too bad that the documentation doesn't mention that. Could it be related to the
+    // fact that the variant we operate on is itself const? But why is there the
+    // requirement to const-qualify the operator() and not only the value it reads?
+    //
+    // How come that this builds fine:
+    // template <typename T>
+    // result_type operator()(T &value) const
+    return value;
+}
+
+// Template instances for the Deska::Db::Value conversions from JSON
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
+
 /** @short Convert a Deska::Db::Value into JSON */
 template<> struct JsonConversionTraits<Value> {
     static json_spirit::Value toJson(const Value &value) {
@@ -67,26 +95,6 @@ void checkJsonValueType(const json_spirit::Value &v, const json_spirit::Value_ty
         throw JsonStructureError("Expected JSON type " + jsonValueTypeToString(desiredType) + ", got " + jsonValueTypeToString(v.type())+ " instead");
     }
 }
-
-/** @short Simply use json_spirit::Value's overloaded constructor */
-template <typename T>
-DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
-{
-    // A strange thing -- when the operator() is not const-qualified, it won't compile.
-    // Too bad that the documentation doesn't mention that. Could it be related to the
-    // fact that the variant we operate on is itself const? But why is there the
-    // requirement to const-qualify the operator() and not only the value it reads?
-    //
-    // How come that this builds fine:
-    // template <typename T>
-    // result_type operator()(T &value) const
-    return value;
-}
-
-// Template instances for the Deska::Db::Value conversions from JSON
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
 
 template <>
 ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
