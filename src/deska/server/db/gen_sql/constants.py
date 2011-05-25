@@ -445,7 +445,7 @@ class Templates:
 		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
 		IF NOT FOUND THEN
 			--from name of embed object is used only local part
-			SELECT embed_name[1], embed_name[2] FROM embed_name(name_,'{delim}') INTO local_name, rest_of_name;
+			SELECT embed_name[1], embed_name[2] FROM embed_name(name_,'{delim}') INTO rest_of_name, local_name;
 			INSERT INTO {tbl}_history (uid, name, {refcolumn}, version, dest_bit)
 				VALUES (rowuid, local_name, {reftbl}_get_uid(rest_of_name), ver, '1');
 		ELSE
