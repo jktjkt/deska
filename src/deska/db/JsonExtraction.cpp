@@ -131,6 +131,29 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     return o;
 }
 
+/** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
+struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    result_type operator()(const Deska::Db::Value& value) const
+    {
+        return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) :json_spirit::Value();
+    }
+
+    result_type operator()(const Deska::Db::RevisionId& value) const
+    {
+        std::ostringstream s;
+        s << value;
+        return s.str();
+    }
+
+    result_type operator()(const Deska::Db::TemporaryChangesetId& value) const
+    {
+        std::ostringstream s;
+        s << value;
+        return s.str();
+    }
+};
+
 template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
 {
@@ -161,7 +184,7 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
     }
     o.push_back(json_spirit::Pair("condition", comparison));
     o.push_back(json_spirit::Pair("column", expression.column));
-    o.push_back(json_spirit::Pair("value", expression.constantValue ? boost::apply_visitor(DeskaValueToJsonValue(), *(expression.constantValue) ) : json_spirit::Value()));
+    o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterExpressionValueToJsonValue(), expression.constantValue)));
     return o;
 };
 

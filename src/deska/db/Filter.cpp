@@ -24,7 +24,7 @@
 namespace Deska {
 namespace Db {
 
-Expression::Expression(const ComparisonKind comparison_, const Identifier &column_, const Value &constantValue_):
+Expression::Expression(const ComparisonKind comparison_, const Identifier &column_, const ExpressionValue &constantValue_):
     comparison(comparison_), column(column_), constantValue(constantValue_)
 {
 }
