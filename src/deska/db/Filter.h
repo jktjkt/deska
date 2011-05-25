@@ -22,7 +22,8 @@
 #ifndef DESKA_DB_FILTER_H
 #define DESKA_DB_FILTER_H
 
-#include <deska/db/Objects.h>
+#include "deska/db/Objects.h"
+#include "deska/db/Revisions.h"
 
 namespace Deska {
 namespace Db {
@@ -43,14 +44,17 @@ typedef enum {
     FILTER_COLUMN_LE
 } ComparisonKind;
 
+/** @short Anything against which we can compare */
+typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> ExpressionValue;
+
 /** @short Compare one value against a constant using given comparison operator */
 struct Expression
 {
     ComparisonKind comparison;
     Identifier column;
-    Value constantValue;
+    ExpressionValue constantValue;
 
-    Expression(const ComparisonKind comparison, const Identifier &column, const Value &constantValue);
+    Expression(const ComparisonKind comparison, const Identifier &column, const ExpressionValue &constantValue);
 };
 
 /** @short Perform a logical disjunction of all expression included below */

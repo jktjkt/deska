@@ -33,14 +33,6 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
-/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
-struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
-{
-    /** @short Simply use json_spirit::Value's overloaded constructor */
-    template <typename T>
-    result_type operator()(const T &value) const;
-};
-
 /** @short Variant visitor for converting from Deska::Db::ObjectModification to json_spirit::Value */
 struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
@@ -58,7 +50,10 @@ struct DeskaFilterToJsonValue: public boost::static_visitor<json_spirit::Value>
 
 /** @short Define how to extract a custom JSON type into C++ class */
 template<typename T>
-struct JsonConversionTraits {};
+struct JsonConversionTraits {
+    /** @short Specialization for certain types for converting to JSON */
+    static json_spirit::Value toJson(const T& value);
+};
 
 // This specialization has to be mentioned in this header file
 template<> struct JsonConversionTraits<RemoteDbError> {

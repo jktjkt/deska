@@ -174,10 +174,6 @@ void UserInterface::eventLoop()
     Db::ContextStack context;
     for (;;) {
         line = io->readLine();
-        // FIXME: For some reason some times the line is read even though user did not enter anything. Bug #222
-        // Hack for bug #222.
-        if (line.empty())
-            continue;
 
         if (line == "exit" || line == "quit") {
             break;

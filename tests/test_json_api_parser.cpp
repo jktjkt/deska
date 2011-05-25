@@ -407,6 +407,39 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamTh
     expectEmpty();
 }
 
+/** @short Test that simple filter for pendingChangesets against TemporaryChangesetId works */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"revision\",\"value\":\"tmp123\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnNe\",\"column\":\"revision\",\"value\":\"tmp123\"}, \"pendingChangesets\": []}\n");
+    std::vector<PendingChangeset> expected;
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_NE, "revision", TemporaryChangesetId(123))));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for pendingChangesets against "being detached" works */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}, \"pendingChangesets\": []}\n");
+    std::vector<PendingChangeset> expected;
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_DETACHED)));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for pendingChangesets against "being in progress" works */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}, \"pendingChangesets\": []}\n");
+    std::vector<PendingChangeset> expected;
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_IN_PROGRESS)));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
 /** @short Basic test for resumeChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
@@ -447,6 +480,17 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
                            boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)),
                            "message"));
     std::vector<RevisionMetadata> res = j->listRevisions();
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for listRevisions works */
+BOOST_FIXTURE_TEST_CASE(json_listRevisions_filterEq, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"listRevisions\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}}\n");
+    expectRead("{\"response\": \"listRevisions\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}, \"listRevisions\": []}\n");
+    std::vector<RevisionMetadata> expected;
+    std::vector<RevisionMetadata> res = j->listRevisions(Filter(Expression(FILTER_COLUMN_EQ, "revision", RevisionId(123))));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }

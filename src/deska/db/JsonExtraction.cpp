@@ -31,6 +31,41 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
+/** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
+struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    /** @short Simply use json_spirit::Value's overloaded constructor */
+    template <typename T>
+    result_type operator()(const T &value) const;
+};
+
+/** @short Simply use json_spirit::Value's overloaded constructor */
+template <typename T>
+DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
+{
+    // A strange thing -- when the operator() is not const-qualified, it won't compile.
+    // Too bad that the documentation doesn't mention that. Could it be related to the
+    // fact that the variant we operate on is itself const? But why is there the
+    // requirement to const-qualify the operator() and not only the value it reads?
+    //
+    // How come that this builds fine:
+    // template <typename T>
+    // result_type operator()(T &value) const
+    return value;
+}
+
+// Template instances for the Deska::Db::Value conversions from JSON
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
+template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
+
+/** @short Convert a Deska::Db::Value into JSON */
+template<> struct JsonConversionTraits<Value> {
+    static json_spirit::Value toJson(const Value &value) {
+        return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+    }
+};
+
 std::string jsonValueTypeToString(const json_spirit::Value_type type)
 {
     switch (type) {
@@ -60,26 +95,6 @@ void checkJsonValueType(const json_spirit::Value &v, const json_spirit::Value_ty
         throw JsonStructureError("Expected JSON type " + jsonValueTypeToString(desiredType) + ", got " + jsonValueTypeToString(v.type())+ " instead");
     }
 }
-
-/** @short Simply use json_spirit::Value's overloaded constructor */
-template <typename T>
-DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &value) const
-{
-    // A strange thing -- when the operator() is not const-qualified, it won't compile.
-    // Too bad that the documentation doesn't mention that. Could it be related to the
-    // fact that the variant we operate on is itself const? But why is there the
-    // requirement to const-qualify the operator() and not only the value it reads?
-    //
-    // How come that this builds fine:
-    // template <typename T>
-    // result_type operator()(T &value) const
-    return value;
-}
-
-// Template instances for the Deska::Db::Value conversions from JSON
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const std::string &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const int &) const;
-template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
 
 template <>
 ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
@@ -124,12 +139,50 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     o.push_back(json_spirit::Pair("kindName", value.kindName));
     o.push_back(json_spirit::Pair("objectName", value.objectName));
     o.push_back(json_spirit::Pair("attributeName", value.attributeName));
-    o.push_back(json_spirit::Pair("attributeData",
-                                  value.attributeData ? boost::apply_visitor(DeskaValueToJsonValue(), *(value.attributeData)) : json_spirit::Value()));
-    o.push_back(json_spirit::Pair("oldAttributeData",
-                                  value.oldAttributeData ? boost::apply_visitor(DeskaValueToJsonValue(), *(value.oldAttributeData)) : json_spirit::Value()));
+    o.push_back(json_spirit::Pair("attributeData", JsonConversionTraits<Value>::toJson(value.attributeData)));
+    o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
     return o;
 }
+
+/** @short Extract PendingChangeset::AttachStatus from JSON */
+template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
+    static PendingChangeset::AttachStatus extract(const json_spirit::Value &value) {
+        JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
+        checkJsonValueType(value, json_spirit::str_type);
+        std::string data = value.get_str();
+        if (data == "DETACHED") {
+            return PendingChangeset::ATTACH_DETACHED;
+        } else if (data == "INPROGRESS") {
+            return PendingChangeset::ATTACH_IN_PROGRESS;
+        } else {
+            std::ostringstream ss;
+            ss << "Invalid value for attached status of a pending changeset '" << data << "'";
+            throw JsonStructureError(ss.str());
+        }
+    }
+
+    static json_spirit::Value toJson(const PendingChangeset::AttachStatus &value) {
+        switch (value) {
+        case PendingChangeset::ATTACH_DETACHED:
+            return std::string("DETACHED");
+        case PendingChangeset::ATTACH_IN_PROGRESS:
+            return std::string("INPROGRESS");
+        }
+        std::ostringstream ss;
+        ss << "PendingChangeset::AttachStatus: value " << static_cast<int>(value) << " is out of range";
+        throw domain_error(ss.str());
+    }
+};
+
+/** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
+struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    template <typename T>
+    result_type operator()(const T& value) const
+    {
+        return JsonConversionTraits<T>::toJson(value);
+    }
+};
 
 template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
@@ -161,7 +214,7 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
     }
     o.push_back(json_spirit::Pair("condition", comparison));
     o.push_back(json_spirit::Pair("column", expression.column));
-    o.push_back(json_spirit::Pair("value", expression.constantValue ? boost::apply_visitor(DeskaValueToJsonValue(), *(expression.constantValue) ) : json_spirit::Value()));
+    o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterExpressionValueToJsonValue(), expression.constantValue)));
     return o;
 };
 
@@ -308,6 +361,12 @@ template<> struct JsonConversionTraits<RevisionId> {
         checkJsonValueType(v, json_spirit::str_type);
         return RevisionId::fromJson(v.get_str());
     }
+
+    static json_spirit::Value toJson(const RevisionId &revision) {
+        std::ostringstream ss;
+        ss << revision;
+        return ss.str();
+    }
 };
 
 /** @short Extract a TemporaryChangesetId form JSON */
@@ -317,6 +376,12 @@ template<> struct JsonConversionTraits<TemporaryChangesetId> {
         checkJsonValueType(v, json_spirit::str_type);
         return TemporaryChangesetId::fromJson(v.get_str());
     }
+
+    static json_spirit::Value toJson(const TemporaryChangesetId &revision) {
+        std::ostringstream ss;
+        ss << revision;
+        return ss.str();
+    }
 };
 
 /** @short Extract timestamp from JSON */
@@ -325,24 +390,6 @@ template<> struct JsonConversionTraits<boost::posix_time::ptime> {
         JsonContext c1("When extracting boost::posix_time::ptime");
         checkJsonValueType(v, json_spirit::str_type);
         return boost::posix_time::time_from_string(v.get_str());
-    }
-};
-
-/** @short Extract PendingChangeset::AttachStatus from JSON */
-template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
-    static PendingChangeset::AttachStatus extract(const json_spirit::Value &value) {
-        JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
-        checkJsonValueType(value, json_spirit::str_type);
-        std::string data = value.get_str();
-        if (data == "DETACHED") {
-            return PendingChangeset::ATTACH_DETACHED;
-        } else if (data == "INPROGRESS") {
-            return PendingChangeset::ATTACH_IN_PROGRESS;
-        } else {
-            std::ostringstream ss;
-            ss << "Invalid value for attached status of a pending changeset '" << data << "'";
-            throw JsonStructureError(ss.str());
-        }
     }
 };
 
