@@ -407,13 +407,35 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamTh
     expectEmpty();
 }
 
-/** @short Test that simple filter for pendingChangesets works */
+/** @short Test that simple filter for pendingChangesets against TemporaryChangesetId works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"revision\",\"value\":\"tmp123\"}}\n");
     expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnNe\",\"column\":\"revision\",\"value\":\"tmp123\"}, \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
     std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_NE, "revision", TemporaryChangesetId(123))));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for pendingChangesets against "being detached" works */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}, \"pendingChangesets\": []}\n");
+    std::vector<PendingChangeset> expected;
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_DETACHED)));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test that simple filter for pendingChangesets against "being in progress" works */
+BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}, \"pendingChangesets\": []}\n");
+    std::vector<PendingChangeset> expected;
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_IN_PROGRESS)));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
