@@ -22,7 +22,7 @@
 #ifndef DESKA_DB_FILTER_H
 #define DESKA_DB_FILTER_H
 
-#include <deska/db/Objects.h>
+#include "deska/db/Objects.h"
 
 namespace Deska {
 namespace Db {
