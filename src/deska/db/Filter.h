@@ -45,7 +45,7 @@ typedef enum {
 } ComparisonKind;
 
 /** @short Anything against which we can compare */
-typedef boost::variant<Value,RevisionId,TemporaryChangesetId> ExpressionValue;
+typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> ExpressionValue;
 
 /** @short Compare one value against a constant using given comparison operator */
 struct Expression

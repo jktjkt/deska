@@ -144,6 +144,36 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     return o;
 }
 
+/** @short Extract PendingChangeset::AttachStatus from JSON */
+template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
+    static PendingChangeset::AttachStatus extract(const json_spirit::Value &value) {
+        JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
+        checkJsonValueType(value, json_spirit::str_type);
+        std::string data = value.get_str();
+        if (data == "DETACHED") {
+            return PendingChangeset::ATTACH_DETACHED;
+        } else if (data == "INPROGRESS") {
+            return PendingChangeset::ATTACH_IN_PROGRESS;
+        } else {
+            std::ostringstream ss;
+            ss << "Invalid value for attached status of a pending changeset '" << data << "'";
+            throw JsonStructureError(ss.str());
+        }
+    }
+
+    static json_spirit::Value toJson(const PendingChangeset::AttachStatus &value) {
+        switch (value) {
+        case PendingChangeset::ATTACH_DETACHED:
+            return std::string("DETACHED");
+        case PendingChangeset::ATTACH_IN_PROGRESS:
+            return std::string("INPROGRESS");
+        }
+        std::ostringstream ss;
+        ss << "PendingChangeset::AttachStatus: value " << static_cast<int>(value) << " is out of range";
+        throw domain_error(ss.str());
+    }
+};
+
 /** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
 struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
@@ -360,24 +390,6 @@ template<> struct JsonConversionTraits<boost::posix_time::ptime> {
         JsonContext c1("When extracting boost::posix_time::ptime");
         checkJsonValueType(v, json_spirit::str_type);
         return boost::posix_time::time_from_string(v.get_str());
-    }
-};
-
-/** @short Extract PendingChangeset::AttachStatus from JSON */
-template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
-    static PendingChangeset::AttachStatus extract(const json_spirit::Value &value) {
-        JsonContext c1("When extracting Deska::Db::PendingChangeset::AttachStatus");
-        checkJsonValueType(value, json_spirit::str_type);
-        std::string data = value.get_str();
-        if (data == "DETACHED") {
-            return PendingChangeset::ATTACH_DETACHED;
-        } else if (data == "INPROGRESS") {
-            return PendingChangeset::ATTACH_IN_PROGRESS;
-        } else {
-            std::ostringstream ss;
-            ss << "Invalid value for attached status of a pending changeset '" << data << "'";
-            throw JsonStructureError(ss.str());
-        }
     }
 };
 
