@@ -1,0 +1,140 @@
+Schuze Deska, 2011-05-21 FZU
+----------------------------
+
+Pritomni: cely tym
+
+Prehled, co kdo udelal:
+
+Honza:
+- automaticke testy pro deska_server a DBAPI
+- vyhledavani objektu pres WHERE: specifikace, JSON, C++
+- odstraneno removeAttribute, atributy mohou byt null
+- odstraneno find{,Non}OverridenAttributes
+- specifikace DBAPI
+- review a ucesani CLI
+- kompatibilita CLI a SQL
+- options pro deska_server
+- misc fixes
+
+Tomas:
+- refactoring CLI
+- readline, rlmm, "sreadline"
+
+Lukas:
+- testovnai vykonu pres JSON
+- problem s cestou k py modulum kvuli err reportingu
+- diffovani
+- interoperabilita
+
+Martina:
+- generovani stored procs pro diffovani
+- dokumentace kodu
+- refactoring
+- prazdny test
+
+
+Ukoly z minula:
+---------------
+
+- Honza: formalni popis JSON API (#183)
+    - rozpracovano
+- Honza: az bude JSON naspecifikovan, dotaz Zavoralovi ohledne formatu relaci
+    - nelze
+- Honza: rozsireni API pro WHERE (#210)
+    - skoro hotovo
+- Honza: funkce pro diffovani pres templaty
+    - neni
+- Honza: null v atributech
+    - hotovo
+- Honza: findOverridenAttrs a revize vs. WHERE
+    - hotovo, resi se pres WHERE
+- Honza: testy k DB serveru
+    - udelal; je potreba psat dalsi
+- Tomas: dal pokracovat na CLI
+    - pokracuje
+- Tomas: nepouzivat DbInteraction::allObjects() (#226)
+    - +/- hotovo
+- Tomas: testy k CLI
+    - neni
+- Tomas: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
+    - hotovo
+- Lukas: dokumentace (#168, 169,...)
+    - neni
+- Lukas: otestovat diffovani (#214)
+    - neni
+- Lukas: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
+    - hotovo
+- Martina: SQL test, ktery nic nedela (#221)
+    - hotovo
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+    - nechame do priste
+- Martina: dodelat diffovani (#213)
+    - hotovo
+- Martina: dokumentace (#168, 169,...)
+    - komentare v kodu
+- Martina: dopsat terminy ke svym ukolum v rozdeleni odpovednosti
+    - hotovo
+
+Diskuse:
+--------
+
+Spousteni testu: problem byl v tom, se si L & M mysleli, ze oprava je v masteru,
+a ze neni mergnuta. Problem s uzivateli pro psql, zda se, ze se testy spousti
+pod superuserem.
+
+"Ted to rozhodneme": chyba komunikace
+
+merge vyhozeni setAttr: prepsala se DB, uz je to k nicemu
+
+Redmine tickety
+
+embed a dvojice name/parent:
+- kindAttributes vraci vsechny "normalni" sloupecky + jeden specialni pro foreign key
+- objectData ten specialni atribut foreign key nevraci
+- objectData jinak vraci *vsechny* atributy, i kdyz jsou null
+- spec: dbapi musi vracet null pro atributy
+
+dotaz Zav.:
+- neni potreba, Honza: upravit DBAPI, aby relace byly jenom (typ, jmeno)
+
+multipleObjectData(): vyhledavani podle filtru + specialni argument "name"
+
+vykazovani hodin (<12 za tyden): "Ja mam ciste svedomi, jestli se na me budes
+                                  tvarit zamracene, tak me to az tak bolet
+                                  nebude" :)
+
+"odsmazani objektu": createObject v ramci jednoho changesetu dela undelete,
+pokud byl objekt predtim smazany
+
+Mozna predelat DBAPI, ze nebude vracet cele zadani, ale jenom nejaky token
+
+Ukoly:
+------
+
+- Honza: formalni popis JSON API (#183)
+- Honza: rozsireni API pro WHERE (#210)
+- Honza: funkce pro diffovani pres templaty
+- Honza: dalsi testy k DB serveru
+- Honza: uprava DBAPI specifikace:
+    - embed objekty atd
+    - null atributy
+    - relace
+    - multipleObjectData
+    - funkce pro undelete
+    - token pro prikazy
+- Tomas: dal pokracovat na CLI
+- Tomas: testy k CLI
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: otestovat diffovani (#214)
+- Lukas: prekontrolovat, ze uz tam neni setAttribute
+- Lukas: error reporting
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+- Martina: dokumentace (#168, 169,...)
+- Martina: filtry
+- Martina: templates
+
+
+Pristi schuzka:
+---------------
+
+Pondeli 30. dubna, 15.00 FZU. Tomas se zdravotnich duvodu neprijde.
