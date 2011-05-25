@@ -451,6 +451,17 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
+/** @short Test that simple filter for listRevisions works */
+BOOST_FIXTURE_TEST_CASE(json_listRevisions_filterEq, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"listRevisions\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}}\n");
+    expectRead("{\"response\": \"listRevisions\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}, \"listRevisions\": []}\n");
+    std::vector<RevisionMetadata> expected;
+    std::vector<RevisionMetadata> res = j->listRevisions(Filter(Expression(FILTER_COLUMN_EQ, "revision", RevisionId(123))));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
 namespace {
 std::string exampleJsonDiff =
     "{\"command\":\"createObject\",\"kindName\":\"k1\",\"objectName\":\"o1\"},"
