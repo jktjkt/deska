@@ -22,6 +22,7 @@
 * */
 
 #include <sstream>
+#include <boost/foreach.hpp>
 
 #include "UserInterface.h"
 #include "deska/db/JsonApi.h"
@@ -61,10 +62,18 @@ void UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
-    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
-    io->printAttributes(attributes, 0);
-    std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-    io->printObjects(kinds, 0);
+    if (context.empty()) {
+        // Print top level objects if we are not in any context
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+             io->printObjects(m_dbInteraction->kindInstances(kindName), 0);
+        }
+    } else {
+        // If we are in some context, print all attributes and kind names
+        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
+        io->printAttributes(attributes, 0);
+        std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
+        io->printObjects(kinds, 0);
+    }
 }
 
 
@@ -120,12 +129,11 @@ void UserInterface::reportError(const std::string &errorMessage)
 
 void UserInterface::dumpDbContents()
 {
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    for (std::vector<Db::ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        io->printObject(*it, 0);
-        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(*it);
-        io->printAttributes(attributes, 1);
+    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, m_dbInteraction->kindInstances(kindName)) {
+            io->printObject(object, 0);
+            io->printAttributes(m_dbInteraction->allAttributes(object), 1);
+        }
     }
 }
 

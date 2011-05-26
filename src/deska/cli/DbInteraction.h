@@ -66,30 +66,33 @@ public:
     */
     void setAttribute(const Db::ContextStack &context, const Db::AttributeDefinition &attribute);
 
+    /** @short Obtains list of all defined kind names.
+    *
+    *   @return Vector of all kind names
+    */
+    std::vector<Db::Identifier> kindNames();
+
     /** @short Obtains list of instances of given kind
     *
     *   @param kindName Kind for which the instances are obtained
     *   @return Vector of all instances of the kind
     */
-    std::vector<Db::Identifier> kindInstances(const Db::Identifier &kindName);
+    std::vector<Db::ObjectDefinition> kindInstances(const Db::Identifier &kindName);
 
-    /** @short Obtains list of all objects in the DB.
-    *
-    *   @return Vector of object definitions from the DB
-    */
-    std::vector<Db::ObjectDefinition> allObjects();
     /** @short Obtains all attributes of given object.
     *
     *   @param object Object for which the attributes are obtained
     *   @return Vector of all attributes
     */
     std::vector<Db::AttributeDefinition> allAttributes(const Db::ObjectDefinition &object);
+
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the attributes are obtained
     *   @return Vector of all attributes
     */
     std::vector<Db::AttributeDefinition> allAttributes(const Db::ContextStack &context);
+
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
