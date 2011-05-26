@@ -60,11 +60,10 @@ template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(co
 template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const double &) const;
 
 /** @short Convert a Deska::Db::Value into JSON */
-template<> struct JsonConversionTraits<Value> {
-    static json_spirit::Value toJson(const Value &value) {
-        return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
-    }
-};
+template<>
+json_spirit::Value JsonConversionTraits<Value>::toJson(const Value &value) {
+    return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+}
 
 std::string jsonValueTypeToString(const json_spirit::Value_type type)
 {
@@ -248,111 +247,107 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
 
 
 /** @short Specialization for extracting Identifiers from JSON */
-template<> struct JsonConversionTraits<Identifier> {
-    static Identifier extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting Identifier");
-        checkJsonValueType(v, json_spirit::str_type);
-        return v.get_str();
-    }
-};
+template<>
+Identifier JsonConversionTraits<Identifier>::extract(const json_spirit::Value &v) {
+    JsonContext c1("When extracting Identifier");
+    checkJsonValueType(v, json_spirit::str_type);
+    return v.get_str();
+}
 
 /** @short Specialization for extracting a PendingChangeset representation from JSON */
-template<> struct JsonConversionTraits<PendingChangeset> {
-    static PendingChangeset extract(const json_spirit::Value &v) {
-        JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
-        JsonHandler h;
-        TemporaryChangesetId changeset = TemporaryChangesetId::null;
-        std::string author;
-        boost::posix_time::ptime timestamp;
-        RevisionId parentRevision = RevisionId::null;
-        std::string message;
-        PendingChangeset::AttachStatus attachStatus;
-        boost::optional<std::string> activeConnectionInfo;
-        h.read("changeset").extract(&changeset);
-        h.read("author").extract(&author);
-        h.read("timestamp").extract(&timestamp);
-        h.read("parentRevision").extract(&parentRevision);
-        h.read("message").extract(&message);
-        h.read("status").extract(&attachStatus);
-        h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
-        h.parseJsonObject(v.get_obj());
+template<>
+PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spirit::Value &v) {
+    JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
+    JsonHandler h;
+    TemporaryChangesetId changeset = TemporaryChangesetId::null;
+    std::string author;
+    boost::posix_time::ptime timestamp;
+    RevisionId parentRevision = RevisionId::null;
+    std::string message;
+    PendingChangeset::AttachStatus attachStatus;
+    boost::optional<std::string> activeConnectionInfo;
+    h.read("changeset").extract(&changeset);
+    h.read("author").extract(&author);
+    h.read("timestamp").extract(&timestamp);
+    h.read("parentRevision").extract(&parentRevision);
+    h.read("message").extract(&message);
+    h.read("status").extract(&attachStatus);
+    h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
+    h.parseJsonObject(v.get_obj());
 
-        // These asserts are enforced by the JsonHandler, as all fields are required here.
-        BOOST_ASSERT(changeset != TemporaryChangesetId::null);
-        BOOST_ASSERT(parentRevision != RevisionId::null);
-        // This is guaranteed by the extractor
-        BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
+    // These asserts are enforced by the JsonHandler, as all fields are required here.
+    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
+    BOOST_ASSERT(parentRevision != RevisionId::null);
+    // This is guaranteed by the extractor
+    BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
 
-        return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
-    }
-};
+    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
+}
 
 /** @short Specialization for extracting ObjectRelation into a C++ class from JSON */
-template<> struct JsonConversionTraits<ObjectRelation> {
-    static ObjectRelation extract(const json_spirit::Value &v) {
-        JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
-        // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
-        JsonHandler h;
-        std::string relationKind;
-        h.failOnUnknownFields(false);
-        h.read("relation").extract(&relationKind);
-        checkJsonValueType(v, json_spirit::obj_type);
+template<>
+ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::Value &v) {
+    JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
+    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
+    JsonHandler h;
+    std::string relationKind;
+    h.failOnUnknownFields(false);
+    h.read("relation").extract(&relationKind);
+    checkJsonValueType(v, json_spirit::obj_type);
+    h.parseJsonObject(v.get_obj());
+
+    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
+    h = JsonHandler();
+    h.read("relation");
+
+    // Now process the actual data
+    if (relationKind == "EMBED_INTO") {
+        std::string into;
+        h.read("into").extract(&into);
         h.parseJsonObject(v.get_obj());
-
-        // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
-        h = JsonHandler();
-        h.read("relation");
-
-        // Now process the actual data
-        if (relationKind == "EMBED_INTO") {
-            std::string into;
-            h.read("into").extract(&into);
-            h.parseJsonObject(v.get_obj());
-            return ObjectRelation::embedInto(into);
-        } else if (relationKind == "IS_TEMPLATE") {
-            std::string toWhichKind;
-            h.read("toWhichKind").extract(&toWhichKind);
-            h.parseJsonObject(v.get_obj());
-            return ObjectRelation::isTemplate(toWhichKind);
-        } else if (relationKind == "MERGE_WITH") {
-            std::string targetTableName, sourceAttribute;
-            h.read("targetTableName").extract(&targetTableName);
-            h.read("sourceAttribute").extract(&sourceAttribute);
-            h.parseJsonObject(v.get_obj());
-            return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
-        } else if (relationKind == "TEMPLATIZED") {
-            std::string byWhichKind, sourceAttribute;
-            h.read("byWhichKind").extract(&byWhichKind);
-            h.read("sourceAttribute").extract(&sourceAttribute);
-            h.parseJsonObject(v.get_obj());
-            return ObjectRelation::templatized(byWhichKind, sourceAttribute);
-        } else {
-            std::ostringstream s;
-            s << "Invalid relation kind '" << relationKind << "'";
-            throw JsonStructureError(s.str());
-        }
+        return ObjectRelation::embedInto(into);
+    } else if (relationKind == "IS_TEMPLATE") {
+        std::string toWhichKind;
+        h.read("toWhichKind").extract(&toWhichKind);
+        h.parseJsonObject(v.get_obj());
+        return ObjectRelation::isTemplate(toWhichKind);
+    } else if (relationKind == "MERGE_WITH") {
+        std::string targetTableName, sourceAttribute;
+        h.read("targetTableName").extract(&targetTableName);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(v.get_obj());
+        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+    } else if (relationKind == "TEMPLATIZED") {
+        std::string byWhichKind, sourceAttribute;
+        h.read("byWhichKind").extract(&byWhichKind);
+        h.read("sourceAttribute").extract(&sourceAttribute);
+        h.parseJsonObject(v.get_obj());
+        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+    } else {
+        std::ostringstream s;
+        s << "Invalid relation kind '" << relationKind << "'";
+        throw JsonStructureError(s.str());
     }
-};
+}
 
 /** @short Extract RevisionMetadata from JSON */
-template<> struct JsonConversionTraits<RevisionMetadata> {
-    static RevisionMetadata extract(const json_spirit::Value &v) {
-        JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
-        JsonHandler h;
-        RevisionId revision = RevisionId::null;
-        std::string author;
-        boost::posix_time::ptime timestamp;
-        std::string commitMessage;
-        h.read("revision").extract(&revision);
-        h.read("author").extract(&author);
-        h.read("timestamp").extract(&timestamp);
-        h.read("commitMessage").extract(&commitMessage);
-        checkJsonValueType(v, json_spirit::obj_type);
-        h.parseJsonObject(v.get_obj());
-        BOOST_ASSERT(revision != RevisionId::null);
-        return RevisionMetadata(revision, author, timestamp, commitMessage);
-    }
-};
+template<>
+RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
+    JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
+    JsonHandler h;
+    RevisionId revision = RevisionId::null;
+    std::string author;
+    boost::posix_time::ptime timestamp;
+    std::string commitMessage;
+    h.read("revision").extract(&revision);
+    h.read("author").extract(&author);
+    h.read("timestamp").extract(&timestamp);
+    h.read("commitMessage").extract(&commitMessage);
+    checkJsonValueType(v, json_spirit::obj_type);
+    h.parseJsonObject(v.get_obj());
+    BOOST_ASSERT(revision != RevisionId::null);
+    return RevisionMetadata(revision, author, timestamp, commitMessage);
+}
 
 /** @short Extract a RevisionId from JSON */
 template<>
