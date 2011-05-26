@@ -188,10 +188,10 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel)
+void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName)
 {
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
-        printObject(*it, indentLevel);
+        printObject(*it, indentLevel, fullName);
     }
     if (indentLevel > 0)
         printEnd(indentLevel - 1);
@@ -206,9 +206,12 @@ void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, i
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel)
+void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName)
 {
-    out << indent(indentLevel) << object << std::endl;
+    if (fullName)
+        out << indent(indentLevel) << object << std::endl;
+    else
+        out << indent(indentLevel) << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
 }
 
 

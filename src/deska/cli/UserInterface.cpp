@@ -67,14 +67,14 @@ void UserInterface::applyFunctionShow(const Db::ContextStack &context)
     if (context.empty()) {
         // Print top level objects if we are not in any context
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
-             io->printObjects(m_dbInteraction->kindInstances(kindName), 0);
+             io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
     } else {
         // If we are in some context, print all attributes and kind names
         std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
         io->printAttributes(attributes, 0);
         std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-        io->printObjects(kinds, 0);
+        io->printObjects(kinds, 0, false);
     }
 }
 
@@ -133,7 +133,7 @@ void UserInterface::dumpDbContents()
 {
     BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
         BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, m_dbInteraction->kindInstances(kindName)) {
-            io->printObject(object, 0);
+            io->printObject(object, 0, true);
             io->printAttributes(m_dbInteraction->allAttributes(object), 1);
         }
     }
@@ -257,7 +257,7 @@ void UserInterface::run()
         }
 
         context = m_parser->currentContextStack();
-        prompt = Db::toString(context);
+        prompt = Db::contextStackToString(context);
     }
 }
 

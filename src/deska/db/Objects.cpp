@@ -20,6 +20,8 @@
 * */
 
 #include <sstream>
+#include <boost/spirit/include/qi.hpp>
+
 #include "Objects.h"
 
 namespace Deska {
@@ -160,7 +162,7 @@ std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
     }
 }
 
-Identifier toPath(const ContextStack &contextStack)
+Identifier contextStackToPath(const ContextStack &contextStack)
 {
     std::ostringstream ss;
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
@@ -171,7 +173,7 @@ Identifier toPath(const ContextStack &contextStack)
     return ss.str();
 }
 
-std::string toString(const ContextStack &contextStack)
+std::string contextStackToString(const ContextStack &contextStack)
 {
     std::ostringstream ss;
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
@@ -180,6 +182,22 @@ std::string toString(const ContextStack &contextStack)
         ss << *it;
     }
     return ss.str();
+}
+
+std::vector<Identifier> PathToVector(const std::string &path)
+{
+    std::string::const_iterator first = path.begin();
+    std::string::const_iterator last = path.end();
+
+    std::vector<Identifier> identifiers;
+
+    bool r = boost::spirit::qi::phrase_parse(first,last,
+                                             +(boost::spirit::ascii::alnum | '_') % "->",
+                                             boost::spirit::ascii::space, identifiers);
+    if(!r || first != last)
+        throw std::runtime_error("Deska::Db::PathToVector conversion failed while parsing " + path);
+    
+    return identifiers;
 }
 
 }
