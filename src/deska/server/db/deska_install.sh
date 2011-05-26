@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function pylib(){
+	PYTHON_LIB=`whereis -BSM /usr/lib -f python3 | cut -f2 -d" "`/site-packages/
+	cp "$1" "$PYTHON_LIB"	
+}
+
 function die(){
     echo "Die: $1" >&2
     exit 1
@@ -115,6 +120,7 @@ then
 		stage "tables" || die "Error runnig stage tables"
 		stage 0 || die "Error running stage 0"
 	fi
+	pylib dutil.py
 	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
 	stage 2 || die "Error running stage 2"
@@ -125,6 +131,7 @@ then
 	echo "Regenerate functions in DB $DATABASE"
 	drop 2
 	drop 0
+	pylib dutil.py
 	stage 0 || die "Error running stage 0"
 	stage 2 || die "Error running stage 2"
 fi
@@ -139,6 +146,7 @@ then
 	then
 		drop 0
 	fi
+	pylib dutil.py
 	stage "tables" || die "Error running stage tables"
 	if test $TYPE == "A"
 	then
