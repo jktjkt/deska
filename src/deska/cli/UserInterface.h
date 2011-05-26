@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "rlmm/readline.hh"
 
 #include "UserInterfaceIO.h"
 #include "DbInteraction.h"
@@ -50,7 +49,7 @@ namespace Cli
 *   functions for confirmation and applying actions connected with each signal that parser emits. For  all IO
 *   operations is used class UserInterfaceIO.
 */
-class UserInterface: public boost::noncopyable, public rlmm::readline
+class UserInterface: public boost::noncopyable//, public rlmm::readline
 {
 public:
 
