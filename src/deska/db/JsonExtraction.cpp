@@ -355,43 +355,29 @@ template<> struct JsonConversionTraits<RevisionMetadata> {
 };
 
 /** @short Extract a RevisionId from JSON */
-template<> struct JsonConversionTraits<RevisionId> {
-    static RevisionId extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting RevisionId");
-        checkJsonValueType(v, json_spirit::str_type);
-        return RevisionId::fromJson(v.get_str());
-    }
-
-    static json_spirit::Value toJson(const RevisionId &revision) {
-        std::ostringstream ss;
-        ss << revision;
-        return ss.str();
-    }
-};
+template<>
+RevisionId JsonConversionTraits<RevisionId>::extract(const json_spirit::Value &v) {
+    JsonContext c1("When extracting RevisionId");
+    checkJsonValueType(v, json_spirit::str_type);
+    return RevisionId::fromJson(v.get_str());
+}
 
 /** @short Extract a TemporaryChangesetId form JSON */
-template<> struct JsonConversionTraits<TemporaryChangesetId> {
-    static TemporaryChangesetId extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting TemporaryChangesetId");
-        checkJsonValueType(v, json_spirit::str_type);
-        return TemporaryChangesetId::fromJson(v.get_str());
-    }
-
-    static json_spirit::Value toJson(const TemporaryChangesetId &revision) {
-        std::ostringstream ss;
-        ss << revision;
-        return ss.str();
-    }
-};
+template<>
+TemporaryChangesetId JsonConversionTraits<TemporaryChangesetId>::extract(const json_spirit::Value &v)
+{
+    JsonContext c1("When extracting TemporaryChangesetId");
+    checkJsonValueType(v, json_spirit::str_type);
+    return TemporaryChangesetId::fromJson(v.get_str());
+}
 
 /** @short Extract timestamp from JSON */
-template<> struct JsonConversionTraits<boost::posix_time::ptime> {
-    static boost::posix_time::ptime extract(const json_spirit::Value &v) {
-        JsonContext c1("When extracting boost::posix_time::ptime");
-        checkJsonValueType(v, json_spirit::str_type);
-        return boost::posix_time::time_from_string(v.get_str());
-    }
-};
+template<>
+boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract(const json_spirit::Value &v)
+{
+    JsonContext c1("When extracting boost::posix_time::ptime");
+    return boost::posix_time::time_from_string(v.get_str());
+}
 
 /** @short Helper for extracting an optional value */
 template<typename T> struct JsonConversionTraits<boost::optional<T> > {
