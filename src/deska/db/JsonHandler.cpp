@@ -271,23 +271,6 @@ JsonField &JsonHandler::read(const std::string &name)
     return *(--fields.end());
 }
 
-boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name, const TemporaryChangesetId value)
-{
-    if (value == TemporaryChangesetId::null)
-        return boost::optional<JsonField&>();
-    else
-        return write(name, value);
-}
-
-boost::optional<JsonField&> JsonHandler::writeIfNotZero(const std::string &name, const RevisionId value)
-{
-    if (value == RevisionId::null)
-        return boost::optional<JsonField&>();
-    else
-        return write(name, value);
-}
-
-
 JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
     dataTypes(dataTypes_)
 {
