@@ -37,7 +37,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
-    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io)
+    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io), inChangeset(false)
 {
 }
 
@@ -139,23 +139,20 @@ void UserInterface::dumpDbContents()
 
 
 
-void UserInterface::run()
+void UserInterface::resumeChangeset()
 {
     try {
-    // Print list of pending changesets, so user can choose one
-    std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
-    int choice = io->chooseChangeset(pendingChangesets);
+        // Print list of pending changesets, so user can choose one
+        std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
+        int choice = io->chooseChangeset(pendingChangesets);
 
-    if (choice == -2) {
-        // do nothing
-    } else if (choice == -1) {
-        m_dbInteraction->createNewChangeset();
-    } else {
-        m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-    }
+        if (choice >= 0) {
+            // Some changeset was choosen
+            m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+            inChangeset = true;
+            io->printMessage("Changeset resumed.");
+        }
         
-        // Now that we've established our preconditions, let's enter the event loop
-        eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
         reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::NoChangesetError &e) {
@@ -173,10 +170,10 @@ void UserInterface::run()
 
 
 
-void UserInterface::eventLoop()
+void UserInterface::run()
 {
     // TODO: Rewrite this function using Redline--
-
+    io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
     io->printPrompt(prompt);
     Db::ContextStack context;
@@ -188,11 +185,49 @@ void UserInterface::eventLoop()
         } else if (line == "dump") {
             dumpDbContents();
         } else if (line == "commit") {
-            m_dbInteraction->commitChangeset(io->askForCommitMessage());
+            if (inChangeset) {
+                m_dbInteraction->commitChangeset(io->askForCommitMessage());
+                inChangeset = false;
+                io->printMessage("Changeset commited.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
         } else if (line == "detach") {
-            m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
+            if (inChangeset) {
+                m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
+                inChangeset = false;
+                io->printMessage("Changeset detached.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
         } else if (line == "abort") {
-            m_dbInteraction->abortChangeset();
+            if (inChangeset) {
+                m_dbInteraction->abortChangeset();
+                inChangeset = false;
+                io->printMessage("Changeset aborted.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
+        } else if (line == "start") {
+            if (inChangeset) {
+                reportError("Error: You are already in the changeset!");
+            } else {
+                m_dbInteraction->createNewChangeset(); 
+                inChangeset = true;
+                io->printMessage("Changeset started.");
+            }
+        } else if (line == "resume") {
+            if (inChangeset) {
+                reportError("Error: You are already in the changeset!");
+            } else {
+                resumeChangeset();
+            }
+        } else if (line == "status") {
+            if (inChangeset) {
+                io->printMessage("You are connected to a changeset.");
+            } else {
+                io->printMessage("You are not connected to any changeset.");
+            }
         } else if (line == "help") {
             io->printHelp();
         } else {
