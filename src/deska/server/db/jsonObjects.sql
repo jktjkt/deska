@@ -99,15 +99,8 @@ CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def error_json(jsn,typ,message):
-	err = dict()
-	err["type"] = typ
-	err["message"] = message
-	jsn["dbException"] = err
-	return json.dumps(jsn)
 
 def mystr(s):
 	if s is None:
@@ -122,14 +115,13 @@ def main(kindName,objectName):
 	jsn["kindName"] = kindName
 
 	try:
-		with xact():
-			plan = prepare("SELECT * FROM {0}_get_data($1)".format(kindName))
-			data = plan(objectName)
-	except Postgres.Exception as dberr:
-		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
+		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
+		colnames, data = dutil.getdata(sql,objectName)
+	except dutil.DeskaException as dberr:
+		return dberr.json("objectData")
 
 	data = [mystr(x) for x in data[0]]
-	res = dict(zip(plan.column_names,data))
+	res = dict(zip(colnames,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
 $$
