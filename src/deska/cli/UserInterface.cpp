@@ -197,9 +197,9 @@ void UserInterface::run()
     std::string line;
     Db::ContextStack context;
     for (;;) {
-        io->printPrompt(prompt);
+        //io->printPrompt(prompt);
         //line = io->readLine();
-        line = reader.GetLine("");
+        line = reader.GetLine(prompt + "> ");
 
 
         if (line == "exit" || line == "quit") {
