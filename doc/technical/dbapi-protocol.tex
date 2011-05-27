@@ -421,7 +421,8 @@ revision; this will allow a future \deskaFuncRef{commitChangeset} to succeed.
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
-\deskaFuncRef{setAttribute}.
+\deskaFuncRef{setAttribute}.  In case an object gets deleted by accident in a pending changeset, it can be restored to
+its previous state via the \deskaFuncRef{restoreDeletedObject}.
 
 Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
 \deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
@@ -551,6 +552,16 @@ Any function which modifies objects stored in the Deska database belongs to this
     {This function creates a new instance of a given object.  All attributes are initially unset, which means that you
     might have to call \deskaFuncRef{setAttribute} before you will be allowed to commit your changes if some attributes
     have a constraint not to be NULL.}
+
+\deskaFunc{restoreDeletedObject}{, "kindName": "something", "objectName": "name"}
+    {}
+    {Undo an object deletion in the same pending changeset}
+    {This function exists in order to enable ``undoing'' an object deletion in the same changeset where the deletion was
+    attempted.  Due to the way how changesets are implemented, it is not allowed to delete an object and simultaneously
+    create a new one with the same name in just one changeset.  Therefore, attempting to re-create a just deleted object
+    as a remedy of the inadvertent action via \deskaFuncRef{createObject} will fail.  This function will instead
+    completely undo the deletion, without leaving any trace in the history.  The object is completely restored,
+    including all attributes and references.}
 
 \deskaFunc{renameObject}{, "kindName": "something", "oldName": "name", "newName": "name"}
     {}
