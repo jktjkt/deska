@@ -56,6 +56,13 @@ struct JsonConversionTraits {
     static json_spirit::Value toJson(const T& value);
 };
 
+/** @short Partial specialization for the linker */
+template<>
+inline json_spirit::Value JsonConversionTraits<std::string>::toJson(const std::string &value)
+{
+    return value;
+}
+
 /** @short Got to provide partial specialization in the header for RHEL5 */
 template<>
 inline json_spirit::Value JsonConversionTraits<RevisionId>::toJson(const RevisionId &revision)
@@ -73,7 +80,6 @@ inline json_spirit::Value JsonConversionTraits<TemporaryChangesetId>::toJson(con
     ss << revision;
     return ss.str();
 }
-
 
 // This specialization has to be mentioned in this header file
 template<> struct JsonConversionTraits<RemoteDbError> {

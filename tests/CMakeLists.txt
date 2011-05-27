@@ -79,6 +79,7 @@ if(RUN_SQL_TESTS)
     deska_sql_test(versioning-pendingchangeset_data)
     deska_sql_test(versioned-data)
     deska_sql_test(set_attribute)
+    deska_sql_test(undel)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)

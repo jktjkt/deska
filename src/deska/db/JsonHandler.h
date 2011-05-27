@@ -132,34 +132,14 @@ public:
     void parseJsonObject(const json_spirit::Object &jsonObject);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const std::string &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const RevisionId value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const TemporaryChangesetId value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const Deska::Db::Value &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const Deska::Db::Filter &filter);
+    template <typename T>
+    JsonField &write(const std::string &name, const T &value);
 
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
 
     /** @short Tell this handler whether it should throw an exception when it sees an unrecognized field */
     void failOnUnknownFields(const bool shouldThrow);
-
-    /** @short If the passed revision is not zero, forward write(), otherwise return empty optional */
-    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const RevisionId value);
-
-    /** @short If the passed temporary changeset is not zero, forward write(), otherwise return empty optional */
-    boost::optional<JsonField&> writeIfNotZero(const std::string &name, const TemporaryChangesetId value);
 
 protected:
     std::vector<JsonField> fields;

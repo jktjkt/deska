@@ -1,0 +1,18 @@
+Here is a couple of cautions.
+
+1. The implementation is NOT hread safe.
+2. There is a potential problem of manipulating SReadline and SKeymap
+   objects from many compilation units.
+   It comes up because I put all the data into a single header file.
+   If you use the objects from different compilation units they 
+   will have their own copies of the data and therefore the problem
+   may come up. A single header file suited me nicely as soon as I
+   performed all the readline related actions from a single file and
+   did not want to create a separate library.
+   A cure is very simple. You may extract the data into a separate
+   compilation unit (removing them from the SReadline.h) or to create
+   .so library. You also have an option ask me to do that.
+
+Sergey Satskiy
+<sergesatsky@yahoo.com>
+

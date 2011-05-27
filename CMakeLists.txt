@@ -80,6 +80,15 @@ else()
     include_directories(${RLMM_PATH})
 endif()
 
+FIND_PATH(SREADLINE_PATH SReadline/SReadline.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/SReadline-0.3)
+if(NOT SREADLINE_PATH)
+    message(FATAL "Cannot find SReadline, and the internal copy seems unusable")
+else()
+    message(STATUS "SReadline from ${SREADLINE_PATH}")
+    include_directories(${SREADLINE_PATH})
+endif()
+
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 FIND_PACKAGE(Readline REQUIRED)
 
