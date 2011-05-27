@@ -4,28 +4,13 @@ CREATE OR REPLACE FUNCTION jsn.setAttribute(kindName text, objectName text, attr
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1,atr2):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1, atr2)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
 	fname = kindName+"_set_"+attributeName+"(text,text)"
-	call(fname,objectName,attributeData)
+	dutil.fcall(fname,objectName,attributeData)
 
 	jsn = dict()
 	jsn["response"] = "setAttribute"
@@ -41,28 +26,13 @@ CREATE OR REPLACE FUNCTION jsn.renameObject(kindName text, oldName text, newName
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1,atr2):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,oldName,newName):
 	fname = kindName+"_set_name(text,text)"
-	call(fname,oldname,newname)
+	dutil.fcall(fname,oldname,newname)
 
 	jsn = dict()
 	jsn["response"] = "renameObject"
@@ -77,28 +47,13 @@ CREATE OR REPLACE FUNCTION jsn.createObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_add(text)"
-	call(fname,objectName)
+	dutil.fcall(fname,objectName)
 
 	jsn = dict()
 	jsn["response"] = "createObject"
@@ -112,28 +67,13 @@ CREATE OR REPLACE FUNCTION jsn.deleteObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_del(text)"
-	call(fname,objectName)
+	dutil.fcall(fname,objectName)
 
 	jsn = dict()
 	jsn["response"] = "deleteObject"

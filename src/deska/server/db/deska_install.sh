@@ -119,8 +119,8 @@ then
 	then
 		stage "tables" || die "Error runnig stage tables"
 		stage 0 || die "Error running stage 0"
+		pylib dutil.py || die "Error installing python utils - are you root?"
 	fi
-	pylib dutil.py
 	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
 	stage 2 || die "Error running stage 2"
@@ -131,7 +131,7 @@ then
 	echo "Regenerate functions in DB $DATABASE"
 	drop 2
 	drop 0
-	pylib dutil.py
+	pylib dutil.py || die "Error installing python utils - are you root?"
 	stage 0 || die "Error running stage 0"
 	stage 2 || die "Error running stage 2"
 fi
