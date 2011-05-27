@@ -367,8 +367,13 @@ class Templates:
 	AS
 	$$
 	DECLARE	ver bigint;
+		tmp bigint;
 	BEGIN
 		SELECT get_current_changeset() INTO ver;
+		SELECT uid INTO tmp FROM {tbl}_history WHERE version = ver AND name = name_ AND dest_bit = '1';
+		IF FOUND THEN
+			RAISE EXCEPTION 'object with name % was deleted, ...', name_;
+		END IF;
 		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);
 		RETURN 1;
@@ -398,6 +403,29 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
+	undel_string = '''CREATE FUNCTION
+	{tbl}_undel(name_ text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		current_changeset bigint;
+		rowuid bigint;
+	BEGIN
+		current_changeset = get_current_changeset();
+		rowuid = {tbl}_get_uid(name_);
+		UPDATE {tbl}_history SET dest_bit = '0' WHERE version = current_changeset AND uid = rowuid;
+		IF NOT FOUND THEN
+			RAISE EXCEPTION 'to undel % should be the object deleted in opened changeset', name_;
+		END IF;
+		RETURN 1;
+	END;
+	$$
+	LANGUAGE plpgsql;
+	
+'''
+
 	# template string for del function
 	del_string = '''CREATE FUNCTION
 	{tbl}_del(IN name_ text)
@@ -410,46 +438,14 @@ class Templates:
 		tmp bigint;
 	BEGIN	
 		SELECT get_current_changeset() INTO ver;
-		SELECT {tbl}_get_uid(name_) INTO rowuid;
-		-- try if there is already line for current version
-		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
+		-- try if there is already line for current version and update it
+		rowuid = {tbl}_get_uid(name_);
+		UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
+		raise notice 'found %', FOUND;
 		IF NOT FOUND THEN
-			INSERT INTO {tbl}_history (uid, name, version, dest_bit)
-				VALUES (rowuid, name_, ver, '1');
-		ELSE
-			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
-		END IF;
-		RETURN 1;
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
-
-	# template string for del function
-	del_embed_string = '''CREATE FUNCTION
-	{tbl}_del(IN name_ text)
-	RETURNS integer
-	AS
-	$$
-	DECLARE
-		ver bigint;
-		rowuid bigint;
-		tmp bigint;
-		local_name text;
-		rest_of_name text;
-	BEGIN	
-		SELECT get_current_changeset() INTO ver;
-		SELECT {tbl}_get_uid(name_) INTO rowuid;
-		-- try if there is already line for current version
-		SELECT uid INTO tmp FROM {tbl}_history WHERE uid = rowuid AND version = ver;
-		IF NOT FOUND THEN
-			--from name of embed object is used only local part
-			SELECT embed_name[1], embed_name[2] FROM embed_name(name_,'{delim}') INTO rest_of_name, local_name;
-			INSERT INTO {tbl}_history (uid, name, {refcolumn}, version, dest_bit)
-				VALUES (rowuid, local_name, {reftbl}_get_uid(rest_of_name), ver, '1');
-		ELSE
-			UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
+			--is not in current changeset, we should insert it
+			INSERT INTO {tbl}_history ({columns}, version, dest_bit)
+				SELECT {columns}, ver, '1' FROM {tbl}_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
 		RETURN 1;
 	END
