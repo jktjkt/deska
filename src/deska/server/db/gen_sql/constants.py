@@ -392,10 +392,15 @@ class Templates:
 		{reftbl}_uid bigint;
 		rest_of_name text;
 		{tbl}_name text;
+		tmp bigint;
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'{delim}') INTO rest_of_name,{tbl}_name;
 		SELECT {reftbl}_get_uid(rest_of_name) INTO {reftbl}_uid;
 		SELECT get_current_changeset() INTO ver;
+		SELECT uid INTO tmp FROM {tbl}_history WHERE version = ver AND uid = {reftbl}_uid AND dest_bit = '1';
+		IF FOUND THEN
+			RAISE EXCEPTION 'object with name % was deleted, ...', full_name;
+		END IF;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
 		RETURN 1;
 	END
