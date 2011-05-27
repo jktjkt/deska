@@ -10,7 +10,10 @@ import json
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
 	fname = kindName+"_set_"+attributeName+"(text,text)"
-	dutil.fcall(fname,objectName,attributeData)
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json("setAttribute")
 
 	jsn = dict()
 	jsn["response"] = "setAttribute"
@@ -32,7 +35,10 @@ import json
 @pytypes
 def main(kindName,oldName,newName):
 	fname = kindName+"_set_name(text,text)"
-	dutil.fcall(fname,oldname,newname)
+	try:
+		dutil.fcall(fname,oldName,newName)
+	except dutil.DeskaException as err:
+		return err.json("renameObject")
 
 	jsn = dict()
 	jsn["response"] = "renameObject"
@@ -53,7 +59,10 @@ import json
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_add(text)"
-	dutil.fcall(fname,objectName)
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("createObject")
 
 	jsn = dict()
 	jsn["response"] = "createObject"
@@ -73,7 +82,10 @@ import json
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_del(text)"
-	dutil.fcall(fname,objectName)
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("deleteObject")
 
 	jsn = dict()
 	jsn["response"] = "deleteObject"
@@ -114,8 +126,6 @@ def main(kindName,objectName):
 			plan = prepare("SELECT * FROM {0}_get_data($1)".format(kindName))
 			data = plan(objectName)
 	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
 		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
 
 	data = [mystr(x) for x in data[0]]
@@ -131,13 +141,7 @@ AS
 $$
 import Postgres
 import json
-
-def error_json(jsn,typ,message):
-	err = dict()
-	err["type"] = typ
-	err["message"] = message
-	jsn["dbException"] = err
-	return json.dumps(jsn)
+import dutil
 
 def kinds():
 	return list(["vendor","hardware","host","interface"])
@@ -195,9 +199,8 @@ def main(a,b):
 		for kindName in kinds():
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
-		#if dberr.pg_errordata.code == "42883":
-		#	return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
-		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
+		err = dutil.DeskaException(dberr)
+		return err.json("dataDifference")
 
 	jsn["dataDifference"] = res
 	return json.dumps(jsn)
