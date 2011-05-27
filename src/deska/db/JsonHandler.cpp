@@ -200,46 +200,18 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
     }
 }
 
-JsonField &JsonHandler::write(const std::string &name, const std::string &value)
+template<typename T>
+JsonField &JsonHandler::write(const std::string &name, const T &value)
 {
     JsonField f(name);
-    f.jsonValue = value;
+    f.jsonValue = JsonConversionTraits<T>::toJson(value);
     f.isForSending = true;
     f.valueShouldMatch = true;
     fields.push_back(f);
     return *(--fields.end());
 }
 
-JsonField &JsonHandler::write(const std::string &name, const RevisionId value)
-{
-    JsonField f(name);
-    f.jsonValue = JsonConversionTraits<RevisionId>::toJson(value);
-    f.isForSending = true;
-    f.valueShouldMatch = true;
-    fields.push_back(f);
-    return *(--fields.end());
-}
-
-JsonField &JsonHandler::write(const std::string &name, const TemporaryChangesetId value)
-{
-    JsonField f(name);
-    f.jsonValue = JsonConversionTraits<TemporaryChangesetId>::toJson(value);
-    f.isForSending = true;
-    f.valueShouldMatch = true;
-    fields.push_back(f);
-    return *(--fields.end());
-}
-
-JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Value &value)
-{
-    JsonField f(name);
-    f.jsonValue = JsonConversionTraits<Value>::toJson(value);
-    f.isForSending = true;
-    f.valueShouldMatch = true;
-    fields.push_back(f);
-    return *(--fields.end());
-}
-
+template<>
 JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value)
 {
     JsonField f(name);
@@ -254,6 +226,7 @@ JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::
     return *(--fields.end());
 }
 
+template<>
 JsonField &JsonHandler::write(const std::string &name, const Deska::Db::Filter &filter)
 {
     JsonField f(name);
@@ -318,6 +291,12 @@ JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
     dataTypesOfEverything(dataTypesOfEverything_)
 {
 }
+
+// template instances for the linker
+template JsonField &JsonHandler::write(const std::string &, const std::string &);
+template JsonField &JsonHandler::write(const std::string &, const Value &);
+template JsonField &JsonHandler::write(const std::string &, const RevisionId &);
+template JsonField &JsonHandler::write(const std::string &, const TemporaryChangesetId &);
 
 }
 }

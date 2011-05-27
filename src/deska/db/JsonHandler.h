@@ -132,22 +132,8 @@ public:
     void parseJsonObject(const json_spirit::Object &jsonObject);
 
     /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const std::string &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const RevisionId value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const TemporaryChangesetId value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const Deska::Db::Value &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value);
-
-    /** @short Register a JSON field which will be sent and its presence required and value checked upon arrival */
-    JsonField &write(const std::string &name, const Deska::Db::Filter &filter);
+    template <typename T>
+    JsonField &write(const std::string &name, const T &value);
 
     /** @short Expect a required value in the JSON */
     JsonField &read(const std::string &name);
