@@ -441,7 +441,6 @@ class Templates:
 		-- try if there is already line for current version and update it
 		rowuid = {tbl}_get_uid(name_);
 		UPDATE {tbl}_history SET dest_bit = '1' WHERE uid = rowuid AND version = ver;
-		raise notice 'found %', FOUND;
 		IF NOT FOUND THEN
 			--is not in current changeset, we should insert it
 			INSERT INTO {tbl}_history ({columns}, version, dest_bit)
