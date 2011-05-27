@@ -59,12 +59,12 @@ to be kept in at least the following places:
     \item Switch port configuration
     \item DHCP server
     \item DNS
-    \item Cfengine roles
+    \item Cfengine~\cite{cfengine} roles
     \item Torque's CPU multipliers
-    \item MRTG \& RRD network graphs
-    \item Nagios
-    \item Ganglia
-    \item Munin
+    \item MRTG~\cite{mrtg} \& RRD network graphs
+    \item Nagios~\cite{nagios}
+    \item Ganglia~\cite{ganglia}
+    \item Munin~\cite{munin}
     \item \ldots
 \end{itemize}
 
@@ -83,10 +83,13 @@ interface provided by the web application.  Being accustomed to the Unix way of 
 application felt like a step backwards.
 
 Most of the existing third-party tools, proprietary or free software, again focus on the web side of affairs; it is rare to find an
-appliance which offers a scripting API.  It's also rather surprising to routinely come across tools which cannot deal with machines
-with different form factors than traditional ``pizza boxes'', such as blade servers or SGI twins.  Furthermore, most of the inventory
-management applications are aimed mainly at automatic discovery of very heterogeneous environment, which is not the most serious issue
-the Institute is facing.
+appliance which offers a scripting API.  Some popular choices, like the OCS Inventory~\cite{ocs-inventory}, seem to focus on
+auto-discovery of heterogenous equipment, a hard task which is however not important for the Institue.  Others, like the not-so-known
+Smurf~\cite{smurf}, do offer an API to use in scripting, but are not actively marketed as ``ready for use by third parties'' or undergo
+an internal rewrite in order to elliminate a dependency on a proprietary RDBMS implementation.  It's also rather surprising to
+routinely come across tools like the Rackmonkey~\cite{rackmonkey} which cannot deal with machines with different form factors than
+traditional ``pizza boxes'', such as blade servers or SGI twins.  Furthermore, most of the inventory management applications are aimed
+mainly at automatic discovery of very heterogeneous environment, which is not the most serious issue the Institute is facing.
 
 Finally, even the proprietary solutions, like the System Director from IBM, offer only a limited subset of desired functionality.
 While it's clear that certain features like automatic discovery and tight integration with vendor's low-level fabric management tools
@@ -252,6 +255,26 @@ they are modelling.
 Database integrity constraints are fully supported; the only requirement is that they have an explicitly assigned name which encodes
 the type of the modelled relation.  When the constraints have these names, Deska can automatically extract the relationship information
 and pass it further via its API.
+
+\section{Performance Considerations, Scalability and Reliability}
+
+The Deska architecture strongly prefers simple and effective solutions over complicated and over-engineered alternatives.  For example,
+instead of patching a DHCP server to dynamically retrieve its configuration data from the Deska server via its JSON API, possibly upon
+each request, it is assumed that these configuration files are regenerated during each commit and then pushed to the relevant services,
+all via existing configuration management utilities.  This approach makes the whole distributed system much more resilient against
+possible interruptions and service disruptions, and substantially reduces the amount of queries that actually hit the PostgreSQL
+database server.  Hence, the overal load of the system is no longer a function of all nodes ``consuming the data'', but instead follows
+the frequency (and amount) of database modifications.
+
+Certain operations, like retrieval of object history, still have potential to easily overload the SQL server due to the sole amount of
+data they have to process.  Any such operation is, however, only available to authorized users, and can therefore be easily limited by
+proper configuration.
+
+Any ``hard limits'' in terms of attributes-per-object or number of objects are virtually non-existent, as they depend on any applicable
+PostgreSQL table space constraints.  The Deska DBAPI for object retrieval supports partial fetches, and is therefore not considered a
+bottleneck.  The only limitation imposed at this level is that each response of the server is read into one contiguous block of memory
+by the C++ implementation of the Deska DBAPI.  However, on a reasonable hardware, the Deska suite shall have no problems with hundreds
+of thousands of individual objects, and performance tests have verified this claim to be true.
 
 \section{Current Status}
 
