@@ -41,7 +41,7 @@ DbInteraction::DbInteraction(Db::Api *api):
 void DbInteraction::createObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->createObject(context.back().kind, Db::toPath(context));
+    m_api->createObject(context.back().kind, Db::contextStackToPath(context));
 }
 
 
@@ -49,7 +49,7 @@ void DbInteraction::createObject(const Db::ContextStack &context)
 void DbInteraction::deleteObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->deleteObject(context.back().kind, Db::toPath(context));
+    m_api->deleteObject(context.back().kind, Db::contextStackToPath(context));
 }
 
 
@@ -58,25 +58,23 @@ void DbInteraction::setAttribute(const Db::ContextStack &context,
                                  const Db::AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, Db::toPath(context), attribute.attribute, attribute.value);
+    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute.attribute, attribute.value);
 }
 
 
 
-std::vector<Db::Identifier> DbInteraction::kindInstances(const Db::Identifier &kindName)
+std::vector<Db::Identifier> DbInteraction::kindNames()
 {
-    return m_api->kindInstances(kindName);
+    return m_api->kindNames();
 }
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allObjects()
+std::vector<Db::ObjectDefinition> DbInteraction::kindInstances(const Db::Identifier &kindName)
 {
     std::vector<Db::ObjectDefinition> objects;
-    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_api->kindNames()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
-            objects.push_back(Db::ObjectDefinition(kindName, objectName));
-        }
+    BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
+        objects.push_back(Db::ObjectDefinition(kindName, objectName));
     }
     return objects;
 }
@@ -100,7 +98,7 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Cont
     std::vector<Db::AttributeDefinition> attributes;
     if (!context.empty()) {
         typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
-        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::toPath(context))) {
+        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::contextStackToPath(context))) {
             attributes.push_back(Db::AttributeDefinition(x.first, x.second));
         }
     }
@@ -111,12 +109,9 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Cont
 
 std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::ContextStack &context)
 {
+    BOOST_ASSERT(!context.empty());
     std::vector<Db::ObjectDefinition> kinds;
-    if (!context.empty()) {
-        // TODO: Obtain list of nested kinds.
-    } else {
-        kinds = allObjects();
-    }
+    // TODO: Obtain list of nested kinds.
     return kinds;
 }
 
@@ -125,8 +120,8 @@ std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::Contex
 bool DbInteraction::objectExists(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    std::vector<Db::Identifier> instances = kindInstances(context.back().kind);
-    if (std::find(instances.begin(), instances.end(), Db::toPath(context)) == instances.end()) {
+    std::vector<Db::Identifier> instances = m_api->kindInstances(context.back().kind);
+    if (std::find(instances.begin(), instances.end(), Db::contextStackToPath(context)) == instances.end()) {
         return false;
     } else {
         return true;

@@ -106,17 +106,21 @@ std::string UserInterfaceIO::askForDetachMessage()
 void UserInterfaceIO::printHelp()
 {
     out << "CLI commands:" << std::endl;
-    out << "exit   - Exits the CLI" << std::endl;
-    out << "quit   - Exits the CLI" << std::endl;
-    out << "dump   - Prints everything in the DB" << std::endl;
+    out << "start  - Starts new changeset" << std::endl;
+    out << "resume - Displays list of pending changesets with ability to connect to one" << std::endl;
     out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
     out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
     out << "abort  - Aborts current changeset" << std::endl;
+    out << "status - Shows if you are connected to any changeset or not" << std::endl;
+    out << "exit   - Exits the CLI" << std::endl;
+    out << "quit   - Exits the CLI" << std::endl;
+    out << "dump   - Prints everything in the DB" << std::endl;
     out << "help   - Displays this list of commands" << std::endl;
     out << std::endl;
     out << "Parser keywords:" << std::endl;
     out << "delete - Deletes object given as parameter (e.g. delete hardware hp456)" << std::endl;
     out << "show   - Shows attributes and nested kinds of the object" << std::endl;
+    out << "end    - Leaves one level of current context" << std::endl;
 }
 
 
@@ -126,24 +130,21 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
     out << "Pending changesets: " << std::endl << std::endl;
     if (pendingChangesets.empty()) {
         out << "No pending changesets." << std::endl;
+        return -2;
     } else {
         for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
             out << i << ": " << pendingChangesets[i] << std::endl;
         }
     }
-    out << "n: No changset" << std::endl;
-    out << "c: Create new changset" << std::endl << std::endl;
-    out << "Changeset to attach to: ";
+    out << "n: No changset" << std::endl << std::endl;    
     // Waiting until user enteres correct input.
     for (;;)
     {
+        out << "Changeset to attach to: ";
         std::string choice;
         getline(in, choice);
         boost::algorithm::to_lower(choice);
         if (choice == "n") {
-            // do nothing
-            return -2;
-        } else if (choice == "c") {
             return -1;
         } else {
             std::istringstream ss(choice);
@@ -187,10 +188,10 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel)
+void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName)
 {
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
-        printObject(*it, indentLevel);
+        printObject(*it, indentLevel, fullName);
     }
     if (indentLevel > 0)
         printEnd(indentLevel - 1);
@@ -205,9 +206,12 @@ void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, i
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel)
+void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName)
 {
-    out << indent(indentLevel) << object << std::endl;
+    if (fullName)
+        out << indent(indentLevel) << object << std::endl;
+    else
+        out << indent(indentLevel) << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
 }
 
 

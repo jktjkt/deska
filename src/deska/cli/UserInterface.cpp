@@ -22,9 +22,12 @@
 * */
 
 #include <sstream>
+#include <boost/foreach.hpp>
 
 #include "UserInterface.h"
 #include "deska/db/JsonApi.h"
+
+#include "SReadline/SReadline.h"
 
 
 
@@ -36,7 +39,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
-    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io)
+    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io), inChangeset(false)
 {
 }
 
@@ -61,10 +64,18 @@ void UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
-    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
-    io->printAttributes(attributes, 0);
-    std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-    io->printObjects(kinds, 0);
+    if (context.empty()) {
+        // Print top level objects if we are not in any context
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+             io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
+        }
+    } else {
+        // If we are in some context, print all attributes and kind names
+        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
+        io->printAttributes(attributes, 0);
+        std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
+        io->printObjects(kinds, 0, false);
+    }
 }
 
 
@@ -120,34 +131,30 @@ void UserInterface::reportError(const std::string &errorMessage)
 
 void UserInterface::dumpDbContents()
 {
-    std::vector<Db::ObjectDefinition> objects;
-    objects = m_dbInteraction->allObjects();
-    for (std::vector<Db::ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        io->printObject(*it, 0);
-        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(*it);
-        io->printAttributes(attributes, 1);
+    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, m_dbInteraction->kindInstances(kindName)) {
+            io->printObject(object, 0, true);
+            io->printAttributes(m_dbInteraction->allAttributes(object), 1);
+        }
     }
 }
 
 
 
-void UserInterface::run()
+void UserInterface::resumeChangeset()
 {
     try {
-    // Print list of pending changesets, so user can choose one
-    std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
-    int choice = io->chooseChangeset(pendingChangesets);
+        // Print list of pending changesets, so user can choose one
+        std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
+        int choice = io->chooseChangeset(pendingChangesets);
 
-    if (choice == -2) {
-        // do nothing
-    } else if (choice == -1) {
-        m_dbInteraction->createNewChangeset();
-    } else {
-        m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-    }
+        if (choice >= 0) {
+            // Some changeset was choosen
+            m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+            inChangeset = true;
+            io->printMessage("Changeset resumed.");
+        }
         
-        // Now that we've established our preconditions, let's enter the event loop
-        eventLoop();
     } catch (Deska::Db::NotFoundError &e) {
         reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::NoChangesetError &e) {
@@ -165,26 +172,84 @@ void UserInterface::run()
 
 
 
-void UserInterface::eventLoop()
+void UserInterface::run()
 {
     // TODO: Rewrite this function using Redline--
 
+    // FIXME: Only temporary usage of SReadline.
+    swift::SReadline reader(".cli_history",64);
+    std::vector<std::string> completitions;
+    completitions.push_back("exit");
+    completitions.push_back("quit");
+    completitions.push_back("dump");
+    completitions.push_back("commit");
+    completitions.push_back("detach");
+    completitions.push_back("abort");
+    completitions.push_back("start");
+    completitions.push_back("resume");
+    completitions.push_back("status");
+    completitions.push_back("help");
+    completitions.push_back("show");
+    completitions.push_back("delete");
+    reader.RegisterCompletions(completitions);
+
+    io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
-    io->printPrompt(prompt);
     Db::ContextStack context;
     for (;;) {
-        line = io->readLine();
+        io->printPrompt(prompt);
+        //line = io->readLine();
+        line = reader.GetLine("");
+
 
         if (line == "exit" || line == "quit") {
             break;
         } else if (line == "dump") {
             dumpDbContents();
         } else if (line == "commit") {
-            m_dbInteraction->commitChangeset(io->askForCommitMessage());
+            if (inChangeset) {
+                m_dbInteraction->commitChangeset(io->askForCommitMessage());
+                inChangeset = false;
+                io->printMessage("Changeset commited.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
         } else if (line == "detach") {
-            m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
+            if (inChangeset) {
+                m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
+                inChangeset = false;
+                io->printMessage("Changeset detached.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
         } else if (line == "abort") {
-            m_dbInteraction->abortChangeset();
+            if (inChangeset) {
+                m_dbInteraction->abortChangeset();
+                inChangeset = false;
+                io->printMessage("Changeset aborted.");
+            } else {
+                reportError("Error: You are not in any changeset!");
+            }
+        } else if (line == "start") {
+            if (inChangeset) {
+                reportError("Error: You are already in the changeset!");
+            } else {
+                m_dbInteraction->createNewChangeset(); 
+                inChangeset = true;
+                io->printMessage("Changeset started.");
+            }
+        } else if (line == "resume") {
+            if (inChangeset) {
+                reportError("Error: You are already in the changeset!");
+            } else {
+                resumeChangeset();
+            }
+        } else if (line == "status") {
+            if (inChangeset) {
+                io->printMessage("You are connected to a changeset.");
+            } else {
+                io->printMessage("You are not connected to any changeset.");
+            }
         } else if (line == "help") {
             io->printHelp();
         } else {
@@ -192,8 +257,7 @@ void UserInterface::eventLoop()
         }
 
         context = m_parser->currentContextStack();
-        prompt = Db::toString(context);
-        io->printPrompt(prompt);
+        prompt = Db::contextStackToString(context);
     }
 }
 

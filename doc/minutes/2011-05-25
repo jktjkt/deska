@@ -126,11 +126,11 @@ Ukoly:
 - Tomas: testy k CLI
 - Lukas: dokumentace (#168, 169,...)
 - Lukas: otestovat diffovani (#214)
-- Lukas: prekontrolovat, ze uz tam neni setAttribute
+- Lukas: prekontrolovat, ze uz tam neni removeAttribute
 - Lukas: error reporting
+- Lukas: filtry
 - Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
 - Martina: dokumentace (#168, 169,...)
-- Martina: filtry
 - Martina: templates
 
 

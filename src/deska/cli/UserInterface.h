@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "rlmm/readline.hh"
 
 #include "UserInterfaceIO.h"
 #include "DbInteraction.h"
@@ -50,7 +49,7 @@ namespace Cli
 *   functions for confirmation and applying actions connected with each signal that parser emits. For  all IO
 *   operations is used class UserInterfaceIO.
 */
-class UserInterface: public boost::noncopyable, public rlmm::readline
+class UserInterface: public boost::noncopyable//, public rlmm::readline
 {
 public:
 
@@ -91,21 +90,19 @@ public:
     */
     void reportError(const std::string &errorMessage);
 
+    /** @short Function for listening to users input and calling appropriate actions. */
+    void run();
+
+private:
+
+    /** @short Displays list of pending changesets, lets user to pick one and connects to it. */
+    void resumeChangeset();
+
     /** @short Dump everything in the DB */
     void dumpDbContents();
 
     /** @short Prints help for CLI usage. */
     void printHelp();
-
-    /** @short Starts the cli after construction.
-    *
-    *   Displays list of pending changesets, connects to one, or creates new and starts event loop.
-    */
-    void run();
-    /** @short Function for listening to users input and calling appropriate actions. */
-    void eventLoop();
-
-private:
 
     /** Pointer to the class used for communication with the database. */
     DbInteraction *m_dbInteraction;
@@ -114,6 +111,8 @@ private:
 
     std::string prompt;
     UserInterfaceIO *io;
+
+    bool inChangeset;
 };
 
 

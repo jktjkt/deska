@@ -225,14 +225,23 @@ typedef std::vector<ObjectDefinition> ContextStack;
 *   Example: For context stack [host hpv2, interface eth0] will the result of the function be hpv2->eth0
 *
 *   @param contextStack Context stack, where the top object is the one for which we want to get the path.
+*   @return Identifier of a object composed from single identifiers from the context stack
 */
-Identifier toPath(const ContextStack &contextStack);
+Identifier contextStackToPath(const ContextStack &contextStack);
 
 /** @short Function for converting context stack into string representation.
 *
 *   @param contextStack Context stack to convert
+*   @return String representation of the context stack composed from single object definitions
 */
-std::string toString(const ContextStack &contextStack);
+std::string contextStackToString(const ContextStack &contextStack);
+
+/** @short Function for converting object path into vector of identifiers.
+*
+*   @param contextStack Context stack to convert
+*   @return Vector of identifiers extracted from the path
+*/
+std::vector<Identifier> PathToVector(const std::string &path);
 
 }
 }
