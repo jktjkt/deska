@@ -80,6 +80,9 @@ class Condition():
 		if type(self.val) == str:
 			self.val = "'{0}'".format(self.val)
 
+		if self.col == "changeset":
+			self.col = "id"
+			self.val = "changeset2id({0})".format(self.val)
 		if self.col == "revision":
 			self.col = "num"
 			self.val = "revision2num({0})".format(self.val)
