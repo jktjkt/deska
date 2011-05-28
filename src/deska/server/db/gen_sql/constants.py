@@ -89,6 +89,43 @@ class Templates:
 
 '''
 
+	set_name_embed_string = '''CREATE FUNCTION
+	{tbl}_set_name(IN name_ text,IN new_name text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		refuid bigint;
+		rowuid bigint;
+		tmp bigint;
+		refname text;
+		local_name text;
+	BEGIN
+		SELECT get_current_changeset() INTO ver;
+		--value is name of object in reftable
+		--we need to know uid of referenced object instead of its name
+		SELECT {tbl}_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM {tbl}_history
+			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version			
+		IF NOT FOUND THEN
+			INSERT INTO {tbl}_history ({columns},version)
+				SELECT {columns},ver FROM {tbl}_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+		END IF;
+		--set column to refuid - uid of referenced object
+		SELECT embed_name[1], embed_name[2] FROM embed_name(new_name,'{delim}') INTO refname, local_name;
+		refuid = {reftbl}_get_uid(refname);
+		UPDATE {tbl}_history SET {refcolumn} = refuid, name = local_name, version = ver
+			WHERE uid = rowuid AND version = ver;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+	
+'''
+
 	#template for data_type, given with columns - list of attributes' names and their types
 	get_data_type_string='''CREATE TYPE {tbl}_type AS(
 {columns}
