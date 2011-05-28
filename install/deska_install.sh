@@ -154,6 +154,7 @@ then
 	drop 0
 	pylib dutil.py || die "Error installing python utils - are you root?"
 	stage 0 || die "Error running stage 0"
+	generate || die "Failed to generate stuff"
 	stage 2 || die "Error running stage 2"
 fi
 
