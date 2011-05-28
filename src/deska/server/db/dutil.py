@@ -60,3 +60,26 @@ def getdata(select,*args):
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
 		
+def params(argString):
+	'''Get python structure from string'''
+	return json.loads(argString)	
+	
+class Filter():
+        '''Class for handling filters'''
+
+        opMap = {"columnEq": "="}
+
+        def __init__(self,filterData):
+                self.data = filterData
+
+        def getWhere(self):
+                '''Return where part of sql statement'''
+                return "WHERE " + self.parse(self.data)
+
+        def parse(self,data):
+                data["condition"] = self.opMap[data["condition"]]
+                return self.strCondition(data)
+
+        def strCondition(self,data):
+                '''Return one condition'''
+                return "{column} {condition} '{value}'".format(**data)
