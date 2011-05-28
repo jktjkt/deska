@@ -1,9 +1,13 @@
 import os
 import json
+import unittest
+import sys
 
 class DeskaRunner():
 	def __init__(self):
-		self.stdin, self.stdout = os.popen2("python deska_server.py")
+		#runstr = "python {server} {db}".format(server=sys.argv[1], db=sys.argv[2])
+		runstr = "python deska_server.py deska_dev"
+		self.stdin, self.stdout = os.popen2(runstr)
 	
 	def command(self,cmd):
 		self.stdin.write(cmd)
@@ -77,46 +81,63 @@ class JsonParser():
 		return key in self.data
 	
 	def __getitem__(self,key):
-		return self.data[key]
+		return str(self.data[key])
 
 	def response(self):
-		return self["response"]
+		return str(self["response"])
 
 	def command(self):
-		return self["command"]
+		return str(self["command"])
 
 	def result(self):
-		return self[self.response()]
+		return str(self[self.response()])
 
 	def error(self):
-		return self["dbException"]
+		return str(self["dbException"])
 	
 	def all(self):
 		return str(self.data)
+
+	def OK(self):
+		return not "dbException" in self
 
 
 js = JsonBuilder()
 tr = DeskaRunner()
 
-testlist = [
-[js.startChangeset,JsonParser.result],
-[js.startChangeset,JsonParser.error]
-]
+class DeskaTest(unittest.TestCase):
+	tmp = 'x'
+	def command(self,cmd,*args):
+		jsn = cmd(*args)
+		cmd = JsonParser(jsn)
+		res = tr.command(jsn)
+		jp = JsonParser(res)
+		self.assertEqual(jp["response"], cmd["command"])
+		return jp
 
-tests = 0
-bad = 0
-for test in testlist:
-	cmd = test[0]()
-	res = tr.command(cmd)
-	jp = JsonParser(res)
-	tests = tests + 1
-	try:
-		print str(cmd) + "\t\t\t" + str(test[1](jp))
-	except:
-		print str(cmd) + "\t\t\tFAILED!!!"
-		bad = bad + 1
-	
-if bad == 0:
-	print "PASSED."
-else:
-	print "{bad} tests FAILED (out of {tests}).".format(bad = bad, tests = tests)
+	def test_001_startChangeset(self):
+		res = self.command(js.startChangeset)
+		self.assertTrue(res.OK())
+		# second time we expect error
+		res = self.command(js.startChangeset)
+		self.assertTrue(not res.OK())
+
+	def test_002_commitChangeset(self):
+		res = self.command(js.commitChangeset,"message")
+		self.assertTrue(res.OK())
+		# second time we expect error
+		res = self.command(js.commitChangeset,"message")
+		self.assertTrue(not res.OK())
+		
+	def test_003_resumeChangeset(self):
+		res = self.command(js.startChangeset)
+		self.assertTrue(res.OK())
+		chid = res.result()
+		res = self.command(js.resumeChangeset,chid)
+		self.assertTrue(res.OK())
+		# bad id
+		res = self.command(js.resumeChangeset,"r12")
+		self.assertTrue(not res.OK())
+		
+unittest.main()
+
