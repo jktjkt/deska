@@ -1,8 +1,15 @@
 #!/bin/bash
 
+PWD=`pwd`
+SRC="$PWD/../src/deska/server/db/"
+
+
+function copy(){
+	sed "s:import dutil:import sys\nsys.path.append('$PWD')\nimport dutil:" ${SRC}$1 > $1
+}
+
 function pylib(){
-	PYTHON_LIB=`whereis -BSM /usr/lib -f python3 | cut -f2 -d" "`/site-packages/
-	cp "$1" "$PYTHON_LIB"	
+	cp "${SRC}$1" "${1}"
 }
 
 function die(){
@@ -33,7 +40,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python gen_sql/generator.py "$DATABASE" "$USER"
+	python ${SRC}gen_sql/generator.py "$DATABASE" "$USER" "$PWD/gen_schema.sql"
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
@@ -74,6 +81,13 @@ do
 			;;
 	esac
 	shift
+done
+
+# every time copy all source files needed into pwd
+FILES=`ls ../src/deska/server/db/ | grep '\.sql'`
+for FILE in $FILES
+do
+	copy $FILE
 done
 
 if test -z $ACTION

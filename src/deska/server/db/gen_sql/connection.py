@@ -1,10 +1,9 @@
 import psycopg2
-import sys
 
 class Connection:
-	def __init__(self):
+	def __init__(self,db,dbuser):
 		try:
-			conn = psycopg2.connect(database=sys.argv[1], user=sys.argv[2])
+			conn = psycopg2.connect(database=db, user=dbuser)
 			self.mark = conn.cursor()
 
 		except:
