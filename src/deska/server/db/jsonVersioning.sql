@@ -116,7 +116,7 @@ def main(message):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.pendingChangesets()
+CREATE OR REPLACE FUNCTION jsn.pendingChangesets(filter text)
 RETURNS text
 AS
 $$
@@ -124,9 +124,10 @@ import dutil
 import json
 
 @pytypes
-def main():
+def main(filter):
 	name = "pendingChangesets"
-	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset"
+	filter = dutil.Filter(filter)
+	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset "+filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
@@ -150,7 +151,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.listRevisions()
+CREATE OR REPLACE FUNCTION jsn.listRevisions(filter text)
 RETURNS text
 AS
 $$
@@ -158,9 +159,10 @@ import dutil
 import json
 
 @pytypes
-def main():
+def main(filter):
 	name = "listRevisions"
-	select = "SELECT num2revision(id),author,timestamp,message FROM version"
+	filter = dutil.Filter(filter)
+	select = "SELECT num2revision(num),author,timestamp,message FROM version "+filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:

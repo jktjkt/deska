@@ -64,22 +64,51 @@ def params(argString):
 	'''Get python structure from string'''
 	return json.loads(argString)	
 	
+
+class Condition():
+	'''Class to store and handle column/value/operator data'''
+
+	opMap = {"columnEq": "="}
+
+	def __init__(self,data):
+		self.col = data["column"]
+		self.val = data["value"]
+		self.op = data["condition"]
+		self.parse()
+	
+	def parse(self):
+		if type(self.val) == str:
+			self.val = "'{0}'".format(self.val)
+
+		if self.col == "revision":
+			self.col = "num"
+			self.val = "revision2num({0})".format(self.val)
+
+		self.op = self.opMap[self.op]
+	
+	def get(self):
+		return "{0} {1} {2}".format(self.col,self.op,self.val)
+
 class Filter():
-        '''Class for handling filters'''
+	'''Class for handling filters'''
 
-        opMap = {"columnEq": "="}
+	def __init__(self,filterData):
+		'''loads json filter data'''
+		if filterData == '':
+			self.data = filterData
+			return
+		try:
+			self.data = json.loads(filterData)
+		except Exception as err:
+			raise
+		
+	def getWhere(self):
+		'''Return where part of sql statement'''
+		if self.data == '':
+			return ''
+		return "WHERE " + self.parse(self.data)
 
-        def __init__(self,filterData):
-                self.data = filterData
+	def parse(self,data):
+		cond = Condition(data)
+		return cond.get()
 
-        def getWhere(self):
-                '''Return where part of sql statement'''
-                return "WHERE " + self.parse(self.data)
-
-        def parse(self,data):
-                data["condition"] = self.opMap[data["condition"]]
-                return self.strCondition(data)
-
-        def strCondition(self,data):
-                '''Return one condition'''
-                return "{column} {condition} '{value}'".format(**data)

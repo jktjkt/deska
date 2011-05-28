@@ -2,6 +2,7 @@ import psycopg2
 import datetime
 import time
 import logging
+import json
 
 class DB:
 	methods = dict({
@@ -16,13 +17,13 @@ class DB:
                 "startChangeset": [],
                 "commitChangeset": ["commitMessage"],
                 "rebaseChangeset": [],
-                "pendingChangesets": [],
+                "pendingChangesets": ["filter"],
                 "resumeChangeset": ["revision"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
 		"dataDifference": ["a", "b"],
 		"objectData": ["kindName", "objectName"],
-		"listRevisions": []
+		"listRevisions": ["filter"]
 	})
 
 	def __init__(self,**kwargs):
@@ -33,6 +34,18 @@ class DB:
 		except Exception, e:
 			raise
 
+	def utf2str(self,data):
+		'''Convert dict structure into str'''
+		if type(data) == dict:
+			'''We need to create json here'''
+			newdict = dict()
+			for key in data:
+				newdict[str(key)] = self.utf2str(data[key])
+			return newdict
+		elif type(data) == list:
+			return map(self.utf2str,data)
+		else:
+			return str(data)
 
 	def run(self,name,args):
 		logging.debug("start run method({n}, {a})".format(n = name, a = args))
@@ -44,7 +57,12 @@ class DB:
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
-		args = map(str,args)
+		args = self.utf2str(args)
+
+		for i in range(len(args)):
+			if type(args[i]) == dict:
+				args[i] = json.dumps(args[i])
+
 		try:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
