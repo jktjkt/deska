@@ -25,7 +25,8 @@ data = list([
 #data = list(['{"command": "pendingChangesets"}'])
 #data = list(['{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}'])
 
-db = DB("deska_dev")
+dbargs = {"database": "deska_dev"}
+db = DB(**dbargs)
 
 for i in data:
 	print "\033[1;32mINPUT:\033[1;m" + i

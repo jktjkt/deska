@@ -128,7 +128,7 @@ def main():
 	name = "pendingChangesets"
 	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset"
 	try:
-		colnames,data = dutil.getdata()
+		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
 		return err.json(name)
 
@@ -162,7 +162,7 @@ def main():
 	name = "listRevisions"
 	select = "SELECT num2revision(id),author,timestamp,message FROM version"
 	try:
-		colnames,data = dutil.getdata()
+		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
 		return err.json(name)
 
