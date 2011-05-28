@@ -4,7 +4,7 @@ PWD=`pwd`
 SRC="$PWD/../src/deska/server/db/"
 
 
-function copy(){
+function fix-python-path(){
 	sed "s:import dutil:import sys\nsys.path.append('$PWD')\nimport dutil:" ${SRC}$1 > $1
 }
 
@@ -85,7 +85,7 @@ done
 
 # every time copy all source files needed into pwd
 for FILE in ../src/deska/server/db/*.sql; do
-	copy `basename $FILE`
+    fix-python-path `basename $FILE`
 done
 
 if test -z $ACTION
