@@ -53,7 +53,13 @@ class DB:
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
 		if set(needed_args) != set(args.keys()):
-			raise Exception("run_method: args are not good: {0} vs {1}".format(needed_args,args.keys()))
+			not_present = set(needed_args) - set(args.keys())
+			# note that "filter" is always optional
+			if not_present == set(["filter"]):
+				args["filter"] = ''
+				pass
+			else:
+				raise Exception("run_method error: missing arguments: {0}".format(not_present))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
