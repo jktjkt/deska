@@ -84,10 +84,8 @@ do
 done
 
 # every time copy all source files needed into pwd
-FILES=`ls ../src/deska/server/db/ | grep '\.sql'`
-for FILE in $FILES
-do
-	copy $FILE
+for FILE in ../src/deska/server/db/*.sql; do
+	copy `basename $FILE`
 done
 
 if test -z $ACTION
