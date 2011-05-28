@@ -14,8 +14,10 @@ class DeskaException(Exception):
 	def parseDberr(self):
 		'''Parse Postgres.dberr into variables used for json dump'''
 		self.type = "ServerError"
+		if self.dberr.code == '42601':
+			self.message = "Syntax error, something strange happend."
 		if self.dberr.code == '42883':
-			self.message = "Either kindName or attribute does not exists"
+			self.message = "Either kindName or attribute does not exists."
 		else:
 			self.message = self.dberr.message
 
@@ -32,7 +34,7 @@ class DeskaException(Exception):
 		return json.dumps(res)
 
 
-def fcall(fname,atr1,atr2 = None):
+def fcall(fname,*args):
 	'''Call stored procedure with params.
 	@param fname ID of stored procedure like name(text)
 	atr1, atr2 ... parameters for the stored procedure
@@ -40,27 +42,21 @@ def fcall(fname,atr1,atr2 = None):
 	try:
 		with xact():
 			func = proc(fname)
-			if atr2 is None:
-				func(atr1)
-			else:
-				func(atr1, atr2)
+			return func(*args)
 		return 1
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
 
-def getdata(select,atr1 = None, atr2 = None):
+def getdata(select,*args):
 	'''Get data from database.
 	@param select Select statement
 	atr1, atr2 ... parameters for the statement
+	@returns tuple of column names and data cursor
 	'''
 	try:
 		with xact():
 			plan = prepare(select)
-			if atr2 is None:
-				if atr1 is None:
-					return plan.column_names, plan()
-				return plan.column_names, plan(atr1)
-			return plan.column_names, plan(atr1, atr2)
+			return plan.column_names, plan(*args)
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
 		
