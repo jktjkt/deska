@@ -33,18 +33,14 @@ a(ll): run action for whole deska"
 }
 function drop(){
 	echo "Drop stage $1 ..."
-    pushd "${GENERATED_FILES}"
 	psql -d "$DATABASE" -U "$USER" -f "drop_${1}.sql" 2>&1 > /dev/null | grep -v "cascades"
-    popd
 }
 
 function stage(){
 	echo "Stage $1 ..."
-    pushd "${GENERATED_FILES}"
 	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f "create_${1}.sql" -v dbname="$DATABASE" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
-    popd
 }
 
 function generate(){
@@ -98,6 +94,8 @@ for FILE in "${DB_SOURCES}"/*.sql "${DB_SOURCES}/../../../../install"/*.sql; do
 done
 
 cp -a "${DB_SOURCES}/../../../../install/modules" "${GENERATED_FILES}"/
+
+cd "${GENERATED_FILES}"
 
 if test -z $ACTION
 then
