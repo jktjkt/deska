@@ -26,14 +26,18 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": []}
     ),
-    #( # abort once again, this will fail
-    #{"command": "abortCurrentChangeset"},
-    #{'response': 'abortCurrentChangeset'} # FIXME: this should fail
-    #),
-    #( # detach once again, this will fail
-    #{"command":"detachFromCurrentChangeset","message":"xyz"},
-    #{'response': 'detachFromCurrentChangeset'} # FIXME: fail
-    #),
+    ( # abort once again, this will fail
+    {"command": "abortCurrentChangeset"},
+    {'response': 'abortCurrentChangeset', 'dbException':
+     {'type': 'NoChangesetError', 'message': 'You do not have open any changeset.'
+    }}
+    ),
+    ( # detach once again, this will fail
+    {"command":"detachFromCurrentChangeset","message":"xyz"},
+    {'response': 'detachFromCurrentChangeset', "dbException":
+     {"type": "NoChangesetError", 'message': 'You do not have open any changeset.'
+    }}
+    ),
     ( # create new changeset once again
     {"command": "startChangeset"},
     {'response': 'startChangeset', "startChangeset": "tmp2"}
