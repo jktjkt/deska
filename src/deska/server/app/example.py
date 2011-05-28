@@ -17,8 +17,8 @@ data = list([
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011"}',
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "detachFromCurrentChangeset", "message": "test message"}',
-	'{"command": "pendingChangesets", "filter": {"column": "revision", "value": "r2", "condition": "columnEq"}}',
-	'{"command": "listRevisions"}',
+	'{"command": "pendingChangesets", "filter": {"column": "changeset", "value": "tmp2", "condition": "columnEq"}}',
+	'{"command": "listRevisions", "filter":{"column": "revision", "value": "r1", "condition": "columnEq"}}',
 	'{"command": "dataDifference", "a":"r1", "b":"r2"}'
 ])
 
