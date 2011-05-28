@@ -4,14 +4,17 @@ CREATE OR REPLACE FUNCTION jsn.kindNames()
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
 
 @pytypes
 def main():
 	name = "kindNames"
-	plan = prepare('SELECT * FROM api.kindNames()')
-	cur = plan()
+	select = 'SELECT * FROM api.kindNames()'
+	try:
+		colnames, cur = dutil.getdata(select)
+	except dutil.DeskaException as err:
+		return err.json(name)
 	
 	res = list()
 	for line in cur:
@@ -20,7 +23,6 @@ def main():
 	jsn = dict()
 	jsn["response"] = name
 	jsn[name] = res
-	jsn["response"] = "kindNames"
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -29,7 +31,7 @@ CREATE OR REPLACE FUNCTION jsn.kindAttributes(kindName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
 
 type_dict = ({
@@ -45,8 +47,11 @@ type_dict = ({
 @pytypes
 def main(kindName):
 	name = "kindAttributes"
-	plan = prepare('SELECT * FROM api.kindAttributes($1)')
-	cur = plan(kindName)
+	select = 'SELECT * FROM api.kindAttributes($1)'
+	try:
+		colnames, cur = dutil.getdata(select,kindName)
+	except dutil.DeskaException as err:
+		return err.json(name)
 	
 	res = dict()
 	for line in cur:
@@ -64,14 +69,17 @@ CREATE OR REPLACE FUNCTION jsn.kindRelations(kindName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
 
 @pytypes
 def main(kindName):
 	name = "kindRelations"
-	plan = prepare('SELECT * FROM api.kindRelations($1)')
-	cur = plan(kindName)
+	select = 'SELECT * FROM api.kindRelations($1)'
+	try:
+		colnames, cur = dutil.getdata(select,kindName)
+	except dutil.DeskaException as err:
+		return err.json(name)
 	
 	res = list()
 	for line in cur:
@@ -93,14 +101,17 @@ CREATE OR REPLACE FUNCTION jsn.kindInstances(kindName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
 
 @pytypes
 def main(kindName):
 	name = "kindInstances"
-	plan = prepare('SELECT * FROM api.kindInstances($1)')
-	cur = plan(kindName)
+	select = 'SELECT * FROM api.kindInstances($1)'
+	try:
+		colnames, cur = dutil.getdata(select,kindName)
+	except dutil.DeskaException as err:
+		return err.json(name)
 	
 	res = list()
 	for line in cur:

@@ -1,5 +1,17 @@
 #!/bin/bash
 
+PWD=`pwd`
+SRC="$PWD/../src/deska/server/db/"
+
+
+function copy(){
+	sed "s:import dutil:import sys\nsys.path.append('$PWD')\nimport dutil:" ${SRC}$1 > $1
+}
+
+function pylib(){
+	cp "${SRC}$1" "${1}"
+}
+
 function die(){
     echo "Die: $1" >&2
     exit 1
@@ -28,7 +40,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python gen_sql/generator.py "$DATABASE" "$USER"
+	python ${SRC}gen_sql/generator.py "$DATABASE" "$USER" "$PWD/gen_schema.sql"
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
@@ -69,6 +81,13 @@ do
 			;;
 	esac
 	shift
+done
+
+# every time copy all source files needed into pwd
+FILES=`ls ../src/deska/server/db/ | grep '\.sql'`
+for FILE in $FILES
+do
+	copy $FILE
 done
 
 if test -z $ACTION
@@ -114,6 +133,7 @@ then
 	then
 		stage "tables" || die "Error runnig stage tables"
 		stage 0 || die "Error running stage 0"
+		pylib dutil.py || die "Error installing python utils - are you root?"
 	fi
 	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
@@ -125,6 +145,7 @@ then
 	echo "Regenerate functions in DB $DATABASE"
 	drop 2
 	drop 0
+	pylib dutil.py || die "Error installing python utils - are you root?"
 	stage 0 || die "Error running stage 0"
 	stage 2 || die "Error running stage 2"
 fi
@@ -139,6 +160,7 @@ then
 	then
 		drop 0
 	fi
+	pylib dutil.py
 	stage "tables" || die "Error running stage tables"
 	if test $TYPE == "A"
 	then

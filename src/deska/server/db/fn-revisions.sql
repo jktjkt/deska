@@ -7,6 +7,7 @@ CREATE OR REPLACE FUNCTION id2changeset(id bigint)
 RETURNS text
 AS
 $$
+
 @pytypes
 def main(id):
 	return "tmp{id}".format(id = id)
