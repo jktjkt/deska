@@ -1,15 +1,20 @@
 #!/bin/bash
 
-PWD=`pwd`
-SRC="$PWD/../src/deska/server/db/"
+#set -x
 
+DB_SOURCES=`readlink -f ../src/deska/server/db/`
 
-function fix-python-path(){
-	sed "s:import dutil:import sys\nsys.path.append('$PWD')\nimport dutil:" ${SRC}$1 > $1
+# do not pollute the source tree with generated files
+GENERATED_FILES=`mktemp -d`
+trap "rm -rf $GENERATED_FILES" EXIT
+
+function copy-update-file() {
+    sed "s:import dutil:import sys\nsys.path.append('$DB_SOURCES')\nimport dutil:" \
+        "${1}" > "${GENERATED_FILES}/"`basename "${1}"`
 }
 
 function pylib(){
-	cp "${SRC}$1" "${1}"
+	cp "${DB_SOURCES}/$1" "${GENERATED_FILES}/${1}"
 }
 
 function die(){
@@ -28,19 +33,23 @@ a(ll): run action for whole deska"
 }
 function drop(){
 	echo "Drop stage $1 ..."
-	psql -d "$DATABASE" -U "$USER" -f drop_$1.sql 2>&1 > /dev/null | grep -v "cascades"
+    pushd "${GENERATED_FILES}"
+	psql -d "$DATABASE" -U "$USER" -f "drop_${1}.sql" 2>&1 > /dev/null | grep -v "cascades"
+    popd
 }
 
 function stage(){
 	echo "Stage $1 ..."
-	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f create_$1.sql -v dbname="$DATABASE" 2>&1 > /dev/null \
+    pushd "${GENERATED_FILES}"
+	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f "create_${1}.sql" -v dbname="$DATABASE" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
+    popd
 }
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python ${SRC}gen_sql/generator.py "$DATABASE" "$USER" "$PWD/gen_schema.sql"
+	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${GENERATED_FILES}/gen_schema.sql"
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
@@ -84,9 +93,11 @@ do
 done
 
 # every time copy all source files needed into pwd
-for FILE in ../src/deska/server/db/*.sql; do
-    fix-python-path `basename $FILE`
+for FILE in "${DB_SOURCES}"/*.sql "${DB_SOURCES}/../../../../install"/*.sql; do
+    copy-update-file "${FILE}"
 done
+
+cp -a "${DB_SOURCES}/../../../../install/modules" "${GENERATED_FILES}"/
 
 if test -z $ACTION
 then
