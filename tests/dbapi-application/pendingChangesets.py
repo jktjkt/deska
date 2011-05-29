@@ -26,14 +26,18 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": []}
     ),
-    #( # abort once again, this will fail
-    #{"command": "abortCurrentChangeset"},
-    #{'response': 'abortCurrentChangeset'} # FIXME: this should fail
-    #),
-    #( # detach once again, this will fail
-    #{"command":"detachFromCurrentChangeset","message":"xyz"},
-    #{'response': 'detachFromCurrentChangeset'} # FIXME: fail
-    #),
+    ( # abort once again, this will fail
+    {"command": "abortCurrentChangeset"},
+    {'response': 'abortCurrentChangeset', 'dbException':
+     {'type': 'NoChangesetError', 'message': 'You do not have open any changeset.'
+    }}
+    ),
+    ( # detach once again, this will fail
+    {"command":"detachFromCurrentChangeset","message":"xyz"},
+    {'response': 'detachFromCurrentChangeset', "dbException":
+     {"type": "NoChangesetError", 'message': 'You do not have open any changeset.'
+    }}
+    ),
     ( # create new changeset once again
     {"command": "startChangeset"},
     {'response': 'startChangeset', "startChangeset": "tmp2"}
@@ -64,9 +68,17 @@ j = [
          'message': 'xyz'}
     ]}
     ),
-    #( # create third changeset; this should fail, as we're already in one
-    #{"command": "startChangeset"},
-    #{'response': 'startChangeset', "startChangeset": "tmp3"} # FIXME: fail
-    #),
+    ( # create third changeset; this should fail, as we're already in one
+    {"command": "startChangeset"},
+    {'response': 'startChangeset', "dbException":
+     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
+    }}
+    ),
+    ( # try attaching once again; this should again fail
+    {"command":"resumeChangeset","revision":"tmp2"},
+    {'response': 'resumeChangeset',"revision":"tmp2", "dbException":
+     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
+    }}
+    ),
 
 ]

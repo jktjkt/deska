@@ -4,28 +4,16 @@ CREATE OR REPLACE FUNCTION jsn.setAttribute(kindName text, objectName text, attr
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1,atr2):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1, atr2)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
 	fname = kindName+"_set_"+attributeName+"(text,text)"
-	call(fname,objectName,attributeData)
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json("setAttribute")
 
 	jsn = dict()
 	jsn["response"] = "setAttribute"
@@ -41,28 +29,16 @@ CREATE OR REPLACE FUNCTION jsn.renameObject(kindName text, oldName text, newName
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1,atr2):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,oldName,newName):
 	fname = kindName+"_set_name(text,text)"
-	call(fname,oldname,newname)
+	try:
+		dutil.fcall(fname,oldName,newName)
+	except dutil.DeskaException as err:
+		return err.json("renameObject")
 
 	jsn = dict()
 	jsn["response"] = "renameObject"
@@ -77,28 +53,16 @@ CREATE OR REPLACE FUNCTION jsn.createObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_add(text)"
-	call(fname,objectName)
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("createObject")
 
 	jsn = dict()
 	jsn["response"] = "createObject"
@@ -112,28 +76,16 @@ CREATE OR REPLACE FUNCTION jsn.deleteObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def call(fname,atr1):
-	try:
-		with xact():
-			func = proc(fname)
-			func(atr1)
-		return 1
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			# wait with raising exception
-			pass
-		else:
-			raise
-	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindName),code = 10111)
 
 @pytypes
 def main(kindName,objectName):
 	fname = kindName+"_del(text)"
-	call(fname,objectName)
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("deleteObject")
 
 	jsn = dict()
 	jsn["response"] = "deleteObject"
@@ -147,15 +99,8 @@ CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
 RETURNS text
 AS
 $$
-import Postgres
+import dutil
 import json
-
-def error_json(jsn,typ,message):
-	err = dict()
-	err["type"] = typ
-	err["message"] = message
-	jsn["dbException"] = err
-	return json.dumps(jsn)
 
 def mystr(s):
 	if s is None:
@@ -170,16 +115,13 @@ def main(kindName,objectName):
 	jsn["kindName"] = kindName
 
 	try:
-		with xact():
-			plan = prepare("SELECT * FROM {0}_get_data($1)".format(kindName))
-			data = plan(objectName)
-	except Postgres.Exception as dberr:
-		if dberr.pg_errordata.code == "42883":
-			return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
-		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
+		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
+		colnames, data = dutil.getdata(sql,objectName)
+	except dutil.DeskaException as dberr:
+		return dberr.json("objectData")
 
 	data = [mystr(x) for x in data[0]]
-	res = dict(zip(plan.column_names,data))
+	res = dict(zip(colnames,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
 $$
@@ -191,13 +133,7 @@ AS
 $$
 import Postgres
 import json
-
-def error_json(jsn,typ,message):
-	err = dict()
-	err["type"] = typ
-	err["message"] = message
-	jsn["dbException"] = err
-	return json.dumps(jsn)
+import dutil
 
 def kinds():
 	return list(["vendor","hardware","host","interface"])
@@ -255,9 +191,8 @@ def main(a,b):
 		for kindName in kinds():
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
-		#if dberr.pg_errordata.code == "42883":
-		#	return error_json(jsn,"ServerError",'Kind "{0}" does not exists.'.format(kindName))
-		return error_json(jsn,"ServerError",dberr.pg_errordata.message)
+		err = dutil.DeskaException(dberr)
+		return err.json("dataDifference")
 
 	jsn["dataDifference"] = res
 	return json.dumps(jsn)

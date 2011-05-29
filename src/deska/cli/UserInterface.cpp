@@ -159,6 +159,8 @@ void UserInterface::resumeChangeset()
         reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::NoChangesetError &e) {
         reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
+        reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::SqlError &e) {
         reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
     } catch (Deska::Db::ServerError &e) {

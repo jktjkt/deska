@@ -19,7 +19,7 @@ DESKA_DB_STATE_FILE=./.db_initialized
 
 if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
     # Use the fast way of doing things
-	pushd "${DESKA_SOURCES}/src/deska/server/db"
+	pushd "${DESKA_SOURCES}/install"
 	./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
 	popd
 else
@@ -31,7 +31,7 @@ else
 
 	./util-create-database.sh || die "Preparing the DB environment"
 
-	pushd "${DESKA_SOURCES}/src/deska/server/db"
+	pushd "${DESKA_SOURCES}/install"
 	./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
 	popd
 	touch $DESKA_DB_STATE_FILE
