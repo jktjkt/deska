@@ -153,6 +153,13 @@ public:
     */
     boost::signals2::signal<void (const Db::Identifier &name, const Db::Value &value)> attributeSet;
 
+    /** @short Remove an object's attribute
+    *
+    *   This signal is triggered whenever an attribute removal is encountered. The argument is the name
+    *   of the attribute
+    */
+    boost::signals2::signal<void (const Db::Identifier &name)> attributeRemove;
+
     /** @short An error during parsing
     *
     *   The current user input has triggered an error during parsing.

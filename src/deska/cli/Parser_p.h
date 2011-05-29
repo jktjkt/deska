@@ -152,6 +152,61 @@ private:
 
 
 
+/** @short Parser for set of attribute removals of specific top-level grammar.
+*
+*   This grammar parses only one pair <"no" attribute_name>.
+*   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*/
+template <typename Iterator>
+class AttributeRemovalsParser: public qi::grammar<Iterator, ascii::space_type>
+{
+
+public:
+
+    /** @short Constructor only initializes the grammar with empty symbols table.
+    *
+    *   @param kindName Name of top-level object type, to which the attributes belong.
+    *   @param parent Pointer to main parser for calling its functions as semantic actions.
+    */
+    AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+
+    /** @short Function used for filling of symbols table of the parser.
+    *
+    *   @param attributeName Name of the attribute.
+    */
+    void addAtrribute(const Db::Identifier &attributeName);
+
+private:
+
+    /** @short Function used as semantic action for each parsed attribute removal.
+    *
+    *   Calls appropriate method in main parser.
+    *
+    *   @param attribute Name of the attribute.
+    */
+    void parsedAttributeRemoval(const Db::Identifier &attribute);
+
+    /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
+    qi::symbols<char, qi::rule<Iterator> > attributes;
+
+    /** Rule for parsing "no" keyword. */
+    qi::rule<Iterator, ascii::space_type> start;
+    /** Rule for parsing attribute names. */
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator> > > dispatch;
+
+    /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
+    Db::Identifier currentAttributeName;
+    /** Name of the top-level object, whose attributes are parsed by this grammar.
+    *   This variable is used for error handling.
+    */
+    Db::Identifier m_name;
+
+    /** Pointer to main parser for calling its functions as semantic actions. */
+    ParserImpl<Iterator> *m_parent;
+};
+
+
+
 /** @short Parser for kinds definitions.
 *
 *   This grammar parses only one pair from set of <kind_name object_name> definitions.
@@ -224,10 +279,12 @@ public:
     *
     *   @param kindName Name of top-level object type, to which the parser belongs.
     *   @param attributesParser Grammar used for parsing of attributes of the kind.
+    *   @param attributesRemovalParser Grammar used for parsing of attributes removals of the kind.
     *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
+                    AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
                     KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
 
 private:
@@ -341,6 +398,7 @@ public:
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);
+    void attributeRemove(const Db::Identifier &name);
     //@}
 
     /** @short Sets flag singleKind to true.
@@ -398,7 +456,8 @@ public:
 private:
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
-    void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser);
+    void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser,
+                           AttributeRemovalsParser<Iterator>* attributeRemovalsParser);
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
     void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser);
 
@@ -428,6 +487,7 @@ private:
     *   Only pointers are used in the main parser.
     */
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
+    std::map<std::string, AttributeRemovalsParser<Iterator>* > attributeRemovalsParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
     KindsOnlyParser<Iterator> *topLevelParser;

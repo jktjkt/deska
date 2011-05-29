@@ -123,7 +123,7 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     using qi::eoi;
     using qi::on_error;
     using qi::fail;
-    using qi::rethrow;
+    //using qi::rethrow;
 
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
@@ -146,7 +146,7 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
     on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
-                                                   phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
     // In case of enabling error handler for nesting, on_error<fail> for attributeErrorHandler have to be changed
     // to on_error<rethrow>.
     //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
@@ -174,6 +174,56 @@ void AttributesParser<Iterator>::parsedAttribute(const Db::Identifier &parameter
 
 
 template <typename Iterator>
+AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
+    AttributeRemovalsParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
+{
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::eps;
+    using qi::raw;
+    using qi::eoi;
+    using qi::on_error;
+    using qi::fail;
+
+    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
+    // The API is not sane, and therefore we have the following crap here.
+    this->name(kindName);
+
+    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
+
+    start = (qi::lit("no") > dispatch);
+        
+    dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
+        [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this, phoenix::ref(currentAttributeName))];
+
+    phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
+        AttributeRemovalErrorHandler<Iterator>();
+    on_error<fail>(dispatch, attributeRemovalErrorHandler(_1, _2, _3, _4,
+                                                          phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+}
+
+
+
+template <typename Iterator>
+void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attributeName)
+{
+    attributes.add(attributeName, qi::eps);
+}
+
+
+
+template <typename Iterator>
+void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identifier &attribute)
+{
+    m_parent->attributeRemove(attribute);
+}
+
+
+
+template <typename Iterator>
 KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
     KindsOnlyParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
 {
@@ -187,7 +237,7 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     using qi::eoi;
     using qi::on_error;
     using qi::fail;
-    using qi::rethrow;
+    //using qi::rethrow;
 
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
@@ -239,6 +289,7 @@ void KindsOnlyParser<Iterator>::parsedKind(const Db::Identifier &kindName, const
 template <typename Iterator>
 WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
                                            AttributesParser<Iterator> *attributesParser,
+                                           AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
                                            KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent):
     WholeKindParser<Iterator>::base_type(start), m_parent(parent)
 {
@@ -246,7 +297,7 @@ WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
-    start = ((+(*attributesParser) >> -(*nestedKinds))
+    start = ((+((*attributesParser) | (*attributeRemovalsParser)) >> -(*nestedKinds))
         | ((*nestedKinds)[phoenix::bind(&WholeKindParser::parsedSingleKind, this)])
         | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
 }
@@ -310,7 +361,8 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
 
         // Create attributes parser for new kind
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, this);
-        addKindAttributes(*it, attributesParsers[*it]);
+        attributeRemovalsParsers[*it] = new AttributeRemovalsParser<Iterator>(*it, this);
+        addKindAttributes(*it, attributesParsers[*it], attributeRemovalsParsers[*it]);
 
         // Create nested kinds parser for the new kind
         kindsOnlyParsers[*it] = new KindsOnlyParser<Iterator>(*it, this);
@@ -318,7 +370,7 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
 
         // And combine them in the parser for the whole kind
         wholeKindParsers[*it] = new WholeKindParser<Iterator>(
-            *it, attributesParsers[*it], kindsOnlyParsers[*it], this);
+            *it, attributesParsers[*it], attributeRemovalsParsers[*it], kindsOnlyParsers[*it], this);
     }
 }
 
@@ -329,6 +381,10 @@ ParserImpl<Iterator>::~ParserImpl()
 {
     for (typename std::map<std::string, AttributesParser<Iterator>* >::iterator it = attributesParsers.begin();
         it != attributesParsers.end(); ++it) {
+        delete it->second;
+    }
+    for (typename std::map<std::string, AttributeRemovalsParser<Iterator>* >::iterator it = attributeRemovalsParsers.begin();
+        it != attributeRemovalsParsers.end(); ++it) {
         delete it->second;
     }
     for (typename std::map<std::string, WholeKindParser<Iterator>* >::iterator it = wholeKindParsers.begin();
@@ -448,6 +504,18 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
 
 
 template <typename Iterator>
+void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &name)
+{
+    if (!dryRun)
+        m_parser->attributeRemove(name);
+#ifdef PARSER_DEBUG
+    std::cout << "Remove attribute: " << name << std::endl;
+#endif
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::parsedSingleKind()
 {
     singleKind = true;
@@ -505,11 +573,13 @@ void ParserImpl<Iterator>::clearContextStack()
 
 template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
-                                             AttributesParser<Iterator>* attributesParser)
+                                             AttributesParser<Iterator>* attributesParser,
+                                             AttributeRemovalsParser<Iterator>* attributeRemovalsParser)
 {
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
         attributesParser->addAtrribute(it->name, predefinedRules->getRule(it->type));
+        attributeRemovalsParser->addAtrribute(it->name);
     }
 }
 
@@ -724,8 +794,15 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 #endif
         m_parser->parseError(InvalidAttributeDataTypeError(it->toString(), line, it->errorPosition()));
     } else {
+        // Find out, if the error occured when parsing attribute name for value removal
+        it = std::find_if(
+            parseErrors.begin(), parseErrors.end(),
+            phoenix::bind(&ParseError<Iterator>::errorType, phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+        // Yes, error occured when parsing attribute name for value removal
+        if (it != parseErrors.end()) {
+            m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
         // There's no trace of an error in the attribute data anywhere
-        if (parseErrors.size() == 1) {
+        } else if (parseErrors.size() == 1) {
             // whatever it is, let's just store it
             const ParseError<Iterator> &err = parseErrors.front();
 #ifdef PARSER_DEBUG
@@ -806,9 +883,15 @@ template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& Pre
 
 template AttributesParser<iterator_type>::AttributesParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void AttributesParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName,qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+template void AttributesParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
 
 template void AttributesParser<iterator_type>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
+
+template AttributeRemovalsParser<iterator_type>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+
+template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName);
+
+template void AttributeRemovalsParser<iterator_type>::parsedAttributeRemoval(const Db::Identifier &parameter);
 
 template KindsOnlyParser<iterator_type>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
@@ -816,7 +899,7 @@ template void KindsOnlyParser<iterator_type>::addKind(const Db::Identifier &kind
 
 template void KindsOnlyParser<iterator_type>::parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
-template WholeKindParser<iterator_type>::WholeKindParser(const std::string &kindName, AttributesParser<iterator_type> *attributesParser, KindsOnlyParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent);
+template WholeKindParser<iterator_type>::WholeKindParser(const std::string &kindName, AttributesParser<iterator_type> *attributesParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, KindsOnlyParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent);
 
 template void WholeKindParser<iterator_type>::parsedEnd();
 
@@ -846,6 +929,8 @@ template void ParserImpl<iterator_type>::categoryLeft();
 
 template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
 
+template void ParserImpl<iterator_type>::attributeRemove(const Db::Identifier &name);
+
 template void ParserImpl<iterator_type>::parsedSingleKind();
 
 template void ParserImpl<iterator_type>::addParseError(const ParseError<iterator_type> &error);
@@ -860,9 +945,9 @@ template void ParserImpl<iterator_type>::setContextStack(const Db::ContextStack 
 
 template void ParserImpl<iterator_type>::clearContextStack();
 
-template void ParserImpl<iterator_type>::addKindAttributes(const Db::Identifier &kindName, AttributesParser<iterator_type>* attributesParser);
+template void ParserImpl<iterator_type>::addKindAttributes(const Db::Identifier &kindName, AttributesParser<iterator_type> *attributesParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser);
 
-template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<iterator_type>* kindsOnlyParser);
+template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<iterator_type> *kindsOnlyParser);
 
 template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 
