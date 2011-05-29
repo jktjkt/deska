@@ -211,6 +211,7 @@ void UserInterface::run()
                 m_dbInteraction->commitChangeset(io->askForCommitMessage());
                 inChangeset = false;
                 io->printMessage("Changeset commited.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }
@@ -219,6 +220,7 @@ void UserInterface::run()
                 m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
                 inChangeset = false;
                 io->printMessage("Changeset detached.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }
@@ -227,6 +229,7 @@ void UserInterface::run()
                 m_dbInteraction->abortChangeset();
                 inChangeset = false;
                 io->printMessage("Changeset aborted.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }
