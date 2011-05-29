@@ -71,13 +71,13 @@ j = [
     ( # create third changeset; this should fail, as we're already in one
     {"command": "startChangeset"},
     {'response': 'startChangeset', "dbException":
-     {"type": "ChangesetAlreadyOpen", 'message': 'Changeset is already opened'
+     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
     }}
     ),
     ( # try attaching once again; this should again fail
     {"command":"resumeChangeset","revision":"tmp2"},
     {'response': 'resumeChangeset',"revision":"tmp2", "dbException":
-     {"type": "ChangesetAlreadyOpen", 'message': 'Changeset is already opened'
+     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
     }}
     ),
 
