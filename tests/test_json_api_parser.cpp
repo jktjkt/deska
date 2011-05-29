@@ -578,6 +578,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
 
     JSON_ERR_TEST(NotFoundError);
     JSON_ERR_TEST(NoChangesetError);
+    JSON_ERR_TEST(ChangesetAlreadyOpenError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

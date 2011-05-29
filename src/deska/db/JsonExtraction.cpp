@@ -537,6 +537,10 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing NoChangesetError");
             h.parseJsonObject(v.get_obj());
             throw NoChangesetError(message);
+        } else if (exceptionClass == "ChangesetAlreadyOpenError") {
+            JsonContext c2("When parsing ChangesetAlreadyOpenError");
+            h.parseJsonObject(v.get_obj());
+            throw ChangesetAlreadyOpenError(message);
         } else if (exceptionClass == "SqlError") {
             JsonContext c2("When parsing SqlError");
             h.parseJsonObject(v.get_obj());

@@ -66,6 +66,7 @@ CLASS::~CLASS() throw () {}
 
 REMOTEEXCEPTION(NotFoundError)
 REMOTEEXCEPTION(NoChangesetError)
+REMOTEEXCEPTION(ChangesetAlreadyOpenError)
 REMOTEEXCEPTION(SqlError)
 REMOTEEXCEPTION(ServerError)
 

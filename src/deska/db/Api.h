@@ -77,6 +77,8 @@ public: \
 REMOTEDBEXCEPTION(NotFoundError)
 /** @short Tried to perform an operation which requires being attached into a pending changeset without one */
 REMOTEDBEXCEPTION(NoChangesetError)
+/** @short Tried to manipulate a changeset while already being attached to one */
+REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
