@@ -29,3 +29,30 @@ class AnyOrderList(object):
         if not isinstance(other, list):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
         return self.items == frozenset(other)
+
+class RemoteDbException(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __eq__(self, other):
+        if not isinstance(other, dict):
+            raise TypeError, "Cannot compare DB exception %s" % self.name
+        if sorted(other.keys()) != ["message", "type"]:
+            raise ValueError, "Exception has weird keys: %s" % repr(other)
+        if not isinstance(other["message"], str):
+            raise TypeError, "Weird exception message"
+        if not len(other["message"]):
+            raise ValueError, "Message too short: %s" % repr(other["message"])
+        return other["type"] == self.name
+
+class ChangesetAlreadyOpenError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ChangesetAlreadyOpenError")
+
+class NoChangesetError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "NoChangesetError")
+
+class ServerError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ServerError")

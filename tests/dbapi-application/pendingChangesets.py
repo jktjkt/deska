@@ -28,15 +28,13 @@ j = [
     ),
     ( # abort once again, this will fail
     {"command": "abortCurrentChangeset"},
-    {'response': 'abortCurrentChangeset', 'dbException':
-     {'type': 'NoChangesetError', 'message': 'You do not have open any changeset.'
-    }}
+    {'response': 'abortCurrentChangeset', 'dbException': NoChangesetError()
+    }
     ),
     ( # detach once again, this will fail
     {"command":"detachFromCurrentChangeset","message":"xyz"},
-    {'response': 'detachFromCurrentChangeset', "dbException":
-     {"type": "NoChangesetError", 'message': 'You do not have open any changeset.'
-    }}
+    {'response': 'detachFromCurrentChangeset', "dbException": NoChangesetError()
+    }
     ),
     ( # create new changeset once again
     {"command": "startChangeset"},
@@ -70,15 +68,14 @@ j = [
     ),
     ( # create third changeset; this should fail, as we're already in one
     {"command": "startChangeset"},
-    {'response': 'startChangeset', "dbException":
-     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
-    }}
+    {'response': 'startChangeset', "dbException": ChangesetAlreadyOpenError()
+    }
     ),
     ( # try attaching once again; this should again fail
     {"command":"resumeChangeset","revision":"tmp2"},
-    {'response': 'resumeChangeset',"revision":"tmp2", "dbException":
-     {"type": "ChangesetAlreadyOpenError", 'message': 'Changeset is already opened'
-    }}
+    {'response': 'resumeChangeset',"revision":"tmp2",
+     "dbException": ChangesetAlreadyOpenError()
+     }
     ),
 
 ]
