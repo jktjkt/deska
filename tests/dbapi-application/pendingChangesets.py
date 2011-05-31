@@ -33,7 +33,8 @@ j = [
     ),
     ( # detach once again, this will fail
     {"command":"detachFromCurrentChangeset","message":"xyz"},
-    {'response': 'detachFromCurrentChangeset', "dbException": NoChangesetError()
+    {'response': 'detachFromCurrentChangeset', "message": "xyz",
+     "dbException": NoChangesetError()
     }
     ),
     ( # create new changeset once again
