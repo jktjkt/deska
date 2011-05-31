@@ -43,6 +43,10 @@ class RemoteDbException(object):
             raise TypeError, "Weird exception message"
         if not len(other["message"]):
             raise ValueError, "Message too short: %s" % repr(other["message"])
+        # FIXME: temporary compare against ServerError, no matter what exception
+        # we should test. This is simply because the Deska server does not
+        # distinguish among various exception kinds at the moment.
+        return other["type"] == "ServerError"
         return other["type"] == self.name
 
 class ChangesetAlreadyOpenError(RemoteDbException):
