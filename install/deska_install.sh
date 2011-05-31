@@ -4,19 +4,19 @@
 
 DB_SOURCES=`readlink -f ../src/deska/server/db/`
 
-if [[ -z "${GENERATED_FILES}" ]]; then
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
     # do not pollute the source tree with generated files
-    GENERATED_FILES=`mktemp -d`
-    trap "rm -rf $GENERATED_FILES" EXIT
+    DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
 fi
 
 function copy-update-file() {
     sed "s:import dutil:import sys\nsys.path.append('$DB_SOURCES')\nimport dutil:" \
-        "${1}" > "${GENERATED_FILES}/"`basename "${1}"`
+        "${1}" > "${DESKA_GENERATED_FILES}/"`basename "${1}"`
 }
 
 function pylib(){
-	cp "${DB_SOURCES}/$1" "${GENERATED_FILES}/${1}"
+	cp "${DB_SOURCES}/$1" "${DESKA_GENERATED_FILES}/${1}"
 }
 
 function die(){
@@ -47,7 +47,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${GENERATED_FILES}/gen_schema.sql"
+	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql"
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
@@ -95,9 +95,9 @@ for FILE in "${DB_SOURCES}"/*.sql "${DB_SOURCES}/../../../../install"/*.sql; do
     copy-update-file "${FILE}"
 done
 
-cp -a "${DB_SOURCES}/../../../../install/modules" "${GENERATED_FILES}"/
+cp -a "${DB_SOURCES}/../../../../install/modules" "${DESKA_GENERATED_FILES}"/
 
-cd "${GENERATED_FILES}"
+cd "${DESKA_GENERATED_FILES}"
 
 if test -z $ACTION
 then
