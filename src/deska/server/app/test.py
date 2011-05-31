@@ -6,7 +6,7 @@ import sys
 class DeskaRunner():
 	def __init__(self):
 		#runstr = "python {server} {db}".format(server=sys.argv[1], db=sys.argv[2])
-		runstr = "python deska_server.py deska_dev"
+		runstr = "python deska_server.py -d deska_dev"
 		self.stdin, self.stdout = os.popen2(runstr)
 	
 	def command(self,cmd):
