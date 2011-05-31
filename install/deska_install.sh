@@ -4,9 +4,11 @@
 
 DB_SOURCES=`readlink -f ../src/deska/server/db/`
 
-# do not pollute the source tree with generated files
-GENERATED_FILES=`mktemp -d`
-trap "rm -rf $GENERATED_FILES" EXIT
+if [[ -z "${GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $GENERATED_FILES" EXIT
+fi
 
 function copy-update-file() {
     sed "s:import dutil:import sys\nsys.path.append('$DB_SOURCES')\nimport dutil:" \
