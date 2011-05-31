@@ -1,4 +1,4 @@
-import apiUtils
+from apiUtils import *
 
 j = [
     ( # start with an empty state
@@ -13,8 +13,8 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": [
         {'status': 'INPROGRESS', 'changeset': 'tmp1',
-         'author': apiUtils.DeskaDbUser(),
-         'timestamp': apiUtils.CurrentTimestamp(), 'parentRevision': 'r1',
+         'author': DeskaDbUser(),
+         'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': ''}
     ]}
     ),
@@ -50,8 +50,8 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": [
         {'status': 'DETACHED', 'changeset': 'tmp2',
-         'author': apiUtils.DeskaDbUser(),
-         'timestamp': apiUtils.CurrentTimestamp(), 'parentRevision': 'r1',
+         'author': DeskaDbUser(),
+         'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': 'xyz'}
     ]}
     ),
@@ -63,8 +63,8 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": [
         {'status': 'INPROGRESS', 'changeset': 'tmp2',
-         'author': apiUtils.DeskaDbUser(),
-         'timestamp': apiUtils.CurrentTimestamp(), 'parentRevision': 'r1',
+         'author': DeskaDbUser(),
+         'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': 'xyz'}
     ]}
     ),
