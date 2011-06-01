@@ -5,10 +5,8 @@ j = [
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": []}
     ),
-    ( # create new changeset
-    {"command": "startChangeset"},
-    {'response': 'startChangeset', "startChangeset": "tmp1"}
-    ),
+    # create new changeset
+    DBAPI().startChangeset("tmp1"),
     ( # verify that it is indeed present
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": [

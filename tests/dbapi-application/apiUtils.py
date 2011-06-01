@@ -60,3 +60,30 @@ class NoChangesetError(RemoteDbException):
 class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
+
+
+
+# DBAPI commands
+
+class DBAPI(object):
+    def command(self, name, args):
+        res = {"command": name}
+        if args is not None:
+            res.update(args)
+        return res
+
+    def response(self, name, args, ret):
+        res = {"response": name}
+        if args is not None:
+            res.update(args)
+        if ret is not None:
+            res[name] = ret
+        return res
+
+    def cmdpair(self, name, args=None, ret=None):
+        return (self.command(name, args), self.response(name, args, ret))
+
+
+    def startChangeset(self, temporaryChangesetId):
+        return self.cmdpair("startChangeset", None, temporaryChangesetId)
+
