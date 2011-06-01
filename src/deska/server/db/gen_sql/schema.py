@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 
 from table import Table
 
@@ -47,10 +48,13 @@ CREATE FUNCTION commit_all(message text)
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
-		self.sql = open(filename,'w')
+		name_split = filename.rsplit('/', 1)
+		self.table_sql = open(name_split[0] + '/' + 'table_' + name_split[1],'w')
+		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
 
 		# print this to add proc into genproc schema
-		self.sql.write("SET search_path TO genproc,history,deska,versioning,production;")
+		self.table_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
+		self.fn_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
@@ -58,9 +62,10 @@ CREATE FUNCTION commit_all(message text)
 		# print fks at the end of generation
 		#self.sql.write(self.fks)
 
-		self.sql.write(self.gen_commit())
+		self.fn_sql.write(self.gen_commit())
 
-		self.sql.close()
+		self.fn_sql.close()
+		self.table_sql.close()
 		return
 
 	# generate sql for one table
@@ -86,7 +91,8 @@ CREATE FUNCTION commit_all(message text)
 			table.add_fk(col[0],col[1],col[2],col[3])
 
 		# generate sql
-		self.sql.write(table.gen_hist())
+		self.table_sql.write(table.gen_hist())
+
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
 		cols_ref_uid = table.get_cols_reference_uid()
@@ -94,9 +100,9 @@ CREATE FUNCTION commit_all(message text)
 			if (col[0] in cols_ref_uid):
 				reftable = cols_ref_uid[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
-				self.sql.write(table.gen_set_ref_uid(col[0], reftable))
+				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
-				self.sql.write(table.gen_set(col[0]))
+				self.fn_sql.write(table.gen_set(col[0]))
 
 			#get uid of that references uid should not return uid but name of according instance
 
@@ -105,32 +111,32 @@ CREATE FUNCTION commit_all(message text)
 		if (embed_column != ""):
 			reftable = cols_ref_uid[embed_column[0]]
 			#adding full quolified name with _ delimiter
-			self.sql.write(table.gen_add_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_add_embed(embed_column[0],reftable))
 			#get uid from embed object, again name have to be full
-			self.sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_get_name_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_names_embed(embed_column[0],reftable))
-			self.sql.write(table.gen_set_name_embed(embed_column[0], reftable))
+			self.fn_sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_get_name_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_names_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_set_name_embed(embed_column[0], reftable))
 		else:
-			self.sql.write(table.gen_add())
-			self.sql.write(table.gen_get_uid())
-			self.sql.write(table.gen_get_name())
-			self.sql.write(table.gen_names())
-			self.sql.write(table.gen_set('name'))
+			self.fn_sql.write(table.gen_add())
+			self.fn_sql.write(table.gen_get_uid())
+			self.fn_sql.write(table.gen_get_name())
+			self.fn_sql.write(table.gen_names())
+			self.fn_sql.write(table.gen_set('name'))
 
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
-		self.sql.write(table.gen_del())
-		self.sql.write(table.gen_undel())
-		self.sql.write(table.gen_get_object_data())
-		self.sql.write(table.gen_commit())
-		self.sql.write(table.gen_diff_deleted())
-		self.sql.write(table.gen_diff_created())
-		self.sql.write(table.gen_diff_set_attribute())
-		self.sql.write(table.gen_diff_init_function())
-		self.sql.write(table.gen_diff_terminate_function())
-		self.sql.write(table.gen_data_version())
-		self.sql.write(table.gen_data_changes())
+		self.fn_sql.write(table.gen_del())
+		self.fn_sql.write(table.gen_undel())
+		self.fn_sql.write(table.gen_get_object_data())
+		self.fn_sql.write(table.gen_commit())
+		self.fn_sql.write(table.gen_diff_deleted())
+		self.fn_sql.write(table.gen_diff_created())
+		self.fn_sql.write(table.gen_diff_set_attribute())
+		self.fn_sql.write(table.gen_diff_init_function())
+		self.fn_sql.write(table.gen_diff_terminate_function())
+		self.fn_sql.write(table.gen_data_version())
+		self.fn_sql.write(table.gen_data_changes())
 		return
 
 	def gen_commit(self):
