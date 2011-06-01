@@ -235,4 +235,5 @@ class Table(constants.Templates):
 	def gen_data_changes(self):
 		return self.data_changes_function_string.format(tbl = self.name)
 
-
+	def gen_template(self):
+		return self.template_string.format(tbl = self.name)

@@ -1,5 +1,3 @@
-# -*- coding: iso-8859-1 -*-
-
 from table import Table
 
 class Schema:

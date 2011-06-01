@@ -47,6 +47,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
+	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"
 	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql"
 }
 

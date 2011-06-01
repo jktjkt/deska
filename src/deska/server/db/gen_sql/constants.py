@@ -18,6 +18,14 @@ class Templates:
 	{constraints}
 );
 '''
+
+	#template for generate teplate for table
+	template_string = '''CREATE TABLE history.{tbl}_history (
+	LIKE {tbl}
+	-- include default values
+	INCLUDING DEFAULTS
+	'''
+	
 	# template string for set functions
 	set_string = '''CREATE FUNCTION
 	{tbl}_set_{colname}(IN name_ text,IN value text)
