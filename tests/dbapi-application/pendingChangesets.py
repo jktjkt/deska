@@ -19,9 +19,9 @@ j = [
     # abort once again, this will fail
     abortCurrentChangeset().throws(NoChangesetError()),
     # detach once again, this will fail
-    detachFromCurrentChangeset("xyz"),#.throws(NoChangesetError()),
+    detachFromCurrentChangeset("xyz").throws(NoChangesetError()),
     # try to commit a non-existent changeset
-    #commitChangeset("xyz").throws(NoChangesetError()),
+    commitChangeset("xyz").throws(NoChangesetError()),
     # create new changeset once again
     startChangeset().returns("tmp2"),
     # and detach from it
@@ -45,6 +45,6 @@ j = [
     # create third changeset; this should fail, as we're already in one
     startChangeset().throws(ChangesetAlreadyOpenError()),
     # try attaching once again; this should again fail
-    resumeChangeset("tmp2"),#.throws(ChangesetAlreadyOpenError()),
+    resumeChangeset("tmp2").throws(ChangesetAlreadyOpenError()),
 
 ]
