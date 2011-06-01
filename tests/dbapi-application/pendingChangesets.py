@@ -46,5 +46,11 @@ j = [
     startChangeset().throws(ChangesetAlreadyOpenError()),
     # try attaching once again; this should again fail
     resumeChangeset("tmp2").throws(ChangesetAlreadyOpenError()),
+    # clean the state
+    detachFromCurrentChangeset("foo"),
+    # try attaching a persistent revision; this should fail
+    resumeChangeset("r0").throws(ServerError()),
+    # try the same with a non-existing permanent changeset
+    resumeChangeset("r123").throws(ServerError()),
 
 ]
