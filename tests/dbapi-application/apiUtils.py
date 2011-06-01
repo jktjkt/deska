@@ -90,7 +90,5 @@ class ApiMethod(object):
 
 
 # DBAPI commands
-
-class DBAPI(object):
-    def startChangeset(self):
-        return ApiMethod("startChangeset", None)
+def startChangeset():
+    return ApiMethod("startChangeset", None)
