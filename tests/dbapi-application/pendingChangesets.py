@@ -34,7 +34,7 @@ j = [
     ( # detach once again, this will fail
     {"command":"detachFromCurrentChangeset","message":"xyz"},
     {'response': 'detachFromCurrentChangeset', "message": "xyz",
-     "dbException": NoChangesetError()
+     #"dbException": NoChangesetError()
     }
     ),
     ( # create new changeset once again
@@ -75,7 +75,7 @@ j = [
     ( # try attaching once again; this should again fail
     {"command":"resumeChangeset","revision":"tmp2"},
     {'response': 'resumeChangeset',"revision":"tmp2",
-     "dbException": ChangesetAlreadyOpenError()
+     #"dbException": ChangesetAlreadyOpenError()
      }
     ),
 
