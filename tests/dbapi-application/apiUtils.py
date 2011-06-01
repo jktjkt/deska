@@ -70,7 +70,7 @@ class ApiMethod(object):
             command.update(args)
             response.update(args)
 
-    def ret(self, value):
+    def returns(self, value):
         self.response[self.response["response"]] = value
         return self
 
