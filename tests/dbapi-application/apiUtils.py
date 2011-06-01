@@ -67,8 +67,8 @@ class ApiMethod(object):
         self.command = {"command": name}
         self.response = {"response": name}
         if args is not None:
-            command.update(args)
-            response.update(args)
+            self.command.update(args)
+            self.response.update(args)
 
     def returns(self, value):
         self.response[self.response["response"]] = value
