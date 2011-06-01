@@ -103,6 +103,13 @@ def commitChangeset(message):
 def rebaseChangeset(parentRevision):
     return ApiMethod("rebaseChangeset", {"parentRevision": parentRevision})
 
+def pendingChangesets():
+    # FIXME: filter
+    return ApiMethod("pendingChangesets", None)
+
+def resumeChangeset(revision):
+    return ApiMethod("resumeChangeset", {"revision": revision})
+
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})
 
