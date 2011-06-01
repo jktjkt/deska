@@ -92,19 +92,5 @@ class ApiMethod(object):
 # DBAPI commands
 
 class DBAPI(object):
-    def command(self, name, args):
-        res = {"command": name}
-        if args is not None:
-            res.update(args)
-        return res
-
-    def response(self, name, args, ret):
-        res = {"response": name}
-        if args is not None:
-            res.update(args)
-        if ret is not None:
-            res[name] = ret
-        return res
-
     def startChangeset(self):
         return ApiMethod("startChangeset", None)
