@@ -35,10 +35,8 @@ j = [
      #"dbException": NoChangesetError()
     }
     ),
-    ( # create new changeset once again
-    {"command": "startChangeset"},
-    {'response': 'startChangeset', "startChangeset": "tmp2"}
-    ),
+    # create new changeset once again
+    startChangeset().returns("tmp2"),
     ( # and detach from it
     {"command":"detachFromCurrentChangeset","message":"xyz"},
     {'response': 'detachFromCurrentChangeset',"message":"xyz"}
