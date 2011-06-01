@@ -16,19 +16,14 @@ j = [
          'message': ''}
     ]}
     ),
-    ( # abort this changeset
-    {"command": "abortCurrentChangeset"},
-    {'response': 'abortCurrentChangeset'}
-    ),
+    # abort this changeset
+    abortCurrentChangeset(),
     ( # there should be no pending changesets at this time
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": []}
     ),
-    ( # abort once again, this will fail
-    {"command": "abortCurrentChangeset"},
-    {'response': 'abortCurrentChangeset', 'dbException': NoChangesetError()
-    }
-    ),
+    # abort once again, this will fail
+    abortCurrentChangeset().throws(NoChangesetError()),
     # detach once again, this will fail
     detachFromCurrentChangeset("xyz"),#.throws(NoChangesetError()),
     # create new changeset once again

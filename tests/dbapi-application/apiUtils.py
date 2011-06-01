@@ -105,3 +105,6 @@ def rebaseChangeset(parentRevision):
 
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})
+
+def abortCurrentChangeset():
+    return ApiMethod("abortCurrentChangeset", None)
