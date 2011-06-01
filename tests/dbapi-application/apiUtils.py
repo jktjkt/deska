@@ -62,6 +62,32 @@ class ServerError(RemoteDbException):
         RemoteDbException.__init__(self, "ServerError")
 
 
+class ApiMethod(object):
+    def __init__(self, name, args):
+        self.command = {"command": name}
+        self.response = {"response": name}
+        if args is not None:
+            command.update(args)
+            response.update(args)
+
+    def ret(self, value):
+        self.response[self.response["response"]] = value
+        return self
+
+    def __eq__(self, other):
+        return (self.command, self.response) == other
+
+    def __repr__(self):
+        return str(self.command, self.response)
+
+    def __getitem__(self, i):
+        if i == 0:
+            return self.command
+        elif i == 1:
+            return self.response
+        else:
+            raise IndexError, "Index out of range"
+
 
 # DBAPI commands
 
@@ -80,10 +106,5 @@ class DBAPI(object):
             res[name] = ret
         return res
 
-    def cmdpair(self, name, args=None, ret=None):
-        return (self.command(name, args), self.response(name, args, ret))
-
-
-    def startChangeset(self, temporaryChangesetId):
-        return self.cmdpair("startChangeset", None, temporaryChangesetId)
-
+    def startChangeset(self):
+        return ApiMethod("startChangeset", None)
