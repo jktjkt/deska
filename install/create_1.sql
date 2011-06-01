@@ -9,5 +9,4 @@ BEGIN;
 \i modules/interface.sql
 --\i modules/large_modul.sql
 
-
 END;
