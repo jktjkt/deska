@@ -20,6 +20,8 @@ j = [
     abortCurrentChangeset().throws(NoChangesetError()),
     # detach once again, this will fail
     detachFromCurrentChangeset("xyz"),#.throws(NoChangesetError()),
+    # try to commit a non-existent changeset
+    #commitChangeset("xyz").throws(NoChangesetError()),
     # create new changeset once again
     startChangeset().returns("tmp2"),
     # and detach from it
