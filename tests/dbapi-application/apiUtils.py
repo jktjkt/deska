@@ -86,6 +86,15 @@ class ApiMethod(object):
 
 
 # DBAPI commands
+def kindNames():
+    return ApiMethod("kindNames", None)
+
+def kindAttributes(kindName):
+    return ApiMethod("kindAttributes", {"kindName": kindName})
+
+def kindRelations(kindName):
+    return ApiMethod("kindRelations", {"kindName": kindName})
+
 def startChangeset():
     return ApiMethod("startChangeset", None)
 
