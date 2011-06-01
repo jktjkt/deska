@@ -84,14 +84,6 @@ class ApiMethod(object):
     def __repr__(self):
         return str(self.command, self.response)
 
-    def __getitem__(self, i):
-        if i == 0:
-            return self.command
-        elif i == 1:
-            return self.response
-        else:
-            raise IndexError, "Index out of range"
-
 
 # DBAPI commands
 def startChangeset():

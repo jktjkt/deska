@@ -29,7 +29,7 @@ class JsonApiTester(unittest.TestCase):
     def testCommunication(self):
         """Iterate over the recorded communication and verify that we get the same results back"""
         for items in j:
-            json.dump(items[0], self.p.stdin)
+            json.dump(items.command, self.p.stdin)
             self.p.stdin.write("\n")
             self.p.stdin.flush()
             status = select.select((self.p.stdout, self.p.stderr), (), ())
@@ -39,7 +39,7 @@ class JsonApiTester(unittest.TestCase):
             readJson = self.p.stdout.readline()
             print readJson
             output = json.loads(readJson)
-            self.assertEqual(deunicodeify(output), items[1])
+            self.assertEqual(deunicodeify(output), items.response)
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py dbname testcase
