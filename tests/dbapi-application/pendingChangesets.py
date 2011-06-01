@@ -63,11 +63,8 @@ j = [
          'message': 'xyz'}
     ]}
     ),
-    ( # create third changeset; this should fail, as we're already in one
-    {"command": "startChangeset"},
-    {'response': 'startChangeset', "dbException": ChangesetAlreadyOpenError()
-    }
-    ),
+    # create third changeset; this should fail, as we're already in one
+    startChangeset().throws(ChangesetAlreadyOpenError()),
     ( # try attaching once again; this should again fail
     {"command":"resumeChangeset","revision":"tmp2"},
     {'response': 'resumeChangeset',"revision":"tmp2",

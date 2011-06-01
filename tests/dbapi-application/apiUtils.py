@@ -74,6 +74,10 @@ class ApiMethod(object):
         self.response[self.response["response"]] = value
         return self
 
+    def throws(self, exception):
+        self.response["dbException"] = exception
+        return self
+
     def __eq__(self, other):
         return (self.command, self.response) == other
 
