@@ -29,18 +29,12 @@ j = [
     {'response': 'abortCurrentChangeset', 'dbException': NoChangesetError()
     }
     ),
-    ( # detach once again, this will fail
-    {"command":"detachFromCurrentChangeset","message":"xyz"},
-    {'response': 'detachFromCurrentChangeset', "message": "xyz",
-     #"dbException": NoChangesetError()
-    }
-    ),
+    # detach once again, this will fail
+    detachFromCurrentChangeset("xyz"),#.throws(NoChangesetError()),
     # create new changeset once again
     startChangeset().returns("tmp2"),
-    ( # and detach from it
-    {"command":"detachFromCurrentChangeset","message":"xyz"},
-    {'response': 'detachFromCurrentChangeset',"message":"xyz"}
-    ),
+    # and detach from it
+    detachFromCurrentChangeset("xyz"),
     ( # verify that it's listed in a correct state
     {"command": "pendingChangesets"},
     {'response': 'pendingChangesets', "pendingChangesets": [

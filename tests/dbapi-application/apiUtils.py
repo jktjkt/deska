@@ -96,3 +96,12 @@ class ApiMethod(object):
 # DBAPI commands
 def startChangeset():
     return ApiMethod("startChangeset", None)
+
+def commitChangeset(message):
+    return ApiMethod("commitChangeset", {"commitMessage": message})
+
+def rebaseChangeset(parentRevision):
+    return ApiMethod("rebaseChangeset", {"parentRevision": parentRevision})
+
+def detachFromCurrentChangeset(message):
+    return ApiMethod("detachFromCurrentChangeset", {"message": message})
