@@ -42,7 +42,7 @@ class JsonApiTester(unittest.TestCase):
             self.assertEqual(deunicodeify(output), items.response)
 
 if __name__ == "__main__":
-    # usage: testdbapi.py /path/to/deska_server.py dbname testcase
+    # usage: testdbapi.py /path/to/deska_server.py testcase
     SERVER_PATH = sys.argv[1]
     DBNAME = os.environ["DESKA_DB"]
     DBUSER = os.environ["DESKA_USER"]
