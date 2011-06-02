@@ -11,6 +11,8 @@ CREATE TABLE production.{tbl}_template (
 	CONSTRAINT r{tbl}_templ FOREIGN KEY ("template") REFERENCES {tbl}_template(uid)
 );
 ALTER TABLE {tbl}_template ALTER COLUMN uid SET DEFAULT nextval('{tbl}_template_uid'::regclass);
+ALTER TABLE {tbl} ADD CONSTRAINT rtempl_{tbl} FOREIGN KEY ("template") REFERENCES {tbl}_template(uid);
+ALTER TABLE {tbl}_template ADD CONSTRAINT rtempl_{tbl}_templ FOREIGN KEY ("template") REFERENCES {tbl}_template(uid);
 
 '''
 	drop_not_null_str = "ALTER TABLE {0}_template ALTER COLUMN {1} DROP NOT NULL;"
