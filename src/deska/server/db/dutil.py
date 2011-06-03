@@ -84,7 +84,14 @@ def params(argString):
 class Condition():
 	'''Class to store and handle column/value/operator data'''
 
-	opMap = {"columnEq": "="}
+	opMap = {
+		"columnEq": "=",
+		"columnNe": "!=",
+		"columnGt": ">",
+		"columnGe": ">=",
+		"columnLe": "<=",
+		"columnLt": "<"
+	}
 
 	def __init__(self,data):
 		self.col = data["column"]
@@ -128,6 +135,18 @@ class Filter():
 		return "WHERE " + self.parse(self.data)
 
 	def parse(self,data):
-		cond = Condition(data)
-		return cond.get()
+		try:
+			operator = data["operator"]
+		except:
+			operator = ""
+			
+		if operator == "and":
+			res = [self.parse(expresion) for expresion in data["operands"]]
+			return "(" + ") AND (".join(res) + ")"
+		elif operator == "or":
+			res = [self.parse(expresion) for expresion in data["operands"]]
+			return "(" + ") OR (".join(res) + ")"
+		else:
+			cond = Condition(data)
+			return cond.get()
 
