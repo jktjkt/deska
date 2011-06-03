@@ -57,6 +57,7 @@ class DB:
 			# note that "filter" is always optional
 			if not_present == set(["filter"]):
 				args["filter"] = ''
+				logging.debug("filter was not present, pass '' arguments")
 				pass
 			else:
 				raise Exception("run_method error: missing arguments: {0}".format(not_present))
