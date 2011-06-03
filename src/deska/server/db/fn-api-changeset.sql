@@ -14,7 +14,7 @@ BEGIN
 	SELECT max(num) INTO max FROM version;
 	IF NOT FOUND THEN
 		-- not found parent revision
-		RAISE SQLSTATE '10001' USING MESSAGE = 'No parent revision.';
+		RAISE SQLSTATE '70001' USING MESSAGE = 'No parent revision.';
 	END IF;
 	parr = num2id(max);
 	INSERT INTO changeset (author,parentRevision,pid)
@@ -23,7 +23,7 @@ BEGIN
 EXCEPTION
 	WHEN unique_violation THEN
 		-- already assigned changeset
-		RAISE SQLSTATE '10002' USING MESSAGE = 'You have already assigned one changeset.';
+		RAISE SQLSTATE '70002' USING MESSAGE = 'You have already assigned one changeset.';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -49,7 +49,7 @@ BEGIN
 		WHERE id = ver;
 	IF NOT FOUND THEN
 		-- create version not successfull
-		RAISE SQLSTATE '10004' USING MESSAGE = 'Error while creating revision.';
+		RAISE SQLSTATE '70004' USING MESSAGE = 'Error while creating revision.';
 	END IF;
 	PERFORM delete_changeset();
 	RETURN ret;
@@ -105,7 +105,7 @@ BEGIN
 		WHERE pid = pg_backend_pid();
 	IF NOT FOUND THEN
 		-- no changeset assigned
-		RAISE SQLSTATE '10003' USING MESSAGE = 'You do not have open any changeset.';
+		RAISE SQLSTATE '70003' USING MESSAGE = 'You do not have open any changeset.';
 	END IF;
 	RETURN ver;
 END
@@ -125,7 +125,7 @@ BEGIN
 		WHERE id = ver;
 	IF NOT FOUND THEN
 		-- not found parent revision
-		RAISE SQLSTATE '10001' USING MESSAGE = 'No parent found.';
+		RAISE SQLSTATE '70001' USING MESSAGE = 'No parent found.';
 	END IF;
 	RETURN par;
 END
@@ -159,19 +159,22 @@ AS
 $$
 DECLARE chid bigint;
 BEGIN
+	IF get_current_changeset_or_null() IS NOT NULL THEN
+		RAISE SQLSTATE '70002' USING MESSAGE = 'You have already one changeset assigned - detach/commit first.';
+	END IF;
 	chid = changeset2id(id_);
 	UPDATE changeset SET status = 'INPROGRESS',
 		pid = pg_backend_pid(), author = session_user
 		WHERE id = chid; 
 	IF NOT FOUND THEN
 		-- no changeset of this name
-		RAISE SQLSTATE '10006' USING MESSAGE = 'No changeset of this name.';
+		RAISE SQLSTATE '70006' USING MESSAGE = 'No changeset of this name.';
 	END IF;
 	RETURN 1;
 EXCEPTION
         WHEN unique_violation THEN
 	        -- already assigned changeset
-		RAISE SQLSTATE '10002' USING MESSAGE = 'You have already assigned one changeset.';
+		RAISE SQLSTATE '70002' USING MESSAGE = 'You have already assigned one changeset.';
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -183,10 +186,12 @@ CREATE FUNCTION detachFromCurrentChangeset(message_ text)
 RETURNS integer
 AS
 $$
+DECLARE ver integer;
 BEGIN
+	SELECT get_current_changeset() INTO ver;
 	UPDATE changeset SET message = message_,
 		status = 'DETACHED', pid = NULL
-		WHERE id = get_current_changeset(); 
+		WHERE id = ver; 
 	RETURN 1;
 END
 $$
