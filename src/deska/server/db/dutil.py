@@ -6,6 +6,13 @@ import json
 class DeskaException(Exception):
 	'''Exception class for deska exceptions'''
 
+	typeDict = {
+		'70002': 'ChangesetAlreadyOpenError',
+		'70003': 'NoChangesetError',
+		'70021': 'NotFoundError',
+		'*': 'ServerError'
+	}
+
 	def __init__(self,dberr):
 		'''Construct DeskaException from Postgres.dberr exception'''
 		self.dberr = dberr
@@ -13,7 +20,7 @@ class DeskaException(Exception):
 		
 	def parseDberr(self):
 		'''Parse Postgres.dberr into variables used for json dump'''
-		self.type = "ServerError"
+		self.type = self.getType(self.dberr.code)
 		if self.dberr.code == '42601':
 			self.message = "Syntax error, something strange happend."
 		if self.dberr.code == '42883':
@@ -21,17 +28,26 @@ class DeskaException(Exception):
 		else:
 			self.message = self.dberr.message
 
-	def json(self,command):
+	def getType(self,errcode):
+		'''Return DeskaExceptionType for given error code'''
+		try:
+			return self.typeDict[errcode]
+		except:
+			return "ServerError"
+
+
+	def json(self,command,jsn = None):
 		'''Create json error representation for deska API'''
+		if jsn is None:
+			jsn = dict()
 		err = dict()
 		err["type"] = self.type
 		err["message"] = self.message
 
-		res = dict()
-		res["dbException"] = err
-		res["response"] = command
+		jsn["dbException"] = err
+		jsn["response"] = command
 
-		return json.dumps(res)
+		return json.dumps(jsn)
 
 
 def fcall(fname,*args):
