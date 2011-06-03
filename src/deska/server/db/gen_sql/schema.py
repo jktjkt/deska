@@ -5,6 +5,7 @@ class Schema:
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -43,6 +44,11 @@ CREATE FUNCTION commit_all(message text)
 
 		# print foreign keys at the end
 		self.fks = ""
+		record = self.plpy.execute(self.templ_tables_str)
+		self.templated_tables = set()
+		for tbl in record:
+			self.templated_tables.add(tbl[0])
+
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -56,9 +62,9 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
-
-		# print fks at the end of generation
-		#self.sql.write(self.fks)
+			
+		for tbl in self.templated_tables:
+			self.gen_for_templated_table(tbl)
 
 		self.fn_sql.write(self.gen_commit())
 
@@ -152,3 +158,16 @@ CREATE FUNCTION commit_all(message text)
 	'''
 		return commit_str
 
+	def gen_for_templated_table(self,tbl):
+		table = Table(tbl)
+		columns = self.plpy.execute(self.column_str.format(tbl))
+		for col in columns[:]:
+			table.add_column(col[0],col[1])
+
+		# add fk constraints
+		constraints = self.plpy.execute(self.fk_str.format(tbl))
+		for col in constraints[:]:
+			table.add_fk(col[0],col[1],col[2],col[3])
+		
+		self.fn_sql.write(table.gen_resolved_data())
+		

@@ -19,13 +19,6 @@ class Templates:
 );
 '''
 
-	#template for generate teplate for table
-	template_string = '''CREATE TABLE history.{tbl}_history (
-	LIKE {tbl}
-	-- include default values
-	INCLUDING DEFAULTS
-	'''
-	
 	# template string for set functions
 	set_string = '''CREATE FUNCTION
 	{tbl}_set_{colname}(IN name_ text,IN value text)
@@ -722,7 +715,7 @@ LANGUAGE plpgsql;
 
 #template for function, which selects all data from kind table taht are present in version data_version
 #is used in diff functions
-	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint)
+	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint = 0)
 RETURNS SETOF {tbl}_history
 AS
 $$
@@ -731,6 +724,15 @@ DECLARE
 BEGIN
 	--for each object uid finds its last modification before data_version
 	--joins it with history table of its kind to get object data in version data_version
+	IF data_version = 0 THEN
+		changeset_id = get_current_changeset_or_null();
+		IF changeset_id IS NULL THEN
+			SELECT MAX(num) INTO data_version FROM version;
+		ELSE
+			data_version = id2num(parent(changeset_id));
+		END IF;
+	END IF;
+	
 	RETURN QUERY 
 	SELECT * FROM {tbl}_history
 		WHERE version = changeset_id AND dest_bit = '0'
@@ -743,7 +745,10 @@ BEGIN
 				GROUP BY uid
 			) vmax1
 		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
-	WHERE dest_bit = '0'; 
+	WHERE h1.dest_bit = '0' AND h1.uid NOT IN (
+		SELECT uid FROM {tbl}_history
+		WHERE version = changeset_id
+	); 
 END
 $$
 LANGUAGE plpgsql;
@@ -822,6 +827,48 @@ $$
 BEGIN
 	DROP TABLE {tbl}_diff_data;
 END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+RETURNS {tbl}_type
+AS
+$$
+DECLARE
+	data {tbl}_type;
+	current_changeset bigint;
+BEGIN
+	IF from_version = 0 THEN
+		current_changeset = get_current_changeset_or_null();
+		IF current_changeset IS NULL THEN
+			--user wants current data from production
+			SELECT {columns} INTO data 
+			FROM production.{tbl} WHERE name = name_;
+			IF NOT FOUND THEN
+				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			END IF;
+			RETURN data;
+		END IF;
+	END IF;
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE name = name_
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			dv.template, rd.orig_template
+        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, orig_template INTO data
+	FROM resolved_data WHERE template IS NULL;
+
+	RETURN data;
+END
 $$
 LANGUAGE plpgsql;
 
