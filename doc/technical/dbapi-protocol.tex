@@ -368,7 +368,11 @@ relation information etc.  The following types are defined:
         {\tt "columnLe"}
         \\
     {\tt Deska::Db::Expression} &
-        {\tt \{"condition": }ExpressionKind{\tt, "column": }Identifier{\tt, "value": }Value{\tt \}}
+        One of \newline
+        {\tt \{"condition": }ExpressionKind{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
+        }Value{\tt \}}, \newline
+        or \newline
+        {\tt \{"condition": }ExpressionKind{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
