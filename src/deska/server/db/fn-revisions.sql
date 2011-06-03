@@ -40,7 +40,7 @@ import Postgres
 @pytypes
 def main(rev):
 	if not re.match('tmp\d',rev):
-		Postgres.ERROR('"{rev}" is not valid changeset id.'.format(rev = rev),code = 10011)
+		Postgres.ERROR('"{rev}" is not valid changeset id.'.format(rev = rev),code = 70011)
 
 	return rev[3:len(rev)]
 $$
@@ -59,7 +59,7 @@ import Postgres
 @pytypes
 def main(rev):
 	if not re.match('r\d',rev):
-		Postgres.ERROR('"{rev}" is not valid changeset id,'.format(rev = rev),code = 10012)
+		Postgres.ERROR('"{rev}" is not valid changeset id,'.format(rev = rev),code = 70012)
 
 	return rev[1:len(rev)]
 $$
@@ -77,7 +77,7 @@ BEGIN
 	SELECT num INTO rev FROM version
 		WHERE id = id_;
 	IF NOT FOUND THEN
-		RAISE 'Changeset with version % was not commited', id_ USING ERRCODE = '10013';
+		RAISE 'Changeset with version % was not commited', id_ USING ERRCODE = '70013';
 	END IF;
 	RETURN rev;
 END
@@ -96,7 +96,7 @@ BEGIN
 	SELECT id INTO rev FROM version
 		WHERE num = num_;
 	IF NOT FOUND THEN
-		RAISE 'Version with changeset num % was not commited', id_ USING ERRCODE = '10014';
+		RAISE 'Version with changeset num % was not commited', id_ USING ERRCODE = '70014';
 	END IF;
 	RETURN rev;
 END
