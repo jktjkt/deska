@@ -36,6 +36,9 @@ class JsonBuilder():
 	def detachFromCurrentChangeset(self,message):
 		return self.command("detachFromCurrentChangeset",**{"message": message})
 
+	def abortCurrentChangeset(self):
+		return self.command("abortCurrentChangeset")
+
 	def resumeChangeset(self,chid):
 		#FIXME: pass changeset is right
 		return self.command("resumeChangeset",**{"revision": chid})
@@ -92,7 +95,7 @@ class JsonParser():
 		return str(self["command"])
 
 	def result(self):
-		return str(self[self.response()])
+		return self.data[self.response()]
 
 	def error(self,errorType):
 		return str(self.data["dbException"]["type"]) == errorType
@@ -110,7 +113,7 @@ class JsonParser():
 		return self.error("ServerError")
 
 	def all(self):
-		return str(self.data)
+		return self.data
 
 	def OK(self):
 		return not "dbException" in self
@@ -168,13 +171,90 @@ class DeskaTest(unittest.TestCase):
 		# create changeset
 		res = self.command(js.startChangeset)
 		self.OK(res.OK)
-		chid = res.result()
 		# detach
 		res = self.command(js.detachFromCurrentChangeset,"test")
 		self.OK(res.OK)
 		# 2nd times it crashes
 		res = self.command(js.detachFromCurrentChangeset,"test")
 		self.OK(res.noChangeset)
+	
+	def test_005_pendingChangeset(self):
+		res = self.command(js.pendingChangesets)
+		self.OK(res.OK)
+		lines = len(res.result())
+		# create another one
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		res = self.command(js.pendingChangesets)
+		self.OK(res.OK)
+		self.assertEqual(len(res.result()),lines + 1)
+
+	def test_006_abortCurrentChangeset(self):
+		res = self.command(js.abortCurrentChangeset)
+		self.OK(res.OK)
+		# second times it crashes
+		res = self.command(js.abortCurrentChangeset)
+		self.OK(res.noChangeset)
+
+	def test_007_kindInstances(self):
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+
+	def testkindInstances(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindInstances,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindInstances,"error_kind_name")
+		self.OK(res.otherError)
+
+	def test_008a_kindInstances(self):
+		# test with changeset assigned
+		# create changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		self.testkindInstances()
+
+	def test_008a_kindInstances(self):
+		# test with no changeset assigned
+		self.testkindInstances()
+
+	def test_009_kindRelations(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindRelations,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindRelations,"error_kind_name")
+		self.OK(res.otherError)
+
+	def test_010_kindAttributes(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindAttributes,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindAttributes,"error_kind_name")
+		self.OK(res.otherError)
+
+
+
 
 
 unittest.main()
