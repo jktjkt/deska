@@ -37,6 +37,8 @@ class JsonBuilder():
 		return self.command("detachFromCurrentChangeset",**{"message": message})
 
 	def resumeChangeset(self,chid):
+		#FIXME: pass changeset is right
+		return self.command("resumeChangeset",**{"revision": chid})
 		return self.command("resumeChangeset",**{"changeset": chid})
 
 	def listRevisions(self):
@@ -92,9 +94,21 @@ class JsonParser():
 	def result(self):
 		return str(self[self.response()])
 
-	def error(self):
-		return str(self["dbException"])
-	
+	def error(self,errorType):
+		return str(self.data["dbException"]["type"]) == errorType
+
+	def changesetOpen(self):
+		return self.error("ChangesetAlreadyOpenError")
+
+	def noChangeset(self):
+		return self.error("NoChangesetError")
+
+	def notFound(self):
+		return self.error("NotFoundError")
+
+	def otherError(self):
+		return self.error("ServerError")
+
 	def all(self):
 		return str(self.data)
 
@@ -106,38 +120,62 @@ js = JsonBuilder()
 tr = DeskaRunner()
 
 class DeskaTest(unittest.TestCase):
-	tmp = 'x'
 	def command(self,cmd,*args):
 		jsn = cmd(*args)
 		cmd = JsonParser(jsn)
 		res = tr.command(jsn)
 		jp = JsonParser(res)
+		print jsn
+		print res
 		self.assertEqual(jp["response"], cmd["command"])
 		return jp
 
+	def OK(self,func):
+		self.assertTrue(func())
+
 	def test_001_startChangeset(self):
 		res = self.command(js.startChangeset)
-		self.assertTrue(res.OK())
-		# second time we expect error
+		self.OK(res.OK)
+		# second time we expect exception
 		res = self.command(js.startChangeset)
-		self.assertTrue(not res.OK())
+		self.OK(res.changesetOpen)
 
 	def test_002_commitChangeset(self):
+		# FIXME: no changeset should raise exception
 		res = self.command(js.commitChangeset,"message")
-		self.assertTrue(res.OK())
-		# second time we expect error
+		self.OK(res.OK)
+		# second time we expect exception
 		res = self.command(js.commitChangeset,"message")
-		self.assertTrue(not res.OK())
+		self.OK(res.noChangeset)
 		
 	def test_003_resumeChangeset(self):
+		# create changeset
 		res = self.command(js.startChangeset)
-		self.assertTrue(res.OK())
+		self.OK(res.OK)
 		chid = res.result()
+		# you have already assigned one
 		res = self.command(js.resumeChangeset,chid)
-		self.assertTrue(res.OK())
+		self.OK(res.changesetOpen)
+		# detaching
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.OK)
 		# bad id
 		res = self.command(js.resumeChangeset,"r12")
-		self.assertTrue(not res.OK())
-		
+		self.OK(res.otherError)
+
+
+	def test_004_detachChangeset(self):
+		# create changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		chid = res.result()
+		# detach
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.OK)
+		# 2nd times it crashes
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.noChangeset)
+
+
 unittest.main()
 
