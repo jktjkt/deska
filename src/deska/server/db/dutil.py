@@ -94,10 +94,15 @@ class Condition():
 	}
 
 	def __init__(self,data):
-		self.col = data["column"]
-		self.val = data["value"]
-		self.op = data["condition"]
-		self.parse()
+		try:
+			self.col = data["column"]
+			self.val = data["value"]
+			self.op = data["condition"]
+			self.parse()
+			return
+		except:
+			pass # do not raise here
+		Postgres.ERROR("Syntax error in condition",code = 70020)
 	
 	def parse(self):
 		if type(self.val) == str:
@@ -125,8 +130,10 @@ class Filter():
 			return
 		try:
 			self.data = json.loads(filterData)
+			return
 		except Exception as err:
-			raise
+			pass # do not raise another exception in except part
+		Postgres.ERROR("Syntax error.",code = 70020)
 		
 	def getWhere(self):
 		'''Return where part of sql statement'''
@@ -137,16 +144,16 @@ class Filter():
 	def parse(self,data):
 		try:
 			operator = data["operator"]
+			if operator == "and":
+				res = [self.parse(expresion) for expresion in data["operands"]]
+				return "(" + ") AND (".join(res) + ")"
+			elif operator == "or":
+				res = [self.parse(expresion) for expresion in data["operands"]]
+				return "(" + ") OR (".join(res) + ")"
+			else:
+				Postgres.ERROR("Syntax error: bad operands",code = 70020)
 		except:
-			operator = ""
-			
-		if operator == "and":
-			res = [self.parse(expresion) for expresion in data["operands"]]
-			return "(" + ") AND (".join(res) + ")"
-		elif operator == "or":
-			res = [self.parse(expresion) for expresion in data["operands"]]
-			return "(" + ") OR (".join(res) + ")"
-		else:
-			cond = Condition(data)
-			return cond.get()
+			pass
+		cond = Condition(data)
+		return cond.get()
 

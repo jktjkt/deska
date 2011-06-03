@@ -289,11 +289,16 @@ class DeskaTest(unittest.TestCase):
 		revisions2 = res.result()
 		self.assertEqual(revisions1,revisions2)
 
+		# bad syntax of filter
 		filter = {"xxx": "columnGt", "column": "revision", "value": "r1"}
-		#rem res = self.command(js.listRevisions,filter)
-		#rem self.OK(res.otherError)
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.otherError)
 
-
+		# test all conditions
+		for cond in ["columnGe","columnLe","columnGt","columnLt","columnNe","columnEq"]:
+			filter = {"condition": cond, "column": "revision", "value": "r1"}
+			res = self.command(js.listRevisions,filter)
+			self.OK(res.OK)
 
 
 
