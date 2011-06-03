@@ -10,14 +10,15 @@ import json
 @pytypes
 def main():
 	name = "startChangeset"
+	jsn = dict()
+	jsn["response"] = name
+
 	fname = 'api.'+ name + "()"
 	try:
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] =str(ver)
 	return json.dumps(jsn)
 $$
@@ -33,15 +34,15 @@ import json
 @pytypes
 def main():
 	name = "abortCurrentChangeset"
+	jsn = dict()
+	jsn["response"] = name
+
 	fname = 'api.'+ name + "()"
 	try:
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
-	jsn = dict()
-	jsn["response"] = name
-#	jsn[name] =str(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -56,15 +57,16 @@ import json
 @pytypes
 def main(revision):
 	name = "resumeChangeset"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["revision"] = revision
+
 	fname = 'api.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,revision)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
-	jsn = dict()
-	jsn["response"] = name
-	jsn["revision"] = revision
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -79,16 +81,16 @@ import json
 @pytypes
 def main(commitMessage):
 	name = "commitChangeset"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["commitMessage"] = commitMessage
+
 	fname = 'api.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,commitMessage)
 	except dutil.DeskaException as err:
-		return err.json(name)
-
-	jsn = dict()
-	jsn["response"] = name
+		return err.json(name,jsn)
 	jsn[name] =str(ver)
-	jsn["commitMessage"] = commitMessage
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -103,15 +105,16 @@ import json
 @pytypes
 def main(message):
 	name = "detachFromCurrentChangeset"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["message"] = message
+
 	fname = 'api.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,message)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
-	jsn = dict()
-	jsn["response"] = name
-	jsn["message"] = message
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -126,12 +129,15 @@ import json
 @pytypes
 def main(filter):
 	name = "pendingChangesets"
+	jsn = dict()
+	jsn["response"] = name
+
 	filter = dutil.Filter(filter)
 	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset "+filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
 	res = list()
 	for line in data:
@@ -143,9 +149,6 @@ def main(filter):
 		ver["timestamp"] = str(line[4])
 		ver["message"] = str(line[5])
 		res.append(ver)
-
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
@@ -161,12 +164,15 @@ import json
 @pytypes
 def main(filter):
 	name = "listRevisions"
+	jsn = dict()
+	jsn["response"] = name
+
 	filter = dutil.Filter(filter)
 	select = "SELECT num2revision(num),author,timestamp,message FROM version "+filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 
 	res = list()
 	for line in data:
@@ -177,8 +183,6 @@ def main(filter):
 		ver["message"] = str(line[3])
 		res.append(ver)
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
 	return json.dumps(jsn)
 $$

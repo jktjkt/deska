@@ -9,18 +9,18 @@ import json
 
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
-	fname = kindName+"_set_"+attributeName+"(text,text)"
-	try:
-		dutil.fcall(fname,objectName,attributeData)
-	except dutil.DeskaException as err:
-		return err.json("setAttribute")
-
 	jsn = dict()
 	jsn["response"] = "setAttribute"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
 	jsn["attributeData"] = attributeData
+	fname = kindName+"_set_"+attributeName+"(text,text)"
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json("setAttribute",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -34,17 +34,17 @@ import json
 
 @pytypes
 def main(kindName,oldName,newName):
-	fname = kindName+"_set_name(text,text)"
-	try:
-		dutil.fcall(fname,oldName,newName)
-	except dutil.DeskaException as err:
-		return err.json("renameObject")
-
 	jsn = dict()
 	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
 	jsn["oldName"] = oldName
 	jsn["newName"] = newName
+	fname = kindName+"_set_name(text,text)"
+	try:
+		dutil.fcall(fname,oldName,newName)
+	except dutil.DeskaException as err:
+		return err.json("renameObject",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -58,16 +58,16 @@ import json
 
 @pytypes
 def main(kindName,objectName):
-	fname = kindName+"_add(text)"
-	try:
-		dutil.fcall(fname,objectName)
-	except dutil.DeskaException as err:
-		return err.json("createObject")
-
 	jsn = dict()
 	jsn["response"] = "createObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
+	fname = kindName+"_add(text)"
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("createObject",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -118,7 +118,7 @@ def main(kindName,objectName):
 		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
 		colnames, data = dutil.getdata(sql,objectName)
 	except dutil.DeskaException as dberr:
-		return dberr.json("objectData")
+		return dberr.json("objectData",jsn)
 
 	data = [mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
@@ -192,7 +192,7 @@ def main(a,b):
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
-		return err.json("dataDifference")
+		return err.json("dataDifference",jsn)
 
 	jsn["dataDifference"] = res
 	return json.dumps(jsn)
