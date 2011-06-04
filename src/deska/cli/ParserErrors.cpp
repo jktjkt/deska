@@ -76,6 +76,7 @@ void AttributeErrorHandler<Iterator>::operator()(Iterator start, Iterator end, I
     // We have to check this case.
     if (error.valid())
         parser->addParseError(error);
+}
 
 
 

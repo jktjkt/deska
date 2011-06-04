@@ -184,7 +184,6 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     using qi::_a;
     using qi::eps;
     using qi::raw;
-    using qi::eoi;
     using qi::on_error;
     using qi::fail;
 
@@ -195,14 +194,15 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
     start = (qi::lit("no") > dispatch);
-        
+
     dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
         [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this, phoenix::ref(currentAttributeName))];
 
     phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
         AttributeRemovalErrorHandler<Iterator>();
-    on_error<fail>(dispatch, attributeRemovalErrorHandler(_1, _2, _3, _4,
-                                                          phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+
+    on_error<fail>(start, attributeRemovalErrorHandler(_1, _2, _3, _4,
+                                                       phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
 }
 
 
