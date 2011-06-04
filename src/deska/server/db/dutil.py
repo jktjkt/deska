@@ -94,7 +94,7 @@ class Condition():
 	}
 
 	def __init__(self,data):
-	'''Constructor, set local data and parse condition'''
+		'''Constructor, set local data and parse condition'''
 		try:
 			self.col = data["column"]
 			self.val = data["value"]
