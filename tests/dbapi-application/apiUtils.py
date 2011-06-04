@@ -105,7 +105,7 @@ def pendingChangesets():
     return ApiMethod("pendingChangesets", None)
 
 def resumeChangeset(revision):
-    return ApiMethod("resumeChangeset", {"revision": revision})
+    return ApiMethod("resumeChangeset", {"changeset": revision})
 
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})

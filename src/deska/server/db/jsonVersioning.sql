@@ -59,7 +59,7 @@ def main(revision):
 	name = "resumeChangeset"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["revision"] = revision
+	jsn["changeset"] = revision
 
 	fname = 'api.'+ name + "(text)"
 	try:

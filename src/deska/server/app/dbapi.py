@@ -18,7 +18,7 @@ class DB:
                 "commitChangeset": ["commitMessage"],
                 "rebaseChangeset": [],
                 "pendingChangesets": ["filter"],
-                "resumeChangeset": ["revision"],
+                "resumeChangeset": ["changeset"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
 		"dataDifference": ["a", "b"],
