@@ -119,30 +119,50 @@ class Condition():
 		self.op = self.opMap[self.op]
 	
 	def get(self):
-		return "{0} {1} {2}".format(self.col,self.op,self.val)
+		return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.val)
+	
+	def getAffectedKind(self):
+		return self.kind
 
 class Filter():
 	'''Class for handling filters'''
 
 	def __init__(self,filterData):
 		'''loads json filter data'''
+		self.kinds = set()
+		self.where = ''
 		if filterData == '':
 			self.data = filterData
 			return
 		try:
 			self.data = json.loads(filterData)
+			self.where = self.parse(self.data)
 			return
 		except Exception as err:
 			pass # do not raise another exception in except part
-		Postgres.ERROR("Syntax error.",code = 70020)
+		Postgres.ERROR("Syntax error when parsing filterData.",code = 70020)
 		
 	def getWhere(self):
 		'''Return where part of sql statement'''
 		if self.data == '':
 			return ''
-		return "WHERE " + self.parse(self.data)
-
+		return "WHERE " + self.where
+	
+	def getJoin(self,mykind):
+		'''Return join part of sql statement'''
+		ret = ''
+		self.kinds = self.kinds - set({mykind})
+		for kind in self.kinds:
+			if mykind == "metadata":
+				joincond = "{0}.id = {1}.version".format(mykind,kind)
+			else:
+				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
+			ret = ret + " JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+		return ret
+	
 	def parse(self,data):
+		if self.data == '':
+			return ''
 		try:
 			operator = data["operator"]
 			if operator == "and":
@@ -156,5 +176,7 @@ class Filter():
 		except:
 			pass
 		cond = Condition(data)
+		# collect affected kinds (need for join)
+		self.kinds.add(cond.getAffectedKind())
 		return cond.get()
 

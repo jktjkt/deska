@@ -133,7 +133,7 @@ def main(filter):
 	jsn["response"] = name
 
 	filter = dutil.Filter(filter)
-	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset "+filter.getWhere()
+	select = "SELECT id2changeset(id),author,status,num2revision(id2num(parentRevision)),timestamp,message FROM changeset AS metadata"+filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
@@ -168,7 +168,7 @@ def main(filter):
 	jsn["response"] = name
 
 	filter = dutil.Filter(filter)
-	select = "SELECT num2revision(num),author,timestamp,message FROM version "+filter.getWhere()
+	select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + filter.getWhere()
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
