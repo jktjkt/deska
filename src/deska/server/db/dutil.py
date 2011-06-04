@@ -94,6 +94,7 @@ class Condition():
 	}
 
 	def __init__(self,data):
+	'''Constructor, set local data and parse condition'''
 		try:
 			self.col = data["column"]
 			self.val = data["value"]
@@ -106,6 +107,7 @@ class Condition():
 		Postgres.ERROR("Syntax error in condition",code = 70020)
 	
 	def parse(self):
+		'''Update condition data for easy creation of Deska SQL condition'''
 		if type(self.val) == str:
 			self.val = "'{0}'".format(self.val)
 
@@ -119,9 +121,11 @@ class Condition():
 		self.op = self.opMap[self.op]
 	
 	def get(self):
+		'''Return deska SQL condition'''
 		return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.val)
 	
 	def getAffectedKind(self):
+		'''Return kind in condition'''
 		return self.kind
 
 class Filter():
@@ -161,6 +165,7 @@ class Filter():
 		return ret
 	
 	def parse(self,data):
+		'''Parse filter data and create SQL WHERE part'''
 		if self.data == '':
 			return ''
 		try:
