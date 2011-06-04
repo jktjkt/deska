@@ -98,6 +98,7 @@ class Condition():
 			self.col = data["column"]
 			self.val = data["value"]
 			self.op = data["condition"]
+			self.kind = data["kind"]
 			self.parse()
 			return
 		except:
@@ -108,10 +109,10 @@ class Condition():
 		if type(self.val) == str:
 			self.val = "'{0}'".format(self.val)
 
-		if self.col == "changeset":
+		if self.col == "changeset" and self.kind == "metadata":
 			self.col = "id"
 			self.val = "changeset2id({0})".format(self.val)
-		if self.col == "revision":
+		if self.col == "revision" and self.kind == "metadata":
 			self.col = "num"
 			self.val = "revision2num({0})".format(self.val)
 
