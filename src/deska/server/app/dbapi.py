@@ -21,7 +21,7 @@ class DB:
                 "resumeChangeset": ["changeset"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
-		"dataDifference": ["a", "b"],
+		"dataDifference": ["revisionA", "revisionB"],
 		"objectData": ["kindName", "objectName"],
 		"listRevisions": ["filter"]
 	})
