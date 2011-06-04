@@ -187,12 +187,12 @@ private:
     void parsedAttributeRemoval(const Db::Identifier &attribute);
 
     /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
-    qi::symbols<char, qi::rule<Iterator> > attributes;
+    qi::symbols<char, qi::rule<Iterator, ascii::space_type> > attributes;
 
     /** Rule for parsing "no" keyword. */
     qi::rule<Iterator, ascii::space_type> start;
     /** Rule for parsing attribute names. */
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator> > > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > dispatch;
 
     /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentAttributeName;

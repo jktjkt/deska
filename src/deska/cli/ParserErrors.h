@@ -170,7 +170,7 @@ public:
     *   @see ParseError
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-                    const qi::symbols<char, qi::rule<Iterator> > &attributes,
+                    const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
@@ -316,7 +316,7 @@ public:
     *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-               const qi::symbols<char, qi::rule<Iterator> > &attributes,
+               const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                const Db::Identifier &kindName);
     /** @short Create error using ValueErrorHandler when some error occures in attribute's value or kind's
     *          identifier parsing.
@@ -425,7 +425,7 @@ private:
     *   @param rule Value from the symbols table
     *   @see AttributeRemovalsParser
     */
-    void extractRemovedAttributeName(const Db::Identifier &name, const qi::rule<Iterator> &rule);
+    void extractRemovedAttributeName(const Db::Identifier &name, const qi::rule<Iterator, ascii::space_type> &rule);
 
     /** Error type */
     ParseErrorType m_errorType;

@@ -83,7 +83,7 @@ void AttributeErrorHandler<Iterator>::operator()(Iterator start, Iterator end, I
 template <typename Iterator>
 void AttributeRemovalErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos,
                               const spirit::info& what,
-                              const qi::symbols<char, qi::rule<Iterator> > &attributes,
+                              const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                               const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
     ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName);
@@ -195,7 +195,7 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-                                 const qi::symbols<char, qi::rule<Iterator> > &attributes,
+                                 const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                                  const Db::Identifier &kindName):
     m_errorType(PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
@@ -369,7 +369,7 @@ void ParseError<Iterator>::extractAttributeName(const Db::Identifier &name,
 
 template <typename Iterator>
 void ParseError<Iterator>::extractRemovedAttributeName(const Db::Identifier &name,
-                                                       const qi::rule<Iterator> &rule)
+                                                       const qi::rule<Iterator, ascii::space_type> &rule)
 {
     m_expectedKeywords.push_back(name);
 }
@@ -384,7 +384,7 @@ template void NestingErrorHandler<iterator_type>::operator()(iterator_type start
 
 template void AttributeErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
-template void AttributeRemovalErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+template void AttributeRemovalErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void IdentifierErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<iterator_type>* parser) const;
 
@@ -396,7 +396,7 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type> > &attributes, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName);
 
@@ -422,7 +422,7 @@ template void ParseError<iterator_type>::extractKindName(const Db::Identifier &n
 
 template void ParseError<iterator_type>::extractAttributeName(const Db::Identifier &name, const qi::rule<iterator_type, Db::Value(), ascii::space_type> &rule);
 
-template void ParseError<iterator_type>::extractRemovedAttributeName(const Db::Identifier &name, const qi::rule<iterator_type> &rule);
+template void ParseError<iterator_type>::extractRemovedAttributeName(const Db::Identifier &name, const qi::rule<iterator_type, ascii::space_type> &rule);
 
 }
 }
