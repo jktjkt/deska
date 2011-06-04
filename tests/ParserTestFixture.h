@@ -51,6 +51,9 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     /** @short Handler for Parser's setAttr() signal */
     void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+    
+    /** @short Handler for Parser's removeAttr() signal */
+    void slotParserRemoveAttr(const Deska::Db::Identifier &name);
 
     /** @short Handler for Parser's functionShow() */
     void slotParserFunctionShow();
@@ -81,6 +84,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered();
     */
     void expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+    
+    /** @short Check that the first signal which was not checked yet was the removeAttr()
+
+    @see expectCategoryEntered();
+    */
+    void expectRemoveAttr(const Deska::Db::Identifier &name);
 
     /** @short Check for functionShow
 
@@ -117,6 +126,8 @@ struct ParserTestFixture: public boost::signals2::trackable
     void verifyEmptyStack();
 
     void slotParserSetAttrCheckContext();
+    
+    void slotParserRemoveAttrCheckContext();
 
     Deska::Db::Api *db;
     Deska::Cli::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(

@@ -50,8 +50,10 @@ ParserTestFixture::ParserTestFixture()
     parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
-    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
+    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
     attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
+    attrCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
@@ -77,6 +79,11 @@ void ParserTestFixture::slotParserCategoryLeft()
 void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &name)
+{
+    parserEvents.push(MockParserEvent::removeAttr(name));
 }
 
 void ParserTestFixture::slotParserFunctionShow()
@@ -121,6 +128,11 @@ void ParserTestFixture::expectCategoryLeft()
 void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &name)
+{
+    expectHelper(MockParserEvent::removeAttr(name));
 }
 
 void ParserTestFixture::expectFunctionShow()
@@ -182,4 +194,9 @@ void ParserTestFixture::verifyEmptyStack()
 void ParserTestFixture::slotParserSetAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+}
+
+void ParserTestFixture::slotParserRemoveAttrCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to remove attributes");
 }

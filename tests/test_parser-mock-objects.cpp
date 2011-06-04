@@ -40,12 +40,14 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     // Simulate slots triggered by the Parser
     slotParserCategoryEntered("a", "b");
     slotParserSetAttr("foo", Deska::Db::Value("bar"));
+    slotParserRemoveAttr("rab");
     slotParserCategoryLeft();
     slotParserParsingFinished();
 
     // ...and verify that we indeed received them
     expectCategoryEntered("a", "b");
     expectSetAttr("foo", Deska::Db::Value("bar"));
+    expectRemoveAttr("rab");
     expectCategoryLeft();
     expectParsingFinished();
 
