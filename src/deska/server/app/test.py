@@ -6,7 +6,7 @@ import sys
 class DeskaRunner():
 	def __init__(self):
 		#runstr = "python {server} {db}".format(server=sys.argv[1], db=sys.argv[2])
-		runstr = "python deska_server.py deska_dev"
+		runstr = "python deska_server.py -d deska_dev"
 		self.stdin, self.stdout = os.popen2(runstr)
 	
 	def command(self,cmd):
@@ -36,14 +36,17 @@ class JsonBuilder():
 	def detachFromCurrentChangeset(self,message):
 		return self.command("detachFromCurrentChangeset",**{"message": message})
 
+	def abortCurrentChangeset(self):
+		return self.command("abortCurrentChangeset")
+
 	def resumeChangeset(self,chid):
 		return self.command("resumeChangeset",**{"changeset": chid})
 
-	def listRevisions(self):
-		return self.command("listRevisions")
+	def listRevisions(self,filter = ''):
+		return self.command("listRevisions",**{"filter": filter})
 
-	def pendingChangesets(self):
-		return self.command("pendingChangesets")
+	def pendingChangesets(self,filter = ''):
+		return self.command("pendingChangesets",**{"filter": filter})
 
 	def kindNames(self):
 		return self.command("kindNames")
@@ -90,13 +93,25 @@ class JsonParser():
 		return str(self["command"])
 
 	def result(self):
-		return str(self[self.response()])
+		return self.data[self.response()]
 
-	def error(self):
-		return str(self["dbException"])
-	
+	def error(self,errorType):
+		return str(self.data["dbException"]["type"]) == errorType
+
+	def changesetOpen(self):
+		return self.error("ChangesetAlreadyOpenError")
+
+	def noChangeset(self):
+		return self.error("NoChangesetError")
+
+	def notFound(self):
+		return self.error("NotFoundError")
+
+	def otherError(self):
+		return self.error("ServerError")
+
 	def all(self):
-		return str(self.data)
+		return self.data
 
 	def OK(self):
 		return not "dbException" in self
@@ -106,38 +121,244 @@ js = JsonBuilder()
 tr = DeskaRunner()
 
 class DeskaTest(unittest.TestCase):
-	tmp = 'x'
 	def command(self,cmd,*args):
 		jsn = cmd(*args)
 		cmd = JsonParser(jsn)
 		res = tr.command(jsn)
 		jp = JsonParser(res)
+		print jsn
+		print res
 		self.assertEqual(jp["response"], cmd["command"])
 		return jp
 
+	def OK(self,func):
+		self.assertTrue(func())
+
 	def test_001_startChangeset(self):
 		res = self.command(js.startChangeset)
-		self.assertTrue(res.OK())
-		# second time we expect error
+		self.OK(res.OK)
+		# second time we expect exception
 		res = self.command(js.startChangeset)
-		self.assertTrue(not res.OK())
+		self.OK(res.changesetOpen)
 
 	def test_002_commitChangeset(self):
+		# FIXME: no changeset should raise exception
 		res = self.command(js.commitChangeset,"message")
-		self.assertTrue(res.OK())
-		# second time we expect error
+		self.OK(res.OK)
+		# second time we expect exception
 		res = self.command(js.commitChangeset,"message")
-		self.assertTrue(not res.OK())
+		self.OK(res.noChangeset)
 		
 	def test_003_resumeChangeset(self):
+		# create changeset
 		res = self.command(js.startChangeset)
-		self.assertTrue(res.OK())
+		self.OK(res.OK)
 		chid = res.result()
+		# you have already assigned one
 		res = self.command(js.resumeChangeset,chid)
-		self.assertTrue(res.OK())
+		self.OK(res.changesetOpen)
+		# detaching
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.OK)
 		# bad id
 		res = self.command(js.resumeChangeset,"r12")
-		self.assertTrue(not res.OK())
-		
+		self.OK(res.otherError)
+
+
+	def test_004_detachChangeset(self):
+		# create changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		# detach
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.OK)
+		# 2nd times it crashes
+		res = self.command(js.detachFromCurrentChangeset,"test")
+		self.OK(res.noChangeset)
+	
+	def test_005_pendingChangeset(self):
+		res = self.command(js.pendingChangesets)
+		self.OK(res.OK)
+		lines = len(res.result())
+		# create another one
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		res = self.command(js.pendingChangesets)
+		self.OK(res.OK)
+		self.assertEqual(len(res.result()),lines + 1)
+
+	def test_006_abortCurrentChangeset(self):
+		res = self.command(js.abortCurrentChangeset)
+		self.OK(res.OK)
+		# second times it crashes
+		res = self.command(js.abortCurrentChangeset)
+		self.OK(res.noChangeset)
+
+	def test_007_kindInstances(self):
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+
+	def _kindInstances(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindInstances,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindInstances,"error_kind_name")
+		self.OK(res.otherError)
+
+	def test_008a_kindInstances(self):
+		# test with changeset assigned
+		# create changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		self._kindInstances()
+
+	def test_008b_kindInstances(self):
+		# test with no changeset assigned
+		self._kindInstances()
+
+	def test_009_kindRelations(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindRelations,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindRelations,"error_kind_name")
+		#rem self.OK(res.otherError)
+
+	def test_010_kindAttributes(self):
+		# get kind names at first
+		res = self.command(js.kindNames)
+		self.OK(res.OK)
+		kindNames = res.result()
+		# test all kindInstances
+		for kind in kindNames:
+			res = self.command(js.kindAttributes,kind)
+			self.OK(res.OK)
+
+		# crash on bad kindName
+		res = self.command(js.kindAttributes,"error_kind_name")
+		#rem self.OK(res.otherError)
+
+	def test_011a_filterTest(self):
+		'''test filter for listRevisions'''
+		# r1 always exists
+		filter = {"condition": "columnEq", "column": "revision", "value": "r1", "kind": "metadata"}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		# number of revisions - 1
+		filter = {"condition": "columnNe", "column": "revision", "value": "r1", "kind": "metadata"}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		revisions1 = res.result()
+		# number of revisions - 1 / other method
+		filter = {"condition": "columnGt", "column": "revision", "value": "r1", "kind": "metadata"}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		revisions2 = res.result()
+		# compare 2 results
+		self.assertEqual(revisions1,revisions2)
+
+		# 2 revisions
+		filter = {"operator": "or", "operands": [
+			{"condition": "columnEq", "column": "revision", "value": "r1", "kind": "metadata"},
+			{"condition": "columnEq", "column": "revision", "value": "r2", "kind": "metadata"},
+			{"condition": "columnEq", "column": "revision", "value": "r3", "kind": "metadata"}
+			]}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		revisions1 = res.result()
+		filter = {"operator": "and", "operands": [
+			{"condition": "columnGe", "column": "revision", "value": "r1", "kind": "metadata"},
+			{"condition": "columnLe", "column": "revision", "value": "r3", "kind": "metadata"}
+			]}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		revisions2 = res.result()
+		self.assertEqual(revisions1,revisions2)
+
+		# bad syntax of filter
+		filter = {"xxx": "columnGt", "column": "revision", "value": "r1", "kind": "metadata"}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.otherError)
+
+		# test all conditions
+		for cond in ["columnGe","columnLe","columnGt","columnLt","columnNe","columnEq"]:
+			filter = {"condition": cond, "column": "revision", "value": "r1", "kind": "metadata"}
+			res = self.command(js.listRevisions,filter)
+			self.OK(res.OK)
+
+	def test_011b_filterTest(self):
+		'''test filter for pendingChangeset'''
+		# tmp1 always exists
+		filter = {"condition": "columnEq", "column": "changeset", "value": "tmp1", "kind": "metadata"}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+		# number of changesets - 1
+		filter = {"condition": "columnNe", "column": "changeset", "value": "tmp1", "kind": "metadata"}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+		changesets1 = res.result()
+		# number of changesets - 1 / other method
+		filter = {"condition": "columnGt", "column": "changeset", "value": "tmp1", "kind": "metadata"}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+		changesets2 = res.result()
+		# compare 2 results
+		self.assertEqual(changesets1,changesets2)
+
+		# 2 changesets
+		filter = {"operator": "or", "operands": [
+			{"condition": "columnEq", "column": "changeset", "value": "tmp1", "kind": "metadata"},
+			{"condition": "columnEq", "column": "changeset", "value": "tmp2", "kind": "metadata"},
+			{"condition": "columnEq", "column": "changeset", "value": "tmp3", "kind": "metadata"}
+			]}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+		changesets1 = res.result()
+		filter = {"operator": "and", "operands": [
+			{"condition": "columnGe", "column": "changeset", "value": "tmp1", "kind": "metadata"},
+			{"condition": "columnLe", "column": "changeset", "value": "tmp3", "kind": "metadata"}
+			]}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+		changesets2 = res.result()
+		self.assertEqual(changesets1,changesets2)
+
+		# bad syntax of filter
+		filter = {"xxx": "columnGt", "column": "changeset", "value": "tmp1", "kind": "metadata"}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.otherError)
+
+		# test all conditions
+		for cond in ["columnGe","columnLe","columnGt","columnLt","columnNe","columnEq"]:
+			filter = {"condition": cond, "column": "changeset", "value": "tmp1", "kind": "metadata"}
+			res = self.command(js.pendingChangesets,filter)
+			self.OK(res.OK)
+
+	def test_012_filterJoinTest(self):
+		'''test joining for listRevisions and pendingChangeset'''
+		# join listRevisions with hardware
+		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
+		res = self.command(js.listRevisions,filter)
+		self.OK(res.OK)
+		# join pendingChangeset with hardware
+		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
+		res = self.command(js.pendingChangesets,filter)
+		self.OK(res.OK)
+
+
+
 unittest.main()
 
