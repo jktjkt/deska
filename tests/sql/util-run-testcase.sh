@@ -19,22 +19,22 @@ DESKA_DB_STATE_FILE=./.db_initialized
 
 if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
     # Use the fast way of doing things
-	pushd "${DESKA_SOURCES}/install"
-	./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
-	popd
+    pushd "${DESKA_SOURCES}/install"
+    ./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
+    popd
 else
     # Use the slower way which is completely deterministic
 
     # Always remove stuff, so that a possible error in previous test does not leave
     # stuff broken
-	./util-delete-database.sh 2>/dev/null
+    ./util-delete-database.sh 2>/dev/null
 
-	./util-create-database.sh || die "Preparing the DB environment"
+    ./util-create-database.sh || die "Preparing the DB environment"
 
-	pushd "${DESKA_SOURCES}/install"
-	./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
-	popd
-	touch $DESKA_DB_STATE_FILE
+    pushd "${DESKA_SOURCES}/install"
+    ./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
+    popd
+    touch $DESKA_DB_STATE_FILE
 fi
 
 case "${TESTMODE}" in
