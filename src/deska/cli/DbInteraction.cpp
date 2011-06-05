@@ -103,6 +103,11 @@ std::vector<Db::ObjectDefinition> DbInteraction::kindInstances(const Db::Identif
 std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ObjectDefinition &object)
 {
     std::vector<Db::AttributeDefinition> attributes;
+
+    // Check whether this kind contains any attributes. If not, return empty list.
+    if (m_api->kindAttributes(object.kind).empty())
+        return attributes;
+
     typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
         attributes.push_back(Db::AttributeDefinition(x.first, x.second));
@@ -115,7 +120,13 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
+
     if (!context.empty()) {
+
+        // Check whether this kind contains any attributes. If not, return empty list.
+        if (m_api->kindAttributes(context.back().kind).empty())
+            return attributes;
+
         typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
         BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::contextStackToPath(context))) {
             attributes.push_back(Db::AttributeDefinition(x.first, x.second));
