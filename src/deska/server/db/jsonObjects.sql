@@ -9,18 +9,18 @@ import json
 
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
-	fname = kindName+"_set_"+attributeName+"(text,text)"
-	try:
-		dutil.fcall(fname,objectName,attributeData)
-	except dutil.DeskaException as err:
-		return err.json("setAttribute")
-
 	jsn = dict()
 	jsn["response"] = "setAttribute"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
 	jsn["attributeData"] = attributeData
+	fname = kindName+"_set_"+attributeName+"(text,text)"
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json("setAttribute",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -34,17 +34,17 @@ import json
 
 @pytypes
 def main(kindName,oldName,newName):
-	fname = kindName+"_set_name(text,text)"
-	try:
-		dutil.fcall(fname,oldName,newName)
-	except dutil.DeskaException as err:
-		return err.json("renameObject")
-
 	jsn = dict()
 	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
 	jsn["oldName"] = oldName
 	jsn["newName"] = newName
+	fname = kindName+"_set_name(text,text)"
+	try:
+		dutil.fcall(fname,oldName,newName)
+	except dutil.DeskaException as err:
+		return err.json("renameObject",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -58,16 +58,16 @@ import json
 
 @pytypes
 def main(kindName,objectName):
-	fname = kindName+"_add(text)"
-	try:
-		dutil.fcall(fname,objectName)
-	except dutil.DeskaException as err:
-		return err.json("createObject")
-
 	jsn = dict()
 	jsn["response"] = "createObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
+	fname = kindName+"_add(text)"
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("createObject",jsn)
+
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -95,17 +95,35 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.undeleteObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
 import dutil
 import json
 
-def mystr(s):
-	if s is None:
-		return s
-	return str(s)
+@pytypes
+def main(kindName,objectName):
+	fname = kindName+"_undel(text)"
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("undeleteObject")
+
+	jsn = dict()
+	jsn["response"] = "undeleteObject"
+	jsn["kindName"] = kindName
+	jsn["objectName"] = objectName
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
+RETURNS text
+AS
+$$
+import dutil
+import json
 
 @pytypes
 def main(kindName,objectName):
@@ -118,9 +136,9 @@ def main(kindName,objectName):
 		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
 		colnames, data = dutil.getdata(sql,objectName)
 	except dutil.DeskaException as dberr:
-		return dberr.json("objectData")
+		return dberr.json("objectData",jsn)
 
-	data = [mystr(x) for x in data[0]]
+	data = [dutil.mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
@@ -134,6 +152,7 @@ $$
 import Postgres
 import json
 import dutil
+from dutil import mystr
 
 def kinds():
 	return list(["vendor","hardware","host","interface"])
@@ -158,22 +177,22 @@ def oneKindDiff(kindName,a,b):
 			obj = dict()
 			obj["command"] = "createObject"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
+			obj["objectName"] = mystr(line[0])
 			res.append(obj)
 		for line in setattr(a,b):
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
-			obj["attributeName"] = str(line[1])
-			obj["oldValue"] = str(line[2])
-			obj["newValue"] = str(line[3])
+			obj["objectName"] = mystr(line[0])
+			obj["attributeName"] = mystr(line[1])
+			obj["oldValue"] = mystr(line[2])
+			obj["newValue"] = mystr(line[3])
 			res.append(obj)
 		for line in deleted():
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
+			obj["objectName"] = mystr(line[0])
 			res.append(obj)
 		terminate()
 
@@ -183,8 +202,8 @@ def oneKindDiff(kindName,a,b):
 def main(a,b):
 	jsn = dict()
 	jsn["response"] = "dataDifference"
-	jsn["a"] = a
-	jsn["b"] = b
+	jsn["revisionA"] = a
+	jsn["revisionB"] = b
 	
 	res = list()
 	try:
@@ -192,7 +211,7 @@ def main(a,b):
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
-		return err.json("dataDifference")
+		return err.json("dataDifference",jsn)
 
 	jsn["dataDifference"] = res
 	return json.dumps(jsn)

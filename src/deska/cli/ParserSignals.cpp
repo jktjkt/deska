@@ -106,6 +106,28 @@ bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
+ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const Db::ContextStack &context, 
+                                                         const Db::Identifier &attribute):
+    pastContext(context), attributeName(attribute)
+{
+}
+
+
+
+void ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
+{
+    signalsHandler->userInterface->applyRemoveAttribute(pastContext, attributeName);
+}
+
+
+
+bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmRemoveAttribute(pastContext, attributeName);
+}
+
+
+
 ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
     pastContext(context)
 {
@@ -148,6 +170,27 @@ bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 
 
 
+ParserSignalFunctionRename::ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName):
+    pastContext(context), name(newName)
+{
+}
+
+
+
+void ParserSignalFunctionRename::apply(SignalsHandler *signalsHandler) const
+{
+    signalsHandler->userInterface->applyFunctionRename(pastContext, name);
+}
+
+
+
+bool ParserSignalFunctionRename::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmFunctionRename(pastContext, name);
+}
+
+
+
 ApplyParserSignal::ApplyParserSignal(SignalsHandler *_signalsHandler): signalsHandler(_signalsHandler)
 {
 }
@@ -184,8 +227,10 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
     m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
+    m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1));
     m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
     m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
+    m_parser->functionRename.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionRename, this, _1));
     m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
     m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
 }
@@ -213,6 +258,13 @@ void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db:
 
 
 
+void SignalsHandler::slotRemoveAttribute(const Db::Identifier &attribute)
+{
+    signalsStack.push_back(ParserSignalRemoveAttribute(m_parser->currentContextStack(), attribute));
+}
+
+
+
 void SignalsHandler::slotFunctionShow()
 {
     signalsStack.push_back(ParserSignalFunctionShow(m_parser->currentContextStack()));
@@ -223,6 +275,13 @@ void SignalsHandler::slotFunctionShow()
 void SignalsHandler::slotFunctionDelete()
 {
     signalsStack.push_back(ParserSignalFunctionDelete(m_parser->currentContextStack()));
+}
+
+
+
+void SignalsHandler::slotFunctionRename(const Db::Identifier &newName)
+{
+    signalsStack.push_back(ParserSignalFunctionRename(m_parser->currentContextStack(), newName));
 }
 
 

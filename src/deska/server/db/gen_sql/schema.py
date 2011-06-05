@@ -18,7 +18,7 @@ CREATE FUNCTION commit_all(message text)
 		SELECT max(id) INTO last_rev FROM version;
 		parent = parent(get_current_changeset());
 		IF parent != last_rev THEN
-			RAISE SQLSTATE '10007' USING MESSAGE = 'You must run rebase before commit.';
+			RAISE SQLSTATE '70007' USING MESSAGE = 'You must run rebase before commit.';
 		END IF;
 		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
@@ -53,11 +53,12 @@ CREATE FUNCTION commit_all(message text)
 	# generate sql for all tables
 	def gen_schema(self,filename):
 		name_split = filename.rsplit('/', 1)
-		self.table_sql = open(name_split[0] + '/' + 'table_' + name_split[1],'w')
+		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
 
 		# print this to add proc into genproc schema
-		self.table_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
+		self.table_sql.write("SET search_path TO history,deska,versioning,production;\n")
+		self.fn_sql.write("\\i create_schemas_2.sql\n")
 		self.fn_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
 
 		for tbl in self.tables:

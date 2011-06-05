@@ -62,6 +62,13 @@ void UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 
 
+void UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+{
+    m_dbInteraction->removeAttribute(context, attribute);
+}
+
+
+
 void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     if (context.empty()) {
@@ -87,6 +94,13 @@ void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 
 
 
+void UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    m_dbInteraction->renameObject(context, newName);
+}
+
+
+
 bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
@@ -108,6 +122,13 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 
 
+bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+{
+    return io->confirmAttributeRemoval(attribute);
+}
+
+
+
 bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 {
     return true;
@@ -118,6 +139,13 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
     return io->confirmDeletion(context.back());
+}
+
+
+
+bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    return true;
 }
 
 
@@ -193,15 +221,16 @@ void UserInterface::run()
     completitions.push_back("help");
     completitions.push_back("show");
     completitions.push_back("delete");
+    completitions.push_back("rename");
     reader.RegisterCompletions(completitions);
 
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
     Db::ContextStack context;
     for (;;) {
-        io->printPrompt(prompt);
+        //io->printPrompt(prompt);
         //line = io->readLine();
-        line = reader.GetLine("");
+        line = reader.GetLine(prompt + "> ");
 
 
         if (line == "exit" || line == "quit") {
@@ -213,6 +242,7 @@ void UserInterface::run()
                 m_dbInteraction->commitChangeset(io->askForCommitMessage());
                 inChangeset = false;
                 io->printMessage("Changeset commited.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }
@@ -221,6 +251,7 @@ void UserInterface::run()
                 m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
                 inChangeset = false;
                 io->printMessage("Changeset detached.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }
@@ -229,6 +260,7 @@ void UserInterface::run()
                 m_dbInteraction->abortChangeset();
                 inChangeset = false;
                 io->printMessage("Changeset aborted.");
+                m_parser->clearContextStack();
             } else {
                 reportError("Error: You are not in any changeset!");
             }

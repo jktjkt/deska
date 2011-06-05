@@ -161,6 +161,7 @@ then
 	generate_templates || die "Error running generate templates"
 	create_templates || die "Error running creating templates"
 	generate || die "Failed to generate stuff"
+	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
 fi
 
@@ -193,5 +194,6 @@ then
 	fi
 	stage 1 || die "Error running stage 1"
 	generate || die "Failed to generate stuff"
+	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
 fi

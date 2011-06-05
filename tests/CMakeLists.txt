@@ -42,6 +42,13 @@ macro(deska_dbapi_test fname)
         dbapi ${fname})
 endmacro(deska_dbapi_test)
 
+# for persistent tests
+macro(deska_dbapi_persist_test fname)
+    add_test(test_dbapi_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        persist ${fname})
+endmacro(deska_dbapi_persist_test)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
@@ -84,6 +91,10 @@ if(RUN_SQL_TESTS)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
+
+    deska_dbapi_persist_test(test_1_metadata)
+    deska_dbapi_persist_test(test_1_versioning)
+    deska_dbapi_persist_test(test_2_filter)
 endif()
 
 # Copy files from source directory to destination directory, substituting any

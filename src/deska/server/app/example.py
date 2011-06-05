@@ -15,10 +15,10 @@ data = list([
 	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "warranty", "attributeData":"10/10/2013"}',
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
-	'{"command": "detachFromCurrentChangeset", "message": "test message"}',
+	'{"command": "commitChangeset", "commitMessage": "test message"}',
 	'{"command": "pendingChangesets"}',
-	'{"command": "listRevisions", "filter":{"column": "revision", "value": "r1", "condition": "columnEq"}}',
 	'{"command": "dataDifference", "a":"r1", "b":"r2"}'
 ])
 

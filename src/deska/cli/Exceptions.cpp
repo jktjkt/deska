@@ -85,6 +85,7 @@ DESKA_ECBODY(InvalidObjectKind, ParserException);
 DESKA_ECBODY(MalformedIdentifier, ParserException);
 DESKA_ECBODY(ObjectDefinitionNotFound, ParserException);
 DESKA_ECBODY(ObjectNotFound, ParserException);
+DESKA_ECBODY(NoAttributesOrKindsDefined, ParserException);
 
 #undef DESKA_ECBODY
 

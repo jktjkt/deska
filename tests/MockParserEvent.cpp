@@ -43,6 +43,13 @@ MockParserEvent MockParserEvent::setAttr(const Deska::Db::Identifier &name, cons
     return res;
 }
 
+MockParserEvent MockParserEvent::removeAttr(const Deska::Db::Identifier &name)
+{
+    MockParserEvent res(EVENT_REMOVE_ATTR);
+    res.i1 = name;
+    return res;
+}
+
 MockParserEvent MockParserEvent::functionShow()
 {
     return MockParserEvent(EVENT_FUNCTION_SHOW);
@@ -51,6 +58,13 @@ MockParserEvent MockParserEvent::functionShow()
 MockParserEvent MockParserEvent::functionDelete()
 {
     return MockParserEvent(EVENT_FUNCTION_DELETE);
+}
+
+MockParserEvent MockParserEvent::functionRename(const Deska::Db::Identifier &newName)
+{
+    MockParserEvent res(EVENT_FUNCTION_RENAME);
+    res.i1 = newName;
+    return res;
 }
 
 MockParserEvent MockParserEvent::parserError(const Deska::Cli::ParserException &err)
@@ -92,11 +106,17 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
     case MockParserEvent::EVENT_SET_ATTR:
         out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
         break;
+    case MockParserEvent::EVENT_REMOVE_ATTR:
+        out << "removeAttr( " << m.i1 << " )";
+        break;
     case MockParserEvent::EVENT_FUNCTION_SHOW:
         out << "functionShow()";
         break;
     case MockParserEvent::EVENT_FUNCTION_DELETE:
         out << "functionDelete()";
+        break;
+    case MockParserEvent::EVENT_FUNCTION_RENAME:
+        out << "functionRename( " << m.i1 << " )";
         break;
     case MockParserEvent::EVENT_PARSE_ERROR:
         out << "parseError(" << m.message << ")";

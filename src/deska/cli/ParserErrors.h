@@ -51,12 +51,16 @@ typedef enum {
     PARSE_ERROR_TYPE_NESTING,
     /** @short Error in an attribute's name */
     PARSE_ERROR_TYPE_ATTRIBUTE,
+    /** @short Error in an attribute's name  when removing attributes value */
+    PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL,
     /** @short Error in an attribute's value or kind's identifier */
     PARSE_ERROR_TYPE_VALUE_TYPE,
     /** @short Error when object definition expected, but not found */
     PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND,
     /** @short Error when object being used in some function does not exist */
-    PARSE_ERROR_TYPE_OBJECT_NOT_FOUND
+    PARSE_ERROR_TYPE_OBJECT_NOT_FOUND,
+    /** @short Error when identifier was expected, but not found */
+    PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND
 } ParseErrorType;
 
 
@@ -141,6 +145,34 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                     const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
+                    const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
+/** @short Handle errors while parsing a name of an attribute while deleting attribute value. */
+template <typename Iterator>
+class AttributeRemovalErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function invoked when some error occures during parsing of attribute name.
+    *
+    *   Generates appropriate parse error and pushes it to errors stack.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+                    const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
@@ -277,6 +309,17 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
                const Db::Identifier &kindName);
+    /** @short Create error using AttributeErrorHandler when some error occures in attribute name parsing.
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+               const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
+               const Db::Identifier &kindName);
     /** @short Create error using ValueErrorHandler when some error occures in attribute's value or kind's
     *          identifier parsing.
     *   
@@ -308,6 +351,13 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                const Db::Identifier &objectName);
+    /** @short Create error when identifier was expected, but not found.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos);
 
 
     /** @short Function for obtaining type of the error.
@@ -376,6 +426,15 @@ private:
     */
     void extractAttributeName(const Db::Identifier &name,
                               const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
+    /** @short Function for extracting attribute names from symbols table used in attributeRemovals grammars.
+    *
+    *   This function should be used for extracting attributes names from symbols table using for_each function.
+    *
+    *   @param name Key from the symbols table
+    *   @param rule Value from the symbols table
+    *   @see AttributeRemovalsParser
+    */
+    void extractRemovedAttributeName(const Db::Identifier &name, const qi::rule<Iterator, ascii::space_type> &rule);
 
     /** Error type */
     ParseErrorType m_errorType;

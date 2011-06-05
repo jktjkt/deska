@@ -50,10 +50,15 @@ ParserTestFixture::ParserTestFixture()
     parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
-    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));
+    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
     attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
+    attrRemoveCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
+    deleteCheckContextConnection = parser->functionDelete.connect(bind(&ParserTestFixture::slotParserDeleteCheckContext, this));
+    parser->functionRename.connect(boost::phoenix::bind(&ParserTestFixture::slotParserFunctionRename, this, _1));
+    renameCheckContextConnection = parser->functionRename.connect(bind(&ParserTestFixture::slotParserRenameCheckContext, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
     parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
 }
@@ -79,6 +84,11 @@ void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, con
     parserEvents.push(MockParserEvent::setAttr(name, val));
 }
 
+void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &name)
+{
+    parserEvents.push(MockParserEvent::removeAttr(name));
+}
+
 void ParserTestFixture::slotParserFunctionShow()
 {
     parserEvents.push(MockParserEvent::functionShow());
@@ -87,6 +97,11 @@ void ParserTestFixture::slotParserFunctionShow()
 void ParserTestFixture::slotParserFunctionDelete()
 {
     parserEvents.push(MockParserEvent::functionDelete());
+}
+
+void ParserTestFixture::slotParserFunctionRename(const Deska::Db::Identifier &newName)
+{
+    parserEvents.push(MockParserEvent::functionRename(newName));
 }
 
 void ParserTestFixture::slotParserParseError(const Deska::Cli::ParserException &exception)
@@ -123,6 +138,11 @@ void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const D
     expectHelper(MockParserEvent::setAttr(name, val));
 }
 
+void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &name)
+{
+    expectHelper(MockParserEvent::removeAttr(name));
+}
+
 void ParserTestFixture::expectFunctionShow()
 {
     expectHelper(MockParserEvent::functionShow());
@@ -131,6 +151,11 @@ void ParserTestFixture::expectFunctionShow()
 void ParserTestFixture::expectFunctionDelete()
 {
     expectHelper(MockParserEvent::functionDelete());
+}
+
+void ParserTestFixture::expectFunctionRename(const Deska::Db::Identifier &newName)
+{
+    expectHelper(MockParserEvent::functionRename(newName));
 }
 
 void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)
@@ -182,4 +207,19 @@ void ParserTestFixture::verifyEmptyStack()
 void ParserTestFixture::slotParserSetAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+}
+
+void ParserTestFixture::slotParserRemoveAttrCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to remove attributes");
+}
+
+void ParserTestFixture::slotParserDeleteCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to delete object");
+}
+
+void ParserTestFixture::slotParserRenameCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to rename object");
 }
