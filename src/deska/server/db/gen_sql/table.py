@@ -239,6 +239,7 @@ class Table(constants.Templates):
 		collist = self.col.copy()
 		del collist['uid']
 		del collist['name']
+		cols = ','.join(collist)
 		
 		resolved_data_string = self.resolved_data_string
 		embed_table = ""
@@ -259,14 +260,22 @@ class Table(constants.Templates):
 				else:
 					newcol = tbl + "_get_name(" + col + ") as " + col 
 					newcollist[col] = newcol
-					
-		cols = ','.join(collist)
-		
+
 		del collist['template']
-		cols_ex_templ = ",".join(collist)
-		
+		del newcollist['template']
+
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
+
+
+		keys = collist.keys()
+		keys.sort()
+		collist = dict(zip(keys,keys))
+
+		for col in newcollist:
+			collist[col] = newcollist[col]		
+
+		cols_ex_templ = ",".join(collist.values())
 		
 		if self.name.endswith("_template"):
 			templ_table = self.name

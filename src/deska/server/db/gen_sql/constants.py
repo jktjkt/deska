@@ -864,7 +864,7 @@ BEGIN
         FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT {columns_ex_templ}, orig_template INTO data
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO data
 	FROM resolved_data WHERE template IS NULL;
 
 	RETURN data;
