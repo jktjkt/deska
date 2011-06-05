@@ -41,10 +41,10 @@ class diffTest(DeskaTest):
 		# add commands into cmdlist and run
 		cmdlist.append(json.loads(js.createObject("vendor","test vendor")))
 		cmdlist.append(json.loads(js.createObject("vendor","test vendor 2")))
-		#cmdlist.append(json.loads(js.createObject("hardware","test hardware 1")))
-		#cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","vendor","test vendor")))
-		#cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","purchase","2011-01-01")))
-		#cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","warranty","2011-01-01")))
+		cmdlist.append(json.loads(js.createObject("hardware","test hardware 1")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","vendor","test vendor")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","purchase","2011-01-01")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","warranty","2011-01-01")))
 		self.commandList(cmdlist)
 
 		# commit
