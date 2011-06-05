@@ -116,19 +116,26 @@ void UserInterfaceIO::printHelp()
 {
     out << "CLI commands:" << std::endl;
     out << "start  - Starts new changeset" << std::endl;
-    out << "resume - Displays list of pending changesets with ability to connect to one" << std::endl;
-    out << "commit - Displays promt for commit message and commits current changeset" << std::endl;
-    out << "detach - Displays promt for detach message and detaches from current changeset" << std::endl;
-    out << "abort  - Aborts current changeset" << std::endl;
-    out << "status - Shows if you are connected to any changeset or not" << std::endl;
-    out << "exit   - Exits the CLI" << std::endl;
-    out << "quit   - Exits the CLI" << std::endl;
-    out << "dump   - Prints everything in the DB" << std::endl;
-    out << "help   - Displays this list of commands" << std::endl;
+    out << "resume - Displays list of pending changesets with ability to connect to one." << std::endl;
+    out << "commit - Displays promt for commit message and commits current changeset." << std::endl;
+    out << "detach - Displays promt for detach message and detaches from current changeset." << std::endl;
+    out << "abort  - Aborts current changeset." << std::endl;
+    out << "status - Shows if you are connected to any changeset or not." << std::endl;
+    out << "exit   - Exits the CLI." << std::endl;
+    out << "quit   - Exits the CLI." << std::endl;
+    out << "dump   - Prints everything in the DB." << std::endl;
+    out << "help   - Displays this list of commands." << std::endl;
     out << std::endl;
     out << "Parser keywords:" << std::endl;
-    out << "delete - Deletes object given as parameter (e.g. delete hardware hp456)" << std::endl;
-    out << "show   - Shows attributes and nested kinds of the object" << std::endl;
+    out << "delete - Deletes object given as parameter (e.g. delete hardware hp456). Longer" << std::endl;
+    out << "         parameters are also allowed (e.g. delete host golias120 interface eth0)" << std::endl;
+    out << "         This will delete only interface eth0 in the object host golias120." << std::endl;
+    out << "show   - Shows attributes and nested kinds of the object. Parameter is here" << std::endl;
+    out << "         optional and works in the same way as for delete. When executed without" << std::endl;
+    out << "         parameter at top-level, it shows all object kinds and names." << std::endl;
+    out << "rename - Renames an object to name given as parameter" << std::endl;
+    out << "         (e.g. rename hardware hp456 hp567). Object in current context could be" << std::endl;
+    out << "         renamed also using short form (e.g. rename hp567)." << std::endl;
     out << "end    - Leaves one level of current context" << std::endl;
 }
 
