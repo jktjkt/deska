@@ -616,7 +616,7 @@ AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1' AND old_dest_bit = '0';
 END;
 $$
 LANGUAGE plpgsql;
