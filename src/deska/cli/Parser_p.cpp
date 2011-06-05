@@ -833,8 +833,14 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
     // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
     BOOST_ASSERT(parseErrors.size() <= 3);
-    // There have to be some ParseError when parsing fails.
-    BOOST_ASSERT(parseErrors.size() != 0);
+
+    // If there is no error, it means, that we entered some bad input fot the kind, that has no attributes and no
+    // nested kinds, so there was no grammar to generate the error.
+    if (parseErrors.empty()) {
+        m_parser->parseError(NoAttributesOrKindsDefined("No attributes or nested kind names expected here.",
+                                                        line, line.begin()));
+        return;
+    }
 
     typename std::vector<ParseError<Iterator> >::iterator it;
 
