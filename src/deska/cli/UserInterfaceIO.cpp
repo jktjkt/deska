@@ -195,6 +195,8 @@ std::string UserInterfaceIO::readLine()
 
 void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel)
 {
+    if (attributes.empty())
+        return;
     for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         printAttribute(*it, indentLevel);
     }
@@ -206,6 +208,8 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName)
 {
+    if (objects.empty())
+        return;
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         printObject(*it, indentLevel, fullName);
     }
