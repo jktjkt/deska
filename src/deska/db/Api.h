@@ -157,6 +157,9 @@ public:
     /** @short Delete an item from one of the lists of objects */
     virtual void deleteObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
+    /** @short Undo object deletion */
+    virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName) = 0;
+
     /** @short Create new object */
     virtual void createObject(const Identifier &kindName, const Identifier &objectName) = 0;
 

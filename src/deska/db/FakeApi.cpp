@@ -108,6 +108,9 @@ void FakeApi::deleteObject(const Identifier &kindName, const Identifier &objectN
 {
 }
 
+void FakeApi::restoreDeletedObject(const Identifier &kindName, const Identifier &objectName)
+{
+}
 
 
 void FakeApi::createObject(const Identifier &kindName, const Identifier &objectName)

@@ -187,6 +187,16 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
+void JsonApiParser::restoreDeletedObject(const Identifier &kindName, const Identifier &objectName)
+{
+    JsonCommandContext c1("restoreDeletedObject");
+
+    JsonHandlerApiWrapper h(this, "restoreDeletedObject");
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.work();
+}
+
 void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
     JsonCommandContext c1("createObject");
