@@ -95,6 +95,29 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.undeleteObject(kindName text, objectName text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(kindName,objectName):
+	fname = kindName+"_undel(text)"
+	try:
+		dutil.fcall(fname,objectName)
+	except dutil.DeskaException as err:
+		return err.json("undeleteObject")
+
+	jsn = dict()
+	jsn["response"] = "undeleteObject"
+	jsn["kindName"] = kindName
+	jsn["objectName"] = objectName
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
 RETURNS text
 AS
@@ -158,13 +181,13 @@ def oneKindDiff(kindName,a,b):
 			obj = dict()
 			obj["command"] = "createObject"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
+			obj["objectName"] = str(line[0])
 			res.append(obj)
 		for line in setattr(a,b):
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
+			obj["objectName"] = str(line[0])
 			obj["attributeName"] = str(line[1])
 			obj["oldValue"] = str(line[2])
 			obj["newValue"] = str(line[3])
@@ -173,7 +196,7 @@ def oneKindDiff(kindName,a,b):
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
-			obj["objecName"] = str(line[0])
+			obj["objectName"] = str(line[0])
 			res.append(obj)
 		terminate()
 
@@ -183,8 +206,8 @@ def oneKindDiff(kindName,a,b):
 def main(a,b):
 	jsn = dict()
 	jsn["response"] = "dataDifference"
-	jsn["a"] = a
-	jsn["b"] = b
+	jsn["revisionA"] = a
+	jsn["revisionB"] = b
 	
 	res = list()
 	try:
