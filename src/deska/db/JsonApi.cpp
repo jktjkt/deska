@@ -34,6 +34,7 @@ static std::string j_kindName = "kindName";
 static std::string j_objName = "objectName";
 static std::string j_attrName = "attributeName";
 static std::string j_revision = "revision";
+static std::string j_changeset = "changeset";
 static std::string j_filter = "filter";
 static std::string j_errorPrefix = "error";
 
@@ -279,7 +280,7 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
     JsonCommandContext c1("resumeChangeset");
 
     JsonHandlerApiWrapper h(this, "resumeChangeset");
-    h.write(j_revision, revision);
+    h.write(j_changeset, revision);
     h.work();
 }
 

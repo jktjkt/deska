@@ -443,8 +443,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTe
 /** @short Basic test for resumeChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"resumeChangeset\",\"revision\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"resumeChangeset\", \"revision\": \"tmp123\"}\n");
+    expectWrite("{\"command\":\"resumeChangeset\",\"changeset\":\"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"changeset\": \"tmp123\"}\n");
     j->resumeChangeset(TemporaryChangesetId(123));
     expectEmpty();
 }

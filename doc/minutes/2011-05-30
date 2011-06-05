@@ -1,0 +1,131 @@
+Schuze Deska, 2011-05-30 FZU
+----------------------------
+
+Pritomni: Martina, Lukas, Honza
+Omluveni: Tomas
+
+Prehled, co kdo udelal:
+
+Honza:
+- testy
+- uprava instalacnich skriptu
+- posledni upravy clanku z CHEPu
+- refactoring a opravy buildu
+- spec. undelete
+
+Tomas:
+- viz mail
+
+Martina:
+- odsmazani
+- test k odsmazani
+- test pro setname
+- studium templatu
+
+Lukas:
+- filtry
+- error reporting
+- cesta k py modulum + uprava instalacniho skriptu
+
+Ukoly z minula:
+---------------
+
+Opet schuze po peti dnech, mimo beznou periodu.
+
+- Honza: formalni popis JSON API (#183)
+    - neni
+- Honza: rozsireni API pro WHERE (#210)
+    - neni
+- Honza: funkce pro diffovani pres templaty
+    - neni
+- Honza: dalsi testy k DB serveru
+    - neco delal
+- Honza: uprava DBAPI specifikace:
+    - null atributy
+        - nic
+    - relace
+        - nic
+    - multipleObjectData
+        - nic
+    - funkce pro undelete
+        - naspecifikovano
+    - token pro prikazy
+        - nic
+- Tomas: dal pokracovat na CLI
+- Tomas: testy k CLI
+- Lukas: dokumentace (#168, 169,...)
+    - castecne
+- Lukas: otestovat diffovani (#214)
+    - prehodit na Martinu
+- Lukas: prekontrolovat, ze uz tam neni removeAttribute
+    - neni
+- Lukas: error reporting
+    - rozdelano
+- Lukas: filtry
+    - rozdelano
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+    - neni
+- Martina: dokumentace (#168, 169,...)
+    - zacala
+- Martina: templates
+    - rozdelano
+
+Diskuse:
+--------
+
+setAttr(interface blabla, "host", "abc") -> tohle vlastne prejmenovava objekt;
+je to dobre?
+
+Dosli jsme k tomu, ze rename() pracuje nad celym jmenem, a tedy muze menit obe
+dve casti, lokalni jmeno i referenci na objekt, do ktereho je zanoren; ta
+reference se navic da zmenit i pres setAttr
+
+Semantika filtru u dotazovacich operaci: and mezi podminkami znamena, ze se ma
+udelat join. Diskutovali jsme o tom a dosli k tomu, ze to nebude delat problemy.
+
+Error repo. vcetne exceptions.
+
+Lukasovo JSON testy -- je dobre, ze to udelal, neni dobre, aby ty testy byly
+uplne jinak (a nesloucene s ctestem). Honza se je pokusi sloucit. Motivace je
+dobra, byt liny psat opakujici se test je dobry napad.
+
+Jak zadefinovat relace? Martina vymysli.
+
+Ukoly:
+------
+
+- Honza: formalni popis JSON API (#183)
+- Honza: rozsireni API pro WHERE (#210)
+- Honza: funkce pro diffovani pres templaty
+- Honza: dalsi testy k DB serveru
+- Honza: uprava DBAPI specifikace:
+    - embed objekty atd
+    - null atributy
+    - relace
+    - multipleObjectData
+    - funkce pro undelete
+    - token pro prikazy
+    - filtry zerou "kind=bla, attribute=blabla" ci "metadata=blabla"
+    - exception pro nesmyslny filtry
+- Honza: sloucit testy -- jak to udelat?
+- Tomas: dal pokracovat na CLI
+- Tomas: testy k CLI
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: otestovat diffovani (#214)
+- Lukas: prekontrolovat, ze uz tam neni removeAttribute
+- Lukas: error reporting
+- Lukas: filtry
+- Lukas: do DB, aby start/resume changeset vratilo vyjimku
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+- Martina: tets pro setName by mel vyzkouset oba dva druhy rename zvlast i
+najednou
+
+vsichni: poslat sve casove moznosti pristi tyden
+
+
+Pristi schuzka:
+---------------
+
+dohodnem mailem

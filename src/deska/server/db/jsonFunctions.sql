@@ -10,18 +10,19 @@ import json
 @pytypes
 def main():
 	name = "kindNames"
+	jsn = dict()
+	jsn["response"] = name
+
 	select = 'SELECT * FROM api.kindNames()'
 	try:
 		colnames, cur = dutil.getdata(select)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 	
 	res = list()
 	for line in cur:
 		res.append(str(line[0]))
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
@@ -47,20 +48,21 @@ type_dict = ({
 @pytypes
 def main(kindName):
 	name = "kindAttributes"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["kindName"] = kindName
+
 	select = 'SELECT * FROM api.kindAttributes($1)'
 	try:
 		colnames, cur = dutil.getdata(select,kindName)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 	
 	res = dict()
 	for line in cur:
 		res[str(line[0])] = type_dict[str(line[1])]
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
-	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -75,11 +77,15 @@ import json
 @pytypes
 def main(kindName):
 	name = "kindRelations"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["kindName"] = kindName
+
 	select = 'SELECT * FROM api.kindRelations($1)'
 	try:
 		colnames, cur = dutil.getdata(select,kindName)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 	
 	res = list()
 	for line in cur:
@@ -89,10 +95,7 @@ def main(kindName):
 		rel["into"] = str(line[1])
 		res.append(rel)
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
-	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -107,20 +110,21 @@ import json
 @pytypes
 def main(kindName):
 	name = "kindInstances"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["kindName"] = kindName
+
 	select = 'SELECT * FROM api.kindInstances($1)'
 	try:
 		colnames, cur = dutil.getdata(select,kindName)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name,jsn)
 	
 	res = list()
 	for line in cur:
 		res.append(str(line[0]))
 
-	jsn = dict()
-	jsn["response"] = name
 	jsn[name] = res
-	jsn["kindName"] = kindName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
