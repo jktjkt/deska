@@ -70,16 +70,18 @@ public:
     *   @see Parser
     */
     void applyCategoryEntered(const Db::ContextStack &context,
-                         const Db::Identifier &kind, const Db::Identifier &object);
+                              const Db::Identifier &kind, const Db::Identifier &object);
     void applySetAttribute(const Db::ContextStack &context,
-                      const Db::Identifier &attribute, const Db::Value &value);
+                           const Db::Identifier &attribute, const Db::Value &value);
+    void applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
     void applyFunctionShow(const Db::ContextStack &context);
     void applyFunctionDelete(const Db::ContextStack &context);
 
     bool confirmCategoryEntered(const Db::ContextStack &context,
-                         const Db::Identifier &kind, const Db::Identifier &object);
+                                const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmSetAttribute(const Db::ContextStack &context,
-                      const Db::Identifier &attribute, const Db::Value &value);
+                             const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
     bool confirmFunctionShow(const Db::ContextStack &context);
     bool confirmFunctionDelete(const Db::ContextStack &context);
     //@}

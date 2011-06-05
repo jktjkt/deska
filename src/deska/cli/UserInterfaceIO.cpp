@@ -72,6 +72,15 @@ bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
 
 
 
+bool UserInterfaceIO::confirmAttributeRemoval(const Db::Identifier &attribute)
+{
+    std::ostringstream ss;
+    ss << "Are you sure you want to remove attribute " << attribute << "?";
+    return askForConfirmation(ss.str());
+}
+
+
+
 bool UserInterfaceIO::askForConfirmation(const std::string &prompt)
 {
     out << prompt << " ";

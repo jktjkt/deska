@@ -152,6 +152,44 @@ private:
 
 
 
+/** @short Represents signal setAttribute() from the parser. */
+class ParserSignalRemoveAttribute
+{
+public:
+
+    /** @short Constructor for storing signal setAttribute().
+    *
+    *   @param context Current parser context
+    *   @param attribute Name of attribute being changed
+    */
+    ParserSignalRemoveAttribute(const Db::ContextStack &context,
+                                const Db::Identifier &attribute);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    Db::ContextStack pastContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier attributeName;
+    //@}
+};
+
+
+
 /** @short Represents signal functionShow() from the parser. */
 class ParserSignalFunctionShow
 {
@@ -216,7 +254,7 @@ private:
 
 /** @short Represents one signal from the Parser. */
 typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
-                       ParserSignalFunctionShow, ParserSignalFunctionDelete> ParserSignal;
+                       ParserSignalRemoveAttribute, ParserSignalFunctionShow, ParserSignalFunctionDelete> ParserSignal;
 
 
 
@@ -304,6 +342,7 @@ private:
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
+    void slotRemoveAttribute(const Db::Identifier &attribute);
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotParserError(const ParserException &error);
@@ -313,6 +352,7 @@ private:
     friend class ParserSignalCategoryEntered;
     friend class ParserSignalCategoryLeft;
     friend class ParserSignalSetAttribute;
+    friend class ParserSignalRemoveAttribute;
     friend class ParserSignalFunctionShow;
     friend class ParserSignalFunctionDelete;
 

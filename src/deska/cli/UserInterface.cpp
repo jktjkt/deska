@@ -62,6 +62,13 @@ void UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 
 
+void UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+{
+    m_dbInteraction->removeAttribute(context, attribute);
+}
+
+
+
 void UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     if (context.empty()) {
@@ -104,6 +111,13 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     return true;
+}
+
+
+
+bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+{
+    return io->confirmAttributeRemoval(attribute);
 }
 
 

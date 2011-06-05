@@ -106,6 +106,28 @@ bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
+ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const Db::ContextStack &context, 
+                                                         const Db::Identifier &attribute):
+    pastContext(context), attributeName(attribute)
+{
+}
+
+
+
+void ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
+{
+    signalsHandler->userInterface->applyRemoveAttribute(pastContext, attributeName);
+}
+
+
+
+bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmRemoveAttribute(pastContext, attributeName);
+}
+
+
+
 ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
     pastContext(context)
 {
@@ -184,6 +206,7 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
     m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
+    m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1));
     m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
     m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
     m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
@@ -209,6 +232,13 @@ void SignalsHandler::slotCategoryLeft()
 void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value)
 {
     signalsStack.push_back(ParserSignalSetAttribute(m_parser->currentContextStack(), attribute, value));
+}
+
+
+
+void SignalsHandler::slotRemoveAttribute(const Db::Identifier &attribute)
+{
+    signalsStack.push_back(ParserSignalRemoveAttribute(m_parser->currentContextStack(), attribute));
 }
 
 

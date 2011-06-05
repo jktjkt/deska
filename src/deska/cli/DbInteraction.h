@@ -65,6 +65,12 @@ public:
     *   @param attribute Attribute and value to set
     */
     void setAttribute(const Db::ContextStack &context, const Db::AttributeDefinition &attribute);
+    /** @short Removes attribute value in the object.
+    *
+    *   @param context Path to the object which attribute value will be removed
+    *   @param attribute Attribute to remove value from
+    */
+    void removeAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
 
     /** @short Obtains list of all defined kind names.
     *
