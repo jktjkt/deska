@@ -38,7 +38,9 @@ class DB:
 
 	def utf2str(self,data):
 		'''Convert dict structure into str'''
-		if type(data) == dict:
+		if data is None:
+			return None
+		elif type(data) == dict:
 			'''We need to create json here'''
 			newdict = dict()
 			for key in data:

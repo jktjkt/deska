@@ -50,6 +50,14 @@ class DeskaException(Exception):
 		return json.dumps(jsn)
 
 
+def mystr(s):
+	'''Like str but only not for all'''
+	if s is None:
+		return s
+	return str(s)
+
+
+
 def fcall(fname,*args):
 	'''Call stored procedure with params.
 	@param fname ID of stored procedure like name(text)

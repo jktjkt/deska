@@ -125,11 +125,6 @@ $$
 import dutil
 import json
 
-def mystr(s):
-	if s is None:
-		return s
-	return str(s)
-
 @pytypes
 def main(kindName,objectName):
 	jsn = dict()
@@ -143,7 +138,7 @@ def main(kindName,objectName):
 	except dutil.DeskaException as dberr:
 		return dberr.json("objectData",jsn)
 
-	data = [mystr(x) for x in data[0]]
+	data = [dutil.mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
 	jsn["objectData"] = res
 	return json.dumps(jsn)
@@ -157,6 +152,7 @@ $$
 import Postgres
 import json
 import dutil
+from dutil import mystr
 
 def kinds():
 	return list(["vendor","hardware","host","interface"])
@@ -181,22 +177,22 @@ def oneKindDiff(kindName,a,b):
 			obj = dict()
 			obj["command"] = "createObject"
 			obj["kindName"] = kindName
-			obj["objectName"] = str(line[0])
+			obj["objectName"] = mystr(line[0])
 			res.append(obj)
 		for line in setattr(a,b):
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
-			obj["objectName"] = str(line[0])
-			obj["attributeName"] = str(line[1])
-			obj["oldValue"] = str(line[2])
-			obj["newValue"] = str(line[3])
+			obj["objectName"] = mystr(line[0])
+			obj["attributeName"] = mystr(line[1])
+			obj["oldValue"] = mystr(line[2])
+			obj["newValue"] = mystr(line[3])
 			res.append(obj)
 		for line in deleted():
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
-			obj["objectName"] = str(line[0])
+			obj["objectName"] = mystr(line[0])
 			res.append(obj)
 		terminate()
 
