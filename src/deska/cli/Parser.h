@@ -52,6 +52,8 @@ typedef enum {
     PARSING_MODE_DELETE,
     /** @short Show mode expects kinds with nested kinds with no attributes. */
     PARSING_MODE_SHOW,
+    /** @short Rename mode expects kinds with nested kinds with no attributes and new object name at the end. */
+    PARSING_MODE_RENAME
 } ParsingMode;
 
 /** @short Process the CLI input and generate events based on the parsed data
@@ -177,6 +179,12 @@ public:
     *   The signal is triggered when keyword "delete" was found on the beginning of the line
     */
     boost::signals2::signal<void ()> functionDelete;
+
+    /** @short Rename object in current context
+    *
+    *   The signal is triggered when keyword "rename" was found on the beginning of the line
+    */
+    boost::signals2::signal<void (const Db::Identifier &newName)> functionRename;
 
     /** @short Parsing of current line finished
     *

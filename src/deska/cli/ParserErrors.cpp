@@ -153,6 +153,8 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
             return "kind name";
         case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
             return "object name";
+        case PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND:
+            return "object identifier";
             break;
     }
     throw std::domain_error("ParseErrorType out of range");
@@ -244,6 +246,15 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 
 template <typename Iterator>
+ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos):
+    m_errorType(PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos)
+{
+    m_context = "";
+}
+
+
+
+template <typename Iterator>
 ParseErrorType ParseError<Iterator>::errorType() const
 {
     return m_errorType;
@@ -300,6 +311,9 @@ std::string ParseError<Iterator>::toString() const
             break;
         case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
             sout << ". Object " << m_context << " does not exist";
+            break;
+        case PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND:
+            sout << ". Correct identifier not found or too much data entered";
             break;
     }
     sout << ".";
@@ -403,6 +417,8 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const Db::Identifier &objectName);
+
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos);
 
 template ParseErrorType ParseError<iterator_type>::errorType() const;
 

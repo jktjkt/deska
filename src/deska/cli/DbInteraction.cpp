@@ -54,6 +54,16 @@ void DbInteraction::deleteObject(const Db::ContextStack &context)
 
 
 
+void DbInteraction::renameObject(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    BOOST_ASSERT(!context.empty());
+    Db::ContextStack newContext = context;
+    newContext.back().name = newName;
+    m_api->renameObject(context.back().kind, Db::contextStackToPath(context), Db::contextStackToPath(newContext));
+}
+
+
+
 void DbInteraction::setAttribute(const Db::ContextStack &context,
                                  const Db::AttributeDefinition &attribute)
 {

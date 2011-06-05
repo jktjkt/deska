@@ -53,9 +53,12 @@ ParserTestFixture::ParserTestFixture()
     parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
     attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
     parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
-    attrCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
+    attrRemoveCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
+    deleteCheckContextConnection = parser->functionDelete.connect(bind(&ParserTestFixture::slotParserDeleteCheckContext, this));
+    parser->functionRename.connect(boost::phoenix::bind(&ParserTestFixture::slotParserFunctionRename, this, _1));
+    renameCheckContextConnection = parser->functionRename.connect(bind(&ParserTestFixture::slotParserRenameCheckContext, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
     parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
 }
@@ -94,6 +97,11 @@ void ParserTestFixture::slotParserFunctionShow()
 void ParserTestFixture::slotParserFunctionDelete()
 {
     parserEvents.push(MockParserEvent::functionDelete());
+}
+
+void ParserTestFixture::slotParserFunctionRename(const Deska::Db::Identifier &newName)
+{
+    parserEvents.push(MockParserEvent::functionRename(newName));
 }
 
 void ParserTestFixture::slotParserParseError(const Deska::Cli::ParserException &exception)
@@ -143,6 +151,11 @@ void ParserTestFixture::expectFunctionShow()
 void ParserTestFixture::expectFunctionDelete()
 {
     expectHelper(MockParserEvent::functionDelete());
+}
+
+void ParserTestFixture::expectFunctionRename(const Deska::Db::Identifier &newName)
+{
+    expectHelper(MockParserEvent::functionRename(newName));
 }
 
 void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)
@@ -199,4 +212,14 @@ void ParserTestFixture::slotParserSetAttrCheckContext()
 void ParserTestFixture::slotParserRemoveAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to remove attributes");
+}
+
+void ParserTestFixture::slotParserDeleteCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to delete object");
+}
+
+void ParserTestFixture::slotParserRenameCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to rename object");
 }

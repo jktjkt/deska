@@ -331,6 +331,9 @@ private:
     /** @short Function used as semantic action for parsed "show" function word. */
     void actionShow();
 
+    /** @short Function used as semantic action for parsed "rename" function word. */
+    void actionRename();
+
     qi::rule<Iterator, ascii::space_type > start;
 
     /** Pointer to main parser for calling its functions as semantic actions. */

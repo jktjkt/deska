@@ -94,6 +94,13 @@ void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 
 
 
+void UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    m_dbInteraction->renameObject(context, newName);
+}
+
+
+
 bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
@@ -132,6 +139,13 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
     return io->confirmDeletion(context.back());
+}
+
+
+
+bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    return true;
 }
 
 
@@ -207,6 +221,7 @@ void UserInterface::run()
     completitions.push_back("help");
     completitions.push_back("show");
     completitions.push_back("delete");
+    completitions.push_back("rename");
     reader.RegisterCompletions(completitions);
 
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");

@@ -325,7 +325,8 @@ FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent)
     FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
 {
     start = ((qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
-           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)]));
+           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)])
+           | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
 }
 
 
@@ -342,6 +343,14 @@ template <typename Iterator>
 void FunctionWordsParser<Iterator>::actionShow()
 {
     m_parent->setParsingMode(PARSING_MODE_SHOW);
+}
+
+
+
+template <typename Iterator>
+void FunctionWordsParser<Iterator>::actionRename()
+{
+    m_parent->setParsingMode(PARSING_MODE_RENAME);
 }
 
 
@@ -437,6 +446,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(cons
         insertTabPossibilitiesOfCurrentContext(possibilities);
         possibilities.push_back("delete");
         possibilities.push_back("show");
+        possibilities.push_back("rename");
         return possibilities;
     }
 
@@ -619,6 +629,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     bool topLevel = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
+    bool nonexistantObject = false;
     Db::ContextStack::size_type previousContextStackSize = contextStack.size();
 
     // Check if there are any function words at the beginning of the line.
@@ -655,7 +666,17 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                             }
                         }
                     }
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind,nestedKinds));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, contextStack.back().kind, nestedKinds));
+                    parsingSucceeded = false;
+                }
+                break;
+            case PARSING_MODE_RENAME:
+                // Function rename requires parameter -> report error
+                if (contextStack.empty()) {
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                    parsingSucceeded = false;
+                } else {
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
                     parsingSucceeded = false;
                 }
                 break;
@@ -685,6 +706,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
+                case PARSING_MODE_RENAME:
                     parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
                                                     ascii::space);
                     break;
@@ -701,12 +723,14 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
-                    // Modes SHOW and DELETE requires existing kind instances.
+                case PARSING_MODE_RENAME:
+                    // Modes SHOW, DELETE and RENAME requires existing kind instances.
                     instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
                     if (std::find(instances.begin(), instances.end(), Db::contextStackToPath(contextStack)) == instances.end()) {
                         addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                            contextStack.back().kind, contextStack.back().name));
                         parsingSucceeded = false;
+                        nonexistantObject = true;
                     }
                     break;
                 default:
@@ -725,6 +749,33 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             // clear these errors, that are not actual errors.
             parseErrors.clear();
         }     
+    }
+
+    // New name when renaming an object
+    Db::Identifier newName;
+
+    // Handle parsing of new name here
+    if (parsingMode == PARSING_MODE_RENAME) {
+        if ((parsingIterations > 0) && (!nonexistantObject)) {
+            // Function word not parsed alone -> error was not reported yet
+            if (iter == end) {
+                // Missing new name
+                parsingSucceeded = false;
+                addParseError(ParseError<Iterator>(line.begin(), end, iter));
+            } else if (contextStack.empty()) {
+                // Missing object to rename
+                parsingSucceeded = false;
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+            } else {
+                // We are ready to parse new name
+                parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
+                                                ascii::space, newName);
+                if (iter != end)
+                    parsingSucceeded = false;
+                if (!parsingSucceeded)
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
+            }
+        }
     }
 
     if (!parsingSucceeded) {
@@ -751,11 +802,16 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 #endif
                 m_parser->functionShow();
                 break;
+            case PARSING_MODE_RENAME:
+#ifdef PARSER_DEBUG
+                std::cout << "Action Rename: " << newName << std::endl;
+#endif
+                m_parser->functionRename(newName);
+                break;
             default:
                 throw std::domain_error("Invalid value of parsingMode");
         } 
     }
-
     // Invoke categoryLeft signals when parsing in-line definitions
     if ((parsingMode == PARSING_MODE_STANDARD) && (singleKind || topLevel)) {
         // Definition of kind found stand-alone in standard mode on one line -> nest permanently
@@ -767,7 +823,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             }
         }
     }
-
     return parsingSucceeded;
 }
 
@@ -781,11 +836,12 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
     // There have to be some ParseError when parsing fails.
     BOOST_ASSERT(parseErrors.size() != 0);
 
+    typename std::vector<ParseError<Iterator> >::iterator it;
+
     // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
     // by an error in the attribute value
-    typename std::vector<ParseError<Iterator> >::iterator it = std::find_if(
-        parseErrors.begin(), parseErrors.end(),
-        phoenix::bind(&ParseError<Iterator>::errorType, phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
         // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
         // which could be reported by spirit as a result of the error propagation.
@@ -793,49 +849,67 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         std::cout << it->toString() << std::endl;
 #endif
         m_parser->parseError(InvalidAttributeDataTypeError(it->toString(), line, it->errorPosition()));
-    } else {
-        // Find out, if the error occured when parsing attribute name for value removal
-        it = std::find_if(
-            parseErrors.begin(), parseErrors.end(),
-            phoenix::bind(&ParseError<Iterator>::errorType, phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+        return;
+    }
+
+    // Find out, if the error occured when parsing attribute name for value removal
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+    if (it != parseErrors.end()) {
         // Yes, error occured when parsing attribute name for value removal
-        if (it != parseErrors.end()) {
-            m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
-        // There's no trace of an error in the attribute data anywhere
-        } else if (parseErrors.size() == 1) {
-            // whatever it is, let's just store it
-            const ParseError<Iterator> &err = parseErrors.front();
 #ifdef PARSER_DEBUG
-            std::cout << err.toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            switch (err.errorType()) {
-            case PARSE_ERROR_TYPE_ATTRIBUTE:
-                m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition()));
-                break;
-            case PARSE_ERROR_TYPE_KIND:
-                m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
-                break;
-            case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
-                m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
-                break;
-            case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
-                m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
-                break;
-            default:
-                throw std::domain_error("Invalid value of ParseErrorType");
-            }
-        } else if (parseErrors.size() == 2) {
-            // Two errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
-            // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND. Lets merge them.
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Find out, if the error occured when parsing identifier
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND);
+    if (it != parseErrors.end()) {
+        // Yes, error occured when parsing identifier
 #ifdef PARSER_DEBUG
-            std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(UndefinedAttributeError(
-                parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition()));
-        } else {
-            throw std::out_of_range(
-                "Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");
+        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // There's no trace of an error in the attribute data anywhere
+    if (parseErrors.size() == 1) {
+        // whatever it is, let's just store it
+        const ParseError<Iterator> &err = parseErrors.front();
+#ifdef PARSER_DEBUG
+        std::cout << err.toString() << std::endl;
+#endif
+        switch (err.errorType()) {
+        case PARSE_ERROR_TYPE_ATTRIBUTE:
+            m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition()));
+            break;
+        case PARSE_ERROR_TYPE_KIND:
+            m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
+            break;
+        case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
+            m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
+            break;
+        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
+            m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
+            break;
+        default:
+            throw std::domain_error("Invalid value of ParseErrorType");
         }
+    } else if (parseErrors.size() == 2) {
+        // Two errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
+        // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND. Lets merge them.
+#ifdef PARSER_DEBUG
+        std::cout << parseErrors[0].toCombinedString(parseErrors[1]) << std::endl;
+#endif
+        m_parser->parseError(UndefinedAttributeError(
+            parseErrors[0].toCombinedString(parseErrors[1]), line, parseErrors[0].errorPosition()));
+    } else {
+        throw std::out_of_range(
+            "Parse error reporting: got more than two errors, but none of them is a PARSE_ERROR_TYPE_VALUE_TYPE");
     }
 }
 

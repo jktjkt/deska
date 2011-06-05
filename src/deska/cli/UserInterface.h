@@ -76,6 +76,7 @@ public:
     void applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
     void applyFunctionShow(const Db::ContextStack &context);
     void applyFunctionDelete(const Db::ContextStack &context);
+    void applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
 
     bool confirmCategoryEntered(const Db::ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
@@ -84,6 +85,7 @@ public:
     bool confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
     bool confirmFunctionShow(const Db::ContextStack &context);
     bool confirmFunctionDelete(const Db::ContextStack &context);
+    bool confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
     //@}
 
     /** @short Reports any error to the user (error output).

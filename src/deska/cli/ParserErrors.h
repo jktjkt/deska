@@ -58,7 +58,9 @@ typedef enum {
     /** @short Error when object definition expected, but not found */
     PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND,
     /** @short Error when object being used in some function does not exist */
-    PARSE_ERROR_TYPE_OBJECT_NOT_FOUND
+    PARSE_ERROR_TYPE_OBJECT_NOT_FOUND,
+    /** @short Error when identifier was expected, but not found */
+    PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND
 } ParseErrorType;
 
 
@@ -349,6 +351,13 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                const Db::Identifier &objectName);
+    /** @short Create error when identifier was expected, but not found.
+    *   
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos);
 
 
     /** @short Function for obtaining type of the error.

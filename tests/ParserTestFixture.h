@@ -61,6 +61,9 @@ struct ParserTestFixture: public boost::signals2::trackable
     /** @short Handler for Parser's functionDelete() */
     void slotParserFunctionDelete();
 
+    /** @short Handler for Parser's functionRename() */
+    void slotParserFunctionRename(const Deska::Db::Identifier &newName);
+
     /** @short Handler for Parser's parserError() signal */
     void slotParserParseError(const Deska::Cli::ParserException &exception);
     
@@ -102,6 +105,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered()
     */
     void expectFunctionDelete();
+
+    /** @short Check for functionRename
+
+    @see expectCategoryEntered()
+    */
+    void expectFunctionRename(const Deska::Db::Identifier &newName);
     
     /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
 
@@ -126,13 +135,20 @@ struct ParserTestFixture: public boost::signals2::trackable
     void verifyEmptyStack();
 
     void slotParserSetAttrCheckContext();
-    
+
     void slotParserRemoveAttrCheckContext();
+
+    void slotParserDeleteCheckContext();
+
+    void slotParserRenameCheckContext();
 
     Deska::Db::Api *db;
     Deska::Cli::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
     boost::signals2::connection attrCheckContextConnection;
+    boost::signals2::connection attrRemoveCheckContextConnection;
+    boost::signals2::connection deleteCheckContextConnection;
+    boost::signals2::connection renameCheckContextConnection;
 };
 
 #endif // DESKA_TEST_PARSERTESTFIXTURE_H

@@ -48,6 +48,9 @@ public:
     /** @short The functionDelete() signal */
     static MockParserEvent functionDelete();
 
+    /** @short The functionRename() signal */
+    static MockParserEvent functionRename(const Deska::Db::Identifier &newName);
+
     /** @short Parser error */
     static MockParserEvent parserError(const Deska::Cli::ParserException &err);
     
@@ -75,6 +78,8 @@ private:
         EVENT_FUNCTION_SHOW,
         /** @short Handler for functionDelete() */
         EVENT_FUNCTION_DELETE,
+        /** @short Handler for functionRename() */
+        EVENT_FUNCTION_RENAME,
         /** @short Handler for parseError() */
         EVENT_PARSE_ERROR,
         /** @short Handler for parsingFinished() */

@@ -228,7 +228,7 @@ public:
     
     /** @short Constructor for storing signal functionDelete().
     *
-    *   @param context Current parser context
+    *   @param context Current parser context 
     */
     ParserSignalFunctionDelete(const Db::ContextStack &context);
 
@@ -252,9 +252,47 @@ private:
 
 
 
+/** @short Represents signal functionRename() from the parser. */
+class ParserSignalFunctionRename
+{
+public:
+    
+    /** @short Constructor for storing signal functionDelete().
+    *
+    *   @param context Current parser context
+    *   @param newName New name of the object in the context stack
+    */
+    ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    void apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    Db::ContextStack pastContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier name;
+    //@}
+};
+
+
+
 /** @short Represents one signal from the Parser. */
 typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
-                       ParserSignalRemoveAttribute, ParserSignalFunctionShow, ParserSignalFunctionDelete> ParserSignal;
+                       ParserSignalRemoveAttribute, ParserSignalFunctionShow, ParserSignalFunctionDelete,
+                       ParserSignalFunctionRename> ParserSignal;
 
 
 
@@ -345,6 +383,7 @@ private:
     void slotRemoveAttribute(const Db::Identifier &attribute);
     void slotFunctionShow();
     void slotFunctionDelete();
+    void slotFunctionRename(const Db::Identifier &newName);
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
     //@}
@@ -355,6 +394,7 @@ private:
     friend class ParserSignalRemoveAttribute;
     friend class ParserSignalFunctionShow;
     friend class ParserSignalFunctionDelete;
+    friend class ParserSignalFunctionRename;
 
     /** Here are all signals from the parser stored. */
     std::vector<ParserSignal> signalsStack;

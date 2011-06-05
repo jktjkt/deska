@@ -874,8 +874,6 @@ BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, Parser
     verifyStackOneLevel("hardware", "123");
 }
 
-//xxxxxx
-
 /** @short Remove an attribute from an object using verbose syntax */
 BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument, ParserTestFixture )
 {
@@ -1356,6 +1354,137 @@ BOOST_FIXTURE_TEST_CASE(invalid_attr_removal, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short We cant use function rrname with no context and no parameter */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
+{
+    const std::string line = "rename\n";
+    const std::string::const_iterator it = line.end();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename in context */
+BOOST_FIXTURE_TEST_CASE(function_rename_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+    
+    parser->parseLine("rename 456\n");
+    expectFunctionRename("456");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Verify that we can use function rename with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(function_rename_param_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 123 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectFunctionRename("456");
+    expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(function_rename_nest_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 123 interface eth0 eth1\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectCategoryEntered("interface", "eth0");
+    //expectFunctionRename("eth1");
+    expectCategoryLeft();
+    //expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename with parameter in context */
+BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+
+    const std::string line = "rename interface 456 789\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    parser->parseLine(line);    
+    expectCategoryEntered("interface", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectFunctionRename("789");
+    expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short We can not use function rename without specifying new name */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+
+    const std::string line = "rename interface 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.end();
+    parser->parseLine(line);    
+    expectCategoryEntered("interface", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short We can not use function rename without specifying new name in no context */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.end();
+    parser->parseLine(line);    
+    expectCategoryEntered("host", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Enter some more data when renaming an object */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_more_data, ParserTestFixture)
+{
+    const std::string line = "rename host 456 789 abc\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.begin() + line.find("abc");
+    parser->parseLine(line);    
+    expectCategoryEntered("host", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
     expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();

@@ -59,6 +59,12 @@ public:
     *   @param context Path and object definition to delete
     */
     void deleteObject(const Db::ContextStack &context);
+    /** @short Renames object.
+    *
+    *   @param context Path and object definition to delete
+    *   @param newName New name of the object
+    */
+    void renameObject(const Db::ContextStack &context, const Db::Identifier &newName);
     /** @short Sets attribute value in the object.
     *
     *   @param context Path to the object which attribute will be changed

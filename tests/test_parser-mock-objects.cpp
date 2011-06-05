@@ -59,6 +59,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     slotParserCategoryEntered("a", "b");
     slotParserFunctionShow();
     slotParserFunctionDelete();
+    slotParserFunctionRename("c");
     slotParserCategoryLeft();
     slotParserParsingFinished();
     
@@ -66,6 +67,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     expectCategoryEntered("a", "b");
     expectFunctionShow();
     expectFunctionDelete();
+    expectFunctionRename("c");
     expectCategoryLeft();
     expectParsingFinished();
 
