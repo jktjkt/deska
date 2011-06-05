@@ -73,12 +73,25 @@ class JsonBuilder():
 		return self.command("setAttribute",**{"kindName": kind,"objectName": name, "attributeName": att, "attributeData":data})
 
 	def dataDifference(self,a,b):
-		return self.command("dataDifference",**{"a": a,"b": b})
+		return self.command("dataDifference",**{"revisionA": a,"revisionB": b})
+
+
+def deunicodeify(stuff):
+	"""Convert a dict or stuff like that into a dict with all strings changed into unicode"""
+	# courtesy of http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str
+	if isinstance(stuff, unicode):
+		return stuff.encode("utf-8")
+	elif isinstance(stuff, dict):
+		return dict(map(deunicodeify, stuff.iteritems()))
+	elif isinstance(stuff, (list, tuple)):
+		return type(stuff)(map(deunicodeify, stuff))
+	else:
+		return stuff
 
 
 class JsonParser():
 	def __init__(self,jsn):
-		self.data = json.loads(jsn)
+		self.data = deunicodeify(json.loads(jsn))
 
 	def __contains__(self,key):
 		return key in self.data
@@ -130,6 +143,19 @@ class DeskaTest(unittest.TestCase):
 		print res
 		self.assertEqual(jp["response"], cmd["command"])
 		return jp
+	
+	def commandList(self,cmdlist):
+		jp = ''
+		for cmd in cmdlist:
+			jsn = json.dumps(cmd)
+			res = tr.command(jsn)
+			jp = JsonParser(res)
+			print jsn
+			print res
+			self.assertEqual(jp["response"], cmd["command"])
+			self.OK(jp.OK)
+		return jp
+
 
 	def OK(self,func):
 		self.assertTrue(func())
@@ -218,6 +244,8 @@ class DeskaTest(unittest.TestCase):
 		res = self.command(js.startChangeset)
 		self.OK(res.OK)
 		self._kindInstances()
+		res = self.command(js.abortCurrentChangeset)
+		self.OK(res.OK)
 
 	def test_008b_kindInstances(self):
 		# test with no changeset assigned
@@ -357,7 +385,87 @@ class DeskaTest(unittest.TestCase):
 		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
 		res = self.command(js.pendingChangesets,filter)
 		self.OK(res.OK)
+	
+	def diff2cmdlist(self,diff):
+		newlist = list()
+		for oldcmd in diff:
+			cmd = oldcmd.copy()
+			if cmd["command"] == "setAttribute":
+				del cmd["oldValue"]
+				cmd["attributeData"] = cmd["newValue"]
+				del cmd["newValue"]
+			newlist.append(cmd)
+		return newlist
 
+	def revertDiff(self,diff):
+		for cmd in diff:
+			if cmd["command"] == "setAttribute":
+				cmd["attributeData"] = cmd["oldValue"]
+				if cmd["attributeData"] is None:
+					cmd["attributeData"] = ""
+				del cmd["oldValue"]
+				del cmd["newValue"]
+			elif cmd["command"] == "createObject":
+				cmd["command"] = "deleteObject"
+			elif cmd["command"] == "deleteObject":
+				cmd["command"] = "createObject"
+		diff.reverse()
+		return diff
+
+
+	def test_013_dataDifference(self):
+		# start changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		cmdlist = list()
+		# add commands into cmdlist and run
+		cmdlist.append(json.loads(js.createObject("vendor","test vendor")))
+		cmdlist.append(json.loads(js.createObject("vendor","test vendor 2")))
+		cmdlist.append(json.loads(js.createObject("hardware","test hardware 1")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","vendor","test vendor")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","purchase","2011-01-01")))
+		cmdlist.append(json.loads(js.setAttribute("hardware","test hardware 1","warranty","2011-01-01")))
+		self.commandList(cmdlist)
+
+		# commit
+		res = self.command(js.commitChangeset,"test diff")
+		self.OK(res.OK)
+		revB = res.result()
+		revA = "r{0}".format(int(revB[1:len(revB)])-1)
+
+		# diff is ok?
+		res = self.command(js.dataDifference,revA,revB)
+		self.OK(res.OK)
+		diff = res.result()
+		listToCompare = self.diff2cmdlist(diff)
+		self.assertEqual(listToCompare.sort(),cmdlist.sort())
+
+		# and undo changes
+		# start changeset
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		# revert diff and run
+		cmdlist = self.revertDiff(diff)
+		print "!!!!!!!"
+		print cmdlist
+		self.commandList(cmdlist)
+
+		# commit
+		res = self.command(js.commitChangeset,"test diff")
+		self.OK(res.OK)
+		revC = res.result()
+
+		# diff should be empty
+		res = self.command(js.dataDifference,revA,revC)
+		self.OK(res.OK)
+		#self.assertTrue(res.result() == [])
+
+		# diff is ok?
+		res = self.command(js.dataDifference,revB,revC)
+		self.OK(res.OK)
+		diff = res.result()
+		listToCompare = self.diff2cmdlist(diff)
+		self.assertEqual(listToCompare.sort(),cmdlist.sort())
 
 
 unittest.main()
