@@ -68,7 +68,12 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		--value is name of object in reftable
 		--we need to know uid of referenced object instead of its name
-		SELECT {reftbl}_get_uid(value) INTO refuid;
+		IF value IS NULL THEN
+			refuid = NULL;
+		ELSE
+			SELECT {reftbl}_get_uid(value) INTO refuid;
+		END IF;
+		
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
