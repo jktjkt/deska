@@ -542,6 +542,13 @@ Functions from this group are used for fetching actual data from the database.
     key reference (in the demo setup, this would be the {\tt host} attribute for an {\tt interface}), but this special
     attribute is missing from the \deskaFuncRef{objectData} output.}
 
+\deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
+    {\{"object1": \{"foo": "bar1", "baz": "id1", "int": 1, "real": 100.666, "price": 666\}, \\
+       "object2": \{"foo": "bar2", "baz": "id2", "int": 2, "real": 200.666, "price": 333\}
+      \}}
+    {Get all attributes for instances matching the specified filter}
+    {This is the batched equivalent of \deskaFuncRef{objectData}.}
+
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
     {Get effective values for all attributes for a particular object instance, taking templates into account}
@@ -549,6 +556,14 @@ Functions from this group are used for fetching actual data from the database.
     template parent along with the identifier of the object at which level the value is specified.
 
     The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
+
+\deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
+    { \{ \\
+        "obj1": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj1", 666]\}, \\ 
+        "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
+      \} }
+    {Gets effective values for all attributes of a matching set of objects, taking templates into account}
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
 
 FIXME: document output filters (\#210)
 

@@ -161,6 +161,12 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     return res.attributes;
 }
 
+std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId)
+{
+    // FIXME
+}
+
+
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
                                                                       const Identifier &objectName, const RevisionId revision )
 {
@@ -175,6 +181,11 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     h.read("resolvedObjectData").extract(&res);
     h.work();
     return res.attributes;
+}
+
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const RevisionId)
+{
+    // FIXME
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
