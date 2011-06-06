@@ -92,7 +92,7 @@ def main(kindName):
 		rel = dict()
 		# FIXME: hotfix until rewrite relations get functions
 		rel["relation"] = "EMBED_INTO"
-		rel["into"] = str(line[1])
+		rel["target"] = str(line[1])
 		res.append(rel)
 
 	jsn[name] = res
