@@ -294,11 +294,6 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
                "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
-    std::string foo = "{\"kindName\": \"kk\", \"multipleObjectData\": {"
-            "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
-            "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20}, "
-            "}, "
-         "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n";
     expectRead("{\"kindName\": \"kk\", \"multipleObjectData\": {"
                "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
                "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20} "
@@ -311,6 +306,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     expected["b"]["foo"] = "barB";
     expected["b"]["int"] = 20;
     expected["b"]["baz"] = "idB";
+    // Check just the interesting items
     map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
