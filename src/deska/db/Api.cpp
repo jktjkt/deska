@@ -18,6 +18,8 @@
 * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 * Boston, MA 02110-1301, USA.
 * */
+#include <boost/foreach.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 #include "Api.h"
 
 namespace Deska {
@@ -25,6 +27,32 @@ namespace Db {
 
 Api::~Api()
 {
+}
+
+std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Identifier &kindName) const
+{
+    std::vector<KindAttributeDataType> attrs = kindAttributes(kindName);
+    std::vector<KindAttributeDataType>::iterator begin = attrs.begin(), end = attrs.end();
+    BOOST_FOREACH(const ObjectRelation &relation, kindRelations(kindName)) {
+        using namespace boost::phoenix;
+        switch (relation.kind) {
+        case RELATION_MERGE_WITH:
+        case RELATION_EMBED_INTO:
+            end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == relation.target);
+            break;
+        case RELATION_IS_TEMPLATE:
+            // no special cases
+            break;
+        case RELATION_TEMPLATIZED:
+            end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == "template");
+            break;
+        case RELATION_INVALID:
+            BOOST_ASSERT(false);
+            break;
+        }
+    }
+    attrs.erase(end, attrs.end());
+    return attrs;
 }
 
 RemoteDbError::RemoteDbError(const std::string &message): std::runtime_error(message)
@@ -67,6 +95,7 @@ CLASS::~CLASS() throw () {}
 REMOTEEXCEPTION(NotFoundError)
 REMOTEEXCEPTION(NoChangesetError)
 REMOTEEXCEPTION(ChangesetAlreadyOpenError)
+REMOTEEXCEPTION(FilterError)
 REMOTEEXCEPTION(SqlError)
 REMOTEEXCEPTION(ServerError)
 

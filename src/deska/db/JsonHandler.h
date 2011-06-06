@@ -44,12 +44,28 @@ struct JsonWrappedAttributeMap
     JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes);
 };
 
+/** @short Helper class for type-safe parsing for multipleObjectData() */
+struct JsonWrappedAttributeMapList
+{
+    std::vector<KindAttributeDataType> dataTypes;
+    std::map<Identifier, std::map<Identifier, Value> > objects;
+    JsonWrappedAttributeMapList(const std::vector<KindAttributeDataType> dataTypes);
+};
+
 /** @short Helper class for type-safe parsing of JSON into a representaiton usable for resolvedObjectData() DBAPI method */
 struct JsonWrappedAttributeMapWithOrigin
 {
     std::vector<KindAttributeDataType> dataTypes;
     std::map<Identifier, std::pair<Identifier, Value> > attributes;
     JsonWrappedAttributeMapWithOrigin(const std::vector<KindAttributeDataType> dataTypes);
+};
+
+/** @short Helper class for type-safe parsing of resolvedMultipleObjectData() */
+struct JsonWrappedAttributeMapWithOriginList
+{
+    std::vector<KindAttributeDataType> dataTypes;
+    std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > objects;
+    JsonWrappedAttributeMapWithOriginList(const std::vector<KindAttributeDataType> dataTypes);
 };
 
 /** @short Helper class for type-safe parsing of JSON to Deska object attribute */

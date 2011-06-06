@@ -109,15 +109,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
     expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
-            "{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\"}, "
-            "{\"relation\": \"MERGE_WITH\", \"targetTableName\": \"second-kind\", \"sourceAttribute\": \"my-attribute\"}, "
-            "{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\": \"target-kind\"}, "
-            "{\"relation\": \"TEMPLATIZED\", \"byWhichKind\": \"by-which-kind\", \"sourceAttribute\": \"my-attribute\"}], \"response\": \"kindRelations\"}\n");
+            "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
+            "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
+            "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
-    expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::mergeWith("second-kind"));
     expected.push_back(ObjectRelation::isTemplate("target-kind"));
-    expected.push_back(ObjectRelation::templatized("by-which-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -131,11 +131,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
     // We want to test various different error scenarios here
     typedef std::pair<string,string> PairStringString;
     vector<PairStringString> data;
-    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "Mandatory field 'relation' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\"}", "Invalid relation kind 'EMBED_INTO2'"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'into' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\", \"foo\": \"bar\"}",
-                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation into)."));
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "JSON field 'rel' is not allowed in this context (expecting one of: relation target)."));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\", \"target\": \"pwn\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'target' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation target)."));
     BOOST_FOREACH(const PairStringString &value, data) {
         expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
         expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
@@ -239,7 +239,14 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"real\": \"double\", \"price\": \"double\"}, \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
@@ -271,12 +278,48 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
+/** @short Basic functionality of multipleObjectData() */
+BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamThrow)
+{
+    // The JsonApiParser needs to know type information for the individual object kinds
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+
+    expectWrite("{\"command\":\"multipleObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
+    expectRead("{\"kindName\": \"kk\", \"multipleObjectData\": {"
+               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
+               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20} "
+               "}, "
+            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n");
+    map<Identifier, map<Identifier,Value> > expected;
+    expected["a"]["foo"] = "barA";
+    expected["a"]["int"] = 10;
+    expected["a"]["baz"] = "idA";
+    expected["b"]["foo"] = "barB";
+    expected["b"]["int"] = 20;
+    expected["b"]["baz"] = "idB";
+    // Check just the interesting items
+    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
+    BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    expectEmpty();
+}
+
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
                "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"response\":\"kindRelations\",\"kindName\":\"kk\", \"kindRelations\": []}\n");
 
     expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
@@ -289,6 +332,39 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     // BOOST_CHECK_EQUAL_COLLECTIONS is worthless, and there isn't much point in duplicating the whole logic from json_objectData
     // at yet another place. Let's stick with strings and don't expect to see detailed error reporting here.
     BOOST_REQUIRE_EQUAL(res.size(), expected.size());
+    BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    expectEmpty();
+}
+
+/** @short Basic functionality of multipleResolvedObjectData() */
+BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
+{
+    // The JsonApiParser needs to know type information for the individual object kinds
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+
+    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
+    expectRead("{\"kindName\": \"kk\", \"multipleResolvedObjectData\": {"
+               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10]}, "
+               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20]} "
+               "}, "
+            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleResolvedObjectData\"}\n");
+    map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
+    expected["a"]["foo"] = std::make_pair("1", "barA");
+    expected["a"]["baz"] = std::make_pair("1", "idA");
+    expected["a"]["int"] = std::make_pair("11", 10);
+    expected["b"]["foo"] = std::make_pair("1", "barB");
+    expected["b"]["baz"] = std::make_pair("2", "idB");
+    expected["b"]["int"] = std::make_pair("22", 20);
+    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }
@@ -588,6 +664,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(NotFoundError);
     JSON_ERR_TEST(NoChangesetError);
     JSON_ERR_TEST(ChangesetAlreadyOpenError);
+    JSON_ERR_TEST(FilterError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

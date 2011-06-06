@@ -288,41 +288,23 @@ PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spir
 template<>
 ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting JSON Object into Deska::Db::ObjectRelation");
-    // At first, check just the "relation" field and ignore everything else. That will be used and checked later on.
     JsonHandler h;
     std::string relationKind;
-    h.failOnUnknownFields(false);
+    std::string target;
     h.read("relation").extract(&relationKind);
+    h.read("target").extract(&target);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
 
-    // Got to re-initialize the handler, because it would otherwise claim that revision was already parsed
-    h = JsonHandler();
-    h.read("relation");
-
     // Now process the actual data
     if (relationKind == "EMBED_INTO") {
-        std::string into;
-        h.read("into").extract(&into);
-        h.parseJsonObject(v.get_obj());
-        return ObjectRelation::embedInto(into);
+        return ObjectRelation::embedInto(target);
     } else if (relationKind == "IS_TEMPLATE") {
-        std::string toWhichKind;
-        h.read("toWhichKind").extract(&toWhichKind);
-        h.parseJsonObject(v.get_obj());
-        return ObjectRelation::isTemplate(toWhichKind);
+        return ObjectRelation::isTemplate(target);
     } else if (relationKind == "MERGE_WITH") {
-        std::string targetTableName, sourceAttribute;
-        h.read("targetTableName").extract(&targetTableName);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(v.get_obj());
-        return ObjectRelation::mergeWith(targetTableName, sourceAttribute);
+        return ObjectRelation::mergeWith(target);
     } else if (relationKind == "TEMPLATIZED") {
-        std::string byWhichKind, sourceAttribute;
-        h.read("byWhichKind").extract(&byWhichKind);
-        h.read("sourceAttribute").extract(&sourceAttribute);
-        h.parseJsonObject(v.get_obj());
-        return ObjectRelation::templatized(byWhichKind, sourceAttribute);
+        return ObjectRelation::templatized(target);
     } else {
         std::ostringstream s;
         s << "Invalid relation kind '" << relationKind << "'";
@@ -541,6 +523,10 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing ChangesetAlreadyOpenError");
             h.parseJsonObject(v.get_obj());
             throw ChangesetAlreadyOpenError(message);
+        } else if (exceptionClass == "FilterError") {
+            JsonContext c2("When parsing FilterError");
+            h.parseJsonObject(v.get_obj());
+            throw FilterError(message);
         } else if (exceptionClass == "SqlError") {
             JsonContext c2("When parsing SqlError");
             h.parseJsonObject(v.get_obj());
@@ -677,6 +663,26 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked structure for multipleObjectData
+
+See SpecializedExtractor<JsonWrappedAttributeMap>::extract for why we need a special function here and
+JsonConversionTraits<T>::extract is not enough.
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapList>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting list of object attributes");
+    checkJsonValueType(value, json_spirit::obj_type);
+    BOOST_FOREACH(const Pair item, value.get_obj()) {
+        JsonContext c2("When handling attributes for object named " + item.name_);
+        JsonWrappedAttributeMap tmp(target->dataTypes);
+        SpecializedExtractor<JsonWrappedAttributeMap> extractor(&tmp);
+        extractor.extract(item.value_);
+        target->objects[item.name_] = tmp.attributes;
+    }
+}
+
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
 
 Thie functions extends funcitonality provided by the SpecializedExtractor<JsonWrappedAttributeMap>::extract with tracking of the
@@ -712,6 +718,26 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
         // in order to accomodate the difference in object layout
         target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
         ++i;
+    }
+}
+
+/** @short Convert JSON into a wrapped, type-checked structure for multipleResolvedObjectData()
+
+@see SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract
+@see SpecializedExtractor<JsonWrappedAttributeMapList>::extract
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapWithOriginList>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting list of resolved object attributes");
+    checkJsonValueType(value, json_spirit::obj_type);
+    BOOST_FOREACH(const Pair item, value.get_obj()) {
+        JsonContext c2("When handling resolved attributes for object named " + item.name_);
+        JsonWrappedAttributeMapWithOrigin tmp(target->dataTypes);
+        SpecializedExtractor<JsonWrappedAttributeMapWithOrigin> extractor(&tmp);
+        extractor.extract(item.value_);
+        target->objects[item.name_] = tmp.attributes;
     }
 }
 
@@ -757,7 +783,9 @@ template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapList*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOriginList*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
 

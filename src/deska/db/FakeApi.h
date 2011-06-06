@@ -44,8 +44,12 @@ public:
                                                   const RevisionId=RevisionId::null) const;
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
+        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null);
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
             const Identifier &kindName, const Identifier &objectName, const RevisionId=RevisionId::null);
+    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
+        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null);
 
     // Manipulating objects
     virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
@@ -61,14 +65,16 @@ public:
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual void rebaseChangeset(const RevisionId parentRevision);
     virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
-    virtual void resumeChangeset(const TemporaryChangesetId revision);
+    virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const;
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
 
     // These members should be accessible for modifications from the test suite
 

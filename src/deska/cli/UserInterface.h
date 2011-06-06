@@ -29,7 +29,6 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-
 #include "UserInterfaceIO.h"
 #include "DbInteraction.h"
 #include "Parser.h"
@@ -49,7 +48,7 @@ namespace Cli
 *   functions for confirmation and applying actions connected with each signal that parser emits. For  all IO
 *   operations is used class UserInterfaceIO.
 */
-class UserInterface: public boost::noncopyable//, public rlmm::readline
+class UserInterface: public boost::noncopyable
 {
 public:
 
@@ -113,7 +112,6 @@ private:
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
 
-    std::string prompt;
     UserInterfaceIO *io;
 
     bool inChangeset;

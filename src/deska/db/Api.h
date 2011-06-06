@@ -79,6 +79,8 @@ REMOTEDBEXCEPTION(NotFoundError)
 REMOTEDBEXCEPTION(NoChangesetError)
 /** @short Tried to manipulate a changeset while already being attached to one */
 REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
+/** @short The filter cannot be used */
+REMOTEDBEXCEPTION(FilterError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
@@ -112,6 +114,9 @@ public:
     virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const = 0;
 
 
+    /** @short Return attributes which are defined for a prticular kind and are not tied to a specific revision */
+    virtual std::vector<KindAttributeDataType> kindAttributesWithoutRelation(const Identifier &kindName) const;
+
     /** @short Retrieve relations between different Kinds
      *
      * This function returns a list of relations for the specified kind of entities -- for more
@@ -134,6 +139,10 @@ public:
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
 
+    /** @short Version of objectData that returns multiple objects of the same kind at once */
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
+        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null) = 0;
+
     /** @short Get all attributes, including the inherited ones
      *
      * This function walks through the template hierarchy (see ObjectRelationKind::RELATION_TEMPLATE's documentation)
@@ -151,6 +160,10 @@ public:
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
         const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
+
+    /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
+    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
+        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null) = 0;
 
     // Manipulating objects
 
@@ -222,7 +235,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual void resumeChangeset(const TemporaryChangesetId revision) = 0;
+    virtual void resumeChangeset(const TemporaryChangesetId changeset) = 0;
 
     /** @short Detach this session from its active changeset
      *
@@ -254,8 +267,14 @@ public:
     /** @short Return differences between the database state in the specified versions */
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const = 0;
 
+    /** @short Return differences between the resolved data in the database between the specified versions */
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b) const = 0;
+
     /** @short Return differences created in a temporary changeset */
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const = 0;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const = 0;
+
+    /** @short Return differences in resolved data created in a temporary changeset */
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const = 0;
 };
 
 }
