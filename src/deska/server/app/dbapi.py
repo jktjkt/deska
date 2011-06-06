@@ -13,7 +13,7 @@ class DB:
                 "deleteObject": ["kindName","objectName"],
                 "restoreDeletedObject": ["kindName","objectName"],
                 "createObject": ["kindName","objectName"],
-                "renameObject": ["kindName","oldName","newName"],
+                "renameObject": ["kindName","oldObjectName","newObjectName"],
                 "setAttribute": ["kindName","objectName","attributeName","attributeData"],
                 "startChangeset": [],
                 "commitChangeset": ["commitMessage"],

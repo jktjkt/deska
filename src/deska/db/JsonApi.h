@@ -104,7 +104,7 @@ public:
     virtual void deleteObject( const Identifier &kindName, const Identifier &objectName );
     virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName);
     virtual void createObject( const Identifier &kindName, const Identifier &objectName );
-    virtual void renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName );
+    virtual void renameObject( const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName );
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData );
     virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);

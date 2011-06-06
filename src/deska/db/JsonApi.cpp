@@ -207,14 +207,14 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
-void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
+void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName )
 {
     JsonCommandContext c1("renameObject");
 
     JsonHandlerApiWrapper h(this, "renameObject");
     h.write(j_kindName, kindName);
-    h.write(j_objName, oldName);
-    h.write("newObjectName", newName);
+    h.write("oldObjectName", oldObjectName);
+    h.write("newObjectName", newObjectName);
     h.work();
 }
 
