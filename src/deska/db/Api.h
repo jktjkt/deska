@@ -79,6 +79,8 @@ REMOTEDBEXCEPTION(NotFoundError)
 REMOTEDBEXCEPTION(NoChangesetError)
 /** @short Tried to manipulate a changeset while already being attached to one */
 REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
+/** @short The filter cannot be used */
+REMOTEDBEXCEPTION(FilterError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
