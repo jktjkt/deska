@@ -193,9 +193,20 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     return res.attributes;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const RevisionId)
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectData(
+    const Identifier &kindName, const Filter &filter, const RevisionId revision)
 {
-    // FIXME
+    JsonCommandContext c1("multipleResolvedObjectData");
+
+    JsonHandlerApiWrapper h(this, "multipleResolvedObjectData");
+    h.write(j_kindName, kindName);
+    h.write(j_filter, filter);
+    if (revision != RevisionId::null)
+        h.write(j_revision, revision);
+    JsonWrappedAttributeMapWithOriginList res(kindAttributesWithoutRelation(kindName));
+    h.read("multipleResolvedObjectData").extract(&res);
+    h.work();
+    return res.objects;
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )

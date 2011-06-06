@@ -336,6 +336,39 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     expectEmpty();
 }
 
+/** @short Basic functionality of multipleResolvedObjectData() */
+BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
+{
+    // The JsonApiParser needs to know type information for the individual object kinds
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+
+    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
+    expectRead("{\"kindName\": \"kk\", \"multipleResolvedObjectData\": {"
+               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10]}, "
+               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20]} "
+               "}, "
+            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleResolvedObjectData\"}\n");
+    map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
+    expected["a"]["foo"] = std::make_pair("1", "barA");
+    expected["a"]["baz"] = std::make_pair("1", "idA");
+    expected["a"]["int"] = std::make_pair("11", 10);
+    expected["b"]["foo"] = std::make_pair("1", "barB");
+    expected["b"]["baz"] = std::make_pair("2", "idB");
+    expected["b"]["int"] = std::make_pair("22", 20);
+    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
+    BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    expectEmpty();
+}
+
 /** @short Basic test for createObject() */
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {

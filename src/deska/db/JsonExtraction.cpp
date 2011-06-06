@@ -721,6 +721,26 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked structure for multipleResolvedObjectData()
+
+@see SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract
+@see SpecializedExtractor<JsonWrappedAttributeMapList>::extract
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapWithOriginList>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting list of resolved object attributes");
+    checkJsonValueType(value, json_spirit::obj_type);
+    BOOST_FOREACH(const Pair item, value.get_obj()) {
+        JsonContext c2("When handling resolved attributes for object named " + item.name_);
+        JsonWrappedAttributeMapWithOrigin tmp(target->dataTypes);
+        SpecializedExtractor<JsonWrappedAttributeMapWithOrigin> extractor(&tmp);
+        extractor.extract(item.value_);
+        target->objects[item.name_] = tmp.attributes;
+    }
+}
+
 
 template<>
 void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const json_spirit::Value &value)
@@ -765,6 +785,7 @@ template JsonField& JsonField::extract(boost::posix_time::ptime*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapList*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOriginList*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
 
