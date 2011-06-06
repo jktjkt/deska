@@ -161,9 +161,19 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     return res.attributes;
 }
 
-std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId)
+std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
 {
-    // FIXME
+    JsonCommandContext c1("multipleObjectData");
+
+    JsonHandlerApiWrapper h(this, "multipleObjectData");
+    h.write(j_kindName, kindName);
+    h.write(j_filter, filter);
+    if (revision != RevisionId::null)
+        h.write(j_revision, revision);
+    JsonWrappedAttributeMapList res(kindAttributesWithoutRelation(kindName));
+    h.read("multipleObjectData").extract(&res);
+    h.work();
+    return res.objects;
 }
 
 

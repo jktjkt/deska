@@ -663,6 +663,26 @@ void SpecializedExtractor<JsonWrappedAttributeMap>::extract(const json_spirit::V
     }
 }
 
+/** @short Convert JSON into a wrapped, type-checked structure for multipleObjectData
+
+See SpecializedExtractor<JsonWrappedAttributeMap>::extract for why we need a special function here and
+JsonConversionTraits<T>::extract is not enough.
+*/
+template<>
+void SpecializedExtractor<JsonWrappedAttributeMapList>::extract(const json_spirit::Value &value)
+{
+    BOOST_ASSERT(target);
+    JsonContext c1("When extracting list of object attributes");
+    checkJsonValueType(value, json_spirit::obj_type);
+    BOOST_FOREACH(const Pair item, value.get_obj()) {
+        JsonContext c2("When handling attributes for object named " + item.name_);
+        JsonWrappedAttributeMap tmp(target->dataTypes);
+        SpecializedExtractor<JsonWrappedAttributeMap> extractor(&tmp);
+        extractor.extract(item.value_);
+        target->objects[item.name_] = tmp.attributes;
+    }
+}
+
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
 
 Thie functions extends funcitonality provided by the SpecializedExtractor<JsonWrappedAttributeMap>::extract with tracking of the
@@ -743,6 +763,7 @@ template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
+template JsonField& JsonField::extract(JsonWrappedAttributeMapList*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);

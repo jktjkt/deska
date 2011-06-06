@@ -278,6 +278,44 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
+/** @short Basic functionality of multipleObjectData() */
+BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamThrow)
+{
+    // The JsonApiParser needs to know type information for the individual object kinds
+    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+
+    expectWrite("{\"command\":\"multipleObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
+    std::string foo = "{\"kindName\": \"kk\", \"multipleObjectData\": {"
+            "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
+            "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20}, "
+            "}, "
+         "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n";
+    expectRead("{\"kindName\": \"kk\", \"multipleObjectData\": {"
+               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
+               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20} "
+               "}, "
+            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n");
+    map<Identifier, map<Identifier,Value> > expected;
+    expected["a"]["foo"] = "barA";
+    expected["a"]["int"] = 10;
+    expected["a"]["baz"] = "idA";
+    expected["b"]["foo"] = "barB";
+    expected["b"]["int"] = 20;
+    expected["b"]["baz"] = "idB";
+    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
+    BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
+    expectEmpty();
+}
+
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
