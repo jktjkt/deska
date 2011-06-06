@@ -210,6 +210,27 @@ class Table(constants.Templates):
 	def gen_get_uid_embed(self, refcolumn, reftable):
 		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
+	def gen_commit_templated(self):
+		#TODO if there is more columns...
+		collist = self.col.copy();
+		
+		del collist['template']
+		cols_ex_templ = ','.join(collist)
+		del collist['name']
+		del collist['uid']
+		
+		rddvcoal = ""
+		if len(collist) > 0:
+			rddvcoal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist))) + ','
+	
+		cols = ','.join(collist)
+		
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+			
+		return self.commit_templated_string.format(tbl = self.name, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
 
 	def gen_commit(self):
 		#TODO if there is more columns...
@@ -262,7 +283,6 @@ class Table(constants.Templates):
 					newcollist[col] = newcol
 
 		del collist['template']
-		del newcollist['template']
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
