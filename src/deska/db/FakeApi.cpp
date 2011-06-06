@@ -119,7 +119,7 @@ void FakeApi::createObject(const Identifier &kindName, const Identifier &objectN
 
 
 
-void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName)
+void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName)
 {
 }
 

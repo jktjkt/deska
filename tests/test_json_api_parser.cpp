@@ -323,8 +323,8 @@ BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStrea
 /** @short Basic test for renameObject() */
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
+    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
+    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"oldObjectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }

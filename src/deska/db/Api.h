@@ -164,7 +164,7 @@ public:
     virtual void createObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
     /** @short Change object's name */
-    virtual void renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName) = 0;
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName) = 0;
 
     /** @short Set an attribute that belongs to some object to a new value */
     virtual void setAttribute(
