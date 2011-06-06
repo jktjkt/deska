@@ -256,8 +256,14 @@ public:
     /** @short Return differences between the database state in the specified versions */
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const = 0;
 
+    /** @short Return differences between the resolved data in the database between the specified versions */
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b) const = 0;
+
     /** @short Return differences created in a temporary changeset */
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const = 0;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const = 0;
+
+    /** @short Return differences in resolved data created in a temporary changeset */
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const = 0;
 };
 
 }

@@ -179,11 +179,20 @@ std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId a, cons
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
+std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId a, const RevisionId b) const
 {
     return std::vector<ObjectModification>();
 }
 
+std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+{
+    return std::vector<ObjectModification>();
+}
+
+std::vector<ObjectModification> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+{
+    return std::vector<ObjectModification>();
+}
 
 }
 }
