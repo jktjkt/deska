@@ -80,13 +80,6 @@ public:
     */
     bool confirmCreation(const Db::ObjectDefinition &object);
 
-    /** @short Displays confirmation message for removal of an attribute value from an object and returns users choice.
-    *
-    *   @param attribute Name of an attribute which value will be removed
-    *   @return True if the removal was confirmed, else false
-    */
-    bool confirmAttributeRemoval(const Db::Identifier &attribute);
-
     /** @short Asks user to enter a commit message.
     *
     *   @return Entered message

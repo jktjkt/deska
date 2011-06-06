@@ -124,7 +124,7 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
-    return io->confirmAttributeRemoval(attribute);
+    return true;
 }
 
 
