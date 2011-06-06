@@ -31,6 +31,8 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
+#include "SReadline/SReadline.h"
+
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
@@ -46,13 +48,8 @@ class UserInterfaceIO: public boost::noncopyable
 {
 public:
 
-    /** @short Constructor initializes streams for communication with the user.
-    *
-    *   @param outStream Stream for standart output
-    *   @param errStream Stream for error output
-    *   @param inStream Stream for input
-    */
-    UserInterfaceIO(std::ostream &outStream, std::ostream &errStream, std::istream &inStream);
+    /** @short Constructor initializes input reader and CLI constants. */
+    UserInterfaceIO();
 
     /** @short Reports any error to the user (error output).
     *
@@ -103,17 +100,12 @@ public:
     */
     int chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets);
 
-    /** @short Displays prompt with ending >.
+    /** @short Displays prompt and gets one line from the input.
     *
     *   @param prompt Prompt string.
-    */
-    void printPrompt(const std::string &prompt);
-
-    /** @short Gets one line from the input stream.
-    *
     *   @return Read line
     */
-    std::string readLine();
+    std::string readLine(const std::string &prompt);
 
     /** @short Prints list of attribute definitions with indentation.
     *
@@ -165,17 +157,12 @@ private:
     */
     std::string indent(int indentLevel);
 
-    /** Stream for standart output. */
-    std::ostream out;
-    /** Stream for error output. */
-    std::ostream err;
-    /** Stream for input. */
-    std::istream in;
-
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;
     /** Ending string of the prompt. */
     std::string promptEnd;
+
+    swift::SReadline reader;
 };
 
 }
