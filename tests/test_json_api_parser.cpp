@@ -239,7 +239,14 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"real\": \"double\", \"price\": \"double\"}, \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
@@ -277,6 +284,8 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
                "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"response\":\"kindRelations\",\"kindName\":\"kk\", \"kindRelations\": []}\n");
 
     expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
