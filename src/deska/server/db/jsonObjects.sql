@@ -37,8 +37,8 @@ def main(kindName,oldName,newName):
 	jsn = dict()
 	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
-	jsn["oldName"] = oldName
-	jsn["newName"] = newName
+	jsn["oldObjectName"] = oldName
+	jsn["newObjectName"] = newName
 	fname = kindName+"_set_name(text,text)"
 	try:
 		dutil.fcall(fname,oldName,newName)
@@ -108,10 +108,10 @@ def main(kindName,objectName):
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("undeleteObject")
+		return err.json("restoreDeletedObject")
 
 	jsn = dict()
-	jsn["response"] = "undeleteObject"
+	jsn["response"] = "restoreDeletedObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
