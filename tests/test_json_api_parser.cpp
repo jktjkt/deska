@@ -315,7 +315,7 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"restoreDeletedObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeleteObject\"}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeletedObject\"}\n");
     j->restoreDeletedObject("k", "o");
     expectEmpty();
 }
