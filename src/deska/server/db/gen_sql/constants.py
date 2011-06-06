@@ -508,7 +508,7 @@ class Templates:
 	AS
 	$$
 	DECLARE	ver bigint;
-	BEGIN
+	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
@@ -519,6 +519,48 @@ class Templates:
 		DELETE FROM {tbl}
 			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for commit function
+	commit_templated_string = '''CREATE FUNCTION
+	{tbl}_commit()
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		CREATE TEMP TABLE temp_{tbl}_current_changeset AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM {tbl}_history
+			WHERE version = get_current_changeset()
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM {template_tbl}_data_version() dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+			
+		SELECT get_current_changeset() INTO ver;
+		UPDATE {tbl} AS tbl SET {assign}
+			FROM temp_{tbl}_current_changeset as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl} ({columns},name,uid,template)
+			SELECT {columns},name,uid,template FROM temp_{tbl}_current_changeset
+				WHERE uid NOT IN ( SELECT uid FROM {tbl} ) AND dest_bit = '0';
+		DELETE FROM {tbl}
+			WHERE uid IN (SELECT uid FROM temp_{tbl}_current_changeset
+				WHERE version = ver AND dest_bit = '1');
+				
+		DROP TABLE temp_{tbl}_current_changeset;
 		RETURN 1;
 	END
 	$$
