@@ -157,7 +157,7 @@ std::vector<PendingChangeset> FakeApi::pendingChangesets(const boost::optional<F
     return std::vector<PendingChangeset>();
 }
 
-void FakeApi::resumeChangeset(const TemporaryChangesetId revision)
+void FakeApi::resumeChangeset(const TemporaryChangesetId changeset)
 {
 }
 

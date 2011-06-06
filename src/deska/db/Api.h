@@ -224,7 +224,7 @@ public:
      * @see startChangeset()
      * @see pendingRevisionsByMyself()
      */
-    virtual void resumeChangeset(const TemporaryChangesetId revision) = 0;
+    virtual void resumeChangeset(const TemporaryChangesetId changeset) = 0;
 
     /** @short Detach this session from its active changeset
      *

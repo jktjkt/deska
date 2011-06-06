@@ -114,7 +114,7 @@ public:
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual void rebaseChangeset(const RevisionId parentRevision);
     virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
-    virtual void resumeChangeset(const TemporaryChangesetId revision);
+    virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 

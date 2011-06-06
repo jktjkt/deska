@@ -285,12 +285,12 @@ vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
+void JsonApiParser::resumeChangeset(const TemporaryChangesetId changeset)
 {
     JsonCommandContext c1("resumeChangeset");
 
     JsonHandlerApiWrapper h(this, "resumeChangeset");
-    h.write(j_changeset, revision);
+    h.write(j_changeset, changeset);
     h.work();
 }
 
