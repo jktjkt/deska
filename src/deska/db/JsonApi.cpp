@@ -155,7 +155,7 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     h.write(j_objName, objectName);
     if (revision != RevisionId::null)
         h.write(j_revision, revision);
-    JsonWrappedAttributeMap res(kindAttributes(kindName));
+    JsonWrappedAttributeMap res(kindAttributesWithoutRelation(kindName));
     h.read("objectData").extract(&res);
     h.work();
     return res.attributes;
@@ -171,7 +171,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     h.write(j_objName, objectName);
     if (revision != RevisionId::null)
         h.write(j_revision, revision);
-    JsonWrappedAttributeMapWithOrigin res(kindAttributes(kindName));
+    JsonWrappedAttributeMapWithOrigin res(kindAttributesWithoutRelation(kindName));
     h.read("resolvedObjectData").extract(&res);
     h.work();
     return res.attributes;

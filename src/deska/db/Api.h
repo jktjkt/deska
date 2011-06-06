@@ -114,6 +114,9 @@ public:
     virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const = 0;
 
 
+    /** @short Return attributes which are defined for a prticular kind and are not tied to a specific revision */
+    virtual std::vector<KindAttributeDataType> kindAttributesWithoutRelation(const Identifier &kindName) const;
+
     /** @short Retrieve relations between different Kinds
      *
      * This function returns a list of relations for the specified kind of entities -- for more
