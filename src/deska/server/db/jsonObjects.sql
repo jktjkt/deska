@@ -108,10 +108,10 @@ def main(kindName,objectName):
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("undeleteObject")
+		return err.json("restoreDeletedObject")
 
 	jsn = dict()
-	jsn["response"] = "undeleteObject"
+	jsn["response"] = "restoreDeletedObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)
