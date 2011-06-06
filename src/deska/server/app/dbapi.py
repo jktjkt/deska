@@ -11,7 +11,7 @@ class DB:
                 "kindRelations": ["kindName"],
                 "kindInstances": ["kindName"],
                 "deleteObject": ["kindName","objectName"],
-                "undeleteObject": ["kindName","objectName"],
+                "restoreDeletedObject": ["kindName","objectName"],
                 "createObject": ["kindName","objectName"],
                 "renameObject": ["kindName","oldName","newName"],
                 "setAttribute": ["kindName","objectName","attributeName","attributeData"],

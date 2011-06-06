@@ -95,7 +95,7 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.undeleteObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
