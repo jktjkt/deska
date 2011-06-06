@@ -27,8 +27,6 @@
 #include "UserInterface.h"
 #include "deska/db/JsonApi.h"
 
-#include "SReadline/SReadline.h"
-
 
 
 namespace Deska
@@ -39,7 +37,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
-    m_dbInteraction(dbInteraction), m_parser(parser), prompt(""), io(_io), inChangeset(false)
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), inChangeset(false)
 {
 }
 
@@ -124,7 +122,7 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
-    return io->confirmAttributeRemoval(attribute);
+    return true;
 }
 
 
@@ -204,34 +202,11 @@ void UserInterface::resumeChangeset()
 
 void UserInterface::run()
 {
-    // TODO: Rewrite this function using Redline--
-
-    // FIXME: Only temporary usage of SReadline.
-    swift::SReadline reader(".cli_history",64);
-    std::vector<std::string> completitions;
-    completitions.push_back("exit");
-    completitions.push_back("quit");
-    completitions.push_back("dump");
-    completitions.push_back("commit");
-    completitions.push_back("detach");
-    completitions.push_back("abort");
-    completitions.push_back("start");
-    completitions.push_back("resume");
-    completitions.push_back("status");
-    completitions.push_back("help");
-    completitions.push_back("show");
-    completitions.push_back("delete");
-    completitions.push_back("rename");
-    reader.RegisterCompletions(completitions);
-
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
     Db::ContextStack context;
     for (;;) {
-        //io->printPrompt(prompt);
-        //line = io->readLine();
-        line = reader.GetLine(prompt + "> ");
-
+        line = io->readLine(Db::contextStackToString(context));
 
         if (line == "exit" || line == "quit") {
             break;
@@ -291,7 +266,6 @@ void UserInterface::run()
         }
 
         context = m_parser->currentContextStack();
-        prompt = Db::contextStackToString(context);
     }
 }
 

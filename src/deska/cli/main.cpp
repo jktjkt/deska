@@ -11,7 +11,7 @@ int main()
     Deska::Db::Connection conn;
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
-    Deska::Cli::UserInterfaceIO io(std::cout, std::cerr, std::cin);
+    Deska::Cli::UserInterfaceIO io;
     Deska::Cli::UserInterface ui(&db, &parser, &io);
     Deska::Cli::SignalsHandler(&parser, &ui);
     ui.run();
