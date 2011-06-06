@@ -59,7 +59,7 @@ std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k)
 
 bool operator==(const ObjectRelation &a, const ObjectRelation &b)
 {
-    return a.kind == b.kind && a.sourceAttribute == b.sourceAttribute && a.targetTableName == b.targetTableName;
+    return a.kind == b.kind && a.target == b.target;
 }
 
 bool operator!=(const ObjectRelation &a, const ObjectRelation &b)
@@ -71,55 +71,53 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 {
     switch (o.kind) {
     case RELATION_MERGE_WITH:
-        return stream << "mergeWith(" << o.targetTableName << ", " << o.sourceAttribute << ")";
+        return stream << "mergeWith(" << o.target << ")";
     case RELATION_EMBED_INTO:
-        return stream << "embedInto(" << o.targetTableName << ")";
+        return stream << "embedInto(" << o.target << ")";
     case RELATION_IS_TEMPLATE:
-        return stream << "isTemplate(" << o.targetTableName << ")";
+        return stream << "isTemplate(" << o.target << ")";
     case RELATION_TEMPLATIZED:
-        return stream << "templatized(" << o.targetTableName << ", " << o.sourceAttribute << ")";
+        return stream << "templatized(" << o.target << ")";
     case RELATION_INVALID:
         return stream << "RELATION_INVALID";
     }
     return stream << "[Invalid relation: " << static_cast<int>(o.kind) << "]";
 }
 
-ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute):
-    kind(_kind), targetTableName(_targetTableName), sourceAttribute(_sourceAttribute)
+ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target):
+    kind(_kind), target(_target)
 {
 }
 
-ObjectRelation ObjectRelation::mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute)
+ObjectRelation ObjectRelation::mergeWith(const Identifier &target)
 {
     ObjectRelation res;
     res.kind = RELATION_MERGE_WITH;
-    res.targetTableName = targetTableName;
-    res.sourceAttribute = sourceAttribute;
+    res.target = target;
     return res;
 }
 
-ObjectRelation ObjectRelation::embedInto(const Identifier &into)
+ObjectRelation ObjectRelation::embedInto(const Identifier &target)
 {
     ObjectRelation res;
     res.kind = RELATION_EMBED_INTO;
-    res.targetTableName = into;
+    res.target = target;
     return res;
 }
 
-ObjectRelation ObjectRelation::isTemplate(const Identifier &toWhichKind)
+ObjectRelation ObjectRelation::isTemplate(const Identifier &target)
 {
     ObjectRelation res;
     res.kind = RELATION_IS_TEMPLATE;
-    res.targetTableName = toWhichKind;
+    res.target = target;
     return res;
 }
 
-ObjectRelation ObjectRelation::templatized(const Identifier &byWhichKind, const Identifier &sourceAttribute)
+ObjectRelation ObjectRelation::templatized(const Identifier &target)
 {
     ObjectRelation res;
     res.kind = RELATION_TEMPLATIZED;
-    res.targetTableName = byWhichKind;
-    res.sourceAttribute = sourceAttribute;
+    res.target = target;
     return res;
 }
 

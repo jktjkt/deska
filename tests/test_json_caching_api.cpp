@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 
     // Now, let's check the relations. And start with checking "b" just for fun:
     vector<ObjectRelation> expectedRelations;
-    expectedRelations.push_back(ObjectRelation::templatized("a", "name_of_a"));
+    expectedRelations.push_back(ObjectRelation::templatized("a"));
     vector<ObjectRelation> resRelations = j->kindRelations("b");
     BOOST_CHECK_EQUAL_COLLECTIONS(resRelations.begin(), resRelations.end(), expectedRelations.begin(), expectedRelations.end());
 

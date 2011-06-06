@@ -109,15 +109,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
     expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
-            "{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\"}, "
-            "{\"relation\": \"MERGE_WITH\", \"targetTableName\": \"second-kind\", \"sourceAttribute\": \"my-attribute\"}, "
-            "{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\": \"target-kind\"}, "
-            "{\"relation\": \"TEMPLATIZED\", \"byWhichKind\": \"by-which-kind\", \"sourceAttribute\": \"my-attribute\"}], \"response\": \"kindRelations\"}\n");
+            "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
+            "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
+            "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
-    expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::mergeWith("second-kind"));
     expected.push_back(ObjectRelation::isTemplate("target-kind"));
-    expected.push_back(ObjectRelation::templatized("by-which-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();

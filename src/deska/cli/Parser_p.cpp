@@ -602,7 +602,7 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
     for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
         for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
-            if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->targetTableName == kindName)) {
+            if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == kindName)) {
                 kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
             }
         }
@@ -661,7 +661,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                         for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin();
                              itr != relations.end(); ++itr) {
                             if ((itr->kind == Db::RELATION_EMBED_INTO) &&
-                                (itr->targetTableName == contextStack.back().kind)) {
+                                (itr->target == contextStack.back().kind)) {
                                 nestedKinds.push_back(*it);
                             }
                         }
@@ -941,7 +941,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(std::vector<st
         for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
             std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
             for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
-                if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->targetTableName == contextStack.back().kind)) {
+                if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == contextStack.back().kind)) {
                     possibilities.push_back(*it);
                 }
             }
