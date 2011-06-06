@@ -131,11 +131,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
     // We want to test various different error scenarios here
     typedef std::pair<string,string> PairStringString;
     vector<PairStringString> data;
-    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "Mandatory field 'relation' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\"}", "Invalid relation kind 'EMBED_INTO2'"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'into' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\", \"foo\": \"bar\"}",
-                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation into)."));
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "JSON field 'rel' is not allowed in this context (expecting one of: relation target)."));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\", \"target\": \"pwn\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'target' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation target)."));
     BOOST_FOREACH(const PairStringString &value, data) {
         expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
         expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
