@@ -264,6 +264,7 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
         without one & -- \\
     {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+    {\tt FilterError} & The specified filter is not valid & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has experienced an internal error & -- \\
 \end{longtable}
@@ -343,11 +344,11 @@ relation information etc.  The following types are defined:
         One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"}, {\tt "enum\_X"} and
         {\tt "X\_null"} \\
     {\tt Deska::Db::ObjectRelation} &
-        One of \newline {\tt\{"relation": "EMBED\_INTO", "into": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "targetTableName": }Identifier{\tt, "sourceAttribute": }Identifier{\tt\}},
+        One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}},
         \newline
-        {\tt\{"relation": "IS\_TEMPLATE", "toWhichKind": }Identifier{\tt\}} \newline or \newline
-        {\tt\{"relation": "TEMPLATIZED", "byWhichKind": }Identifier{\tt, "sourceAttribute": }Identifier{\tt\}} \\
+        {\tt\{"relation": "IS\_TEMPLATE", "target": }Identifier{\tt\}} \newline or \newline
+        {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
         {\tt \{"revision": }RevisionId{\tt, "author": }Identifier{\tt, "timestamp": }timestamp{\tt,
         "commitMessage": }string{\tt\}}
@@ -509,10 +510,10 @@ and the defined object relations.
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
-            \{"relation": "EMBED\_INTO", "into": "hardware"\}, \\
-            \{"relation": "MERGE\_WITH", "targetTableName": "second-kind", "sourceAttribute": "my-attribute"\}, \\
-            \{"relation": "IS\_TEMPLATE", "toWhichKind": "target-kind"\}, \\
-            \{"relation": "TEMPLATIZED", "byWhichKind": "by-which-kind", "sourceAttribute": "my-attribute"\} \\
+            \{"relation": "EMBED\_INTO", "target": "hardware"\}, \\
+            \{"relation": "MERGE\_WITH", "target": "second-kind"\}, \\
+            \{"relation": "IS\_TEMPLATE", "target": "target-kind"\}, \\
+            \{"relation": "TEMPLATIZED", "target": "by-which-kind"\} \\
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kind of entities -- for more details and examples, see the ObjectRelation struct.}
@@ -578,7 +579,7 @@ Any function which modifies objects stored in the Deska database belongs to this
     completely undo the deletion, without leaving any trace in the history.  The object is completely restored,
     including all attributes and references.}
 
-\deskaFunc{renameObject}{, "kindName": "something", "oldName": "name", "newName": "name"}
+\deskaFunc{renameObject}{, "kindName": "something", "oldObjectName": "name", "newObjectName": "name"}
     {}
     {Change the name of an object}
     {This function will rename an object.  All references to the old name are automatically updated to point to the new

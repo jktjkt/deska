@@ -119,7 +119,7 @@ void FakeApi::createObject(const Identifier &kindName, const Identifier &objectN
 
 
 
-void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName)
+void FakeApi::renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName)
 {
 }
 
@@ -157,7 +157,7 @@ std::vector<PendingChangeset> FakeApi::pendingChangesets(const boost::optional<F
     return std::vector<PendingChangeset>();
 }
 
-void FakeApi::resumeChangeset(const TemporaryChangesetId revision)
+void FakeApi::resumeChangeset(const TemporaryChangesetId changeset)
 {
 }
 
@@ -179,11 +179,20 @@ std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId a, cons
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const
+std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId a, const RevisionId b) const
 {
     return std::vector<ObjectModification>();
 }
 
+std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+{
+    return std::vector<ObjectModification>();
+}
+
+std::vector<ObjectModification> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+{
+    return std::vector<ObjectModification>();
+}
 
 }
 }

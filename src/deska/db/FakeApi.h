@@ -51,7 +51,7 @@ public:
     virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
     virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName);
     virtual void createObject(const Identifier &kindName, const Identifier &objectName);
-    virtual void renameObject(const Identifier &kindName, const Identifier &oldName, const Identifier &newName);
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);
     virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
@@ -61,14 +61,16 @@ public:
     virtual RevisionId commitChangeset(const std::string &commitMessage);
     virtual void rebaseChangeset(const RevisionId parentRevision);
     virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
-    virtual void resumeChangeset(const TemporaryChangesetId revision);
+    virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
     virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId a) const;
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
 
     // These members should be accessible for modifications from the test suite
 

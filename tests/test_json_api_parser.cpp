@@ -109,15 +109,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
     expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
-            "{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\"}, "
-            "{\"relation\": \"MERGE_WITH\", \"targetTableName\": \"second-kind\", \"sourceAttribute\": \"my-attribute\"}, "
-            "{\"relation\": \"IS_TEMPLATE\", \"toWhichKind\": \"target-kind\"}, "
-            "{\"relation\": \"TEMPLATIZED\", \"byWhichKind\": \"by-which-kind\", \"sourceAttribute\": \"my-attribute\"}], \"response\": \"kindRelations\"}\n");
+            "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
+            "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
+            "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
-    expected.push_back(ObjectRelation::mergeWith("second-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::mergeWith("second-kind"));
     expected.push_back(ObjectRelation::isTemplate("target-kind"));
-    expected.push_back(ObjectRelation::templatized("by-which-kind", "my-attribute"));
+    expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -131,11 +131,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
     // We want to test various different error scenarios here
     typedef std::pair<string,string> PairStringString;
     vector<PairStringString> data;
-    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "Mandatory field 'relation' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\"}", "Invalid relation kind 'EMBED_INTO2'"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'into' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"into\": \"hardware\", \"foo\": \"bar\"}",
-                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation into)."));
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "JSON field 'rel' is not allowed in this context (expecting one of: relation target)."));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\", \"target\": \"pwn\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'target' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation target)."));
     BOOST_FOREACH(const PairStringString &value, data) {
         expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
         expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
@@ -239,7 +239,14 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"real\": \"double\", \"price\": \"double\"}, \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
+               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    // ... as well as relation information for proper filtering
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"kindRelations\": ["
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
@@ -277,6 +284,8 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
                "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"response\":\"kindRelations\",\"kindName\":\"kk\", \"kindRelations\": []}\n");
 
     expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
     expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
@@ -315,7 +324,7 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"restoreDeletedObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeleteObject\"}\n");
+    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeletedObject\"}\n");
     j->restoreDeletedObject("k", "o");
     expectEmpty();
 }
@@ -323,8 +332,8 @@ BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStrea
 /** @short Basic test for renameObject() */
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"objectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"objectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
+    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
+    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"oldObjectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }
@@ -588,6 +597,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(NotFoundError);
     JSON_ERR_TEST(NoChangesetError);
     JSON_ERR_TEST(ChangesetAlreadyOpenError);
+    JSON_ERR_TEST(FilterError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST
