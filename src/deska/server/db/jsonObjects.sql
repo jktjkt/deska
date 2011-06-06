@@ -37,8 +37,8 @@ def main(kindName,oldName,newName):
 	jsn = dict()
 	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
-	jsn["oldName"] = oldName
-	jsn["newName"] = newName
+	jsn["oldObjectName"] = oldName
+	jsn["newObjectName"] = newName
 	fname = kindName+"_set_name(text,text)"
 	try:
 		dutil.fcall(fname,oldName,newName)
