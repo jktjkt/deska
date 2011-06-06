@@ -34,7 +34,7 @@ namespace Cli
 
 
 UserInterfaceIO::UserInterfaceIO():
-    tabSize(4), promptEnd("> ")//, reader(".deska_cli_history", 64)
+    tabSize(4), promptEnd("> "), reader(".deska_cli_history", 64)
 {
     // FIXME: Completitions will be obtained from the UserInterface dynamicly
     std::vector<std::string> completitions;
