@@ -11,6 +11,7 @@ class DB:
                 "kindRelations": ["kindName"],
                 "kindInstances": ["kindName"],
                 "deleteObject": ["kindName","objectName"],
+                "undeleteObject": ["kindName","objectName"],
                 "createObject": ["kindName","objectName"],
                 "renameObject": ["kindName","oldName","newName"],
                 "setAttribute": ["kindName","objectName","attributeName","attributeData"],
@@ -18,10 +19,10 @@ class DB:
                 "commitChangeset": ["commitMessage"],
                 "rebaseChangeset": [],
                 "pendingChangesets": ["filter"],
-                "resumeChangeset": ["revision"],
+                "resumeChangeset": ["changeset"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
-		"dataDifference": ["a", "b"],
+		"dataDifference": ["revisionA", "revisionB"],
 		"objectData": ["kindName", "objectName"],
 		"listRevisions": ["filter"]
 	})
@@ -31,12 +32,15 @@ class DB:
 			self.db = psycopg2.connect(**kwargs);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
+			self.error = None
 		except Exception, e:
-			raise
+			self.error = e
 
 	def utf2str(self,data):
 		'''Convert dict structure into str'''
-		if type(data) == dict:
+		if data is None:
+			return None
+		elif type(data) == dict:
 			'''We need to create json here'''
 			newdict = dict()
 			for key in data:
@@ -47,8 +51,17 @@ class DB:
 		else:
 			return str(data)
 
+	def errorJson(self,command,message):
+		jsn = dict({"response": command,
+			"dbException": {"type": "ServerError", "message": message}
+		})
+		return json.dumps(jsn)
+
 	def run(self,name,args):
 		logging.debug("start run method({n}, {a})".format(n = name, a = args))
+		# test if connection is ok
+		if self.error is not None:
+			return self.errorJson(name,"No connection to DB")
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
@@ -57,9 +70,9 @@ class DB:
 			# note that "filter" is always optional
 			if not_present == set(["filter"]):
 				args["filter"] = ''
-				pass
+				logging.debug("filter was not present, pass '' arguments")
 			else:
-				raise Exception("run_method error: missing arguments: {0}".format(not_present))
+				return self.errorJson(name,"Missing arguments: {0}".format(list(not_present)))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -73,7 +86,9 @@ class DB:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
-			raise
+			logging.debug("Exception when call db function: {e})".format(e = e))
+			self.db.commit()
+			return self.errorJson(name,e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: {d})".format(d = data))
 		self.db.commit()

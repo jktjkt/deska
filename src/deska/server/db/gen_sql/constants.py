@@ -34,7 +34,7 @@ class Templates:
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		--not found in case there is no object with name name_ in history
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
@@ -69,7 +69,12 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		--value is name of object in reftable
 		--we need to know uid of referenced object instead of its name
-		SELECT {reftbl}_get_uid(value) INTO refuid;
+		IF value IS NULL THEN
+			refuid = NULL;
+		ELSE
+			SELECT {reftbl}_get_uid(value) INTO refuid;
+		END IF;
+		
 		SELECT {tbl}_get_uid(name_) INTO rowuid;
 		-- try if there is already line for current version
 		SELECT uid INTO tmp FROM {tbl}_history
@@ -149,7 +154,7 @@ class Templates:
 				--user wants current data from production
 				SELECT {columns} INTO data FROM production.{tbl} WHERE name = name_;
 				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 				END IF;
 				RETURN data;
 			END IF;
@@ -166,7 +171,7 @@ class Templates:
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
 			WHERE name = name_;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;
 
 		RETURN data;
@@ -189,7 +194,7 @@ class Templates:
 	BEGIN
 		obj_uid = {tbl}_get_uid(name_, from_version);
 		IF obj_uid IS NULL THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;
 		
 		IF from_version = 0 THEN
@@ -199,7 +204,7 @@ class Templates:
 				--name in table is only local part of object, we should look for object by uid
 				SELECT {columns} INTO data FROM production.{tbl} WHERE uid = obj_uid;
 				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 				END IF;				
 				RETURN data;
 			END IF;
@@ -216,7 +221,7 @@ class Templates:
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
 			WHERE uid = obj_uid;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;
 
 		RETURN data;
@@ -245,7 +250,7 @@ class Templates:
 				--user wants current uid from production
 				SELECT uid INTO value FROM production.{tbl} WHERE name = name_;
 				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 				END IF;
 				RETURN value;
 			END IF;
@@ -261,7 +266,7 @@ class Templates:
 		
 		SELECT uid INTO value FROM {tbl}_data_version(from_version) WHERE name = name_;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;		
 		RETURN value;
 	END
@@ -326,7 +331,7 @@ class Templates:
 				SELECT join_with_delim({reftbl}_get_name({column}, from_version), name, '{delim}') INTO value FROM production.{tbl}
 					WHERE uid = {tbl}_uid;
 				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 				END IF;
 				RETURN value;
 			END IF;
@@ -389,7 +394,7 @@ class Templates:
 		
 		SELECT uid INTO {tbl}_uid FROM {tbl}_data_version(from_version) WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '10022';
+			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '70022';
 		END IF;
 
 		RETURN {tbl}_uid;
@@ -503,7 +508,7 @@ class Templates:
 	AS
 	$$
 	DECLARE	ver bigint;
-	BEGIN
+	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
@@ -514,6 +519,48 @@ class Templates:
 		DELETE FROM {tbl}
 			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for commit function
+	commit_templated_string = '''CREATE FUNCTION
+	{tbl}_commit()
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		CREATE TEMP TABLE temp_{tbl}_current_changeset AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM {tbl}_history
+			WHERE version = get_current_changeset()
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM {template_tbl}_data_version() dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+			
+		SELECT get_current_changeset() INTO ver;
+		UPDATE {tbl} AS tbl SET {assign}
+			FROM temp_{tbl}_current_changeset as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl} ({columns},name,uid,template)
+			SELECT {columns},name,uid,template FROM temp_{tbl}_current_changeset
+				WHERE uid NOT IN ( SELECT uid FROM {tbl} ) AND dest_bit = '0';
+		DELETE FROM {tbl}
+			WHERE uid IN (SELECT uid FROM temp_{tbl}_current_changeset
+				WHERE version = ver AND dest_bit = '1');
+				
+		DROP TABLE temp_{tbl}_current_changeset;
 		RETURN 1;
 	END
 	$$
@@ -617,7 +664,7 @@ AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1' AND old_dest_bit = '0';
 END;
 $$
 LANGUAGE plpgsql;

@@ -54,11 +54,30 @@ void DbInteraction::deleteObject(const Db::ContextStack &context)
 
 
 
+void DbInteraction::renameObject(const Db::ContextStack &context, const Db::Identifier &newName)
+{
+    BOOST_ASSERT(!context.empty());
+    Db::ContextStack newContext = context;
+    newContext.back().name = newName;
+    m_api->renameObject(context.back().kind, Db::contextStackToPath(context), Db::contextStackToPath(newContext));
+}
+
+
+
 void DbInteraction::setAttribute(const Db::ContextStack &context,
                                  const Db::AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
     m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute.attribute, attribute.value);
+}
+
+
+
+void DbInteraction::removeAttribute(const Db::ContextStack &context,
+                                    const Db::Identifier &attribute)
+{
+    BOOST_ASSERT(!context.empty());
+    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute, 0);
 }
 
 
@@ -84,6 +103,11 @@ std::vector<Db::ObjectDefinition> DbInteraction::kindInstances(const Db::Identif
 std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ObjectDefinition &object)
 {
     std::vector<Db::AttributeDefinition> attributes;
+
+    // Check whether this kind contains any attributes. If not, return empty list.
+    if (m_api->kindAttributes(object.kind).empty())
+        return attributes;
+
     typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
         attributes.push_back(Db::AttributeDefinition(x.first, x.second));
@@ -96,7 +120,13 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
+
     if (!context.empty()) {
+
+        // Check whether this kind contains any attributes. If not, return empty list.
+        if (m_api->kindAttributes(context.back().kind).empty())
+            return attributes;
+
         typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
         BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::contextStackToPath(context))) {
             attributes.push_back(Db::AttributeDefinition(x.first, x.second));

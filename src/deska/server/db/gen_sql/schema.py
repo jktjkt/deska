@@ -18,7 +18,7 @@ CREATE FUNCTION commit_all(message text)
 		SELECT max(id) INTO last_rev FROM version;
 		parent = parent(get_current_changeset());
 		IF parent != last_rev THEN
-			RAISE SQLSTATE '10007' USING MESSAGE = 'You must run rebase before commit.';
+			RAISE SQLSTATE '70007' USING MESSAGE = 'You must run rebase before commit.';
 		END IF;
 		SET CONSTRAINTS ALL DEFERRED;
 		{commit_tables}
@@ -48,24 +48,23 @@ CREATE FUNCTION commit_all(message text)
 		self.templated_tables = set()
 		for tbl in record:
 			self.templated_tables.add(tbl[0])
+		print self.templated_tables
 
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
 		name_split = filename.rsplit('/', 1)
-		self.table_sql = open(name_split[0] + '/' + 'table_' + name_split[1],'w')
+		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
 
 		# print this to add proc into genproc schema
-		self.table_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
+		self.table_sql.write("SET search_path TO history,deska,versioning,production;\n")
+		self.fn_sql.write("\\i create_schemas_2.sql\n")
 		self.fn_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
 			
-		for tbl in self.templated_tables:
-			self.gen_for_templated_table(tbl)
-
 		self.fn_sql.write(self.gen_commit())
 
 		self.fn_sql.close()
@@ -127,13 +126,12 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set('name'))
-
+			
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.fn_sql.write(table.gen_del())
 		self.fn_sql.write(table.gen_undel())
 		self.fn_sql.write(table.gen_get_object_data())
-		self.fn_sql.write(table.gen_commit())
 		self.fn_sql.write(table.gen_diff_deleted())
 		self.fn_sql.write(table.gen_diff_created())
 		self.fn_sql.write(table.gen_diff_set_attribute())
@@ -141,6 +139,14 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.write(table.gen_diff_terminate_function())
 		self.fn_sql.write(table.gen_data_version())
 		self.fn_sql.write(table.gen_data_changes())
+		
+		#different generated functions for templated and not templated tables
+		if tbl in self.templated_tables:
+			self.fn_sql.write(table.gen_commit_templated())
+			self.fn_sql.write(table.gen_resolved_data())
+		else:
+			self.fn_sql.write(table.gen_commit())
+			
 		return
 
 	def gen_commit(self):
@@ -157,17 +163,4 @@ CREATE FUNCTION commit_all(message text)
 	return db.callproc("commit")
 	'''
 		return commit_str
-
-	def gen_for_templated_table(self,tbl):
-		table = Table(tbl)
-		columns = self.plpy.execute(self.column_str.format(tbl))
-		for col in columns[:]:
-			table.add_column(col[0],col[1])
-
-		# add fk constraints
-		constraints = self.plpy.execute(self.fk_str.format(tbl))
-		for col in constraints[:]:
-			table.add_fk(col[0],col[1],col[2],col[3])
-		
-		self.fn_sql.write(table.gen_resolved_data())
 		

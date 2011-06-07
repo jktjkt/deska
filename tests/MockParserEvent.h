@@ -38,12 +38,18 @@ public:
 
     /** @short The setAttr() signal */
     static MockParserEvent setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+    
+    /** @short The removeAttr() signal */
+    static MockParserEvent removeAttr(const Deska::Db::Identifier &name);
 
     /** @short The functionShow() signal */
     static MockParserEvent functionShow();
     
     /** @short The functionDelete() signal */
     static MockParserEvent functionDelete();
+
+    /** @short The functionRename() signal */
+    static MockParserEvent functionRename(const Deska::Db::Identifier &newName);
 
     /** @short Parser error */
     static MockParserEvent parserError(const Deska::Cli::ParserException &err);
@@ -66,10 +72,14 @@ private:
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
         EVENT_SET_ATTR,
+        /** @short Handler for removeAttribute() */
+        EVENT_REMOVE_ATTR,
         /** @short Handler for functionShow() */
         EVENT_FUNCTION_SHOW,
         /** @short Handler for functionDelete() */
         EVENT_FUNCTION_DELETE,
+        /** @short Handler for functionRename() */
+        EVENT_FUNCTION_RENAME,
         /** @short Handler for parseError() */
         EVENT_PARSE_ERROR,
         /** @short Handler for parsingFinished() */

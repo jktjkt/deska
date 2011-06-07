@@ -229,6 +229,9 @@ examples are equivalent, provided that the arguments {\tt a1} is defined an acce
     {"command": "foo"}
 \end{lstlisting}
 
+Please note that this rule does {\em not} translate to ``one can freely omit {\tt null} values in any place''; indeed,
+explicitly returning {\tt null}s is compulsory e.g. when processing object attributes.
+
 \subsection{Exceptions}
 
 There are certain situations where the execution of a particular command terminates in an unexpected manner.  One reason
@@ -252,7 +255,7 @@ computer-readable data to the API user.  Usual rules for representing values app
 
 This is the list of currently defined exceptions, along with their other arguments:
 
-\begin{longtable}{ p{36mm} p{70mm} p{40mm} }
+\begin{longtable}{ p{44mm} p{80mm} p{24mm} }
     \caption{List of supported exceptions} \\
     Exception Name & Meaning & Additional arguments \\
     \hline
@@ -365,7 +368,11 @@ relation information etc.  The following types are defined:
         {\tt "columnLe"}
         \\
     {\tt Deska::Db::Expression} &
-        {\tt \{"condition": }ExpressionKind{\tt, "column": }Identifier{\tt, "value": }Value{\tt \}}
+        One of \newline
+        {\tt \{"condition": }ExpressionKind{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
+        }Value{\tt \}}, \newline
+        or \newline
+        {\tt \{"condition": }ExpressionKind{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
@@ -527,13 +534,20 @@ Functions from this group are used for fetching actual data from the database.
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
     {Get all attributes for a particular object instance}
     {This function returns values of all attributes which are defined for the given object.  No template resolving is
-    performed, see \deskaFuncRef{resolvedObjectData} for details.}
+    performed, see \deskaFuncRef{resolvedObjectData} for details.
+
+    This function guarantees to return all attribute instances, including the {\tt null} values.  The only exception are
+    embedded objects, for which the \deskaFuncRef{kindAttributes} returns a special attribute referring to the foreign
+    key reference (in the demo setup, this would be the {\tt host} attribute for an {\tt interface}), but this special
+    attribute is missing from the \deskaFuncRef{objectData} output.}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
     {Get effective values for all attributes for a particular object instance, taking templates into account}
     {This function returns effective values of all attributes defined for a particular object or inherited from its
-    template parent along with the identifier of the object at which level the value is specified.}
+    template parent along with the identifier of the object at which level the value is specified.
+
+    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
 
 FIXME: document output filters (\#210)
 

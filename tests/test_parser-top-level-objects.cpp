@@ -97,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
     verifyEmptyStack();
 }
 
-/** @short Assing a simple value to an object using the inline syntax*/
+/** @short Assigning a simple value to an object using the inline syntax*/
 BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, ParserTestFixture )
 {
     // Start a new context
@@ -120,14 +120,14 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
     expectNothingElse();
     verifyStackOneLevel("hardware", "hpv2");
 
-    // Set the second one
+    // Set the first attribute
     parser->parseLine("price 666\r\n");
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("hardware", "hpv2");
 
-    // Set the first attribute
+    // Set the second one
     parser->parseLine("name \"foo bar baz\"\r\n");
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
     expectParsingFinished();
@@ -872,4 +872,620 @@ BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, Parser
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "123");
+}
+
+/** @short Remove an attribute from an object using verbose syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+
+    // Verify stack nesting
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the attribute
+    parser->parseLine("no name\r\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove an attribute from an object using the inline syntax*/
+BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 no name\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectRemoveAttr("name");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove two attributes of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Remove the first attribute
+    parser->parseLine("no price\r\n");
+    expectRemoveAttr("price");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Remove the second one
+    parser->parseLine("no name\r\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set one attribute and remove one of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the first attribute
+    parser->parseLine("price 666\r\n");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Remove the second one
+    parser->parseLine("no name\r\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove one attribute and set one of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Remove the first attribute
+    parser->parseLine("no price\r\n");
+    expectRemoveAttr("price");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the second one
+    parser->parseLine("name \"foo bar baz\"\r\n");
+    expectSetAttr("name", Deska::Db::Value("foo bar baz"));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove and set one attribute of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Remove the attribute
+    parser->parseLine("no price\r\n");
+    expectRemoveAttr("price");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set it again
+    parser->parseLine("price 666\r\n");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set and remove one attribute of an object using the multiline variant of the syntax */
+BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // Set the attribute
+    parser->parseLine("price 666\r\n");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+    
+    // And remove it
+    parser->parseLine("no price\r\n");
+    expectRemoveAttr("price");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("hardware", "hpv2");
+
+    // And terminate the input
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove two attributes of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 no price no name\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectRemoveAttr("price");
+    expectRemoveAttr("name");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set one attribute and remove one of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 price 666 no name\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectRemoveAttr("name");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove one attribute and set one of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 no price name \"foo bar baz\"\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectRemoveAttr("price");
+    expectSetAttr("name", Deska::Db::Value("foo bar baz"));
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Remove and set one attribute of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 no price price 666\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectRemoveAttr("price");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Set and remove one attribute of an object inline */
+BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument_inline, ParserTestFixture )
+{
+    // Start a new context
+    parser->parseLine("hardware hpv2 price 666 no price\r\n");
+    expectCategoryEntered("hardware", "hpv2");
+    expectSetAttr("price", Deska::Db::Value(666.0));
+    expectRemoveAttr("price");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short test correct parsing of multiple arguments removal, all passed inline */
+BOOST_FIXTURE_TEST_CASE(parsing_remove_multiple_arguments_inline, ParserTestFixture)
+{
+    parser->parseLine("hardware abcde no id no name no price\n");
+    expectCategoryEntered("hardware", "abcde");
+    expectRemoveAttr("id");
+    expectRemoveAttr("name");
+    expectRemoveAttr("price");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Syntax error in the name of the first attribute removal */
+BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_removal_inline, ParserTestFixture)
+{
+    const std::string line = "hardware abcde no isd name \"jmeno\" price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find(" isd");
+    parser->parseLine(line);
+    expectCategoryEntered("hardware", "abcde");
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Test parsing of an object nested into the parent one with attributes removal */
+BOOST_FIXTURE_TEST_CASE(nested_interface_attrs_removal, ParserTestFixture)
+{
+    parser->parseLine("host abcde\n");
+    expectCategoryEntered("host", "abcde");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    
+    parser->parseLine("no name\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\n");
+    expectCategoryEntered("interface", "eth0");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("no mac\n");
+    expectRemoveAttr("mac");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+}
+
+/** @short Inline definition of an embedded object given immediately after the parent with attribute removal */
+BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_attr_removal_inline, ParserTestFixture)
+{
+    parser->parseLine("host abcde interface eth0 no mac\n");
+    expectCategoryEntered("host", "abcde");
+    expectCategoryEntered("interface", "eth0");
+    expectRemoveAttr("mac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+}
+
+
+/** @short Inline definition of an embedded object after a paren't attr with attribute removal */
+BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_attr_removal_inline, ParserTestFixture)
+{
+    parser->parseLine("host abcde hardware_id 1 interface eth0 no mac\n");
+    expectCategoryEntered("host", "abcde");
+    expectSetAttr("hardware_id", Deska::Db::Value("1")); // identifier, not an int
+    expectCategoryEntered("interface", "eth0");
+    expectRemoveAttr("mac");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+}
+
+/** @short An embedded object in an inline form should then return to the previous context while removin attribute */
+BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed_attr_remove, ParserTestFixture)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    
+    parser->parseLine("name \"jmeno\"\r\n");
+    expectSetAttr("name", Deska::Db::Value("jmeno"));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+    
+    parser->parseLine("interface eth0 no mac\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectRemoveAttr("mac");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+}
+
+/** @short Generic test for multiline embed with attributes remove*/
+BOOST_FIXTURE_TEST_CASE(multiline_with_embed_attrs_remove, ParserTestFixture)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("no name\r\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("no mac\r\n");
+    expectRemoveAttr("mac");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short An error in multiline embed should not manipulate the context at all while removing attribute*/
+BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed_attr_remove, ParserTestFixture)
+{
+    parser->parseLine("host abcde\r\n");
+    expectCategoryEntered("host", "abcde");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("no name\r\n");
+    expectRemoveAttr("name");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("interface eth0\r\n");
+    expectCategoryEntered("interface", "eth0");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    const std::string line = "no maaaac\r\n";
+    const std::string::const_iterator it = line.begin() + line.find(" maaaac");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
+    expectNothingElse();
+    verifyStackTwoLevels("host", "abcde", "interface", "eth0");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "abcde");
+
+    parser->parseLine("end\r\n");
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can enter into an embedded context with just a single line and remove attribute */
+BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr_removal, ParserTestFixture)
+{
+    parser->parseLine("host 123 interface 456 no ip\n");
+    expectCategoryEntered("host", "123");
+    expectCategoryEntered("interface", "456");
+    expectRemoveAttr("ip");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that when parsing removal of invalid attribute, only attributes and no nested kinds will be expected */
+BOOST_FIXTURE_TEST_CASE(invalid_attr_removal, ParserTestFixture)
+{
+    const std::string line = "host 123 no bar\n";
+    const std::string::const_iterator it = line.begin() + line.find(" bar");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" ].", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short We cant use function rrname with no context and no parameter */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
+{
+    const std::string line = "rename\n";
+    const std::string::const_iterator it = line.end();
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename in context */
+BOOST_FIXTURE_TEST_CASE(function_rename_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+    
+    parser->parseLine("rename 456\n");
+    expectFunctionRename("456");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short Verify that we can use function rename with parameter in no context */
+BOOST_FIXTURE_TEST_CASE(function_rename_param_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 123 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectFunctionRename("456");
+    expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename with nesting in no context */
+BOOST_FIXTURE_TEST_CASE(function_rename_nest_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 123 interface eth0 eth1\n";
+    const std::string::const_iterator it = line.begin() + line.find("123");
+    parser->parseLine(line);
+    expectCategoryEntered("host", "123");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
+    //expectCategoryEntered("interface", "eth0");
+    //expectFunctionRename("eth1");
+    expectCategoryLeft();
+    //expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Verify that we can use function rename with parameter in context */
+BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+
+    const std::string line = "rename interface 456 789\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    parser->parseLine(line);    
+    expectCategoryEntered("interface", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectFunctionRename("789");
+    expectCategoryLeft();
+    //expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short We can not use function rename without specifying new name */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_in_context, ParserTestFixture)
+{
+    parser->parseLine("host 123\n");
+    expectCategoryEntered("host", "123");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+
+    const std::string line = "rename interface 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.end();
+    parser->parseLine(line);    
+    expectCategoryEntered("interface", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyStackOneLevel("host", "123");
+}
+
+/** @short We can not use function rename without specifying new name in no context */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_no_context, ParserTestFixture)
+{
+    const std::string line = "rename host 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.end();
+    parser->parseLine(line);    
+    expectCategoryEntered("host", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Enter some more data when renaming an object */
+BOOST_FIXTURE_TEST_CASE(error_function_rename_more_data, ParserTestFixture)
+{
+    const std::string line = "rename host 456 789 abc\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    //const std::string::const_iterator it = line.begin() + line.find("abc");
+    parser->parseLine(line);    
+    expectCategoryEntered("host", "456");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
+    //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectCategoryLeft();
+    expectNothingElse();
+    verifyEmptyStack();
 }

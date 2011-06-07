@@ -51,6 +51,12 @@ case "${TESTMODE}" in
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
             $TESTCASE || die "Test"
         ;;
+    persist)
+        export DESKA_USER
+        export DESKA_DB
+        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
+            $TESTCASE || die "Test"
+        ;;
     *)
         die "Unknown test"
 esac

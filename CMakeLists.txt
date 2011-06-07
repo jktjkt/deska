@@ -85,7 +85,7 @@ FIND_PATH(SREADLINE_PATH SReadline/SReadline.h
 if(NOT SREADLINE_PATH)
     message(FATAL "Cannot find SReadline, and the internal copy seems unusable")
 else()
-    message(STATUS "SReadline from ${SREADLINE_PATH}")
+    message(STATUS "Using SReadline from ${SREADLINE_PATH}")
     include_directories(${SREADLINE_PATH})
 endif()
 
