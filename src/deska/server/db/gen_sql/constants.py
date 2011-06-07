@@ -788,7 +788,7 @@ LANGUAGE plpgsql;
 '''
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
-	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION deska.{tbl}_init_diff()
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION {tbl}_init_diff()
 RETURNS void
 AS
 $$
