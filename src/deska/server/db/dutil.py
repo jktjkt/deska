@@ -56,8 +56,6 @@ def mystr(s):
 		return s
 	return str(s)
 
-
-
 def fcall(fname,*args):
 	'''Call stored procedure with params.
 	@param fname ID of stored procedure like name(text)
@@ -143,8 +141,8 @@ class Filter():
 		'''loads json filter data'''
 		self.kinds = set()
 		self.where = ''
-		if filterData == '':
-			self.data = filterData
+		if filterData is None:
+			self.data = None
 			return
 		try:
 			self.data = json.loads(filterData)
@@ -156,7 +154,7 @@ class Filter():
 		
 	def getWhere(self):
 		'''Return where part of sql statement'''
-		if self.data == '':
+		if self.data is None:
 			return ''
 		return "WHERE " + self.where
 	
@@ -193,3 +191,50 @@ class Filter():
 		self.kinds.add(cond.getAffectedKind())
 		return cond.get()
 
+def kinds():
+        return list(["vendor","hardware","host","interface"])
+
+def oneKindDiff(kindName,a = None,b = None):
+	with xact():
+		if (a is None) and (b is None):
+			# diff for temporaryChangeset
+			init = proc(kindName + "_init_diff()")
+			init()
+		else:
+			# diff for 2 revisions
+			init = proc(kindName + "_init_diff(bigint,bigint)")
+			#get changeset ids first
+			revision2num = proc("revision2num(text)")
+			a = revision2num(a)
+			b = revision2num(b)
+			init(a,b)
+
+		terminate = proc(kindName + "_terminate_diff()")
+		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
+		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
+
+		res = list()
+		for line in created():
+			obj = dict()
+			obj["command"] = "createObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		for line in setattr(a,b):
+			obj = dict()
+			obj["command"] = "setAttribute"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			obj["attributeName"] = mystr(line[1])
+			obj["oldValue"] = mystr(line[2])
+			obj["newValue"] = mystr(line[3])
+			res.append(obj)
+		for line in deleted():
+			obj = dict()
+			obj["command"] = "deleteObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		terminate()
+	return res

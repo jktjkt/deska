@@ -33,7 +33,7 @@ class objectDataTest(DeskaTest):
 		'''add object of kind named name'''
 		res = self.command(js.startChangeset)
 		self.OK(res.OK)
-		
+
 		res = self.command(js.createObject,"hardware",obj)
 		self.OK(res.OK)
 		res = self.command(js.setAttribute,"hardware",obj,"vendor",data[0])

@@ -9,8 +9,9 @@ import json
 
 @pytypes
 def main(kindName,objectName,attributeName,attributeData):
+	name = "setAttribute"
 	jsn = dict()
-	jsn["response"] = "setAttribute"
+	jsn["response"] = name
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	jsn["attributeName"] = attributeName
@@ -19,7 +20,7 @@ def main(kindName,objectName,attributeName,attributeData):
 	try:
 		dutil.fcall(fname,objectName,attributeData)
 	except dutil.DeskaException as err:
-		return err.json("setAttribute",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
@@ -34,16 +35,18 @@ import json
 
 @pytypes
 def main(kindName,oldName,newName):
+	name = "renameObject"
 	jsn = dict()
-	jsn["response"] = "renameObject"
+	jsn["response"] = name
 	jsn["kindName"] = kindName
 	jsn["oldObjectName"] = oldName
 	jsn["newObjectName"] = newName
+
 	fname = kindName+"_set_name(text,text)"
 	try:
 		dutil.fcall(fname,oldName,newName)
 	except dutil.DeskaException as err:
-		return err.json("renameObject",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
@@ -58,15 +61,17 @@ import json
 
 @pytypes
 def main(kindName,objectName):
+	name = "createObject"
 	jsn = dict()
-	jsn["response"] = "createObject"
+	jsn["response"] = name
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
+
 	fname = kindName+"_add(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("createObject",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
@@ -81,16 +86,18 @@ import json
 
 @pytypes
 def main(kindName,objectName):
+	name = "deleteObject"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["kindName"] = kindName
+	jsn["objectName"] = objectName
+
 	fname = kindName+"_del(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("deleteObject")
+		return err.json(name)
 
-	jsn = dict()
-	jsn["response"] = "deleteObject"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -104,21 +111,23 @@ import json
 
 @pytypes
 def main(kindName,objectName):
+	name = "restoreDeletedObject"
+	jsn = dict()
+	jsn["response"] = name
+	jsn["kindName"] = kindName
+	jsn["objectName"] = objectName
+
 	fname = kindName+"_undel(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("restoreDeletedObject")
+		return err.json(name)
 
-	jsn = dict()
-	jsn["response"] = "restoreDeletedObject"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text, revision text)
 RETURNS text
 AS
 $$
@@ -126,21 +135,23 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(kindName,objectName,revision):
 	jsn = dict()
-	jsn["response"] = "objectData"
+	name = "objectData"
+	jsn["response"] = name
 	jsn["objectName"] = objectName
 	jsn["kindName"] = kindName
 
+	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
 	try:
-		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
-		colnames, data = dutil.getdata(sql,objectName)
+		revisionNumber = dutil.fcall("revision2num(text)",revision)
+		colnames, data = dutil.getdata(select,objectName,revisionNumber)
 	except dutil.DeskaException as dberr:
-		return dberr.json("objectData",jsn)
+		return dberr.json(name,jsn)
 
 	data = [dutil.mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
-	jsn["objectData"] = res
+	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -152,56 +163,13 @@ $$
 import Postgres
 import json
 import dutil
-from dutil import mystr
-
-def kinds():
-	return list(["vendor","hardware","host","interface"])
-
-def oneKindDiff(kindName,a,b):
-	with xact():
-		init = proc(kindName + "_init_diff(bigint,bigint)")
-		terminate = proc(kindName + "_terminate_diff()")
-		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
-		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
-		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
-		revision2num = proc("revision2num(text)")
-		
-		#get changeset ids first
-		a = revision2num(a)
-		b = revision2num(b)
-
-		res = list()
-		
-		init(a,b)
-		for line in created():
-			obj = dict()
-			obj["command"] = "createObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		for line in setattr(a,b):
-			obj = dict()
-			obj["command"] = "setAttribute"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			obj["attributeName"] = mystr(line[1])
-			obj["oldValue"] = mystr(line[2])
-			obj["newValue"] = mystr(line[3])
-			res.append(obj)
-		for line in deleted():
-			obj = dict()
-			obj["command"] = "deleteObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		terminate()
-
-	return res
+from dutil import mystr,kinds,oneKindDiff
 
 @pytypes
 def main(a,b):
 	jsn = dict()
-	jsn["response"] = "dataDifference"
+	name = "dataDifference"
+	jsn["response"] = name
 	jsn["revisionA"] = a
 	jsn["revisionB"] = b
 	
@@ -211,9 +179,37 @@ def main(a,b):
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
-		return err.json("dataDifference",jsn)
+		return err.json(name,jsn)
 
-	jsn["dataDifference"] = res
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset()
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import mystr,kinds,oneKindDiff
+
+@pytypes
+def main():
+	jsn = dict()
+	name = "dataDifferenceInTemporaryChangeset"
+	jsn["response"] = name
+	
+	res = list()
+	try:
+		for kindName in kinds():
+			res.extend(oneKindDiff(kindName))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
