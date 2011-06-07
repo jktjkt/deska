@@ -39,11 +39,17 @@ class JsonBuilder():
 	def resumeChangeset(self,chid):
 		return self.command("resumeChangeset",**{"changeset": chid})
 
-	def listRevisions(self,filter = ''):
-		return self.command("listRevisions",**{"filter": filter})
+	def listRevisions(self,filter = None):
+		if filter is None:
+			return self.command("listRevisions")
+		else:
+			return self.command("listRevisions",**{"filter": filter})
 
-	def pendingChangesets(self,filter = ''):
-		return self.command("pendingChangesets",**{"filter": filter})
+	def pendingChangesets(self,filter = None):
+		if filter is None:
+			return self.command("pendingChangesets")
+		else:
+			return self.command("pendingChangesets",**{"filter": filter})
 
 	def kindNames(self):
 		return self.command("kindNames")
@@ -54,8 +60,11 @@ class JsonBuilder():
 	def kindRelations(self,kind):
 		return self.command("kindRelations",**{"kindName": kind})
 
-	def kindInstances(self,kind):
-		return self.command("kindInstances",**{"kindName": kind})
+	def kindInstances(self,kind,revision = None):
+		if revision is None:
+			return self.command("kindInstances",**{"kindName": kind})
+		else:
+			return self.command("kindInstances",**{"kindName": kind, "revision": revision})
 
 	def createObject(self,kind,name):
 		return self.command("createObject",**{"kindName": kind,"objectName": name})
@@ -125,6 +134,10 @@ class JsonParser():
 
 	def OK(self):
 		return not "dbException" in self
+
+def updateRev(revision,update):
+	'''updates revisionID'''
+	return "r{0}".format(int(revision[1:len(revision)])+update)
 
 tr = DeskaRunner()
 js = JsonBuilder()
