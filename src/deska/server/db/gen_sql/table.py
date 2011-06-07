@@ -257,50 +257,38 @@ class Table(constants.Templates):
 		return self.data_changes_function_string.format(tbl = self.name)
 
 	def gen_resolved_data(self):
-		collist = self.col.copy()
-		del collist['uid']
-		del collist['name']
+		"""gen_resolved_data is function for generating {tbl}_resolved_data(name_ text, version bigint = 0)
+			
+		Function is called only for tables that could be templated by some template (has column template).
+		"""
+		collist = self.col.keys()
+		collist.remove('uid')
+		collist.remove('name')
 		cols = ','.join(collist)
-		
-		resolved_data_string = self.resolved_data_string
-		embed_table = ""
-		# replace uid of referenced object its name
-		# old column : new column selector
-		newcollist = dict()
-		for refs in self.fks.att:
-			tbl = self.fks.tbl[refs]
-			if self.fks.ratt[refs] != list(['uid']):
-				raise Exception("ref to not uid column")
-			for col in self.fks.att[refs]:
-				collist[col] = 'text'
-				if "rembed_" in refs:
-					# delete this col from output
-					del collist[col]
-					get_data_string = self.get_embed_data_string
-					embed_table = tbl
-				else:
-					newcol = tbl + "_get_name(" + col + ") as " + col 
-					newcollist[col] = newcol
-
-		del collist['template']
-
-		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
-		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
-
-
-		keys = collist.keys()
-		keys.sort()
-		collist = dict(zip(keys,keys))
-
-		for col in newcollist:
-			collist[col] = newcollist[col]		
-
-		cols_ex_templ = ",".join(collist.values())
 		
 		if self.name.endswith("_template"):
 			templ_table = self.name
 		else:
 			templ_table = self.name + "_template"
+		
+		#table which is thatone embed into
+		if self.embed_into <> "":
+			resolved_data_string = self.resolved_data_embed_string
+		else:
+			resolved_data_string = self.resolved_data_string
+
+		collist.remove('template')
+
+		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
+		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
+		# replace uid of referenced object its name
+		# old column : new column selector
+		for col in self.refuid_columns:
+			if col in collist:
+				pos = collist.index(col)
+				collist[pos] = "{0}_get_name({0}) AS {0}".format(col)
+		
+		cols_ex_templ = ",".join(collist)
 			
 		return resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table)
 		

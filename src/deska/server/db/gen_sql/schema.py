@@ -6,6 +6,8 @@ class Schema:
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
+	refuid_columns_str = "SELECT cols_ref_uid('{0}');"
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -32,7 +34,7 @@ CREATE FUNCTION commit_all(message text)
 '''
 	def __init__(self,db_connection):
 		self.plpy = db_connection;
-		self.plpy.execute("SET search_path TO deska,production")
+		self.plpy.execute("SET search_path TO deska,api,production")
 
 		# init set of tables
 		self.tables = set()
@@ -48,7 +50,6 @@ CREATE FUNCTION commit_all(message text)
 		self.templated_tables = set()
 		for tbl in record:
 			self.templated_tables.add(tbl[0])
-		print self.templated_tables
 
 
 	# generate sql for all tables
@@ -93,6 +94,16 @@ CREATE FUNCTION commit_all(message text)
 		for col in constraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 
+		embed_into_rec = self.plpy.execute(self.embed_into_str.format(tbl))
+		table.embed_into = ""
+		for row in embed_into_rec:
+			table.embed_into = row[0]
+			
+		refuid_rec = self.plpy.execute(self.refuid_columns_str.format(tbl))
+		table.refuid_columns = list()
+		for row in refuid_rec:
+			table.refuid_columns.append(row[0])
+		
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 

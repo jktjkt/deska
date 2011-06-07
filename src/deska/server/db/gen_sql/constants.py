@@ -198,20 +198,17 @@ class Templates:
 			IF current_changeset IS NULL THEN
 				--user wants current data from production
 				--name in table is only local part of object, we should look for object by uid
-				SELECT {columns} INTO data FROM production.{tbl} WHERE uid = obj_uid;
-				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
-				END IF;				
-				RETURN data;
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				--first we look for result in current changeset than in parent revision
+				SELECT {columns} INTO data FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					RETURN data;
+				END IF;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
 			END IF;
-			--first we look for result in current changeset than in parent revision
-			SELECT {columns} INTO data FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
-			IF FOUND THEN
-				--we have result and can return it
-				RETURN data;
-			END IF;
-			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(current_changeset));
 		END IF;
 		
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
@@ -887,7 +884,7 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT {columns} INTO data 
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO data 
 			FROM production.{tbl} WHERE name = name_;
 			IF NOT FOUND THEN
 				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';

@@ -28,6 +28,6 @@ CREATE TABLE hardware (
 		CHECK (cpu_num > 0),
 	-- add cpu type, when we have cpu type table
 	note text,
-	template bigint unique
+	template bigint
 );
 
