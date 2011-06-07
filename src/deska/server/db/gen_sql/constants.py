@@ -151,21 +151,17 @@ class Templates:
 		IF from_version = 0 THEN
 			current_changeset = get_current_changeset_or_null();
 			IF current_changeset IS NULL THEN
-				--user wants current data from production
-				SELECT {columns} INTO data FROM production.{tbl} WHERE name = name_;
-				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+				--user wants last data
+				SELECT MAX(num) INTO  from_version FROM version;
+			ELSE			
+				SELECT {columns} INTO data FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					RETURN data;
 				END IF;
-				RETURN data;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
 			END IF;
-			
-			SELECT {columns} INTO data FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
-			IF FOUND THEN
-				--we have result and can return it
-				RETURN data;
-			END IF;
-			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(current_changeset));
 		END IF;
 
 		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
