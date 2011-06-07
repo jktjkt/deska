@@ -48,6 +48,7 @@ CREATE FUNCTION commit_all(message text)
 		self.templated_tables = set()
 		for tbl in record:
 			self.templated_tables.add(tbl[0])
+		print self.templated_tables
 
 
 	# generate sql for all tables
