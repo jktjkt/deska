@@ -192,6 +192,8 @@ then
 		stage 0 || die "Error running stage 0"
 	fi
 	stage 1 || die "Error running stage 1"
+	generate_templates || die "Error running generate templates"
+	create_templates || die "Error running creating templates"
 	generate || die "Failed to generate stuff"
 	stage 2 || die "Error running stage 2"
 fi
