@@ -97,6 +97,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_persist_test(test_1_versioning)
     deska_dbapi_persist_test(test_2_filter)
     deska_dbapi_persist_test(test_2_diff)
+    deska_dbapi_persist_test(test_2_objectData)
 endif()
 
 # Copy files from source directory to destination directory, substituting any

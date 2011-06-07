@@ -77,3 +77,18 @@ class objectDataTest(DeskaTest):
 		# and test revision parameter
 		revNewOD = self.objectData("hardware",objectName,revision)
 		self.assertEqual(revNewOD,firstOD)
+	
+	#for run on empty db
+	def setUp(self):
+		'''create vendor'''
+		res = self.command(js.startChangeset)
+		self.OK(res.OK)
+		res = self.command(js.createObject,"vendor","test1")
+		self.OK(res.OK)
+		res = self.command(js.commitChangeset,"test1 add")
+		# result is not important, it was there or is it there now :-)
+		# but if it fails, abort changeset is good idea
+		if not res.OK():
+			res = self.command(js.abortCurrentChangeset)
+			self.OK(res.OK)
+			
