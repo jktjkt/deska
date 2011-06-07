@@ -72,8 +72,11 @@ class JsonBuilder():
 	def deleteObject(self,kind,name):
 		return self.command("deleteObject",**{"kindName": kind,"objectName": name})
 
-	def objectData(self,kind,name):
-		return self.command("objectData",**{"kindName": kind,"objectName": name})
+	def objectData(self,kind,name,revision = None):
+		if revision is None:
+			return self.command("objectData",**{"kindName": kind,"objectName": name})
+		else:
+			return self.command("objectData",**{"kindName": kind,"objectName": name, "revision": revision})
 
 	def setAttribute(self,kind,name,att,data):
 		return self.command("setAttribute",**{"kindName": kind,"objectName": name, "attributeName": att, "attributeData":data})
