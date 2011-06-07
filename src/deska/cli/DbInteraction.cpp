@@ -77,7 +77,7 @@ void DbInteraction::removeAttribute(const Db::ContextStack &context,
                                     const Db::Identifier &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute, 0);
+    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute, Deska::Db::Value());
 }
 
 

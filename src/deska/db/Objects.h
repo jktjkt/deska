@@ -125,16 +125,16 @@ typedef enum {
 /** @short A pair of (kind-of-relation, table)
  *
  * Examples for a "host" would be:
- * (RELATION_MERGE_WITH, "hw", "hw")
+ * (RELATION_MERGE_WITH, "hw")
  * ...which means that the "host" records shall contain a reference to the "hw" table, and the reference shall be formed by a
  * column named "hw" which points to the name of the object in the "hw" table. We do not define the name of the target column,
  * simply because we always point to its identifier.
  *
  * In this situation, the record will be accompanied by the corresponding relation for the "hw" object kind:
- * (RELATION_MERGE_WITH, "host", "host")
+ * (RELATION_MERGE_WITH, "host")
  *
  * This is how templates work:
- * (RELATION_TEMPLATIZED, "hw-template", "template") -- for the "hw" kind
+ * (RELATION_TEMPLATIZED, "hw-template") -- for the "hw" kind
  * (RELATION_IS_TEMPLATE, "hw") -- for the "hw-template" kind
  *
  * Whereas for the "interface":
@@ -143,23 +143,21 @@ typedef enum {
 struct ObjectRelation
 {
     /** @short Construct a RELATION_MERGE_WITH */
-    static ObjectRelation mergeWith(const Identifier &targetTableName, const Identifier &sourceAttribute);
+    static ObjectRelation mergeWith(const Identifier &target);
 
     /** @short Construct a RELATION_EMBED_INTO */
-    static ObjectRelation embedInto(const Identifier &into);
+    static ObjectRelation embedInto(const Identifier &target);
 
     /** @short Construct a RELATION_IS_TEMPLATE */
-    static ObjectRelation isTemplate(const Identifier &toWhichKind);
+    static ObjectRelation isTemplate(const Identifier &target);
 
     /** @short Construct a RELATION_TEMPLATIZED */
-    static ObjectRelation templatized(const Identifier &byWhichKind, const Identifier &sourceAttribute);
+    static ObjectRelation templatized(const Identifier &target);
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
     /** @short Name of the target table this relation refers to */
-    Identifier targetTableName;
-    /** @short From which attribute shall we match */
-    Identifier sourceAttribute;
+    Identifier target;
 
 private:
     /** @short Private constructor for creating a half-baked object
@@ -167,7 +165,7 @@ private:
     This is very much needed for ObjectRelation::embedInto.
     */
     ObjectRelation();
-    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_targetTableName, const Identifier &_sourceAttribute);
+    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target);
 };
 
 bool operator==(const ObjectRelation &a, const ObjectRelation &b);

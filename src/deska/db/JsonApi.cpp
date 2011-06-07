@@ -155,11 +155,27 @@ map<Identifier, Value> JsonApiParser::objectData( const Identifier &kindName, co
     h.write(j_objName, objectName);
     if (revision != RevisionId::null)
         h.write(j_revision, revision);
-    JsonWrappedAttributeMap res(kindAttributes(kindName));
+    JsonWrappedAttributeMap res(kindAttributesWithoutRelation(kindName));
     h.read("objectData").extract(&res);
     h.work();
     return res.attributes;
 }
+
+std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
+{
+    JsonCommandContext c1("multipleObjectData");
+
+    JsonHandlerApiWrapper h(this, "multipleObjectData");
+    h.write(j_kindName, kindName);
+    h.write(j_filter, filter);
+    if (revision != RevisionId::null)
+        h.write(j_revision, revision);
+    JsonWrappedAttributeMapList res(kindAttributesWithoutRelation(kindName));
+    h.read("multipleObjectData").extract(&res);
+    h.work();
+    return res.objects;
+}
+
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
                                                                       const Identifier &objectName, const RevisionId revision )
@@ -171,10 +187,26 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     h.write(j_objName, objectName);
     if (revision != RevisionId::null)
         h.write(j_revision, revision);
-    JsonWrappedAttributeMapWithOrigin res(kindAttributes(kindName));
+    JsonWrappedAttributeMapWithOrigin res(kindAttributesWithoutRelation(kindName));
     h.read("resolvedObjectData").extract(&res);
     h.work();
     return res.attributes;
+}
+
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectData(
+    const Identifier &kindName, const Filter &filter, const RevisionId revision)
+{
+    JsonCommandContext c1("multipleResolvedObjectData");
+
+    JsonHandlerApiWrapper h(this, "multipleResolvedObjectData");
+    h.write(j_kindName, kindName);
+    h.write(j_filter, filter);
+    if (revision != RevisionId::null)
+        h.write(j_revision, revision);
+    JsonWrappedAttributeMapWithOriginList res(kindAttributesWithoutRelation(kindName));
+    h.read("multipleResolvedObjectData").extract(&res);
+    h.work();
+    return res.objects;
 }
 
 void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &objectName )
@@ -182,6 +214,16 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     JsonCommandContext c1("deleteObject");
 
     JsonHandlerApiWrapper h(this, "deleteObject");
+    h.write(j_kindName, kindName);
+    h.write(j_objName, objectName);
+    h.work();
+}
+
+void JsonApiParser::restoreDeletedObject(const Identifier &kindName, const Identifier &objectName)
+{
+    JsonCommandContext c1("restoreDeletedObject");
+
+    JsonHandlerApiWrapper h(this, "restoreDeletedObject");
     h.write(j_kindName, kindName);
     h.write(j_objName, objectName);
     h.work();
@@ -197,14 +239,14 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
-void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldName, const Identifier &newName )
+void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName )
 {
     JsonCommandContext c1("renameObject");
 
     JsonHandlerApiWrapper h(this, "renameObject");
     h.write(j_kindName, kindName);
-    h.write(j_objName, oldName);
-    h.write("newObjectName", newName);
+    h.write("oldObjectName", oldObjectName);
+    h.write("newObjectName", newObjectName);
     h.work();
 }
 
@@ -275,12 +317,12 @@ vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<
     return res;
 }
 
-void JsonApiParser::resumeChangeset(const TemporaryChangesetId revision)
+void JsonApiParser::resumeChangeset(const TemporaryChangesetId changeset)
 {
     JsonCommandContext c1("resumeChangeset");
 
     JsonHandlerApiWrapper h(this, "resumeChangeset");
-    h.write(j_changeset, revision);
+    h.write(j_changeset, changeset);
     h.work();
 }
 
@@ -314,45 +356,53 @@ std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional
     return res;
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
+namespace {
+
+/** @short Helper for the diffing functions */
+std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, const std::string name, boost::optional<TemporaryChangesetId> changeset,
+                                           boost::optional<RevisionId> a, boost::optional<RevisionId> b)
 {
-    JsonCommandContext c1("dataDifference");
+    JsonCommandContext c1(name);
 
     // Request all attributes
     std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
-    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
-        allAttrTypes[kindName] = kindAttributes(kindName);
+    BOOST_FOREACH(const Identifier& kindName, dbapi->kindNames()) {
+        allAttrTypes[kindName] = dbapi->kindAttributes(kindName);
     }
     JsonWrappedObjectModificationSequence helper(&allAttrTypes);
-
-    JsonHandlerApiWrapper h(this, "dataDifference");
-    h.write("revisionA", a);
-    h.write("revisionB", b);
-    h.read("dataDifference").extract(&helper);
+    JsonHandlerApiWrapper h(dbapi, name);
+    if (changeset) {
+        h.write("changeset", *changeset);
+    } else {
+        h.write("revisionA", *a);
+        h.write("revisionB", *b);
+    }
+    h.read(name).extract(&helper);
     h.work();
     return helper.diff;
+}
+
+}
+
+std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
+{
+    return diffHelper(this, "dataDifference", boost::optional<TemporaryChangesetId>(), a, b);
+}
+
+std::vector<ObjectModification> JsonApiParser::resolvedDataDifference(const RevisionId a, const RevisionId b) const
+{
+    return diffHelper(this, "resolvedDataDifference", boost::optional<TemporaryChangesetId>(), a, b);
 }
 
 std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
 {
-    JsonCommandContext c1("dataDifferenceInTemporaryChangeset");
-
-    // Request all attributes
-    std::map<Identifier, std::vector<KindAttributeDataType> > allAttrTypes;
-    BOOST_FOREACH(const Identifier& kindName, kindNames()) {
-        allAttrTypes[kindName] = kindAttributes(kindName);
-    }
-    JsonWrappedObjectModificationSequence helper(&allAttrTypes);
-
-    JsonHandlerApiWrapper h(this, "dataDifferenceInTemporaryChangeset");
-    h.write("changeset", changeset);
-    h.read("dataDifferenceInTemporaryChangeset").extract(&helper);
-    h.work();
-    return helper.diff;
+    return diffHelper(this, "dataDifferenceInTemporaryChangeset", changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
 }
 
-
-
+std::vector<ObjectModification> JsonApiParser::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+{
+    return diffHelper(this, "resolvedDataDifferenceInTemporaryChangeset", changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
+}
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
 {

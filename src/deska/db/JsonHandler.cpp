@@ -249,7 +249,17 @@ JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttribute
 {
 }
 
+JsonWrappedAttributeMapList::JsonWrappedAttributeMapList(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
 JsonWrappedAttributeMapWithOrigin::JsonWrappedAttributeMapWithOrigin(const std::vector<KindAttributeDataType> dataTypes_):
+    dataTypes(dataTypes_)
+{
+}
+
+JsonWrappedAttributeMapWithOriginList::JsonWrappedAttributeMapWithOriginList(const std::vector<KindAttributeDataType> dataTypes_):
     dataTypes(dataTypes_)
 {
 }

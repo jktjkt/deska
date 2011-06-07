@@ -37,8 +37,8 @@ def main(kindName,oldName,newName):
 	jsn = dict()
 	jsn["response"] = "renameObject"
 	jsn["kindName"] = kindName
-	jsn["oldName"] = oldName
-	jsn["newName"] = newName
+	jsn["oldObjectName"] = oldName
+	jsn["newObjectName"] = newName
 	fname = kindName+"_set_name(text,text)"
 	try:
 		dutil.fcall(fname,oldName,newName)
@@ -95,7 +95,7 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.undeleteObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -108,10 +108,10 @@ def main(kindName,objectName):
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("undeleteObject")
+		return err.json("restoreDeletedObject")
 
 	jsn = dict()
-	jsn["response"] = "undeleteObject"
+	jsn["response"] = "restoreDeletedObject"
 	jsn["kindName"] = kindName
 	jsn["objectName"] = objectName
 	return json.dumps(jsn)

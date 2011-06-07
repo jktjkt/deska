@@ -15,9 +15,7 @@ def runAll():
 		server = sys.argv[1]
 	except:
 		sys.argv.append("../../src/deska/server/app/deska_server.py")
-	try:
-		db = os.environ["DESKA_DB"] = "deska_dev"
-	except:
+	if "DESKA_DB" not in os.environ:
 		os.environ["DESKA_DB"] = "deska_dev"
 
 	ls = os.popen("ls test_*.py")
