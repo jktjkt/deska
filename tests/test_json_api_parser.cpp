@@ -620,12 +620,14 @@ void schemeForDiff(JsonApiTestFixtureFailOnStreamThrow &f)
 BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\"}\n");
+    expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     expectRead("{\"response\": \"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"dataDifference\": ["
                + exampleJsonDiff +
-               "]}\n");
+               "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2));
+    std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2),
+                                                            Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
