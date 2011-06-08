@@ -56,7 +56,6 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     completions.push_back("show");
     completions.push_back("delete");
     completions.push_back("rename");
-    completions.push_back("ahoj ted zkusim rename of resume tyhle <> asdf");
     return completions;
 }
 
