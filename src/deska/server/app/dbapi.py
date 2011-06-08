@@ -9,7 +9,8 @@ class DB:
 		"kindNames": [],
                 "kindAttributes": ["kindName"],
                 "kindRelations": ["kindName"],
-                "kindInstances": ["kindName"],
+                "kindInstances": ["kindName","revision"],
+                #"kindInstances": ["kindName","revision","filter"],
                 "deleteObject": ["kindName","objectName"],
                 "restoreDeletedObject": ["kindName","objectName"],
                 "createObject": ["kindName","objectName"],
@@ -17,13 +18,20 @@ class DB:
                 "setAttribute": ["kindName","objectName","attributeName","attributeData"],
                 "startChangeset": [],
                 "commitChangeset": ["commitMessage"],
-                "rebaseChangeset": [],
+                "rebaseChangeset": ["parentRevision"],
                 "pendingChangesets": ["filter"],
                 "resumeChangeset": ["changeset"],
                 "detachFromCurrentChangeset": ["message"],
                 "abortCurrentChangeset": [],
 		"dataDifference": ["revisionA", "revisionB"],
-		"objectData": ["kindName", "objectName"],
+		"dataDifferenceInTemporaryChangeset": [],
+		#"resolvedDataDifference": ["revisionA", "revisionB"],
+		#"resolvedDataDifferenceInTemporaryChangeset": [],
+		"objectData": ["kindName", "objectName","revision"],
+		"objectData": ["kindName", "objectName","revision"],
+		#"objectData": ["kindName", "objectName","revision", "filter"],
+		"multipleObjectData": ["kindName", "revision"],
+		#"multipleObjectData": ["kindName", "revision", "filter"],
 		"listRevisions": ["filter"]
 	})
 
@@ -67,10 +75,13 @@ class DB:
 		# have we the exact needed arguments
 		if set(needed_args) != set(args.keys()):
 			not_present = set(needed_args) - set(args.keys())
-			# note that "filter" is always optional
-			if not_present == set(["filter"]):
-				args["filter"] = ''
-				logging.debug("filter was not present, pass '' arguments")
+			# note that "filter" and "revision" are always optional
+			if not_present <= set(["filter", "revision"]):
+				if "filter" in not_present:
+					args["filter"] = None
+				if "revision" in not_present:
+					args["revision"] = None
+				logging.debug("{0} was not present, pass None arguments".format(not_present))
 			else:
 				return self.errorJson(name,"Missing arguments: {0}".format(list(not_present)))
 		# sort args

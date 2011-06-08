@@ -100,7 +100,7 @@ def main(kindName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.kindInstances(kindName text)
+CREATE OR REPLACE FUNCTION jsn.kindInstances(kindName text,revision text)
 RETURNS text
 AS
 $$
@@ -108,15 +108,15 @@ import dutil
 import json
 
 @pytypes
-def main(kindName):
+def main(kindName,revision):
 	name = "kindInstances"
 	jsn = dict()
 	jsn["response"] = name
 	jsn["kindName"] = kindName
-
-	select = 'SELECT * FROM api.kindInstances($1)'
+	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
-		colnames, cur = dutil.getdata(select,kindName)
+		revisionNumber = dutil.fcall("revision2num(text)",revision)
+		colnames, cur = dutil.getdata(select,revisionNumber)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	

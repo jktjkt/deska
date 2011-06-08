@@ -28,4 +28,11 @@ class DeskaTest(unittest.TestCase):
 	def OK(self,func):
 		self.assertTrue(func())
 
+	def equals(self,a,b):
+		'''equls for list and sets'''
+		self.assertEqual(len(a),len(b))
+		self.assertEqual(set(a),set(b))
 
+	def subset(self,a,b):
+		'''pass when a is subset b'''
+		self.assertTrue(set(a) <= set(b))
