@@ -45,17 +45,31 @@ typedef enum {
 } ComparisonKind;
 
 /** @short Anything against which we can compare */
-typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> ExpressionValue;
+typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
 
-/** @short Compare one value against a constant using given comparison operator */
-struct Expression
+/** @short Compare metadata against a constant using  given comparison operator */
+struct MetadataExpression
 {
     ComparisonKind comparison;
-    Identifier column;
-    ExpressionValue constantValue;
+    Identifier metadata;
+    MetadataValue constantValue;
 
-    Expression(const ComparisonKind comparison, const Identifier &column, const ExpressionValue &constantValue);
+    MetadataExpression(const ComparisonKind comparison, const Identifier &metadata, const MetadataValue &constantValue);
 };
+
+/** @short Compare attribute value against a constant using given comparison operator */
+struct AttributeExpression
+{
+    ComparisonKind comparison;
+    Identifier kind;
+    Identifier attribute;
+    Value constantValue;
+
+    AttributeExpression(const ComparisonKind comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
+};
+
+/** @short A generic expression */
+typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
 
 /** @short Perform a logical disjunction of all expression included below */
 struct OrFilter
