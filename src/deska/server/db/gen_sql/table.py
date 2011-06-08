@@ -95,40 +95,27 @@ class Table(constants.Templates):
 		if len(collist) == 0:
 			return ""
 
-		get_data_string = self.get_data_string
-		embed_table = ""
-		# replace uid of referenced object its name
-		# old column : new column selector
-		newcollist = dict()
-		for refs in self.fks.att:
-			tbl = self.fks.tbl[refs]
-			if self.fks.ratt[refs] != list(['uid']):
-				raise Exception("ref to not uid column")
-			for col in self.fks.att[refs]:
-				collist[col] = 'text'
-				if "rembed_" in refs:
-					# delete this col from output
-					del collist[col]
-					get_data_string = self.get_embed_data_string
-					embed_table = tbl
-				else:
-					newcol = tbl + "_get_name(" + col + ") as " + col 
-					newcollist[col] = newcol
-		
+		if self.embed_into <> "":
+			get_data_string = self.get_embed_data_string
+			del collist[embed_into]
+		else:
+			get_data_string = self.get_data_string
+
+		#replace uid of referenced table object by its name
+		for col in self.refuid_columns:
+			collist[col] = 'text'
+
 		# create col: type dict
 		coltypeslist = dict()
 		for col in collist:
 			coltypeslist[col] = " ".join([col,collist[col]])
-
-		# prepare: values = keys
-		keys = collist.keys()
-		keys.sort()
-		collist = dict(zip(keys,keys))
-		# replace old cols with new 
-		for col in newcollist:
-			collist[col] = newcollist[col]
-
 		coltypes = ",\n".join(coltypeslist.values())
+
+		for col in self.refuid_columns:
+			if col in collist:
+				pos = collist.index(col)
+				collist[pos] = "{0}_get_name({0}) AS {0}".format(col)
+		
 		cols = ",".join(collist.values())
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
 		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
@@ -211,7 +198,10 @@ class Table(constants.Templates):
 		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_commit_templated(self):
-		#TODO if there is more columns...
+		"""gen_commit_templated generates commit function for templated tables.
+		
+		Differs from untemplated version by resolving data from templates and after that updating production.
+		"""
 		collist = self.col.copy();
 		
 		del collist['template']
@@ -225,6 +215,8 @@ class Table(constants.Templates):
 	
 		cols = ','.join(collist)
 		
+		#table tbl is templated by table tbl_template
+		#table tbl_template is templated by tbl_template
 		if self.name.endswith("_template"):
 			templ_table = self.name
 		else:
@@ -261,11 +253,14 @@ class Table(constants.Templates):
 			
 		Function is called only for tables that could be templated by some template (has column template).
 		"""
+		#list of columns of given kind
 		collist = self.col.keys()
 		collist.remove('uid')
 		collist.remove('name')
 		cols = ','.join(collist)
 		
+		#table tbl is templated by table tbl_template
+		#table tbl_template is templated by tbl_template
 		if self.name.endswith("_template"):
 			templ_table = self.name
 		else:
@@ -282,7 +277,6 @@ class Table(constants.Templates):
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
 		# replace uid of referenced object its name
-		# old column : new column selector
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
