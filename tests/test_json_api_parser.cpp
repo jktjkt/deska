@@ -646,6 +646,40 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
     expectEmpty();
 }
 
+/** @short Test resolvedDataDifference() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStreamThrow)
+{
+    schemeForDiff(*this);
+    expectWrite("{\"command\":\"resolvedDataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"resolvedDataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"resolvedDataDifference\": ["
+               + exampleJsonDiff +
+               "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    std::vector<ObjectModification> expected = diffObjects();
+    std::vector<ObjectModification> res = j->resolvedDataDifference(RevisionId(1), RevisionId(2),
+                                                                    Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test resolvedDataDifferenceInTemporaryChangeset() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
+{
+    schemeForDiff(*this);
+    expectWrite("{\"command\":\"resolvedDataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp1\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"resolvedDataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp1\",\"resolvedDataDifferenceInTemporaryChangeset\": ["
+               + exampleJsonDiff +
+               "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    std::vector<ObjectModification> expected = diffObjects();
+    std::vector<ObjectModification> res = j->resolvedDataDifferenceInTemporaryChangeset(
+                TemporaryChangesetId(1), Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+
+
 /** @short Test applyBatchedChanges() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
 {
