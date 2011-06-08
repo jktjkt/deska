@@ -606,7 +606,7 @@ Any function which modifies objects stored in the Deska database belongs to this
     {This function will update the value of a particular object's attribute.  To remove an object's attribute, set its
     value to null.}
 
-\deskaFunc{applyBatchedChanges}{"modifications": [ \\
+\deskaFunc{applyBatchedChanges}{, "modifications": [ \\
     \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
     \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
@@ -665,8 +665,8 @@ History}, section \ref{sec:api-group-history}.
     {Re-open a pre-existing changeset}
     {This function will attach current session to a pre-existing changeset which hasn't been committed yet. An example
     where doing that would be handy is upon the initial connect to the DB, where the client would typically call
-    pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps
-    because the original session has died.}
+    \deskaFuncRef{pendingChangesets}, and ask the real person whether she wants to resume working on her changes,
+    perhaps because the original session has died.}
 
 \deskaFunc{detachFromCurrentChangeset}{"message": "clarify why"}
     {}
