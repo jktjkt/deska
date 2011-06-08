@@ -1370,8 +1370,8 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
     verifyEmptyStack();
 }
 
-/** @short Verify that we can use function rename in context */
-BOOST_FIXTURE_TEST_CASE(function_rename_in_context, ParserTestFixture)
+/** @short Verify that we can not use function rename in context without object specifying*/
+BOOST_FIXTURE_TEST_CASE(function_rename_in_context_no_object, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
     expectCategoryEntered("host", "123");
@@ -1379,9 +1379,10 @@ BOOST_FIXTURE_TEST_CASE(function_rename_in_context, ParserTestFixture)
     expectNothingElse();
     verifyStackOneLevel("host", "123");
     
-    parser->parseLine("rename 456\n");
-    expectFunctionRename("456");
-    expectParsingFinished();
+    const std::string line ="rename 456\n";
+    const std::string::const_iterator it = line.begin() + line.find("456");
+    parser->parseLine(line);
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }

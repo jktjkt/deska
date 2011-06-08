@@ -141,8 +141,7 @@ void UserInterfaceIO::printHelp()
     std::cout << "         optional and works in the same way as for delete. When executed without" << std::endl;
     std::cout << "         parameter at top-level, it shows all object kinds and names." << std::endl;
     std::cout << "rename - Renames an object to name given as parameter" << std::endl;
-    std::cout << "         (e.g. rename hardware hp456 hp567). Object in current context could be" << std::endl;
-    std::cout << "         renamed also using short form (e.g. rename hp567)." << std::endl;
+    std::cout << "         (e.g. rename hardware hp456 hp567)." << std::endl;
     std::cout << "end    - Leaves one level of current context" << std::endl;
 }
 

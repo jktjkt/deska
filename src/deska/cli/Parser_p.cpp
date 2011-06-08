@@ -755,7 +755,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     Db::Identifier newName;
 
     // Handle parsing of new name here
-    if (parsingMode == PARSING_MODE_RENAME) {
+    // Parsing mode is rename and some object to be renamed was parsed
+    if ((parsingMode == PARSING_MODE_RENAME) && (contextStack.size() > previousContextStackSize)) {
         if ((parsingIterations > 0) && (!nonexistantObject)) {
             // Function word not parsed alone -> error was not reported yet
             if (iter == end) {
