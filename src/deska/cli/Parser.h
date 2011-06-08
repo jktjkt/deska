@@ -127,11 +127,11 @@ public:
     */
     void parseLine(const std::string &line);
 
-    /** @short Get list of strings for tab completition of current line
+    /** @short Get list of strings for tab completion of current line
     *
     *   @return Vector of strings, that are possible continuations of current line.
     */
-    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
+    std::vector<std::string> tabCompletionPossibilities(const std::string &line);
 
     /** @short The input indicates that the following signals will be related to a particular object
     *

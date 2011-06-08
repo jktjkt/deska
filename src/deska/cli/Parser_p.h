@@ -385,7 +385,7 @@ public:
     */
     Db::ContextStack currentContextStack() const;
 
-    /** @short Get list of strings for tab completition of current line.
+    /** @short Get list of strings for tab completion of current line.
     *
     *   Parses line using bool parseLineImpl(const std::string &line) with dryRun flag set to true.
     *   Vector of possible continuations construction is based on analysis of the last token and
@@ -394,7 +394,7 @@ public:
     *   @return Vector of strings, that are possible continuations of current line.
     *   @see bool parseLineImpl(const std::string &line)
     */
-    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
+    std::vector<std::string> tabCompletionPossibilities(const std::string &line);
 
     //@{
     /** @short Functions that only invokes signals of main parser. */
@@ -477,7 +477,7 @@ private:
     */
     void reportParseError(const std::string& line);
 
-    /** @short Function for finding tab completition possibilities of current context.
+    /** @short Function for finding tab completion possibilities of current context.
     *
     *   Extracts nested kind names and attribute names
     *

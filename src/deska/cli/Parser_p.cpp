@@ -439,7 +439,7 @@ Db::ContextStack ParserImpl<Iterator>::currentContextStack() const
 
 
 template <typename Iterator>
-std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(const std::string &line)
+std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const std::string &line)
 {
     if (line.empty()) {
         std::vector<std::string> possibilities;
@@ -464,7 +464,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletitionPossibilities(cons
         }
     } else {
         if (*(line.end()-1) == ' ') {
-            // Parsing failed and last character is space -> no completition possibilites shoul be returned
+            // Parsing failed and last character is space -> no completion possibilites shoul be returned
             return std::vector<std::string>();
         } else {
             // FIXME: return correct result
@@ -1001,7 +1001,7 @@ template bool ParserImpl<iterator_type>::isNestedInContext() const;
 
 template Db::ContextStack ParserImpl<iterator_type>::currentContextStack() const;
 
-template std::vector<std::string> ParserImpl<iterator_type>::tabCompletitionPossibilities(const std::string &line);
+template std::vector<std::string> ParserImpl<iterator_type>::tabCompletionPossibilities(const std::string &line);
 
 template void ParserImpl<iterator_type>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
 
