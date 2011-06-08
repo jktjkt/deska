@@ -15,8 +15,8 @@ Setup for the SQL server side (see doc/misc/pgsql-setup for details):
 create language pgpython in the deska_dev database
 2) run deska_install.sh -d deska_dev -u postgres install --all
 
-if you change modules, run deska_install.sh -d deska_dev -u user restore
--- user must be deska_admin
+If you change modules, run deska_install.sh -d deska_dev -u user restore
+-- user must be deska_admin.
 
 Unit test setup:
 ----------------
