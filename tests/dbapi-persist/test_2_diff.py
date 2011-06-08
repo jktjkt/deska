@@ -1,4 +1,5 @@
 from testutils import js
+import testutils 
 from deskatest import DeskaTest
 import json
 
@@ -51,7 +52,7 @@ class diffTest(DeskaTest):
 		res = self.command(js.commitChangeset,"test diff")
 		self.OK(res.OK)
 		revB = res.result()
-		revA = "r{0}".format(int(revB[1:len(revB)])-1)
+		revA = testutils.updateRev(revB,-1)
 
 		# diff is ok?
 		res = self.command(js.dataDifference,revA,revB)

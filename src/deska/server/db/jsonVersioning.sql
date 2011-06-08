@@ -119,7 +119,7 @@ def main(message):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.pendingChangesets(filter text)
+CREATE OR REPLACE FUNCTION jsn.pendingChangesets(filter text = NULL)
 RETURNS text
 AS
 $$

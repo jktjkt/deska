@@ -69,6 +69,61 @@ END;
 $$	
 LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION uid_pos(classoid oid, idarray smallint[])
+RETURNS int
+AS
+$$
+DECLARE
+	counter int = 0;
+	currentval name;
+BEGIN
+	counter = array_lower(idarray, 1);
+	WHILE (counter <= array_upper(idarray, 1)) LOOP
+		SELECT attname INTO currentval 
+		FROM pg_attribute AS att 
+		WHERE att.attrelid = classoid AND att.attnum = idarray[counter];
+		IF currentval = 'uid' THEN
+			RETURN counter;
+		END IF;
+		counter = counter + 1;
+	END LOOP;	
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION cols_ref_uid(tabname name)
+RETURNS SETOF name
+AS
+$$
+DECLARE 
+	"oid" oid;
+	ckey smallint[];
+	roid oid;
+	rckey smallint[];
+	pos int;
+BEGIN
+	FOR oid,ckey,roid,rckey IN 
+		SELECT 
+			class1.oid, constr.conkey,
+			class2.oid, constr.confkey
+		FROM	pg_constraint AS constr
+			--join with TABLE which the contraint is ON
+			join pg_class AS class1 ON (constr.conrelid = class1.oid)	
+			--join with referenced TABLE
+			join pg_class AS class2 ON (constr.confrelid = class2.oid)
+		WHERE contype='f' AND class1.relname = tabname
+	LOOP
+		pos = uid_pos(roid,rckey);
+		IF pos > 0 THEN
+			RETURN QUERY SELECT attname
+				FROM pg_attribute AS att 
+				WHERE att.attrelid = oid AND att.attnum = ckey[pos];
+		END IF;
+	END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
 --
 -- function returns info about dependencies between data - foreign keys
 -- TODO: get rid of concat 
@@ -129,13 +184,17 @@ RETURNS SETOF attr_info
 AS
 $$
 BEGIN
-RETURN QUERY SELECT attname,typname
+RETURN QUERY 
+	SELECT attname, typname 
 		FROM pg_class AS cl
-			JOIN pg_tables AS tab ON (schemaname='production' and cl.relname = tab.tablename)
+			JOIN pg_tables AS tab ON (schemaname ='production' and cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
 		-- don't return also uid and name columns - internal
-		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name');
+		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name')
+			AND attname NOT IN (SELECT * FROM cols_ref_uid(tabname))
+	UNION
+	SELECT *, 'text' FROM cols_ref_uid(tabname);
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
