@@ -32,26 +32,49 @@ namespace Cli
 {
 
 
+CliCompleter::~CliCompleter()
+{
+}
+
+
+
+std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
+                                                       std::string::const_iterator start,
+                                                       std::string::const_iterator end)
+{
+    std::vector<std::string> completions;
+    completions.push_back("exit");
+    completions.push_back("quit");
+    completions.push_back("dump");
+    completions.push_back("commit");
+    completions.push_back("detach");
+    completions.push_back("abort");
+    completions.push_back("start");
+    completions.push_back("resume");
+    completions.push_back("status");
+    completions.push_back("help");
+    completions.push_back("show");
+    completions.push_back("delete");
+    completions.push_back("rename");
+    completions.push_back("ahoj ted zkusim rename of resume tyhle <> asdf");
+    return completions;
+}
+
+
 
 UserInterfaceIO::UserInterfaceIO():
-    tabSize(4), promptEnd("> "), reader(".deska_cli_history", 64)
+    tabSize(4), promptEnd("> ")
 {
-    // FIXME: Completitions will be obtained from the UserInterface dynamicly
-    std::vector<std::string> completitions;
-    completitions.push_back("exit");
-    completitions.push_back("quit");
-    completitions.push_back("dump");
-    completitions.push_back("commit");
-    completitions.push_back("detach");
-    completitions.push_back("abort");
-    completitions.push_back("start");
-    completitions.push_back("resume");
-    completitions.push_back("status");
-    completitions.push_back("help");
-    completitions.push_back("show");
-    completitions.push_back("delete");
-    completitions.push_back("rename");
-    reader.RegisterCompletions(completitions);
+    completer = new CliCompleter();
+    reader = new ReadlineWrapper::Readline(".deska_cli_history", 64, completer);
+}
+
+
+
+UserInterfaceIO::~UserInterfaceIO()
+{
+    delete reader;
+    delete completer;
 }
 
 
@@ -185,7 +208,7 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
 
 std::string UserInterfaceIO::readLine(const std::string &prompt)
 {
-    return reader.GetLine(prompt + promptEnd);
+    return reader->getLine(prompt + promptEnd);
 }
 
 

@@ -31,7 +31,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "SReadline/SReadline.h"
+#include "ReadlineWrapper.h"
 
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
@@ -43,6 +43,25 @@ namespace Cli
 {
 
 
+/** @brief Custom completions generator */
+class CliCompleter: public ReadlineWrapper::Completer
+{
+public:
+    virtual ~CliCompleter();
+    /** @short Function for obtaining all possible lines.
+    *
+    *   @param line Line to be completed.
+    *   @param start Beginning of the last word in the input.
+    *   @param end Position of the input in the line.
+    *   @return All possible lines, that can occur at this point. Whole lines will be generated, not only the endings.
+    */
+    virtual std::vector<std::string> getCompletions(const std::string &line,
+                                            std::string::const_iterator start,
+                                            std::string::const_iterator end);
+};
+
+
+
 /** @short Class for IO oparetions needed in a command line user interface with a standard iostream implementation. */
 class UserInterfaceIO: public boost::noncopyable
 {
@@ -50,6 +69,9 @@ public:
 
     /** @short Constructor initializes input reader and CLI constants. */
     UserInterfaceIO();
+    
+    /** @short Destroys custom completer and line reader. */
+    ~UserInterfaceIO();
 
     /** @short Reports any error to the user (error output).
     *
@@ -162,8 +184,13 @@ private:
     /** Ending string of the prompt. */
     std::string promptEnd;
 
-    swift::SReadline reader;
+    /** Class used for history, line editting and tab completion. */
+    ReadlineWrapper::Readline *reader;
+    /** Custom completions generator. */
+    CliCompleter *completer;
 };
+
+
 
 }
 }
