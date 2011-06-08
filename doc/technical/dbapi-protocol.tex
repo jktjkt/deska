@@ -454,25 +454,41 @@ FIXME: atomicity
 \label{sec:api-filters}
 
 Some functions defined in the DBAPI support reducing the working set of the data that they operate on via {\em filters}.
-These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{dataDifference}, \deskaFuncRef{listRevisions} and
-\deskaFuncRef{pendingChangesets}.  Each of them allows the user to specify a condition which, if present and not null,
-will be applied to the domain of the data they operate on, and records which do not match the user-supplied filter will
-be excluded from further evaluation.  This is intended to serve as an accelerator for operations which are best handled
-with server-side searching.
+These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{multipleObjectData},
+\deskaFuncRef{multipleResolvedObjectData}, \deskaFuncRef{listRevisions}, \deskaFuncRef{pendingChangesets} and all
+diffing functions (\deskaFuncRef{dataDifference}, \deskaFuncRef{dataDifferenceInTemporaryChangeset},
+\deskaFuncRef{resolvedDataDifference} and \deskaFuncRef{resolvedDataDifferenceInTemporaryChangeset}.  Each of them
+allows the user to specify a condition which, if present and not null, will be applied to the domain of the data they
+operate on, and records which do not match the user-supplied filter will be excluded from further evaluation.  This is
+intended to serve as an accelerator for operations which are best handled with server-side searching.
 
-A basic unit for building filters is a simple {\em expression}.  An expression compares value of an object's property
-against a user-supplied constant using defined comparison operator.  At this time, the defined comparison operators are
-equality, non-equality, being greater/lesser than, and greater-or-equal and less-or-equal.  The constant value against
-which a property is compared can be anything which is acceptable in the context of a Deska attribute value, a revision
-identification, or a temporary changeset identification.  The ``property name'' refers to the identifier of a property;
-in case of regular objects stored in the Deska DB, these are the same as the attribute names.  In case of revisions, the
-filter can query any property that is present in the objects included in the method's output, like revision IDs,
-commit/changeset timestamps, revision authors, etc.
+A basic unit for building filters is a simple {\em expression}.  There are two basic kinds of expressions, an expression
+referring to a revision or changeset {\em metadata}, or an expression comparing the value of an object's attribute.  In
+both cases, the comparison is performed using defined comparison operator against a user-supplied constant.  At this
+time, the defined comparison operators are equality, non-equality, being greater/lesser than, and greater-or-equal and
+less-or-equal.  The constant value against which a property is compared can be anything which is acceptable in the
+context of a Deska attribute value, a revision identification, a temporary changeset identification, or any similar
+revision (or changeset) metadata.
+
+When comparing against revision or changeset metadata, the ``property name'' is specified using the {\tt metadata} key,
+and can refer to any property which is normally returned by the function being extended with a filter (like revision
+IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
+object's attribute, the key has to be specified by a tuple of {\tt kind} and {\tt attribute} identifiers.
 
 More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
 time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
 operators is not allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
 arises.
+
+Under certain circumstances, it might be useful to allow querying of objects using indirect criteria, like ``return all
+hosts with an interface that is connected to a particular VLAN''.  The \deskaFuncRef{multipleObjectData} querying {\em
+hosts} should be used for this purpose, and its filter shall be set to the following:
+
+{\tt \{"condition": }ExpressionKind{\tt, "kind": "interface", "attribute": "vlan", "value": }Value{\tt \}}
+
+The database server will parse this filter and attempt to issue a corresponding {\tt JOIN} statement.  Using these
+``foreign'' attributes is allowed only in case that both kinds are connected via a compatible relation.  If there is no
+such relation, the Deska server returns exception {\tt FilterError}.
 
 \subsection{API Reference}
 
