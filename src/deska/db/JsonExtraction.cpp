@@ -173,8 +173,8 @@ template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
     }
 };
 
-/** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
-struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+/** @short Variant visitor for converting Deska::Db::MetadataValue to json_spirit::Value */
+struct DeskaFilterMetadataValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
     template <typename T>
     result_type operator()(const T& value) const
@@ -183,47 +183,54 @@ struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_
     }
 };
 
-template <>
-DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
-{
-    json_spirit::Object o;
-    std::string comparison;
-    switch (expression.comparison) {
-    case FILTER_COLUMN_EQ:
-        comparison = "columnEq";
-        break;
-    case FILTER_COLUMN_NE:
-        comparison = "columnNe";
-        break;
-    case FILTER_COLUMN_GT:
-        comparison = "columnGt";
-        break;
-    case FILTER_COLUMN_GE:
-        comparison = "columnGe";
-        break;
-    case FILTER_COLUMN_LT:
-        comparison = "columnLt";
-        break;
-    case FILTER_COLUMN_LE:
-        comparison = "columnLe";
-        break;
-    }
-    if (comparison.empty()) {
+template<> struct JsonConversionTraits<Deska::Db::ComparisonKind> {
+    static json_spirit::Value toJson(const Deska::Db::ComparisonKind &value) {
+        switch (value) {
+        case FILTER_COLUMN_EQ:
+            return std::string("columnEq");
+        case FILTER_COLUMN_NE:
+            return std::string("columnNe");
+        case FILTER_COLUMN_GT:
+            return std::string("columnGt");
+        case FILTER_COLUMN_GE:
+            return std::string("columnGe");
+        case FILTER_COLUMN_LT:
+            return std::string("columnLt");
+        case FILTER_COLUMN_LE:
+            return std::string("columnLe");
+        }
         throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
     }
-    o.push_back(json_spirit::Pair("condition", comparison));
-    o.push_back(json_spirit::Pair("column", expression.column));
-    o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterExpressionValueToJsonValue(), expression.constantValue)));
-    return o;
+};
+
+struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    result_type operator()(const Deska::Db::MetadataExpression &expression) const
+    {
+        json_spirit::Object o;
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonKind>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("metadata", expression.metadata));
+        o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterMetadataValueToJsonValue(), expression.constantValue)));
+        return o;
+    }
+
+    result_type operator()(const Deska::Db::AttributeExpression &expression) const
+    {
+        json_spirit::Object o;
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonKind>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("kind", expression.kind));
+        o.push_back(json_spirit::Pair("attribute", expression.attribute));
+        o.push_back(json_spirit::Pair("value", JsonConversionTraits<Value>::toJson(expression.constantValue)));
+        return o;
+    }
 };
 
 template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::AndFilter &filter) const
 {
     json_spirit::Array a;
-    DeskaFilterToJsonValue convertor;
     BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(convertor(expression));
+        a.push_back(boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("and")));
@@ -235,9 +242,8 @@ template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::OrFilter &filter) const
 {
     json_spirit::Array a;
-    DeskaFilterToJsonValue convertor;
     BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(convertor(expression));
+        a.push_back(boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("or")));
@@ -245,6 +251,11 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
     return o;
 };
 
+template <>
+DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
+{
+    return boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression);
+};
 
 /** @short Specialization for extracting Identifiers from JSON */
 template<>

@@ -71,10 +71,10 @@ public:
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
-    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b) const;
-    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b) const;
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
-    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const;
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
 
     // These members should be accessible for modifications from the test suite
 

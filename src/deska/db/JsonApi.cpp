@@ -359,7 +359,8 @@ std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional
 namespace {
 
 /** @short Helper for the diffing functions */
-std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, const std::string name, boost::optional<TemporaryChangesetId> changeset,
+std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, const std::string name, const boost::optional<Filter> &filter,
+                                           boost::optional<TemporaryChangesetId> changeset,
                                            boost::optional<RevisionId> a, boost::optional<RevisionId> b)
 {
     JsonCommandContext c1(name);
@@ -377,6 +378,8 @@ std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, co
         h.write("revisionA", *a);
         h.write("revisionB", *b);
     }
+    if (filter)
+        h.write(j_filter, *filter);
     h.read(name).extract(&helper);
     h.work();
     return helper.diff;
@@ -384,24 +387,24 @@ std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, co
 
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b) const
+std::vector<ObjectModification> JsonApiParser::dataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter) const
 {
-    return diffHelper(this, "dataDifference", boost::optional<TemporaryChangesetId>(), a, b);
+    return diffHelper(this, "dataDifference", filter, boost::optional<TemporaryChangesetId>(), a, b);
 }
 
-std::vector<ObjectModification> JsonApiParser::resolvedDataDifference(const RevisionId a, const RevisionId b) const
+std::vector<ObjectModification> JsonApiParser::resolvedDataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter) const
 {
-    return diffHelper(this, "resolvedDataDifference", boost::optional<TemporaryChangesetId>(), a, b);
+    return diffHelper(this, "resolvedDataDifference", filter, boost::optional<TemporaryChangesetId>(), a, b);
 }
 
-std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+std::vector<ObjectModification> JsonApiParser::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
-    return diffHelper(this, "dataDifferenceInTemporaryChangeset", changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
+    return diffHelper(this, "dataDifferenceInTemporaryChangeset", filter, changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
 }
 
-std::vector<ObjectModification> JsonApiParser::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+std::vector<ObjectModification> JsonApiParser::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
-    return diffHelper(this, "resolvedDataDifferenceInTemporaryChangeset", changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
+    return diffHelper(this, "resolvedDataDifferenceInTemporaryChangeset", filter, changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
 }
 
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
