@@ -16,7 +16,7 @@ create language pgpython in the deska_dev database
 2) run deska_install.sh -d deska_dev -u postgres install --all
 
 If you change modules, run deska_install.sh -d deska_dev -u user restore
--- user must be deska_admin.
+-- user must be deska_admin
 
 Unit test setup:
 ----------------
