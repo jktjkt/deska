@@ -613,6 +613,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 {
 #ifdef PARSER_DEBUG
     std::cout << "Parse line: \"" << line << "\"" << std::endl;
+    std::cout << "Start context stack: " << Db::contextStackToString(contextStack) << std::endl;
 #endif
 
     Iterator iter = line.begin();
@@ -640,6 +641,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 // Function show does not require any parameters -> emit signals
 #ifdef PARSER_DEBUG
                 std::cout << "Action Show" << std::endl;
+                std::cout << "End context stack: " << Db::contextStackToString(contextStack) << std::endl;
 #endif
                 if (!dryRun)
                     m_parser->functionShow();
@@ -821,6 +823,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             }
         }
     }
+#ifdef PARSER_DEBUG
+    std::cout << "End context stack: " << Db::contextStackToString(contextStack) << std::endl;
+#endif
     return parsingSucceeded;
 }
 
