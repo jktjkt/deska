@@ -443,7 +443,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
 {
     if (line.empty()) {
         std::vector<std::string> possibilities;
-        insertTabPossibilitiesOfCurrentContext(possibilities);
+        insertTabPossibilitiesOfCurrentContext(line, possibilities);
         possibilities.push_back("delete");
         possibilities.push_back("show");
         possibilities.push_back("rename");
@@ -456,7 +456,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
     if (parsingSucceeded) {
         if (*(line.end()-1) == ' ') {
             std::vector<std::string> possibilities;
-            insertTabPossibilitiesOfCurrentContext(possibilities);
+            insertTabPossibilitiesOfCurrentContext(line, possibilities);
             return possibilities;
         } else {
             // FIXME: return correct result
@@ -923,19 +923,20 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities)
+void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::string &line,
+                                                                  std::vector<std::string> &possibilities)
 {
     if (contextStack.empty()) {
         // No context -> add names of top-level kinds
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
         for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-            possibilities.push_back(*it);
+            possibilities.push_back(line + *it);
         }
     } else {
         // Add names of attributes of current kind
         std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
         for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            possibilities.push_back(it->name);
+            possibilities.push_back(line + it->name);
         }
         // Add names of nested kinds of current kind
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
@@ -943,7 +944,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(std::vector<st
             std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
             for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
                 if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == contextStack.back().kind)) {
-                    possibilities.push_back(*it);
+                    possibilities.push_back(line + *it);
                 }
             }
         }
@@ -1034,7 +1035,7 @@ template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 
 template void ParserImpl<iterator_type>::reportParseError(const std::string& line);
 
-template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities);
+template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
 
 }
 }
