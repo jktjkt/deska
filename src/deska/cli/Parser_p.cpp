@@ -443,36 +443,31 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
 {
     // We have to restore previous context stack
     Db::ContextStack contextStackBackup = contextStack;
+    std::vector<std::string> possibilities;
     if (line.empty()) {
-        std::vector<std::string> possibilities;
         insertTabPossibilitiesOfCurrentContext(line, possibilities);
         possibilities.push_back("show");
-        return possibilities;
-    }
-
-    dryRun = true;
-    bool parsingSucceeded;
-    parsingSucceeded = parseLineImpl(line);
-    if (parsingSucceeded) {
-        if (*(line.end()-1) == ' ') {
-            std::vector<std::string> possibilities;
-            insertTabPossibilitiesOfCurrentContext(line, possibilities);
-            return possibilities;
-        } else {
-            // This should not happen, because CliCompleter truncates the last uncomplete token
-            return std::vector<std::string>();
-        }
     } else {
-        if (*(line.end()-1) == ' ') {
-            // FIXME: return correct result
-            return std::vector<std::string>();
+        dryRun = true;
+        bool parsingSucceeded;
+        parsingSucceeded = parseLineImpl(line);
+        if (parsingSucceeded) {
+            if (*(line.end()-1) == ' ') {
+                insertTabPossibilitiesOfCurrentContext(line, possibilities);
+            } else {
+                // This should not happen, because CliCompleter truncates the last uncomplete token
+            }
         } else {
-            // This should not happen, because CliCompleter truncates the last uncomplete token
-            return std::vector<std::string>();
+            if (*(line.end()-1) == ' ') {
+                // FIXME: fill possibilities vector with correct lines
+            } else {
+                // This should not happen, because CliCompleter truncates the last uncomplete token
+            }
         }
     }
     // Restore previous context stack
     contextStack = contextStackBackup;
+    return possibilities;
 }
 
 
