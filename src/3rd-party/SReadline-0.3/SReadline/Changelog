@@ -1,5 +1,0 @@
-0.2 -> 0.3
-  - SKeymap class has been introduced.
-    It supports binding and unbinding keys to boost::function objects
-  - An example of the SKeymap usage has been written.
-

@@ -1,8 +1,0 @@
-
-	Readline interface in C++
-	-------------------------
-
-This package provides a C++ interface to the GNU C library
-libreadline.  The idea is to make it possible for C++ users to easily
-use the extraodinary readline library in thier code with.  Therefor
-this API has been developed. 
