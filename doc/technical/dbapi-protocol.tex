@@ -283,10 +283,9 @@ In general, the following has to be done to add a low-level data type to Deska:
     \item Create the SQL data type, if applicable
     \item Create the corresponding C++ class, if applicable
     \item Extend the {\tt Deska::Db::Value} variant to include the new type
-    \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
-        into JSON
-    \item Create a specialization of the {\tt template<> struct JsonExtractionTraits<ObjectModification>} and its {\tt
-        implementation()} method which is responsible for proper de-serialization of the JSON values
+    \item Create a specialization of the {\tt template<> struct JsonConversionTraits<>}, its {\tt extract()} and {\tt
+        toJson()} methods, which are responsible for proper serialization and de-serialization between native C++ data
+        types and JSON
     \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
     \item Update the documentation and unit tests
 \end{itemize}
@@ -545,7 +544,9 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
     database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
-    \pageref{sec:api-revision-semantics} for details.}
+    \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
+    a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
+    selected object kind, but can also follow defined object relations to create more complex queries.}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
@@ -556,14 +557,20 @@ Functions from this group are used for fetching actual data from the database.
     This function guarantees to return all attribute instances, including the {\tt null} values.  The only exception are
     embedded objects, for which the \deskaFuncRef{kindAttributes} returns a special attribute referring to the foreign
     key reference (in the demo setup, this would be the {\tt host} attribute for an {\tt interface}), but this special
-    attribute is missing from the \deskaFuncRef{objectData} output.}
+    attribute is missing from the \deskaFuncRef{objectData} output.
+
+    For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
+    \deskaFuncRef{multipleResolvedObjectData}.
+    }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     {\{"object1": \{"foo": "bar1", "baz": "id1", "int": 1, "real": 100.666, "price": 666\}, \\
        "object2": \{"foo": "bar2", "baz": "id2", "int": 2, "real": 200.666, "price": 333\}
       \}}
     {Get all attributes for instances matching the specified filter}
-    {This is the batched equivalent of \deskaFuncRef{objectData}.}
+    {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
+    present in the result, even if it has no attributes.  The amount of data returned is the same as in
+    \deskaFuncRef{objectData} function.}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
@@ -580,8 +587,6 @@ Functions from this group are used for fetching actual data from the database.
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
     {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
-
-FIXME: document output filters (\#210)
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
@@ -673,8 +678,10 @@ History}, section \ref{sec:api-group-history}.
     ]}
     {Return a list of all pending changesets}
     {This function returns a vector of metadata for all pending changesets which are currently available in the
-    database.  Without further arguments, this function will return information about changesets without any owner
-    filtering.}
+    database.
+
+    An optional argument {\tt filter} can be used to limit the amount of data returned.  Filters can reference any
+    available property of the temporary changeset.}
 
 \deskaFunc{resumeChangeset}{"revision": "r123"}
     {}
@@ -714,9 +721,9 @@ Functions for browsing history of individual objects, retrieving lists of differ
     \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
     ]}
     {Return a list of metadata for matching revisions}
-    {This function returns a list of metadata for revisions matching the search criteria.  Given that there is currently
-    no way to specify the search options (FIXME: add optional arguments?), the function will currently return metadata
-    for all persistent revisions.}
+    {This function returns a list of metadata for revisions matching the search criteria.  When no search criteria are
+    specified, it will return metadata for all persistent revisions.  The filter can reference all attributes of a
+    revision, as well as any object data.}
 
 \deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
     {[ \\
@@ -732,6 +739,8 @@ Functions for browsing history of individual objects, retrieving lists of differ
     existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
     object has been created and its attribute set to a particular value, the creation shall be present before the record
     for setting an attribute.
+
+    An optional filter is allowed to reference any object's attributes as well as revision metadata.
 
     The format of the returned data is the same as the argument of \deskaFuncRef{applyBatchedChanges}.}
 

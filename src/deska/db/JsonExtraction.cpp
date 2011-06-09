@@ -51,7 +51,7 @@ DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &va
     // How come that this builds fine:
     // template <typename T>
     // result_type operator()(T &value) const
-    return value;
+    return JsonConversionTraits<T>::toJson(value);
 }
 
 // Template instances for the Deska::Db::Value conversions from JSON
@@ -63,6 +63,16 @@ template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(co
 template<>
 json_spirit::Value JsonConversionTraits<Value>::toJson(const Value &value) {
     return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+}
+
+template<>
+inline json_spirit::Value JsonConversionTraits<int>::toJson(const int &value) {
+    return value;
+}
+
+template<>
+inline json_spirit::Value JsonConversionTraits<double>::toJson(const double &value) {
+    return value;
 }
 
 std::string jsonValueTypeToString(const json_spirit::Value_type type)
