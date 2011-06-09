@@ -287,6 +287,14 @@ std::vector<Db::Identifier> ParseError<Iterator>::expectedKeywords() const
 
 
 template <typename Iterator>
+std::string ParseError<Iterator>::context() const
+{
+    return m_context;
+}
+
+
+
+template <typename Iterator>
 std::string ParseError<Iterator>::toString() const
 {
     std::ostringstream sout;
@@ -427,6 +435,8 @@ template iterator_type ParseError<iterator_type>::errorPosition() const;
 template std::vector<std::string> ParseError<iterator_type>::expectedTypes() const;
 
 template std::vector<Db::Identifier> ParseError<iterator_type>::expectedKeywords() const;
+
+template std::string ParseError<iterator_type>::context() const;
 
 template std::string ParseError<iterator_type>::toString() const;
 

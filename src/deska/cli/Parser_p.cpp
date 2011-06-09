@@ -459,7 +459,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
             }
         } else {
             if (*(line.end()-1) == ' ') {
-                // FIXME: fill possibilities vector with correct lines
+                insertTabPossibilitiesFromErrors(line, possibilities);
             } else {
                 // This should not happen, because CliCompleter truncates the last uncomplete token
             }
@@ -812,8 +812,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 throw std::domain_error("Invalid value of parsingMode");
         } 
     }
-    // Invoke categoryLeft signals when parsing in-line definitions
-    if ((parsingMode == PARSING_MODE_STANDARD) && (singleKind || topLevel)) {
+    // Invoke categoryLeft signals when parsing in-line definitions. Do not invoke categoryLeft
+    // when in dryRun for purposes of generating tab completions.
+    if (((parsingMode == PARSING_MODE_STANDARD) && (singleKind || topLevel)) | (dryRun)) {
         // Definition of kind found stand-alone in standard mode on one line -> nest permanently
     } else {
         int depthDiff = contextStack.size() - previousContextStackSize;
@@ -939,13 +940,17 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             possibilities.push_back(line + "rename");
         }
     } else {
-        // Add names of attributes of current kind
-        std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
-        for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            possibilities.push_back(line + it->name);
+        // Do not add completions of attributes when in non-standard mode.
+        if (parsingMode == PARSING_MODE_STANDARD) {
+            // Add names of attributes of current kind
+            std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
+            for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+                possibilities.push_back(line + it->name);
+            }
+            if (!attributes.empty())
+                possibilities.push_back(line + "no");
+            possibilities.push_back(line + "end");
         }
-        if (!attributes.empty())
-            possibilities.push_back(line + "no");
         // Add names of nested kinds of current kind
         bool embedFound = false;
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
@@ -962,6 +967,102 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
         }
+    }
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &line,
+                                                                  std::vector<std::string> &possibilities)
+{
+    std::string::const_iterator realEnd = line.end() - 1;
+    while (*realEnd != ' ') {
+        if (realEnd == line.begin())
+            break;
+        --realEnd;
+    }
+    // Step to our imaginary line end.
+    ++realEnd;
+
+    typename std::vector<ParseError<Iterator> >::iterator it;
+
+    // At first, find out if the user wants to enter some value
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) != 0)
+            return;
+        std::vector<std::string> expectations = it->expectedTypes();
+        // Check if the user is supposed to enter some objects name, that we can complete
+        if (expectations.front() == "object identifier (alphanumerical letters and _)") {
+            if (!(it->context().empty())) {
+                std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+                for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                    possibilities.push_back(line + *iti);
+                }
+            }
+        }
+        return;
+    }
+
+    // Find out, if the user wants to enter attribute name for value removal
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        // Because of parsing the pair no <attribute name> using sequence parser with space skipper error occures
+        // right after no keyword. That means it is one character before end of the line.
+        if ((realEnd - it->errorPosition() - 1) != 0)
+            return;
+        std::vector<std::string> expectations = it->expectedKeywords();
+        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+            possibilities.push_back(line + *iti);
+        }
+        return;
+    }
+
+    // Find out, if the user wants to enter kind name and object name for renaming or deleting
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) != 0)
+            return;
+        std::vector<std::string> expectations = it->expectedKeywords();
+        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+            possibilities.push_back(line + *iti);
+        }
+        return;
+    }
+
+    // Find out, if the user wants to enter kind name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) != 0)
+            return;
+        std::vector<std::string> expectations = it->expectedKeywords();
+        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+            possibilities.push_back(line + *iti);
+        }
+        return;
+    }
+
+    // Find out, if the user wants to enter attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) != 0)
+            return;
+        std::vector<std::string> expectations = it->expectedKeywords();
+        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+            possibilities.push_back(line + *iti);
+        }
+        return;
     }
 }
 
@@ -1050,6 +1151,8 @@ template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 template void ParserImpl<iterator_type>::reportParseError(const std::string& line);
 
 template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
+
+template void ParserImpl<iterator_type>::insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
 
 }
 }

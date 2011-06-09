@@ -478,7 +478,7 @@ private:
     */
     void reportParseError(const std::string& line);
 
-    /** @short Function for finding tab completion possibilities of current context.
+    /** @short Function for finding tab completion possibilities of current context when parsing succeeded.
     *
     *   Extracts nested kind names and attribute names.
     *
@@ -486,6 +486,15 @@ private:
     *   @param possibilities Pushes all possibilities in this vector.
     */
     void insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
+
+    /** @short Function for finding tab completion possibilities of current context when parsing failed.
+    *
+    *   Extracts nested kind names and attribute names and object names.
+    *
+    *   @param line Line for which the completions will be generated.
+    *   @param possibilities Pushes all possibilities in this vector.
+    */
+    void insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
 
     //@{
     /** All rules and grammars, that is the whole parser build of are stored there.

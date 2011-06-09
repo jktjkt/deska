@@ -382,7 +382,23 @@ public:
     */
     std::vector<Db::Identifier> expectedKeywords() const;
 
-    /** Converts error to std::string
+    /** @short Gets context of the error.
+    *
+    *   Error types and context content:
+    *   PARSE_ERROR_TYPE_KIND - kind name or no context when in top-level
+    *   PARSE_ERROR_TYPE_NESTING - kind name
+    *   PARSE_ERROR_TYPE_ATTRIBUTE - kind name
+    *   PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL - kind name
+    *   PARSE_ERROR_TYPE_VALUE_TYPE - attribute name
+    *   PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND - kind name
+    *   PARSE_ERROR_TYPE_OBJECT_NOT_FOUND - pair kind name and object name
+    *   PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND - no context
+    *   
+    *   @return Context of the error.
+    */
+    std::string context() const;
+
+    /** @short Converts error to std::string
     *
     *   @return Description of the error
     */
