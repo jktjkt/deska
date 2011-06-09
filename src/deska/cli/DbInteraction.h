@@ -26,11 +26,14 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include "deska/db/Api.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
 namespace Deska {
+
+namespace Db {
+class Api;
+}
 
 namespace Cli {
 
