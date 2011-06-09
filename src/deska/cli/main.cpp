@@ -4,6 +4,7 @@
 #include "DbInteraction.h"
 #include "ParserSignals.h"
 #include "UserInterface.h"
+#include "UserInterfaceIO.h"
 #include "Parser.h"
 
 int main()

@@ -24,6 +24,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 
+#include "Exceptions.h"
 #include "Parser.h"
 #include "ParserSignals.h"
 #include "UserInterface.h"
