@@ -62,7 +62,7 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     if (noSpace)
         completions = m_parser->tabCompletionPossibilities(std::string());
     else
-        completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), space));
+        completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), (space + 1)));
 
     completions.push_back("exit");
     completions.push_back("quit");
