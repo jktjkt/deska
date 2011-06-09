@@ -446,7 +446,6 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
     std::vector<std::string> possibilities;
     if (line.empty()) {
         insertTabPossibilitiesOfCurrentContext(line, possibilities);
-        possibilities.push_back("show");
     } else {
         dryRun = true;
         bool parsingSucceeded;
@@ -929,6 +928,8 @@ template <typename Iterator>
 void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::string &line,
                                                                   std::vector<std::string> &possibilities)
 {
+    if (line.empty())
+        possibilities.push_back("show");
     if (contextStack.empty()) {
         // No context -> add names of top-level kinds
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
