@@ -24,7 +24,11 @@
 #include <sstream>
 #include <boost/foreach.hpp>
 
+#include "DbInteraction.h"
+#include "Exceptions.h"
+#include "Parser.h"
 #include "UserInterface.h"
+#include "UserInterfaceIO.h"
 #include "deska/db/JsonApi.h"
 
 

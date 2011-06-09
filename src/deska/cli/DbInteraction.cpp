@@ -23,6 +23,7 @@
 
 #include <boost/foreach.hpp>
 #include "DbInteraction.h"
+#include "deska/db/Api.h"
 
 namespace Deska
 {

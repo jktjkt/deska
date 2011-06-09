@@ -29,9 +29,6 @@
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/signals2/trackable.hpp>
-#include "deska/cli/Parser.h"
-#include "deska/cli/Exceptions.h"
-#include "deska/cli/UserInterface.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Api.h"
 
@@ -41,9 +38,10 @@ namespace Deska
 namespace Cli
 {
 
-
+class Parser;
+class ParserException;
 class SignalsHandler;
-
+class UserInterface;
 
 
 /** @short Represents signal categoryEntered() from the parser. */

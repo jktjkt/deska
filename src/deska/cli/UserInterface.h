@@ -29,17 +29,15 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "UserInterfaceIO.h"
-#include "DbInteraction.h"
-#include "Parser.h"
-#include "Exceptions.h"
-
-
 namespace Deska
 {
 namespace Cli
 {
 
+class DbInteraction;
+class Parser;
+class ParserException;
+class UserInterfaceIO;
 
 /** @short Class for communication with the user.
 *
