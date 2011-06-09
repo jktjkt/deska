@@ -4,6 +4,10 @@
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
 *
+* Inspired by SReadline
+* Copyright (C) 2005 - 2006 Sergey Satskiy <sergesatsky@yahoo.com>
+* http://freshmeat.net/projects/sreadline
+*
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
 * License as published by the Free Software Foundation; either
