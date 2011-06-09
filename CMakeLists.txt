@@ -71,24 +71,6 @@ else()
     include_directories(${BOOST_PROCESS_PATH})
 endif()
 
-FIND_PATH(RLMM_PATH rlmm/readline.hh
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9)
-if(NOT RLMM_PATH)
-    message(FATAL "Cannot find readline--, and the internal copy seems unusable")
-else()
-    message(STATUS "Using readline-- from ${RLMM_PATH}")
-    include_directories(${RLMM_PATH})
-endif()
-
-FIND_PATH(SREADLINE_PATH SReadline/SReadline.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/SReadline-0.3)
-if(NOT SREADLINE_PATH)
-    message(FATAL "Cannot find SReadline, and the internal copy seems unusable")
-else()
-    message(STATUS "Using SReadline from ${SREADLINE_PATH}")
-    include_directories(${SREADLINE_PATH})
-endif()
-
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 FIND_PACKAGE(Readline REQUIRED)
 
