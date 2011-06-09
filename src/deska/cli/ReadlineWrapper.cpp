@@ -29,6 +29,39 @@
 
 #include "ReadlineWrapper.h"
 
+namespace
+{
+
+/** @short The function is called before trying to complete a token.
+*
+*   Calls are forwarded to the CompletionHelper::generateCompletions().
+*
+*   @param text A token to be completed
+*   @param start Position of the beginning of the token in the readline buffer
+*   @param end Position of the end of the token in the readline buffer
+*   @see CompletionHelper::generateCompletions()
+*/
+char **generateCompletions(const char *text, int start, int end)
+{
+    return Deska::ReadlineWrapper::CompletionHelper::getInstance()->hGenerateCompletions(text, start, end);
+}
+
+/** @short Custom completion generator.
+*
+*   Calls are forwarded to the CompletionHelper::completionsGenerator().
+*
+*   @param text Pointer to a token to be completed
+*   @param State 0 for a first call, non 0 for all consequent calls
+*   @see generateCompletions();
+*   @see CompletionHelper::completionsGenerator()
+*/
+char *completionsGenerator(const char *text, int state)
+{
+    return Deska::ReadlineWrapper::CompletionHelper::getInstance()->hCompletionsGenerator(text, state);
+}
+
+}
+
 
 namespace Deska
 {
@@ -241,26 +274,6 @@ bool CompletionHelper::tokensEqual(const std::vector<std::string> &pattern, cons
     }
     return true;
 }
-
-
-
-namespace
-{
-
-char **generateCompletions(const char *text, int start, int end)
-{
-    return CompletionHelper::getInstance()->hGenerateCompletions(text, start, end);
-}
-
-
-
-char *completionsGenerator(const char *text, int state)
-{
-    return CompletionHelper::getInstance()->hCompletionsGenerator(text, state);
-}
-
-}
-
 
 }
 }

@@ -183,39 +183,6 @@ private:
     std::string historyFileName;
 };
 
-
-
-/** @short Functions for readline interface.
-*
-*   Anonymous namespace is here to avoid linker errors when linked into multiple files.
-*/
-namespace {
-
-/** @short The function is called before trying to complete a token.
-*
-*   Calls are forwarded to the CompletionHelper::generateCompletions().
-*
-*   @param text A token to be completed
-*   @param start Position of the beginning of the token in the readline buffer
-*   @param end Position of the end of the token in the readline buffer
-*   @see CompletionHelper::generateCompletions()
-*/
-char **generateCompletions(const char *text, int start, int end);
-
-/** @short Custom completion generator.
-*
-*   Calls are forwarded to the CompletionHelper::completionsGenerator().
-*
-*   @param text Pointer to a token to be completed
-*   @param State 0 for a first call, non 0 for all consequent calls
-*   @see generateCompletions();
-*   @see CompletionHelper::completionsGenerator()
-*/
-char *completionsGenerator(const char *text, int state);
-
-}
-
-
 }
 }
 
