@@ -154,7 +154,7 @@ char **CompletionHelper::hGenerateCompletions(const char *text, int start, int e
     for (std::vector<std::vector<std::string> >::const_iterator it = lineCompletions.begin();
          it != lineCompletions.end(); ++it)
     {
-        if ((!tokensEqual(*it, lineTokens)) | (it->size() <= lineTokens.size()))
+        if ((!tokensEqual(*it, lineTokens)) || (it->size() <= lineTokens.size()))
             continue;
         runGenerator = true;
         if (it->at(lineTokens.size()) == "%file") {
@@ -177,8 +177,8 @@ char *CompletionHelper::hCompletionsGenerator(const char *text, int state)
         textlength = strlen(text);
     }
     for (; completionsIterator != lineCompletions.end(); ++completionsIterator) {
-        if ((!tokensEqual(*completionsIterator, lineTokens)) |
-            (completionsIterator->size() <= lineTokens.size()) |
+        if ((!tokensEqual(*completionsIterator, lineTokens)) ||
+            (completionsIterator->size() <= lineTokens.size()) ||
             (completionsIterator->at(lineTokens.size()) == "%file" ))
             continue;
         if (strncmp(text, completionsIterator->at(lineTokens.size()).c_str(), textlength) == 0) {
