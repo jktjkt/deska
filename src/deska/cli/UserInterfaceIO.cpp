@@ -48,7 +48,22 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
                                                        std::string::const_iterator start,
                                                        std::string::const_iterator end)
 {
-    std::vector<std::string> completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), end));
+    // Do not pass the last incomplete token to the parser
+    std::string::const_iterator space = end;
+    bool noSpace = false;
+    while (*space != ' ') {
+        if (space == line.begin()) {
+            noSpace = true;
+            break;
+        }
+        --space;
+    }
+    std::vector<std::string> completions;
+    if (noSpace)
+        completions = m_parser->tabCompletionPossibilities(std::string());
+    else
+        completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), space));
+
     completions.push_back("exit");
     completions.push_back("quit");
     completions.push_back("dump");

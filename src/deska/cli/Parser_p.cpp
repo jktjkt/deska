@@ -441,12 +441,12 @@ Db::ContextStack ParserImpl<Iterator>::currentContextStack() const
 template <typename Iterator>
 std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const std::string &line)
 {
+    // We have to restore previous context stack
+    Db::ContextStack contextStackBackup = contextStack;
     if (line.empty()) {
         std::vector<std::string> possibilities;
-        insertTabPossibilitiesOfCurrentContext(possibilities);
-        possibilities.push_back("delete");
+        insertTabPossibilitiesOfCurrentContext(line, possibilities);
         possibilities.push_back("show");
-        possibilities.push_back("rename");
         return possibilities;
     }
 
@@ -456,21 +456,23 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
     if (parsingSucceeded) {
         if (*(line.end()-1) == ' ') {
             std::vector<std::string> possibilities;
-            insertTabPossibilitiesOfCurrentContext(possibilities);
+            insertTabPossibilitiesOfCurrentContext(line, possibilities);
             return possibilities;
         } else {
-            // FIXME: return correct result
+            // This should not happen, because CliCompleter truncates the last uncomplete token
             return std::vector<std::string>();
         }
     } else {
         if (*(line.end()-1) == ' ') {
-            // Parsing failed and last character is space -> no completion possibilites shoul be returned
-            return std::vector<std::string>();
-        } else {
             // FIXME: return correct result
             return std::vector<std::string>();
+        } else {
+            // This should not happen, because CliCompleter truncates the last uncomplete token
+            return std::vector<std::string>();
         }
-    }  
+    }
+    // Restore previous context stack
+    contextStack = contextStackBackup;
 }
 
 
@@ -923,29 +925,42 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities)
+void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::string &line,
+                                                                  std::vector<std::string> &possibilities)
 {
     if (contextStack.empty()) {
         // No context -> add names of top-level kinds
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
         for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-            possibilities.push_back(*it);
+            possibilities.push_back(line + *it);
+        }
+        if ((!kinds.empty()) && (line.empty())) {
+            possibilities.push_back(line + "delete");
+            possibilities.push_back(line + "rename");
         }
     } else {
         // Add names of attributes of current kind
         std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(contextStack.back().kind);
         for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            possibilities.push_back(it->name);
+            possibilities.push_back(line + it->name);
         }
+        if (!attributes.empty())
+            possibilities.push_back(line + "no");
         // Add names of nested kinds of current kind
+        bool embedFound = false;
         std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
         for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
             std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
             for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
                 if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == contextStack.back().kind)) {
-                    possibilities.push_back(*it);
+                    possibilities.push_back(line + *it);
+                    embedFound = true;
                 }
             }
+        }
+        if ((embedFound) && (line.empty())) {
+            possibilities.push_back(line + "delete");
+            possibilities.push_back(line + "rename");
         }
     }
 }
@@ -1034,7 +1049,7 @@ template bool ParserImpl<iterator_type>::parseLineImpl(const std::string &line);
 
 template void ParserImpl<iterator_type>::reportParseError(const std::string& line);
 
-template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities);
+template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
 
 }
 }

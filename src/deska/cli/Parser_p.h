@@ -391,6 +391,7 @@ public:
     *   Vector of possible continuations construction is based on analysis of the last token and
     *   parse errors.
     *
+    *   @param line Line for which the completions will be generated
     *   @return Vector of strings, that are possible continuations of current line.
     *   @see bool parseLineImpl(const std::string &line)
     */
@@ -479,11 +480,12 @@ private:
 
     /** @short Function for finding tab completion possibilities of current context.
     *
-    *   Extracts nested kind names and attribute names
+    *   Extracts nested kind names and attribute names.
     *
+    *   @param line Line for which the completions will be generated.
     *   @param possibilities Pushes all possibilities in this vector.
     */
-    void insertTabPossibilitiesOfCurrentContext(std::vector<std::string> &possibilities);
+    void insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
 
     //@{
     /** All rules and grammars, that is the whole parser build of are stored there.
