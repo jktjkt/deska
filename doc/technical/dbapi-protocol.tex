@@ -742,4 +742,21 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return differences between the database state in the specified changeset}
     {See \deskaFuncRef{dataDifference} for details.}
 
+\deskaFunc{resolvedDataDifference}{, "revisionA": "r1", "revisionB": "r2"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
+    \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
+    ]}
+    {Return differences in the resolved versions of object states between the specified versions}
+    {This function behaves in the exactly same way as the \deskaFuncRef{dataDifference}, except that the changes are not
+    between the ``raw'' object attributes, but reflect the differences in the fully resolved versions of data, taking
+    templates  into account.}
+
+\deskaFunc{resolvedDataDifferenceInTemporaryChangeset}{, "changeset": "tmp123"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\} \\
+    ]}
+    {Return differences between the resolved database state in the specified changeset}
+    {See \deskaFuncRef{dataDifferenceInTemporaryChangeset} and \deskaFuncRef{resolvedDataDifference} for details.}
+
 \end{document}
