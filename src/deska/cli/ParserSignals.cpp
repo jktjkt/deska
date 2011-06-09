@@ -24,7 +24,9 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 
+#include "Parser.h"
 #include "ParserSignals.h"
+#include "UserInterface.h"
 
 
 namespace Deska
