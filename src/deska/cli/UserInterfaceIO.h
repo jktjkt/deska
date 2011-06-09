@@ -35,6 +35,7 @@
 
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
+#include "Parser.h"
 
 
 namespace Deska
@@ -47,6 +48,13 @@ namespace Cli
 class CliCompleter: public ReadlineWrapper::Completer
 {
 public:
+    /** @short Sets pointer to the praser for obtaining line completions.
+    *
+    *   @param parser Pointer to the parser
+    *   @see Parser
+    */
+    CliCompleter(Parser* parser);
+
     virtual ~CliCompleter();
     /** @short Function for obtaining all possible lines.
     *
@@ -58,6 +66,10 @@ public:
     virtual std::vector<std::string> getCompletions(const std::string &line,
                                             std::string::const_iterator start,
                                             std::string::const_iterator end);
+
+private:
+    /** Pointer to the parser for obtaining line completions. */
+    Parser* m_parser;
 };
 
 
@@ -67,8 +79,12 @@ class UserInterfaceIO: public boost::noncopyable
 {
 public:
 
-    /** @short Constructor initializes input reader and CLI constants. */
-    UserInterfaceIO();
+    /** @short Constructor initializes input reader and CLI constants.
+    *
+    *   @param parser Pointer to the parser
+    *   @see Parser
+    */
+    UserInterfaceIO(Parser* parser);
     
     /** @short Destroys custom completer and line reader. */
     ~UserInterfaceIO();

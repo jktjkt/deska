@@ -32,6 +32,12 @@ namespace Cli
 {
 
 
+CliCompleter::CliCompleter(Parser* parser): m_parser(parser)
+{
+}
+
+
+
 CliCompleter::~CliCompleter()
 {
 }
@@ -42,7 +48,7 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
                                                        std::string::const_iterator start,
                                                        std::string::const_iterator end)
 {
-    std::vector<std::string> completions;
+    std::vector<std::string> completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), end));
     completions.push_back("exit");
     completions.push_back("quit");
     completions.push_back("dump");
@@ -53,18 +59,15 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     completions.push_back("resume");
     completions.push_back("status");
     completions.push_back("help");
-    completions.push_back("show");
-    completions.push_back("delete");
-    completions.push_back("rename");
     return completions;
 }
 
 
 
-UserInterfaceIO::UserInterfaceIO():
+UserInterfaceIO::UserInterfaceIO(Parser* parser):
     tabSize(4), promptEnd("> ")
 {
-    completer = new CliCompleter();
+    completer = new CliCompleter(parser);
     reader = new ReadlineWrapper::Readline(".deska_cli_history", 64, completer);
 }
 
