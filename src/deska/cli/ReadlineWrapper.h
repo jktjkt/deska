@@ -124,9 +124,9 @@ private:
     //@}
 
     /** Global storage of custom completions (whole lines). */
-    std::vector<std::vector<std::string> > completions;
+    std::vector<std::vector<std::string> > lineCompletions;
     /** Tokens storage for a single completion session. */
-    std::vector<std::string> tokens;
+    std::vector<std::string> lineTokens;
     /** User custom generator of possible lines. */
     Completer* userCompleter;
 

@@ -139,28 +139,31 @@ char **CompletionHelper::hGenerateCompletions(const char *text, int start, int e
     std::string::const_iterator iStart = complLine.begin() + start;
     std::string::const_iterator iEnd = complLine.begin() + end;
     std::vector<std::string> customCompletions = userCompleter->getCompletions(complLine, iStart, iEnd);
-    completions.clear();
+    lineCompletions.clear();
     for (std::vector<std::string>::const_iterator it = customCompletions.begin();
          it != customCompletions.end(); ++it) {
-        completions.push_back(tokenize(*it));
+        lineCompletions.push_back(tokenize(*it));
     }
     
-    if (completions.empty())
+    if (lineCompletions.empty())
         return 0;
 
     std::string preInput(rl_line_buffer, start);
-    tokens = tokenize(preInput);
-
-    for (std::vector<std::vector<std::string> >::const_iterator it = completions.begin(); it != completions.end(); ++it)
+    lineTokens = tokenize(preInput);
+    bool runGenerator = false;
+    for (std::vector<std::vector<std::string> >::const_iterator it = lineCompletions.begin();
+         it != lineCompletions.end(); ++it)
     {
-        if ((!tokensEqual(*it,tokens)) | (it->size() <= tokens.size()))
+        if ((!tokensEqual(*it, lineTokens)) | (it->size() <= lineTokens.size()))
             continue;
-        if (it->at(tokens.size()) == "%file") {
+        runGenerator = true;
+        if (it->at(lineTokens.size()) == "%file") {
             // Standard file name completer called for the "%file" keyword
             return rl_completion_matches( text, rl_filename_completion_function );
         }
-        return rl_completion_matches(text, completionsGenerator);
     }
+    if (runGenerator)
+        return rl_completion_matches(text, completionsGenerator);
 
     return 0;
 }
@@ -170,19 +173,18 @@ char **CompletionHelper::hGenerateCompletions(const char *text, int start, int e
 char *CompletionHelper::hCompletionsGenerator(const char *text, int state)
 {
     if (state == 0) {
-        completionsIterator = completions.begin();
+        completionsIterator = lineCompletions.begin();
         textlength = strlen(text);
     }
-
-    for (; completionsIterator != completions.end(); ++completionsIterator) {
-        if ((!tokensEqual(*completionsIterator, tokens)) |
-            (completionsIterator->size() <= tokens.size()) |
-            (completionsIterator->at(tokens.size()) == "%file" ))
+    for (; completionsIterator != lineCompletions.end(); ++completionsIterator) {
+        if ((!tokensEqual(*completionsIterator, lineTokens)) |
+            (completionsIterator->size() <= lineTokens.size()) |
+            (completionsIterator->at(lineTokens.size()) == "%file" ))
             continue;
-        if (strncmp(text, completionsIterator->at(tokens.size()).c_str(), textlength) == 0) {
+        if (strncmp(text, completionsIterator->at(lineTokens.size()).c_str(), textlength) == 0) {
             // readline will free the allocated memory
-            char *complString((char*)malloc(strlen(completionsIterator->at(tokens.size()).c_str()) + 1));
-            strcpy(complString, completionsIterator->at(tokens.size()).c_str());
+            char *complString((char*)malloc(completionsIterator->at(lineTokens.size()).length() + 1));
+            strcpy(complString, completionsIterator->at(lineTokens.size()).c_str());
             ++completionsIterator;
             return complString;
         }
