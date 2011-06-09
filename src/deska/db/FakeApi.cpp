@@ -183,12 +183,12 @@ std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filte
     return std::vector<RevisionMetadata>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter) const
+std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId a, const RevisionId b, const boost::optional<Filter> &filter) const
+std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }
