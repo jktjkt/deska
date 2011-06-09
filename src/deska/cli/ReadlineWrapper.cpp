@@ -197,7 +197,7 @@ char *CompletionHelper::hCompletionsGenerator(const char *text, int state)
 CompletionHelper::CompletionHelper(int _x): x(_x)
 {
     textlength = 0;
-    completionsIterator = completions.begin();
+    completionsIterator = lineCompletions.begin();
 }
 
 
