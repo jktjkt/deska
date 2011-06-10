@@ -25,6 +25,7 @@
 #define DESKA_USER_INTERFACE_H
 
 #include <string>
+#include <tr1/memory>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
@@ -404,8 +405,10 @@ private:
     Parser* m_parser;
     /** Pointer to the class for performing IO operations. */
     UserInterfaceIO *io;
+
+    typedef std::map<std::string, std::tr1::shared_ptr<Command> > CommandMap;
     /** Map for commands indexed by their names. */
-    std::map<std::string, Command*> commandsMap;
+    CommandMap commandsMap;
 
     bool inChangeset;
     bool exitLoop;

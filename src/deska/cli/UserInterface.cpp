@@ -388,7 +388,7 @@ void Help::operator()(const std::string &params)
         return;
     }
     std::map<std::string, std::string> cliCommands;
-    for (std::map<std::string, Command*>::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
+    for (UserInterface::CommandMap::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
         cliCommands[it->first] = it->second->usage();
     }
     ui->io->printHelp(cliCommands, ui->m_parser->parserKeywordsUsage());
@@ -400,19 +400,20 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), inChangeset(false)
 {
     // Register all commands
-    commandsMap["start"] = new Start(this);
-    commandsMap["resume"] = new Resume(this);
-    commandsMap["commit"] = new Commit(this);
-    commandsMap["detach"] = new Detach(this);
-    commandsMap["abort"] = new Abort(this);
-    commandsMap["status"] = new Status(this);
-    commandsMap["exit"] = new Exit(this);
+    typedef std::tr1::shared_ptr<Command> Ptr;
+    commandsMap["start"] = Ptr(new Start(this));
+    commandsMap["resume"] = Ptr(new Resume(this));
+    commandsMap["commit"] = Ptr(new Commit(this));
+    commandsMap["detach"] = Ptr(new Detach(this));
+    commandsMap["abort"] = Ptr(new Abort(this));
+    commandsMap["status"] = Ptr(new Status(this));
+    commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
-    commandsMap["dump"] = new Dump(this);
-    commandsMap["help"] = new Help(this);
+    commandsMap["dump"] = Ptr(new Dump(this));
+    commandsMap["help"] = Ptr(new Help(this));
 
     // Register all commands completions
-    for (std::map<std::string, Command*>::iterator it = commandsMap.begin(); it != commandsMap.end(); ++it) {
+    for (CommandMap::iterator it = commandsMap.begin(); it != commandsMap.end(); ++it) {
         std::vector<std::string> cmdCompletions = it->second->completionPatterns();
         for (std::vector<std::string>::iterator itc = cmdCompletions.begin(); itc != cmdCompletions.end(); ++itc)
             io->addCommandCompletion(*itc);
@@ -423,16 +424,6 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
 
 UserInterface::~UserInterface()
 {
-    // We can not use loop to avoid deleteng some commands twice, when there are some synonyms.
-    delete commandsMap["start"];
-    delete commandsMap["resume"];
-    delete commandsMap["commit"];
-    delete commandsMap["detach"];
-    delete commandsMap["abort"];
-    delete commandsMap["status"];
-    delete commandsMap["exit"];
-    delete commandsMap["dump"];
-    delete commandsMap["help"];
 }
 
 
