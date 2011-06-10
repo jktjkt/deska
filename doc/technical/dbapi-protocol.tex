@@ -87,6 +87,8 @@ response for the above command will look like this:
     {"response": "foo"}
 \end{lstlisting}
 
+FIXME: change this (and all other sections) when token-based interface is introduced, issue 238
+
 \subsubsection{Passing Arguments}
 
 Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
@@ -220,13 +222,12 @@ see section \ref{sec:json-extending} for details.
 
 \subsubsection{Optional Values}
 
-FIXME: clarify this
-
 Certain data fields are designed to allow either a value of the underlying data type, or a special NULL value.  On the
 C++ side, this is achieved by wrapping the data type inside a {\tt boost::optional<>} container.  In the JSON
 serialization, the NULL can be simulated in two ways, either by omitting the value altogether, or by using JSON's {\tt
-null} keyword as the JSON value.  The Deska DBAPI does not distinguish between the two conventions, so the following
-examples are equivalent, provided that the arguments {\tt a1} is defined an accept NULL:
+null} keyword as the JSON value.  In the context of optional function arguments, the Deska DBAPI does not distinguish
+between the two conventions, so the following examples are equivalent, provided that the arguments {\tt a1} is defined
+an accept NULL:
 
 \begin{lstlisting}
     {"command": "foo", "a1": null}
@@ -341,7 +342,7 @@ relation information etc.  The following types are defined:
     {\tt Deska::Db::PendingChangeset} &
         {\tt \{"changeset": }TemporaryChangesetId{\tt, "author": }string{\tt, "status": }
         PendingChangeset::AttachStatus{\tt, "timestamp": }timestamp{\tt, "parentRevision": }RevisionId{\tt, "message": }
-        string {\tt\}} FIXME: comment about the active session? \\
+        string {\tt, "activeConnectionInfo": }string/{\tt null\}} \\
     {\tt Deska::Db::KindAttributeDataType} &
         One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"}, {\tt
         "enum\_X"} or a user-defined type \\
@@ -443,6 +444,8 @@ Results of these modifying operations can be consulted via the \deskaFuncRef{lis
 immediate attributes of an object, and do not take templates into account; for functions which operate on the resolved
 state of objects, use the \deskaFuncRef{resolvedDataDifference} and
 \deskaFuncRef{resolvedDataDifferenceInTemporaryChangeset}.
+
+FIXME: add server-side config generators, issue 239 -- maybe in a different section -> s/five/six/ at the top of this chapter
 
 \subsubsection{Revision Semantics}
 \label{sec:api-revision-semantics}
