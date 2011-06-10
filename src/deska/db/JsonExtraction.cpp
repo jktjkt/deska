@@ -193,8 +193,8 @@ struct DeskaFilterMetadataValueToJsonValue: public boost::static_visitor<json_sp
     }
 };
 
-template<> struct JsonConversionTraits<Deska::Db::ComparisonKind> {
-    static json_spirit::Value toJson(const Deska::Db::ComparisonKind &value) {
+template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
+    static json_spirit::Value toJson(const Deska::Db::ComparisonOperator &value) {
         switch (value) {
         case FILTER_COLUMN_EQ:
             return std::string("columnEq");
@@ -218,7 +218,7 @@ struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spiri
     result_type operator()(const Deska::Db::MetadataExpression &expression) const
     {
         json_spirit::Object o;
-        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonKind>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonOperator>::toJson(expression.comparison)));
         o.push_back(json_spirit::Pair("metadata", expression.metadata));
         o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterMetadataValueToJsonValue(), expression.constantValue)));
         return o;
@@ -227,7 +227,7 @@ struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spiri
     result_type operator()(const Deska::Db::AttributeExpression &expression) const
     {
         json_spirit::Object o;
-        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonKind>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonOperator>::toJson(expression.comparison)));
         o.push_back(json_spirit::Pair("kind", expression.kind));
         o.push_back(json_spirit::Pair("attribute", expression.attribute));
         o.push_back(json_spirit::Pair("value", JsonConversionTraits<Value>::toJson(expression.constantValue)));

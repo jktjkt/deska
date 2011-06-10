@@ -81,6 +81,9 @@ class JsonBuilder():
 	def setAttribute(self,kind,name,att,data):
 		return self.command("setAttribute",**{"kindName": kind,"objectName": name, "attributeName": att, "attributeData":data})
 
+	def dataDifferenceInTemporaryChangeset(self):
+		return self.command("dataDifferenceInTemporaryChangeset")
+
 	def dataDifference(self,a,b):
 		return self.command("dataDifference",**{"revisionA": a,"revisionB": b})
 

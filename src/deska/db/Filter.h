@@ -42,7 +42,7 @@ typedef enum {
     FILTER_COLUMN_LT,
     /** @short Compare column's value for being less-or-equal than a constant */
     FILTER_COLUMN_LE
-} ComparisonKind;
+} ComparisonOperator;
 
 /** @short Anything against which we can compare */
 typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
@@ -50,22 +50,22 @@ typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::A
 /** @short Compare metadata against a constant using  given comparison operator */
 struct MetadataExpression
 {
-    ComparisonKind comparison;
+    ComparisonOperator comparison;
     Identifier metadata;
     MetadataValue constantValue;
 
-    MetadataExpression(const ComparisonKind comparison, const Identifier &metadata, const MetadataValue &constantValue);
+    MetadataExpression(const ComparisonOperator comparison, const Identifier &metadata, const MetadataValue &constantValue);
 };
 
 /** @short Compare attribute value against a constant using given comparison operator */
 struct AttributeExpression
 {
-    ComparisonKind comparison;
+    ComparisonOperator comparison;
     Identifier kind;
     Identifier attribute;
     Value constantValue;
 
-    AttributeExpression(const ComparisonKind comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
+    AttributeExpression(const ComparisonOperator comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
 };
 
 /** @short A generic expression */

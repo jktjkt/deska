@@ -24,12 +24,12 @@
 namespace Deska {
 namespace Db {
 
-MetadataExpression::MetadataExpression(const ComparisonKind comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
+MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
     comparison(comparison_), metadata(metadata_), constantValue(constantValue_)
 {
 }
 
-AttributeExpression::AttributeExpression(const ComparisonKind comparison_, const Identifier &kind_, const Identifier &attribute_,
+AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
                                          const Value &constantValue_):
     comparison(comparison_), kind(kind_), attribute(attribute_), constantValue(constantValue_)
 {
