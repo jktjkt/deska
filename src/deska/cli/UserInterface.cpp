@@ -165,6 +165,7 @@ void UserInterface::dumpDbContents()
         BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, m_dbInteraction->kindInstances(kindName)) {
             io->printObject(object, 0, true);
             io->printAttributes(m_dbInteraction->allAttributes(object), 1);
+            io->printEnd(0);
         }
     }
 }

@@ -232,13 +232,9 @@ std::string UserInterfaceIO::readLine(const std::string &prompt)
 
 void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel)
 {
-    if (attributes.empty())
-        return;
     for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         printAttribute(*it, indentLevel);
     }
-    if (indentLevel > 0)
-        printEnd(indentLevel - 1);
 }
 
 
