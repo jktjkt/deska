@@ -117,7 +117,9 @@ bool Readline::saveHistory(const std::string &fileName)
 {
     if (fileName.empty())
         return false;
-    std::ofstream  ofs(fileName.c_str());
+    std::ofstream ofs(fileName.c_str());
+    if (!ofs)
+        return false;
     for (int i = 0; i < history_length; ++i)
     {
         ofs << history_list()[i]->line << std::endl;
