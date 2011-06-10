@@ -91,18 +91,23 @@ END
 $$
 LANGUAGE plpgsql;
 
+CREATE TYPE attribute_table_type AS(
+	attname name,
+	tabname name
+);
+
 CREATE OR REPLACE FUNCTION cols_ref_uid(tabname name)
-RETURNS SETOF name
+RETURNS SETOF attribute_table_type
 AS
 $$
 DECLARE 
-	"oid" oid;
-	ckey smallint[];
+	toid oid;
+	tckey smallint[];
 	roid oid;
 	rckey smallint[];
 	pos int;
 BEGIN
-	FOR oid,ckey,roid,rckey IN 
+	FOR toid,tckey,roid,rckey IN 
 		SELECT 
 			class1.oid, constr.conkey,
 			class2.oid, constr.confkey
@@ -115,9 +120,9 @@ BEGIN
 	LOOP
 		pos = uid_pos(roid,rckey);
 		IF pos > 0 THEN
-			RETURN QUERY SELECT attname
-				FROM pg_attribute AS att 
-				WHERE att.attrelid = oid AND att.attnum = ckey[pos];
+			RETURN QUERY SELECT attname, relname
+				FROM pg_attribute AS att, pg_class AS class
+				WHERE att.attrelid = toid AND att.attnum = tckey[pos] AND class.oid = roid;
 		END IF;
 	END LOOP;
 END
@@ -192,9 +197,9 @@ RETURN QUERY
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
 		-- don't return also uid and name columns - internal
 		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name')
-			AND attname NOT IN (SELECT * FROM cols_ref_uid(tabname))
+			AND attname NOT IN (SELECT attname FROM cols_ref_uid(tabname))
 	UNION
-	SELECT *, 'text' FROM cols_ref_uid(tabname);
+	SELECT attname, 'text' FROM cols_ref_uid(tabname);
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

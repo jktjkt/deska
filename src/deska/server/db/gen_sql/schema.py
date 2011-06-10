@@ -7,7 +7,7 @@ class Schema:
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
 	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
-	refuid_columns_str = "SELECT cols_ref_uid('{0}');"
+	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('{0}');"
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -100,19 +100,26 @@ CREATE FUNCTION commit_all(message text)
 			table.embed_into = row[0]
 			
 		refuid_rec = self.plpy.execute(self.refuid_columns_str.format(tbl))
-		table.refuid_columns = list()
+		table.refuid_columns = dict()
 		for row in refuid_rec:
-			table.refuid_columns.append(row[0])
+			table.refuid_columns[row[0]] = row[1]
+		
+		if tbl.endswith('_template'):
+			templated_table = tbl.replace('_template','')
+			refuid_rec = self.plpy.execute(self.refuid_columns_str.format(templated_table))
+			for row in refuid_rec:
+				if row[0] not in table.refuid_columns:
+					table.refuid_columns[row[0]] = row[1]
 		
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
-		cols_ref_uid = table.get_cols_reference_uid()
+		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in tables[:]:
-			if (col[0] in cols_ref_uid):
-				reftable = cols_ref_uid[col[0]]
+			if (col[0] in table.refuid_columns):
+				reftable = table.refuid_columns[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
 				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
@@ -121,16 +128,20 @@ CREATE FUNCTION commit_all(message text)
 			#get uid of that references uid should not return uid but name of according instance
 
 		#get uid from embed object
-		embed_column = table.get_col_embed_reference_uid()
-		if (embed_column != ""):
-			reftable = cols_ref_uid[embed_column[0]]
+		if (table.embed_into != ""):
+			reftable = table.embed_into
+			for k, v in table.refuid_columns.iteritems():
+				if v == table.embed_into:
+					embed_column = k
+					break
+			
 			#adding full quolified name with _ delimiter
-			self.fn_sql.write(table.gen_add_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_add_embed(embed_column,reftable))
 			#get uid from embed object, again name have to be full
-			self.fn_sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_get_name_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_names_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_set_name_embed(embed_column[0], reftable))
+			self.fn_sql.write(table.gen_get_uid_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_get_name_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_names_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_set_name_embed(embed_column, reftable))
 		else:
 			self.fn_sql.write(table.gen_add())
 			self.fn_sql.write(table.gen_get_uid())

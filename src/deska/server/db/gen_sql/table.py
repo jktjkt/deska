@@ -97,7 +97,7 @@ class Table(constants.Templates):
 
 		if self.embed_into <> "":
 			get_data_string = self.get_embed_data_string
-			del collist[embed_into]
+			del collist[self.embed_into]
 		else:
 			get_data_string = self.get_data_string
 
@@ -105,20 +105,17 @@ class Table(constants.Templates):
 		for col in self.refuid_columns:
 			collist[col] = 'text'
 
-		# create col: type dict
-		coltypeslist = dict()
-		for col in collist:
-			coltypeslist[col] = " ".join([col,collist[col]])
-		coltypes = ",\n".join(coltypeslist.values())
+		coltypes = ",\n".join(map("{0} {1}".format,collist.keys(),collist.values()))
 
+		collist = collist.keys()
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
-				collist[pos] = "{0}_get_name({0}) AS {0}".format(col)
+				collist[pos] = "{1}_get_name({0}) AS {0}".format(col, self.refuid_columns[col])
 		
-		cols = ",".join(collist.values())
+		cols = ",".join(collist)
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
-		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
+		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = self.embed_into)
 		return type_def + "\n" + cols_def
 	
 	#generates function that returns all changes of columns between two versions
