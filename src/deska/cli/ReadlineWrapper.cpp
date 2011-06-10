@@ -90,6 +90,7 @@ Readline::Readline(const std::string &historyStorageFileName, const size_t maxHi
 Readline::~Readline()
 {
     saveHistory(historyFileName);
+    clear_history();
 }
 
 
