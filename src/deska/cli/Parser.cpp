@@ -42,6 +42,11 @@ Parser::~Parser()
     delete d_ptr;
 }
 
+std::map<std::string, std::string> Parser::parserKeywordsUsage()
+{
+    return d_ptr->parserKeywordsUsage();
+}
+
 void Parser::parseLine(const std::string &line)
 {
     d_ptr->parseLine(line);

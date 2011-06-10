@@ -413,6 +413,23 @@ ParserImpl<Iterator>::~ParserImpl()
 
 
 template <typename Iterator>
+std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
+{
+    std::map<std::string, std::string> usages;
+    usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also \
+                       allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in \
+                       the object host golias120.";
+    usages["show"] = "Shows attributes and nested kinds of the object. Parameter is here optional and works in the \
+                      same way as for delete. When executed without parameter at top-level, it shows all object \
+                      kinds and names.";
+    usages["end"] = "Leaves one level of current context.";
+    usages["no"] = "When entered in front of an attribute name, it removes it's value.";
+    return usages;
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
     dryRun = false;
@@ -1112,6 +1129,8 @@ template void FunctionWordsParser<iterator_type>::actionShow();
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
 template ParserImpl<iterator_type>::~ParserImpl();
+
+template std::map<std::string, std::string> ParserImpl<iterator_type>::parserKeywordsUsage();
 
 template void ParserImpl<iterator_type>::parseLine(const std::string &line);
 

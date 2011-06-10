@@ -121,6 +121,12 @@ public:
 
     virtual ~Parser();
 
+    /** @short Obtains some help for usage of parser keywords.
+    *   
+    *   @return Map of keywords, where key is the keyword name and value is description of its usage.
+    */
+    std::map<std::string, std::string> parserKeywordsUsage();
+
     /** @short Parse a full line of user's input
     *
     *   As a result of this parsing, events could get triggered and the state may change.

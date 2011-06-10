@@ -66,10 +66,18 @@ public:
     virtual std::vector<std::string> getCompletions(const std::string &line,
                                             std::string::const_iterator start,
                                             std::string::const_iterator end);
+    
+    /** @short Adds completion string to the completions vector in the CliCompleter.
+    *
+    *   @param completion Completion to add.
+    */
+    void addCommandCompletion(const std::string &completion);
 
 private:
     /** Pointer to the parser for obtaining line completions. */
     Parser* m_parser;
+    /** Vector with completions for all CLI commands. */
+    std::vector<std::string> commandCompletions;
 };
 
 
@@ -127,8 +135,13 @@ public:
     */
     std::string askForDetachMessage();
 
-    /** @short Prints help for CLI usage. */
-    void printHelp();
+    /** @short Prints help for CLI usage.
+    *
+    *   @param cliCommands Map of CLI commands with their usages.
+    *   @param parserKeywords Map of Parser commands with their usages.
+    */
+    void printHelp(const std::map<std::string, std::string> &cliCommands,
+                   const std::map<std::string, std::string> &parserKeywords);
 
     /** @short Displays list of pending changesets and lets user to pick one.
     *
@@ -150,34 +163,44 @@ public:
     *   @param attributes Vector of attributes to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel);
+    void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+                         std::ostream &out = std::cout);
 
     /** @short Prints list of object definitions with indentation.
     *
     *   @param objects Vector of objects to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName);
+    void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+                      bool fullName, std::ostream &out = std::cout);
 
     /** @short Prints an attribute definition with indentation.
     *
     *   @param attribute Attribute to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel);
+    void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
+                        std::ostream &out = std::cout);
 
     /** @short Prints a object definition with indentation.
     *
     *   @param object Object to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName);
+    void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName,
+                     std::ostream &out = std::cout);
 
     /** @short Prints "end" keyword with indentation.
     *
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printEnd(int indentLevel);
+    void printEnd(int indentLevel, std::ostream &out = std::cout);
+
+    /** @short Adds completion string to the completions vector in the CliCompleter.
+    *
+    *   @param completion Completion to add.
+    */
+    void addCommandCompletion(const std::string &completion);
 
 private:
 

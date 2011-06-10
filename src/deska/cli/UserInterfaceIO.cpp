@@ -64,17 +64,15 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     else
         completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), (space + 1)));
 
-    completions.push_back("exit");
-    completions.push_back("quit");
-    completions.push_back("dump");
-    completions.push_back("commit");
-    completions.push_back("detach");
-    completions.push_back("abort");
-    completions.push_back("start");
-    completions.push_back("resume");
-    completions.push_back("status");
-    completions.push_back("help");
+    completions.insert(completions.end(), commandCompletions.begin(), commandCompletions.end());
     return completions;
+}
+
+
+
+void CliCompleter::addCommandCompletion(const std::string &completion)
+{
+    commandCompletions.push_back(completion);
 }
 
 
@@ -159,8 +157,11 @@ std::string UserInterfaceIO::askForDetachMessage()
 
 
 
-void UserInterfaceIO::printHelp()
+void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
+                                const std::map<std::string, std::string> &parserKeywords)
 {
+    // FIXME: Use maps for printing command helps.
+    std::cout << 
     std::cout << "CLI commands:" << std::endl;
     std::cout << "start  - Starts new changeset" << std::endl;
     std::cout << "resume - Displays list of pending changesets with ability to connect to one." << std::endl;
@@ -230,48 +231,54 @@ std::string UserInterfaceIO::readLine(const std::string &prompt)
 
 
 
-void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel)
+void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+                                      std::ostream &out)
 {
     for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        printAttribute(*it, indentLevel);
+        printAttribute(*it, indentLevel, out);
     }
 }
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName)
+void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+                                   bool fullName, std::ostream &out)
 {
-    if (objects.empty())
-        return;
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
-        printObject(*it, indentLevel, fullName);
+        printObject(*it, indentLevel, fullName, out);
     }
-    if (indentLevel > 0)
-        printEnd(indentLevel - 1);
 }
 
 
 
-void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel)
+void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
 {
-    std::cout << indent(indentLevel) << attribute << std::endl;
+    out << indent(indentLevel) << attribute << std::endl;
 }
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName)
+void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
 {
     if (fullName)
-        std::cout << indent(indentLevel) << object << std::endl;
+        out << indent(indentLevel) << object << std::endl;
     else
-        std::cout << indent(indentLevel) << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
+        out << indent(indentLevel)
+                  << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
 }
 
 
 
-void UserInterfaceIO::printEnd(int indentLevel)
+void UserInterfaceIO::printEnd(int indentLevel, std::ostream &out)
 {
-    std::cout << indent(indentLevel) << "end" << std::endl;
+    out << indent(indentLevel) << "end" << std::endl;
+}
+
+
+
+void UserInterfaceIO::addCommandCompletion(const std::string &completion)
+{
+    completer->addCommandCompletion(completion);
 }
 
 

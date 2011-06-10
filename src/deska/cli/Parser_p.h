@@ -363,6 +363,12 @@ public:
     /** @short All created sub gramars are deleted there. */
     virtual ~ParserImpl();
 
+    /** @short Obtains some help for usage of parser keywords.
+    *   
+    *   @return Map of keywords, where key is the keyword name and value is description of its usage.
+    */
+    std::map<std::string, std::string> parserKeywordsUsage();
+
     /** @short Main function of the parser. Parses the whole line and invokes appropriate signals.
     *
     *   Sets flag dryRun to false and invokes bool parseLineImpl(const std::string &line).
