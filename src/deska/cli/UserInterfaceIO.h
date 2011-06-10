@@ -216,7 +216,15 @@ private:
     *   @param indentLevel Level of indentation (number of "tabs")
     *   @return String constructed from spaces for indenting
     */
-    std::string indent(int indentLevel);
+    std::string indent(unsigned int indentLevel);
+
+    /** @short Construct wrapped string.
+    *
+    *   @param text Text tp wrap.
+    *   @param width Max line width.
+    *   @return Vector of string wrapped to given width. Line by line.
+    */
+    std::vector<std::string> wrap(const std::string &text, unsigned int width);
 
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;

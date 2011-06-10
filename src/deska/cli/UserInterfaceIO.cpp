@@ -23,6 +23,9 @@
 
 #include <sstream>
 
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
+
 #include "UserInterfaceIO.h"
 
 
@@ -160,30 +163,27 @@ std::string UserInterfaceIO::askForDetachMessage()
 void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
                                 const std::map<std::string, std::string> &parserKeywords)
 {
-    // FIXME: Use maps for printing command helps.
-    std::cout << 
     std::cout << "CLI commands:" << std::endl;
-    std::cout << "start  - Starts new changeset" << std::endl;
-    std::cout << "resume - Displays list of pending changesets with ability to connect to one." << std::endl;
-    std::cout << "commit - Displays promt for commit message and commits current changeset." << std::endl;
-    std::cout << "detach - Displays promt for detach message and detaches from current changeset." << std::endl;
-    std::cout << "abort  - Aborts current changeset." << std::endl;
-    std::cout << "status - Shows if you are connected to any changeset or not." << std::endl;
-    std::cout << "exit   - Exits the CLI." << std::endl;
-    std::cout << "quit   - Exits the CLI." << std::endl;
-    std::cout << "dump   - Prints everything in the DB." << std::endl;
-    std::cout << "help   - Displays this list of commands." << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
+        std::cout << it->first << "\t- ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, 70);
+        for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+            if (itd != wrappedDscr.begin())
+                std::cout << "\t  ";
+            std::cout << *itd << std::endl;
+        }
+    }
     std::cout << std::endl;
     std::cout << "Parser keywords:" << std::endl;
-    std::cout << "delete - Deletes object given as parameter (e.g. delete hardware hp456). Longer" << std::endl;
-    std::cout << "         parameters are also allowed (e.g. delete host golias120 interface eth0)" << std::endl;
-    std::cout << "         This will delete only interface eth0 in the object host golias120." << std::endl;
-    std::cout << "show   - Shows attributes and nested kinds of the object. Parameter is here" << std::endl;
-    std::cout << "         optional and works in the same way as for delete. When executed without" << std::endl;
-    std::cout << "         parameter at top-level, it shows all object kinds and names." << std::endl;
-    std::cout << "rename - Renames an object to name given as parameter" << std::endl;
-    std::cout << "         (e.g. rename hardware hp456 hp567)." << std::endl;
-    std::cout << "end    - Leaves one level of current context" << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
+        std::cout << it->first << "\t- ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, 70);
+        for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+            if (itd != wrappedDscr.begin())
+                std::cout << "\t  ";
+            std::cout << *itd << std::endl;
+        }
+    }
 }
 
 
@@ -283,13 +283,42 @@ void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 
 
 
-std::string UserInterfaceIO::indent(int indentLevel)
+std::string UserInterfaceIO::indent(unsigned int indentLevel)
 {
     std::ostringstream ss;
     for (unsigned int i = 0; i < (indentLevel * tabSize); ++i) {
         ss << " ";
     }
     return ss.str();
+}
+
+
+
+std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int width)
+{
+    std::vector<std::string> lines;
+    boost::char_separator<char> separators(" \t\n");
+    boost::tokenizer<boost::char_separator<char> > tokenizer(text, separators);
+    std::string word;
+    std::string line;
+    
+    for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
+         it != tokenizer.end(); ++it) {
+        word = *it;
+        boost::algorithm::trim(word);
+        if ((line.length() + word.length() + 1) > width) {
+            lines.push_back(line);
+            line.clear();
+        }
+        if (!line.empty())
+            line += " ";
+        line += word;
+    }
+
+    if (!line.empty())
+        lines.push_back(line);
+
+    return lines;
 }
 
 
