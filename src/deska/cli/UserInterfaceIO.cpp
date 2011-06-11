@@ -197,7 +197,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
 void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
 {
     std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 76);
+    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 78);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
@@ -208,7 +208,7 @@ void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::st
 void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
 {
     std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 76);
+    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 78);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
