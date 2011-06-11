@@ -244,17 +244,26 @@ private:
     /** @short Construct string for indenting an output.
     *
     *   @param indentLevel Level of indentation (number of "tabs")
+    *   @param tab Width of one indentation level
     *   @return String constructed from spaces for indenting
     */
-    std::string indent(unsigned int indentLevel);
+    std::string indent(unsigned int indentLevel, unsigned int tab = 0);
 
     /** @short Construct wrapped string.
     *
-    *   @param text Text tp wrap.
+    *   @param text Text to wrap.
     *   @param width Max line width.
     *   @return Vector of string wrapped to given width. Line by line.
     */
     std::vector<std::string> wrap(const std::string &text, unsigned int width);
+
+    /** @short Construct string of a fixed with by adding spaces on the end.
+    *
+    *   @param text Text to process.
+    *   @param width Min text width.
+    *   @return String of given width.
+    */
+    std::string fixWidth(const std::string &text, unsigned int width);
 
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;

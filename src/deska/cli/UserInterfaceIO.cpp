@@ -163,24 +163,30 @@ std::string UserInterfaceIO::askForDetachMessage()
 void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
                                 const std::map<std::string, std::string> &parserKeywords)
 {
+    unsigned int maxWordWidth = 0;
+    for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it)
+        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+    for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it)
+        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+
     std::cout << "CLI commands:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
-        std::cout << it->first << "\t- ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, 70);
+        std::cout << fixWidth(it->first, maxWordWidth) << " - ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
-                std::cout << "\t  ";
+                std::cout << indent(maxWordWidth + 3, 1);
             std::cout << *itd << std::endl;
         }
     }
     std::cout << std::endl;
     std::cout << "Parser keywords:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
-        std::cout << it->first << "\t- ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, 70);
+        std::cout << fixWidth(it->first, maxWordWidth) << " - ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
-                std::cout << "\t  ";
+                std::cout << indent(maxWordWidth + 3, 1);
             std::cout << *itd << std::endl;
         }
     }
@@ -193,7 +199,7 @@ void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::st
     std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
     std::vector<std::string> wrappedDscr = wrap(cmdDscr, 76);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
-        std::cout << "  " << *itd << std::endl;
+        std::cout << indent(2, 1) << *itd << std::endl;
     }
 }
 
@@ -204,7 +210,7 @@ void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std
     std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
     std::vector<std::string> wrappedDscr = wrap(keywordDscr, 76);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
-        std::cout << "  " << *itd << std::endl;
+        std::cout << indent(2, 1) << *itd << std::endl;
     }
 }
 
@@ -215,20 +221,24 @@ void UserInterfaceIO::printHelpKind(const std::string &kindName,
                                     const std::vector<std::string> &nestedKinds)
 {
     std::cout << "Content of " << kindName << ":" << std::endl;
-    std::cout << "  Attributes:" << std::endl;
+    std::cout << indent(2, 1) << "Attributes:" << std::endl;
     if (kindAttrs.empty()) {
-        std::cout << "    " << "No attributes" << std::endl;
+        std::cout << indent(4, 1) << "No attributes" << std::endl;
     } else {
+        unsigned int maxWordWidth = 0;
         for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
              it != kindAttrs.end(); ++it)
-            std::cout << "    " << it->first << " : " << it->second << std::endl;
+            maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
+             it != kindAttrs.end(); ++it)
+            std::cout << indent(4, 1) << fixWidth(it->first, maxWordWidth) << " : " << it->second << std::endl;
     }
-    std::cout << "  Nested kinds:" << std::endl;
+    std::cout << indent(2, 1) << "Nested kinds:" << std::endl;
     if (nestedKinds.empty()) {
-        std::cout << "    " << "No nested kinds" << std::endl;
+        std::cout << indent(4, 1) << "No nested kinds" << std::endl;
     } else {
         for (std::vector<std::string>::const_iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it)
-            std::cout << "    " << *it << std::endl;
+            std::cout << indent(4, 1) << *it << std::endl;
     }
 }
 
@@ -238,14 +248,14 @@ void UserInterfaceIO::printHelpShowKinds(const std::vector<std::string> &kinds)
 {
     std::cout << "Defined kinds:" << std::endl;
     for (std::vector<std::string>::const_iterator it = kinds.begin(); it != kinds.end(); ++it)
-        std::cout << "    " << *it << std::endl;
+        std::cout << indent(2, 1) << *it << std::endl;
 }
 
 
 
 int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets)
 {
-    std::cout << "Pending changesets: " << std::endl << std::endl;
+    std::cout << "Pending changesets:" << std::endl << std::endl;
     if (pendingChangesets.empty()) {
         std::cout << "No pending changesets." << std::endl;
         return -2;
@@ -338,10 +348,12 @@ void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 
 
 
-std::string UserInterfaceIO::indent(unsigned int indentLevel)
+std::string UserInterfaceIO::indent(unsigned int indentLevel, unsigned int tab)
 {
+    if (tab == 0)
+        tab = tabSize;
     std::ostringstream ss;
-    for (unsigned int i = 0; i < (indentLevel * tabSize); ++i) {
+    for (unsigned int i = 0; i < (indentLevel * tab); ++i) {
         ss << " ";
     }
     return ss.str();
@@ -374,6 +386,16 @@ std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned
         lines.push_back(line);
 
     return lines;
+}
+
+
+
+std::string UserInterfaceIO::fixWidth(const std::string &text, unsigned int width)
+{
+    if (text.length() < width)
+        return (text + indent((width - text.length()), 1));
+    else
+        return text;
 }
 
 
