@@ -305,6 +305,32 @@ public:
 
 /** @short Cli command.
 *
+*   Runs commands from file.
+*
+*   @see Command
+*/
+class Restore: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Restore(UserInterface *userInterface);
+
+    virtual ~Restore();
+
+    /** @short Restores DB from a dump.
+    *
+    *   @param params File name where the dump is stored.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
 *   Displays this list of commands with usages.
 *
 *   @see Command
@@ -382,7 +408,7 @@ public:
     *
     *   @param errorMessage Error message to report
     */
-    void reportError(const std::string &errorMessage);
+    void reportParseError(const std::string &errorMessage);
 
     /** @short Function for listening to users input and calling appropriate actions. */
     void run();
@@ -397,6 +423,7 @@ private:
     friend class Status;
     friend class Exit;
     friend class Dump;
+    friend class Restore;
     friend class Help;
 
     /** Pointer to the class used for communication with the database. */
@@ -410,8 +437,14 @@ private:
     /** Map for commands indexed by their names. */
     CommandMap commandsMap;
 
+    /** Flag signalising, if we are currently connected to a changeset, or not. */
     bool inChangeset;
+    /** Flag singalising, that the event loop will end after this cycle. */
     bool exitLoop;
+    /** Flag signalising, that parsing current line using Parser failed. */
+    bool parsingFailed;
+    /** Flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed. */
+    bool nonInteractiveMode;
 };
 
 

@@ -366,6 +366,55 @@ void Dump::operator()(const std::string &params)
 
 
 
+Restore::Restore(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "restore";
+    cmdUsage = "Executes commands from a file. Can be used for restoring the DB from a dump. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
+    complPatterns.push_back("restore %file");
+}
+
+
+
+Restore::~Restore()
+{
+}
+
+
+
+void Restore::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        ui->io->reportError("Error: This command requires file name as a parameter.");
+    } else {
+        std::ifstream ifs(params.c_str());
+        if (!ifs) {
+            ui->io->reportError("Error while opening commands file \"" + params + "\".");
+            return;
+        }
+        ui->nonInteractiveMode = true;
+        std::string line;
+        unsigned int lineNumber = 0;
+        while (!getline(ifs, line).eof()) {
+            ++lineNumber;
+            if (!line.empty() && line[0] == '#')
+                continue;
+            ui->m_parser->parseLine(line);
+            if (ui->parsingFailed)
+                break;
+        }
+        ui->nonInteractiveMode = false;
+        if (ui->parsingFailed) {
+            std::ostringstream ostr;
+            ostr << "Parsing of commands file failed on line " << lineNumber << ".";
+            ui->io->reportError(ostr.str());
+        } else {
+            ui->io->printMessage("All commands successfully executed.");
+        }
+    }  
+}
+
+
+
 Help::Help(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "help";
@@ -445,6 +494,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["dump"] = Ptr(new Dump(this));
+    commandsMap["restore"] = Ptr(new Restore(this));
     // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
 
@@ -454,6 +504,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
         for (std::vector<std::string>::iterator itc = cmdCompletions.begin(); itc != cmdCompletions.end(); ++itc)
             io->addCommandCompletion(*itc);
     }
+    nonInteractiveMode = false;
 }
 
 
@@ -523,6 +574,9 @@ void UserInterface::applyFunctionRename(const Db::ContextStack &context, const D
 bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
+    if (nonInteractiveMode)
+        return true;
+
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
     if (m_dbInteraction->objectExists(context))
@@ -557,6 +611,9 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
+    if (nonInteractiveMode)
+        return true;
+
     return io->confirmDeletion(context.back());
 }
 
@@ -569,8 +626,9 @@ bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const
 
 
 
-void UserInterface::reportError(const std::string &errorMessage)
+void UserInterface::reportParseError(const std::string &errorMessage)
 {
+    parsingFailed = true;
     io->reportError(errorMessage);
 }
 
@@ -582,6 +640,7 @@ void UserInterface::run()
     std::string line;
     exitLoop = false;
     while (!exitLoop) {
+        parsingFailed = false;
         line = io->readLine(Db::contextStackToString(m_parser->currentContextStack()));
 
         // Split line to command and arguments
