@@ -371,6 +371,8 @@ Help::Help(UserInterface *userInterface): Command(userInterface)
     cmdName = "help";
     cmdUsage = "Displays this list of commands with usages. Accepts parameter. For command name or parser keyword as parametr, usage is displayed, for kind name is displayed content of the kind and for word \"kinds\" are all defined kind names printed.";
     complPatterns.push_back("help kinds");
+    // Help is not in commands map, because we are constructing it now.
+    complPatterns.push_back("help help");
     for (UserInterface::CommandMap::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
         complPatterns.push_back("help " + it->first);
     }
@@ -443,6 +445,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["dump"] = Ptr(new Dump(this));
+    // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
 
     // Register all commands completions
