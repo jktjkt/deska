@@ -913,3 +913,48 @@ $$
 LANGUAGE plpgsql;
 
 '''
+
+	resolved_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+RETURNS {tbl}_type
+AS
+$$
+DECLARE
+	data {tbl}_type;
+	current_changeset bigint;
+	obj_uid bigint;
+BEGIN
+	obj_uid = {tbl}_get_uid(name_, from_version);
+	IF from_version = 0 THEN
+		current_changeset = get_current_changeset_or_null();
+		IF current_changeset IS NULL THEN
+			--user wants current data from production
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO data 
+			FROM production.{tbl} WHERE uid = obj_uid;
+			IF NOT FOUND THEN
+				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			END IF;
+			RETURN data;
+		END IF;
+	END IF;
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE uid = obj_uid
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			dv.template, rd.orig_template
+        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO data
+	FROM resolved_data WHERE template IS NULL;
+
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+	
+	
+'''

@@ -89,7 +89,7 @@ class Table(constants.Templates):
 		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable, columns = self.get_columns())
 
 	def gen_get_object_data(self):
-		collist = self.col.copy()
+		collist = self.col.copy()		
 		del collist['uid']
 		del collist['name']
 		if len(collist) == 0:
@@ -105,15 +105,23 @@ class Table(constants.Templates):
 		for col in self.refuid_columns:
 			collist[col] = 'text'
 
-		coltypes = ",\n".join(map("{0} {1}".format,collist.keys(),collist.values()))
+		attributes = collist.keys()
+		attributes.sort()
+		atttypes = list()
+		for att in attributes:
+			atttypes.append(collist[att])
+			
+		print attributes
+		print atttypes
+		coltypes = ",\n".join(map("{0} {1}".format,attributes, atttypes))
 
-		collist = collist.keys()
 		for col in self.refuid_columns:
 			if col in collist:
-				pos = collist.index(col)
-				collist[pos] = "{1}_get_name({0}) AS {0}".format(col, self.refuid_columns[col])
+				pos = attributes.index(col)
+				attributes[pos] = "{1}_get_name({0}) AS {0}".format(col, self.refuid_columns[col])
 		
-		cols = ",".join(collist)
+		cols = ",".join(attributes)
+		print cols
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
 		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = self.embed_into)
 		return type_def + "\n" + cols_def
@@ -254,6 +262,7 @@ class Table(constants.Templates):
 		collist = self.col.keys()
 		collist.remove('uid')
 		collist.remove('name')
+		collist.sort()
 		cols = ','.join(collist)
 		
 		#table tbl is templated by table tbl_template
