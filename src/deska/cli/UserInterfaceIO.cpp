@@ -99,7 +99,9 @@ UserInterfaceIO::~UserInterfaceIO()
 
 void UserInterfaceIO::reportError(const std::string &errorMessage)
 {
-    std::cerr << errorMessage << std::endl;
+    std::vector<std::string> lines = wrap(errorMessage, 80);
+    for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+        std::cerr << *it << std::endl;
 }
 
 
