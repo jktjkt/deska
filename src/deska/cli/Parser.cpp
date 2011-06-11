@@ -47,6 +47,16 @@ std::map<std::string, std::string> Parser::parserKeywordsUsage()
     return d_ptr->parserKeywordsUsage();
 }
 
+std::vector<Db::Identifier> Parser::parserKindsEmbeds(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsEmbeds(kindName);
+}
+
+std::vector<std::pair<Db::Identifier, std::string> > Parser::parserKindsAttributes(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsAttributes(kindName);
+}
+
 void Parser::parseLine(const std::string &line)
 {
     d_ptr->parseLine(line);

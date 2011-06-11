@@ -369,6 +369,20 @@ public:
     */
     std::map<std::string, std::string> parserKeywordsUsage();
 
+    /** @short Obtains list of embedded kinds for given kind name.
+    *   
+    *   @param kindName Kind name for which the embedded kinds will be obtained
+    *   @return Vector of embedded kinds
+    */
+    std::vector<Db::Identifier> parserKindsEmbeds(const Db::Identifier &kindName);
+
+    /** @short Obtains list of attributes for given kind name.
+    *   
+    *   @param kindName Kind name for which the attributes will be obtained
+    *   @return Vector of pairs, where first item is attribute name and second is attribute value type name
+    */
+    std::vector<std::pair<Db::Identifier, std::string> > parserKindsAttributes(const Db::Identifier &kindName);
+
     /** @short Main function of the parser. Parses the whole line and invokes appropriate signals.
     *
     *   Sets flag dryRun to false and invokes bool parseLineImpl(const std::string &line).

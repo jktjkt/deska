@@ -369,8 +369,19 @@ void Dump::operator()(const std::string &params)
 Help::Help(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "help";
-    cmdUsage = "Displays this list of commands with usages.";
-    complPatterns.push_back("help");
+    cmdUsage = "Displays this list of commands with usages. Accepts parameter. For command name or parser keyword as parametr, usage is displayed, for kind name is displayed content of the kind and for word \"kinds\" are all defined kind names printed.";
+    complPatterns.push_back("help kinds");
+    for (UserInterface::CommandMap::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
+        complPatterns.push_back("help " + it->first);
+    }
+    std::vector<std::string> kinds = ui->m_dbInteraction->kindNames();
+    for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        complPatterns.push_back("help " + *it);
+    }
+    std::map<std::string, std::string> keywords = ui->m_parser->parserKeywordsUsage();
+    for (std::map<std::string, std::string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
+        complPatterns.push_back("help " + it->first);
+    }
 }
 
 
@@ -384,7 +395,29 @@ Help::~Help()
 void Help::operator()(const std::string &params)
 {
     if (!params.empty()) {
-        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        if (params == "kinds") {
+            ui->io->printHelpShowKinds(ui->m_dbInteraction->kindNames());
+            return;
+        }
+        UserInterface::CommandMap::iterator itc = ui->commandsMap.find(params);
+        if ( itc != ui->commandsMap.end()) {
+            ui->io->printHelpCommand(params, itc->second->usage());
+            return;
+        }
+        std::map<std::string, std::string> keywords = ui->m_parser->parserKeywordsUsage();
+        std::map<std::string, std::string>::iterator itke = keywords.find(params);
+        if ( itke != keywords.end()) {
+            ui->io->printHelpKeyword(params, itke->second);
+            return;
+        }
+        std::vector<std::string> kinds = ui->m_dbInteraction->kindNames();
+        std::vector<std::string>::iterator itki = std::find(kinds.begin(), kinds.end(), params);
+        if ( itki != kinds.end()) {
+            ui->io->printHelpKind(params, ui->m_parser->parserKindsAttributes(params),
+                                  ui->m_parser->parserKindsEmbeds(params));
+            return;
+        }
+        ui->io->reportError("Error: No help entry for \"" + params + "\".");
         return;
     }
     std::map<std::string, std::string> cliCommands;

@@ -426,6 +426,37 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
 
 
 template <typename Iterator>
+std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbeds(const Db::Identifier &kindName)
+{
+    std::vector<std::string> embeds;
+    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+    for (std::vector<Db::Identifier>::iterator itk = kinds.begin(); itk != kinds.end(); ++itk) {
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*itk);
+        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
+            if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == kindName)) {
+                embeds.push_back(*itk);
+            }
+        }
+    }
+    return embeds;
+}
+
+
+
+template <typename Iterator>
+std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<Iterator>::parserKindsAttributes(const Db::Identifier &kindName)
+{
+    std::vector<std::pair<Db::Identifier, std::string> > attrs;
+    std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
+    for (std::vector<Db::KindAttributeDataType>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
+        attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name()));
+    }
+    return attrs;
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
     dryRun = false;
@@ -1127,6 +1158,10 @@ template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 template ParserImpl<iterator_type>::~ParserImpl();
 
 template std::map<std::string, std::string> ParserImpl<iterator_type>::parserKeywordsUsage();
+
+template std::vector<Db::Identifier> ParserImpl<iterator_type>::parserKindsEmbeds(const Db::Identifier &kindName);
+
+template std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<iterator_type>::parserKindsAttributes(const Db::Identifier &kindName);
 
 template void ParserImpl<iterator_type>::parseLine(const std::string &line);
 

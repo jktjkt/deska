@@ -188,6 +188,61 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
 
 
 
+void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
+{
+    std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
+    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 76);
+    for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+        std::cout << "  " << *itd << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
+{
+    std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
+    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 76);
+    for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+        std::cout << "  " << *itd << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpKind(const std::string &kindName,
+                                    const std::vector<std::pair<std::string, std::string> > &kindAttrs,
+                                    const std::vector<std::string> &nestedKinds)
+{
+    std::cout << "Content of " << kindName << ":" << std::endl;
+    std::cout << "  Attributes:" << std::endl;
+    if (kindAttrs.empty()) {
+        std::cout << "    " << "No attributes" << std::endl;
+    } else {
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
+             it != kindAttrs.end(); ++it)
+            std::cout << "    " << it->first << " : " << it->second << std::endl;
+    }
+    std::cout << "  Nested kinds:" << std::endl;
+    if (nestedKinds.empty()) {
+        std::cout << "    " << "No nested kinds" << std::endl;
+    } else {
+        for (std::vector<std::string>::const_iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it)
+            std::cout << "    " << *it << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpShowKinds(const std::vector<std::string> &kinds)
+{
+    std::cout << "Defined kinds:" << std::endl;
+    for (std::vector<std::string>::const_iterator it = kinds.begin(); it != kinds.end(); ++it)
+        std::cout << "    " << *it << std::endl;
+}
+
+
+
 int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets)
 {
     std::cout << "Pending changesets: " << std::endl << std::endl;

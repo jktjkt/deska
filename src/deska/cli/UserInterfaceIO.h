@@ -143,6 +143,36 @@ public:
     void printHelp(const std::map<std::string, std::string> &cliCommands,
                    const std::map<std::string, std::string> &parserKeywords);
 
+    /** @short Prints help for CLI command.
+    *
+    *   @param cmdName Command name
+    *   @param cmdDscr Command description
+    */
+    void printHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
+
+    /** @short Prints help for Parser keyword.
+    *
+    *   @param keywordName Keyword name
+    *   @param keywordDscr Keyword description
+    */
+    void printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
+
+    /** @short Prints help for DB kind.
+    *
+    *   @param kindName Kind name
+    *   @param kindAttrs Kind attributes
+    *   @param nestedKinds Nested kinds
+    */
+    void printHelpKind(const std::string &kindName,
+                       const std::vector<std::pair<std::string, std::string> > &kindAttrs,
+                       const std::vector<std::string> &nestedKinds);
+
+    /** @short Prints help for DB defined kinds.
+    *
+    *   @param kinds Vector of defined kind names
+    */
+    void printHelpShowKinds(const std::vector<std::string> &kinds);
+
     /** @short Displays list of pending changesets and lets user to pick one.
     *
     *   @param pendingChangesets Vector of pending changesets
