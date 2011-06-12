@@ -552,6 +552,10 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing SqlError");
             h.parseJsonObject(v.get_obj());
             throw SqlError(message);
+        } else if (exceptionClass == "ReCreateObjectError") {
+            JsonContext c2("When parsing ReCreateObjectError");
+            h.parseJsonObject(v.get_obj());
+            throw ReCreateObjectError(message);
         } else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");
