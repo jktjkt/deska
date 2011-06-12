@@ -22,6 +22,7 @@
 * */
 
 #include <sstream>
+#include <iomanip>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
@@ -182,7 +183,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
 
     std::cout << "CLI commands:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
-        std::cout << fixWidth(it->first, maxWordWidth) << " - ";
+        std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
         std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
@@ -193,7 +194,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
     std::cout << std::endl;
     std::cout << "Parser keywords:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
-        std::cout << fixWidth(it->first, maxWordWidth) << " - ";
+        std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
         std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
@@ -242,7 +243,7 @@ void UserInterfaceIO::printHelpKind(const std::string &kindName,
             maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
         for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
              it != kindAttrs.end(); ++it)
-            std::cout << indent(4, 1) << fixWidth(it->first, maxWordWidth) << " : " << it->second << std::endl;
+            std::cout << indent(4, 1) << std::left << std::setw(maxWordWidth) << it->first << " : " << it->second << std::endl;
     }
     std::cout << indent(2, 1) << "Nested kinds:" << std::endl;
     if (nestedKinds.empty()) {
@@ -340,7 +341,7 @@ void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indent
         out << indent(indentLevel) << object << std::endl;
     else
         out << indent(indentLevel)
-                  << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
+            << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
 }
 
 
@@ -397,16 +398,6 @@ std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned
         lines.push_back(line);
 
     return lines;
-}
-
-
-
-std::string UserInterfaceIO::fixWidth(const std::string &text, unsigned int width)
-{
-    if (text.length() < width)
-        return (text + indent((width - text.length()), 1));
-    else
-        return text;
 }
 
 

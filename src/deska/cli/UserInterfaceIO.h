@@ -264,14 +264,6 @@ private:
     */
     std::vector<std::string> wrap(const std::string &text, unsigned int width);
 
-    /** @short Construct string of a fixed with by adding spaces on the end.
-    *
-    *   @param text Text to process.
-    *   @param width Min text width.
-    *   @return String of given width.
-    */
-    std::string fixWidth(const std::string &text, unsigned int width);
-
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;
     /** Ending string of the prompt. */
