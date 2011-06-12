@@ -460,8 +460,12 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
     dryRun = false;
-    if (parseLineImpl(line))
+    if (parseLineImpl(line)) {
         m_parser->parsingFinished();
+#ifdef PARSER_DEBUG
+        std::cout << "Parsing finished." << std::endl;
+#endif
+    }
 }
 
 
