@@ -9,6 +9,7 @@ class DeskaException(Exception):
 	typeDict = {
 		'70002': 'ChangesetAlreadyOpenError',
 		'70003': 'NoChangesetError',
+		'70010': 'ReCreateObjectError',
 		'70021': 'NotFoundError',
 		'*': 'ServerError'
 	}
