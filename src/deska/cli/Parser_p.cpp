@@ -1026,7 +1026,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             if (!(it->context().empty())) {
                 std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
                 for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                    possibilities.push_back(line + *iti);
+                    possibilities.push_back(line + Db::PathToVector(*iti).back());
                 }
             }
         }
