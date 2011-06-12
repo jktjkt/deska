@@ -51,12 +51,17 @@ std::string ParserException::dump() const
     return dumpHelper("ParserException");
 }
 
+int ParserException::offset() const
+{
+    return static_cast<int>(pos - input.begin());
+}
+
 std::string ParserException::dumpHelper(const std::string &className) const
 {
     std::ostringstream ss;
     ss << className << ": " << m;
     if (!input.empty()) {
-        ss << " Error in string \"" << input << "\" at offset " << static_cast<int>(pos - input.begin()) << ".";
+        ss << " Error in string \"" << input << "\" at offset " << offset() << ".";
     }
     ss.flush();
     return ss.str();

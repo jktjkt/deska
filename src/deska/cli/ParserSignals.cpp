@@ -38,17 +38,20 @@ namespace Cli
 
 ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
-    pastContext(context), kindName(kind), objectName(object)
+    signalsContext(context), kindName(kind), objectName(object)
 {
 }
 
 
 
-void ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
-    // At this place, we have to manipulate the signalsHandler's contextStack, not ours
-    signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
-    signalsHandler->userInterface->applyCategoryEntered(signalsHandler->contextStack, kindName, objectName);
+    if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName)) {
+        signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
@@ -59,7 +62,7 @@ bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
         return true;
     } else {
         // Careful here -- we have to work with *our* instance of the contextStack, not the signalsHandler's one
-        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(pastContext, kindName, objectName);
+        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(signalsContext, kindName, objectName);
     }
     return signalsHandler->autoCreate;
 }
@@ -72,9 +75,10 @@ ParserSignalCategoryLeft::ParserSignalCategoryLeft()
 
 
 
-void ParserSignalCategoryLeft::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalCategoryLeft::apply(SignalsHandler *signalsHandler) const
 {
     signalsHandler->contextStack.pop_back();
+    return true;
 }
 
 
@@ -89,107 +93,107 @@ bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 
 ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
-    pastContext(context), attributeName(attribute), setValue(value)
+    signalsContext(context), attributeName(attribute), setValue(value)
 {
 }
 
 
 
-void ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applySetAttribute(pastContext, attributeName, setValue);
+    return signalsHandler->userInterface->applySetAttribute(signalsContext, attributeName, setValue);
 }
 
 
 
 bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmSetAttribute(pastContext, attributeName, setValue);
+    return signalsHandler->userInterface->confirmSetAttribute(signalsContext, attributeName, setValue);
 }
 
 
 
 ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const Db::ContextStack &context, 
                                                          const Db::Identifier &attribute):
-    pastContext(context), attributeName(attribute)
+    signalsContext(context), attributeName(attribute)
 {
 }
 
 
 
-void ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyRemoveAttribute(pastContext, attributeName);
+    return signalsHandler->userInterface->applyRemoveAttribute(signalsContext, attributeName);
 }
 
 
 
 bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmRemoveAttribute(pastContext, attributeName);
+    return signalsHandler->userInterface->confirmRemoveAttribute(signalsContext, attributeName);
 }
 
 
 
 ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
-    pastContext(context)
+    signalsContext(context)
 {
 }
 
 
 
-void ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyFunctionShow(pastContext);
+    return signalsHandler->userInterface->applyFunctionShow(signalsContext);
 }
 
 
 
 bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmFunctionShow(pastContext);
+    return signalsHandler->userInterface->confirmFunctionShow(signalsContext);
 }
 
 
 
 ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &context):
-    pastContext(context)
+    signalsContext(context)
 {
 }
 
 
 
-void ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyFunctionDelete(pastContext);
+    return signalsHandler->userInterface->applyFunctionDelete(signalsContext);
 }
 
 
 
 bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmFunctionDelete(pastContext);
+    return signalsHandler->userInterface->confirmFunctionDelete(signalsContext);
 }
 
 
 
 ParserSignalFunctionRename::ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName):
-    pastContext(context), name(newName)
+    signalsContext(context), name(newName)
 {
 }
 
 
 
-void ParserSignalFunctionRename::apply(SignalsHandler *signalsHandler) const
+bool ParserSignalFunctionRename::apply(SignalsHandler *signalsHandler) const
 {
-    signalsHandler->userInterface->applyFunctionRename(pastContext, name);
+    return signalsHandler->userInterface->applyFunctionRename(signalsContext, name);
 }
 
 
 
 bool ParserSignalFunctionRename::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmFunctionRename(pastContext, name);
+    return signalsHandler->userInterface->confirmFunctionRename(signalsContext, name);
 }
 
 
@@ -201,9 +205,9 @@ ApplyParserSignal::ApplyParserSignal(SignalsHandler *_signalsHandler): signalsHa
 
 
 template <typename T>
-void ApplyParserSignal::operator()(const T &parserSignal) const
+bool ApplyParserSignal::operator()(const T &parserSignal) const
 {
-    parserSignal.apply(signalsHandler);
+    return parserSignal.apply(signalsHandler);
 }
 
 
@@ -293,7 +297,7 @@ void SignalsHandler::slotParserError(const ParserException &error)
 {
     autoCreate = false;
     signalsStack.clear();
-    userInterface->reportParseError(error.dump());
+    userInterface->reportParseError(error);
 }
 
 
@@ -314,7 +318,8 @@ void SignalsHandler::slotParsingFinished()
 
     if (allConfirmed) {
         for (std::vector<ParserSignal>::iterator it = signalsStack.begin(); it != signalsStack.end(); ++it) {
-            boost::apply_visitor(applyParserSignal, *it);
+            if (!(boost::apply_visitor(applyParserSignal, *it)))
+                break;
         }
     }
 

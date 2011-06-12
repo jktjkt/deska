@@ -61,19 +61,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the database
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -98,12 +100,14 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the database
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 };
@@ -127,19 +131,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -166,19 +172,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -202,19 +210,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 };
 
 
@@ -233,19 +243,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 };
 
 
@@ -265,19 +277,21 @@ public:
     /** @short Performs action, that is the signal connected with.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
     */
-    void apply(SignalsHandler *signalsHandler) const;
+    bool apply(SignalsHandler *signalsHandler) const;
 
     /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
     *
     *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
     */
     bool confirm(SignalsHandler *signalsHandler) const;
 
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack pastContext;
+    Db::ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -298,7 +312,7 @@ typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, Pa
 *
 *   @see ParserSignalCategoryEntered::apply()
 */
-class ApplyParserSignal: public boost::static_visitor<>
+class ApplyParserSignal: public boost::static_visitor<bool>
 {
 public:
 
@@ -311,9 +325,10 @@ public:
     /** @short Function for calling apply() function in signals
     *
     *   @param parserSignal Signal, for which the action() function will be called
+    *   @return True if the actio() function succeeded, else false
     */
     template <typename T>
-    void operator()(const T &parserSignal) const;
+    bool operator()(const T &parserSignal) const;
 
 private:
 
@@ -340,6 +355,7 @@ public:
     /** @short Function for calling confirm() function in signals
     *
     *   @param parserSignal Signal, for which the confirm() function will be called
+    *   @return True if the signal was confirmed
     */
     template <typename T>
     bool operator()(const T &parserSignal) const;

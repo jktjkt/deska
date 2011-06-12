@@ -123,6 +123,13 @@ public:
     */
     bool confirmCreation(const Db::ObjectDefinition &object);
 
+    /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
+    *
+    *   @param object Object to be restored
+    *   @return True if the restoration was confirmed, else false
+    */
+    bool confirmRestoration(const Db::ObjectDefinition &object);
+
     /** @short Asks user to enter a commit message.
     *
     *   @return Entered message
@@ -256,14 +263,6 @@ private:
     *   @return Vector of string wrapped to given width. Line by line.
     */
     std::vector<std::string> wrap(const std::string &text, unsigned int width);
-
-    /** @short Construct string of a fixed with by adding spaces on the end.
-    *
-    *   @param text Text to process.
-    *   @param width Min text width.
-    *   @return String of given width.
-    */
-    std::string fixWidth(const std::string &text, unsigned int width);
 
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;
