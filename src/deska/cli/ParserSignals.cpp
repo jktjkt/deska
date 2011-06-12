@@ -293,7 +293,7 @@ void SignalsHandler::slotParserError(const ParserException &error)
 {
     autoCreate = false;
     signalsStack.clear();
-    userInterface->reportParseError(error.dump());
+    userInterface->reportParseError(error);
 }
 
 

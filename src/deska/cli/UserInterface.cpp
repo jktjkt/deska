@@ -632,10 +632,14 @@ bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const
 
 
 
-void UserInterface::reportParseError(const std::string &errorMessage)
+void UserInterface::reportParseError(const ParserException &error)
 {
     parsingFailed = true;
-    io->reportError(errorMessage);
+    if (error.offset() == 0) {
+        io->reportError("Error while parsing CLI command or " + error.dump());
+    } else {
+        io->reportError(error.dump());
+    }
 }
 
 
