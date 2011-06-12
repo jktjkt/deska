@@ -519,37 +519,46 @@ UserInterface::~UserInterface()
 
 
 
-void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
+bool UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    if (!m_dbInteraction->objectExists(context)) {
-        try {
-            m_dbInteraction->createObject(context);
-        } catch (Deska::Db::ReCreateObjectError &e) {
-            if (io->confirmRestoration(Db::ObjectDefinition(kind,object)))
-                m_dbInteraction->restoreDeletedObject(context);
+    if (m_dbInteraction->objectExists(context))
+        return true;
+
+    // Object does not exist -> try to create it
+    try {
+        m_dbInteraction->createObject(context);
+        return true;
+    } catch (Deska::Db::ReCreateObjectError &e) {
+        if (io->confirmRestoration(Db::ObjectDefinition(kind,object))) {
+            m_dbInteraction->restoreDeletedObject(context);
+            return true;
+        } else {
+            return false;
         }
     }
 }
 
 
 
-void UserInterface::applySetAttribute(const Db::ContextStack &context,
+bool UserInterface::applySetAttribute(const Db::ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
+    return true;
 }
 
 
 
-void UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
     m_dbInteraction->removeAttribute(context, attribute);
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionShow(const Db::ContextStack &context)
+bool UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     if (context.empty()) {
         // Print top level objects if we are not in any context
@@ -563,20 +572,23 @@ void UserInterface::applyFunctionShow(const Db::ContextStack &context)
         std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
         io->printObjects(kinds, 0, false);
     }
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
+bool UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 {
     m_dbInteraction->deleteObject(context);
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+bool UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
 {
     m_dbInteraction->renameObject(context, newName);
+    return true;
 }
 
 

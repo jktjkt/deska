@@ -385,14 +385,14 @@ public:
     *   @see ParserSignals
     *   @see Parser
     */
-    void applyCategoryEntered(const Db::ContextStack &context,
+    bool applyCategoryEntered(const Db::ContextStack &context,
                               const Db::Identifier &kind, const Db::Identifier &object);
-    void applySetAttribute(const Db::ContextStack &context,
+    bool applySetAttribute(const Db::ContextStack &context,
                            const Db::Identifier &attribute, const Db::Value &value);
-    void applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
-    void applyFunctionShow(const Db::ContextStack &context);
-    void applyFunctionDelete(const Db::ContextStack &context);
-    void applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
+    bool applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
+    bool applyFunctionShow(const Db::ContextStack &context);
+    bool applyFunctionDelete(const Db::ContextStack &context);
+    bool applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
 
     bool confirmCategoryEntered(const Db::ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
