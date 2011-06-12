@@ -47,6 +47,14 @@ void DbInteraction::createObject(const Db::ContextStack &context)
 
 
 
+void DbInteraction::restoreDeletedObject(const Db::ContextStack &context)
+{
+    BOOST_ASSERT(!context.empty());
+    m_api->restoreDeletedObject(context.back().kind, Db::contextStackToPath(context));
+}
+
+
+
 void DbInteraction::deleteObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());

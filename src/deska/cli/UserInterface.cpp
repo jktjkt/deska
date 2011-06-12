@@ -518,8 +518,14 @@ UserInterface::~UserInterface()
 void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    if (!m_dbInteraction->objectExists(context))
-        m_dbInteraction->createObject(context);
+    if (!m_dbInteraction->objectExists(context)) {
+        try {
+            m_dbInteraction->createObject(context);
+        } catch (Deska::Db::ReCreateObjectError &e) {
+            if (io->confirmRestoration(Db::ObjectDefinition(kind,object)))
+                m_dbInteraction->restoreDeletedObject(context);
+        }
+    }
 }
 
 

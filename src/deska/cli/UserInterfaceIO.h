@@ -123,6 +123,13 @@ public:
     */
     bool confirmCreation(const Db::ObjectDefinition &object);
 
+    /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
+    *
+    *   @param object Object to be restored
+    *   @return True if the restoration was confirmed, else false
+    */
+    bool confirmRestoration(const Db::ObjectDefinition &object);
+
     /** @short Asks user to enter a commit message.
     *
     *   @return Entered message

@@ -131,6 +131,15 @@ bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
 
 
 
+bool UserInterfaceIO::confirmRestoration(const Db::ObjectDefinition &object)
+{
+    std::ostringstream ss;
+    ss << object << " was deleted in current changeset. Restore?";
+    return askForConfirmation(ss.str());
+}
+
+
+
 bool UserInterfaceIO::askForConfirmation(const std::string &prompt)
 {
     std::cout << prompt << " ";
