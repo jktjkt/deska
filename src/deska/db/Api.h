@@ -85,8 +85,6 @@ REMOTEDBEXCEPTION(FilterError)
 REMOTEDBEXCEPTION(ReCreateObjectError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
-/** @short Attemp to create an object, that was deleted in current changeset */
-REMOTEDBEXCEPTION(CreatingDeletedObjectError)
 /** @short The server has experienced an internal error */
 REMOTEDBEXCEPTION(ServerError)
 
