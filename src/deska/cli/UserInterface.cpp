@@ -97,11 +97,11 @@ void Start::operator()(const std::string &params)
     }
     if (ui->inChangeset) {
         ui->io->reportError("Error: You are already in the changeset!");
-    } else {
-        ui->m_dbInteraction->createNewChangeset(); 
-        ui->inChangeset = true;
-        ui->io->printMessage("Changeset started.");
+        return;
     }
+    ui->m_dbInteraction->createNewChangeset(); 
+    ui->inChangeset = true;
+    ui->io->printMessage("Changeset started.");
 }
 
 
@@ -129,34 +129,34 @@ void Resume::operator()(const std::string &params)
     }
     if (ui->inChangeset) {
         ui->io->reportError("Error: You are already in the changeset!");
-    } else {
-        try {
-            // Print list of pending changesets, so user can choose one
-            std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
-            int choice = ui->io->chooseChangeset(pendingChangesets);
+        return;
+    }
+    try {
+        // Print list of pending changesets, so user can choose one
+        std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
+        int choice = ui->io->chooseChangeset(pendingChangesets);
 
-            if (choice >= 0) {
-                // Some changeset was choosen
-                ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-                ui->inChangeset = true;
-                ui->io->printMessage("Changeset resumed.");
-            }
-            
-        } catch (Deska::Db::NotFoundError &e) {
-            ui->io->reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::NoChangesetError &e) {
-            ui->io->reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
-            ui->io->reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::SqlError &e) {
-            ui->io->reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::ServerError &e) {
-            ui->io->reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::JsonSyntaxError &e) {
-            ui->io->reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
-        } catch (Deska::Db::JsonStructureError &e) {
-            ui->io->reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
+        if (choice >= 0) {
+            // Some changeset was choosen
+            ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+            ui->inChangeset = true;
+            ui->io->printMessage("Changeset resumed.");
         }
+        
+    } catch (Deska::Db::NotFoundError &e) {
+        ui->io->reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::NoChangesetError &e) {
+        ui->io->reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
+        ui->io->reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::SqlError &e) {
+        ui->io->reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::ServerError &e) {
+        ui->io->reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonSyntaxError &e) {
+        ui->io->reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonStructureError &e) {
+        ui->io->reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
     }
 }
 
@@ -179,20 +179,20 @@ Commit::~Commit()
 
 void Commit::operator()(const std::string &params)
 {
-    if (ui->inChangeset) {
-        std::string commitMessage;
-        if (!params.empty()) {
-            commitMessage = params;
-        } else {
-            commitMessage = ui->io->askForCommitMessage();
-        }
-        ui->m_dbInteraction->commitChangeset(commitMessage);
-        ui->inChangeset = false;
-        ui->io->printMessage("Changeset commited.");
-        ui->m_parser->clearContextStack();
-    } else {
+    if (!(ui->inChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
+        return;
     }
+    std::string commitMessage;
+    if (!params.empty()) {
+        commitMessage = params;
+    } else {
+        commitMessage = ui->io->askForCommitMessage();
+    }
+    ui->m_dbInteraction->commitChangeset(commitMessage);
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset commited.");
+    ui->m_parser->clearContextStack();
 }
 
 
@@ -214,20 +214,20 @@ Detach::~Detach()
 
 void Detach::operator()(const std::string &params)
 {
-    if (ui->inChangeset) {
-        std::string detachMessage;
-        if (!params.empty()) {
-            detachMessage = params;
-        } else {
-            detachMessage = ui->io->askForDetachMessage();
-        }
-        ui->m_dbInteraction->detachFromChangeset(detachMessage);
-        ui->inChangeset = false;
-        ui->io->printMessage("Changeset detached.");
-        ui->m_parser->clearContextStack();
-    } else {
+    if (!(ui->inChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
+        return;
     }
+    std::string detachMessage;
+    if (!params.empty()) {
+        detachMessage = params;
+    } else {
+        detachMessage = ui->io->askForDetachMessage();
+    }
+    ui->m_dbInteraction->detachFromChangeset(detachMessage);
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset detached.");
+    ui->m_parser->clearContextStack();
 }
 
 
@@ -253,14 +253,14 @@ void Abort::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return;
     }
-    if (ui->inChangeset) {
-        ui->m_dbInteraction->abortChangeset();
-        ui->inChangeset = false;
-        ui->io->printMessage("Changeset aborted.");
-        ui->m_parser->clearContextStack();
-    } else {
+    if (!(ui->inChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
+        return;
     }
+    ui->m_dbInteraction->abortChangeset();
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset aborted.");
+    ui->m_parser->clearContextStack();
 }
 
 
@@ -385,32 +385,36 @@ void Restore::operator()(const std::string &params)
 {
     if (params.empty()) {
         ui->io->reportError("Error: This command requires file name as a parameter.");
+        return;
+    }
+    if (!ui->inChangeset) {
+        ui->io->reportError("Error: Wou have to be connected to a changeset to perform restoration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return;
+    }
+    std::ifstream ifs(params.c_str());
+    if (!ifs) {
+        ui->io->reportError("Error while opening commands file \"" + params + "\".");
+        return;
+    }
+    ui->nonInteractiveMode = true;
+    std::string line;
+    unsigned int lineNumber = 0;
+    while (!getline(ifs, line).eof()) {
+        ++lineNumber;
+        if (!line.empty() && line[0] == '#')
+            continue;
+        ui->m_parser->parseLine(line);
+        if (ui->parsingFailed)
+            break;
+    }
+    ui->nonInteractiveMode = false;
+    if (ui->parsingFailed) {
+        std::ostringstream ostr;
+        ostr << "Parsing of commands file failed on line " << lineNumber << ".";
+        ui->io->reportError(ostr.str());
     } else {
-        std::ifstream ifs(params.c_str());
-        if (!ifs) {
-            ui->io->reportError("Error while opening commands file \"" + params + "\".");
-            return;
-        }
-        ui->nonInteractiveMode = true;
-        std::string line;
-        unsigned int lineNumber = 0;
-        while (!getline(ifs, line).eof()) {
-            ++lineNumber;
-            if (!line.empty() && line[0] == '#')
-                continue;
-            ui->m_parser->parseLine(line);
-            if (ui->parsingFailed)
-                break;
-        }
-        ui->nonInteractiveMode = false;
-        if (ui->parsingFailed) {
-            std::ostringstream ostr;
-            ostr << "Parsing of commands file failed on line " << lineNumber << ".";
-            ui->io->reportError(ostr.str());
-        } else {
-            ui->io->printMessage("All commands successfully executed.");
-        }
-    }  
+        ui->io->printMessage("All commands successfully executed.");
+    }
 }
 
 
@@ -580,13 +584,19 @@ void UserInterface::applyFunctionRename(const Db::ContextStack &context, const D
 bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
-    if (nonInteractiveMode)
-        return true;
-
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
     if (m_dbInteraction->objectExists(context))
         return true;
+
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
+    if (nonInteractiveMode)
+        return true;
+
     // Object does not exist -> ask the user here
     return io->confirmCreation(Db::ObjectDefinition(kind,object));
 }
@@ -596,6 +606,10 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to sat an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
     return true;
 }
 
@@ -603,6 +617,10 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
     return true;
 }
 
@@ -617,9 +635,13 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
     if (nonInteractiveMode)
         return true;
-
     return io->confirmDeletion(context.back());
 }
 
@@ -627,6 +649,11 @@ bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to rename an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
     return true;
 }
 
