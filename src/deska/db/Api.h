@@ -81,6 +81,8 @@ REMOTEDBEXCEPTION(NoChangesetError)
 REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
 /** @short The filter cannot be used */
 REMOTEDBEXCEPTION(FilterError)
+/** @short Attempted to re-create a deleted object in the same changeset */
+REMOTEDBEXCEPTION(ReCreateObjectError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
