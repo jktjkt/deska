@@ -93,6 +93,8 @@ CLASS::CLASS(const std::string &message): RemoteDbError(message) {} \
 CLASS::~CLASS() throw () {}
 
 REMOTEEXCEPTION(NotFoundError)
+REMOTEEXCEPTION(InvalidKindError)
+REMOTEEXCEPTION(InvalidAttributeError)
 REMOTEEXCEPTION(NoChangesetError)
 REMOTEEXCEPTION(ChangesetAlreadyOpenError)
 REMOTEEXCEPTION(FilterError)

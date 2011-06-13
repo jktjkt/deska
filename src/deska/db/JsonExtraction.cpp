@@ -536,6 +536,14 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             JsonContext c2("When parsing NotFoundError");
             h.parseJsonObject(v.get_obj());
             throw NotFoundError(message);
+        } else if (exceptionClass == "InvalidKindError") {
+            JsonContext c2("When parsing InvalidKindError");
+            h.parseJsonObject(v.get_obj());
+            throw InvalidKindError(message);
+        } else if (exceptionClass == "InvalidAttributeError") {
+            JsonContext c2("When parsing InvalidAttributeError");
+            h.parseJsonObject(v.get_obj());
+            throw InvalidAttributeError(message);
         } else if (exceptionClass == "NoChangesetError") {
             JsonContext c2("When parsing NoChangesetError");
             h.parseJsonObject(v.get_obj());
