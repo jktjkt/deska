@@ -110,6 +110,7 @@ struct JsonField
 {
     bool isForSending;
     bool isRequiredToReceive;
+    bool isAllowedToReceive;
     bool isAlreadyReceived;
     bool valueShouldMatch;
     std::string jsonFieldRead, jsonFieldWrite;

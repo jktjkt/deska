@@ -163,6 +163,13 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
             throw JsonStructureError(s.str());
         }
 
+        if (!rule->isAllowedToReceive) {
+            // Just for sending
+            std::ostringstream s;
+            s << "JSON field '" << node.name_ << "' is just for sending, and not supposed to be read back";
+            throw JsonStructureError(s.str());
+        }
+
         if (rule->isAlreadyReceived) {
             // Duplicate rule
             std::ostringstream s;
@@ -252,6 +259,7 @@ JsonField &JsonHandlerApiWrapper::argument(const std::string &name, const T &val
     JsonField &f = JsonHandler::write(name, value);
     f.isRequiredToReceive = false;
     f.valueShouldMatch = false;
+    f.isAllowedToReceive = false;
     return f;
 }
 
