@@ -21,6 +21,9 @@ class DeskaDbUser(object):
             raise TypeError, "Cannot compare DeskaDbUser with anything but string"
         return other == self.user
 
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.user))
+
 class AnyOrderList(object):
     def __init__(self, items):
         self.items = frozenset(items)
@@ -29,6 +32,9 @@ class AnyOrderList(object):
         if not isinstance(other, list):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
         return self.items == frozenset(other)
+
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.items))
 
 class RemoteDbException(object):
     def __init__(self, name):
