@@ -727,20 +727,6 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
 }
 
 
-/** @short Verify correctness of parsing of revisions from JSON */
-BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"c\", \"r\": \"tmp3\"}\n");
-    TemporaryChangesetId r(123);
-    JsonHandlerApiWrapper h(j, "c");
-    h.write("r", r).extract(&r).valueShouldMatch = false;
-    h.work();
-    BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
-    expectEmpty();
-}
-
-
 /** @short Data-driven testing for JSON parsing errors
 
 boost::test doesn't really support data-driven testing with re-initialization of the fixture afetr each test case
