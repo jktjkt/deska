@@ -436,8 +436,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for startChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"startChangeset\"}\n");
-    expectRead("{\"response\": \"startChangeset\", \"startChangeset\": \"tmp333\"}\n");
+    expectWrite("{\"command\":\"startChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"startChangeset\", \"tag\":\"T\", \"startChangeset\": \"tmp333\"}\n");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     expectEmpty();
 }
@@ -445,8 +445,8 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow
 /** @short Basic test for commitChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"commitChangeset\",\"commitMessage\":\"description\"}\n");
-    expectRead("{\"response\": \"commitChangeset\", \"commitChangeset\": \"r666\", \"commitMessage\":\"description\"}\n");
+    expectWrite("{\"command\":\"commitChangeset\",\"tag\":\"T\",\"commitMessage\":\"description\"}\n");
+    expectRead("{\"response\": \"commitChangeset\", \"tag\":\"T\", \"commitChangeset\": \"r666\"}\n");
     BOOST_CHECK_EQUAL(j->commitChangeset("description"), RevisionId(666));
     expectEmpty();
 }
@@ -454,8 +454,8 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for reabseChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"rebaseChangeset\",\"parentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"parentRevision\": \"r666\"}\n");
+    expectWrite("{\"command\":\"rebaseChangeset\",\"tag\":\"T\",\"parentRevision\":\"r666\"}\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\", \"parentRevision\": \"r666\"}\n");
     j->rebaseChangeset(RevisionId(666));
     expectEmpty();
 }
@@ -463,8 +463,8 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for pendingChangesets() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\"}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": ["
                "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
                    "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\"}, "
                // The next one is the same, except that we use JSON's null here
@@ -495,8 +495,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamTh
 /** @short Test that simple filter for pendingChangesets against TemporaryChangesetId works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnNe\",\"metadata\":\"changeset\",\"value\":\"tmp123\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnNe\",\"metadata\":\"changeset\",\"value\":\"tmp123\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnNe\",\"metadata\":\"changeset\",\"value\":\"tmp123\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
     std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_NE, "changeset", TemporaryChangesetId(123))));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
@@ -506,8 +506,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailO
 /** @short Test that simple filter for pendingChangesets against "being detached" works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"DETACHED\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"DETACHED\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"DETACHED\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
     std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_DETACHED)));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
@@ -517,8 +517,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTest
 /** @short Test that simple filter for pendingChangesets against "being in progress" works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"INPROGRESS\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"INPROGRESS\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"INPROGRESS\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
     std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_IN_PROGRESS)));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
@@ -528,8 +528,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTe
 /** @short Basic test for resumeChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"resumeChangeset\",\"changeset\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"resumeChangeset\", \"changeset\": \"tmp123\"}\n");
+    expectWrite("{\"command\":\"resumeChangeset\",\"tag\":\"T\",\"changeset\":\"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\", \"changeset\": \"tmp123\"}\n");
     j->resumeChangeset(TemporaryChangesetId(123));
     expectEmpty();
 }
@@ -537,8 +537,8 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for detachFromCurrentChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_detachFromCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"detachFromCurrentChangeset\",\"message\":\"foobar\"}\n");
-    expectRead("{\"response\": \"detachFromCurrentChangeset\",\"message\":\"foobar\"}\n");
+    expectWrite("{\"command\":\"detachFromCurrentChangeset\",\"tag\":\"T\",\"message\":\"foobar\"}\n");
+    expectRead("{\"response\": \"detachFromCurrentChangeset\", \"tag\":\"T\"}\n");
     j->detachFromCurrentChangeset("foobar");
     expectEmpty();
 }
@@ -546,8 +546,8 @@ BOOST_FIXTURE_TEST_CASE(json_detachFromCurrentChangeset, JsonApiTestFixtureFailO
 /** @short Basic test for abortCurrentChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"abortCurrentChangeset\"}\n");
-    expectRead("{\"response\": \"abortCurrentChangeset\"}\n");
+    expectWrite("{\"command\":\"abortCurrentChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"abortCurrentChangeset\",\"tag\":\"T\"}\n");
     j->abortCurrentChangeset();
     expectEmpty();
 }
@@ -555,8 +555,8 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStre
 /** @short Basic test for freezeView() */
 BOOST_FIXTURE_TEST_CASE(json_freezeView, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"freezeView\"}\n");
-    expectRead("{\"response\": \"freezeView\"}\n");
+    expectWrite("{\"command\":\"freezeView\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"freezeView\", \"tag\":\"T\"}\n");
     j->freezeView();
     expectEmpty();
 }
@@ -564,8 +564,8 @@ BOOST_FIXTURE_TEST_CASE(json_freezeView, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for unFreezeView() */
 BOOST_FIXTURE_TEST_CASE(json_unFreezeView, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"unFreezeView\"}\n");
-    expectRead("{\"response\": \"unFreezeView\"}\n");
+    expectWrite("{\"command\":\"unFreezeView\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"unFreezeView\", \"tag\":\"T\"}\n");
     j->unFreezeView();
     expectEmpty();
 }
@@ -574,10 +574,10 @@ BOOST_FIXTURE_TEST_CASE(json_unFreezeView, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Test listRevisions() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"listRevisions\"}\n");
+    expectWrite("{\"command\":\"listRevisions\",\"tag\":\"T\"}\n");
     expectRead("{\"response\": \"listRevisions\", \"listRevisions\": ["
                "{\"revision\": \"r123\", \"author\": \"user\", \"timestamp\": \"2011-04-07 17:22:33\", \"commitMessage\": \"message\"}"
-               "]}\n");
+               "], \"tag\":\"T\"}\n");
     std::vector<RevisionMetadata> expected;
     expected.push_back(RevisionMetadata(
                            RevisionId(123), "user",
@@ -591,8 +591,8 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Test that simple filter for listRevisions works */
 BOOST_FIXTURE_TEST_CASE(json_listRevisions_filterEq, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"listRevisions\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"revision\",\"value\":\"r123\"}}\n");
-    expectRead("{\"response\": \"listRevisions\", \"filter\":{\"condition\":\"columnEq\",\"metadata\":\"revision\",\"value\":\"r123\"}, \"listRevisions\": []}\n");
+    expectWrite("{\"command\":\"listRevisions\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"revision\",\"value\":\"r123\"}}\n");
+    expectRead("{\"response\": \"listRevisions\", \"tag\":\"T\", \"listRevisions\": []}\n");
     std::vector<RevisionMetadata> expected;
     std::vector<RevisionMetadata> res = j->listRevisions(Filter(MetadataExpression(FILTER_COLUMN_EQ, "revision", RevisionId(123))));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
@@ -619,19 +619,19 @@ std::vector<ObjectModification> diffObjects()
 
 void schemeForDiff(JsonApiTestFixtureFailOnStreamThrow &f)
 {
-    f.expectWrite("{\"command\":\"kindNames\"}\n");
-    f.expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"k1\", \"k2\", \"k3\", \"k4\", \"k5\"]}\n");
+    f.expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
+    f.expectRead("{\"response\": \"kindNames\", \"tag\":\"T\", \"kindNames\": [\"k1\", \"k2\", \"k3\", \"k4\", \"k5\"]}\n");
 
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k1\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k1\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k2\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k2\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k3\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k3\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k4\"}\n");
-    f.expectRead("{\"kindAttributes\": {\"fancyAttr\": \"int\"}, \"kindName\": \"k4\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k5\"}\n");
-    f.expectRead("{\"kindAttributes\": {\"a5\": \"string\"}, \"kindName\": \"k5\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k1\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k2\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k3\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k4\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"fancyAttr\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k5\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"a5\": \"string\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
 
 }
 
@@ -655,8 +655,8 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow
 BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\"}\n");
-    expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\", \"dataDifferenceInTemporaryChangeset\": ["
+    expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"tag\":\"T\",\"changeset\":\"tmp666\"}\n");
+    expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"dataDifferenceInTemporaryChangeset\": ["
                + exampleJsonDiff +
                "]}\n");
     std::vector<ObjectModification> expected = diffObjects();
@@ -669,9 +669,9 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
 BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"resolvedDataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
+    expectWrite("{\"command\":\"resolvedDataDifference\",\"tag\":\"T\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
-    expectRead("{\"response\": \"resolvedDataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"resolvedDataDifference\": ["
+    expectRead("{\"response\": \"resolvedDataDifference\", \"tag\":\"T\", \"resolvedDataDifference\": ["
                + exampleJsonDiff +
                "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     std::vector<ObjectModification> expected = diffObjects();
@@ -685,11 +685,10 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStr
 BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"resolvedDataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp1\","
+    expectWrite("{\"command\":\"resolvedDataDifferenceInTemporaryChangeset\",\"tag\":\"T\",\"changeset\":\"tmp1\","
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
-    expectRead("{\"response\": \"resolvedDataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp1\",\"resolvedDataDifferenceInTemporaryChangeset\": ["
-               + exampleJsonDiff +
-               "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"resolvedDataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"resolvedDataDifferenceInTemporaryChangeset\": ["
+               + exampleJsonDiff + "]}\n");
     std::vector<ObjectModification> expected = diffObjects();
     std::vector<ObjectModification> res = j->resolvedDataDifferenceInTemporaryChangeset(
                 TemporaryChangesetId(1), Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
@@ -702,8 +701,8 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApi
 /** @short Test applyBatchedChanges() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + exampleJsonDiff + "]}\n");
-    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + exampleJsonDiff + "]}\n");
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":[" + exampleJsonDiff + "]}\n");
+    expectRead("{\"response\": \"applyBatchedChanges\", \"tag\":\"T\"}\n");
     j->applyBatchedChanges(diffObjects());
     expectEmpty();
 }
@@ -712,7 +711,7 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
 BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
 {
 #define JSON_ERR_TEST(X) \
-    expectWrite("{\"command\":\"startChangeset\"}\n"); \
+    expectWrite("{\"command\":\"startChangeset\",\"tag\":\"T\"}\n"); \
     expectRead("{\"dbException\": {\"type\":\"" #X "\",\"message\":\"x\"}}\n"); \
     BOOST_CHECK_THROW(j->startChangeset(), X); expectEmpty();
 
