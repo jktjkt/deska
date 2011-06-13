@@ -275,6 +275,8 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
         without one & -- \\
     {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+    {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
+    manipulation & -- \\
     {\tt FilterError} & The specified filter is not valid & -- \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
     \deskaFuncRef{restoreDeletedObject}. & -- \\
@@ -687,7 +689,8 @@ Querying History}, section \ref{sec:api-group-history}.
     {This function will create a new changeset and immediately attach current session to it.  All subsequent changes
     performed in the session will be stored in this temporary changeset.
 
-    It is an error to attempt to create a new changeset while being already attached to another one.
+    It is an error to attempt to create a new changeset while being already attached to another one, or to combine
+    changeset access with frozen views.
     }
 
 \deskaFunc{commitChangeset}{, "commitMessage": "message"}
@@ -754,7 +757,8 @@ Querying History}, section \ref{sec:api-group-history}.
     {Start a server-side multiversion transaction which freezes the server's idea about what the latest revision in the
     database is. See section \ref{sec:api-revision-semantics} for details.
 
-    It is an error to start or resume a changeset while the database state is frozen via this function.}
+    It is an error to start or resume a changeset while the database state is frozen via this function; doing so will
+    result in the {\tt FreezingError} exception.}
 
 \deskaFunc{unFreezeView}{}{}
     {Unfreeze the client's view on the persistent revisions}
