@@ -43,6 +43,8 @@ namespace Db {
 JsonHandlerApiWrapper::JsonHandlerApiWrapper(const JsonApiParser * const api, const std::string &cmd): p(api)
 {
     command(cmd);
+    // FIXME: get the tag form the Api*
+    write(std::string("tag"), std::string("T"));
 }
 
 void JsonHandlerApiWrapper::send()
@@ -244,6 +246,16 @@ JsonField &JsonHandler::read(const std::string &name)
     return *(--fields.end());
 }
 
+template<typename T>
+JsonField &JsonHandlerApiWrapper::argument(const std::string &name, const T &value)
+{
+    JsonField &f = JsonHandler::write(name, value);
+    f.isRequiredToReceive = false;
+    f.valueShouldMatch = false;
+    return f;
+}
+
+
 JsonWrappedAttributeMap::JsonWrappedAttributeMap(const std::vector<KindAttributeDataType> dataTypes_):
     dataTypes(dataTypes_)
 {
@@ -303,10 +315,10 @@ JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
 }
 
 // template instances for the linker
-template JsonField &JsonHandler::write(const std::string &, const std::string &);
-template JsonField &JsonHandler::write(const std::string &, const Value &);
-template JsonField &JsonHandler::write(const std::string &, const RevisionId &);
-template JsonField &JsonHandler::write(const std::string &, const TemporaryChangesetId &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const std::string &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const Value &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const RevisionId &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const TemporaryChangesetId &);
 
 }
 }

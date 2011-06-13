@@ -112,7 +112,7 @@ vector<KindAttributeDataType> JsonApiParser::kindAttributes( const Identifier &k
 
     vector<KindAttributeDataType> res;
     JsonHandlerApiWrapper h(this, "kindAttributes");
-    h.write(j_kindName, kindName);
+    h.argument(j_kindName, kindName);
     h.read("kindAttributes").extract(&res);
     h.work();
     return res;

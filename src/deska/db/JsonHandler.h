@@ -188,6 +188,10 @@ public:
     /** @short Check the JSON object for a possible exception embedded in the response */
     void processPossibleException(const json_spirit::Object &jsonObject);
 
+    /** @short Register a JSON field which will be sent over the wire */
+    template <typename T>
+    JsonField &argument(const std::string &name, const T &value);
+
 private:
     const JsonApiParser * const p;
 };

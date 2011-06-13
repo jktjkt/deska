@@ -66,8 +66,8 @@ struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
 /** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindNames\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
+    expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"kindNames\",\"tag\":\"T\", \"kindNames\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -81,9 +81,9 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Test that kindAttributes() retrieves data */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\"}, \"tag\": \"T\", \"response\": \"kindAttributes\"}\n");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
     expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
