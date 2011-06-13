@@ -728,7 +728,7 @@ struct MalformedJsonFixture: public JsonApiTestFixtureFailOnStreamThrow {
     std::string line;
     ~MalformedJsonFixture()
     {
-        expectWrite("{\"command\":\"abortCurrentChangeset\"}\n");
+        expectWrite("{\"command\":\"abortCurrentChangeset\",\"tag\":\"T\"}\n");
         if (!line.empty())
             expectRead(line);
         mockBuffer.expectReadEof();
@@ -762,12 +762,17 @@ BOOST_FIXTURE_TEST_CASE(json_malformed_json_unterminated_value, MalformedJsonFix
 
 BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_close_brace, MalformedJsonFixture)
 {
-    line = "{\"command\":\"c\"";
+    line = "{\"command\":\"c\",\"tag\":\"T\"";
 }
 
 BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_next_command, MalformedJsonFixture)
 {
     line = "{\"command\":\"c\",";
+}
+
+BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_comma, MalformedJsonFixture)
+{
+    line = "{\"command\":\"c\"";
 }
 
 /** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
