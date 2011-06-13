@@ -41,7 +41,9 @@ class JsonApiTester(unittest.TestCase):
     def testCommunication(self):
         """Iterate over the recorded communication and verify that we get the same results back"""
         for items in j:
-            json.dump(items.command, self.p.stdin)
+            writeJson = json.dumps(resolvePlaceholders(items.command))
+            print writeJson
+            self.p.stdin.write(writeJson)
             self.p.stdin.write("\n")
             self.p.stdin.flush()
             status = select.select((self.p.stdout, self.p.stderr), (), ())
