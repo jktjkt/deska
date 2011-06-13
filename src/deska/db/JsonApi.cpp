@@ -268,7 +268,7 @@ void JsonApiParser::applyBatchedChanges(const std::vector<ObjectModification> &m
     JsonCommandContext c1("applyBatchedChanges");
 
     JsonHandlerApiWrapper h(this, "applyBatchedChanges");
-    h.write("modifications", modifications);
+    h.argument("modifications", modifications);
     h.work();
 }
 
@@ -290,7 +290,7 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
     RevisionId revision = RevisionId::null;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);
-    h.write("commitMessage", commitMessage);
+    h.argument("commitMessage", commitMessage);
     h.work();
     return revision;
 }
@@ -300,7 +300,7 @@ void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
     JsonCommandContext c1("rebaseChangeset");
 
     JsonHandlerApiWrapper h(this, "rebaseChangeset");
-    h.write("parentRevision", parentRevision);
+    h.argument("parentRevision", parentRevision);
     h.work();
 }
 
@@ -322,7 +322,7 @@ void JsonApiParser::resumeChangeset(const TemporaryChangesetId changeset)
     JsonCommandContext c1("resumeChangeset");
 
     JsonHandlerApiWrapper h(this, "resumeChangeset");
-    h.write(j_changeset, changeset);
+    h.argument(j_changeset, changeset);
     h.work();
 }
 
@@ -331,7 +331,7 @@ void JsonApiParser::detachFromCurrentChangeset(const std::string &message)
     JsonCommandContext c1("detachFromCurrentChangeset");
 
     JsonHandlerApiWrapper h(this, "detachFromCurrentChangeset");
-    h.write("message", message);
+    h.argument("message", message);
     h.work();
 }
 
@@ -366,7 +366,7 @@ std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional
     std::vector<RevisionMetadata> res;
     JsonHandlerApiWrapper h(this, "listRevisions");
     if (filter)
-        h.write(j_filter, *filter);
+        h.argument(j_filter, *filter);
     h.read("listRevisions").extract(&res);
     h.work();
     return res;
@@ -389,13 +389,13 @@ std::vector<ObjectModification> diffHelper(const JsonApiParser * const dbapi, co
     JsonWrappedObjectModificationSequence helper(&allAttrTypes);
     JsonHandlerApiWrapper h(dbapi, name);
     if (changeset) {
-        h.write("changeset", *changeset);
+        h.argument("changeset", *changeset);
     } else {
-        h.write("revisionA", *a);
-        h.write("revisionB", *b);
+        h.argument("revisionA", *a);
+        h.argument("revisionB", *b);
     }
     if (filter)
-        h.write(j_filter, *filter);
+        h.argument(j_filter, *filter);
     h.read(name).extract(&helper);
     h.work();
     return helper.diff;
