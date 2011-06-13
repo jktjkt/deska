@@ -408,7 +408,8 @@ defined, what relations exist among them and which attributes belong to each obj
 (section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
 part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
 part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results.  The last part (section \ref{sec:api-group-history}) discusses browsing the revision history.
+results, or provide a frozen view of the DB state for consistency.  The last part (section \ref{sec:api-group-history})
+discusses browsing the revision history.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
 are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
@@ -430,6 +431,11 @@ Should the user decide not to need the pending changeset anymore, she can call t
 to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
 changeset, preserving the modifications for a later commit.  When all changes have been performed and the user decides to
 make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.
+
+Certain applications, like dumping the database contents, require to temporarily ``freeze'' the state of the database to
+guarantee that the result accurately represents the real database state.  The DBAPI provides a pair of functions for
+this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see section
+\ref{sec:api-revision-semantics} for details.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 she attempted a commit.  In that case, the new commit won't be performed, and the user should verify that the changes are still
@@ -457,17 +463,16 @@ FIXME: add server-side config generators, issue 239 -- maybe in a different sect
 \label{sec:api-revision-semantics}
 
 Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to
-operate on.  When the version is not specified, the implicit value is fixed at the latest persistent revision which was
-committed at the time the session started.
+operate on.  When the session is attached into a pending changeset, an unspecified revision always refers to the current
+state of the changeset, ie. the parent revision and all changes applied in the active changeset so far.
 
-When user attaches an existing pending changeset, this implicit value changes to the ``parent revision'' of the
-current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
-Detaching from a pending changeset or aborting one sets the implicit revision number of the session to the latest
-commit.
-
-FIXME: make sure the above is OK
-
-FIXME: atomicity
+When the version is not specified and there is no active changeset, though, the implicit revision value means ``whatever
+the database connection happens to see at the moment'', which clearly lacks important consistency promises.  There are
+few ways to achieve consistent operation.  The first option is to always use absolute revision specification in each
+query,  the second option is to operate from inside a changeset, and the third is to start a lightweight multiversion
+control transaction on the database side by means of \deskaFuncRef{freezeView}.  This transaction is freed upon
+disconnect from the database, or by an explicit call to the \deskaFuncRef{unFreezeView}.  It is an error to try to start
+or resume a changeset when in the multiversion transaction and vice versa.
 
 \subsubsection{Filtering Results}
 \label{sec:api-filters}
@@ -743,6 +748,18 @@ Querying History}, section \ref{sec:api-group-history}.
     {Abort an in-progress changeset}
     {This function will throw away any changes made so far in the current active changeset and remove that changeset
     from the list of pending changestes.}
+
+\deskaFunc{freezeView}{}{}
+    {Freeze the view of the revisions}
+    {Start a server-side multiversion transaction which freezes the server's idea about what the latest revision in the
+    database is. See section \ref{sec:api-revision-semantics} for details.
+
+    It is an error to start or resume a changeset while the database state is frozen via this function.}
+
+\deskaFunc{unFreezeView}{}{}
+    {Unfreeze the client's view on the persistent revisions}
+    {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
+    \ref{sec:api-revision-semantics} for details.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}
