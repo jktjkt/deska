@@ -114,6 +114,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_tag, JsonApiTestFixtureFailOnS
     expectEmpty();
 }
 
+/** @short Test that the parser throws an exception upon seeing an argument being returned back */
+BOOST_FIXTURE_TEST_CASE(json_returned_argument, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"resumeChangeset\",\"tag\":\"T\",\"changeset\":\"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\", \"changeset\": \"tmp123\"}\n");
+    BOOST_CHECK_THROW(j->resumeChangeset(TemporaryChangesetId(123)), JsonStructureError);
+    expectEmpty();
+}
+
 /** @short Test that kindRelations() can fetch data */
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
