@@ -12,10 +12,6 @@ def main(kindName,objectName,attributeName,attributeData):
 	name = "setAttribute"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
-	jsn["attributeName"] = attributeName
-	jsn["attributeData"] = attributeData
 	fname = kindName+"_set_"+attributeName+"(text,text)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
@@ -38,9 +34,6 @@ def main(kindName,oldName,newName):
 	name = "renameObject"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["oldObjectName"] = oldName
-	jsn["newObjectName"] = newName
 
 	fname = kindName+"_set_name(text,text)"
 	try:
@@ -64,8 +57,6 @@ def main(kindName,objectName):
 	name = "createObject"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 
 	fname = kindName+"_add(text)"
 	try:
@@ -89,8 +80,6 @@ def main(kindName,objectName):
 	name = "deleteObject"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 
 	fname = kindName+"_del(text)"
 	try:
@@ -114,8 +103,6 @@ def main(kindName,objectName):
 	name = "restoreDeletedObject"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 
 	fname = kindName+"_undel(text)"
 	try:
@@ -139,8 +126,6 @@ def main(kindName,objectName,revision):
 	jsn = dict()
 	name = "objectData"
 	jsn["response"] = name
-	jsn["objectName"] = objectName
-	jsn["kindName"] = kindName
 
 	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
 	try:
@@ -170,8 +155,6 @@ def main(a,b):
 	jsn = dict()
 	name = "dataDifference"
 	jsn["response"] = name
-	jsn["revisionA"] = a
-	jsn["revisionB"] = b
 	
 	res = list()
 	try:

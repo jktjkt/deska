@@ -59,7 +59,6 @@ def main(revision):
 	name = "resumeChangeset"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["changeset"] = revision
 
 	fname = 'api.'+ name + "(text)"
 	try:
@@ -83,7 +82,6 @@ def main(commitMessage):
 	name = "commitChangeset"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["commitMessage"] = commitMessage
 
 	fname = 'api.'+ name + "(text)"
 	try:
@@ -107,7 +105,6 @@ def main(message):
 	name = "detachFromCurrentChangeset"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["message"] = message
 
 	fname = 'api.'+ name + "(text)"
 	try:

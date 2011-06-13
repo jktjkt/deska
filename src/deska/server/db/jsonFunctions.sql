@@ -79,7 +79,6 @@ def main(kindName):
 	name = "kindRelations"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
 
 	select = 'SELECT * FROM api.kindRelations($1)'
 	try:
@@ -112,9 +111,6 @@ def main(kindName,revision):
 	name = "kindInstances"
 	jsn = dict()
 	jsn["response"] = name
-	jsn["kindName"] = kindName
-	if revision is not None:
-		jsn["revision"] = revision
 	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
