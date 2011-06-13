@@ -15,6 +15,8 @@
 
 \maketitle
 
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
 \begin{abstract}
 This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
 database server.  We describe the overall design, as well as provide a detailed API reference along with example usage.
@@ -393,8 +395,6 @@ relation information etc.  The following types are defined:
 \section{Database Interface}
 
 The Deska DBAPI provides functions for accessing the information contained in the database.
-
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
 
 \subsection{The Deska DBAPI at a Glance}
 
