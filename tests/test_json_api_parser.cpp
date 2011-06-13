@@ -173,15 +173,6 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
-/** @short Test that kindInstances() fails when faced with wrong revision */
-BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
-    expectRead("{\"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"tag\":\"T\", \"response\": \"kindInstances\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666)), JsonStructureError);
-    expectEmpty();
-}
-
 /** @short Test that simple filter for IS NULL works fine */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStreamThrow)
 {
