@@ -38,6 +38,7 @@ class JsonApiTester(unittest.TestCase):
                 raise Exception(err)
             readJson = self.p.stdout.readline()
             print readJson
+            sys.stdout.flush()
             output = json.loads(readJson)
             self.assertEqual(deunicodeify(output), items.response)
 
