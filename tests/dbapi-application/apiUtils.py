@@ -57,6 +57,15 @@ class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
 
+class InvalidKindError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidKindError")
+
+class InvalidAttributeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidAttributeError")
+
+
 registeredVariables = {}
 '''Storage of assigned objects for later checks'''
 
