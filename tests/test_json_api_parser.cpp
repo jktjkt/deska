@@ -420,9 +420,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 {
     // We want to test all of the supported data types, that's why we use a vector and some rather complicated boilerplate code here
     vector<SetAttrTestData> data;
-    std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
-    std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
-            "\"response\": \"setAttribute\", \"attributeData\": ";
+    std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
+    std::string jsonOutputSuffix = "{\"response\": \"setAttribute\", \"tag\":\"T\", \"attributeData\": ";
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", Deska::Db::Value("some string")));
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", Deska::Db::Value(123)));
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", Deska::Db::Value(333.666)));

@@ -256,10 +256,10 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     JsonCommandContext c1("setAttribute");
 
     JsonHandlerApiWrapper h(this, "setAttribute");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
-    h.write(j_attrName, attributeName);
-    h.write("attributeData", attributeData);
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
+    h.argument(j_attrName, attributeName);
+    h.argument("attributeData", attributeData);
     h.work();
 }
 
