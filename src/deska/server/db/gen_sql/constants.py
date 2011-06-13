@@ -414,7 +414,7 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		SELECT uid INTO tmp FROM {tbl}_history WHERE version = ver AND name = name_ AND dest_bit = '1';
 		IF FOUND THEN
-			RAISE EXCEPTION 'object with name % was deleted, ...', name_;
+			RAISE 'Object with name % was deleted, ...', name_ USING ERRCODE = '70010';
 		END IF;
 		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);

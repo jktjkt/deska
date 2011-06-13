@@ -201,7 +201,7 @@ BEGIN
 	PERFORM hardware_set_warranty('hw2','2014-7-25');
 	PERFORM hardware_del('hw2');
 	PREPARE add_fc AS SELECT hardware_add('hw2');
-	RETURN NEXT throws_ok('add_fc', 'object with name hw2 was deleted, ...');
+	RETURN NEXT throws_ok('add_fc');
 	PERFORM commitChangeset('1');
 
 END

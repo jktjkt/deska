@@ -214,7 +214,6 @@ BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for id. Expected one of [ <integer> ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -233,7 +232,6 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -290,8 +288,6 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", Deska::Db::Value("nejakamac"));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
-    expectCategoryLeft();
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -333,7 +329,6 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFix
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", Deska::Db::Value(123));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -346,7 +341,6 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -372,7 +366,6 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", Deska::Db::Value("foo"));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 }
@@ -490,7 +483,6 @@ BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"interface\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -525,7 +517,6 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixt
     parser->parseLine(line);
     expectCategoryEntered("hardware", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-    expectCategoryLeft();
     //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -551,9 +542,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixtur
     expectCategoryEntered("host", "hpv2");
     expectCategoryEntered("interface", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
-    expectCategoryLeft();
     //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -630,7 +619,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_no_context, ParserTestFixture)
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionShow();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -646,7 +635,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_nest_no_context, ParserTestFixture)
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
     //expectFunctionShow();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
@@ -668,7 +657,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_in_context, ParserTestFixture)
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionShow();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -712,7 +701,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_no_context, ParserTestFixture)
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionDelete();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -728,7 +717,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_nest_no_context, ParserTestFixture)
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
     //expectFunctionDelete();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
@@ -750,7 +739,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_in_context, ParserTestFixture)
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionDelete();
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -776,7 +765,6 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_nest_no_context,
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -818,7 +806,6 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_nest_no_context, P
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1166,7 +1153,6 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_removal_inline, ParserTestFixtu
     parser->parseLine(line);
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1354,7 +1340,6 @@ BOOST_FIXTURE_TEST_CASE(invalid_attr_removal, ParserTestFixture)
     parser->parseLine(line);
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" ].", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1396,7 +1381,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_param_no_context, ParserTestFixture)
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionRename("456");
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -1412,7 +1397,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_nest_no_context, ParserTestFixture)
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
     //expectFunctionRename("eth1");
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
@@ -1434,7 +1419,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionRename("789");
-    expectCategoryLeft();
+    //expectCategoryLeft();
     //expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -1456,7 +1441,6 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_in_context, ParserTestFix
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
@@ -1471,7 +1455,6 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_no_context, ParserTestFix
     expectCategoryEntered("host", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1486,7 +1469,6 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_more_data, ParserTestFixture)
     expectCategoryEntered("host", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
-    expectCategoryLeft();
     expectNothingElse();
     verifyEmptyStack();
 }

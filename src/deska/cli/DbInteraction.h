@@ -57,6 +57,11 @@ public:
     *   @param context Path and object definition to create
     */
     void createObject(const Db::ContextStack &context);
+    /** @short Restores deleted object.
+    *
+    *   @param context Path and object definition to restore
+    */
+    void restoreDeletedObject(const Db::ContextStack &context);
     /** @short Deletes object.
     *
     *   @param context Path and object definition to delete

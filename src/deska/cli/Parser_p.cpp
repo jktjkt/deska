@@ -460,8 +460,12 @@ template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
     dryRun = false;
-    if (parseLineImpl(line))
+    if (parseLineImpl(line)) {
         m_parser->parsingFinished();
+#ifdef PARSER_DEBUG
+        std::cout << "Parsing finished." << std::endl;
+#endif
+    }
 }
 
 
@@ -805,12 +809,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }
     }
 
-    if (!parsingSucceeded) {
-         // Some bad input
-        if (!dryRun)
-            reportParseError(line);
-    }
-
     if ((!dryRun) && (parsingSucceeded)) {
         // Emit signals, when there is some function word used.
         switch (parsingMode) {
@@ -839,6 +837,13 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 throw std::domain_error("Invalid value of parsingMode");
         } 
     }
+
+    if (!parsingSucceeded) {
+         // Some bad input
+        if (!dryRun)
+            reportParseError(line);
+    }
+
     // Invoke categoryLeft signals when parsing in-line definitions. Do not invoke categoryLeft
     // when in dryRun for purposes of generating tab completions.
     if (((parsingMode == PARSING_MODE_STANDARD) && (singleKind || topLevel)) | (dryRun)) {
@@ -847,7 +852,10 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         int depthDiff = contextStack.size() - previousContextStackSize;
         if (depthDiff > 0) {
             for (int i = 0; i < depthDiff; ++i) {
-                categoryLeft();
+                if (parsingSucceeded)
+                    categoryLeft();
+                else
+                    contextStack.pop_back();
             }
         }
     }
@@ -1022,7 +1030,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             if (!(it->context().empty())) {
                 std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
                 for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                    possibilities.push_back(line + *iti);
+                    possibilities.push_back(line + Db::PathToVector(*iti).back());
                 }
             }
         }
