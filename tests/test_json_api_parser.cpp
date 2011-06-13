@@ -317,15 +317,15 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
-               "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
-    expectRead("{\"response\":\"kindRelations\",\"kindName\":\"kk\", \"kindRelations\": []}\n");
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"response\":\"kindRelations\", \"tag\":\"T\", \"kindRelations\": []}\n");
 
-    expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
-            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"response\": \"resolvedObjectData\"}\n");
+    expectWrite("{\"command\":\"resolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
+    expectRead("{\"resolvedObjectData\": "
+            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"tag\":\"T\", \"response\": \"resolvedObjectData\"}\n");
     map<Identifier, std::pair<Identifier,Value> > expected;
     expected["foo"] = std::make_pair("obj-defining-this", "bar");
     expected["baz"] = std::make_pair("this-obj", 666);
@@ -342,23 +342,22 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
 BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
                "\"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
-    expectRead("{\"kindName\": \"kk\", \"multipleResolvedObjectData\": {"
+    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
+    expectRead("{\"multipleResolvedObjectData\": {"
                "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10]}, "
                "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20]} "
-               "}, "
-            "\"filter\": {\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}, \"response\": \"multipleResolvedObjectData\"}\n");
+               "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectData\"}\n");
     map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
     expected["a"]["foo"] = std::make_pair("1", "barA");
     expected["a"]["baz"] = std::make_pair("1", "idA");

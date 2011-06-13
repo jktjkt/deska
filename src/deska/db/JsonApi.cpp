@@ -183,10 +183,10 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(cons
     JsonCommandContext c1("resolvedObjectData");
 
     JsonHandlerApiWrapper h(this, "resolvedObjectData");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
     if (revision != RevisionId::null)
-        h.write(j_revision, revision);
+        h.argument(j_revision, revision);
     JsonWrappedAttributeMapWithOrigin res(kindAttributesWithoutRelation(kindName));
     h.read("resolvedObjectData").extract(&res);
     h.work();
@@ -199,10 +199,10 @@ std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonA
     JsonCommandContext c1("multipleResolvedObjectData");
 
     JsonHandlerApiWrapper h(this, "multipleResolvedObjectData");
-    h.write(j_kindName, kindName);
-    h.write(j_filter, filter);
+    h.argument(j_kindName, kindName);
+    h.argument(j_filter, filter);
     if (revision != RevisionId::null)
-        h.write(j_revision, revision);
+        h.argument(j_revision, revision);
     JsonWrappedAttributeMapWithOriginList res(kindAttributesWithoutRelation(kindName));
     h.read("multipleResolvedObjectData").extract(&res);
     h.work();
