@@ -57,6 +57,34 @@ class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
 
+registeredVariables = {}
+'''Storage of assigned objects for later checks'''
+
+
+class FillPlaceholder(object):
+    '''Fill in a placeholder variable when performing a comparison'''
+
+    def __init__(self, name):
+        registeredVariables[name] = None
+        self.name = name
+
+    def __eq__(self, other):
+        registeredVariables[self.name] = other
+        return True
+
+
+class Variable(object):
+    '''Check against previously obtained value'''
+
+    def __init__(self, name):
+        self.name = name
+
+    def __eq__(self, other):
+        return registeredVariables[self.name] == other
+
+    def get(self):
+        return registeredVariables[self.name]
+
 
 class ApiMethod(object):
     def __init__(self, name, args):
@@ -72,6 +100,10 @@ class ApiMethod(object):
 
     def throws(self, exception):
         self.response["dbException"] = exception
+        return self
+
+    def register(self, name):
+        self.response[self.response["response"]] = FillPlaceholder(name)
         return self
 
     def __eq__(self, other):
