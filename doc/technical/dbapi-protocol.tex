@@ -267,7 +267,11 @@ This is the list of currently defined exceptions, along with their other argumen
     Exception Name & Meaning & Additional arguments \\
     \hline
     \endhead
-    {\tt NotFoundError} & The database does not contain such object & -- \\
+    {\tt InvalidKindError} & The specified kind is not valid & -- \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & -- \\
+    {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
+    better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
+    InvalidKindError}, etc. & -- \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
         without one & -- \\
     {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
