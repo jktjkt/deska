@@ -124,7 +124,7 @@ vector<ObjectRelation> JsonApiParser::kindRelations( const Identifier &kindName 
 
     vector<ObjectRelation> res;
     JsonHandlerApiWrapper h(this, "kindRelations");
-    h.write(j_kindName, kindName);
+    h.argument(j_kindName, kindName);
     h.read("kindRelations").extract(&res);
     h.work();
     return res;
@@ -136,11 +136,11 @@ vector<Identifier> JsonApiParser::kindInstances(const Identifier &kindName, cons
 
     vector<Identifier> res;
     JsonHandlerApiWrapper h(this, "kindInstances");
-    h.write(j_kindName, kindName);
+    h.argument(j_kindName, kindName);
     if (revision != RevisionId::null)
-        h.write(j_revision, revision);
+        h.argument(j_revision, revision);
     if (filter)
-        h.write(j_filter, *filter);
+        h.argument(j_filter, *filter);
     h.read("kindInstances").extract(&res);
     h.work();
     return res;
