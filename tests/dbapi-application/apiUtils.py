@@ -102,12 +102,14 @@ class Variable(object):
 
 
 class ApiMethod(object):
+    counter = 0
     def __init__(self, name, args):
-        self.command = {"command": name}
-        self.response = {"response": name}
+        tag = ".t%d" % ApiMethod.counter
+        ApiMethod.counter += 1
+        self.command = {"command": name, "tag": tag}
+        self.response = {"response": name, "tag": tag}
         if args is not None:
             self.command.update(args)
-            self.response.update(args)
 
     def returns(self, value):
         self.response[self.response["response"]] = value
