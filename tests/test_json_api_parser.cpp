@@ -241,20 +241,20 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFa
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
                "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
-            "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
+    expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
+    expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+            "\"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -286,23 +286,21 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"multipleObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
-    expectRead("{\"kindName\": \"kk\", \"multipleObjectData\": {"
+    expectWrite("{\"command\":\"multipleObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
+    expectRead("{\"multipleObjectData\": {"
                "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
                "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20} "
-               "}, "
-            "\"filter\": {\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n");
+               "}, \"tag\":\"T\", \"response\": \"multipleObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
     expected["a"]["foo"] = "barA";
     expected["a"]["int"] = 10;
