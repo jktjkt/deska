@@ -79,6 +79,8 @@ REMOTEDBEXCEPTION(NotFoundError)
 REMOTEDBEXCEPTION(NoChangesetError)
 /** @short Tried to manipulate a changeset while already being attached to one */
 REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
+/** @short An error related to attempted combination of a frozen view and an active changeset manipulation */
+REMOTEDBEXCEPTION(FreezingError)
 /** @short The filter cannot be used */
 REMOTEDBEXCEPTION(FilterError)
 /** @short Attempted to re-create a deleted object in the same changeset */
@@ -264,6 +266,11 @@ public:
 
     /** @short Abort an in-progress changeset */
     virtual void abortCurrentChangeset() = 0;
+
+    /** @short Freeze the view of the revisions */
+    virtual void freezeView() = 0;
+    /** @short Unfreeze the client's view on the persistent revisions */
+    virtual void unFreezeView() = 0;
 
     // Diffing
 

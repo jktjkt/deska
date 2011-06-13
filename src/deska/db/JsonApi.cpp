@@ -343,6 +343,22 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
+void JsonApiParser::freezeView()
+{
+    JsonCommandContext c1("freezeView");
+
+    JsonHandlerApiWrapper h(this, "freezeView");
+    h.work();
+}
+
+void JsonApiParser::unFreezeView()
+{
+    JsonCommandContext c1("unFreezeView");
+
+    JsonHandlerApiWrapper h(this, "unFreezeView");
+    h.work();
+}
+
 std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
 {
     JsonCommandContext c1("listRevisions");

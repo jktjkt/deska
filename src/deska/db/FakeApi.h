@@ -68,6 +68,8 @@ public:
     virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
+    virtual void freezeView();
+    virtual void unFreezeView();
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
