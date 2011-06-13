@@ -144,3 +144,14 @@ def detachFromCurrentChangeset(message):
 
 def abortCurrentChangeset():
     return ApiMethod("abortCurrentChangeset", None)
+
+def createObject(kindName, objectName):
+    return ApiMethod("createObject", {"kindName": kindName, "objectName":
+                                      objectName})
+
+def kindInstances(kindName, revision=None):
+    # FIXME: filter
+    args = {"kindName": kindName}
+    if revision is not None:
+        args["revision"] = revision
+    return ApiMethod("kindInstances", args)

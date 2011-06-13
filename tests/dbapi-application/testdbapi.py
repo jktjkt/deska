@@ -4,6 +4,7 @@ import os
 import select
 import unittest
 import json
+import apiUtils
 
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
@@ -14,6 +15,17 @@ def deunicodeify(stuff):
         return dict(map(deunicodeify, stuff.iteritems()))
     elif isinstance(stuff, (list, tuple)):
         return type(stuff)(map(deunicodeify, stuff))
+    else:
+        return stuff
+
+def resolvePlaceholders(stuff):
+    '''Replace placeholder values with real data valid at this point'''
+    if isinstance(stuff, dict):
+        return dict(map(resolvePlaceholders, stuff.iteritems()))
+    elif isinstance(stuff, (list, tuple)):
+        return type(stuff)(map(resolvePlaceholders, stuff))
+    elif isinstance(stuff, apiUtils.Variable):
+        return resolvePlaceholders(stuff.get())
     else:
         return stuff
 
