@@ -48,8 +48,8 @@ class JsonApiTester(unittest.TestCase):
             self.p.stdin.flush()
             status = select.select((self.p.stdout, self.p.stderr), (), ())
             if (self.p.stderr in status[0]):
-                err = self.p.stderr.read()
-                raise Exception(err)
+                err = os.read(self.p.stderr.fileno(), 65536)
+                print err
             readJson = self.p.stdout.readline()
             print readJson
             sys.stdout.flush()
