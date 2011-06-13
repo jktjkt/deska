@@ -94,12 +94,22 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow
     expectEmpty();
 }
 
-/** @short Test that kindAtttributes() can catch wrong referenced objects */
-BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFailOnStreamThrow)
+/** @short Test that kindAtttributes() screams loudly when seeing a different response */
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_response, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\"}, \"response\": \"kindAttributesBlah\",\"tag\":\"T\"}\n");
+    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
+    expectEmpty();
+}
+
+/** @short Test that kindAtttributes() screams loudly when seeing a different tag */
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_tag, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
+    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"response\": \"kindAttributes\",\"tag\":\"T2\"}\n");
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
     expectEmpty();
 }
