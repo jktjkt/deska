@@ -91,6 +91,7 @@ if(RUN_SQL_TESTS)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
+    deska_dbapi_test(createObjects)
 
     deska_dbapi_persist_test(test_1_kindInstances)
     deska_dbapi_persist_test(test_1_metadata)
