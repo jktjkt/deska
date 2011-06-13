@@ -774,38 +774,3 @@ BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_comma, MalformedJsonFixture)
 {
     line = "{\"command\":\"c\"";
 }
-
-/** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
-BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureFailOnStreamThrow)
-{
-    std::vector<std::string> offendingItems;
-    offendingItems.push_back("r3");
-    offendingItems.push_back("r");
-    offendingItems.push_back("tm");
-    offendingItems.push_back("tmp");
-    offendingItems.push_back("tmpabc");
-    offendingItems.push_back("foo");
-    offendingItems.push_back("666");
-    offendingItems.push_back("");
-
-    BOOST_FOREACH(const std::string &s, offendingItems) {
-        expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
-        expectRead("{\"response\": \"c\", \"r\": \"" + s + "\"}\n");
-
-        // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
-        TemporaryChangesetId r(123);
-        JsonHandlerApiWrapper h(j, "c");
-        // Make sure to explicitly request extraction, but also don't request comparison of JSON serialization
-        h.write("r", r).extract(&r).valueShouldMatch = false;
-        // ...if we didn't use the valueShouldMatch here, the error would get caught much earlier, even before
-        // the actual extraction happens.
-        try {
-            h.work();
-            BOOST_ERROR(std::string("Passing '" + s + "' should have thrown an exception."));
-        } catch (JsonStructureError &e) {
-            // this is actually what we want
-            //std::cerr << "OK: " << e.what() << std::endl;
-        }
-        expectEmpty();
-    }
-}
