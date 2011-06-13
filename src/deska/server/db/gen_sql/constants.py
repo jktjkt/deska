@@ -147,6 +147,7 @@ class Templates:
 	DECLARE
 		current_changeset bigint;
 		data {tbl}_type;
+		dbit bit(1);
 	BEGIN
 		IF from_version = 0 THEN
 			current_changeset = get_current_changeset_or_null();
@@ -154,9 +155,12 @@ class Templates:
 				--user wants last data
 				SELECT MAX(num) INTO  from_version FROM version;
 			ELSE			
-				SELECT {columns} INTO data FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
+				SELECT {columns},dest_bit INTO {data_columns}, dbit FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
 				IF FOUND THEN
 					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
 					RETURN data;
 				END IF;
 				--object name_ is not present in current changeset, we need look for it in parent revision or erlier

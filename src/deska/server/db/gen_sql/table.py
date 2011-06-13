@@ -95,6 +95,9 @@ class Table(constants.Templates):
 		if len(collist) == 0:
 			return ""
 
+		dattributes = map("data.{0}".format,collist.keys())
+		dcols = ",".join(dattributes)
+
 		if self.embed_into <> "":
 			get_data_string = self.get_embed_data_string
 			del collist[self.embed_into]
@@ -120,7 +123,7 @@ class Table(constants.Templates):
 		
 		cols = ",".join(attributes)
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
-		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = self.embed_into)
+		cols_def = get_data_string.format(tbl = self.name, columns = cols, data_columns = dcols, embedtbl = self.embed_into)
 		return type_def + "\n" + cols_def
 	
 	#generates function that returns all changes of columns between two versions
