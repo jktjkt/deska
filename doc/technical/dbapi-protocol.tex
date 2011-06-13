@@ -457,8 +457,8 @@ FIXME: add server-side config generators, issue 239 -- maybe in a different sect
 \label{sec:api-revision-semantics}
 
 Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to
-operate on.  When the version is not specified, the implicit value is fixed at the latest persistent
-revision which was committed at the time the session started.
+operate on.  When the version is not specified, the implicit value is fixed at the latest persistent revision which was
+committed at the time the session started.
 
 When user attaches an existing pending changeset, this implicit value changes to the ``parent revision'' of the
 current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
