@@ -311,7 +311,7 @@ vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<
     vector<PendingChangeset> res;
     JsonHandlerApiWrapper h(this, "pendingChangesets");
     if (filter)
-        h.write(j_filter, *filter);
+        h.argument(j_filter, *filter);
     h.read("pendingChangesets").extract(&res);
     h.work();
     return res;
