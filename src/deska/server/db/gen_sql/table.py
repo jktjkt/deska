@@ -111,8 +111,6 @@ class Table(constants.Templates):
 		for att in attributes:
 			atttypes.append(collist[att])
 			
-		print attributes
-		print atttypes
 		coltypes = ",\n".join(map("{0} {1}".format,attributes, atttypes))
 
 		for col in self.refuid_columns:
@@ -121,7 +119,6 @@ class Table(constants.Templates):
 				attributes[pos] = "{1}_get_name({0}) AS {0}".format(col, self.refuid_columns[col])
 		
 		cols = ",".join(attributes)
-		print cols
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
 		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = self.embed_into)
 		return type_def + "\n" + cols_def
