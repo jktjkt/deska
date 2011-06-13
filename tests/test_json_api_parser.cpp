@@ -373,8 +373,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
 /** @short Basic test for createObject() */
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\"}\n");
+    expectWrite("{\"command\":\"createObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"createObject\",\"tag\":\"T\"}\n");
     j->createObject("k", "o");
     expectEmpty();
 }
@@ -382,8 +382,8 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for deleteObject() */
 BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\"}\n");
+    expectWrite("{\"command\":\"deleteObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"deleteObject\",\"tag\":\"T\"}\n");
     j->deleteObject("k", "o");
     expectEmpty();
 }
@@ -391,8 +391,8 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for restoreDeletedObject() */
 BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"restoreDeletedObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeletedObject\"}\n");
+    expectWrite("{\"command\":\"restoreDeletedObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"restoreDeletedObject\",\"tag\":\"T\"}\n");
     j->restoreDeletedObject("k", "o");
     expectEmpty();
 }
@@ -400,8 +400,8 @@ BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStrea
 /** @short Basic test for renameObject() */
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"oldObjectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
+    expectWrite("{\"command\":\"renameObject\",\"tag\":\"T\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
+    expectRead("{\"response\": \"renameObject\",\"tag\":\"T\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }

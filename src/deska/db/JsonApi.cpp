@@ -214,8 +214,8 @@ void JsonApiParser::deleteObject( const Identifier &kindName, const Identifier &
     JsonCommandContext c1("deleteObject");
 
     JsonHandlerApiWrapper h(this, "deleteObject");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
     h.work();
 }
 
@@ -224,8 +224,8 @@ void JsonApiParser::restoreDeletedObject(const Identifier &kindName, const Ident
     JsonCommandContext c1("restoreDeletedObject");
 
     JsonHandlerApiWrapper h(this, "restoreDeletedObject");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
     h.work();
 }
 
@@ -234,8 +234,8 @@ void JsonApiParser::createObject( const Identifier &kindName, const Identifier &
     JsonCommandContext c1("createObject");
 
     JsonHandlerApiWrapper h(this, "createObject");
-    h.write(j_kindName, kindName);
-    h.write(j_objName, objectName);
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
     h.work();
 }
 
@@ -244,9 +244,9 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     JsonCommandContext c1("renameObject");
 
     JsonHandlerApiWrapper h(this, "renameObject");
-    h.write(j_kindName, kindName);
-    h.write("oldObjectName", oldObjectName);
-    h.write("newObjectName", newObjectName);
+    h.argument(j_kindName, kindName);
+    h.argument("oldObjectName", oldObjectName);
+    h.argument("newObjectName", newObjectName);
     h.work();
 }
 
