@@ -446,7 +446,7 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"rebaseChangeset\",\"tag\":\"T\",\"parentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\", \"parentRevision\": \"r666\"}\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\"}\n");
     j->rebaseChangeset(RevisionId(666));
     expectEmpty();
 }
@@ -520,7 +520,7 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTe
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"resumeChangeset\",\"tag\":\"T\",\"changeset\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\", \"changeset\": \"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\"}\n");
     j->resumeChangeset(TemporaryChangesetId(123));
     expectEmpty();
 }
@@ -662,8 +662,7 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStr
     expectWrite("{\"command\":\"resolvedDataDifference\",\"tag\":\"T\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     expectRead("{\"response\": \"resolvedDataDifference\", \"tag\":\"T\", \"resolvedDataDifference\": ["
-               + exampleJsonDiff +
-               "], \"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+               + exampleJsonDiff + "]}\n");
     std::vector<ObjectModification> expected = diffObjects();
     std::vector<ObjectModification> res = j->resolvedDataDifference(RevisionId(1), RevisionId(2),
                                                                     Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
