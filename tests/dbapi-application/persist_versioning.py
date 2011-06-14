@@ -7,6 +7,12 @@ vlist = [
          "version": Variable("v2"), "author": DeskaDbUser()}
     ]
 
+clist = [
+    {"status": "DETACHED", "changeset": Variable("changeset"),
+     "author": DeskaDbUser(), "timestamp": CurrentTimestamp(), "parentRevision":
+     Any(), "message": "detaching"}
+]
+
 declarative = [
     # at first, we can create a changeset
     startChangeset().returns(Any()),
@@ -27,7 +33,8 @@ declarative = [
     detachFromCurrentChangeset("detaching once again").throws(NoChangesetError()),
     # FIXME: create a special exception for this one
     resumeChangeset("xyz").throws(ServerError()),
-    # FIXME: call pendingChangesets, with and without a filter
+    pendingChangesets().returns(ListEnd(clist)), # fails, #247
+    # FIXME: call pendingChangesets with a filter
     resumeChangeset(Variable("changeset")),
     resumeChangeset(Variable("changeset")).throws(ChangesetAlreadyOpenError()),
     commitChangeset("commit-resumed").register("v1"),
