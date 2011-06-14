@@ -66,6 +66,9 @@ class InvalidAttributeError(RemoteDbException):
         RemoteDbException.__init__(self, "InvalidAttributeError")
 
 
+def revisionIncrement(revision, change):
+    return "r{0}".format(int(revision[1:len(revision)]) + change)
+
 registeredVariables = {}
 '''Storage of assigned objects for later checks'''
 
