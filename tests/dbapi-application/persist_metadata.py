@@ -20,5 +20,5 @@ def doStuff(r, kinds):
         r.assertEqual(type(r.c(kindAttributes(kind))), dict)
 
     r.cfail(kindInstances("error_kind_name"))
-    #r.cfail(kindRelations("error_kind_name"))
-    #r.cfail(kindAttributes("error_kind_name"))
+    r.cfail(kindRelations("error_kind_name"))
+    r.cfail(kindAttributes("error_kind_name"))
