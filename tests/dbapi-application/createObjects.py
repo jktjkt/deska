@@ -1,6 +1,6 @@
 from apiUtils import *
 
-j = [
+declarative = [
     # start with an empty state
     pendingChangesets().returns([]),
     # create new changeset

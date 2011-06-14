@@ -1,6 +1,6 @@
 from apiUtils import *
 
-j = [
+declarative = [
     kindNames().returns(
         AnyOrderList(('interface', 'vendor', 'host', 'hardware'))),
 

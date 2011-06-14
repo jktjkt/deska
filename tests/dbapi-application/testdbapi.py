@@ -38,9 +38,9 @@ class JsonApiTester(unittest.TestCase):
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    def testCommunication(self):
+    def declarativeImplementation(self):
         """Iterate over the recorded communication and verify that we get the same results back"""
-        for items in j:
+        for items in declarative:
             writeJson = json.dumps(resolvePlaceholders(items.command))
             print writeJson
             self.p.stdin.write(writeJson)
@@ -62,8 +62,14 @@ if __name__ == "__main__":
     DBNAME = os.environ["DESKA_DB"]
     DBUSER = os.environ["DESKA_USER"]
     TESTCASE = sys.argv[2]
-    j = __import__(TESTCASE).j
-    JsonApiTester.testCommunication.__func__.__doc__ = TESTCASE
+    module = __import__(TESTCASE)
+    if "declarative" in dir(module):
+        declarative = __import__(TESTCASE).declarative
+        JsonApiTester.testCase = JsonApiTester.declarativeImplementation
+        JsonApiTester.testCase.__func__.__doc__ = TESTCASE
+    else:
+        print "ERROR: No tests in the testcase"
+        sys.exit(6)
     suite = unittest.TestLoader().loadTestsFromTestCase(JsonApiTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
