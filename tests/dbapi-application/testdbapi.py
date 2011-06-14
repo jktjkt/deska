@@ -50,6 +50,13 @@ class JsonApiTester(unittest.TestCase):
     def runAndCheckCommand(self, command, response):
         writeJson = json.dumps(resolvePlaceholders(command))
         print writeJson
+        readJson = self.runCommand(writeJson)
+        print readJson
+        sys.stdout.flush()
+        output = json.loads(readJson)
+        self.assertEqual(deunicodeify(output), response)
+
+    def runCommand(self, writeJson):
         self.p.stdin.write(writeJson)
         self.p.stdin.write("\n")
         self.p.stdin.flush()
@@ -57,12 +64,7 @@ class JsonApiTester(unittest.TestCase):
         if (self.p.stderr in status[0]):
             err = os.read(self.p.stderr.fileno(), 65536)
             print err
-        readJson = self.p.stdout.readline()
-        print readJson
-        sys.stdout.flush()
-        output = json.loads(readJson)
-        self.assertEqual(deunicodeify(output), response)
-
+        return self.p.stdout.readline()
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
