@@ -30,6 +30,12 @@ class AnyOrderList(object):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
         return self.items == frozenset(other)
 
+class Any(object):
+    """Compare against anything with True result"""
+    def __eq__(self, other):
+        return True
+
+
 class RemoteDbException(object):
     def __init__(self, name):
         self.name = name
