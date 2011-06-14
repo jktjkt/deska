@@ -31,7 +31,7 @@ declarative = [
     startChangeset().register("changeset"),
     detachFromCurrentChangeset("detaching"),
     detachFromCurrentChangeset("detaching once again").throws(NoChangesetError()),
-    # FIXME: create a special exception for this one
+    # FIXME: resumeChangeset("xyz").throws(ChangesetParsingError()),
     resumeChangeset("xyz").throws(ServerError()),
     pendingChangesets().returns(ListEnd(clist)), # fails, #247
     # FIXME: call pendingChangesets with a filter
