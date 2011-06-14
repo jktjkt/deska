@@ -41,24 +41,28 @@ class JsonApiTester(unittest.TestCase):
     def declarativeImplementation(self):
         """Iterate over the recorded communication and verify that we get the same results back"""
         for items in declarative:
-            writeJson = json.dumps(resolvePlaceholders(items.command))
-            print writeJson
-            self.p.stdin.write(writeJson)
-            self.p.stdin.write("\n")
-            self.p.stdin.flush()
-            status = select.select((self.p.stdout, self.p.stderr), (), ())
-            if (self.p.stderr in status[0]):
-                err = os.read(self.p.stderr.fileno(), 65536)
-                print err
-            readJson = self.p.stdout.readline()
-            print readJson
-            sys.stdout.flush()
-            output = json.loads(readJson)
-            self.assertEqual(deunicodeify(output), items.response)
+            self.runAndCheckCommand(items.command, items.response)
 
     def imperativeCommands(self):
         """Run the test function which gets access to the whole environment"""
         imperative(self)
+
+    def runAndCheckCommand(self, command, response):
+        writeJson = json.dumps(resolvePlaceholders(command))
+        print writeJson
+        self.p.stdin.write(writeJson)
+        self.p.stdin.write("\n")
+        self.p.stdin.flush()
+        status = select.select((self.p.stdout, self.p.stderr), (), ())
+        if (self.p.stderr in status[0]):
+            err = os.read(self.p.stderr.fileno(), 65536)
+            print err
+        readJson = self.p.stdout.readline()
+        print readJson
+        sys.stdout.flush()
+        output = json.loads(readJson)
+        self.assertEqual(deunicodeify(output), response)
+
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
