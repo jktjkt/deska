@@ -35,6 +35,19 @@ class Any(object):
     def __eq__(self, other):
         return True
 
+class ListEnd(object):
+    """Make sure that the data are present at the end of the other object"""
+    def __init__(self, data):
+        self.data = data
+
+    def __eq__(self, other):
+        subset = other[-len(self.data):]
+        print subset
+        print self
+        return subset == self.data
+
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.data))
 
 class RemoteDbException(object):
     def __init__(self, name):
