@@ -96,9 +96,9 @@ if(RUN_SQL_TESTS)
     # unit tests which work on any reasonable state of the DB, no matter what
     # changesets are already present, etc
     deska_dbapi_test(persist_kindInstances)
+    deska_dbapi_test(persist_metadata)
 
     # these will be removed later on
-    deska_dbapi_persist_test(test_1_metadata)
     deska_dbapi_persist_test(test_1_versioning)
     deska_dbapi_persist_test(test_2_filter)
     deska_dbapi_persist_test(test_2_diff)
