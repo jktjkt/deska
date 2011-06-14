@@ -1,3 +1,5 @@
+'''Test kindInstances behavior with pre-existing data'''
+
 from apiUtils import *
 
 def imperative(r):

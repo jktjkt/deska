@@ -1,3 +1,5 @@
+'''Test creating, resuming and throwing away of pending changesets'''
+
 from apiUtils import *
 
 declarative = [

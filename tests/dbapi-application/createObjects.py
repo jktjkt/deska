@@ -1,3 +1,5 @@
+'''Test createObject() behavior with pending changesets and revisions'''
+
 from apiUtils import *
 
 declarative = [

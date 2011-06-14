@@ -1,3 +1,5 @@
+'''Tests for retrieval of the database scheme'''
+
 from apiUtils import *
 
 declarative = [
