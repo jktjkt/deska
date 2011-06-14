@@ -555,6 +555,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             ss << "Unknown class of server-side exception '" << exceptionClass << "'. Server's message: " << message;
             throw JsonStructureError(ss.str());
         }
+#undef DESKA_CATCH_REMOTE_EXCEPTION
 };
 
 template <typename T>
