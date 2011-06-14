@@ -48,9 +48,11 @@ class JsonApiTester(unittest.TestCase):
         imperative(self)
 
     def runAndCheckCommand(self, command, response):
+        """Execute a command and check its expected response"""
         self.assertEqual(self.runCommand(resolvePlaceholders(command)), response)
 
     def runCommand(self, cmd):
+        """Send a JSON string and return the parsed result"""
         writeJson = json.dumps(cmd)
         print writeJson
         readJson = self.runCommandStr(writeJson)
@@ -59,6 +61,7 @@ class JsonApiTester(unittest.TestCase):
         return deunicodeify(json.loads(readJson))
 
     def runCommandStr(self, writeJson):
+        """Handle string IO to the process"""
         self.p.stdin.write(writeJson)
         self.p.stdin.write("\n")
         self.p.stdin.flush()
@@ -67,6 +70,11 @@ class JsonApiTester(unittest.TestCase):
             err = os.read(self.p.stderr.fileno(), 65536)
             print err
         return self.p.stdout.readline()
+
+    def commandResult(self, command):
+        """Access the result of a command"""
+        res = self.runCommand(command.command)
+        return res[command.name]
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
