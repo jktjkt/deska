@@ -71,10 +71,13 @@ class JsonApiTester(unittest.TestCase):
             print err
         return self.p.stdout.readline()
 
-    def commandResult(self, command):
+    def c(self, command):
         """Access the result of a command"""
         res = self.runJSON(command.command)
-        return res[command.name]
+        if command.name in res:
+            return res[command.name]
+        else:
+            return None
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
