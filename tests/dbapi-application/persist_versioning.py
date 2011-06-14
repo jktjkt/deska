@@ -24,6 +24,10 @@ declarative = [
     # try to commit a resumed changeset
     startChangeset().register("changeset"),
     detachFromCurrentChangeset("detaching"),
+    detachFromCurrentChangeset("detaching once again").throws(NoChangesetError()),
+    # FIXME: create a special exception for this one
+    resumeChangeset("xyz").throws(ServerError()),
+    # FIXME: call pendingChangesets, with and without a filter
     resumeChangeset(Variable("changeset")),
     commitChangeset("commit-resumed").register("v1"),
 
