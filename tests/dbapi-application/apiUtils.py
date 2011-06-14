@@ -42,8 +42,6 @@ class ListEnd(object):
 
     def __eq__(self, other):
         subset = other[-len(self.data):]
-        print subset
-        print self
         return subset == self.data
 
     def __repr__(self):
