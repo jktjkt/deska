@@ -119,7 +119,8 @@ class ApiMethod(object):
         return (self.command, self.response) == other
 
     def __repr__(self):
-        return str(self.command, self.response)
+        return "<%s: %s, %s>" % (
+            type(self).__name__, str(self.command), str(self.response))
 
 
 # DBAPI commands
