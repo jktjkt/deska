@@ -48,15 +48,19 @@ class JsonApiTester(unittest.TestCase):
         imperative(self)
 
     def runAndCheckCommand(self, command, response):
-        writeJson = json.dumps(resolvePlaceholders(command))
+        self.assertEqual(
+            self.runCommand(resolvePlaceholders(command)),
+            response)
+
+    def runCommand(self, cmd):
+        writeJson = json.dumps(cmd)
         print writeJson
-        readJson = self.runCommand(writeJson)
+        readJson = self.runCommandStr(writeJson)
         print readJson
         sys.stdout.flush()
-        output = json.loads(readJson)
-        self.assertEqual(deunicodeify(output), response)
+        return deunicodeify(json.loads(readJson))
 
-    def runCommand(self, writeJson):
+    def runCommandStr(self, writeJson):
         self.p.stdin.write(writeJson)
         self.p.stdin.write("\n")
         self.p.stdin.flush()
