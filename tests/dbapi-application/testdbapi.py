@@ -79,10 +79,12 @@ class JsonApiTester(unittest.TestCase):
         else:
             return None
 
-    def cfail(self, command):
+    def cfail(self, command, exception=None):
         """Make sure that the commands fails"""
         res = self.runJSON(command.command)
         self.assertTrue("dbException" in res)
+        if exception is not None:
+            self.assertEqual(res["dbException"], exception)
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
