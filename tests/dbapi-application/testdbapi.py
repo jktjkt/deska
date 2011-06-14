@@ -56,6 +56,10 @@ class JsonApiTester(unittest.TestCase):
             output = json.loads(readJson)
             self.assertEqual(deunicodeify(output), items.response)
 
+    def imperativeCommands(self):
+        """Run the test function which gets access to the whole environment"""
+        imperative(self)
+
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska_server.py testcase
     SERVER_PATH = sys.argv[1]
@@ -66,6 +70,10 @@ if __name__ == "__main__":
     if "declarative" in dir(module):
         declarative = module.declarative
         JsonApiTester.testCase = JsonApiTester.declarativeImplementation
+        JsonApiTester.testCase.__func__.__doc__ = TESTCASE
+    elif "imperative" in dir(module):
+        imperative = module.imperative
+        JsonApiTester.testCase = JsonApiTester.imperativeCommands
         JsonApiTester.testCase.__func__.__doc__ = TESTCASE
     else:
         print "ERROR: No tests in the testcase"
