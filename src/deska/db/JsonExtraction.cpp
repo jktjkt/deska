@@ -528,43 +528,23 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         // "message" is said to be shared by all server-side errors
         std::string message;
         h.read("message").extract(&message);
-        if (exceptionClass == "ServerError" ) {
-            JsonContext c2("When parsing ServerError");
-            h.parseJsonObject(v.get_obj());
-            throw ServerError(message);
-        } else if (exceptionClass == "NotFoundError") {
-            JsonContext c2("When parsing NotFoundError");
-            h.parseJsonObject(v.get_obj());
-            throw NotFoundError(message);
-        } else if (exceptionClass == "InvalidKindError") {
-            JsonContext c2("When parsing InvalidKindError");
-            h.parseJsonObject(v.get_obj());
-            throw InvalidKindError(message);
-        } else if (exceptionClass == "InvalidAttributeError") {
-            JsonContext c2("When parsing InvalidAttributeError");
-            h.parseJsonObject(v.get_obj());
-            throw InvalidAttributeError(message);
-        } else if (exceptionClass == "NoChangesetError") {
-            JsonContext c2("When parsing NoChangesetError");
-            h.parseJsonObject(v.get_obj());
-            throw NoChangesetError(message);
-        } else if (exceptionClass == "ChangesetAlreadyOpenError") {
-            JsonContext c2("When parsing ChangesetAlreadyOpenError");
-            h.parseJsonObject(v.get_obj());
-            throw ChangesetAlreadyOpenError(message);
-        } else if (exceptionClass == "FilterError") {
-            JsonContext c2("When parsing FilterError");
-            h.parseJsonObject(v.get_obj());
-            throw FilterError(message);
-        } else if (exceptionClass == "SqlError") {
-            JsonContext c2("When parsing SqlError");
-            h.parseJsonObject(v.get_obj());
-            throw SqlError(message);
-        } else if (exceptionClass == "ReCreateObjectError") {
-            JsonContext c2("When parsing ReCreateObjectError");
-            h.parseJsonObject(v.get_obj());
-            throw ReCreateObjectError(message);
-        } else {
+
+#define DESKA_CATCH_REMOTE_EXCEPTION(X) \
+    if (exceptionClass == #X ) { \
+        JsonContext c2("When parsing " #X); \
+        h.parseJsonObject(v.get_obj()); \
+        throw X(message); \
+    }
+        DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NotFoundError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(InvalidKindError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(InvalidAttributeError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NoChangesetError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetAlreadyOpenError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(FilterError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ReCreateObjectError)
+        else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");
             // We don't have any idea about this exception, so be future-proof and allow optional arguments here
