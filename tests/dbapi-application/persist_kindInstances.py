@@ -4,21 +4,21 @@ from apiUtils import *
 
 def imperative(r):
     objectNames = set(["test1", "test2", "test3"])
-    firstKI = r.c(kindInstances("vendor"))
-    objectNames = objectNames - set(firstKI)
+    firstKI = set(r.c(kindInstances("vendor")))
+    objectNames = objectNames - firstKI
 
     r.c(startChangeset())
     for obj in objectNames:
         r.c(createObject("vendor", obj))
 
-    changesetKI = r.c(kindInstances("vendor"))
+    changesetKI = set(r.c(kindInstances("vendor")))
     # changesetKI should containt whole objectNames
-    r.assertTrue(set(objectNames) <= set(changesetKI))
+    r.assertTrue(objectNames <= changesetKI)
 
     revision = r.c(commitChangeset("test"))
-    newKI = r.c(kindInstances("vendor", revision))
-    r.assertTrue(objectNames <= set(newKI))
+    newKI = set(r.c(kindInstances("vendor", revision)))
+    r.assertTrue(objectNames <= newKI)
 
     revision = revisionIncrement(revision, -1)
-    revNewKI = r.c(kindInstances("vendor", revision))
+    revNewKI = set(r.c(kindInstances("vendor", revision)))
     r.assertEquals(revNewKI, firstKI)
