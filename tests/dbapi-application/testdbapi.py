@@ -64,7 +64,7 @@ if __name__ == "__main__":
     TESTCASE = sys.argv[2]
     module = __import__(TESTCASE)
     if "declarative" in dir(module):
-        declarative = __import__(TESTCASE).declarative
+        declarative = module.declarative
         JsonApiTester.testCase = JsonApiTester.declarativeImplementation
         JsonApiTester.testCase.__func__.__doc__ = TESTCASE
     else:
