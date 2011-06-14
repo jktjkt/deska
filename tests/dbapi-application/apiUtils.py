@@ -62,17 +62,29 @@ class RemoteDbException(object):
             raise ValueError, "Message too short: %s" % repr(other["message"])
         return other["type"] == self.name
 
-class ChangesetAlreadyOpenError(RemoteDbException):
+class NotFoundError(RemoteDbException):
     def __init__(self):
-        RemoteDbException.__init__(self, "ChangesetAlreadyOpenError")
+        RemoteDbException.__init__(self, "NotFoundError")
 
 class NoChangesetError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "NoChangesetError")
 
-class ServerError(RemoteDbException):
+class ChangesetAlreadyOpenError(RemoteDbException):
     def __init__(self):
-        RemoteDbException.__init__(self, "ServerError")
+        RemoteDbException.__init__(self, "ChangesetAlreadyOpenError")
+
+class FreezingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "FreezingError")
+
+class FilterError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "FilterError")
+
+class ReCreateObjectError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ReCreateObjectError")
 
 class InvalidKindError(RemoteDbException):
     def __init__(self):
@@ -81,6 +93,22 @@ class InvalidKindError(RemoteDbException):
 class InvalidAttributeError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "InvalidAttributeError")
+
+class RevisionParsingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "RevisionParsingError")
+
+class ChangesetParsingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ChangesetParsingError")
+
+class SqlError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "SqlError")
+
+class ServerError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ServerError")
 
 
 def revisionIncrement(revision, change):
