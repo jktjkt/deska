@@ -49,9 +49,9 @@ class JsonApiTester(unittest.TestCase):
 
     def runAndCheckCommand(self, command, response):
         """Execute a command and check its expected response"""
-        self.assertEqual(self.runCommand(resolvePlaceholders(command)), response)
+        self.assertEqual(self.runJSON(resolvePlaceholders(command)), response)
 
-    def runCommand(self, cmd):
+    def runJSON(self, cmd):
         """Send a JSON string and return the parsed result"""
         writeJson = json.dumps(cmd)
         print writeJson
@@ -73,7 +73,7 @@ class JsonApiTester(unittest.TestCase):
 
     def commandResult(self, command):
         """Access the result of a command"""
-        res = self.runCommand(command.command)
+        res = self.runJSON(command.command)
         return res[command.name]
 
 if __name__ == "__main__":
