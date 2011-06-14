@@ -97,6 +97,7 @@ if(RUN_SQL_TESTS)
     # changesets are already present, etc
     deska_dbapi_test(persist_kindInstances)
     deska_dbapi_test(persist_metadata)
+    deska_dbapi_test(persist_versioning)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_1_versioning)
