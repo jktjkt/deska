@@ -97,6 +97,7 @@ class Variable(object):
 
 class ApiMethod(object):
     def __init__(self, name, args):
+        self.name = name
         self.command = {"command": name}
         self.response = {"response": name}
         if args is not None:
@@ -104,7 +105,7 @@ class ApiMethod(object):
             self.response.update(args)
 
     def returns(self, value):
-        self.response[self.response["response"]] = value
+        self.response[self.name] = value
         return self
 
     def throws(self, exception):
@@ -112,7 +113,7 @@ class ApiMethod(object):
         return self
 
     def register(self, name):
-        self.response[self.response["response"]] = FillPlaceholder(name)
+        self.response[self.name] = FillPlaceholder(name)
         return self
 
     def __eq__(self, other):
