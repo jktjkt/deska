@@ -100,6 +100,8 @@ REMOTEEXCEPTION(ChangesetAlreadyOpenError)
 REMOTEEXCEPTION(FreezingError)
 REMOTEEXCEPTION(FilterError)
 REMOTEEXCEPTION(ReCreateObjectError)
+REMOTEEXCEPTION(RevisionParsingError)
+REMOTEEXCEPTION(ChangesetParsingError)
 REMOTEEXCEPTION(SqlError)
 REMOTEEXCEPTION(ServerError)
 

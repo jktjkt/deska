@@ -89,6 +89,10 @@ REMOTEDBEXCEPTION(ReCreateObjectError)
 REMOTEDBEXCEPTION(InvalidKindError)
 /** @short Cannot access the specified attribute of a given kind */
 REMOTEDBEXCEPTION(InvalidAttributeError)
+/** @short Failed to parse a RevisionId */
+REMOTEDBEXCEPTION(RevisionParsingError)
+/** @short Failed to parse a TemporaryChangesetId */
+REMOTEDBEXCEPTION(ChangesetParsingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
