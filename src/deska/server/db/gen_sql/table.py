@@ -109,10 +109,10 @@ class Table(constants.Templates):
 			collist[col] = 'text'
 
 		attributes = collist.keys()
-		attributes.sort()
-		atttypes = list()
-		for att in attributes:
-			atttypes.append(collist[att])
+		#attributes.sort()
+		atttypes = collist.values()
+		#for att in attributes:
+			#atttypes.append(collist[att])
 			
 		coltypes = ",\n".join(map("{0} {1}".format,attributes, atttypes))
 
@@ -262,7 +262,11 @@ class Table(constants.Templates):
 		collist = self.col.keys()
 		collist.remove('uid')
 		collist.remove('name')
-		collist.sort()
+		
+		data_attributes = map('data.{0}'.format, collist)
+		dcols = ','.join(data_attributes)
+		
+		collist.remove('template')
 		cols = ','.join(collist)
 		
 		#table tbl is templated by table tbl_template
@@ -278,8 +282,6 @@ class Table(constants.Templates):
 		else:
 			resolved_data_string = self.resolved_data_string
 
-		collist.remove('template')
-
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
 		# replace uid of referenced object its name
@@ -290,5 +292,5 @@ class Table(constants.Templates):
 		
 		cols_ex_templ = ",".join(collist)
 			
-		return resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table)
+		return resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
 		

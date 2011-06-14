@@ -168,7 +168,7 @@ class Templates:
 			END IF;
 		END IF;
 
-		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+		SELECT {columns} INTO {data_columns} FROM {tbl}_data_version(from_version)
 			WHERE name = name_;
 		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
@@ -205,7 +205,7 @@ class Templates:
 				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
 				--first we look for result in current changeset than in parent revision
-				SELECT {columns} INTO data FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
+				SELECT {columns} INTO {data_columns} FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
 				IF FOUND THEN
 					--we have result and can return it
 					RETURN data;
@@ -215,7 +215,7 @@ class Templates:
 			END IF;
 		END IF;
 		
-		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+		SELECT {columns} INTO {data_columns} FROM {tbl}_data_version(from_version)
 			WHERE uid = obj_uid;
 		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
@@ -883,12 +883,13 @@ $$
 DECLARE
 	data {tbl}_type;
 	current_changeset bigint;
+	dbit bit(1);
 BEGIN
 	IF from_version = 0 THEN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO data 
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO {data_columns}
 			FROM production.{tbl} WHERE name = name_;
 			IF NOT FOUND THEN
 				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
@@ -898,7 +899,7 @@ BEGIN
 	END IF;
 
 	WITH recursive resolved_data AS (
-        SELECT {columns}, template as orig_template
+        SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
         WHERE name = name_
         UNION ALL
@@ -908,9 +909,12 @@ BEGIN
         FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO data
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
 	FROM resolved_data WHERE template IS NULL;
-
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
 	RETURN data;
 END
 $$
@@ -932,7 +936,7 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO data 
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO {data_columns}
 			FROM production.{tbl} WHERE uid = obj_uid;
 			IF NOT FOUND THEN
 				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
@@ -942,7 +946,7 @@ BEGIN
 	END IF;
 
 	WITH recursive resolved_data AS (
-        SELECT {columns}, template as orig_template
+        SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
         WHERE uid = obj_uid
         UNION ALL
@@ -952,9 +956,12 @@ BEGIN
         FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO data
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
 	FROM resolved_data WHERE template IS NULL;
 
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
 	RETURN data;
 END
 $$
