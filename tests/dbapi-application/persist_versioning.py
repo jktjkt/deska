@@ -29,6 +29,7 @@ declarative = [
     resumeChangeset("xyz").throws(ServerError()),
     # FIXME: call pendingChangesets, with and without a filter
     resumeChangeset(Variable("changeset")),
+    resumeChangeset(Variable("changeset")).throws(ChangesetAlreadyOpenError()),
     commitChangeset("commit-resumed").register("v1"),
 
     # try to commit a fresh one

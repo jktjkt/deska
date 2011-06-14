@@ -3,23 +3,6 @@ from deskatest import DeskaTest
 
 class Versioning(DeskaTest):
 	'''Test versioning functions'''
-	def test_003_resumeChangeset(self):
-		'''test resume changeset'''
-		# create changeset
-		res = self.command(js.startChangeset)
-		self.OK(res.OK)
-		chid = res.result()
-		# you have already assigned one
-		res = self.command(js.resumeChangeset,chid)
-		self.OK(res.changesetOpen)
-		# detaching
-		res = self.command(js.detachFromCurrentChangeset,"test")
-		self.OK(res.OK)
-		# bad id
-		res = self.command(js.resumeChangeset,"r12")
-		self.OK(res.otherError)
-
-
 	def test_005_pendingChangeset(self):
 		'''test that create changeset adds one changeset in pendinch changeset'''
 		res = self.command(js.pendingChangesets)
