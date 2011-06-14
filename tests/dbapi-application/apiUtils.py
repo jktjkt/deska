@@ -111,6 +111,13 @@ class Variable(object):
     def __eq__(self, other):
         return registeredVariables[self.name] == other
 
+    def __repr__(self):
+        if self.name in registeredVariables:
+            return "<%s: %s>" % (
+                type(self).__name__, registeredVariables[self.name])
+        else:
+            return "<%s: %s>" % (type(self).__name__, "<not assigned>")
+
     def get(self):
         return registeredVariables[self.name]
 
