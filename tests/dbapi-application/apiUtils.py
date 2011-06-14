@@ -188,3 +188,9 @@ def kindInstances(kindName, revision=None):
     if revision is not None:
         args["revision"] = revision
     return ApiMethod("kindInstances", args)
+
+def listRevisions(filter=None):
+    args = {}
+    if filter is not None:
+        args["filter"] = filter
+    return ApiMethod("listRevisions", args)
