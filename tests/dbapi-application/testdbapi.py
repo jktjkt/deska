@@ -48,9 +48,7 @@ class JsonApiTester(unittest.TestCase):
         imperative(self)
 
     def runAndCheckCommand(self, command, response):
-        self.assertEqual(
-            self.runCommand(resolvePlaceholders(command)),
-            response)
+        self.assertEqual(self.runCommand(resolvePlaceholders(command)), response)
 
     def runCommand(self, cmd):
         writeJson = json.dumps(cmd)
