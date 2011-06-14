@@ -74,6 +74,9 @@ class JsonApiTester(unittest.TestCase):
     def c(self, command):
         """Access the result of a command"""
         res = self.runJSON(command.command)
+        self.assertTrue("response" in res)
+        #self.assertTrue("tag" in res)
+        self.assertTrue("dbException" not in res)
         if command.name in res:
             return res[command.name]
         else:
@@ -82,6 +85,8 @@ class JsonApiTester(unittest.TestCase):
     def cfail(self, command, exception=None):
         """Make sure that the commands fails"""
         res = self.runJSON(command.command)
+        self.assertTrue("response" in res)
+        #self.assertTrue("tag" in res)
         self.assertTrue("dbException" in res)
         if exception is not None:
             self.assertEqual(res["dbException"], exception)
