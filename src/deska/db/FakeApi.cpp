@@ -178,6 +178,14 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
+void FakeApi::freezeView()
+{
+}
+
+void FakeApi::unFreezeView()
+{
+}
+
 std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filter> &filter) const
 {
     return std::vector<RevisionMetadata>();

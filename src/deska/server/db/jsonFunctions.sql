@@ -113,6 +113,8 @@ def main(kindName,revision):
 	jsn = dict()
 	jsn["response"] = name
 	jsn["kindName"] = kindName
+	if revision is not None:
+		jsn["revision"] = revision
 	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)

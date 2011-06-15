@@ -552,6 +552,25 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStre
     expectEmpty();
 }
 
+/** @short Basic test for freezeView() */
+BOOST_FIXTURE_TEST_CASE(json_freezeView, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"freezeView\"}\n");
+    expectRead("{\"response\": \"freezeView\"}\n");
+    j->freezeView();
+    expectEmpty();
+}
+
+/** @short Basic test for unFreezeView() */
+BOOST_FIXTURE_TEST_CASE(json_unFreezeView, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"unFreezeView\"}\n");
+    expectRead("{\"response\": \"unFreezeView\"}\n");
+    j->unFreezeView();
+    expectEmpty();
+}
+
+
 /** @short Test listRevisions() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
 {
@@ -702,6 +721,8 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(ChangesetAlreadyOpenError);
     JSON_ERR_TEST(FilterError);
     JSON_ERR_TEST(ReCreateObjectError);
+    JSON_ERR_TEST(InvalidKindError);
+    JSON_ERR_TEST(InvalidAttributeError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

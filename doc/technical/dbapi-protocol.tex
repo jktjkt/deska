@@ -15,6 +15,8 @@
 
 \maketitle
 
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
 \begin{abstract}
 This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
 database server.  We describe the overall design, as well as provide a detailed API reference along with example usage.
@@ -265,13 +267,21 @@ This is the list of currently defined exceptions, along with their other argumen
     Exception Name & Meaning & Additional arguments \\
     \hline
     \endhead
-    {\tt NotFoundError} & The database does not contain such object & -- \\
+    {\tt InvalidKindError} & The specified kind is not valid & -- \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & -- \\
+    {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
+    better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
+    InvalidKindError}, etc. & -- \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
         without one & -- \\
     {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+    {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
+    manipulation & -- \\
     {\tt FilterError} & The specified filter is not valid & -- \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
-    \deskaFuncRef{restoreDeletedObject}. && -- \\
+    \deskaFuncRef{restoreDeletedObject}. & -- \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -394,8 +404,6 @@ relation information etc.  The following types are defined:
 
 The Deska DBAPI provides functions for accessing the information contained in the database.
 
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
-
 \subsection{The Deska DBAPI at a Glance}
 
 The API can be divided into five groups.  The first part are commands for querying the database scheme, which are
@@ -404,7 +412,8 @@ defined, what relations exist among them and which attributes belong to each obj
 (section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
 part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
 part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results.  The last part (section \ref{sec:api-group-history}) discusses browsing the revision history.
+results, or provide a frozen view of the DB state for consistency.  The last part (section \ref{sec:api-group-history})
+discusses browsing the revision history.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
 are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
@@ -426,6 +435,11 @@ Should the user decide not to need the pending changeset anymore, she can call t
 to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
 changeset, preserving the modifications for a later commit.  When all changes have been performed and the user decides to
 make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.
+
+Certain applications, like dumping the database contents, require to temporarily ``freeze'' the state of the database to
+guarantee that the result accurately represents the real database state.  The DBAPI provides a pair of functions for
+this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see section
+\ref{sec:api-revision-semantics} for details.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 she attempted a commit.  In that case, the new commit won't be performed, and the user should verify that the changes are still
@@ -453,17 +467,16 @@ FIXME: add server-side config generators, issue 239 -- maybe in a different sect
 \label{sec:api-revision-semantics}
 
 Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to
-operate on.  When the version is not specified, the implicit value is fixed at the latest persistent
-revision which was committed at the time the session started.
+operate on.  When the session is attached into a pending changeset, an unspecified revision always refers to the current
+state of the changeset, ie. the parent revision and all changes applied in the active changeset so far.
 
-When user attaches an existing pending changeset, this implicit value changes to the ``parent revision'' of the
-current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
-Detaching from a pending changeset or aborting one sets the implicit revision number of the session to the latest
-commit.
-
-FIXME: make sure the above is OK
-
-FIXME: atomicity
+When the version is not specified and there is no active changeset, though, the implicit revision value means ``whatever
+the database connection happens to see at the moment'', which clearly lacks important consistency promises.  There are
+few ways to achieve consistent operation.  The first option is to always use absolute revision specification in each
+query,  the second option is to operate from inside a changeset, and the third is to start a lightweight multiversion
+control transaction on the database side by means of \deskaFuncRef{freezeView}.  This transaction is freed upon
+disconnect from the database, or by an explicit call to the \deskaFuncRef{unFreezeView}.  It is an error to try to start
+or resume a changeset when in the multiversion transaction and vice versa.
 
 \subsubsection{Filtering Results}
 \label{sec:api-filters}
@@ -508,6 +521,23 @@ such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
+\subsection{Output Ordering}
+
+Certain functions return a list of values.  The general rule is that the order of returned items is not stable, unless
+specified otherwise.  The sorting may even vary among several executions of the same command with the very same
+arguments executed in a single session.  That said, there are certain situations where sorting the results on the server
+side clearly improves the client's efficiency, and is therefore fixed for the DBAPI.
+
+Any function which returns a list of pending changesets or a list of persistent revisions is guaranteed to sort the
+result by the changeset or revision, lower numbers first.  Examples of these functions are \deskaFuncRef{listRevisions}
+and \deskaFuncRef{pendingChangesets}.
+
+Functions which return lists of objects or their identifiers, like \deskaFuncRef{kindNames},
+\deskaFuncRef{kindInstances} etc, do not provide any guarantees about the sort order.
+
+The diffing functions (see section \ref{sec:api-group-history}) sorts the results according to special rules, see their
+description for more details.
+
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
@@ -523,6 +553,8 @@ FIXME: change the sentence above when fine-grained filter exceptions are introdu
 
 }
 
+\newcommand{\deskaUnsortedRes}{The order of the returned data is not specified.}
+
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
 \setcounter{secnumdepth}{4}
 
@@ -535,12 +567,12 @@ and the defined object relations.
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds}
     {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
-    {\tt kindName} argument to various other functions.}
+    {\tt kindName} argument to various other functions.  \deskaUnsortedRes}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
     {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
-    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.  \deskaUnsortedRes}
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
@@ -551,7 +583,7 @@ and the defined object relations.
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
-    the ObjectRelation struct.}
+    the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
 \label{sec:api-group-data-retrieval}
@@ -566,7 +598,7 @@ Functions from this group are used for fetching actual data from the database.
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
     \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
     a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
-    selected object kind, but can also follow defined object relations to create more complex queries.}
+    selected object kind, but can also follow defined object relations to create more complex queries.  \deskaUnsortedRes}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
@@ -580,7 +612,7 @@ Functions from this group are used for fetching actual data from the database.
     attribute is always missing from the \deskaFuncRef{objectData} output.
 
     For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
-    \deskaFuncRef{multipleResolvedObjectData}.
+    \deskaFuncRef{multipleResolvedObjectData}.  \deskaUnsortedRes
     }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
@@ -590,7 +622,7 @@ Functions from this group are used for fetching actual data from the database.
     {Get all attributes for instances matching the specified filter}
     {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
     present in the result, even if it has no attributes.  The amount of data returned is the same as in
-    \deskaFuncRef{objectData} function.}
+    \deskaFuncRef{objectData} function.  \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
@@ -598,7 +630,7 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
 
-    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
+    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
 \deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     { \{ \\
@@ -606,7 +638,7 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  \deskaUnsortedRes}
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
@@ -678,7 +710,8 @@ Querying History}, section \ref{sec:api-group-history}.
     {This function will create a new changeset and immediately attach current session to it.  All subsequent changes
     performed in the session will be stored in this temporary changeset.
 
-    It is an error to attempt to create a new changeset while being already attached to another one.
+    It is an error to attempt to create a new changeset while being already attached to another one, or to combine
+    changeset access with frozen views.
     }
 
 \deskaFunc{commitChangeset}{, "commitMessage": "message"}
@@ -709,7 +742,9 @@ Querying History}, section \ref{sec:api-group-history}.
     database.
 
     An optional argument {\tt filter} can be used to limit the amount of data returned.  Filters can reference any
-    available property of the temporary changeset.}
+    available property of the temporary changeset.
+
+    The results are sorted by the changeset identification using numeric sort of its value, lowest changesets first.}
 
 \deskaFunc{resumeChangeset}{, "revision": "r123"}
     {}
@@ -740,6 +775,19 @@ Querying History}, section \ref{sec:api-group-history}.
     {This function will throw away any changes made so far in the current active changeset and remove that changeset
     from the list of pending changestes.}
 
+\deskaFunc{freezeView}{}{}
+    {Freeze the view of the revisions}
+    {Start a server-side multiversion transaction which freezes the server's idea about what the latest revision in the
+    database is. See section \ref{sec:api-revision-semantics} for details.
+
+    It is an error to start or resume a changeset while the database state is frozen via this function; doing so will
+    result in the {\tt FreezingError} exception.}
+
+\deskaFunc{unFreezeView}{}{}
+    {Unfreeze the client's view on the persistent revisions}
+    {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
+    \ref{sec:api-revision-semantics} for details.}
+
 \subsubsection{Querying History}
 \label{sec:api-group-history}
 
@@ -752,7 +800,9 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return a list of metadata for matching revisions}
     {This function returns a list of metadata for revisions matching the search criteria.  When no search criteria are
     specified, it will return metadata for all persistent revisions.  The filter can reference all attributes of a
-    revision, as well as any object data.}
+    revision, as well as any object data.
+
+    The result is sorted by the revision using a numeric sort, with lowest values returned first.}
 
 \deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
     {[ \\
@@ -765,9 +815,10 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return differences between the database state in the specified versions}
     {This function will produce a list of differences between the database state in the two indicated revisions.  The
     returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
-    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
-    object has been created and its attribute set to a particular value, the creation shall be present before the record
-    for setting an attribute.
+    existing one, or setting a single attribute.
+
+    The order of the returned data is significant; for example, if an object has been created and its attribute set to a
+    particular value, the creation shall be present before the record for setting an attribute.
 
     An optional filter is allowed to reference any object's attributes, as well as revision metadata.
 

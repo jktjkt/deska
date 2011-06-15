@@ -79,10 +79,20 @@ REMOTEDBEXCEPTION(NotFoundError)
 REMOTEDBEXCEPTION(NoChangesetError)
 /** @short Tried to manipulate a changeset while already being attached to one */
 REMOTEDBEXCEPTION(ChangesetAlreadyOpenError)
+/** @short An error related to attempted combination of a frozen view and an active changeset manipulation */
+REMOTEDBEXCEPTION(FreezingError)
 /** @short The filter cannot be used */
 REMOTEDBEXCEPTION(FilterError)
 /** @short Attempted to re-create a deleted object in the same changeset */
 REMOTEDBEXCEPTION(ReCreateObjectError)
+/** @short The specified kind is not valid */
+REMOTEDBEXCEPTION(InvalidKindError)
+/** @short Cannot access the specified attribute of a given kind */
+REMOTEDBEXCEPTION(InvalidAttributeError)
+/** @short Failed to parse a RevisionId */
+REMOTEDBEXCEPTION(RevisionParsingError)
+/** @short Failed to parse a TemporaryChangesetId */
+REMOTEDBEXCEPTION(ChangesetParsingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
@@ -260,6 +270,11 @@ public:
 
     /** @short Abort an in-progress changeset */
     virtual void abortCurrentChangeset() = 0;
+
+    /** @short Freeze the view of the revisions */
+    virtual void freezeView() = 0;
+    /** @short Unfreeze the client's view on the persistent revisions */
+    virtual void unFreezeView() = 0;
 
     // Diffing
 
