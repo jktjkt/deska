@@ -521,6 +521,23 @@ such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
+\subsection{Output Ordering}
+
+Certain functions return a list of values.  The general rule is that the order of returned items is not stable, unless
+specified otherwise.  The sorting may even vary among several executions of the same command with the very same
+arguments executed in a single session.  That said, there are certain situations where sorting the results on the server
+side clearly improves the client's efficiency, and is therefore fixed for the DBAPI.
+
+Any function which returns a list of pending changesets or a list of persistent revisions is guaranteed to sort the
+result by the changeset or revision, lower numbers first.  Examples of these functions are \deskaFuncRef{listRevisions}
+and \deskaFuncRef{pendingChangesets}.
+
+Functions which return lists of objects or their identifiers, like \deskaFuncRef{kindNames},
+\deskaFuncRef{kindInstances} etc, do not provide any guarantees about the sort order.
+
+The diffing functions (see section \ref{sec:api-group-history}) sorts the results according to special rules, see their
+description for more details.
+
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
@@ -536,6 +553,8 @@ FIXME: change the sentence above when fine-grained filter exceptions are introdu
 
 }
 
+\newcommand{\deskaUnsortedRes}{The order of the returned data is not specified.}
+
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
 \setcounter{secnumdepth}{4}
 
@@ -548,12 +567,12 @@ and the defined object relations.
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds}
     {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
-    {\tt kindName} argument to various other functions.}
+    {\tt kindName} argument to various other functions.  \deskaUnsortedRes}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
     {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
-    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.  \deskaUnsortedRes}
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
@@ -564,7 +583,7 @@ and the defined object relations.
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
-    the ObjectRelation struct.}
+    the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
 \label{sec:api-group-data-retrieval}
@@ -579,7 +598,7 @@ Functions from this group are used for fetching actual data from the database.
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
     \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
     a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
-    selected object kind, but can also follow defined object relations to create more complex queries.}
+    selected object kind, but can also follow defined object relations to create more complex queries.  \deskaUnsortedRes}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
@@ -593,7 +612,7 @@ Functions from this group are used for fetching actual data from the database.
     attribute is always missing from the \deskaFuncRef{objectData} output.
 
     For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
-    \deskaFuncRef{multipleResolvedObjectData}.
+    \deskaFuncRef{multipleResolvedObjectData}.  \deskaUnsortedRes
     }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
@@ -603,7 +622,7 @@ Functions from this group are used for fetching actual data from the database.
     {Get all attributes for instances matching the specified filter}
     {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
     present in the result, even if it has no attributes.  The amount of data returned is the same as in
-    \deskaFuncRef{objectData} function.}
+    \deskaFuncRef{objectData} function.  \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
@@ -611,7 +630,7 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
 
-    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
+    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
 \deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     { \{ \\
@@ -619,7 +638,7 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  \deskaUnsortedRes}
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
@@ -723,7 +742,9 @@ Querying History}, section \ref{sec:api-group-history}.
     database.
 
     An optional argument {\tt filter} can be used to limit the amount of data returned.  Filters can reference any
-    available property of the temporary changeset.}
+    available property of the temporary changeset.
+
+    The results are sorted by the changeset identification using numeric sort of its value, lowest changesets first.}
 
 \deskaFunc{resumeChangeset}{, "revision": "r123"}
     {}
@@ -779,7 +800,9 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return a list of metadata for matching revisions}
     {This function returns a list of metadata for revisions matching the search criteria.  When no search criteria are
     specified, it will return metadata for all persistent revisions.  The filter can reference all attributes of a
-    revision, as well as any object data.}
+    revision, as well as any object data.
+
+    The result is sorted by the revision using a numeric sort, with lowest values returned first.}
 
 \deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
     {[ \\
@@ -792,9 +815,10 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return differences between the database state in the specified versions}
     {This function will produce a list of differences between the database state in the two indicated revisions.  The
     returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
-    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
-    object has been created and its attribute set to a particular value, the creation shall be present before the record
-    for setting an attribute.
+    existing one, or setting a single attribute.
+
+    The order of the returned data is significant; for example, if an object has been created and its attribute set to a
+    particular value, the creation shall be present before the record for setting an attribute.
 
     An optional filter is allowed to reference any object's attributes, as well as revision metadata.
 
