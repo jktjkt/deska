@@ -1,4 +1,4 @@
---only temporary file, work on committing templates
+﻿--only temporary file, work on committing templates
 --change in template affects contain of another template and production tables
 
 set search_path to deska, api, genproc, history, versioning, production;
@@ -30,7 +30,7 @@ SELECT hardware_template_set_purchase('purch_templ2','2011-4-8');
 SELECT commitChangeset('1');
 
 
-select * from hardware_template_history;
+--select * from hardware_template_history;
 
 SELECT startChangeset();
 SELECT vendor_add('some_vendor');
@@ -108,8 +108,24 @@ CREATE FUNCTION
 		DROP TABLE temp_hardware_template_current_changeset;
 
 		--create temp table with uids of affected hardware_templates
-		--create 
-		--update hardware as tbl set warrantty = new.warranty ... from resolved_data
+		CREATE TEMP TABLE affected_templates AS (
+			WITH RECURSIVE resolved_data AS (
+				SELECT uid 
+				FROM hardware_template_history
+				WHERE version = current_changeset
+				UNION ALL
+				SELECT dv.uid
+				FROM hardware_template_data_version() dv, resolved_data rd
+				WHERE dv.template = rd.uid
+				)
+				SELECT uid
+				FROM resolved_data
+		);
+		--hardware which is not modified in currentchangeset (is not updated by hardware_commit) and is templated by modified template, should be updated now
+		UPDATE hardware AS tbl SET warranty = new.warranty,purchase = new.purchase,vendor = new.vendor,uid = new.uid,cpu_num = new.cpu_num,ram = new.ram,note = new.note,template = new.template,name = new.name
+			FROM hardwar
+		--update production.hardware as tbl set warrantty = new.warranty ... from resolved_data
+		--update production.hardware_template
 		
 		RETURN 1;
 	END
@@ -158,3 +174,7 @@ language plpgsql;
 
 select hardware_to_commit();
 select hardware_resolved_data(hardware_to_commit());
+--works
+select * from (select hardware_resolved_data(hardware_to_commit()))  as new;
+hardware_to_commit()
+select * from hardware_resolved_data('hw_templ');
