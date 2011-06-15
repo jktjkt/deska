@@ -32,12 +32,28 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
     switch (t) {
     case TYPE_IDENTIFIER:
         return stream << "TYPE_IDENTIFIER";
+    case TYPE_QUOTED_STRING:
+        return stream << "TYPE_QUOTED_STRING";
+    case TYPE_SIMPLE_STRING:
+        return stream << "TYPE_SIMPLE_STRING";
     case TYPE_STRING:
         return stream << "TYPE_STRING";
     case TYPE_INT:
         return stream << "TYPE_INT";
+    case TYPE_UINT:
+        return stream << "TYPE_UINT";
     case TYPE_DOUBLE:
         return stream << "TYPE_DOUBLE";
+    case TYPE_IPV4_ADDRESS:
+        return stream << "TYPE_IPV4_ADDRESS";
+    case TYPE_IPV6_ADDRESS:
+        return stream << "TYPE_IPV6_ADDRESS";
+    case TYPE_IP_ADDRESS:
+        return stream << "TYPE_IP_ADDRESS";
+    case MAC_ADDRESS:
+        return stream << "MAC_ADDRESS";
+    case TYPE_DATE:
+        return stream << "TYPE_DATE";
     }
     return stream << "[Invalid type:" << static_cast<int>(t) << "]";
 }

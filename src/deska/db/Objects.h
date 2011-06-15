@@ -36,18 +36,35 @@ namespace Db {
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-typedef boost::optional<boost::variant<std::string,double,int> > Value;
+// FIXME: Allow more types in the Value
+typedef boost::optional<boost::variant<std::string, double, int/*, unsigned int*/> > Value;
 
 /** @short Type of an object's attribute */
 typedef enum {
     /** @short An identifier */
     TYPE_IDENTIFIER,
+    /** @short A string of any form in quotes*/
+    TYPE_QUOTED_STRING,
+    /** @short A string without quotes and whitespaces */
+    TYPE_SIMPLE_STRING,
     /** @short A string of any form */
     TYPE_STRING,
     /** @short Integer */
     TYPE_INT,
+    /** @short Unsigned integer */
+    TYPE_UINT,
     /** @short Double */
-    TYPE_DOUBLE
+    TYPE_DOUBLE,
+    /** @short IPv4 address */
+    TYPE_IPV4_ADDRESS,
+    /** @short IPv6 address */
+    TYPE_IPV6_ADDRESS,
+    /** @short IPv4 or IPv6 address */
+    TYPE_IP_ADDRESS,
+    /** @short MAC address */
+    MAC_ADDRESS,
+    /** @short Date like YYYY-MM-DD */
+    TYPE_DATE
 } Type;
 
 std::ostream& operator<<(std::ostream &stream, const Type t);

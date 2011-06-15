@@ -202,6 +202,34 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
     verifyEmptyStack();
 }
 
+/** @short test correct parsing of simple string argument */
+BOOST_FIXTURE_TEST_CASE(parsing_simple_string_inline, ParserTestFixture)
+{
+    parser->parseLine("hardware abcde id 1243 name jmeno price 1234.5\n");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", Deska::Db::Value(1243));
+    expectSetAttr("name", Deska::Db::Value("jmeno"));
+    expectSetAttr("price", Deska::Db::Value(1234.5));
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short error in parsing of simple string argument */
+BOOST_FIXTURE_TEST_CASE(error_in_simple_string_inline, ParserTestFixture)
+{
+    const std::string line = "hardware abcde id 1243 name jmeno pokracuje price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find("pokracuje");
+    parser->parseLine(line);
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", Deska::Db::Value(1243));
+    expectSetAttr("name", Deska::Db::Value("jmeno"));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
 /** @short Syntax error in the data type of the first attribute
 
 A single-line input which enters a new category and immediately after that encounters an exception.

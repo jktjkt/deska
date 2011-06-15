@@ -80,7 +80,14 @@ private:
     //@{
     /** Extra rules used for definition of string types. */
     qi::rule<Iterator, std::string(), ascii::space_type> tQuotedString;
+    qi::rule<Iterator, std::string(), ascii::space_type> tSimpleString;
     qi::rule<Iterator, std::string(), ascii::space_type> tIdentifier;
+    //@}
+
+    //@{
+    /** Extra rules used for definition of IP addresses. */
+    qi::rule<Iterator, std::string(), ascii::space_type> tIPv4Octet;
+    qi::rule<Iterator, std::string(), ascii::space_type> tIPv4Addr;
     //@}
 
     /** Map where all rules are stored, @see Type. */
