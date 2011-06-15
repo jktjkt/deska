@@ -158,7 +158,7 @@ bool operator==(const ObjectDefinition &a, const ObjectDefinition &b)
 
 bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
 {
-    return !(a==b);
+    return !(a == b);
 }
 
 
@@ -208,7 +208,7 @@ std::vector<Identifier> PathToVector(const std::string &path)
     bool r = boost::spirit::qi::phrase_parse(first,last,
                                              +(boost::spirit::ascii::alnum | '_') % "->",
                                              boost::spirit::ascii::space, identifiers);
-    if(!r || first != last)
+    if (!r || first != last)
         throw std::runtime_error("Deska::Db::PathToVector conversion failed while parsing " + path);
     
     return identifiers;
