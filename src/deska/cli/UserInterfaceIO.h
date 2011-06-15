@@ -82,10 +82,13 @@ private:
 
 
 
-/** @short Class for IO oparetions needed in a command line user interface with a standard iostream implementation. */
+/** @short Class for IO operations needed in a command line user interface with a standard iostream implementation. */
 class UserInterfaceIO: public boost::noncopyable
 {
 public:
+
+    /** @short Constructor for an empty object for testing purposes. */
+    UserInterfaceIO();
 
     /** @short Constructor initializes input reader and CLI constants.
     *
@@ -95,74 +98,74 @@ public:
     UserInterfaceIO(Parser* parser);
     
     /** @short Destroys custom completer and line reader. */
-    ~UserInterfaceIO();
+    virtual ~UserInterfaceIO();
 
     /** @short Reports any error to the user (error output).
     *
     *   @param errorMessage Error message to report
     */
-    void reportError(const std::string &errorMessage);
+    virtual void reportError(const std::string &errorMessage);
 
     /** @short Prints some message to output stream.
     *
     *   @param message Message to print
     */
-    void printMessage(const std::string &message);
+    virtual void printMessage(const std::string &message);
 
     /** @short Displays confirmation message for deletion of a object and returns users choice.
     *
     *   @param object Object to be deleted
     *   @return True if the deletion was confirmed, else false
     */
-    bool confirmDeletion(const Db::ObjectDefinition &object);
+    virtual bool confirmDeletion(const Db::ObjectDefinition &object);
 
     /** @short Displays confirmation message for creation of a object and returns users choice.
     *
     *   @param object Object to be created
     *   @return True if the creation was confirmed, else false
     */
-    bool confirmCreation(const Db::ObjectDefinition &object);
+    virtual bool confirmCreation(const Db::ObjectDefinition &object);
 
     /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
     *
     *   @param object Object to be restored
     *   @return True if the restoration was confirmed, else false
     */
-    bool confirmRestoration(const Db::ObjectDefinition &object);
+    virtual bool confirmRestoration(const Db::ObjectDefinition &object);
 
     /** @short Asks user to enter a commit message.
     *
     *   @return Entered message
     */
-    std::string askForCommitMessage();
+    virtual std::string askForCommitMessage();
 
     /** @short Asks user to enter a detach message.
     *
     *   @return Entered message
     */
-    std::string askForDetachMessage();
+    virtual std::string askForDetachMessage();
 
     /** @short Prints help for CLI usage.
     *
     *   @param cliCommands Map of CLI commands with their usages.
     *   @param parserKeywords Map of Parser commands with their usages.
     */
-    void printHelp(const std::map<std::string, std::string> &cliCommands,
-                   const std::map<std::string, std::string> &parserKeywords);
+    virtual void printHelp(const std::map<std::string, std::string> &cliCommands,
+                           const std::map<std::string, std::string> &parserKeywords);
 
     /** @short Prints help for CLI command.
     *
     *   @param cmdName Command name
     *   @param cmdDscr Command description
     */
-    void printHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
+    virtual void printHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
 
     /** @short Prints help for Parser keyword.
     *
     *   @param keywordName Keyword name
     *   @param keywordDscr Keyword description
     */
-    void printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
+    virtual void printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
 
     /** @short Prints help for DB kind.
     *
@@ -170,15 +173,15 @@ public:
     *   @param kindAttrs Kind attributes
     *   @param nestedKinds Nested kinds
     */
-    void printHelpKind(const std::string &kindName,
-                       const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                       const std::vector<std::string> &nestedKinds);
+    virtual void printHelpKind(const std::string &kindName,
+                               const std::vector<std::pair<std::string, std::string> > &kindAttrs,
+                               const std::vector<std::string> &nestedKinds);
 
     /** @short Prints help for DB defined kinds.
     *
     *   @param kinds Vector of defined kind names
     */
-    void printHelpShowKinds(const std::vector<std::string> &kinds);
+    virtual void printHelpShowKinds(const std::vector<std::string> &kinds);
 
     /** @short Displays list of pending changesets and lets user to pick one.
     *
@@ -186,37 +189,37 @@ public:
     *   @return Index number of the changeset in the vector of pending changesets or
     *           -1 for creating new changeset or -2 for no chnageset.
     */
-    int chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets);
+    virtual int chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets);
 
     /** @short Displays prompt and gets one line from the input.
     *
     *   @param prompt Prompt string.
     *   @return Read line
     */
-    std::string readLine(const std::string &prompt);
+    virtual std::string readLine(const std::string &prompt);
 
     /** @short Prints list of attribute definitions with indentation.
     *
     *   @param attributes Vector of attributes to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
-                         std::ostream &out = std::cout);
+    virtual void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+                                 std::ostream &out = std::cout);
 
     /** @short Prints list of object definitions with indentation.
     *
     *   @param objects Vector of objects to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
-                      bool fullName, std::ostream &out = std::cout);
+    virtual void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+                              bool fullName, std::ostream &out = std::cout);
 
     /** @short Prints an attribute definition with indentation.
     *
     *   @param attribute Attribute to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
+    virtual void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
                         std::ostream &out = std::cout);
 
     /** @short Prints a object definition with indentation.
@@ -224,20 +227,20 @@ public:
     *   @param object Object to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName,
+    virtual void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName,
                      std::ostream &out = std::cout);
 
     /** @short Prints "end" keyword with indentation.
     *
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    void printEnd(int indentLevel, std::ostream &out = std::cout);
+    virtual void printEnd(int indentLevel, std::ostream &out = std::cout);
 
     /** @short Adds completion string to the completions vector in the CliCompleter.
     *
     *   @param completion Completion to add.
     */
-    void addCommandCompletion(const std::string &completion);
+    virtual void addCommandCompletion(const std::string &completion);
 
 private:
 

@@ -141,6 +141,11 @@ ObjectRelation::ObjectRelation()
 {
 }
 
+
+ObjectDefinition::ObjectDefinition()
+{
+}
+
 ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
     kind(kindName), name(objectName)
 {
@@ -162,6 +167,10 @@ bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
 }
 
 
+AttributeDefinition::AttributeDefinition()
+{
+}
+
 AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const Value &assignedValue):
     attribute(attributeName), value(assignedValue)
 {
@@ -175,6 +184,17 @@ std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
         return stream << "no " << a.attribute;
     }
 }
+
+bool operator==(const AttributeDefinition &a, const AttributeDefinition &b)
+{
+    return a.attribute == b.attribute && a.value == b.value;
+}
+
+bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
+{
+    return !(a == b);
+}
+
 
 Identifier contextStackToPath(const ContextStack &contextStack)
 {

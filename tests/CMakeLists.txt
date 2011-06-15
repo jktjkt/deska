@@ -55,14 +55,21 @@ set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/JsonApiTestFixture.cpp
 )
 
+set(CliTestHelpers_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/MockCliEvent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
+)
+
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
-target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
+add_library(CliTestHelpers ${CliTestHelpers_SRCS})
+target_link_libraries(ParserTestHelpers CliTestHelpers DeskaCliParser DeskaDb)
 
 deska_test(parser-mock-objects)
 deska_test(mock_streambuf)
 deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
+deska_test(cli-io)
 
 if(RUN_SQL_TESTS)
     message(STATUS "Will run SQL database tests upon each `make test` run.")
