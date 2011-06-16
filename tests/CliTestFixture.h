@@ -185,7 +185,7 @@ struct CliTestFixture
     
     void verifyEnd();
     
-    /** @short Initialises the testing CLI and starts test. Events queue have to be filled befor calling this function. */
+    /** @short Initializes the testing CLI and starts test. Events queue have to be filled befor calling this function. */
     void startTest();
     
     void expectHelper(const MockCliEvent &e);
