@@ -43,6 +43,8 @@ FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framewo
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
+# we do not want to link with whole boost here; there's simply no point in our libraries bringing the test framework in
+set(DESKA_BOOST_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
 
 FIND_PATH(LIBEBT_PATH libebt/libebt.hh
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0)
@@ -110,7 +112,7 @@ set(deskaCli_SRCS
 )
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb ${Boost_LIBRARIES})
+target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli ${deskaCli_SRCS})
