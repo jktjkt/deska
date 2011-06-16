@@ -54,7 +54,7 @@ macro(deska_cli_test fname)
     # from regular boost::test usage
     set(test_cli_${fname}_SRCS test_cli_${fname}.cpp)
     add_executable(test_cli_${fname} ${test_cli_${fname}_SRCS})
-    target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers ${Boost_LIBRARIES})
+    target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers)
     add_test(test_cli_${fname}
         ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
         run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
