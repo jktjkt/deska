@@ -193,8 +193,6 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
 /** @short Structure for pairs kind name - object name. */
 struct ObjectDefinition
 {
-    /** @short Constructor for an empty object for testing purposes. */
-    ObjectDefinition();
     /** @short Constructor only assignes the data members.
     *
     *   @param kindName Name of the kind (eg. host)
@@ -216,8 +214,6 @@ bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b);
 /** @short Structure for pairs attribute name - attribute value. */
 struct AttributeDefinition
 {
-    /** @short Constructor for an empty object for testing purposes. */
-    AttributeDefinition();
     /** @short Constructor only assignes the data members.
     *
     *   @param attributeName Name of the attribute (eg. ip)

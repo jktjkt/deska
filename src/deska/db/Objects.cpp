@@ -142,10 +142,6 @@ ObjectRelation::ObjectRelation()
 }
 
 
-ObjectDefinition::ObjectDefinition()
-{
-}
-
 ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
     kind(kindName), name(objectName)
 {
@@ -166,10 +162,6 @@ bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
     return !(a == b);
 }
 
-
-AttributeDefinition::AttributeDefinition()
-{
-}
 
 AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const Value &assignedValue):
     attribute(attributeName), value(assignedValue)
