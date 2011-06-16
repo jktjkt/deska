@@ -19,7 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE mock_streambuf
 #include <boost/test/unit_test.hpp>
 
 #include "MockStreamBuffer.h"

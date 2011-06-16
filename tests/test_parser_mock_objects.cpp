@@ -19,7 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE parser_mock_objects
 #include <boost/signals2/shared_connection_block.hpp>
 #include <boost/test/unit_test.hpp>
 #include "ParserTestFixture.h"

@@ -1,4 +1,6 @@
-/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+/*
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
+* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -19,7 +21,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE cli_parser
 #include <boost/test/unit_test.hpp>
 #include "deska/cli/Parser.h"
 #include "ParserTestFixture.h"

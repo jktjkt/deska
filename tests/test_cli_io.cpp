@@ -22,7 +22,7 @@
 * */
 
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE cli_io
 #include <boost/test/unit_test.hpp>
 #include "CliTestFixture.h"
 

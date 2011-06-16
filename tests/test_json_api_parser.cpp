@@ -20,7 +20,7 @@
 * */
 
 #include <boost/foreach.hpp>
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE json_api_parser
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 #include "JsonApiTestFixture.h"
