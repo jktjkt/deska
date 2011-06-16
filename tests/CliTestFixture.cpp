@@ -21,6 +21,7 @@
 
 
 #include <boost/test/test_tools.hpp>
+#include <boost/assert.hpp>
 
 
 #include "CliTestFixture.h"
@@ -214,6 +215,7 @@ CliTestFixture::CliTestFixture()
     io = 0;
     ui = 0;
     sh = 0;
+    testStarted = false;
 }
 
 
@@ -445,6 +447,8 @@ void CliTestFixture::verifyEnd()
 
 void CliTestFixture::startTest()
 {
+    BOOST_ASSERT(!testStarted);
+    testStarted = true;
     conn = new Deska::Db::Connection();
     parser = new Deska::Cli::Parser(conn);
     db = new Deska::Cli::DbInteraction(conn);
