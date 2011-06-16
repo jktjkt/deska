@@ -72,7 +72,7 @@ set(CliTestHelpers_SRCS
 
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
 add_library(CliTestHelpers ${CliTestHelpers_SRCS})
-target_link_libraries(ParserTestHelpers CliTestHelpers DeskaCliParser DeskaDb)
+target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
 deska_test(parser-mock-objects)
 deska_test(mock_streambuf)
