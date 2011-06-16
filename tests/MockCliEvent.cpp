@@ -416,19 +416,19 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "printMessage( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_CONFIRM_DELETION:
-        out << "confirmDeletion( " << m.object << " )";
+        out << "confirmDeletion( " << *(m.object) << " )";
         break;
     case MockCliEvent::RETURN_CONFIRM_DELETION:
         out << "returnConfirmDeletion( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_CONFIRM_CREATION:
-        out << "confirmCreation( " << m.object << " )";
+        out << "confirmCreation( " << *(m.object) << " )";
         break;
     case MockCliEvent::RETURN_CONFIRM_CREATION:
         out << "returnConfirmCreation( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_CONFIRM_RESTORATION:
-        out << "confirmRestoration( " << m.object << " )";
+        out << "confirmRestoration( " << *(m.object) << " )";
         break;
     case MockCliEvent::RETURN_CONFIRM_RESTORATION:
         out << "returnConfirmRestoration( " << m.boolean << " )";
@@ -476,13 +476,13 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "printAttributes( " << m.attrs << ", " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_PRINT_ATTRIBUTE:
-        out << "printAttribute( " << m.attr << ", " << m.integer << " )";
+        out << "printAttribute( " << *(m.attr) << ", " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_PRINT_OBJECTS:
         out << "printObjects( " << m.objects << ", " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_PRINT_OBJECT:
-        out << "printObject( " << m.object << ", " << m.integer << " )";
+        out << "printObject( " << *(m.object) << ", " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_PRINT_END:
         out << "printEnd( " << m.integer << " )";

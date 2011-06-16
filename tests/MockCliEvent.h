@@ -204,8 +204,8 @@ struct MockCliEvent
     std::string str2;
     int integer;
     bool boolean;
-    Deska::Db::ObjectDefinition object;
-    Deska::Db::AttributeDefinition attr;
+    boost::optional<Deska::Db::ObjectDefinition> object;
+    boost::optional<Deska::Db::AttributeDefinition> attr;
     std::map<std::string, std::string> map1;
     std::map<std::string, std::string> map2;
     std::vector<std::pair<std::string, std::string> > vectpair;
