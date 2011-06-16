@@ -62,7 +62,7 @@ typedef enum {
     /** @short IPv4 or IPv6 address */
     TYPE_IP_ADDRESS,
     /** @short MAC address */
-    MAC_ADDRESS,
+    TYPE_MAC_ADDRESS,
     /** @short Date like YYYY-MM-DD */
     TYPE_DATE
 } Type;
