@@ -28,7 +28,7 @@
 #include "deska/cli/DbInteraction.h"
 #include "deska/cli/ParserSignals.h"
 #include "deska/cli/UserInterface.h"
-#include "deska/cli/UserInterfaceIO.h"
+#include "deska/cli/UserInterfaceIOBase.h"
 #include "deska/cli/Parser.h"
 #include "MockCliEvent.h"
 
@@ -52,9 +52,11 @@ class CliTestFixture;
 
 /** @short Class for testing IO operations needed in a command line user interface with a standard iostream implementation.
 *
+*   All methods checks the events queue.
+*
 *   @see UserInterfaceIO
 */
-class TestUserInterfaceIO: public Deska::Cli::UserInterfaceIO
+class TestUserInterfaceIO: public Deska::Cli::UserInterfaceIOBase
 {
 public:
     TestUserInterfaceIO(CliTestFixture *cliTester);
@@ -183,6 +185,7 @@ struct CliTestFixture
     
     void verifyEnd();
     
+    /** @short Initialises the testing CLI and starts test. Events queue have to be filled befor calling this function. */
     void startTest();
     
     void expectHelper(const MockCliEvent &e);
@@ -193,7 +196,7 @@ struct CliTestFixture
     Deska::Db::Connection *conn;
     Deska::Cli::Parser *parser;
     Deska::Cli::DbInteraction *db;
-    Deska::Cli::UserInterfaceIO *io;
+    Deska::Cli::UserInterfaceIOBase *io;
     Deska::Cli::UserInterface *ui;
     Deska::Cli::SignalsHandler *sh;
     

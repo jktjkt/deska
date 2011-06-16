@@ -29,7 +29,7 @@
 #include "Exceptions.h"
 #include "Parser.h"
 #include "UserInterface.h"
-#include "UserInterfaceIO.h"
+#include "UserInterfaceIOBase.h"
 #include "deska/db/JsonApi.h"
 
 
@@ -484,7 +484,7 @@ void Help::operator()(const std::string &params)
 
 
 
-UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io):
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), inChangeset(false)
 {
     // Register all commands

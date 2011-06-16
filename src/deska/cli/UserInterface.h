@@ -38,7 +38,7 @@ namespace Cli
 class DbInteraction;
 class Parser;
 class ParserException;
-class UserInterfaceIO;
+class UserInterfaceIOBase;
 class UserInterface;
 
 
@@ -373,7 +373,7 @@ public:
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
     *   @param _io Pointer to the UserInterfaceIO class for IO oparations
     */
-    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIO *_io);
+    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIOBase *_io);
 
     /** @short Deletes commands from commands map. */
     ~UserInterface();
@@ -432,7 +432,7 @@ private:
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
     /** Pointer to the class for performing IO operations. */
-    UserInterfaceIO *io;
+    UserInterfaceIOBase *io;
 
     typedef std::map<std::string, std::tr1::shared_ptr<Command> > CommandMap;
     /** Map for commands indexed by their names. */

@@ -208,24 +208,30 @@ void TestUserInterfaceIO::addCommandCompletion(const std::string &completion)
 
 CliTestFixture::CliTestFixture()
 {
-    conn = new Deska::Db::Connection();
-    parser = new Deska::Cli::Parser(conn);
-    db = new Deska::Cli::DbInteraction(conn);
-    io = new TestUserInterfaceIO(this);
-    ui = new Deska::Cli::UserInterface(db, parser, io);
-    sh = new Deska::Cli::SignalsHandler(parser, ui);
+    conn = 0;
+    parser = 0;
+    db = 0;
+    io = 0;
+    ui = 0;
+    sh = 0;
 }
 
 
 
 CliTestFixture::~CliTestFixture()
 {
-    delete sh;
-    delete ui;
-    delete io;
-    delete db;
-    delete parser;
-    delete conn;
+    if (sh != 0)
+        delete sh;
+    if (ui != 0)
+        delete ui;
+    if (io != 0)
+        delete io;
+    if (db != 0)
+        delete db;
+    if (parser != 0)
+        delete parser;
+    if (conn != 0)
+        delete conn;
 }
 
 
@@ -439,6 +445,12 @@ void CliTestFixture::verifyEnd()
 
 void CliTestFixture::startTest()
 {
+    conn = new Deska::Db::Connection();
+    parser = new Deska::Cli::Parser(conn);
+    db = new Deska::Cli::DbInteraction(conn);
+    io = new TestUserInterfaceIO(this);
+    ui = new Deska::Cli::UserInterface(db, parser, io);
+    sh = new Deska::Cli::SignalsHandler(parser, ui);
     ui->run();
 }
 
