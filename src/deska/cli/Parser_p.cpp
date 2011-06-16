@@ -53,7 +53,7 @@ template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
     tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
-    tSimpleString %= qi::lexeme[+(ascii::char_ - ( '"' | ascii::space))];
+    tSimpleString %= qi::lexeme[+(ascii::char_ - ('"' | ascii::space))];
     tIdentifier %= qi::lexeme[+(ascii::alnum | '_')];
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
     tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];
