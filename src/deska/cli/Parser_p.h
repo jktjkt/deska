@@ -85,9 +85,29 @@ private:
     //@}
 
     //@{
-    /** Extra rules used for definition of IP addresses. */
-    qi::rule<Iterator, std::string(), ascii::space_type> tIPv4Octet;
+    /** Extra rules used for definition of IPv4 addresses. */
+    qi::rule<Iterator, std::string()> tIPv4Octet;
     qi::rule<Iterator, std::string(), ascii::space_type> tIPv4Addr;
+    //@}
+
+    //@{
+    /** Extra rules used for definition of IPv6 addresses. */
+    qi::rule<Iterator, std::string()> tIPv6HexQuat;
+    qi::rule<Iterator, std::string(), ascii::space_type> tIPv6Addr;
+    //@}
+
+    //@{
+    /** Extra rules used for definition of MAC addresses. */
+    qi::rule<Iterator, std::string()> tMACHexPair;
+    qi::rule<Iterator, std::string(), ascii::space_type> tMACAddr;
+    //@}
+
+    //@{
+    /** Extra rules used for definition of date. */
+    qi::rule<Iterator, std::string()> tDay;
+    qi::rule<Iterator, std::string()> tMonth;
+    qi::rule<Iterator, std::string()> tYear;
+    qi::rule<Iterator, std::string(), ascii::space_type> tDate;
     //@}
 
     /** Map where all rules are stored, @see Type. */

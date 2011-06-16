@@ -55,13 +55,30 @@ PredefinedRules<Iterator>::PredefinedRules()
     tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
     tSimpleString %= qi::lexeme[+(ascii::char_ - ( '"' | ascii::space))];
     tIdentifier %= qi::lexeme[+(ascii::alnum | '_')];
-    tIPv4Octet %= qi::lexeme[(ascii::string("25") >> ascii::char_("0-5")) |
-                             (ascii::string("2") >> ascii::char_("0-4") >> ascii::digit) |
-                             (ascii::string("1") >> qi::repeat(2)[ascii::digit]) |
-                             (ascii::char_("1-9") >> ascii::digit)];// |
-                              //ascii::digit;
-    tIPv4Addr %= /*qi::lexeme[*/tIPv4Octet >> ascii::string(".") >> tIPv4Octet >> ascii::string(".") >>
-                 tIPv4Octet >> ascii::string(".") >> tIPv4Octet/*]*/;
+    tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit('0') >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
+    tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];
+    tMACHexPair %= qi::raw[qi::lexeme[qi::repeat(2)[ascii::xdigit]]];
+    tMACAddr %= qi::raw[qi::lexeme[qi::repeat(5)[tMACHexPair >> qi::lit(":")] >> tMACHexPair]];
+    tIPv6HexQuat %= qi::raw[qi::lexeme[qi::repeat(1, 4)[ascii::xdigit]]];
+    // FIXME: Some problem with qi::repeat occured. Another bug in Spirit?
+    tIPv6Addr %= qi::raw[qi::lexeme[(qi::repeat(7)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (qi::lit("::") >> qi::repeat(6)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(tIPv6HexQuat) >> qi::lit("::") >> qi::repeat(5)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 1)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
+                     qi::repeat(4)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 2)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
+                     qi::repeat(3)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 3)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
+                     qi::repeat(2)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 4)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
+                     tIPv6HexQuat >> qi::lit(":") >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 5)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 6)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::"))]];
+    // FIXME: Does not restrict tDate enough to avoid entering wrong dates like 2008-02-31
+    tDay %= qi::raw[qi::lexeme[(qi::char_("0-2") >> qi::digit) | (qi::char_("3") >> qi::char_("0-1"))]];
+    tMonth %= qi::raw[qi::lexeme[(qi::char_("0") >> qi::digit) | (qi::char_("1") >> qi::char_("0-2"))]];
+    tYear %= qi::raw[qi::lexeme[(qi::lit("19") >> qi::repeat(2)[qi::digit]) | (qi::char_("2-9") >> qi::repeat(3)[qi::digit])]];
+    tDate %= qi::raw[qi::lexeme[tYear >> qi::lit("-") >> tMonth >> qi::lit("-") >> tDay]];
 
     rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
@@ -95,6 +112,22 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_IPV4_ADDRESS] = tIPv4Addr
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IPV4_ADDRESS].name("IPv4 address");
+
+    rulesMap[Db::TYPE_IPV6_ADDRESS] = tIPv6Addr
+        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+    rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
+
+    rulesMap[Db::TYPE_IP_ADDRESS] = (tIPv4Addr | tIPv6Addr)
+        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+    rulesMap[Db::TYPE_IP_ADDRESS].name("IPv4 or IPv6 address");
+
+    rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
+        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+    rulesMap[Db::TYPE_MAC_ADDRESS].name("MAC address");
+
+    rulesMap[Db::TYPE_DATE] = tDate
+        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+    rulesMap[Db::TYPE_DATE].name("Date in YYYY-MM-DD format");
 
     objectIdentifier %= tIdentifier.alias();
     objectIdentifier.name("object identifier (alphanumerical letters and _)");
