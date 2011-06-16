@@ -477,7 +477,14 @@ MockCliEvent CliTestFixture::returnHelper(const MockCliEvent &e)
     BOOST_CHECK(!cliEvents.empty());
     bool shouldPop = !cliEvents.empty();
     MockCliEvent returner = shouldPop ? cliEvents.front() : MockCliEvent::invalid();
-    BOOST_CHECK_MESSAGE(e.myReturn(returner), "No return value found for current event");
+    if (!shouldPop)
+        BOOST_REQUIRE_EQUAL(returner, e);
+    bool match = e.myReturn(returner);
+    BOOST_CHECK_MESSAGE(match, "Returning event in queue does not match current event.");
+    if (!match) {
+        BOOST_CHECK_EQUAL(MockCliEvent::invalid(), e);
+        BOOST_REQUIRE_EQUAL(MockCliEvent::invalid(), returner);
+    }
     if (shouldPop)
         cliEvents.pop();
     return returner;
