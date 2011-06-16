@@ -356,7 +356,7 @@ std::ostream& operator<<(std::ostream &out, const std::map<std::string, std::str
     for (std::map<std::string, std::string>::const_iterator it = m.begin(); it != m.end(); ++it) {
         if (it != m.begin())
             out << ", ";
-        out << it->first << ":" << it->second;
+        out << "\"" << it->first << "\":\"" << it->second << "\"";
     }
     out << "]";
     return out;
@@ -370,7 +370,21 @@ std::ostream& operator<<(std::ostream &out, const std::vector<std::pair<std::str
     for (std::vector<std::pair<std::string, std::string> >::const_iterator it = v.begin(); it != v.end(); ++it) {
         if (it != v.begin())
             out << ", ";
-        out << it->first << ":" << it->second;
+        out << "\"" << it->first << "\":\"" << it->second << "\"";
+    }
+    out << "]";
+    return out;
+}
+
+
+
+std::ostream& operator<<(std::ostream &out, const std::vector<std::string> &v)
+{
+    out << "[";
+    for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        if (it != v.begin())
+            out << ", ";
+        out << "\"" << *it << "\"";
     }
     out << "]";
     return out;
@@ -397,10 +411,10 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
 {
     switch (m.eventKind) {
     case MockCliEvent::EVENT_REPORT_ERROR:
-        out << "reportError( " << m.str1 << " )";
+        out << "reportError( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_MESSAGE:
-        out << "printMessage( " << m.str1 << " )";
+        out << "printMessage( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_CONFIRM_DELETION:
         out << "confirmDeletion( " << m.object << " )";
@@ -424,25 +438,25 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "askForCommitMessage()";
         break;
     case MockCliEvent::RETURN_ASK_FOR_COMMIT_MESSAGE:
-        out << "returnAskForCommitMessage( " << m.str1 << " )";
+        out << "returnAskForCommitMessage( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_ASK_FOR_DETACH_MESSAGE:
         out << "askForDetachMessage()";
         break;
     case MockCliEvent::RETURN_ASK_FOR_DETACH_MESSAGE:
-        out << "returnAskForDetachMessage( " << m.str1 << " )";
+        out << "returnAskForDetachMessage( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP:
         out << "printHelp( " << m.map1 << ", " << m.map2 << " )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_COMMAND:
-        out << "printHelpCommand( " << m.str1 << ", " << m.str2 << " )";
+        out << "printHelpCommand( \"" << m.str1 << "\", \"" << m.str2 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_KEYWORD:
-        out << "printHelpKeyword( " << m.str1 << ", " << m.str2 << " )";
+        out << "printHelpKeyword( \"" << m.str1 << "\", \"" << m.str2 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_KIND:
-        out << "printHelpKind( " << m.str1 << ", " << m.vectpair << ", " << m.vect << " )";
+        out << "printHelpKind( \"" << m.str1 << "\", " << m.vectpair << ", " << m.vect << " )";
         break;
     case MockCliEvent::EVENT_PRINT_HELP_SHOW_KINDS:
         out << "printHelpShowKinds( " << m.vect << " )";
@@ -454,10 +468,10 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "returnChooseChangeset( " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_READ_LINE:
-        out << "readLine( " << m.str1 << " )";
+        out << "readLine( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::RETURN_READ_LINE:
-        out << "returnReadLine( " << m.str1 << " )";
+        out << "returnReadLine( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_PRINT_ATTRIBUTES:
         out << "printAttributes( " << m.attrs << ", " << m.integer << " )";
@@ -475,7 +489,7 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "printEnd( " << m.integer << " )";
         break;
     case MockCliEvent::EVENT_ADD_COMMAND_COMPLETION:
-        out << "addCommandCompletion( " << m.str1 << " )";
+        out << "addCommandCompletion( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_INVALID:
         out << "[no event]";
