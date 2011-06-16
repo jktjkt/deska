@@ -134,7 +134,7 @@ struct MockCliEvent
 
     bool outputEvent(const MockCliEvent &m) const;
     
-    bool myReturn(const MockCliEvent &m) const;
+    bool myReturn(const MockCliEvent &other) const;
 
     friend std::ostream& operator<<(std::ostream &out, const MockCliEvent &m);
 
