@@ -344,7 +344,7 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
 
 
 
-MockCliEvent::MockCliEvent(Event e): eventKind(e)
+MockCliEvent::MockCliEvent(Event e): eventKind(e), integer(int()), boolean(bool())
 {
 }
 
