@@ -60,20 +60,21 @@ PredefinedRules<Iterator>::PredefinedRules()
     tMACHexPair %= qi::raw[qi::lexeme[qi::repeat(2)[ascii::xdigit]]];
     tMACAddr %= qi::raw[qi::lexeme[qi::repeat(5)[tMACHexPair >> qi::lit(":")] >> tMACHexPair]];
     tIPv6HexQuat %= qi::raw[qi::lexeme[qi::repeat(1, 4)[ascii::xdigit]]];
-    // FIXME: Some problem with qi::repeat occured. Another bug in Spirit?
     tIPv6Addr %= qi::raw[qi::lexeme[(qi::repeat(7)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
                  (qi::lit("::") >> qi::repeat(6)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
                  (-(tIPv6HexQuat) >> qi::lit("::") >> qi::repeat(5)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 1)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
-                     qi::repeat(4)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 2)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
-                     qi::repeat(3)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 3)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
-                     qi::repeat(2)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 4)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >>
-                     tIPv6HexQuat >> qi::lit(":") >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 5)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::") >> tIPv6HexQuat) |
-                 (-(qi::repeat(0, 6)[tIPv6HexQuat >> ':'] >> tIPv6HexQuat) >> qi::lit("::"))]];
+                 (-(qi::repeat(0, 1)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::") >> qi::repeat(4)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 2)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::") >> qi::repeat(3)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 3)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::") >> qi::repeat(2)[tIPv6HexQuat >> qi::lit(":")] >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 4)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::") >> tIPv6HexQuat >> qi::lit(":") >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 5)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::") >> tIPv6HexQuat) |
+                 (-(qi::repeat(0, 6)[(tIPv6HexQuat >> qi::lit(":")) - (tIPv6HexQuat >> qi::lit("::"))] >> tIPv6HexQuat) >>
+                     qi::lit("::"))]];
     // FIXME: Does not restrict tDate enough to avoid entering wrong dates like 2008-02-31
     tDay %= qi::raw[qi::lexeme[(qi::char_("0-2") >> qi::digit) | (qi::char_("3") >> qi::char_("0-1"))]];
     tMonth %= qi::raw[qi::lexeme[(qi::char_("0") >> qi::digit) | (qi::char_("1") >> qi::char_("0-2"))]];
