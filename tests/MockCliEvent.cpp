@@ -305,23 +305,23 @@ bool MockCliEvent::outputEvent(const MockCliEvent &m) const
 
 
 
-bool MockCliEvent::myReturn(const MockCliEvent &m) const
+bool MockCliEvent::myReturn(const MockCliEvent &other) const
 {
-    case MockCliEvent::EVENT_CONFIRM_DELETION:
-        return m.eventKind == RETURN_CONFIRM_DELETION;
-    case MockCliEvent::EVENT_CONFIRM_CREATION:
-        return m.eventKind == RETURN_CONFIRM_CREATION;
-    case MockCliEvent::EVENT_CONFIRM_RESTORATION:
-        return m.eventKind == RETURN_CONFIRM_RESTORATION;
-    case MockCliEvent::EVENT_ASK_FOR_COMMIT_MESSAGE:
-        return m.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE;
-    case MockCliEvent::EVENT_ASK_FOR_DETACH_MESSAGE:
-        return m.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE;
-    case MockCliEvent::EVENT_CHOOSE_CHANGESET:
-        return m.eventKind == RETURN_CHOOSE_CHANGESET;
-    case MockCliEvent::EVENT_READ_LINE:
-        return m.eventKind == RETURN_READ_LINE;
     switch (eventKind) {
+    case EVENT_CONFIRM_DELETION:
+        return other.eventKind == RETURN_CONFIRM_DELETION;
+    case EVENT_CONFIRM_CREATION:
+        return other.eventKind == RETURN_CONFIRM_CREATION;
+    case EVENT_CONFIRM_RESTORATION:
+        return other.eventKind == RETURN_CONFIRM_RESTORATION;
+    case EVENT_ASK_FOR_COMMIT_MESSAGE:
+        return other.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE;
+    case EVENT_ASK_FOR_DETACH_MESSAGE:
+        return other.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE;
+    case EVENT_CHOOSE_CHANGESET:
+        return other.eventKind == RETURN_CHOOSE_CHANGESET;
+    case EVENT_READ_LINE:
+        return other.eventKind == RETURN_READ_LINE;
     default:
         return false;
     } 
