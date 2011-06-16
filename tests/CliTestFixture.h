@@ -190,7 +190,7 @@ struct CliTestFixture
     
     void expectHelper(const MockCliEvent &e);
     
-    MockCliEvent popMatchHelper(const MockCliEvent &e);
+    MockCliEvent returnHelper(const MockCliEvent &e);
     
 
     Deska::Db::Connection *conn;

@@ -58,7 +58,7 @@ bool TestUserInterfaceIO::confirmDeletion(const Deska::Db::ObjectDefinition &obj
 {
     MockCliEvent event = MockCliEvent::confirmDeletion(object);
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.boolean;
 }
 
@@ -68,7 +68,7 @@ bool TestUserInterfaceIO::confirmCreation(const Deska::Db::ObjectDefinition &obj
 {
     MockCliEvent event = MockCliEvent::confirmCreation(object);
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.boolean;
 }
 
@@ -78,7 +78,7 @@ bool TestUserInterfaceIO::confirmRestoration(const Deska::Db::ObjectDefinition &
 {
     MockCliEvent event = MockCliEvent::confirmRestoration(object);
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.boolean;
 }
 
@@ -88,7 +88,7 @@ std::string TestUserInterfaceIO::askForCommitMessage()
 {
     MockCliEvent event = MockCliEvent::askForCommitMessage();
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.str1;
 }
 
@@ -98,7 +98,7 @@ std::string TestUserInterfaceIO::askForDetachMessage()
 {
     MockCliEvent event = MockCliEvent::askForDetachMessage();
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.str1;
 }
 
@@ -146,7 +146,7 @@ int TestUserInterfaceIO::chooseChangeset(const std::vector<Deska::Db::PendingCha
 {
     MockCliEvent event = MockCliEvent::chooseChangeset(pendingChangesets);
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.integer;
 }
 
@@ -156,7 +156,7 @@ std::string TestUserInterfaceIO::readLine(const std::string &prompt)
 {
     MockCliEvent event = MockCliEvent::readLine(prompt);
     tester->expectHelper(event);
-    MockCliEvent ret = tester->popMatchHelper(event);
+    MockCliEvent ret = tester->returnHelper(event);
     return ret.str1;
 }
 
@@ -468,7 +468,7 @@ void CliTestFixture::expectHelper(const MockCliEvent &e)
 
 
 
-MockCliEvent CliTestFixture::popMatchHelper(const MockCliEvent &e)
+MockCliEvent CliTestFixture::returnHelper(const MockCliEvent &e)
 {
     BOOST_CHECK(!cliEvents.empty());
     bool shouldPop = !cliEvents.empty();
