@@ -21,9 +21,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-
 #define BOOST_TEST_MODULE cli_io
-#include <boost/test/unit_test.hpp>
+#include "fix_boost_test_sigchld.h"
 #include "CliTestFixture.h"
 
 
