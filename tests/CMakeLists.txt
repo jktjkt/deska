@@ -50,8 +50,9 @@ macro(deska_dbapi_persist_test fname)
 endmacro(deska_dbapi_persist_test)
 
 macro(deska_cli_test fname)
+    # See comments in tests/fix_boost_test_sigchld.h for why this is different
+    # from regular boost::test usage
     set(test_cli_${fname}_SRCS test_cli_${fname}.cpp)
-    add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_cli_${fname} ${test_cli_${fname}_SRCS})
     target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers ${Boost_LIBRARIES})
     add_test(test_cli_${fname}
