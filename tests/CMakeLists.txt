@@ -49,6 +49,16 @@ macro(deska_dbapi_persist_test fname)
         persist ${fname})
 endmacro(deska_dbapi_persist_test)
 
+macro(deska_cli_test fname)
+    set(test_cli_${fname}_SRCS test_cli_${fname}.cpp)
+    add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
+    add_executable(test_cli_${fname} ${test_cli_${fname}_SRCS})
+    target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers ${Boost_LIBRARIES})
+    add_test(test_cli_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
+endmacro(deska_cli_test)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
@@ -69,7 +79,6 @@ deska_test(mock_streambuf)
 deska_test(parser-top-level-objects)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
-deska_test(cli-io)
 
 if(RUN_SQL_TESTS)
     message(STATUS "Will run SQL database tests upon each `make test` run.")
@@ -110,6 +119,9 @@ if(RUN_SQL_TESTS)
     deska_dbapi_persist_test(test_2_filter)
     deska_dbapi_persist_test(test_2_diff)
     deska_dbapi_persist_test(test_2_objectData)
+
+    # Tests for interaction between the CLI and the DB parts
+    deska_cli_test(io)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
