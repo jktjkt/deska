@@ -201,6 +201,8 @@ struct CliTestFixture
     Deska::Cli::SignalsHandler *sh;
     
     std::queue<MockCliEvent> cliEvents;
+    
+    bool testStarted;
 };
 
 #endif // DESKA_TEST_CLITESTFIXTURE_H
