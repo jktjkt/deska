@@ -27,8 +27,44 @@
 #include "CliTestFixture.h"
 
 
-/** @short Empty test */
-BOOST_FIXTURE_TEST_CASE( empty, CliTestFixture )
+/** @short Check CLI start and quit */
+BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
 {
-
+    expectAddCommandCompletion("abort");
+    expectAddCommandCompletion("commit");
+    expectAddCommandCompletion("detach");
+    expectAddCommandCompletion("dump %file");
+    expectAddCommandCompletion("exit");
+    expectAddCommandCompletion("quit");
+    expectAddCommandCompletion("help kinds");
+    expectAddCommandCompletion("help help");
+    expectAddCommandCompletion("help abort");
+    expectAddCommandCompletion("help commit");
+    expectAddCommandCompletion("help detach");
+    expectAddCommandCompletion("help dump");
+    expectAddCommandCompletion("help exit");
+    expectAddCommandCompletion("help quit");
+    expectAddCommandCompletion("help restore");
+    expectAddCommandCompletion("help resume");
+    expectAddCommandCompletion("help start");
+    expectAddCommandCompletion("help status");
+    expectAddCommandCompletion("help hardware");
+    expectAddCommandCompletion("help host");
+    expectAddCommandCompletion("help interface");
+    expectAddCommandCompletion("help vendor");
+    expectAddCommandCompletion("help delete");
+    expectAddCommandCompletion("help end");
+    expectAddCommandCompletion("help no");
+    expectAddCommandCompletion("help show");
+    expectAddCommandCompletion("exit");
+    expectAddCommandCompletion("quit");
+    expectAddCommandCompletion("restore %file");
+    expectAddCommandCompletion("resume");
+    expectAddCommandCompletion("start");
+    expectAddCommandCompletion("status");
+    expectPrintMessage("Deska CLI started. For usage info try typing \"help\".");
+    expectReadLine("");
+    returnReadLine("quit");
+    startTest();
+    verifyEnd();
 }
