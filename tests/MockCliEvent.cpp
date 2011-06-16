@@ -307,7 +307,6 @@ bool MockCliEvent::outputEvent(const MockCliEvent &m) const
 
 bool MockCliEvent::myReturn(const MockCliEvent &m) const
 {
-    switch (m.eventKind) {
     case MockCliEvent::EVENT_CONFIRM_DELETION:
         return m.eventKind == RETURN_CONFIRM_DELETION;
     case MockCliEvent::EVENT_CONFIRM_CREATION:
@@ -322,6 +321,7 @@ bool MockCliEvent::myReturn(const MockCliEvent &m) const
         return m.eventKind == RETURN_CHOOSE_CHANGESET;
     case MockCliEvent::EVENT_READ_LINE:
         return m.eventKind == RETURN_READ_LINE;
+    switch (eventKind) {
     default:
         return false;
     } 
