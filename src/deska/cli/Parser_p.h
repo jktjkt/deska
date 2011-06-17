@@ -46,6 +46,19 @@ namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 
 
+/** @short Convert boost::iterator_range<class> to std::string */
+template <typename Iterator>
+class RangeToString
+{
+public:
+    template <typename, typename>
+        struct result { typedef void type; };
+
+    void operator()(const boost::iterator_range<Iterator> &range, std::string &str) const
+    {
+        str.assign(range.begin(), range.end());
+    }
+};
 
 /** @short Predefined rules for parsing single attribute values and identifiers.
 *   
