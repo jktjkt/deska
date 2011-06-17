@@ -25,7 +25,7 @@
 #include "Parser_p.h"
 #include "deska/db/Api.h"
 
-//#define PARSER_DEBUG
+#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -85,14 +85,6 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IDENTIFIER].name("identifier (alphanumerical letters and _)");
 
-    rulesMap[Db::TYPE_QUOTED_STRING] = tQuotedString
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_QUOTED_STRING].name("quoted string");
-
-    rulesMap[Db::TYPE_SIMPLE_STRING] = tSimpleString
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_SIMPLE_STRING].name("simple string");
-
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_STRING].name("string");
@@ -100,11 +92,6 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_INT] = qi::int_
         [qi::_val = phoenix::static_cast_<int>(qi::_1)];
     rulesMap[Db::TYPE_INT].name("integer");
-
-    // FIXME: unsigned int
-    rulesMap[Db::TYPE_UINT] = qi::uint_
-        [qi::_val = phoenix::static_cast_</*unsigned*/ int>(qi::_1)];
-    rulesMap[Db::TYPE_UINT].name("unsigned integer");
 
     rulesMap[Db::TYPE_DOUBLE] = qi::double_
         [qi::_val = phoenix::static_cast_<double>(qi::_1)];
@@ -117,10 +104,6 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_IPV6_ADDRESS] = tIPv6Addr
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
-
-    rulesMap[Db::TYPE_IP_ADDRESS] = (tIPv4Addr | tIPv6Addr)
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_IP_ADDRESS].name("IPv4 or IPv6 address");
 
     rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
