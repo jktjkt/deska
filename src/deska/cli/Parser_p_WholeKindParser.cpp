@@ -22,7 +22,10 @@
 * */
 
 #include <boost/assert.hpp>
-#include "Parser_p.h"
+#include "Parser_p_AttributeRemovalsParser.h"
+#include "Parser_p_AttributesParser.h"
+#include "Parser_p_KindsOnlyParser.h"
+#include "Parser_p_WholeKindParser.h"
 #include "deska/db/Api.h"
 
 namespace Deska
