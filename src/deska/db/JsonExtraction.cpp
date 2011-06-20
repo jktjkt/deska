@@ -491,6 +491,16 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
             } else if (datatype == "double") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+            } else if (datatype == "macaddress") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_MAC_ADDRESS));
+            } else if (datatype == "ipv4address") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IPV4_ADDRESS));
+            } else if (datatype == "ipv6address") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IPV6_ADDRESS));
+            } else if (datatype == "timestamp") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_TIMESTAMP));
+            } else if (datatype == "date") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_DATE));
             } else {
                 std::ostringstream s;
                 s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
@@ -671,6 +681,36 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");
         target->value = value.get_real();
+        return;
+    }
+    case TYPE_IPV4_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_IPV4_ADDRES");
+        target->value = JsonConversionTraits<boost::asio::ip::address_v4>::extract(value);
+        return;
+    }
+    case TYPE_IPV6_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_IPV6_ADDRES");
+        target->value = JsonConversionTraits<boost::asio::ip::address_v6>::extract(value);
+        return;
+    }
+    case TYPE_MAC_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_MAC_ADDRESS");
+        target->value = JsonConversionTraits<Deska::Db::MacAddress>::extract(value);
+        return;
+    }
+    case TYPE_DATE:
+    {
+        JsonContext c2("When extracting TYPE_DATE");
+        target->value = JsonConversionTraits<boost::gregorian::date>::extract(value);
+        return;
+    }
+    case TYPE_TIMESTAMP:
+    {
+        JsonContext c2("When extracting TYPE_TIMESTAMP");
+        target->value = JsonConversionTraits<boost::posix_time::ptime>::extract(value);
         return;
     }
     }

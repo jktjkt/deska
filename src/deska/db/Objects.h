@@ -25,19 +25,32 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+#include <boost/asio/ip/address_v4.hpp>
+#include <boost/asio/ip/address_v6.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include "MacAddress.h"
 
 namespace Deska {
 namespace Db {
 
-/** @short @short Value of an object's attribute
+/** @short INTERNAL: variant forming the core of the Deska::Db::Value */
+typedef boost::variant<
+    // Primitive types
+    std::string, double, int,
+    // Network addresses
+    boost::asio::ip::address_v4, boost::asio::ip::address_v6, MacAddress,
+    // Date and time
+    boost::posix_time::ptime, boost::gregorian::date
+> NonOptionalValue;
+
+/** @short Value of an object's attribute
  *
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-// FIXME: Allow more types in the Value
-typedef boost::optional<boost::variant<std::string, double, int> > Value;
+typedef boost::optional<NonOptionalValue> Value;
 
 /** @short Type of an object's attribute */
 typedef enum {
