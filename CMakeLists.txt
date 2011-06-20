@@ -82,6 +82,7 @@ INCLUDE_DIRECTORIES(
 
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ObjectModification.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Filter.cpp
