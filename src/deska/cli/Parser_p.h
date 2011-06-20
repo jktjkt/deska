@@ -60,6 +60,8 @@ public:
     }
 };
 
+
+
 template <typename Iterator> class AttributeRemovalsParser;
 template <typename Iterator> class AttributesParser;
 template <typename Iterator> class FunctionWordsParser;
@@ -67,9 +69,37 @@ template <typename Iterator> class KindsOnlyParser;
 template <typename Iterator> class PredefinedRules;
 template <typename Iterator> class WholeKindParser;
 
+
+
 /** @short The main class containing all grammars, holding context and calling the grammars on the input.
 *
-*   
+*   The context is a vector of pairs kind_name-object_name and could be imagined like some kind of path. The context
+*   determines which attributes could be set, to which nested kinds could we step, etc.
+*
+*   The whole parser operates in one loop. At the beginning, before the loop, it tries to parse function words using
+*   functionWordsParser to switch the parsing mode. It means whether the whole kinds including attributes definitions
+*   or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop.
+*
+*   Here the grammars are invoked until the whole line is parsed or until some parse error occures. We have to parse
+*   the line in such loops because we are allowing so called inline opeartions. That means we can step into context of
+*   a object and set attributes of this object using only one line. Setting an attribute value requires the parser to
+*   be in context of the object, which attribute are we going to set. So as you can see, context before parsing and
+*   during parsing differ. The loops ensures, that after each parsed kind definition, the parsing is terminated so
+*   parser could change the parsing context and continue parsing by taking another grammar for the new context.
+*   The main loop terminates when the grammars in this loop fail or if the whole line was parsed.
+*
+*   After this main loop, the parser could take some more actions depending on the parse mode. For example parsing of
+*   a new name when renaming some object. After these actions the actual parsing finishes.
+*
+*   Now we check whether the parsing succeeded or not. Each sub parser is connected to several error handlers that
+*   generate parse errors (instances of class ParseError) and store them in a stack. If the parsing fails, we can find
+*   the reason in this stack. So when this situation happens, reportParseError() function is called to process
+*   the errors stack and report the error.
+*
+*   The whole parser communicates with the outer world through emitting the signals of the parent parser.
+*
+*   @see Parser
+*   @see Db::ContextStack
 */
 template <typename Iterator>
 class ParserImpl: boost::noncopyable

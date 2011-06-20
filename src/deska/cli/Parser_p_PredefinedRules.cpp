@@ -30,6 +30,7 @@ namespace Deska
 namespace Cli
 {
 
+
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
@@ -61,18 +62,14 @@ PredefinedRules<Iterator>::PredefinedRules()
     tMonth %= qi::raw[qi::lexeme[(qi::char_("0") >> qi::digit) | (qi::char_("1") >> qi::char_("0-2"))]];
     tYear %= qi::raw[qi::lexeme[(qi::lit("19") >> qi::repeat(2)[qi::digit]) | (qi::char_("2-9") >> qi::repeat(3)[qi::digit])]];
     tDate %= qi::raw[qi::lexeme[tYear >> qi::lit("-") >> tMonth >> qi::lit("-") >> tDay]];
+    tHour %= qi::raw[qi::lexeme[(qi::char_("0-1") >> qi::digit) | (qi::char_("2") >> qi::char_("0-3"))]];
+    tMinOrSec %= qi::raw[qi::lexeme[qi::char_("0-5") >> qi::digit]];
+    tTimeStamp %= qi::raw[qi::lexeme[tYear >> qi::lit("-") >> tMonth >> qi::lit("-") >> tDay >> qi::lit(" ") >>
+                                     tHour >> qi::lit(":") >> tMinOrSec >> qi::lit(":") >> tMinOrSec]];
 
     rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IDENTIFIER].name("identifier (alphanumerical letters and _)");
-
-    rulesMap[Db::TYPE_QUOTED_STRING] = tQuotedString
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_QUOTED_STRING].name("quoted string");
-
-    rulesMap[Db::TYPE_SIMPLE_STRING] = tSimpleString
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_SIMPLE_STRING].name("simple string");
 
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
@@ -81,11 +78,6 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_INT] = qi::int_
         [qi::_val = phoenix::static_cast_<int>(qi::_1)];
     rulesMap[Db::TYPE_INT].name("integer");
-
-    // FIXME: unsigned int
-    rulesMap[Db::TYPE_UINT] = qi::uint_
-        [qi::_val = phoenix::static_cast_</*unsigned*/ int>(qi::_1)];
-    rulesMap[Db::TYPE_UINT].name("unsigned integer");
 
     rulesMap[Db::TYPE_DOUBLE] = qi::double_
         [qi::_val = phoenix::static_cast_<double>(qi::_1)];
@@ -99,10 +91,6 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
 
-    rulesMap[Db::TYPE_IP_ADDRESS] = (tIPv4Addr | tIPv6Addr)
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_IP_ADDRESS].name("IPv4 or IPv6 address");
-
     rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_MAC_ADDRESS].name("MAC address");
@@ -111,9 +99,15 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_DATE].name("Date in YYYY-MM-DD format");
 
+    rulesMap[Db::TYPE_TIMESTAMP] = tTimeStamp
+        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+    rulesMap[Db::TYPE_TIMESTAMP].name("Timestamp in YYY-MM-DD HH:MM:SS format");
+
     objectIdentifier %= tIdentifier.alias();
     objectIdentifier.name("object identifier (alphanumerical letters and _)");
 }
+
+
 
 template <typename Iterator>
 const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule(const Db::Type attrType)
@@ -136,11 +130,15 @@ const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterat
     }
 }
 
+
+
 template <typename Iterator>
 const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<Iterator>::getObjectIdentifier()
 {
     return objectIdentifier;
 }
+
+
 
 /////////////////////////Template instances for linker//////////////////////////
 

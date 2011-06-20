@@ -34,6 +34,13 @@ namespace Cli
 /** @short Parser for set of attributes and nested objects of specific top-level grammar.
 *
 *   Combines all needed grammars into one parser for parsing the whole kind with its all attributes and nested kinds.
+*   For parsing of kind definitions is used grammar KindsOnlyParser, for attribute setting is used grammar
+*   AttributesParser and for attribute removing grammar AttributeRemovalsParser. Besides these grammars is also
+*   keyword "end" parsed here for leaving one level of context.
+*
+*   @see AttributesParser
+*   @see AttributeRemovalsParser
+*   @see KindsOnlyParser
 */
 template <typename Iterator>
 class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>

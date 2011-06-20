@@ -35,6 +35,16 @@ namespace Cli
 *
 *   This grammar parses only one pair from set of <attribute_name attribute_value> definitions.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found
+*   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
+*   action parsedAttribute().
+*
+*   This parser is connected to two error handlers. AttributeErrorHandler for reporting an error while parsing
+*   an attribute name and ValueErrorHandler for reporting an error while parsing a value on an attribute.
+*
+*   @see AttributeErrorHandler
+*   @see ValueErrorHandler
 */
 template <typename Iterator>
 class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >

@@ -33,7 +33,7 @@ namespace Cli
 
 /** @short Parser for parsing function words, that can be typed at the beginning of any line.
 *
-*   Parser works as alternatives parser with all words inside and invokes appropriate actions.
+*   Parser works as alternatives parser with all words inside and invokes appropriate actions using semantic functions.
 */
 template <typename Iterator>
 class FunctionWordsParser: public qi::grammar<Iterator, ascii::space_type>

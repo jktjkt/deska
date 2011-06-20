@@ -36,6 +36,15 @@ namespace Cli
 /** @short Parser for kinds definitions.
 *
 *   This grammar parses only one pair from set of <kind_name object_name> definitions.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found under name
+*   "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic action parsedKind().
+*
+*   This parser is connected to two error handlers. KindErrorHandler for reporting an error while parsing a kind name
+*   and ValueErrorHandler for reporting an error while parsing an object name.
+*
+*   @see KindErrorHandler
+*   @see ValueErrorHandler
 */
 template <typename Iterator>
 class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >

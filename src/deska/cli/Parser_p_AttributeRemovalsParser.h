@@ -35,6 +35,15 @@ namespace Cli
 *
 *   This grammar parses only one pair <"no" attribute_name>.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found
+*   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
+*   action parsedAttributeRemoval().
+*
+*   This parser is connected to one error handler AttributeRemovalErrorHandler for reporting an error
+*   while parsing an attribute name.
+*
+*   @see AttributeRemovalErrorHandler
 */
 template <typename Iterator>
 class AttributeRemovalsParser: public qi::grammar<Iterator, ascii::space_type>
