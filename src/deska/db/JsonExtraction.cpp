@@ -374,6 +374,7 @@ template<>
 boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract(const json_spirit::Value &v)
 {
     JsonContext c1("When extracting boost::posix_time::ptime");
+    checkJsonValueType(v, json_spirit::str_type);
     return boost::posix_time::time_from_string(v.get_str());
 }
 
