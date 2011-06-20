@@ -21,19 +21,64 @@
 
 #include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <boost/static_assert.hpp>
 #include "Objects.h"
 
 BOOST_STATIC_ASSERT(sizeof(Deska::Db::MacAddress::type_t) >=6);
 
+namespace {
+int readMacAddressByte(std::istream &ss)
+{
+    int buf;
+    ss >> std::hex >> buf;
+    if ((buf < 0) || (buf >= 0xff)) {
+        throw std::domain_error("MAC address error: byte out of range");
+    }
+    return buf;
+}
+}
+
 namespace Deska {
 namespace Db {
+
+MacAddress::MacAddress(const unsigned char b1, const unsigned char b2, const unsigned char b3, const unsigned char b4, const unsigned char b5, const unsigned char b6)
+{
+    m_data = ((b1 & 0xffLL) << 40) + ((b2 & 0xffLL) << 32) + ((b3 & 0xffLL) << 24) + ((b4 & 0xffLL) << 16) + ((b5 & 0xffLL) << 8) + (b6 & 0xffLL);
+}
+
+MacAddress::MacAddress(const std::string &address): m_data(0)
+{
+    std::istringstream ss(address);
+    for (int i = 0; i < 5; ++i) {
+        m_data += readMacAddressByte(ss);;
+        char x;
+        ss >> x;
+        if (x != ':') {
+            throw std::domain_error("MAC address error: wron delimiter");
+        }
+        if (ss.eof()) {
+            throw std::domain_error("MAC address error: too short");
+        }
+        m_data <<= 8;
+    }
+    m_data += readMacAddressByte(ss);
+    if (!ss.eof()) {
+        throw std::domain_error("MAC address error: garbage at the end");
+    }
+}
 
 std::ostream& operator<<(std::ostream &stream, const MacAddress addr)
 {
     std::ios_base::fmtflags flags = stream.flags();
-    stream << std::hex << ((addr.m_data << 40) & 0xff) << ':' << ((addr.m_data <<32) & 0xff) << ':' << ((addr.m_data << 24) & 0xff) <<
-              ':' << ((addr.m_data << 16) & 0xff) << ':' << ((addr.m_data << 8) & 0xff) << ':' << (addr.m_data & 0xff);
+    char fill = stream.fill();
+    stream.fill('0');
+    std::streamsize width = stream.width();
+    stream.width(2);
+    stream << std::hex << ((addr.m_data >> 40) & 0xff) << ':' << ((addr.m_data >> 32) & 0xff) << ':' << ((addr.m_data >> 24) & 0xff) <<
+              ':' << ((addr.m_data >> 16) & 0xff) << ':' << ((addr.m_data >> 8) & 0xff) << ':' << (addr.m_data & 0xff);
+    stream.width(width);
+    stream.fill(fill);
     stream.flags(flags);
     return stream;
 }
