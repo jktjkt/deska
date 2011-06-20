@@ -84,12 +84,19 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow
 {
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\", \"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", "
+            "\"timestamp\": \"timestamp\", \"date\": \"date\""
+            "}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
     expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
     expected.push_back(KindAttributeDataType("foo", TYPE_STRING));
     expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
+    expected.push_back(KindAttributeDataType("ipv4", TYPE_IPV4_ADDRESS));
+    expected.push_back(KindAttributeDataType("mac", TYPE_MAC_ADDRESS));
+    expected.push_back(KindAttributeDataType("ipv6", TYPE_IPV6_ADDRESS));
+    expected.push_back(KindAttributeDataType("timestamp", TYPE_TIMESTAMP));
+    expected.push_back(KindAttributeDataType("date", TYPE_DATE));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -240,7 +247,8 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\", "
+               "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
                " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
@@ -250,7 +258,9 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
                "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
+            "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\""
+            "}, "
             "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
@@ -259,6 +269,11 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
     expected["baz"] = "id";
+    expected["mac"] = Deska::Db::MacAddress(0x00, 0x16, 0x3e, 0x37, 0x53, 0x2b);
+    expected["ipv4"] = boost::asio::ip::address_v4::from_string("127.0.0.1");
+    expected["ipv6"] = boost::asio::ip::address_v6::from_string("::1");
+    expected["date"] = boost::gregorian::date(2011, 6, 20);
+    expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
