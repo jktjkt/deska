@@ -20,6 +20,7 @@
 * */
 
 #include <boost/date_time/posix_time/time_parsers.hpp>
+#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/foreach.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
@@ -180,6 +181,64 @@ template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
         std::ostringstream ss;
         ss << "PendingChangeset::AttachStatus: value " << static_cast<int>(value) << " is out of range";
         throw domain_error(ss.str());
+    }
+};
+
+/** @short Convert an IPv4 address to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::asio::ip::address_v4> {
+    static boost::asio::ip::address_v4 extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::asio::ip::address_v4");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::asio::ip::address_v4::from_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::asio::ip::address_v4 &value) {
+        return value.to_string();
+    }
+};
+
+/** @short Convert an IPv6 address to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::asio::ip::address_v6> {
+    static boost::asio::ip::address_v6 extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::asio::ip::address_v6");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::asio::ip::address_v6::from_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::asio::ip::address_v6 &value) {
+        return value.to_string();
+    }
+};
+
+/** @short Convert boost::grgorian::date to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::gregorian::date> {
+    static boost::gregorian::date extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::gregorian::date");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::gregorian::from_simple_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::gregorian::date &value) {
+        return boost::gregorian::to_simple_string(value);
+    }
+};
+
+/** @short Convert a MAC address to and from its JSON representation */
+template<> struct JsonConversionTraits<Deska::Db::MacAddress> {
+    static Deska::Db::MacAddress extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting Deska::Db::MacAddress");
+        checkJsonValueType(v, json_spirit::str_type);
+        try {
+            return Deska::Db::MacAddress(v.get_str());
+        } catch (std::domain_error &e) {
+            throw JsonStructureError(e.what());
+        }
+    }
+
+    static json_spirit::Value toJson(const Deska::Db::MacAddress &value) {
+        std::ostringstream ss;
+        ss << value;
+        return ss.str();
     }
 };
 
@@ -376,6 +435,13 @@ boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract
     JsonContext c1("When extracting boost::posix_time::ptime");
     checkJsonValueType(v, json_spirit::str_type);
     return boost::posix_time::time_from_string(v.get_str());
+}
+
+/** @short Convert timestamp to JSON */
+template<>
+json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const boost::posix_time::ptime &value)
+{
+    return boost::posix_time::to_simple_string(value);
 }
 
 /** @short Helper for extracting an optional value */
