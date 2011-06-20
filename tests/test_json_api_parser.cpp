@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/foreach.hpp>
 #define BOOST_TEST_MODULE json_api_parser
 #include <boost/test/unit_test.hpp>
