@@ -123,6 +123,16 @@ private:
 *
 *   This grammar parses only one pair from set of <attribute_name attribute_value> definitions.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found
+*   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
+*   action parsedAttribute().
+*
+*   This parser is connected to two error handlers. AttributeErrorHandler for reporting an error while parsing
+*   an attribute name and ValueErrorHandler for reporting an error while parsing a value on an attribute.
+*
+*   @see AttributeErrorHandler
+*   @see ValueErrorHandler
 */
 template <typename Iterator>
 class AttributesParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
@@ -183,6 +193,15 @@ private:
 *
 *   This grammar parses only one pair <"no" attribute_name>.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found
+*   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
+*   action parsedAttributeRemoval().
+*
+*   This parser is connected to one error handler AttributeRemovalErrorHandler for reporting an error
+*   while parsing an attribute name.
+*
+*   @see AttributeRemovalErrorHandler
 */
 template <typename Iterator>
 class AttributeRemovalsParser: public qi::grammar<Iterator, ascii::space_type>
@@ -237,6 +256,15 @@ private:
 /** @short Parser for kinds definitions.
 *
 *   This grammar parses only one pair from set of <kind_name object_name> definitions.
+*
+*   The grammar is based on a symbols table with lazy lookup function. This method could be found under name
+*   "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic action parsedKind().
+*
+*   This parser is connected to two error handlers. KindErrorHandler for reporting an error while parsing a kind name
+*   and ValueErrorHandler for reporting an error while parsing an object name.
+*
+*   @see KindErrorHandler
+*   @see ValueErrorHandler
 */
 template <typename Iterator>
 class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
@@ -295,6 +323,13 @@ private:
 /** @short Parser for set of attributes and nested objects of specific top-level grammar.
 *
 *   Combines all needed grammars into one parser for parsing the whole kind with its all attributes and nested kinds.
+*   For parsing of kind definitions is used grammar KindsOnlyParser, for attribute setting is used grammar
+*   AttributesParser and for attribute removing grammar AttributeRemovalsParser. Besides these grammars is also
+*   keyword "end" parsed here for leaving one level of context.
+*
+*   @see AttributesParser
+*   @see AttributeRemovalsParser
+*   @see KindsOnlyParser
 */
 template <typename Iterator>
 class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>
@@ -336,7 +371,7 @@ private:
 
 /** @short Parser for parsing function words, that can be typed at the beginning of any line.
 *
-*   Parser works as alternatives parser with all words inside and invokes appropriate actions.
+*   Parser works as alternatives parser with all words inside and invokes appropriate actions using semantic functions.
 */
 template <typename Iterator>
 class FunctionWordsParser: public qi::grammar<Iterator, ascii::space_type>
@@ -371,7 +406,30 @@ private:
 
 /** @short The main class containing all grammars, holding context and calling the grammars on the input.
 *
-*   
+*   The context is a vector of pairs kind_name-object_name and could be imagined like some kind of path. The context
+*   determines which attributes could be set, to which nested kinds could we step, etc.
+*
+*   The whole parser operates in one loop. At the beginning, before the loop, it tries to parse function words using
+*   functionWordsParser to switch the parsing mode. It means whether the whole kinds including attributes definitions
+*   or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop.
+*
+*   Here the grammars are invoked until the whole line is parsed or until some parse error occures. We have to parse
+*   the line in such loops because we are allowing so called inline opeartions. That means we can step into context of
+*   a object and set attributes of this object using only one line. Setting an attribute value requires the parser to
+*   be in context of the object, which attribute are we going to set. So as you can see, context before parsing and
+*   during parsing differ. The loops ensures, that after each parsed kind definition, the parsing is terminated so
+*   parser could change the parsing context and continue parsing by taking another grammar for the new context.
+*   The main loop terminates when the grammars in this loop fail or if the whole line was parsed.
+*
+*   After this main loop, the parser could take some more actions depending on the parse mode. For example parsing of
+*   a new name when renaming some object. After these actions the actual parsing finishes.
+*
+*   Now we check whether the parsing succeeded or not. Each sub parser is connected to several error handlers that
+*   generate parse errors (instances of class ParseError) and store them in a stack. If the parsing fails, we can find
+*   the reason in this stack. So when this situation happens, reportParseError() function is called to process
+*   the errors stack and report the error.
+*
+*   The whole parser communicates with the outer world through emitting the signals of the parent parser.
 */
 template <typename Iterator>
 class ParserImpl: boost::noncopyable
