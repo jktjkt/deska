@@ -284,6 +284,9 @@ private:
     PredefinedRules<Iterator> *predefinedRules;
     //@}
 
+    /** Vector of top level objects for tab completion purposes. */
+    std::vector<Db::Identifier> topLevelKindsIds;
+
     /** The parser context is held there. */
     Db::ContextStack contextStack;
     /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
