@@ -49,8 +49,14 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
 
     for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-        // Add new kind to the top-level parser
-        topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
+        // Add new kind to the top-level parser if it is not embeddet anywhere
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
+        std::vector<Db::ObjectRelation>::iterator itr = std::find_if(relations.begin(), relations.end(),
+            phoenix::bind(&Db::ObjectRelation::kind, phoenix::arg_names::_1) == Db::RELATION_EMBED_INTO);
+        if (itr == relations.end()) {
+            topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
+            topLevelKindsIds.push_back(*it);
+        }
 
         // Create attributes parser for new kind
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, this);
@@ -374,23 +380,14 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 return true;
                 break;
             case PARSING_MODE_DELETE:
-                // Function delete requires parameter -> report error
+            case PARSING_MODE_RENAME:
+                // Function delete and rename require parameter -> report error
                 if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
                     parsingSucceeded = false;
                 } else {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter,
                                   contextStack.back().kind, parserKindsEmbeds(contextStack.back().kind)));
-                    parsingSucceeded = false;
-                }
-                break;
-            case PARSING_MODE_RENAME:
-                // Function rename requires parameter -> report error
-                if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
-                    parsingSucceeded = false;
-                } else {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
                     parsingSucceeded = false;
                 }
                 break;
@@ -480,7 +477,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             } else if (contextStack.empty()) {
                 // Missing object to rename
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
             } else {
                 // We are ready to parse new name
                 parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
@@ -652,11 +649,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         possibilities.push_back("show");
     if (contextStack.empty()) {
         // No context -> add names of top-level kinds
-        std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
-        for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        for (std::vector<Db::Identifier>::iterator it = topLevelKindsIds.begin(); it != topLevelKindsIds.end(); ++it) {
             possibilities.push_back(line + *it);
         }
-        if ((!kinds.empty()) && (line.empty())) {
+        if ((!topLevelKindsIds.empty()) && (line.empty())) {
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
         }
