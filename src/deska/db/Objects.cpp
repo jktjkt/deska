@@ -46,6 +46,8 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
         return stream << "MAC_ADDRESS";
     case TYPE_DATE:
         return stream << "TYPE_DATE";
+    case TYPE_TIMESTAMP:
+        return stream << "TYPE_TIMESTAMP";
     }
     return stream << "[Invalid type:" << static_cast<int>(t) << "]";
 }

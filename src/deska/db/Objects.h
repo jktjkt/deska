@@ -56,7 +56,9 @@ typedef enum {
     /** @short MAC address */
     TYPE_MAC_ADDRESS,
     /** @short Date like YYYY-MM-DD */
-    TYPE_DATE
+    TYPE_DATE,
+    /** @short Timestamp like YYYY-MM-DD HH:MM:SS */
+    TYPE_TIMESTAMP
 } Type;
 
 std::ostream& operator<<(std::ostream &stream, const Type t);

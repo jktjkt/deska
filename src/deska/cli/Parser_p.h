@@ -103,11 +103,14 @@ private:
     //@}
 
     //@{
-    /** Extra rules used for definition of date. */
+    /** Extra rules used for definition of date and timestamp. */
     qi::rule<Iterator, std::string()> tDay;
     qi::rule<Iterator, std::string()> tMonth;
     qi::rule<Iterator, std::string()> tYear;
+    qi::rule<Iterator, std::string()> tHour;
+    qi::rule<Iterator, std::string()> tMinOrSec;
     qi::rule<Iterator, std::string(), ascii::space_type> tDate;
+    qi::rule<Iterator, std::string(), ascii::space_type> tTimeStamp;
     //@}
 
     /** Map where all rules are stored, @see Type. */
@@ -430,6 +433,9 @@ private:
 *   the errors stack and report the error.
 *
 *   The whole parser communicates with the outer world through emitting the signals of the parent parser.
+*
+*   @see Parser
+*   @see Db::ContextStack
 */
 template <typename Iterator>
 class ParserImpl: boost::noncopyable
