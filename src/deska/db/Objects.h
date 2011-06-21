@@ -122,6 +122,12 @@ typedef enum {
      * */
     RELATION_EMBED_INTO,
 
+    /** @short There's a relation between the two kinds
+     *
+     * The current kind contains a reference to the other kind, using the name of the other kind as the attribute name.
+     * */
+    RELATION_REFERS_TO,
+
     /** @short This object is a template
      *
      * This objects acts as a template, that is, it can provide partial defaults for instances of the kind defined by the
@@ -163,6 +169,10 @@ typedef enum {
  *
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
+ *
+ * Finally, to model generic relations (just a foreign key in the database table), use a RELATION_REFERS_TO. For example, if a "hw"
+ * table has a foregin key "vendor" which references the "vendor" table, the "hw" kind will have the following relation record:
+ * (RELATION_REFERS_TO, "vendor")
  * */
 struct ObjectRelation
 {
@@ -171,6 +181,9 @@ struct ObjectRelation
 
     /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &target);
+
+    /** @short COnstruct a RELATION_REFERS_TO */
+    static ObjectRelation refersTo(const Identifier &target);
 
     /** @short Construct a RELATION_IS_TEMPLATE */
     static ObjectRelation isTemplate(const Identifier &target);

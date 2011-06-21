@@ -383,6 +383,8 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
         return ObjectRelation::isTemplate(target);
     } else if (relationKind == "MERGE_WITH") {
         return ObjectRelation::mergeWith(target);
+    } else if (relationKind == "REFERS_TO") {
+        return ObjectRelation::refersTo(target);
     } else if (relationKind == "TEMPLATIZED") {
         return ObjectRelation::templatized(target);
     } else {

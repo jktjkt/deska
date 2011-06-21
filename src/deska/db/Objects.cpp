@@ -85,6 +85,8 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
         return stream << "mergeWith(" << o.target << ")";
     case RELATION_EMBED_INTO:
         return stream << "embedInto(" << o.target << ")";
+    case RELATION_REFERS_TO:
+        return stream << "refersTo(" << o.target << ")";
     case RELATION_IS_TEMPLATE:
         return stream << "isTemplate(" << o.target << ")";
     case RELATION_TEMPLATIZED:
@@ -112,6 +114,14 @@ ObjectRelation ObjectRelation::embedInto(const Identifier &target)
 {
     ObjectRelation res;
     res.kind = RELATION_EMBED_INTO;
+    res.target = target;
+    return res;
+}
+
+ObjectRelation ObjectRelation::refersTo(const Identifier &target)
+{
+    ObjectRelation res;
+    res.kind = RELATION_REFERS_TO;
     res.target = target;
     return res;
 }
