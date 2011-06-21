@@ -123,15 +123,9 @@ void TestUserInterfaceIO::addCommandCompletion(const std::string &completion)
 
 
 
-CliTestFixture::CliTestFixture()
+CliTestFixture::CliTestFixture():
+    conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
 {
-    conn = 0;
-    parser = 0;
-    db = 0;
-    io = 0;
-    ui = 0;
-    sh = 0;
-    testStarted = false;
 }
 
 
