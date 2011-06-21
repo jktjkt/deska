@@ -240,6 +240,37 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFa
     expectEmpty();
 }
 
+/** @short Test filter recursion */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_recursive_filter, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"or\",\"operands\":["
+                    "{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                    "{\"operator\":\"and\",\"operands\":["
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333},"
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr3\",\"value\":333666}"
+                    "]}"
+                "]}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": "
+               "{\"operator\":\"or\",\"operands\":["
+                   "{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                   "{\"operator\":\"and\",\"operands\":["
+                       "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333},"
+                       "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr3\",\"value\":333666}"
+                   "]}"
+               "]}}\n");
+    vector<Identifier> expected;
+    std::vector<Filter> subExpressions1;
+    subExpressions1.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    std::vector<Filter> subExpressions2;
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr3", Value(333666)));
+    subExpressions1.push_back(AndFilter(subExpressions2));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions1)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
