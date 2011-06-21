@@ -51,7 +51,7 @@ MacAddress::MacAddress(const std::string &address): m_data(0)
 {
     std::istringstream ss(address);
     for (int i = 0; i < 5; ++i) {
-        m_data += readMacAddressByte(ss);;
+        m_data += readMacAddressByte(ss);
         char x;
         ss >> x;
         if (x != ':') {
