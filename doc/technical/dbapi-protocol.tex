@@ -395,9 +395,9 @@ relation information etc.  The following types are defined:
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
-        {\tt \{"operator": "and", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "and", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
-        {\tt \{"operator": "or", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "or", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
         Expression
 
@@ -506,10 +506,9 @@ and can refer to any property which is normally returned by the function being e
 IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
 object's attribute, the key has to be specified by a tuple of {\tt kind} and {\tt attribute} identifiers.
 
-More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
-time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
-operators is allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
-arises.
+More complicated conditions can be created by chaining the expressions into logical conjunction and disjunction.
+Implementations are expected to limit the maximal allowed depth of operator nesting to prevent overly expensive
+operations and to mitigate a possible DoS attack.
 
 Under certain circumstances, it is be useful to allow querying of objects using indirect criteria, like ``return all
 hosts with an interface that is connected to a particular VLAN''.  The \deskaFuncRef{multipleObjectData} querying {\em
