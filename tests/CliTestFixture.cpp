@@ -48,11 +48,23 @@ void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) 
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
 void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
-#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
-void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
+#define FORWARD_3_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
+void TestUserInterfaceIO::FUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3) \
 { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
-void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
+void CliTestFixture::expect##EFUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3) \
 { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
+
+#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
+    FORWARD_3_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type)
+
+#define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) \
+    FORWARD_3_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream &)
+
+#define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
+void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3, std::ostream &stream) \
+    { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3, stream)); } \
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3, std::ostream &stream) \
+    { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3, stream)); }
 
 #define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
 RET_TYPE TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { \
@@ -92,22 +104,8 @@ FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
 FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
 FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
 FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
-
-
-void TestUserInterfaceIO::printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
-                                      std::ostream &out)
-{
-    tester->expectHelper(MockCliEvent::printAttributes(attributes, indentLevel));
-}
-
-
-
-void TestUserInterfaceIO::printObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
-                                   bool fullName, std::ostream &out)
-{
-    tester->expectHelper(MockCliEvent::printObjects(objects, indentLevel, fullName));
-}
-
+FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
+FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
 
 
 void TestUserInterfaceIO::printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
@@ -168,35 +166,11 @@ CliTestFixture::~CliTestFixture()
 }
 
 
-void CliTestFixture::expectPrintAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
-                                           std::ostream &out)
-{
-    cliEvents.push(MockCliEvent::printAttributes(attributes, indentLevel));
-}
-
-
-
 void CliTestFixture::expectPrintAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
                                           std::ostream &out)
 {
     cliEvents.push(MockCliEvent::printAttribute(attribute, indentLevel));
 }                                  
-
-
-
-void CliTestFixture::expectPrintObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
-                                        bool fullName, std::ostream &out)
-{
-    cliEvents.push(MockCliEvent::printObjects(objects, indentLevel, fullName));
-}
-
-
-
-void CliTestFixture::expectPrintObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
-                                       std::ostream &out)
-{
-    cliEvents.push(MockCliEvent::printObject(object, indentLevel, fullName));
-}
 
 
 
