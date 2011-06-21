@@ -35,12 +35,12 @@ AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, c
 {
 }
 
-OrFilter::OrFilter(const std::vector<Expression> operands_):
+OrFilter::OrFilter(const std::vector<Filter> operands_):
     operands(operands_)
 {
 }
 
-AndFilter::AndFilter(const std::vector<Expression> operands_):
+AndFilter::AndFilter(const std::vector<Filter> operands_):
     operands(operands_)
 {
 }

@@ -20,7 +20,7 @@
 * */
 
 #include <boost/foreach.hpp>
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE json_caching_api
 #include <boost/test/unit_test.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/CachingJsonApi.h"

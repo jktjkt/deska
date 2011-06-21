@@ -6,6 +6,9 @@
 \usepackage{listings}
 \usepackage{longtable}
 \usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
 
 \begin{document}
 
@@ -317,7 +320,7 @@ The following table provides a quick and compact overview of the officially supp
 JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
 API function.
 
-\begin{longtable}{ p{18mm} | p{35mm} p{41mm} p{45mm} }
+\begin{longtable}{ p{20mm} | p{29mm} p{47mm} p{30mm} }
     \caption{JSON serialization of data types for attribute values} \\
     Name & SQL Data Type & C++ Data Type & JSON Serialization \\
     \hline
@@ -328,6 +331,9 @@ API function.
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
     {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
     {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
+    {\tt ipv4address} & FIXME & {\tt boost::asio::ip::address\_v4} & {\tt "127.0.0.1"} \\
+    {\tt ipv6address} & FIXME & {\tt boost::asio::ip::address\_v6} & {\tt "::1"} \\
+    {\tt macaddress} & macaddr & {\tt Deska::Db::MacAddress} & {\tt "00:16:3e:37:53:2B"} \\
     {\tt enum\_X}\footnote{See section \ref{sec:json-extending} for instructions about how to add new enumerations to both
         the Deska DB and the C++ library.} & ENUM (``A'', ``B'') & {\tt typedef enum \{A, B\} X} & {\tt "A"} \\
 \end{longtable}
@@ -360,8 +366,8 @@ relation information etc.  The following types are defined:
         "enum\_X"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
         One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}},
-        \newline
+        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "IS\_TEMPLATE", "target": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -392,9 +398,9 @@ relation information etc.  The following types are defined:
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
-        {\tt \{"operator": "and", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "and", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
-        {\tt \{"operator": "or", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "or", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
         Expression
 
@@ -503,10 +509,9 @@ and can refer to any property which is normally returned by the function being e
 IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
 object's attribute, the key has to be specified by a tuple of {\tt kind} and {\tt attribute} identifiers.
 
-More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
-time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
-operators is allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
-arises.
+More complicated conditions can be created by chaining the expressions into logical conjunction and disjunction.
+Implementations are expected to limit the maximal allowed depth of operator nesting to prevent overly expensive
+operations and to mitigate a possible DoS attack.
 
 Under certain circumstances, it is be useful to allow querying of objects using indirect criteria, like ``return all
 hosts with an interface that is connected to a particular VLAN''.  The \deskaFuncRef{multipleObjectData} querying {\em
@@ -521,7 +526,7 @@ such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
-\subsection{Output Ordering}
+\subsubsection{Output Ordering}
 
 Certain functions return a list of values.  The general rule is that the order of returned items is not stable, unless
 specified otherwise.  The sorting may even vary among several executions of the same command with the very same
@@ -578,6 +583,7 @@ and the defined object relations.
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware"\}, \\
             \{"relation": "MERGE\_WITH", "target": "second-kind"\}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind"\}, \\
             \{"relation": "IS\_TEMPLATE", "target": "target-kind"\}, \\
             \{"relation": "TEMPLATIZED", "target": "by-which-kind"\} \\
             ]}

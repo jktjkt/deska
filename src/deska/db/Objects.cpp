@@ -21,6 +21,7 @@
 
 #include <sstream>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "Objects.h"
 
@@ -38,6 +39,16 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
         return stream << "TYPE_INT";
     case TYPE_DOUBLE:
         return stream << "TYPE_DOUBLE";
+    case TYPE_IPV4_ADDRESS:
+        return stream << "TYPE_IPV4_ADDRESS";
+    case TYPE_IPV6_ADDRESS:
+        return stream << "TYPE_IPV6_ADDRESS";
+    case TYPE_MAC_ADDRESS:
+        return stream << "MAC_ADDRESS";
+    case TYPE_DATE:
+        return stream << "TYPE_DATE";
+    case TYPE_TIMESTAMP:
+        return stream << "TYPE_TIMESTAMP";
     }
     return stream << "[Invalid type:" << static_cast<int>(t) << "]";
 }
@@ -74,6 +85,8 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
         return stream << "mergeWith(" << o.target << ")";
     case RELATION_EMBED_INTO:
         return stream << "embedInto(" << o.target << ")";
+    case RELATION_REFERS_TO:
+        return stream << "refersTo(" << o.target << ")";
     case RELATION_IS_TEMPLATE:
         return stream << "isTemplate(" << o.target << ")";
     case RELATION_TEMPLATIZED:
@@ -91,39 +104,29 @@ ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier 
 
 ObjectRelation ObjectRelation::mergeWith(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_MERGE_WITH;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_MERGE_WITH, target);
 }
 
 ObjectRelation ObjectRelation::embedInto(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_EMBED_INTO;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_EMBED_INTO, target);
+}
+
+ObjectRelation ObjectRelation::refersTo(const Identifier &target)
+{
+    return ObjectRelation(RELATION_REFERS_TO, target);
 }
 
 ObjectRelation ObjectRelation::isTemplate(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_IS_TEMPLATE;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_IS_TEMPLATE, target);
 }
 
 ObjectRelation ObjectRelation::templatized(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_TEMPLATIZED;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_TEMPLATIZED, target);
 }
 
-ObjectRelation::ObjectRelation()
-{
-}
 
 ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
     kind(kindName), name(objectName)
@@ -142,7 +145,7 @@ bool operator==(const ObjectDefinition &a, const ObjectDefinition &b)
 
 bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
 {
-    return !(a==b);
+    return !(a == b);
 }
 
 
@@ -151,14 +154,47 @@ AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const 
 {
 }
 
+/** @short Variant visitor for printing the attribute into an ostream
+
+This is required because the boost::posix_time::ptime lacks a proper operator<<.
+*/
+struct PrintValue: public boost::static_visitor<void> {
+    std::ostream *str;
+    PrintValue(std::ostream *stream): str(stream) {}
+
+    /** @short Default implementation: just use proper operator<< */
+    template<typename T>
+    void operator()(const T &t) const {
+        *str << t;
+    }
+
+    /** @short Got to provide a specialization for boost::posix_time::ptime */
+    void operator()(const boost::posix_time::ptime &t) const {
+        *str << boost::posix_time::to_simple_string(t);
+    }
+};
+
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
 {
     if (a.value) {
-        return stream << a.attribute << " " << *(a.value);
+        stream << a.attribute << " ";
+        boost::apply_visitor(PrintValue(&stream), *(a.value));
+        return stream;
     } else {
         return stream << "no " << a.attribute;
     }
 }
+
+bool operator==(const AttributeDefinition &a, const AttributeDefinition &b)
+{
+    return a.attribute == b.attribute && a.value == b.value;
+}
+
+bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
+{
+    return !(a == b);
+}
+
 
 Identifier contextStackToPath(const ContextStack &contextStack)
 {
@@ -192,7 +228,7 @@ std::vector<Identifier> PathToVector(const std::string &path)
     bool r = boost::spirit::qi::phrase_parse(first,last,
                                              +(boost::spirit::ascii::alnum | '_') % "->",
                                              boost::spirit::ascii::space, identifiers);
-    if(!r || first != last)
+    if (!r || first != last)
         throw std::runtime_error("Deska::Db::PathToVector conversion failed while parsing " + path);
     
     return identifiers;

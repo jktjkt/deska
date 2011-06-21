@@ -19,8 +19,9 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/foreach.hpp>
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE json_api_parser
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 #include "JsonApiTestFixture.h"
@@ -83,12 +84,19 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow
 {
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\", \"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", "
+            "\"timestamp\": \"timestamp\", \"date\": \"date\""
+            "}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
     expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
     expected.push_back(KindAttributeDataType("foo", TYPE_STRING));
     expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
+    expected.push_back(KindAttributeDataType("ipv4", TYPE_IPV4_ADDRESS));
+    expected.push_back(KindAttributeDataType("mac", TYPE_MAC_ADDRESS));
+    expected.push_back(KindAttributeDataType("ipv6", TYPE_IPV6_ADDRESS));
+    expected.push_back(KindAttributeDataType("timestamp", TYPE_TIMESTAMP));
+    expected.push_back(KindAttributeDataType("date", TYPE_DATE));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -111,11 +119,13 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
     expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
             "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
             "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
+            "{\"relation\": \"REFERS_TO\", \"target\": \"reference\"}, "
             "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
             "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind"));
+    expected.push_back(ObjectRelation::refersTo("reference"));
     expected.push_back(ObjectRelation::isTemplate("target-kind"));
     expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
@@ -206,10 +216,10 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureF
                "\"filter\": {\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
                "{\"condition\":\"columnGe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_LT, "kind1", "attr1", Value(666)));
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_GE, "kind1", "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -224,14 +234,45 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFa
                "\"filter\": {\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
                "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
 
+/** @short Test filter recursion */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_recursive_filter, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"or\",\"operands\":["
+                    "{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                    "{\"operator\":\"and\",\"operands\":["
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333},"
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr3\",\"value\":333666}"
+                    "]}"
+                "]}}\n");
+    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
+               "\"filter\": "
+               "{\"operator\":\"or\",\"operands\":["
+                   "{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                   "{\"operator\":\"and\",\"operands\":["
+                       "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333},"
+                       "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr3\",\"value\":333666}"
+                   "]}"
+               "]}}\n");
+    vector<Identifier> expected;
+    std::vector<Filter> subExpressions1;
+    subExpressions1.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    std::vector<Filter> subExpressions2;
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr3", Value(333666)));
+    subExpressions1.push_back(AndFilter(subExpressions2));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions1)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
@@ -239,7 +280,8 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\", "
+               "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
                " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
@@ -249,7 +291,9 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
                "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
+    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
+            "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\""
+            "}, "
             "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
@@ -258,6 +302,11 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
     expected["baz"] = "id";
+    expected["mac"] = Deska::Db::MacAddress(0x00, 0x16, 0x3e, 0x37, 0x53, 0x2b);
+    expected["ipv4"] = boost::asio::ip::address_v4::from_string("127.0.0.1");
+    expected["ipv6"] = boost::asio::ip::address_v6::from_string("::1");
+    expected["date"] = boost::gregorian::date(2011, 6, 20);
+    expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -828,4 +877,29 @@ BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureF
         }
         expectEmpty();
     }
+}
+
+
+namespace boost {
+// FIXME: is there any safer way of doing this?
+namespace gregorian {
+
+/** @short Got to provide specialization in order for the linker to be happy */
+std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
+{
+    return s << boost::gregorian::to_simple_string(d);
+}
+
+}
+
+namespace posix_time {
+
+/** @short Got to provide specialization in order for the linker to be happy */
+std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime &t)
+{
+    return s << boost::posix_time::to_simple_string(t);
+}
+
+}
+
 }

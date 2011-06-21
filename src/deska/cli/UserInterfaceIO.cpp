@@ -81,6 +81,12 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 
 
 
+UserInterfaceIO::UserInterfaceIO()
+{
+}
+
+
+
 UserInterfaceIO::UserInterfaceIO(Parser* parser):
     tabSize(4), promptEnd("> ")
 {

@@ -23,6 +23,12 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p.h"
+#include "Parser_p_AttributeRemovalsParser.h"
+#include "Parser_p_AttributesParser.h"
+#include "Parser_p_FunctionWordsParser.h"
+#include "Parser_p_KindsOnlyParser.h"
+#include "Parser_p_PredefinedRules.h"
+#include "Parser_p_WholeKindParser.h"
 #include "deska/db/Api.h"
 
 //#define PARSER_DEBUG
@@ -31,328 +37,6 @@ namespace Deska
 {
 namespace Cli
 {
-
-
-/** @short Convert boost::iterator_range<class> to std::string */
-template <typename Iterator>
-class RangeToString
-{
-public:
-    template <typename, typename>
-        struct result { typedef void type; };
-
-    void operator()(const boost::iterator_range<Iterator> &range, std::string &str) const
-    {
-        str.assign(range.begin(), range.end());
-    }
-};
-
-
-
-template <typename Iterator>
-PredefinedRules<Iterator>::PredefinedRules()
-{
-    tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
-    tIdentifier %= qi::lexeme[+(ascii::alnum | '_')];
-
-    rulesMap[Db::TYPE_INT] = qi::int_
-        [qi::_val = phoenix::static_cast_<int>(qi::_1)];
-    rulesMap[Db::TYPE_INT].name("integer");
-
-    // FIXME: consider allowing trivial words without quotes
-    rulesMap[Db::TYPE_STRING] = tQuotedString
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_STRING].name("quoted string");
-
-    rulesMap[Db::TYPE_DOUBLE] = qi::double_
-        [qi::_val = phoenix::static_cast_<double>(qi::_1)];
-    rulesMap[Db::TYPE_DOUBLE].name("double");
-
-    rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-    rulesMap[Db::TYPE_IDENTIFIER].name("identifier (alphanumerical letters and _)");
-
-    objectIdentifier %= tIdentifier.alias();
-    objectIdentifier.name("object identifier (alphanumerical letters and _)");
-}
-
-
-
-template <typename Iterator>
-const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterator>::getRule(const Db::Type attrType)
-{
-    typename std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> >::const_iterator
-        it = rulesMap.find(attrType);
-    if (it == rulesMap.end()) {
-        // Normally, we'd simply assert() here (see git history), but this is a place which would get hit
-        // when people add their own low-level data types to Deska. Given that asserts are optimized away
-        // in release mode and that I (Jan) can imagine people not bothering with debug builds (you really
-        // should build in debug, though), it's better to be explicit here and maybe even save some poor
-        // guy some head scratching in future.
-        // So, to some future fellow: if we just saved you time, please buy some beer to Tomas :).
-        std::stringstream ss;
-        ss << "PredefinedRules::getRule: no available grammar rule for parsing of low-level data type " <<
-              attrType << ". See " << __FILE__ << ":" << __LINE__ << " for details.";
-        throw std::domain_error(ss.str());
-    } else {
-        return it->second;
-    }
-}
-
-
-
-template <typename Iterator>
-const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<Iterator>::getObjectIdentifier()
-{
-    return objectIdentifier;
-}
-
-
-
-template <typename Iterator>
-AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
-    AttributesParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
-{
-    using qi::_1;
-    using qi::_2;
-    using qi::_3;
-    using qi::_4;
-    using qi::_a;
-    using qi::eps;
-    using qi::raw;
-    using qi::eoi;
-    using qi::on_error;
-    using qi::fail;
-    //using qi::rethrow;
-
-    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
-    // The API is not sane, and therefore we have the following crap here.
-    this->name(kindName);
-
-    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
-
-    // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
-    // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
-    // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
-    // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = (eps(!_a) > dispatch >> -eoi[_a = true]);
-
-    // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
-    // attribute being parsed.
-    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
-        > lazy(_a)[phoenix::bind(&AttributesParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
-
-    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
-    //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
-    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
-                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
-    // In case of enabling error handler for nesting, on_error<fail> for attributeErrorHandler have to be changed
-    // to on_error<rethrow>.
-    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
-    //                                          phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
-}
-
-
-
-template <typename Iterator>
-void AttributesParser<Iterator>::addAtrribute(const Db::Identifier &attributeName,
-                                              qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
-{
-    attributes.add(attributeName, attributeParser);
-}
-
-
-
-template <typename Iterator>
-void AttributesParser<Iterator>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value)
-{
-    m_parent->attributeSet(parameter, value);
-}
-
-
-
-template <typename Iterator>
-AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
-    AttributeRemovalsParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
-{
-    using qi::_1;
-    using qi::_2;
-    using qi::_3;
-    using qi::_4;
-    using qi::_a;
-    using qi::eps;
-    using qi::raw;
-    using qi::on_error;
-    using qi::fail;
-
-    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
-    // The API is not sane, and therefore we have the following crap here.
-    this->name(kindName);
-
-    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
-
-    start = (qi::lit("no") > dispatch);
-
-    dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
-        [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this, phoenix::ref(currentAttributeName))];
-
-    phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
-        AttributeRemovalErrorHandler<Iterator>();
-
-    on_error<fail>(start, attributeRemovalErrorHandler(_1, _2, _3, _4,
-                                                       phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
-}
-
-
-
-template <typename Iterator>
-void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attributeName)
-{
-    attributes.add(attributeName, qi::eps);
-}
-
-
-
-template <typename Iterator>
-void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identifier &attribute)
-{
-    m_parent->attributeRemove(attribute);
-}
-
-
-
-template <typename Iterator>
-KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
-    KindsOnlyParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
-{
-    using qi::_1;
-    using qi::_2;
-    using qi::_3;
-    using qi::_4;
-    using qi::_a;
-    using qi::eps;
-    using qi::raw;
-    using qi::eoi;
-    using qi::on_error;
-    using qi::fail;
-    //using qi::rethrow;
-
-    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
-    // The API is not sane, and therefore we have the following crap here.
-    this->name(kindName);
-
-    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
-
-    // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
-    // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
-    // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
-    // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = (eps(!_a) > dispatch >> -eoi[_a = true]);
-
-    // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
-    // attribute being parsed.
-    dispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
-        > lazy(_a)[phoenix::bind(&KindsOnlyParser::parsedKind, this, phoenix::ref(currentKindName), _1)]);
-
-    phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
-    //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
-    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
-    // In case of enabling error handler for nesting, on_error<fail> for kindErrorHandler have to be changed
-    // to on_error<rethrow>.
-    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
-    //                                          phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
-}
-
-
-
-template <typename Iterator>
-void KindsOnlyParser<Iterator>::addKind(const Db::Identifier &kindName,
-                                        qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser)
-{
-    kinds.add(kindName, identifierParser);
-}
-
-
-
-template <typename Iterator>
-void KindsOnlyParser<Iterator>::parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName)
-{
-    m_parent->categoryEntered(kindName, objectName);
-}
-
-
-
-template <typename Iterator>
-WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
-                                           AttributesParser<Iterator> *attributesParser,
-                                           AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
-                                           KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent):
-    WholeKindParser<Iterator>::base_type(start), m_parent(parent)
-{
-    // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
-    // The API is not sane, and therefore we have the following crap here.
-    this->name(kindName);
-
-    start = ((+((*attributesParser) | (*attributeRemovalsParser)) >> -(*nestedKinds))
-        | ((*nestedKinds)[phoenix::bind(&WholeKindParser::parsedSingleKind, this)])
-        | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
-}
-
-
-
-template <typename Iterator>
-void WholeKindParser<Iterator>::parsedEnd()
-{
-    m_parent->categoryLeft();
-}
-
-
-
-template <typename Iterator>
-void WholeKindParser<Iterator>::parsedSingleKind()
-{
-    m_parent->parsedSingleKind();
-}
-
-
-
-template <typename Iterator>
-FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
-    FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
-{
-    start = ((qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
-           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)])
-           | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
-}
-
-
-
-template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionDelete()
-{
-    m_parent->setParsingMode(PARSING_MODE_DELETE);
-}
-
-
-
-template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionShow()
-{
-    m_parent->setParsingMode(PARSING_MODE_SHOW);
-}
-
-
-
-template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionRename()
-{
-    m_parent->setParsingMode(PARSING_MODE_RENAME);
-}
-
 
 
 template <typename Iterator>
@@ -365,8 +49,14 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
 
     for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-        // Add new kind to the top-level parser
-        topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
+        // Add new kind to the top-level parser if it is not embeddet anywhere
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
+        std::vector<Db::ObjectRelation>::iterator itr = std::find_if(relations.begin(), relations.end(),
+            phoenix::bind(&Db::ObjectRelation::kind, phoenix::arg_names::_1) == Db::RELATION_EMBED_INTO);
+        if (itr == relations.end()) {
+            topLevelParser->addKind(*it, predefinedRules->getObjectIdentifier());
+            topLevelKindsIds.push_back(*it);
+        }
 
         // Create attributes parser for new kind
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, this);
@@ -551,7 +241,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
     if (!dryRun)
         m_parser->attributeSet(name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << name << "=" << value << std::endl;
+    std::cout << "Set attribute: " << name << "=" << *value << std::endl;
 #endif
 }
 
@@ -690,23 +380,14 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 return true;
                 break;
             case PARSING_MODE_DELETE:
-                // Function delete requires parameter -> report error
+            case PARSING_MODE_RENAME:
+                // Function delete and rename require parameter -> report error
                 if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
                     parsingSucceeded = false;
                 } else {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter,
                                   contextStack.back().kind, parserKindsEmbeds(contextStack.back().kind)));
-                    parsingSucceeded = false;
-                }
-                break;
-            case PARSING_MODE_RENAME:
-                // Function rename requires parameter -> report error
-                if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
-                    parsingSucceeded = false;
-                } else {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
                     parsingSucceeded = false;
                 }
                 break;
@@ -796,7 +477,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             } else if (contextStack.empty()) {
                 // Missing object to rename
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", m_parser->m_dbApi->kindNames()));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
             } else {
                 // We are ready to parse new name
                 parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
@@ -968,11 +649,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         possibilities.push_back("show");
     if (contextStack.empty()) {
         // No context -> add names of top-level kinds
-        std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
-        for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        for (std::vector<Db::Identifier>::iterator it = topLevelKindsIds.begin(); it != topLevelKindsIds.end(); ++it) {
             possibilities.push_back(line + *it);
         }
-        if ((!kinds.empty()) && (line.empty())) {
+        if ((!topLevelKindsIds.empty()) && (line.empty())) {
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
         }
@@ -1101,42 +781,6 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 /////////////////////////Template instances for linker//////////////////////////
 
 template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
-
-template PredefinedRules<iterator_type>::PredefinedRules();
-
-template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Db::Type attrType);
-
-template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
-
-template AttributesParser<iterator_type>::AttributesParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
-
-template void AttributesParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
-
-template void AttributesParser<iterator_type>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
-
-template AttributeRemovalsParser<iterator_type>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
-
-template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName);
-
-template void AttributeRemovalsParser<iterator_type>::parsedAttributeRemoval(const Db::Identifier &parameter);
-
-template KindsOnlyParser<iterator_type>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
-
-template void KindsOnlyParser<iterator_type>::addKind(const Db::Identifier &kindName,qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
-
-template void KindsOnlyParser<iterator_type>::parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
-
-template WholeKindParser<iterator_type>::WholeKindParser(const std::string &kindName, AttributesParser<iterator_type> *attributesParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, KindsOnlyParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent);
-
-template void WholeKindParser<iterator_type>::parsedEnd();
-
-template void WholeKindParser<iterator_type>::parsedSingleKind();
-
-template FunctionWordsParser<iterator_type>::FunctionWordsParser(ParserImpl<iterator_type> *parent);
-
-template void FunctionWordsParser<iterator_type>::actionDelete();
-
-template void FunctionWordsParser<iterator_type>::actionShow();
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
