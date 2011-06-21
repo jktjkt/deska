@@ -23,22 +23,9 @@
 
 #include <boost/test/test_tools.hpp>
 #include <boost/assert.hpp>
-
-
 #include "CliTestFixture.h"
 
-
-
-TestUserInterfaceIO::TestUserInterfaceIO(CliTestFixture *cliTester)
-{
-    tester = cliTester;
-}
-
-
-
-TestUserInterfaceIO::~TestUserInterfaceIO()
-{
-}
+// At first, define a few macros which specify how the code shall be generated
 
 #define FORWARD_1(FUNC, EFUNC, TYPE_1) \
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
@@ -91,31 +78,18 @@ RET_TYPE TestUserInterfaceIO::FUNC() { \
 void CliTestFixture::expect##EFUNC() { cliEvents.push(MockCliEvent::FUNC()); } \
 void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
 
+// Now include the function definitions, which will instantiate the required methods for us
+#include "CliFunctionDefinitions.h"
 
-typedef std::map<std::string, std::string> map_string_string;
-typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
 
-FORWARD_1(reportError, ReportError, std::string);
-FORWARD_1(printMessage, PrintMessage, std::string);
-FORWARD_2(printHelp, PrintHelp, map_string_string, map_string_string);
-FORWARD_2(printHelpCommand, PrintHelpCommand, std::string, std::string);
-FORWARD_2(printHelpKeyword, PrintHelpKeyword, std::string, std::string);
-FORWARD_1(printHelpShowKinds, PrintHelpShowKinds, std::vector<std::string>);
-FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Db::ObjectDefinition);
-FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Db::ObjectDefinition);
-FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Db::ObjectDefinition);
-FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
-FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
-FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
-FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
-FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
-FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
-FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
-FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
-FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bool);
-FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
-FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
+TestUserInterfaceIO::TestUserInterfaceIO(CliTestFixture *cliTester)
+{
+    tester = cliTester;
+}
 
+TestUserInterfaceIO::~TestUserInterfaceIO()
+{
+}
 
 CliTestFixture::CliTestFixture():
     conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
