@@ -104,42 +104,27 @@ ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier 
 
 ObjectRelation ObjectRelation::mergeWith(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_MERGE_WITH;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_MERGE_WITH, target);
 }
 
 ObjectRelation ObjectRelation::embedInto(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_EMBED_INTO;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_EMBED_INTO, target);
 }
 
 ObjectRelation ObjectRelation::refersTo(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_REFERS_TO;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_REFERS_TO, target);
 }
 
 ObjectRelation ObjectRelation::isTemplate(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_IS_TEMPLATE;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_IS_TEMPLATE, target);
 }
 
 ObjectRelation ObjectRelation::templatized(const Identifier &target)
 {
-    ObjectRelation res;
-    res.kind = RELATION_TEMPLATIZED;
-    res.target = target;
-    return res;
+    return ObjectRelation(RELATION_TEMPLATIZED, target);
 }
 
 ObjectRelation::ObjectRelation()
