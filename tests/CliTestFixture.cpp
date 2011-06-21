@@ -138,18 +138,12 @@ CliTestFixture::CliTestFixture()
 
 CliTestFixture::~CliTestFixture()
 {
-    if (sh != 0)
-        delete sh;
-    if (ui != 0)
-        delete ui;
-    if (io != 0)
-        delete io;
-    if (db != 0)
-        delete db;
-    if (parser != 0)
-        delete parser;
-    if (conn != 0)
-        delete conn;
+    delete sh;
+    delete ui;
+    delete io;
+    delete db;
+    delete parser;
+    delete conn;
 }
 
 
