@@ -48,6 +48,17 @@ void CliTestFixture::EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FU
 void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
 void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
+#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, TYPE_1) \
+RET_TYPE TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { \
+    MockCliEvent event = MockCliEvent::FUNC(arg1); \
+    tester->expectHelper(event); \
+    MockCliEvent ret = tester->returnHelper(event); \
+    return ret.boolean; \
+    } \
+void CliTestFixture::expect##EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
+void CliTestFixture::return##EFUNC(RET_TYPE res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
+
+
 typedef std::map<std::string, std::string> map_string_string;
 
 FORWARD_1(reportError, expectReportError, std::string);
@@ -56,35 +67,9 @@ FORWARD_2(printHelp, expectPrintHelp, map_string_string, map_string_string);
 FORWARD_2(printHelpCommand, expectPrintHelpCommand, std::string, std::string);
 FORWARD_2(printHelpKeyword, expectPrintHelpKeyword, std::string, std::string);
 FORWARD_1(printHelpShowKinds, expectPrintHelpShowKinds, std::vector<std::string>);
-
-bool TestUserInterfaceIO::confirmDeletion(const Deska::Db::ObjectDefinition &object)
-{
-    MockCliEvent event = MockCliEvent::confirmDeletion(object);
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.boolean;
-}
-
-
-
-bool TestUserInterfaceIO::confirmCreation(const Deska::Db::ObjectDefinition &object)
-{
-    MockCliEvent event = MockCliEvent::confirmCreation(object);
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.boolean;
-}
-
-
-
-bool TestUserInterfaceIO::confirmRestoration(const Deska::Db::ObjectDefinition &object)
-{
-    MockCliEvent event = MockCliEvent::confirmRestoration(object);
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.boolean;
-}
-
+FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, Deska::Db::ObjectDefinition);
 
 
 std::string TestUserInterfaceIO::askForCommitMessage()
@@ -208,49 +193,6 @@ CliTestFixture::~CliTestFixture()
     if (conn != 0)
         delete conn;
 }
-
-
-
-void CliTestFixture::expectConfirmDeletion(const Deska::Db::ObjectDefinition &object)
-{
-    cliEvents.push(MockCliEvent::confirmDeletion(object));
-}
-
-
-
-void CliTestFixture::returnConfirmDeletion(bool confirm)
-{
-    cliEvents.push(MockCliEvent::returnConfirmDeletion(confirm));
-}
-
-
-
-void CliTestFixture::expectConfirmCreation(const Deska::Db::ObjectDefinition &object)
-{
-    cliEvents.push(MockCliEvent::confirmCreation(object));
-}
-
-
-
-void CliTestFixture::returnConfirmCreation(bool confirm)
-{
-    cliEvents.push(MockCliEvent::returnConfirmCreation(confirm));
-}
-
-
-
-void CliTestFixture::expectConfirmRestoration(const Deska::Db::ObjectDefinition &object)
-{
-    cliEvents.push(MockCliEvent::confirmRestoration(object));
-}
-
-
-
-void CliTestFixture::returnConfirmRestoration(bool confirm)
-{
-    cliEvents.push(MockCliEvent::returnConfirmRestoration(confirm));
-}
-
 
 
 void CliTestFixture::expectAskForCommitMessage()
