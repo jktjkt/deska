@@ -112,14 +112,8 @@ FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
 FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
 FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
 FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
+FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bool);
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
-
-
-void TestUserInterfaceIO::printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
-{
-    tester->expectHelper(MockCliEvent::printObject(object, indentLevel, fullName));
-}
-
 
 
 void TestUserInterfaceIO::addCommandCompletion(const std::string &completion)
