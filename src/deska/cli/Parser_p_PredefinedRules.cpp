@@ -89,17 +89,12 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_DOUBLE].name("double");
 
     rulesMap[Db::TYPE_IPV4_ADDRESS] = tIPv4Addr
-        // FIXME: From some reason, boost can not resolve boost::asio::ip::address_v4::from_string
-        // no matching function for call to ‘bind(<unresolved overloaded function type>, const boost::phoenix::actor<boost::spirit::argument<0> >&)’
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-        //[qi::_val = phoenix::bind(&boost::asio::ip::address_v4::from_string, qi::_1)];
+        // got to specify the overload by hand; see http://stackoverflow.com/questions/2326586/how-to-force-template-function-overload-for-boostbind for details
+        [qi::_val = phoenix::bind(static_cast<boost::asio::ip::address_v4(*)(const std::string&)>(&boost::asio::ip::address_v4::from_string), qi::_1)];
     rulesMap[Db::TYPE_IPV4_ADDRESS].name("IPv4 address");
 
     rulesMap[Db::TYPE_IPV6_ADDRESS] = tIPv6Addr
-        // FIXME: From some reason, boost can not resolve boost::asio::ip::address_v6::from_string
-        // no matching function for call to ‘bind(<unresolved overloaded function type>, const boost::phoenix::actor<boost::spirit::argument<0> >&)’
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
-        //[qi::_val = phoenix::bind(&boost::asio::ip::address_v6::from_string, qi::_1)];
+        [qi::_val = phoenix::bind(static_cast<boost::asio::ip::address_v6(*)(const std::string&)>(&boost::asio::ip::address_v6::from_string), qi::_1)];
     rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
 
     rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
