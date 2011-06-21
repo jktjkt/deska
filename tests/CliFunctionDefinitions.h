@@ -49,3 +49,11 @@ FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bo
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
 FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
 
+#undef FORWARD_0_RETURN
+#undef FORWARD_1
+#undef FORWARD_1_RETURN
+#undef FORWARD_2
+#undef FORWARD_2_RAW_ARGS
+#undef FORWARD_3
+#undef FORWARD_3_OSTREAM
+#undef FORWARD_4_OSTREAM

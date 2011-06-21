@@ -49,6 +49,15 @@ class Parser;
 
 }
 
+#define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) RET_TYPE FUNC();
+#define FORWARD_1(FUNC, EFUNC, TYPE_1) virtual void FUNC(boost::call_traits<TYPE_1>::param_type);
+#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) RET_TYPE FUNC(boost::call_traits<TYPE_1>::param_type);
+#define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(TYPE_1, TYPE_2);
+#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
+#define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
+#define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, std::ostream&);
+
 class CliTestFixture;
 
 /** @short Class for testing IO operations needed in a command line user interface with a standard iostream implementation.
@@ -64,57 +73,11 @@ public:
     
     virtual ~TestUserInterfaceIO();
     
-    virtual void reportError(const std::string &errorMessage);
-    
-    virtual void printMessage(const std::string &message);
-    
-    virtual bool confirmDeletion(const Deska::Db::ObjectDefinition &object);
-    
-    virtual bool confirmCreation(const Deska::Db::ObjectDefinition &object);
-    
-    virtual bool confirmRestoration(const Deska::Db::ObjectDefinition &object);
-    
-    virtual std::string askForCommitMessage();
-    
-    virtual std::string askForDetachMessage();
-    
-    virtual void printHelp(const std::map<std::string, std::string> &cliCommands,
-                           const std::map<std::string, std::string> &parserKeywords);
-                   
-    virtual void printHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
-    
-    virtual void printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
-    
-    virtual void printHelpKind(const std::string &kindName,
-                               const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                               const std::vector<std::string> &nestedKinds);
-                       
-    virtual void printHelpShowKinds(const std::vector<std::string> &kinds);
-    
-    virtual int chooseChangeset(const std::vector<Deska::Db::PendingChangeset> &pendingChangesets);
-    
-    virtual std::string readLine(const std::string &prompt);
-    
-    virtual void printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
-                                 std::ostream &out = std::cout);
-                         
-    virtual void printObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
-                              bool fullName, std::ostream &out = std::cout);
-                      
-    virtual void printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
-                                std::ostream &out = std::cout);
-                        
-    virtual void printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
-                             std::ostream &out = std::cout);
-                     
-    virtual void printEnd(int indentLevel, std::ostream &out = std::cout);
-    
-    virtual void addCommandCompletion(const std::string &completion);
+#include "CliFunctionDefinitions.h"
     
 private:
     CliTestFixture *tester;
 };
-
 
 
 struct CliTestFixture
