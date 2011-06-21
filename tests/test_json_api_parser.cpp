@@ -214,10 +214,10 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureF
                "\"filter\": {\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
                "{\"condition\":\"columnGe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_LT, "kind1", "attr1", Value(666)));
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_GE, "kind1", "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -232,10 +232,10 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFa
                "\"filter\": {\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
                "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
-    expressions.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }

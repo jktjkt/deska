@@ -298,8 +298,8 @@ template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::AndFilter &filter) const
 {
     json_spirit::Array a;
-    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression));
+    BOOST_FOREACH(const Deska::Db::Filter &element, filter.operands) {
+        a.push_back(boost::apply_visitor(DeskaFilterToJsonValue(), element));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("and")));
@@ -311,8 +311,8 @@ template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::OrFilter &filter) const
 {
     json_spirit::Array a;
-    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression));
+    BOOST_FOREACH(const Deska::Db::Filter &element, filter.operands) {
+        a.push_back(boost::apply_visitor(DeskaFilterToJsonValue(), element));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("or")));
