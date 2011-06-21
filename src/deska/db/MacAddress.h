@@ -46,6 +46,9 @@ public:
     /** @short Is this address smaller than the other one? */
     bool operator<(const MacAddress other) const throw() { return m_data < other.m_data; }
 
+    /** @short create a MAC address from its string representation */
+    static MacAddress fromString(const std::string &address) { return MacAddress(address); }
+
 private:
     type_t m_data;
 };
