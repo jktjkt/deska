@@ -106,13 +106,7 @@ FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
 FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
 FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
 FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
-
-
-void TestUserInterfaceIO::printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
-{
-    tester->expectHelper(MockCliEvent::printAttribute(attribute, indentLevel));
-}
-
+FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
 
 
 void TestUserInterfaceIO::printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
@@ -164,14 +158,6 @@ CliTestFixture::~CliTestFixture()
     if (conn != 0)
         delete conn;
 }
-
-
-void CliTestFixture::expectPrintAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
-                                          std::ostream &out)
-{
-    cliEvents.push(MockCliEvent::printAttribute(attribute, indentLevel));
-}                                  
-
 
 
 void CliTestFixture::expectPrintEnd(int indentLevel, std::ostream &out)
