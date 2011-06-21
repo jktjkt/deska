@@ -127,10 +127,6 @@ ObjectRelation ObjectRelation::templatized(const Identifier &target)
     return ObjectRelation(RELATION_TEMPLATIZED, target);
 }
 
-ObjectRelation::ObjectRelation()
-{
-}
-
 
 ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
     kind(kindName), name(objectName)

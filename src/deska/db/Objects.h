@@ -197,11 +197,6 @@ struct ObjectRelation
     Identifier target;
 
 private:
-    /** @short Private constructor for creating a half-baked object
-
-    This is very much needed for ObjectRelation::embedInto.
-    */
-    ObjectRelation();
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target);
 };
 
