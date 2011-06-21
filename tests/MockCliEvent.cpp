@@ -306,6 +306,7 @@ bool MockCliEvent::outputEvent(const MockCliEvent &m) const
 
 bool MockCliEvent::myReturn(const MockCliEvent &other) const
 {
+    // Note that we're comparing EVENT_* against a matching RETURN_*
     switch (eventKind) {
     case EVENT_CONFIRM_DELETION:
         return other.eventKind == RETURN_CONFIRM_DELETION;
