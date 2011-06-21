@@ -114,21 +114,13 @@ FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefin
 FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
 FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bool);
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
-
-
-void TestUserInterfaceIO::addCommandCompletion(const std::string &completion)
-{
-    tester->expectHelper(MockCliEvent::addCommandCompletion(completion));
-}
-
+FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
 
 
 CliTestFixture::CliTestFixture():
     conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
 {
 }
-
-
 
 CliTestFixture::~CliTestFixture()
 {
@@ -139,13 +131,6 @@ CliTestFixture::~CliTestFixture()
     delete parser;
     delete conn;
 }
-
-
-void CliTestFixture::expectAddCommandCompletion(const std::string &completion)
-{
-    cliEvents.push(MockCliEvent::addCommandCompletion(completion));
-}
-
 
 
 void CliTestFixture::verifyEnd()
