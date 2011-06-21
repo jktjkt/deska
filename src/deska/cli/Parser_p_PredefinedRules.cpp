@@ -24,11 +24,8 @@
 #include <boost/assert.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/asio/ip/address_v4.hpp>
-#include <boost/asio/ip/address_v6.hpp>
 #include "Parser_p_PredefinedRules.h"
 #include "deska/db/Api.h"
-#include "deska/db/MacAddress.h"
 
 namespace Deska
 {
