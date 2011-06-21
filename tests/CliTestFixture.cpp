@@ -48,6 +48,10 @@ void CliTestFixture::EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FU
 void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
 void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
+#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
+void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2, const TYPE_3 &arg3) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
+void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2, const TYPE_3 &arg3) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
+
 #define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
 RET_TYPE TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { \
     MockCliEvent event = MockCliEvent::FUNC(arg1); \
@@ -60,6 +64,7 @@ void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res)
 
 
 typedef std::map<std::string, std::string> map_string_string;
+typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
 
 FORWARD_1(reportError, expectReportError, std::string);
 FORWARD_1(printMessage, expectPrintMessage, std::string);
@@ -72,6 +77,7 @@ FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Db::Obj
 FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Db::ObjectDefinition);
 FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
 FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
+FORWARD_3(printHelpKind, expectPrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
 
 
 
@@ -92,15 +98,6 @@ std::string TestUserInterfaceIO::askForDetachMessage()
     tester->expectHelper(event);
     MockCliEvent ret = tester->returnHelper(event);
     return ret.str1;
-}
-
-
-
-void TestUserInterfaceIO::printHelpKind(const std::string &kindName,
-                                    const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                    const std::vector<std::string> &nestedKinds)
-{
-    tester->expectHelper(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
 }
 
 
@@ -203,15 +200,6 @@ void CliTestFixture::expectAskForDetachMessage()
 void CliTestFixture::returnAskForDetachMessage(const std::string &message)
 {
     cliEvents.push(MockCliEvent::returnAskForDetachMessage(message));
-}
-
-
-
-void CliTestFixture::expectPrintHelpKind(const std::string &kindName,
-                                  const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                  const std::vector<std::string> &nestedKinds)
-{
-    cliEvents.push(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
 }
 
 
