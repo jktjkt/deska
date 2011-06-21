@@ -40,21 +40,22 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 {
 }
 
+#define FORWARD_1(FUNC, EFUNC, TYPE_1) \
+void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
+void CliTestFixture::EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
 
+#define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) \
+void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
+void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
-void TestUserInterfaceIO::reportError(const std::string &errorMessage)
-{
-    tester->expectHelper(MockCliEvent::reportError(errorMessage));
-}
+typedef std::map<std::string, std::string> map_string_string;
 
-
-
-void TestUserInterfaceIO::printMessage(const std::string &message)
-{
-    tester->expectHelper(MockCliEvent::printMessage(message));
-}
-
-
+FORWARD_1(reportError, expectReportError, std::string);
+FORWARD_1(printMessage, expectPrintMessage, std::string);
+FORWARD_2(printHelp, expectPrintHelp, map_string_string, map_string_string);
+FORWARD_2(printHelpCommand, expectPrintHelpCommand, std::string, std::string);
+FORWARD_2(printHelpKeyword, expectPrintHelpKeyword, std::string, std::string);
+FORWARD_1(printHelpShowKinds, expectPrintHelpShowKinds, std::vector<std::string>);
 
 bool TestUserInterfaceIO::confirmDeletion(const Deska::Db::ObjectDefinition &object)
 {
@@ -106,40 +107,11 @@ std::string TestUserInterfaceIO::askForDetachMessage()
 
 
 
-void TestUserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
-                                const std::map<std::string, std::string> &parserKeywords)
-{
-    tester->expectHelper(MockCliEvent::printHelp(cliCommands, parserKeywords));
-}
-
-
-
-void TestUserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
-{
-    tester->expectHelper(MockCliEvent::printHelpCommand(cmdName, cmdDscr));
-}
-
-
-
-void TestUserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
-{
-    tester->expectHelper(MockCliEvent::printHelpKeyword(keywordName, keywordDscr));
-}
-
-
-
 void TestUserInterfaceIO::printHelpKind(const std::string &kindName,
                                     const std::vector<std::pair<std::string, std::string> > &kindAttrs,
                                     const std::vector<std::string> &nestedKinds)
 {
     tester->expectHelper(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
-}
-
-
-
-void TestUserInterfaceIO::printHelpShowKinds(const std::vector<std::string> &kinds)
-{
-    tester->expectHelper(MockCliEvent::printHelpShowKinds(kinds));
 }
 
 
@@ -239,20 +211,6 @@ CliTestFixture::~CliTestFixture()
 
 
 
-void CliTestFixture::expectReportError(const std::string &errorMessage)
-{
-    cliEvents.push(MockCliEvent::reportError(errorMessage));
-}
-
-
-
-void CliTestFixture::expectPrintMessage(const std::string &message)
-{
-    cliEvents.push(MockCliEvent::printMessage(message));
-}
-
-
-
 void CliTestFixture::expectConfirmDeletion(const Deska::Db::ObjectDefinition &object)
 {
     cliEvents.push(MockCliEvent::confirmDeletion(object));
@@ -323,40 +281,11 @@ void CliTestFixture::returnAskForDetachMessage(const std::string &message)
 
 
 
-void CliTestFixture::expectPrintHelp(const std::map<std::string, std::string> &cliCommands,
-                                   const std::map<std::string, std::string> &parserKeywords)
-{
-    cliEvents.push(MockCliEvent::printHelp(cliCommands, parserKeywords));
-}
-
-
-
-void CliTestFixture::expectPrintHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
-{
-    cliEvents.push(MockCliEvent::printHelpCommand(cmdName, cmdDscr));
-}
-
-
-
-void CliTestFixture::expectPrintHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
-{
-    cliEvents.push(MockCliEvent::printHelpKeyword(keywordName, keywordDscr));
-}
-
-
-
 void CliTestFixture::expectPrintHelpKind(const std::string &kindName,
                                   const std::vector<std::pair<std::string, std::string> > &kindAttrs,
                                   const std::vector<std::string> &nestedKinds)
 {
     cliEvents.push(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
-}
-
-
-
-void CliTestFixture::expectPrintHelpShowKinds(const std::vector<std::string> &kinds)
-{
-    cliEvents.push(MockCliEvent::printHelpShowKinds(kinds));
 }
 
 
