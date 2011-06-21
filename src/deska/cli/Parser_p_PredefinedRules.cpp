@@ -103,7 +103,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
 
     rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
-        [qi::_val = phoenix::bind(&Db::MacAddress::fromString, qi::_1)];
+        [qi::_val = phoenix::construct<Db::MacAddress>(qi::_1)];
     rulesMap[Db::TYPE_MAC_ADDRESS].name("MAC address");
 
     rulesMap[Db::TYPE_DATE] = tDate
