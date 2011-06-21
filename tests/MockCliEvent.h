@@ -32,97 +32,23 @@
 #include "deska/db/Revisions.h"
 
 
+#define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
+    static MockCliEvent FUNC(); \
+    static MockCliEvent return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
+#define FORWARD_1(FUNC, EFUNC, TYPE_1) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type);
+#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
+    static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type); \
+    static MockCliEvent return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
+#define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(TYPE_1, TYPE_2);
+#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
+#define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
+#define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, std::ostream&);
 
 /** @short Helper struct representing a signal emitted by the Parser being tested */
 struct MockCliEvent
 {
-    /** @short Handler for the reportError() IO function */
-    static MockCliEvent reportError(const std::string &errorMessage);
-
-    /** @short Handler for the printMessage() IO function */
-    static MockCliEvent printMessage(const std::string &message);
-
-    /** @short Handler for the confirmDeletion() IO function */
-    static MockCliEvent confirmDeletion(const Deska::Db::ObjectDefinition &object);
-    
-    /** @short Handler for return of the confirmDeletion() IO function */
-    static MockCliEvent returnConfirmDeletion(bool confirm);
-    
-    /** @short Handler for the confirmCreation() IO function */
-    static MockCliEvent confirmCreation(const Deska::Db::ObjectDefinition &object);
-    
-    /** @short Handler for return of the confirmCreation() IO function */
-    static MockCliEvent returnConfirmCreation(bool confirm);
-
-    /** @short Handler for the confirmRestoration() IO function */
-    static MockCliEvent confirmRestoration(const Deska::Db::ObjectDefinition &object);
-    
-    /** @short Handler for return of the confirmRestoration() IO function */
-    static MockCliEvent returnConfirmRestoration(bool confirm);
-    
-    /** @short Handler for the askForCommitMessage() IO function */
-    static MockCliEvent askForCommitMessage();
-    
-    /** @short Handler for return of the askForCommitMessage() IO function */
-    static MockCliEvent returnAskForCommitMessage(const std::string &message);
-
-    /** @short Handler for the askForDetachMessage() IO function */
-    static MockCliEvent askForDetachMessage();
-    
-    /** @short Handler for return of the askForDetachMessage() IO function */
-    static MockCliEvent returnAskForDetachMessage(const std::string &message);
-
-    /** @short Handler for the printHelp() IO function */
-    static MockCliEvent printHelp(const std::map<std::string, std::string> &cliCommands,
-                                       const std::map<std::string, std::string> &parserKeywords);
-    
-    /** @short Handler for the printHelpCommand() IO function */
-    static MockCliEvent printHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
-    
-    /** @short Handler for the printHelpKeyword() IO function */
-    static MockCliEvent printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
-    
-    /** @short Handler for the printHelpKind() IO function */
-    static MockCliEvent printHelpKind(const std::string &kindName,
-                                      const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                      const std::vector<std::string> &nestedKinds);
-    
-    /** @short Handler for the printHelpShowKinds() IO function */
-    static MockCliEvent printHelpShowKinds(const std::vector<std::string> &kinds);
-    
-    /** @short Handler for the chooseChangeset() IO function */
-    static MockCliEvent chooseChangeset(const std::vector<Deska::Db::PendingChangeset> &pendingChangesets);
-    
-    /** @short Handler for return of the chooseChangeset() IO function */
-    static MockCliEvent returnChooseChangeset(int changeset);
-    
-    /** @short Handler for the readLine() IO function */
-    static MockCliEvent readLine(const std::string &prompt);
-    
-    /** @short Handler for return of the readLine() IO function */
-    static MockCliEvent returnReadLine(const std::string &line);
-    
-    /** @short Handler for the printAttributes() IO function */
-    static MockCliEvent printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
-                                        std::ostream &out = std::cout);
-    
-    /** @short Handler for the printAttribute() IO function */
-    static MockCliEvent printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
-                                       std::ostream &out = std::cout);
-                                       
-    /** @short Handler for the printObjects() IO function */
-    static MockCliEvent printObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
-                                     bool fullName, std::ostream &out = std::cout);
-    
-    /** @short Handler for the printObject() IO function */
-    static MockCliEvent printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
-                                    std::ostream &out = std::cout);
-    
-    /** @short Handler for the printEnd() IO function */
-    static MockCliEvent printEnd(int indentLevel, std::ostream &out = std::cout);
-    
-    /** @short Handler for the addCommandCompletion() IO function */
-    static MockCliEvent addCommandCompletion(const std::string &completion);
+#include "CliFunctionDefinitions.h"
     
     /** @short An empty event for debug printing */
     static MockCliEvent invalid();
