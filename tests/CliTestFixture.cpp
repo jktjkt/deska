@@ -48,15 +48,15 @@ void CliTestFixture::EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FU
 void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
 void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
-#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, TYPE_1) \
+#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
 RET_TYPE TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { \
     MockCliEvent event = MockCliEvent::FUNC(arg1); \
     tester->expectHelper(event); \
     MockCliEvent ret = tester->returnHelper(event); \
-    return ret.boolean; \
+    return ret.RET_VAR; \
     } \
 void CliTestFixture::expect##EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
-void CliTestFixture::return##EFUNC(RET_TYPE res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
+void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
 
 
 typedef std::map<std::string, std::string> map_string_string;
@@ -67,9 +67,13 @@ FORWARD_2(printHelp, expectPrintHelp, map_string_string, map_string_string);
 FORWARD_2(printHelpCommand, expectPrintHelpCommand, std::string, std::string);
 FORWARD_2(printHelpKeyword, expectPrintHelpKeyword, std::string, std::string);
 FORWARD_1(printHelpShowKinds, expectPrintHelpShowKinds, std::vector<std::string>);
-FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, Deska::Db::ObjectDefinition);
-FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, Deska::Db::ObjectDefinition);
-FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Db::ObjectDefinition);
+FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
+FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
+
+
 
 
 std::string TestUserInterfaceIO::askForCommitMessage()
@@ -97,26 +101,6 @@ void TestUserInterfaceIO::printHelpKind(const std::string &kindName,
                                     const std::vector<std::string> &nestedKinds)
 {
     tester->expectHelper(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
-}
-
-
-
-int TestUserInterfaceIO::chooseChangeset(const std::vector<Deska::Db::PendingChangeset> &pendingChangesets)
-{
-    MockCliEvent event = MockCliEvent::chooseChangeset(pendingChangesets);
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.integer;
-}
-
-
-
-std::string TestUserInterfaceIO::readLine(const std::string &prompt)
-{
-    MockCliEvent event = MockCliEvent::readLine(prompt);
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.str1;
 }
 
 
@@ -228,34 +212,6 @@ void CliTestFixture::expectPrintHelpKind(const std::string &kindName,
                                   const std::vector<std::string> &nestedKinds)
 {
     cliEvents.push(MockCliEvent::printHelpKind(kindName, kindAttrs, nestedKinds));
-}
-
-
-
-void CliTestFixture::expectChooseChangeset(const std::vector<Deska::Db::PendingChangeset> &pendingChangesets)
-{
-    cliEvents.push(MockCliEvent::chooseChangeset(pendingChangesets));
-}
-
-
-
-void CliTestFixture::returnChooseChangeset(int changeset)
-{
-    cliEvents.push(MockCliEvent::returnChooseChangeset(changeset));
-}
-
-
-
-void CliTestFixture::expectReadLine(const std::string &prompt)
-{
-    cliEvents.push(MockCliEvent::readLine(prompt));
-}
-
-
-
-void CliTestFixture::returnReadLine(const std::string &line)
-{
-    cliEvents.push(MockCliEvent::returnReadLine(line));
 }
 
 
