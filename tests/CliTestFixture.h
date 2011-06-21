@@ -79,6 +79,18 @@ private:
     CliTestFixture *tester;
 };
 
+#define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
+    void expect##EFUNC(); \
+    void return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
+#define FORWARD_1(FUNC, EFUNC, TYPE_1) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type);
+#define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
+    void expect##EFUNC(boost::call_traits<TYPE_1>::param_type); \
+    void return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
+#define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(TYPE_1, TYPE_2);
+#define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
+#define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
+#define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, std::ostream&);
 
 struct CliTestFixture
 {
@@ -86,66 +98,7 @@ struct CliTestFixture
 
     ~CliTestFixture();
 
-    void expectReportError(const std::string &errorMessage);
-    
-    void expectPrintMessage(const std::string &message);
-    
-    void expectConfirmDeletion(const Deska::Db::ObjectDefinition &object);
-    
-    void returnConfirmDeletion(bool confirm);
-    
-    void expectConfirmCreation(const Deska::Db::ObjectDefinition &object);
-    
-    void returnConfirmCreation(bool confirm);
-    
-    void expectConfirmRestoration(const Deska::Db::ObjectDefinition &object);
-    
-    void returnConfirmRestoration(bool confirm);
-    
-    void expectAskForCommitMessage();
-    
-    void returnAskForCommitMessage(const std::string &message);
-    
-    void expectAskForDetachMessage();
-    
-    void returnAskForDetachMessage(const std::string &message);
-    
-    void expectPrintHelp(const std::map<std::string, std::string> &cliCommands,
-                                       const std::map<std::string, std::string> &parserKeywords);
-                                       
-    void expectPrintHelpCommand(const std::string &cmdName, const std::string &cmdDscr);
-    
-    void expectPrintHelpKeyword(const std::string &keywordName, const std::string &keywordDscr);
-    
-    void expectPrintHelpKind(const std::string &kindName,
-                                      const std::vector<std::pair<std::string, std::string> > &kindAttrs,
-                                      const std::vector<std::string> &nestedKinds);
-    
-    void expectPrintHelpShowKinds(const std::vector<std::string> &kinds);
-    
-    void expectChooseChangeset(const std::vector<Deska::Db::PendingChangeset> &pendingChangesets);
-    
-    void returnChooseChangeset(int changeset);
-    
-    void expectReadLine(const std::string &prompt);
-    
-    void returnReadLine(const std::string &line);
-    
-    void expectPrintAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
-                                        std::ostream &out = std::cout);
-    
-    void expectPrintAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
-                                       std::ostream &out = std::cout);
-    
-    void expectPrintObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
-                                     bool fullName, std::ostream &out = std::cout);
-    
-    void expectPrintObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
-                                    std::ostream &out = std::cout);
-    
-    void expectPrintEnd(int indentLevel, std::ostream &out = std::cout);
-    
-    void expectAddCommandCompletion(const std::string &completion);
+#include "CliFunctionDefinitions.h"
     
     void verifyEnd();
     
