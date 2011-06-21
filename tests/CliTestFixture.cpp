@@ -42,16 +42,16 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 
 #define FORWARD_1(FUNC, EFUNC, TYPE_1) \
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
-void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
 
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) \
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
-void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
 #define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
 { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
-void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
 { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
 
 #define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
@@ -68,18 +68,18 @@ void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res)
 typedef std::map<std::string, std::string> map_string_string;
 typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
 
-FORWARD_1(reportError, expectReportError, std::string);
-FORWARD_1(printMessage, expectPrintMessage, std::string);
-FORWARD_2(printHelp, expectPrintHelp, map_string_string, map_string_string);
-FORWARD_2(printHelpCommand, expectPrintHelpCommand, std::string, std::string);
-FORWARD_2(printHelpKeyword, expectPrintHelpKeyword, std::string, std::string);
-FORWARD_1(printHelpShowKinds, expectPrintHelpShowKinds, std::vector<std::string>);
+FORWARD_1(reportError, ReportError, std::string);
+FORWARD_1(printMessage, PrintMessage, std::string);
+FORWARD_2(printHelp, PrintHelp, map_string_string, map_string_string);
+FORWARD_2(printHelpCommand, PrintHelpCommand, std::string, std::string);
+FORWARD_2(printHelpKeyword, PrintHelpKeyword, std::string, std::string);
+FORWARD_1(printHelpShowKinds, PrintHelpShowKinds, std::vector<std::string>);
 FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Db::ObjectDefinition);
 FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Db::ObjectDefinition);
 FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Db::ObjectDefinition);
 FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
 FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
-FORWARD_3(printHelpKind, expectPrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
+FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
 
 
 
