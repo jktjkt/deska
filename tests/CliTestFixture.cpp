@@ -41,25 +41,27 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 }
 
 #define FORWARD_1(FUNC, EFUNC, TYPE_1) \
-void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
-void CliTestFixture::EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
+void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
+void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
 
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) \
-void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
-void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
+void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
+void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
 
 #define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
-void TestUserInterfaceIO::FUNC(const TYPE_1 &arg1, const TYPE_2 &arg2, const TYPE_3 &arg3) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
-void CliTestFixture::EFUNC(const TYPE_1 &arg1, const TYPE_2 &arg2, const TYPE_3 &arg3) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
+void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
+{ tester->expectHelper(MockCliEvent::FUNC(arg1, arg2, arg3)); } \
+void CliTestFixture::EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2, boost::call_traits<TYPE_3>::param_type arg3) \
+{ cliEvents.push(MockCliEvent::FUNC(arg1, arg2, arg3)); }
 
 #define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) \
-RET_TYPE TestUserInterfaceIO::FUNC(const TYPE_1 &arg1) { \
+RET_TYPE TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { \
     MockCliEvent event = MockCliEvent::FUNC(arg1); \
     tester->expectHelper(event); \
     MockCliEvent ret = tester->returnHelper(event); \
     return ret.RET_VAR; \
     } \
-void CliTestFixture::expect##EFUNC(const TYPE_1 &arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
 void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
 
 
