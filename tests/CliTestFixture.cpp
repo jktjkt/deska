@@ -64,6 +64,16 @@ RET_TYPE TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) 
 void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
 void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
 
+#define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
+RET_TYPE TestUserInterfaceIO::FUNC() { \
+    MockCliEvent event = MockCliEvent::FUNC(); \
+    tester->expectHelper(event); \
+    MockCliEvent ret = tester->returnHelper(event); \
+    return ret.RET_VAR; \
+    } \
+void CliTestFixture::expect##EFUNC() { cliEvents.push(MockCliEvent::FUNC()); } \
+void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
+
 
 typedef std::map<std::string, std::string> map_string_string;
 typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
@@ -80,28 +90,8 @@ FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::D
 FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
 FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
 FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
-
-
-
-
-std::string TestUserInterfaceIO::askForCommitMessage()
-{
-    MockCliEvent event = MockCliEvent::askForCommitMessage();
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.str1;
-}
-
-
-
-std::string TestUserInterfaceIO::askForDetachMessage()
-{
-    MockCliEvent event = MockCliEvent::askForDetachMessage();
-    tester->expectHelper(event);
-    MockCliEvent ret = tester->returnHelper(event);
-    return ret.str1;
-}
-
+FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
+FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
 
 
 void TestUserInterfaceIO::printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
@@ -176,34 +166,6 @@ CliTestFixture::~CliTestFixture()
     if (conn != 0)
         delete conn;
 }
-
-
-void CliTestFixture::expectAskForCommitMessage()
-{
-    cliEvents.push(MockCliEvent::askForCommitMessage());
-}
-
-
-
-void CliTestFixture::returnAskForCommitMessage(const std::string &message)
-{
-    cliEvents.push(MockCliEvent::returnAskForCommitMessage(message));
-}
-
-
-
-void CliTestFixture::expectAskForDetachMessage()
-{
-    cliEvents.push(MockCliEvent::askForDetachMessage());
-}
-
-
-
-void CliTestFixture::returnAskForDetachMessage(const std::string &message)
-{
-    cliEvents.push(MockCliEvent::returnAskForDetachMessage(message));
-}
-
 
 
 void CliTestFixture::expectPrintAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
