@@ -44,9 +44,14 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) { tester->expectHelper(MockCliEvent::FUNC(arg1)); } \
 void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); }
 
+#define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) \
+void TestUserInterfaceIO::FUNC(TYPE_1 arg1, TYPE_2 arg2) \
+{ tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
+void CliTestFixture::expect##EFUNC(TYPE_1 arg1, TYPE_2 arg2) \
+{ cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
+
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) \
-void TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { tester->expectHelper(MockCliEvent::FUNC(arg1, arg2)); } \
-void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); }
+    FORWARD_2_RAW_ARGS(FUNC, EFUNC, boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type)
 
 #define FORWARD_3_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) \
 void TestUserInterfaceIO::FUNC(TYPE_1 arg1, TYPE_2 arg2, TYPE_3 arg3) \
@@ -107,18 +112,12 @@ FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
 FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
 FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
 FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
+FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
 
 
 void TestUserInterfaceIO::printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
 {
     tester->expectHelper(MockCliEvent::printObject(object, indentLevel, fullName));
-}
-
-
-
-void TestUserInterfaceIO::printEnd(int indentLevel, std::ostream &out)
-{
-    tester->expectHelper(MockCliEvent::printEnd(indentLevel));
 }
 
 
@@ -158,13 +157,6 @@ CliTestFixture::~CliTestFixture()
     if (conn != 0)
         delete conn;
 }
-
-
-void CliTestFixture::expectPrintEnd(int indentLevel, std::ostream &out)
-{
-    cliEvents.push(MockCliEvent::printEnd(indentLevel));
-}
-
 
 
 void CliTestFixture::expectAddCommandCompletion(const std::string &completion)
