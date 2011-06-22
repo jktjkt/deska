@@ -22,6 +22,8 @@
 * */
 
 #include <boost/assert.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Parser_p_PredefinedRules.h"
 #include "deska/db/Api.h"
 
@@ -84,23 +86,24 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_DOUBLE].name("double");
 
     rulesMap[Db::TYPE_IPV4_ADDRESS] = tIPv4Addr
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+        // got to specify the overload by hand; see http://stackoverflow.com/questions/2326586/how-to-force-template-function-overload-for-boostbind for details
+        [qi::_val = phoenix::bind(static_cast<boost::asio::ip::address_v4(*)(const std::string&)>(&boost::asio::ip::address_v4::from_string), qi::_1)];
     rulesMap[Db::TYPE_IPV4_ADDRESS].name("IPv4 address");
 
     rulesMap[Db::TYPE_IPV6_ADDRESS] = tIPv6Addr
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+        [qi::_val = phoenix::bind(static_cast<boost::asio::ip::address_v6(*)(const std::string&)>(&boost::asio::ip::address_v6::from_string), qi::_1)];
     rulesMap[Db::TYPE_IPV6_ADDRESS].name("IPv6 address");
 
     rulesMap[Db::TYPE_MAC_ADDRESS] = tMACAddr
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+        [qi::_val = phoenix::construct<Db::MacAddress>(qi::_1)];
     rulesMap[Db::TYPE_MAC_ADDRESS].name("MAC address");
 
     rulesMap[Db::TYPE_DATE] = tDate
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+        [qi::_val = phoenix::bind(&boost::gregorian::from_string, qi::_1)];
     rulesMap[Db::TYPE_DATE].name("Date in YYYY-MM-DD format");
 
     rulesMap[Db::TYPE_TIMESTAMP] = tTimeStamp
-        [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
+        [qi::_val = phoenix::bind(&boost::posix_time::from_iso_string, qi::_1)];
     rulesMap[Db::TYPE_TIMESTAMP].name("Timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();
