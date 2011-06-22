@@ -1,6 +1,6 @@
 SET search_path TO deska,api;
 
-CREATE OR REPLACE FUNCTION jsn.startChangeset()
+CREATE OR REPLACE FUNCTION jsn.startChangeset(tag text)
 RETURNS text
 AS
 $$
@@ -8,10 +8,9 @@ import dutil
 import json
 
 @pytypes
-def main():
+def main(tag):
 	name = "startChangeset"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	fname = 'api.'+ name + "()"
 	try:
@@ -24,7 +23,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.abortCurrentChangeset()
+CREATE OR REPLACE FUNCTION jsn.abortCurrentChangeset(tag text)
 RETURNS text
 AS
 $$
@@ -32,10 +31,9 @@ import dutil
 import json
 
 @pytypes
-def main():
+def main(tag):
 	name = "abortCurrentChangeset"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	fname = 'api.'+ name + "()"
 	try:
@@ -47,7 +45,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.resumeChangeset(revision text)
+CREATE OR REPLACE FUNCTION jsn.resumeChangeset(tag text, revision text)
 RETURNS text
 AS
 $$
@@ -55,10 +53,9 @@ import dutil
 import json
 
 @pytypes
-def main(revision):
+def main(tag,revision):
 	name = "resumeChangeset"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	fname = 'api.'+ name + "(text)"
 	try:
@@ -70,7 +67,7 @@ def main(revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.commitChangeset(commitMessage text)
+CREATE OR REPLACE FUNCTION jsn.commitChangeset(tag text, commitMessage text)
 RETURNS text
 AS
 $$
@@ -78,10 +75,9 @@ import dutil
 import json
 
 @pytypes
-def main(commitMessage):
+def main(tag,commitMessage):
 	name = "commitChangeset"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	fname = 'api.'+ name + "(text)"
 	try:
@@ -93,7 +89,7 @@ def main(commitMessage):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.detachFromCurrentChangeset(message text)
+CREATE OR REPLACE FUNCTION jsn.detachFromCurrentChangeset(tag text, message text)
 RETURNS text
 AS
 $$
@@ -101,10 +97,9 @@ import dutil
 import json
 
 @pytypes
-def main(message):
+def main(tag,message):
 	name = "detachFromCurrentChangeset"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	fname = 'api.'+ name + "(text)"
 	try:
@@ -116,7 +111,7 @@ def main(message):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.pendingChangesets(filter text = NULL)
+CREATE OR REPLACE FUNCTION jsn.pendingChangesets(tag text, filter text = NULL)
 RETURNS text
 AS
 $$
@@ -124,10 +119,9 @@ import dutil
 import json
 
 @pytypes
-def main(filter):
+def main(tag,filter):
 	name = "pendingChangesets"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	filter = dutil.Filter(filter)
 	select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + filter.getWhere()
@@ -151,7 +145,7 @@ def main(filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.listRevisions(filter text)
+CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text)
 RETURNS text
 AS
 $$
@@ -159,10 +153,9 @@ import dutil
 import json
 
 @pytypes
-def main(filter):
+def main(tag,filter):
 	name = "listRevisions"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	filter = dutil.Filter(filter)
 	select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + filter.getWhere()

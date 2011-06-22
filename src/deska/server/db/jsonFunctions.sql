@@ -1,6 +1,6 @@
 SET search_path TO deska,api;
 
-CREATE OR REPLACE FUNCTION jsn.kindNames()
+CREATE OR REPLACE FUNCTION jsn.kindNames(tag text)
 RETURNS text
 AS
 $$
@@ -8,10 +8,9 @@ import dutil
 import json
 
 @pytypes
-def main():
+def main(tag):
 	name = "kindNames"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	select = 'SELECT * FROM api.kindNames()'
 	try:
@@ -28,7 +27,7 @@ def main():
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.kindAttributes(kindName text)
+CREATE OR REPLACE FUNCTION jsn.kindAttributes(tag text, kindName text)
 RETURNS text
 AS
 $$
@@ -46,11 +45,9 @@ type_dict = ({
 })
 
 @pytypes
-def main(kindName):
+def main(tag,kindName):
 	name = "kindAttributes"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
+	jsn = dutil.jsn(name,tag)
 
 	select = 'SELECT * FROM api.kindAttributes($1)'
 	try:
@@ -67,7 +64,7 @@ def main(kindName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.kindRelations(kindName text)
+CREATE OR REPLACE FUNCTION jsn.kindRelations(tag text, kindName text)
 RETURNS text
 AS
 $$
@@ -75,10 +72,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName):
+def main(tag,kindName):
 	name = "kindRelations"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 
 	select = 'SELECT * FROM api.kindRelations($1)'
 	try:
@@ -99,7 +95,7 @@ def main(kindName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.kindInstances(kindName text,revision text)
+CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text)
 RETURNS text
 AS
 $$
@@ -107,10 +103,10 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,revision):
+def main(tag,kindName,revision):
 	name = "kindInstances"
-	jsn = dict()
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
+
 	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
