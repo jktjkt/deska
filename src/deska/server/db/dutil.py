@@ -50,6 +50,10 @@ class DeskaException(Exception):
 
 		return json.dumps(jsn)
 
+def jsn(name,tag):
+	'''Create json sceleton'''
+	return {"response": name, "tag": tag}
+
 
 def mystr(s):
 	'''Like str but only not for all'''
