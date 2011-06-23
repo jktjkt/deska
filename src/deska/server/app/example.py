@@ -2,30 +2,27 @@ from jsonparser import CommandParser
 from dbapi import DB
 
 data = list([
-	'{"command": "freezeView"}',
-	'{"command": "unFreezeView"}',
-	'{"command": "kindNames"}',
-	'{"command": "kindAttributes", "kindName": "vendor" }',
-	'{"command": "kindAttributes", "kindName": "hardware" }',
-	'{"command": "kindAttributes", "kindName": "interface" }',
-	'{"command": "kindAttributes", "kindName": "host"}',
-	'{"command": "kindInstances",  "kindName": "vendor" }',
-	'{"command": "kindRelations", "kindName": "interface" }',
-	'{"command": "kindRelations", "kindName": "vendor" }',
-	'{"command": "startChangeset"}',
-	'{"command": "createObject", "kindName": "vendor", "objectName": "HP" }',
-	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" }',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011"}',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "warranty", "attributeData":"10/10/2013"}',
-	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
-	'{"command": "commitChangeset", "commitMessage": "test message"}',
-	'{"command": "pendingChangesets"}',
-	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2"}'
+	'{"command": "freezeView", "tag":"TAG"}',
+	'{"command": "unFreezeView", "tag":"TAG"}',
+	'{"command": "kindNames", "tag":"TAG"}',
+	'{"command": "kindAttributes", "kindName": "vendor" , "tag":"TAG"}',
+	'{"command": "kindAttributes", "kindName": "hardware" , "tag":"TAG"}',
+	'{"command": "kindAttributes", "kindName": "interface" , "tag":"TAG"}',
+	'{"command": "kindAttributes", "kindName": "host", "tag":"TAG"}',
+	'{"command": "kindInstances",  "kindName": "vendor" , "tag":"TAG"}',
+	'{"command": "kindRelations", "kindName": "interface" , "tag":"TAG"}',
+	'{"command": "kindRelations", "kindName": "vendor" , "tag":"TAG"}',
+	'{"command": "startChangeset", "tag":"TAG"}',
+	'{"command": "createObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"}',
+	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP", "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011", "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "warranty", "attributeData":"10/10/2013", "tag":"TAG"}',
+	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
+	'{"command": "commitChangeset", "commitMessage": "test message", "tag":"TAG"}',
+	'{"command": "pendingChangesets", "tag":"TAG"}',
+	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2", "tag":"TAG"}'
 ])
-
-#data = list(['{"command": "pendingChangesets"}'])
-#data = list(['{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP"}'])
 
 dbargs = {"database": "deska_dev"}
 db = DB(**dbargs)

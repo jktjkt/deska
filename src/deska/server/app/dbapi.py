@@ -62,17 +62,17 @@ class DB:
 		else:
 			return str(data)
 
-	def errorJson(self,command,message):
-		jsn = dict({"response": command,
+	def errorJson(self,command,tag,message):
+		jsn = dict({"response": command, "tag": tag,
 			"dbException": {"type": "ServerError", "message": message}
 		})
 		return json.dumps(jsn)
 	
-	def responseJson(self,command):
-		jsn = dict({"response": command})
+	def responseJson(self,command,tag):
+		jsn = dict({"response": command, "tag": tag})
 		return json.dumps(jsn)
 
-	def freezeUnfreeze(self,name):
+	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
 			# set isolation level serializable, and read only transaction
 			# FIXME: better solution needs psycopg2.4.2
@@ -81,7 +81,7 @@ class DB:
 			self.db.commit()
 			# commit and start new transaction with selected properties
 			self.freeze = True
-			return self.responseJson(name)
+			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
 			# set isolation level readCommited
 			# FIXME: better solution needs psycopg2.4.2
@@ -91,9 +91,9 @@ class DB:
 			# commit and start new transaction with selected properties
 			self.db.commit()
 			self.freeze = False
-			return self.responseJson(name)
+			return self.responseJson(name,tag)
 		else:
-			return self.errorJson(name,"Only freeze or unFreeze")
+				return self.errorJson(name,tag,"Only freeze or unFreeze")
 
 	def commit(self):
 		if not self.freeze:
@@ -105,9 +105,13 @@ class DB:
 		if self.error is not None:
 			return self.errorJson(name,"No connection to DB")
 
+		if "tag" not in args:
+			return self.errorJson(name,"ERROR","Missing 'tag'!")
+		tag = args["tag"]
+
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):
-			return self.freezeUnfreeze(name)
+			return self.freezeUnfreeze(name,tag)
 
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
@@ -122,7 +126,7 @@ class DB:
 					args["revision"] = None
 				logging.debug("{0} was not present, pass None arguments".format(not_present))
 			else:
-				return self.errorJson(name,"Missing arguments: {0}".format(list(not_present)))
+				return self.errorJson(name,tag,"Missing arguments: {0}".format(list(not_present)))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -138,7 +142,7 @@ class DB:
 		except Exception, e:
 			logging.debug("Exception when call db function: {e})".format(e = e))
 			self.commit()
-			return self.errorJson(name,e.message.split("\n")[0])
+			return self.errorJson(name,tag,e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: {d})".format(d = data))
 		self.commit()
