@@ -1,6 +1,8 @@
+'''Test creating, resuming and throwing away of pending changesets'''
+
 from apiUtils import *
 
-j = [
+declarative = [
     # start with an empty state
     pendingChangesets().returns([]),
     # create new changeset

@@ -71,24 +71,27 @@ struct AttributeExpression
 /** @short A generic expression */
 typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
 
+struct OrFilter;
+struct AndFilter;
+
+/** @short Filter for limiting the result set of an operation */
+typedef boost::variant<Expression, boost::recursive_wrapper<OrFilter>, boost::recursive_wrapper<AndFilter> > Filter;
+
 /** @short Perform a logical disjunction of all expression included below */
 struct OrFilter
 {
-    std::vector<Expression> operands;
+    std::vector<Filter> operands;
 
-    OrFilter(const std::vector<Expression> operands);
+    OrFilter(const std::vector<Filter> operands);
 };
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
 {
-    std::vector<Expression> operands;
+    std::vector<Filter> operands;
 
-    AndFilter(const std::vector<Expression> operands);
+    AndFilter(const std::vector<Filter> operands);
 };
-
-/** @short Filter for limiting the result set of an operation */
-typedef boost::variant<Expression, OrFilter, AndFilter> Filter;
 
 }
 }

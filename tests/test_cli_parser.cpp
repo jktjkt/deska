@@ -1,4 +1,5 @@
-/* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
+/*
+* Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
 * http://projects.flaska.net/projects/show/deska
@@ -19,7 +20,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE cli_parser
 #include <boost/test/unit_test.hpp>
 #include "deska/cli/Parser.h"
 #include "ParserTestFixture.h"
@@ -202,6 +203,34 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
     verifyEmptyStack();
 }
 
+/** @short test correct parsing of simple string argument */
+BOOST_FIXTURE_TEST_CASE(parsing_simple_string_inline, ParserTestFixture)
+{
+    parser->parseLine("hardware abcde id 1243 name jmeno price 1234.5\n");
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", Deska::Db::Value(1243));
+    expectSetAttr("name", Deska::Db::Value("jmeno"));
+    expectSetAttr("price", Deska::Db::Value(1234.5));
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short error in parsing of simple string argument */
+BOOST_FIXTURE_TEST_CASE(error_in_simple_string_inline, ParserTestFixture)
+{
+    const std::string line = "hardware abcde id 1243 name jmeno pokracuje price 1234.5\n";
+    const std::string::const_iterator it = line.begin() + line.find("pokracuje");
+    parser->parseLine(line);
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("id", Deska::Db::Value(1243));
+    expectSetAttr("name", Deska::Db::Value("jmeno"));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
 /** @short Syntax error in the data type of the first attribute
 
 A single-line input which enters a new category and immediately after that encounters an exception.
@@ -242,7 +271,7 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, ParserTestFixture)
     const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -493,7 +522,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_single_definition, ParserTestFix
     const std::string line = "haware foo\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -504,7 +533,7 @@ BOOST_FIXTURE_TEST_CASE(error_end_no_context, ParserTestFixture)
     const std::string line = "end\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -669,7 +698,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -751,7 +780,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_no_context
     const std::string line = "delete hot 123\n";
     const std::string::const_iterator it = line.begin() + line.find("hot");
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -792,7 +821,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_no_context, 
     const std::string line = "show hot 123\n";
     const std::string::const_iterator it = line.begin() + line.find("hot");
     parser->parseLine(line);
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1350,7 +1379,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
     const std::string line = "rename\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
-    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }

@@ -6,6 +6,9 @@
 \usepackage{listings}
 \usepackage{longtable}
 \usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
 
 \begin{document}
 
@@ -74,42 +77,52 @@ This section defines how an abstract notion of a command or response is converte
 
 \subsection{Commands and Responses}
 
-Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
-the hypothetical command {\tt foo}, which does not accept any arguments, will be transmitted in the following form (we
-will omit the trailing line feed for brevity in the following examples):
+First of all, each command has to identify its purpose, ie. which function to invoke on the remote end of the
+connection.  A name is a perfect identifier.  Furthermore, to allow future pipelining of commands to achieve greater
+throughput, we have to add some identification to each command-response pair.  This identification has to be provided by
+the client.  This identification is called a {\em tag}, and apart from being a string, there are no further
+requirements on its format.
+
+Suppose the hypothetical command {\tt foo}, which does not accept any arguments.  It will be transmitted using the
+following format, provided the client decided to use {\tt "0"} as the associated tag (we will omit the trailing line
+feed for brevity in the following examples):
 
 \begin{lstlisting}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
-A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
-response for the above command will look like this:
+A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal and repeating the
+{\tt tag} key, therefore a response for the above command will look like this:
 
 \begin{lstlisting}
-    {"response": "foo"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
 
-FIXME: change this (and all other sections) when token-based interface is introduced, issue 238
+The {\tt response} key is included in order to allow stateless implementations of the DBAPI parsers.  Had the parameter
+been omitted, it would not be possible to enforce proper structure of the JSON data without keeping track of what
+command used what tag.
+
+Please note that these provisions for {\em future} pipelining are here mainly to design the protocol in
+forward-compatible way; none of the implementations shipped in Deska support command pipelining (as of 2011).  This
+specification will be extended if pipelining gets allowed in future.
 
 \subsubsection{Passing Arguments}
 
 Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
-the one we discussed above, with the arguments simply appended to the top-level JSON object.  All parameters are also
-repeated in the relevant response:
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are,
+however, not repeated in the relevant response, which retains just the (response, tag) pair:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
 free to add it to make the JSON data more readable, or not include them at all.  In addition, to improve the
 interoperability, the Deska DBAPI mandates that the order of appearance of individual key-value pairs inside a JSON
 object is {\em not} significant, and therefore one is explicitly allowed to use a sequence of {\tt arg2}, {\tt command},
-{\tt arg1} for the example above.  Please note that the order of key-value pairs in the response object can be different
-than in the associated command.
+{\tt arg1} for the example above.  The order of key-value pairs in the response object can be also different.
 
 \subsubsection{Returning Data}
 
@@ -123,9 +136,8 @@ would look like this one:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value", "foo": "The returned value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0", "foo": "The returned value"}
 \end{lstlisting}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
@@ -177,14 +189,14 @@ underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2,
 {\tt foo}:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": [1, 2, 3]}
+    {"command": "foo", "tag": "0", "a1": [1, 2, 3]}
 \end{lstlisting}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": ["a": 1, "b": 2, "c": 3]}
+    {"command": "foo", "tag": "0", "a1": ["a": 1, "b": 2, "c": 3]}
 \end{lstlisting}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
@@ -205,7 +217,7 @@ passed prefixed by their name.  Therefore, given class {\tt Foo} with the follow
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": {"i": 10, "s": "something"}}
+    {"command": "foo", "tag": "0", "a1": {"i": 10, "s": "something"}}
 \end{lstlisting}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
@@ -232,8 +244,8 @@ between the two conventions, so the following examples are equivalent, provided 
 an accept NULL:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": null}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0", "a1": null}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
 Please note that this rule does {\em not} translate to ``one can freely omit {\tt null} values in any place''; indeed,
@@ -280,6 +292,8 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt FilterError} & The specified filter is not valid & -- \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
     \deskaFuncRef{restoreDeletedObject}. & -- \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -315,7 +329,7 @@ The following table provides a quick and compact overview of the officially supp
 JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
 API function.
 
-\begin{longtable}{ p{18mm} | p{35mm} p{41mm} p{45mm} }
+\begin{longtable}{ p{20mm} | p{29mm} p{47mm} p{30mm} }
     \caption{JSON serialization of data types for attribute values} \\
     Name & SQL Data Type & C++ Data Type & JSON Serialization \\
     \hline
@@ -326,6 +340,9 @@ API function.
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
     {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
     {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
+    {\tt ipv4address} & FIXME & {\tt boost::asio::ip::address\_v4} & {\tt "127.0.0.1"} \\
+    {\tt ipv6address} & FIXME & {\tt boost::asio::ip::address\_v6} & {\tt "::1"} \\
+    {\tt macaddress} & macaddr & {\tt Deska::Db::MacAddress} & {\tt "00:16:3e:37:53:2B"} \\
     {\tt enum\_X}\footnote{See section \ref{sec:json-extending} for instructions about how to add new enumerations to both
         the Deska DB and the C++ library.} & ENUM (``A'', ``B'') & {\tt typedef enum \{A, B\} X} & {\tt "A"} \\
 \end{longtable}
@@ -358,8 +375,8 @@ relation information etc.  The following types are defined:
         "enum\_X"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
         One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}},
-        \newline
+        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "IS\_TEMPLATE", "target": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -390,9 +407,9 @@ relation information etc.  The following types are defined:
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
-        {\tt \{"operator": "and", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "and", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
-        {\tt \{"operator": "or", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "or", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
         Expression
 
@@ -501,10 +518,9 @@ and can refer to any property which is normally returned by the function being e
 IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
 object's attribute, the key has to be specified by a tuple of {\tt kind} and {\tt attribute} identifiers.
 
-More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
-time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
-operators is allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
-arises.
+More complicated conditions can be created by chaining the expressions into logical conjunction and disjunction.
+Implementations are expected to limit the maximal allowed depth of operator nesting to prevent overly expensive
+operations and to mitigate a possible DoS attack.
 
 Under certain circumstances, it is be useful to allow querying of objects using indirect criteria, like ``return all
 hosts with an interface that is connected to a particular VLAN''.  The \deskaFuncRef{multipleObjectData} querying {\em
@@ -519,6 +535,23 @@ such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
+\subsubsection{Output Ordering}
+
+Certain functions return a list of values.  The general rule is that the order of returned items is not stable, unless
+specified otherwise.  The sorting may even vary among several executions of the same command with the very same
+arguments executed in a single session.  That said, there are certain situations where sorting the results on the server
+side clearly improves the client's efficiency, and is therefore fixed for the DBAPI.
+
+Any function which returns a list of pending changesets or a list of persistent revisions is guaranteed to sort the
+result by the changeset or revision, lower numbers first.  Examples of these functions are \deskaFuncRef{listRevisions}
+and \deskaFuncRef{pendingChangesets}.
+
+Functions which return lists of objects or their identifiers, like \deskaFuncRef{kindNames},
+\deskaFuncRef{kindInstances} etc, do not provide any guarantees about the sort order.
+
+The diffing functions (see section \ref{sec:api-group-history}) sorts the results according to special rules, see their
+description for more details.
+
 \subsection{API Reference}
 
 \newcommand{\deskaFunc}[5]
@@ -528,11 +561,13 @@ FIXME: change the sentence above when fine-grained filter exceptions are introdu
 
 {#5}
 
-\subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
+\subparagraph{Sample JSON input} {\tt \{"command": "{#1}", "tag": "T"{#2}\}}
 
-\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}", "tag": "T"\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
 
 }
+
+\newcommand{\deskaUnsortedRes}{The order of the returned data is not specified.}
 
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
 \setcounter{secnumdepth}{4}
@@ -546,23 +581,24 @@ and the defined object relations.
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
     {Return list of names of configured top-level Kinds}
     {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
-    {\tt kindName} argument to various other functions.}
+    {\tt kindName} argument to various other functions.  \deskaUnsortedRes}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
     {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
-    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.  \deskaUnsortedRes}
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware"\}, \\
             \{"relation": "MERGE\_WITH", "target": "second-kind"\}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind"\}, \\
             \{"relation": "IS\_TEMPLATE", "target": "target-kind"\}, \\
             \{"relation": "TEMPLATIZED", "target": "by-which-kind"\} \\
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
-    the ObjectRelation struct.}
+    the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
 \label{sec:api-group-data-retrieval}
@@ -577,7 +613,7 @@ Functions from this group are used for fetching actual data from the database.
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
     \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
     a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
-    selected object kind, but can also follow defined object relations to create more complex queries.}
+    selected object kind, but can also follow defined object relations to create more complex queries.  \deskaUnsortedRes}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
@@ -591,7 +627,7 @@ Functions from this group are used for fetching actual data from the database.
     attribute is always missing from the \deskaFuncRef{objectData} output.
 
     For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
-    \deskaFuncRef{multipleResolvedObjectData}.
+    \deskaFuncRef{multipleResolvedObjectData}.  \deskaUnsortedRes
     }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
@@ -601,7 +637,7 @@ Functions from this group are used for fetching actual data from the database.
     {Get all attributes for instances matching the specified filter}
     {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
     present in the result, even if it has no attributes.  The amount of data returned is the same as in
-    \deskaFuncRef{objectData} function.}
+    \deskaFuncRef{objectData} function.  \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
@@ -609,7 +645,7 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
 
-    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
+    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
 \deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     { \{ \\
@@ -617,7 +653,7 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  \deskaUnsortedRes}
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
@@ -721,7 +757,9 @@ Querying History}, section \ref{sec:api-group-history}.
     database.
 
     An optional argument {\tt filter} can be used to limit the amount of data returned.  Filters can reference any
-    available property of the temporary changeset.}
+    available property of the temporary changeset.
+
+    The results are sorted by the changeset identification using numeric sort of its value, lowest changesets first.}
 
 \deskaFunc{resumeChangeset}{, "revision": "r123"}
     {}
@@ -777,7 +815,9 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return a list of metadata for matching revisions}
     {This function returns a list of metadata for revisions matching the search criteria.  When no search criteria are
     specified, it will return metadata for all persistent revisions.  The filter can reference all attributes of a
-    revision, as well as any object data.}
+    revision, as well as any object data.
+
+    The result is sorted by the revision using a numeric sort, with lowest values returned first.}
 
 \deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
     {[ \\
@@ -790,9 +830,10 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return differences between the database state in the specified versions}
     {This function will produce a list of differences between the database state in the two indicated revisions.  The
     returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
-    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
-    object has been created and its attribute set to a particular value, the creation shall be present before the record
-    for setting an attribute.
+    existing one, or setting a single attribute.
+
+    The order of the returned data is significant; for example, if an object has been created and its attribute set to a
+    particular value, the creation shall be present before the record for setting an attribute.
 
     An optional filter is allowed to reference any object's attributes, as well as revision metadata.
 

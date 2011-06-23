@@ -1,6 +1,6 @@
 SET search_path TO api,deska;
 
-CREATE OR REPLACE FUNCTION jsn.setAttribute(kindName text, objectName text, attributeName text, attributeData text)
+CREATE OR REPLACE FUNCTION jsn.setAttribute(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
 $$
@@ -8,14 +8,10 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName,attributeName,attributeData):
+def main(tag,kindName,objectName,attributeName,attributeData):
 	name = "setAttribute"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
-	jsn["attributeName"] = attributeName
-	jsn["attributeData"] = attributeData
+	jsn = dutil.jsn(name,tag)
+	
 	fname = kindName+"_set_"+attributeName+"(text,text)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
@@ -26,7 +22,7 @@ def main(kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.renameObject(kindName text, oldName text, newName text)
+CREATE OR REPLACE FUNCTION jsn.renameObject(tag text, kindName text, oldName text, newName text)
 RETURNS text
 AS
 $$
@@ -34,13 +30,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,oldName,newName):
+def main(tag,kindName,oldName,newName):
 	name = "renameObject"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["oldObjectName"] = oldName
-	jsn["newObjectName"] = newName
+	jsn = dutil.jsn(name,tag)
 
 	fname = kindName+"_set_name(text,text)"
 	try:
@@ -52,7 +44,7 @@ def main(kindName,oldName,newName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.createObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.createObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -60,12 +52,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(tag,kindName,objectName):
 	name = "createObject"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
+	jsn = dutil.jsn(name,tag)
 
 	fname = kindName+"_add(text)"
 	try:
@@ -77,7 +66,7 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.deleteObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.deleteObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -85,12 +74,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(tag,kindName,objectName):
 	name = "deleteObject"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
+	jsn = dutil.jsn(name,tag)
 
 	fname = kindName+"_del(text)"
 	try:
@@ -102,7 +88,7 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -110,12 +96,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(tag,kindName,objectName):
 	name = "restoreDeletedObject"
-	jsn = dict()
-	jsn["response"] = name
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
+	jsn = dutil.jsn(name,tag)
 
 	fname = kindName+"_undel(text)"
 	try:
@@ -127,7 +110,7 @@ def main(kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text, revision text)
+CREATE OR REPLACE FUNCTION jsn.objectData(tag text, kindName text, objectName text, revision text)
 RETURNS text
 AS
 $$
@@ -135,12 +118,9 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName,revision):
-	jsn = dict()
+def main(tag,kindName,objectName,revision):
 	name = "objectData"
-	jsn["response"] = name
-	jsn["objectName"] = objectName
-	jsn["kindName"] = kindName
+	jsn = dutil.jsn(name,tag)
 
 	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
 	try:
@@ -156,7 +136,7 @@ def main(kindName,objectName,revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.dataDifference(a text, b text)
+CREATE OR REPLACE FUNCTION jsn.dataDifference(tag text, a text, b text)
 RETURNS text
 AS
 $$
@@ -166,12 +146,9 @@ import dutil
 from dutil import mystr,kinds,oneKindDiff
 
 @pytypes
-def main(a,b):
-	jsn = dict()
+def main(tag,a,b):
 	name = "dataDifference"
-	jsn["response"] = name
-	jsn["revisionA"] = a
-	jsn["revisionB"] = b
+	jsn = dutil.jsn(name,tag)
 	
 	res = list()
 	try:
@@ -186,7 +163,7 @@ def main(a,b):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset()
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text)
 RETURNS text
 AS
 $$
@@ -196,10 +173,9 @@ import dutil
 from dutil import mystr,kinds,oneKindDiff
 
 @pytypes
-def main():
-	jsn = dict()
+def main(tag):
 	name = "dataDifferenceInTemporaryChangeset"
-	jsn["response"] = name
+	jsn = dutil.jsn(name,tag)
 	
 	res = list()
 	try:

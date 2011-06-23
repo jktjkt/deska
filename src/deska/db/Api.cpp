@@ -41,6 +41,7 @@ std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Iden
             end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == relation.target);
             break;
         case RELATION_IS_TEMPLATE:
+        case RELATION_REFERS_TO:
             // no special cases
             break;
         case RELATION_TEMPLATIZED:
@@ -100,6 +101,8 @@ REMOTEEXCEPTION(ChangesetAlreadyOpenError)
 REMOTEEXCEPTION(FreezingError)
 REMOTEEXCEPTION(FilterError)
 REMOTEEXCEPTION(ReCreateObjectError)
+REMOTEEXCEPTION(RevisionParsingError)
+REMOTEEXCEPTION(ChangesetParsingError)
 REMOTEEXCEPTION(SqlError)
 REMOTEEXCEPTION(ServerError)
 

@@ -1,6 +1,8 @@
+'''Test createObject() behavior with pending changesets and revisions'''
+
 from apiUtils import *
 
-j = [
+declarative = [
     # start with an empty state
     pendingChangesets().returns([]),
     # create new changeset
