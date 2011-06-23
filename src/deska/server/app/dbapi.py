@@ -40,6 +40,9 @@ class DB:
 			self.db = psycopg2.connect(**kwargs);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
+			# commit search_path
+			self.db.commit()
+			self.freeze = False
 			self.error = None
 		except Exception, e:
 			self.error = e
@@ -64,12 +67,48 @@ class DB:
 			"dbException": {"type": "ServerError", "message": message}
 		})
 		return json.dumps(jsn)
+	
+	def responseJson(self,command):
+		jsn = dict({"response": command})
+		return json.dumps(jsn)
+
+	def freezeUnfreeze(self,name):
+		if name == "freezeView":
+			# set isolation level serializable, and read only transaction
+			# FIXME: better solution needs psycopg2.4.2
+			# self.db.set_session(SERIALIZABLE,True)
+			self.db.set_isolation_level(2)
+			self.db.commit()
+			# commit and start new transaction with selected properties
+			self.freeze = True
+			return self.responseJson(name)
+		elif name == "unFreezeView":
+			# set isolation level readCommited
+			# FIXME: better solution needs psycopg2.4.2
+			#self.db.set_session(DEFAULT,False)
+			self.db.set_isolation_level(1)
+			self.db.commit()
+			# commit and start new transaction with selected properties
+			self.db.commit()
+			self.freeze = False
+			return self.responseJson(name)
+		else:
+			return self.errorJson(name,"Only freeze or unFreeze")
+
+	def commit(self):
+		if not self.freeze:
+			self.db.commit()
 
 	def run(self,name,args):
 		logging.debug("start run method({n}, {a})".format(n = name, a = args))
 		# test if connection is ok
 		if self.error is not None:
 			return self.errorJson(name,"No connection to DB")
+
+		# this two spectial commands handle db transactions
+		if name in set(["freezeView","unFreezeView"]):
+			return self.freezeUnfreeze(name)
+
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
@@ -98,11 +137,11 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: {e})".format(e = e))
-			self.db.commit()
+			self.commit()
 			return self.errorJson(name,e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: {d})".format(d = data))
-		self.db.commit()
+		self.commit()
 		return data
 
 

@@ -2,6 +2,8 @@ from jsonparser import CommandParser
 from dbapi import DB
 
 data = list([
+	'{"command": "freezeView"}',
+	'{"command": "unFreezeView"}',
 	'{"command": "kindNames"}',
 	'{"command": "kindAttributes", "kindName": "vendor" }',
 	'{"command": "kindAttributes", "kindName": "hardware" }',
@@ -19,7 +21,7 @@ data = list([
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" }',
 	'{"command": "commitChangeset", "commitMessage": "test message"}',
 	'{"command": "pendingChangesets"}',
-	'{"command": "dataDifference", "a":"r1", "b":"r2"}'
+	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2"}'
 ])
 
 #data = list(['{"command": "pendingChangesets"}'])
