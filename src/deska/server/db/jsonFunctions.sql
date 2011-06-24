@@ -12,17 +12,7 @@ def main(tag):
 	name = "kindNames"
 	jsn = dutil.jsn(name,tag)
 
-	select = 'SELECT * FROM api.kindNames()'
-	try:
-		colnames, cur = dutil.getdata(select)
-	except dutil.DeskaException as err:
-		return err.json(name,jsn)
-	
-	res = list()
-	for line in cur:
-		res.append(str(line[0]))
-
-	jsn[name] = res
+	jsn[name] = dutil.generated.kinds()
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
