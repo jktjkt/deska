@@ -2,6 +2,7 @@
 
 import Postgres
 import json
+import generated
 
 class DeskaException(Exception):
 	'''Exception class for deska exceptions'''
@@ -16,18 +17,17 @@ class DeskaException(Exception):
 
 	def __init__(self,dberr):
 		'''Construct DeskaException from Postgres.dberr exception'''
-		self.dberr = dberr
+		self.code = dberr.code
+		self.message = dberr.message
 		self.parseDberr()
 		
 	def parseDberr(self):
 		'''Parse Postgres.dberr into variables used for json dump'''
-		self.type = self.getType(self.dberr.code)
-		if self.dberr.code == '42601':
+		self.type = self.getType(self.code)
+		if self.code == '42601':
 			self.message = "Syntax error, something strange happend."
-		if self.dberr.code == '42883':
+		if self.code == '42883':
 			self.message = "Either kindName or attribute does not exists."
-		else:
-			self.message = self.dberr.message
 
 	def getType(self,errcode):
 		'''Return DeskaExceptionType for given error code'''
@@ -54,6 +54,12 @@ def jsn(name,tag):
 	'''Create json sceleton'''
 	return {"response": name, "tag": tag}
 
+def errorJson(self,command,tag,typ,message):
+	'''Create json error string'''
+	jsn = dict({"response": command, "tag": tag
+		"dbException": {"type": typ, "message": message}
+		})
+	return json.dumps(jsn)
 
 def mystr(s):
 	'''Like str but only not for all'''

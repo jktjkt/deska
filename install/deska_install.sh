@@ -47,7 +47,7 @@ function stage(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql"
+	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql" > ${DB_SOURCES}/generated.py
 }
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
