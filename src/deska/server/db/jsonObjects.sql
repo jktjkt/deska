@@ -11,7 +11,14 @@ import json
 def main(tag,kindName,objectName,attributeName,attributeData):
 	name = "setAttribute"
 	jsn = dutil.jsn(name,tag)
-	
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	# check attribute 
+	if attributeName not in dutil.generated.atts(kindName):
+		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
+
 	fname = kindName+"_set_"+attributeName+"(text,text)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
@@ -33,6 +40,10 @@ import json
 def main(tag,kindName,oldName,newName):
 	name = "renameObject"
 	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
 	fname = kindName+"_set_name(text,text)"
 	try:
@@ -56,6 +67,10 @@ def main(tag,kindName,objectName):
 	name = "createObject"
 	jsn = dutil.jsn(name,tag)
 
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_add(text)"
 	try:
 		dutil.fcall(fname,objectName)
@@ -77,6 +92,10 @@ import json
 def main(tag,kindName,objectName):
 	name = "deleteObject"
 	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
 	fname = kindName+"_del(text)"
 	try:
@@ -100,6 +119,10 @@ def main(tag,kindName,objectName):
 	name = "restoreDeletedObject"
 	jsn = dutil.jsn(name,tag)
 
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_undel(text)"
 	try:
 		dutil.fcall(fname,objectName)
@@ -122,6 +145,10 @@ def main(tag,kindName,objectName,revision):
 	name = "objectData"
 	jsn = dutil.jsn(name,tag)
 
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
@@ -143,7 +170,7 @@ $$
 import Postgres
 import json
 import dutil
-from dutil import mystr,kinds,oneKindDiff
+from dutil import mystr,oneKindDiff
 
 @pytypes
 def main(tag,a,b):
@@ -152,7 +179,7 @@ def main(tag,a,b):
 	
 	res = list()
 	try:
-		for kindName in kinds():
+		for kindName in dutil.generated.kinds():
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
@@ -170,7 +197,7 @@ $$
 import Postgres
 import json
 import dutil
-from dutil import mystr,kinds,oneKindDiff
+from dutil import mystr,oneKindDiff
 
 @pytypes
 def main(tag):
@@ -179,7 +206,7 @@ def main(tag):
 	
 	res = list()
 	try:
-		for kindName in kinds():
+		for kindName in dutil.generated.kinds():
 			res.extend(oneKindDiff(kindName))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)

@@ -64,6 +64,10 @@ def main(tag,kindName):
 	name = "kindRelations"
 	jsn = dutil.jsn(name,tag)
 
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	select = 'SELECT * FROM api.kindRelations($1)'
 	try:
 		colnames, cur = dutil.getdata(select,kindName)
@@ -94,6 +98,10 @@ import json
 def main(tag,kindName,revision):
 	name = "kindInstances"
 	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
 	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
