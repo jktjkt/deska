@@ -39,17 +39,15 @@ def main(tag,kindName):
 	name = "kindAttributes"
 	jsn = dutil.jsn(name,tag)
 
-	select = 'SELECT * FROM api.kindAttributes($1)'
-	try:
-		colnames, cur = dutil.getdata(select,kindName)
-	except dutil.DeskaException as err:
-		return err.json(name,jsn)
-	
-	res = dict()
-	for line in cur:
-		res[str(line[0])] = type_dict[str(line[1])]
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	jsn[name] = res
+	atts = dutil.generated.atts(kindName)
+	for att in atts:
+		atts[att] = type_dict[atts[att]]
+
+	jsn[name] = atts
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;

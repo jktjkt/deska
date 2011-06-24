@@ -41,6 +41,8 @@ CREATE FUNCTION commit_all(message text)
 
 		# init set of tables
 		self.tables = set()
+		# dict of attributes dicts
+		self.atts = dict()
 
 		# select all tables
 		record = self.plpy.execute(self.table_str)
@@ -74,12 +76,16 @@ CREATE FUNCTION commit_all(message text)
 
 		# create some python helper functions
 		print self.py_fn_str.format(name = "kinds", args = '', result = list(self.tables))
+		print self.py_fn_str.format(name = "atts", args = 'kind', result = str(self.atts) + "[kind]")
 		return
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
 		# select col info
 		columns = self.plpy.execute(self.column_str.format(tbl))
+		self.atts[tbl] = dict(columns)
+		del self.atts[tbl]['uid']
+		del self.atts[tbl]['name']
 
 		# create table obj
 		table = Table(tbl)
@@ -145,10 +151,6 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.write(table.gen_diff_terminate_function())
 		self.fn_sql.write(table.gen_data_version())
 		self.fn_sql.write(table.gen_data_changes())
-
-
-		# create some python helper functions
-		print self.py_fn_str.format(name = tbl+"_atts", args = '', result = dict(columns))
 		return
 
 	def gen_commit(self):
