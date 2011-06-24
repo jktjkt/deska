@@ -4,7 +4,7 @@ from table import Table
 
 class Schema:
 	py_fn_str = """
-function {name}({args}):
+def {name}({args}):
 	return {result}
 """
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"

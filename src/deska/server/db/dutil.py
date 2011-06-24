@@ -56,7 +56,7 @@ def jsn(name,tag):
 
 def errorJson(self,command,tag,typ,message):
 	'''Create json error string'''
-	jsn = dict({"response": command, "tag": tag
+	jsn = dict({"response": command, "tag": tag,
 		"dbException": {"type": typ, "message": message}
 		})
 	return json.dumps(jsn)
