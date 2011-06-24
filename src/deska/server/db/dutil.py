@@ -11,6 +11,7 @@ class DeskaException(Exception):
 		'70002': 'ChangesetAlreadyOpenError',
 		'70003': 'NoChangesetError',
 		'70010': 'ReCreateObjectError',
+		'70020': 'FilterError',
 		'70021': 'NotFoundError',
 		'*': 'ServerError'
 	}
@@ -113,10 +114,17 @@ class Condition():
 	def __init__(self,data):
 		'''Constructor, set local data and parse condition'''
 		try:
-			self.col = data["column"]
 			self.val = data["value"]
 			self.op = data["condition"]
-			self.kind = data["kind"]
+			if "metadata" in data:
+				self.kind = "metadata"
+				self.col = data["metadata"]
+			elif "kind" in data:
+				self.kind = data["kind"]
+				self.col = data["column"]
+			#else:
+				# throw here something
+			# and here some kind / attribute checking
 			self.parse()
 			return
 		except:
