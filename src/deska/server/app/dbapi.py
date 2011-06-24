@@ -60,7 +60,7 @@ class DB:
 			return str(data)
 
 	def errorJson(self,command,message):
-		jsn = dict({"response": command,
+		jsn = dict({"response": command, 
 			"dbException": {"type": "ServerError", "message": message}
 		})
 		return json.dumps(jsn)

@@ -3,6 +3,10 @@
 from table import Table
 
 class Schema:
+	py_fn_str = """
+function {name}({args}):
+	return {result}
+"""
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
@@ -67,18 +71,21 @@ CREATE FUNCTION commit_all(message text)
 
 		self.fn_sql.close()
 		self.table_sql.close()
+
+		# create some python helper functions
+		print self.py_fn_str.format(name = "kinds", args = '', result = list(self.tables))
 		return
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
 		# select col info
-		tables = self.plpy.execute(self.column_str.format(tbl))
+		columns = self.plpy.execute(self.column_str.format(tbl))
 
 		# create table obj
 		table = Table(tbl)
 
 		# add columns
-		for col in tables[:]:
+		for col in columns[:]:
 			table.add_column(col[0],col[1])
 
 		# add pk constraints
@@ -97,7 +104,7 @@ CREATE FUNCTION commit_all(message text)
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
 		cols_ref_uid = table.get_cols_reference_uid()
-		for col in tables[:]:
+		for col in columns[:]:
 			if (col[0] in cols_ref_uid):
 				reftable = cols_ref_uid[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
@@ -138,6 +145,10 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.write(table.gen_diff_terminate_function())
 		self.fn_sql.write(table.gen_data_version())
 		self.fn_sql.write(table.gen_data_changes())
+
+
+		# create some python helper functions
+		print self.py_fn_str.format(name = tbl+"_atts", args = '', result = dict(columns))
 		return
 
 	def gen_commit(self):
@@ -148,10 +159,4 @@ CREATE FUNCTION commit_all(message text)
 			commit_tables = commit_tables + commit_table_template.format(tbl = table)
 
 		return self.commit_string.format(commit_tables = commit_tables)
-
-	def pygen_commit(self):
-		commit_str = '''def commit():
-	return db.callproc("commit")
-	'''
-		return commit_str
 
