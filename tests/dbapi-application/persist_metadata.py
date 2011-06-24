@@ -19,6 +19,7 @@ def doStuff(r, kinds):
         r.assertEqual(type(r.c(kindRelations(kind))), list)
         r.assertEqual(type(r.c(kindAttributes(kind))), dict)
 
+    # the following tests FAIL, see redmine #246
     r.cfail(kindInstances("error_kind_name"), InvalidKindError())
     r.cfail(kindRelations("error_kind_name"), InvalidKindError())
     r.cfail(kindAttributes("error_kind_name"), InvalidKindError())

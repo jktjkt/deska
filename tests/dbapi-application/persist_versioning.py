@@ -45,6 +45,7 @@ declarative = [
     listRevisions().returns(ListEnd(vlist)),
 
     # check filters as well
+    # FAIL redmine #248
     listRevisions({"condition": "columnGe", "metadata": "revision",
                    "value": Variable("v1")}).returns(vlist),
 
