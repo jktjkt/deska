@@ -54,6 +54,12 @@ def jsn(name,tag):
 	'''Create json sceleton'''
 	return {"response": name, "tag": tag}
 
+def errorJson(self,command,tag,typ,message):
+	'''Create json error string'''
+	jsn = dict({"response": command, "tag": tag
+		"dbException": {"type": typ, "message": message}
+		})
+	return json.dumps(jsn)
 
 def mystr(s):
 	'''Like str but only not for all'''
