@@ -31,6 +31,8 @@ type_dict = ({
 	"bpchar": "string",
 	"date": "string",
 	"macaddr": "string",
+	"ipv4": "string",
+	"ipv6": "string",
 	"inet": "string"
 })
 
