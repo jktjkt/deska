@@ -719,7 +719,7 @@ LANGUAGE plpgsql;
 
 #template for function, which selects all data from kind table taht are present in version data_version
 #is used in diff functions
-	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint)
+	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint = NULL)
 RETURNS SETOF {tbl}_history
 AS
 $$
@@ -728,6 +728,10 @@ DECLARE
 BEGIN
 	--for each object uid finds its last modification before data_version
 	--joins it with history table of its kind to get object data in version data_version
+	IF data_version IS NULL
+	THEN
+		changeset_id = get_current_changeset_or_null();
+	END IF;
 	RETURN QUERY 
 	SELECT * FROM {tbl}_history
 		WHERE version = changeset_id AND dest_bit = '0'
