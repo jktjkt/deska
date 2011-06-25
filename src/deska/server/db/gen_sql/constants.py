@@ -719,7 +719,7 @@ LANGUAGE plpgsql;
 
 #template for function, which selects all data from kind table taht are present in version data_version
 #is used in diff functions
-	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint = NULL)
+	data_version_function_string = '''CREATE FUNCTION {tbl}_data_version(data_version bigint = 0)
 RETURNS SETOF {tbl}_history
 AS
 $$
@@ -728,11 +728,15 @@ DECLARE
 BEGIN
 	--for each object uid finds its last modification before data_version
 	--joins it with history table of its kind to get object data in version data_version
-	IF data_version IS NULL
-	THEN
+	IF data_version = 0 THEN
 		changeset_id = get_current_changeset_or_null();
-		data_version = id2num(parent(changeset_id));
+		IF changeset_id IS NULL THEN
+			SELECT MAX(num) INTO data_version FROM version;
+		ELSE
+			data_version = id2num(parent(changeset_id));
+		END IF;
 	END IF;
+	
 	RETURN QUERY 
 	SELECT * FROM {tbl}_history
 		WHERE version = changeset_id AND dest_bit = '0'
@@ -745,12 +749,16 @@ BEGIN
 				GROUP BY uid
 			) vmax1
 		ON (h1.uid = vmax1.uid AND v1.num = vmax1.maxnum)
-	WHERE dest_bit = '0'; 
+	WHERE h1.dest_bit = '0' AND h1.uid NOT IN (
+		SELECT uid FROM {tbl}_history
+		WHERE version = changeset_id
+	); 
 END
 $$
 LANGUAGE plpgsql;
 
 '''
+
 
 #template for function which selects all changes of all objects, that where done between from_version and to_version versions
 #is used in diff functions
