@@ -528,7 +528,7 @@ class Templates:
 	# template string for names
 	names_string = '''CREATE FUNCTION
 	{tbl}_names(from_version bigint = 0)
-	RETURNS SETOF text
+	RETURNS SETOF identifier
 	AS
 	$$
 	DECLARE
@@ -616,7 +616,7 @@ class Templates:
 #template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION 
 {tbl}_diff_deleted()
-RETURNS SETOF text
+RETURNS SETOF identifier
 AS
 $$
 BEGIN
@@ -631,7 +631,7 @@ LANGUAGE plpgsql;
  #template for getting created objects between two versions
 	diff_created_string = '''CREATE FUNCTION 
 {tbl}_diff_created()
-RETURNS SETOF text
+RETURNS SETOF identifier
 AS
 $$
 BEGIN

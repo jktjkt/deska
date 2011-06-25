@@ -1,7 +1,7 @@
 --
 -- every module must be place in schema production
 --
-SET search_path TO production;
+SET search_path TO production,deska;
 
 CREATE SEQUENCE interface_uid START 1;
 
@@ -11,7 +11,7 @@ CREATE TABLE interface (
 	uid bigint DEFAULT nextval('interface_uid')
 		CONSTRAINT interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text NOT NULL,
+	name identifier NOT NULL,
 	-- host
 	-- TODO better use uid
 	host bigint

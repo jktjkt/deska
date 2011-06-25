@@ -3,7 +3,7 @@
 --
 -- every module must be place in schema production
 --
-SET search_path TO production;
+SET search_path TO production,deska;
 
 CREATE SEQUENCE host_uid START 1;
 
@@ -13,7 +13,7 @@ CREATE TABLE host (
 	uid bigint DEFAULT nextval('host_uid')
 		CONSTRAINT host_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text
+	name identifier
 		CONSTRAINT host_name_unique UNIQUE NOT NULL,
 	-- hardwere where it runs
 	-- TODO-virtual host
