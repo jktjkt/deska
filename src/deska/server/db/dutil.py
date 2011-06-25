@@ -11,7 +11,6 @@ class DeskaException(Exception):
 		'70002': 'ChangesetAlreadyOpenError',
 		'70003': 'NoChangesetError',
 		'70010': 'ReCreateObjectError',
-		'70020': 'FilterError',
 		'70021': 'NotFoundError',
 		'*': 'ServerError'
 	}
@@ -50,6 +49,13 @@ class DeskaException(Exception):
 		jsn["response"] = command
 
 		return json.dumps(jsn)
+
+class DutilException(DeskaException):
+	'''Exception in pgpython code'''
+
+	def __init__(self,type,message):
+		self.type = type
+		self.message = message
 
 def jsn(name,tag):
 	'''Create json sceleton'''
@@ -128,8 +134,7 @@ class Condition():
 			self.parse()
 			return
 		except:
-			pass # do not raise here
-		Postgres.ERROR("Syntax error in condition",code = 70020)
+			raise DutilException("FilterError","Syntax error in condition.")
 	
 	def parse(self):
 		'''Update condition data for easy creation of Deska SQL condition'''
@@ -165,11 +170,9 @@ class Filter():
 			return
 		try:
 			self.data = json.loads(filterData)
-			self.where = self.parse(self.data)
-			return
 		except Exception as err:
-			pass # do not raise another exception in except part
-		Postgres.ERROR("Syntax error when parsing filterData.",code = 70020)
+			raise DutilException("FilterError","Syntax error in filter.")
+		self.where = self.parse(self.data)
 		
 	def getWhere(self):
 		'''Return where part of sql statement'''
@@ -193,7 +196,7 @@ class Filter():
 		'''Parse filter data and create SQL WHERE part'''
 		if self.data == '':
 			return ''
-		try:
+		if "operator" in data:
 			operator = data["operator"]
 			if operator == "and":
 				res = [self.parse(expresion) for expresion in data["operands"]]
@@ -202,9 +205,7 @@ class Filter():
 				res = [self.parse(expresion) for expresion in data["operands"]]
 				return "(" + ") OR (".join(res) + ")"
 			else:
-				Postgres.ERROR("Syntax error: bad operands",code = 70020)
-		except:
-			pass
+				raise DutilException("FilterError","Bad operands.")
 		cond = Condition(data)
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
