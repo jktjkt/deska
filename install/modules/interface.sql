@@ -18,7 +18,8 @@ CREATE TABLE interface (
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
 	-- TODO unique constraint
-	ip inet,
+	ip4 ipv4,
+	ip6 ipv6,
 	-- MAC
 	-- TODO unique constraint
 	mac macaddr,
