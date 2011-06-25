@@ -731,6 +731,7 @@ BEGIN
 	IF data_version IS NULL
 	THEN
 		changeset_id = get_current_changeset_or_null();
+		data_version = id2num(parent(changeset_id));
 	END IF;
 	RETURN QUERY 
 	SELECT * FROM {tbl}_history
