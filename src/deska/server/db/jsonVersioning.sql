@@ -128,7 +128,6 @@ def main(tag,filter):
 		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + filter.getWhere() + " ORDER BY metadata.id"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
-	return select
 	try:
 		colnames,data = dutil.getdata(select)
 	except dutil.DeskaException as err:
