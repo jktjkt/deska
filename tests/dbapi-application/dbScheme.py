@@ -7,12 +7,11 @@ declarative = [
         AnyOrderList(('interface', 'vendor', 'host', 'hardware'))),
 
     kindAttributes("interface").returns(
-        {"note": "string", "ip": "string", "host": "string", "mac": "string"}),
+        {"note": "string", "ip4": "string", "ip6": "string", "host": "identifier", "mac": "string"}),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
-            # "hardware": "identifier", issue #232
-            "hardware": "string",
+            "hardware": "identifier",
             "note": "string"}
     ),
     kindAttributes("hardware").returns(

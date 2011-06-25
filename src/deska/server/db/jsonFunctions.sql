@@ -28,6 +28,7 @@ type_dict = ({
 	"int8": "int",
 	"int4": "int",
 	"text": "string",
+	"identifier": "identifier",
 	"bpchar": "string",
 	"date": "string",
 	"macaddr": "string",

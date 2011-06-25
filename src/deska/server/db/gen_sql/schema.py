@@ -100,9 +100,11 @@ CREATE FUNCTION commit_all(message text)
 			table.add_pk(col[0],col[1])
 
 		# add fk constraints
-		constraints = self.plpy.execute(self.fk_str.format(tbl))
-		for col in constraints[:]:
+		fkconstraints = self.plpy.execute(self.fk_str.format(tbl))
+		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
+			# if there is a reference, change int for identifier
+			self.atts[tbl][col[1]] = 'identifier'
 
 		# generate sql
 		self.table_sql.write(table.gen_hist())
