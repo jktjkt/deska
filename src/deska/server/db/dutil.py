@@ -117,42 +117,47 @@ class Condition():
 		"columnLt": "<"
 	}
 
-	def __init__(self,data):
+	def __init__(self,data,condId):
 		'''Constructor, set local data and parse condition'''
 		try:
 			self.val = data["value"]
 			self.op = data["condition"]
+			self.id = "${0}".format(condId)
 			if "metadata" in data:
 				self.kind = "metadata"
 				self.col = data["metadata"]
+				# we cannot see now, if it is about pending changeset or list revisions
+				if self.col not in ["revision","message","author","timestamp","changeset"]:
+					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
 			elif "kind" in data:
 				self.kind = data["kind"]
+				if self.kind not in generated.kinds():
+					raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
 				self.col = data["column"]
-			#else:
-				# throw here something
-			# and here some kind / attribute checking
+				# add also name 
+				if self.col not in generated.atts(self.kind) and self.col != "name":
+					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
+			else:
+				raise DutilException("FilterError","Syntax error in condition.")
 			self.parse()
 			return
-		except:
-			raise DutilException("FilterError","Syntax error in condition.")
+		except Exception as e:
+			raise DutilException("FilterError","Syntax error in condition: "+str(e))
 	
 	def parse(self):
 		'''Update condition data for easy creation of Deska SQL condition'''
-		if type(self.val) == str:
-			self.val = "'{0}'".format(self.val)
-
 		if self.col == "changeset" and self.kind == "metadata":
 			self.col = "id"
-			self.val = "changeset2id({0})".format(self.val)
+			self.id = "changeset2id({0})".format(self.id)
 		if self.col == "revision" and self.kind == "metadata":
 			self.col = "num"
-			self.val = "revision2num({0})".format(self.val)
+			self.id = "revision2num({0})".format(self.id)
 
 		self.op = self.opMap[self.op]
 	
 	def get(self):
 		'''Return deska SQL condition'''
-		return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.val)
+		return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), self.val
 	
 	def getAffectedKind(self):
 		'''Return kind in condition'''
@@ -163,6 +168,11 @@ class Filter():
 
 	def __init__(self,filterData):
 		'''loads json filter data'''
+		# counter for value id's in select string
+		self.counter = 1
+		# list of values for select string
+		self.values = list()
+		# set of kinds
 		self.kinds = set()
 		self.where = ''
 		if filterData is None:
@@ -177,8 +187,8 @@ class Filter():
 	def getWhere(self):
 		'''Return where part of sql statement'''
 		if self.data is None:
-			return ''
-		return "WHERE " + self.where
+			return '',[]
+		return "WHERE " + self.where, self.values
 	
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
@@ -206,13 +216,14 @@ class Filter():
 				return "(" + ") OR (".join(res) + ")"
 			else:
 				raise DutilException("FilterError","Bad operands.")
-		cond = Condition(data)
+		cond = Condition(data,self.counter)
+		self.counter = self.counter + 1
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
-		return cond.get()
-
-def kinds():
-        return list(["vendor","hardware","host","interface"])
+		ret, value = cond.get()
+		#add value into list
+		self.values.append(value)
+		return ret
 
 def oneKindDiff(kindName,a = None,b = None):
 	with xact():

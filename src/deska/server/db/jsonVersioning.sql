@@ -125,12 +125,13 @@ def main(tag,filter):
 
 	try:
 		filter = dutil.Filter(filter)
-		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + filter.getWhere() + " ORDER BY metadata.id"
+		where, values = filter.getWhere()
+		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.id"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
-	return select
+
 	try:
-		colnames,data = dutil.getdata(select)
+		colnames,data = dutil.getdata(select,*values)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
@@ -149,7 +150,7 @@ def main(tag,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text)
+CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text = NULL)
 RETURNS text
 AS
 $$
@@ -161,10 +162,15 @@ def main(tag,filter):
 	name = "listRevisions"
 	jsn = dutil.jsn(name,tag)
 
-	filter = dutil.Filter(filter)
-	select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + filter.getWhere() + "ORDER BY metadata.num"
 	try:
-		colnames,data = dutil.getdata(select)
+		filter = dutil.Filter(filter)
+		where, values = filter.getWhere()
+		select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
+	except dutil.DutilException as err:
+		return err.json(name,jsn)
+	
+	try:
+		colnames,data = dutil.getdata(select,*values)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
