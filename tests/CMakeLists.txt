@@ -88,6 +88,7 @@ if(RUN_SQL_TESTS)
     deska_sql_test(set_attribute)
     deska_sql_test(undel)
     deska_sql_test(set_name)
+	deska_sql_test(template)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
