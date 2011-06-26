@@ -30,6 +30,8 @@ namespace Deska
 namespace Cli
 {
 
+
+
 template <typename Iterator>
 FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
     FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
@@ -39,11 +41,15 @@ FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent)
            | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
 }
 
+
+
 template <typename Iterator>
 void FunctionWordsParser<Iterator>::actionDelete()
 {
     m_parent->setParsingMode(PARSING_MODE_DELETE);
 }
+
+
 
 template <typename Iterator>
 void FunctionWordsParser<Iterator>::actionShow()
@@ -51,16 +57,22 @@ void FunctionWordsParser<Iterator>::actionShow()
     m_parent->setParsingMode(PARSING_MODE_SHOW);
 }
 
+
+
 template <typename Iterator>
 void FunctionWordsParser<Iterator>::actionRename()
 {
     m_parent->setParsingMode(PARSING_MODE_RENAME);
 }
 
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template FunctionWordsParser<iterator_type>::FunctionWordsParser(ParserImpl<iterator_type> *parent);
+
 template void FunctionWordsParser<iterator_type>::actionDelete();
+
 template void FunctionWordsParser<iterator_type>::actionShow();
 
 }

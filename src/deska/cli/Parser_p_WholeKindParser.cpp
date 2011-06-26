@@ -33,6 +33,7 @@ namespace Deska
 namespace Cli
 {
 
+
 template <typename Iterator>
 WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
                                            AttributesParser<Iterator> *attributesParser,
@@ -49,11 +50,15 @@ WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
         | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
 }
 
+
+
 template <typename Iterator>
 void WholeKindParser<Iterator>::parsedEnd()
 {
     m_parent->categoryLeft();
 }
+
+
 
 template <typename Iterator>
 void WholeKindParser<Iterator>::parsedSingleKind()
@@ -61,10 +66,15 @@ void WholeKindParser<Iterator>::parsedSingleKind()
     m_parent->parsedSingleKind();
 }
 
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template WholeKindParser<iterator_type>::WholeKindParser(const std::string &kindName, AttributesParser<iterator_type> *attributesParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, KindsOnlyParser<iterator_type> *nestedKinds, ParserImpl<iterator_type> *parent);
+
 template void WholeKindParser<iterator_type>::parsedEnd();
+
 template void WholeKindParser<iterator_type>::parsedSingleKind();
+
 }
 }

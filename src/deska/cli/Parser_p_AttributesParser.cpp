@@ -30,6 +30,7 @@ namespace Deska
 namespace Cli
 {
 
+
 template <typename Iterator>
 AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
     AttributesParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
@@ -75,6 +76,8 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName, Par
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
+
+
 template <typename Iterator>
 void AttributesParser<Iterator>::addAtrribute(const Db::Identifier &attributeName,
                                               qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
@@ -82,16 +85,22 @@ void AttributesParser<Iterator>::addAtrribute(const Db::Identifier &attributeNam
     attributes.add(attributeName, attributeParser);
 }
 
+
+
 template <typename Iterator>
 void AttributesParser<Iterator>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value)
 {
     m_parent->attributeSet(parameter, value);
 }
 
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template AttributesParser<iterator_type>::AttributesParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+
 template void AttributesParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+
 template void AttributesParser<iterator_type>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
 }

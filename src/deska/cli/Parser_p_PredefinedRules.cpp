@@ -149,7 +149,9 @@ const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<I
 /////////////////////////Template instances for linker//////////////////////////
 
 template PredefinedRules<iterator_type>::PredefinedRules();
+
 template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Db::Type attrType);
+
 template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
 }
