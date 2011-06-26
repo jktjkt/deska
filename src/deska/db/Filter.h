@@ -82,7 +82,7 @@ struct OrFilter
 {
     std::vector<Filter> operands;
 
-    OrFilter(const std::vector<Filter> operands);
+    OrFilter(const std::vector<Filter> &operands);
 };
 
 /** @short Perform a logical conjunction of all expression included below */
@@ -90,7 +90,7 @@ struct AndFilter
 {
     std::vector<Filter> operands;
 
-    AndFilter(const std::vector<Filter> operands);
+    AndFilter(const std::vector<Filter> &operands);
 };
 
 }
