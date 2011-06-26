@@ -1,5 +1,5 @@
 
-CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text = NULL)
+CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
 $$
@@ -7,15 +7,23 @@ import dutil
 import json
 
 @pytypes
-def main(tag,kindName,revision):
+def main(tag,kindName,revision,filter):
 	name = "kindInstances"
 	jsn = dutil.jsn(name,tag)
 
 	# check kind name
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	
+	embed = dutil.generated.embed()
+	if kindName in embed:
+		#FIXME: propagate delimiter constant here,or drop this argument
+		columns = "join_with_delim({ref}_get_name({ref}, $1), name, '->')".format(ref = embed[kindName])
+	else:
+		columns = "{0}.name"
+	select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} '
+	select = select.format(kindName)
 
-	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, cur = dutil.getdata(select,revisionNumber)

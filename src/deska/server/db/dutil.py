@@ -166,10 +166,10 @@ class Condition():
 class Filter():
 	'''Class for handling filters'''
 
-	def __init__(self,filterData):
-		'''loads json filter data'''
+	def __init__(self,filterData,start):
+		'''loads json filter data, start = fisrt number of parameter index'''
 		# counter for value id's in select string
-		self.counter = 1
+		self.counter = start
 		# list of values for select string
 		self.values = list()
 		# set of kinds
