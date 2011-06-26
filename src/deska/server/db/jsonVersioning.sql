@@ -18,7 +18,7 @@ def main(tag):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
-	jsn[name] =str(ver)
+	jsn[name] = dutil.mystr(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -84,7 +84,7 @@ def main(tag,commitMessage):
 		ver = dutil.fcall(fname,commitMessage)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] =str(ver)
+	jsn[name] = dutil.mystr(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -116,6 +116,7 @@ RETURNS text
 AS
 $$
 import dutil
+from dutil import mystr
 import json
 
 @pytypes
@@ -138,12 +139,12 @@ def main(tag,filter):
 	res = list()
 	for line in data:
 		ver = dict()
-		ver["changeset"] = str(line[0])
-		ver["author"] = str(line[1])
-		ver["status"] = str(line[2])
-		ver["parentRevision"] = str(line[3])
-		ver["timestamp"] = str(line[4])
-		ver["message"] = str(line[5])
+		ver["changeset"] = mystr(line[0])
+		ver["author"] = mystr(line[1])
+		ver["status"] = mystr(line[2])
+		ver["parentRevision"] = mystr(line[3])
+		ver["timestamp"] = mystr(line[4])
+		ver["message"] = mystr(line[5])
 		res.append(ver)
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -155,6 +156,7 @@ RETURNS text
 AS
 $$
 import dutil
+from dutil import mystr
 import json
 
 @pytypes
@@ -177,10 +179,10 @@ def main(tag,filter):
 	res = list()
 	for line in data:
 		ver = dict()
-		ver["version"] = str(line[0])
-		ver["author"] = str(line[1])
-		ver["timestamp"] = str(line[2])
-		ver["message"] = str(line[3])
+		ver["version"] = mystr(line[0])
+		ver["author"] = mystr(line[1])
+		ver["timestamp"] = mystr(line[2])
+		ver["message"] = mystr(line[3])
 		res.append(ver)
 
 	jsn[name] = res

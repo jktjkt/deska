@@ -170,7 +170,7 @@ $$
 import Postgres
 import json
 import dutil
-from dutil import mystr,oneKindDiff
+from dutil import oneKindDiff
 
 @pytypes
 def main(tag,a,b):
@@ -197,7 +197,7 @@ $$
 import Postgres
 import json
 import dutil
-from dutil import mystr,oneKindDiff
+from dutil import oneKindDiff
 
 @pytypes
 def main(tag):

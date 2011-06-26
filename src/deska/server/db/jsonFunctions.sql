@@ -82,7 +82,7 @@ def main(tag,kindName):
 		rel = dict()
 		# FIXME: hotfix until rewrite relations get functions
 		rel["relation"] = "EMBED_INTO"
-		rel["target"] = str(line[1])
+		rel["target"] = dutil.mystr(line[1])
 		res.append(rel)
 
 	jsn[name] = res
@@ -115,7 +115,7 @@ def main(tag,kindName,revision):
 	
 	res = list()
 	for line in cur:
-		res.append(str(line[0]))
+		res.append(dutil.mystr(line[0]))
 
 	jsn[name] = res
 	return json.dumps(jsn)
