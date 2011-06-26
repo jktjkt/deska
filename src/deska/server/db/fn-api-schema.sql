@@ -266,16 +266,25 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
---function returns relations of a given kind
-CREATE FUNCTION kindInstances(kindname name)
-RETURNS SETOF text
+CREATE TYPE templates_info_type AS(
+	template name,
+	kind name
+);
+
+--returns list of templates
+--is temporary before object relition functions would be ready to use
+CREATE FUNCTION get_templates_info()
+RETURNS SETOF templates_info_type
 AS
 $$
-DECLARE
-fn text;
 BEGIN
-	fn = 'SELECT * from ' || kindname || '_names()';
-	RETURN QUERY EXECUTE fn ;
-END
+RETURN QUERY SELECT  class2.relname, class1.relname
+	FROM	pg_constraint AS constr
+		--join with TABLE which the contraint is ON
+		join pg_class AS class1 ON (constr.conrelid = class1.oid)	
+		--join with referenced TABLE
+		join pg_class AS class2 ON (constr.confrelid = class2.oid)
+	WHERE contype='f' AND conname LIKE 'rtempl_%' AND class1.relname <> class2.relname;
+END;
 $$
-LANGUAGE plpgsql SECURITY DEFINER;
+LANGUAGE plpgsql;

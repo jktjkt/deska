@@ -6,6 +6,7 @@ class Schema:
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
 	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	templates_str = "SELECT * FROM get_templates_info();"
 	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
 	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('{0}');"
 	commit_string = '''
@@ -50,6 +51,11 @@ CREATE FUNCTION commit_all(message text)
 		self.templated_tables = set()
 		for tbl in record:
 			self.templated_tables.add(tbl[0])
+
+		record = self.plpy.execute(self.templates_str)
+		self.templates = dict()
+		for row in record:
+			self.templates[row[0]] = row[1]
 
 
 	# generate sql for all tables
@@ -104,8 +110,8 @@ CREATE FUNCTION commit_all(message text)
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
 		
-		if tbl.endswith('_template'):
-			templated_table = tbl.replace('_template','')
+		if tbl in self.templates:
+			templated_table = self.templates[tbl]
 			refuid_rec = self.plpy.execute(self.refuid_columns_str.format(templated_table))
 			for row in refuid_rec:
 				if row[0] not in table.refuid_columns:
@@ -164,8 +170,14 @@ CREATE FUNCTION commit_all(message text)
 		
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
-			self.fn_sql.write(table.gen_commit_templated())
 			self.fn_sql.write(table.gen_resolved_data())
+
+			if tbl in self.templates:
+			#tbl is template
+				table.templates = self.templates[tbl]
+			else:
+				table.templates = ""
+			self.fn_sql.write(table.gen_commit_templated())
 		else:
 			self.fn_sql.write(table.gen_commit())
 			

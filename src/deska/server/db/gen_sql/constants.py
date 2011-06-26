@@ -565,6 +565,115 @@ class Templates:
 
 '''
 
+	# template string for commit function (for templates of some kind)
+	# in addition to another commits modification of template affectes contain of templated objects by it
+	#tbl is here table that is templated by template_table for which is this commit function
+	commit_kind_template_string = '''CREATE FUNCTION
+	{tbl}_template_commit()
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		SELECT get_current_changeset() INTO ver; 
+		CREATE TEMP TABLE temp_{tbl}_template_data AS SELECT * FROM {tbl}_template_data_version();
+
+		--resolved data that are new in current changeset
+		CREATE TEMP TABLE temp_{tbl}_template_current_changeset AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM {tbl}_template_history
+			WHERE version = ver
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+
+		UPDATE {tbl}_template AS tbl SET {assign}
+			FROM temp_{tbl}_template_current_changeset as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl}_template ({columns},name,uid,template)
+			SELECT {columns},name,uid,template FROM temp_{tbl}_template_current_changeset
+				WHERE uid NOT IN ( SELECT uid FROM {tbl}_template ) AND dest_bit = '0';
+		DELETE FROM {tbl}_template
+			WHERE uid IN (SELECT uid FROM temp_{tbl}_template_current_changeset
+				WHERE version = ver AND dest_bit = '1');
+
+		--create temp table with uids of affected tbl_templates
+		--it is needed to update templates and table in production that are templated by some affected template
+		CREATE TEMP TABLE affected_templates AS (
+			WITH RECURSIVE resolved_data AS (
+				SELECT uid FROM {tbl}_template_history WHERE version = ver
+				UNION ALL
+				SELECT dv.uid FROM temp_{tbl}_template_data dv, resolved_data rd WHERE dv.template = rd.uid
+			)
+			SELECT uid
+			FROM resolved_data
+		);
+
+		--resolved data for all templates that where affected by some change of template and wasn't changed in current changeset
+		--templates changed in current changeset was already updated
+		CREATE TEMP TABLE temp_affected_{tbl}_template_data AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM temp_{tbl}_template_data
+			WHERE  version <> ver
+				AND template IN (SELECT uid FROM affected_templates)
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+			
+		--object which is not modified in currentchangeset (is not updated by tbl_commit) and is templated by modified template, should be updated now
+		--update production.tbl_template
+		UPDATE {tbl}_template AS tbl SET {assign}
+			FROM temp_affected_{tbl}_template_data as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+
+		--update production.{tbl} as tbl set att = new.att ... from resolved_data
+		CREATE TEMP TABLE temp_{tbl}_data AS SELECT * FROM {tbl}_data_version();
+		CREATE TEMP TABLE temp_affected_{tbl}_data AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM temp_{tbl}_data
+			WHERE template IN (SELECT uid FROM affected_templates)
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+
+		UPDATE {tbl} AS tbl SET {assign}
+			FROM temp_affected_{tbl}_data as new
+				WHERE tbl.uid = new.uid;
+
+		DROP TABLE temp_{tbl}_template_current_changeset;
+		DROP TABLE affected_templates;
+		DROP TABLE temp_affected_{tbl}_data;
+		DROP TABLE temp_affected_{tbl}_template_data;
+		DROP TABLE temp_{tbl}_template_data;
+		DROP TABLE temp_{tbl}_data;		
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	# template string for names
 	names_string = '''CREATE FUNCTION
 	{tbl}_names(from_version bigint = 0)

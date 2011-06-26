@@ -227,7 +227,12 @@ class Table(constants.Templates):
 		else:
 			templ_table = self.name + "_template"
 			
-		return self.commit_templated_string.format(tbl = self.name, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
+		commit_templated_string = self.commit_templated_string
+		if self.templates is "":
+		#table is template, modification should be propagated to templated kind
+			return self.commit_templated_string.format(tbl = self.name, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
+		else:
+			return self.commit_kind_template_string.format(tbl = self.templates, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
 
 	def gen_commit(self):
 		#TODO if there is more columns...

@@ -8,7 +8,7 @@ CREATE SEQUENCE production.{tbl}_template_uid;
 CREATE TABLE production.{tbl}_template (
 	LIKE production.{tbl},
 	CONSTRAINT pk_{tbl}_template PRIMARY KEY (uid),
-	CONSTRAINT r{tbl}_templ FOREIGN KEY ("template") REFERENCES {tbl}_template(uid),
+	CONSTRAINT rtempl{tbl}_templ FOREIGN KEY ("template") REFERENCES {tbl}_template(uid),
 	CONSTRAINT u_{tbl}_template_name UNIQUE (name)
 );
 ALTER TABLE {tbl}_template ALTER COLUMN uid SET DEFAULT nextval('{tbl}_template_uid'::regclass);

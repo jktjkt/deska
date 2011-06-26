@@ -49,6 +49,8 @@ SELECT hardware_set_warranty('hw_templ2','2016-12-12');
 
 SELECT commitChangeset('1');
 
+--SELECT hardware_resolved_data('hw_templ2')
+
 SELECT startChangeset();
 SELECT hardware_add('hw_templted');
 SELECT hardware_set_template('hw_templted','hw_templ_all');
@@ -74,6 +76,10 @@ SELECT commitChangeset('1');
 
 SELECT startChangeset();
 SELECT hardware_template_set_cpu_num('hw_ram_cpu_pw','2');
+SELECT commitChangeset('1');
+
+SELECT startChangeset();
+SELECT hardware_template_set_vendor('purch_templ','another_vendor');
 SELECT commitChangeset('1');
 
 
@@ -120,6 +126,7 @@ CREATE or replace FUNCTION
 		UPDATE hardware_template AS tbl SET warranty = new.warranty,purchase = new.purchase,vendor = new.vendor,uid = new.uid,cpu_num = new.cpu_num,ram = new.ram,note = new.note,template = new.template,name = new.name
 			FROM temp_hardware_template_current_changeset as new
 				WHERE tbl.uid = new.uid AND dest_bit = '0';
+				--select * from hardware_template
 		INSERT INTO hardware_template (warranty,purchase,vendor,cpu_num,ram,note,name,uid,template)
 			SELECT warranty,purchase,vendor,cpu_num,ram,note,name,uid,template FROM temp_hardware_template_current_changeset
 				WHERE uid NOT IN ( SELECT uid FROM hardware_template ) AND dest_bit = '0';
@@ -195,6 +202,7 @@ CREATE or replace FUNCTION
 		UPDATE hardware AS tbl SET warranty = new.warranty,purchase = new.purchase,vendor = new.vendor,uid = new.uid,cpu_num = new.cpu_num,ram = new.ram,note = new.note,template = new.template,name = new.name
 			FROM temp_affected_hardware_data as new
 				WHERE tbl.uid = new.uid;
+				--select * from hardware;
 
 		DROP TABLE temp_hardware_template_current_changeset;
 		DROP TABLE affected_templates;
@@ -206,6 +214,11 @@ CREATE or replace FUNCTION
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
+
+select * from hardware_history
+union
+select * from hardware_template_history
+order by version
 
 WITH RECURSIVE affected_templates AS (
 	SELECT uid
