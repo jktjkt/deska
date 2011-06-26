@@ -90,7 +90,7 @@ def main(tag,kindName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text)
+CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text = NULL)
 RETURNS text
 AS
 $$
