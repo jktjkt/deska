@@ -7,22 +7,21 @@ declarative = [
         AnyOrderList(('interface', 'vendor', 'host', 'hardware'))),
 
     kindAttributes("interface").returns(
-        {"note": "string", "ip": "string", "host": "string", "mac": "string"}),
+        {"note": "string", "ip4": "string", "ip6": "string", "host": "identifier", "mac": "string"}),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
-            # "hardware": "identifier", issue #232
-            "hardware": "string",
+            "hardware": "identifier",
             "note": "string"}
     ),
     kindAttributes("hardware").returns(
         {"warranty": "string", "purchase": "string",
-         "vendor": "identifier", # fails, issue #232
+         "vendor": "identifier", 
          "cpu_num": "int", "ram": "int", "note": "string"}
     ),
 
     # try to ask for a non-existing object
-    kindAttributes("pwnpwn").throws(InvalidKindError()), # fails for now
+    kindAttributes("pwnpwn").throws(InvalidKindError()), 
 
     kindRelations("interface").returns(
         [{'relation': 'EMBED_INTO', 'target': 'host'}]

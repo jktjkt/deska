@@ -21,6 +21,9 @@ class DeskaDbUser(object):
             raise TypeError, "Cannot compare DeskaDbUser with anything but string"
         return other == self.user
 
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.user))
+
 class AnyOrderList(object):
     def __init__(self, items):
         self.items = frozenset(items)
@@ -151,13 +154,15 @@ class Variable(object):
 
 
 class ApiMethod(object):
+    counter = 0
     def __init__(self, name, args):
+        tag = ".t%d" % ApiMethod.counter
+        ApiMethod.counter += 1
         self.name = name
-        self.command = {"command": name}
-        self.response = {"response": name}
+        self.command = {"command": name, "tag": tag}
+        self.response = {"response": name, "tag": tag}
         if args is not None:
             self.command.update(args)
-            self.response.update(args)
 
     def returns(self, value):
         self.response[self.name] = value

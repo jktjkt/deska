@@ -77,42 +77,52 @@ This section defines how an abstract notion of a command or response is converte
 
 \subsection{Commands and Responses}
 
-Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
-the hypothetical command {\tt foo}, which does not accept any arguments, will be transmitted in the following form (we
-will omit the trailing line feed for brevity in the following examples):
+First of all, each command has to identify its purpose, ie. which function to invoke on the remote end of the
+connection.  A name is a perfect identifier.  Furthermore, to allow future pipelining of commands to achieve greater
+throughput, we have to add some identification to each command-response pair.  This identification has to be provided by
+the client.  This identification is called a {\em tag}, and apart from being a string, there are no further
+requirements on its format.
+
+Suppose the hypothetical command {\tt foo}, which does not accept any arguments.  It will be transmitted using the
+following format, provided the client decided to use {\tt "0"} as the associated tag (we will omit the trailing line
+feed for brevity in the following examples):
 
 \begin{lstlisting}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
-A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
-response for the above command will look like this:
+A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal and repeating the
+{\tt tag} key, therefore a response for the above command will look like this:
 
 \begin{lstlisting}
-    {"response": "foo"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
 
-FIXME: change this (and all other sections) when token-based interface is introduced, issue 238
+The {\tt response} key is included in order to allow stateless implementations of the DBAPI parsers.  Had the parameter
+been omitted, it would not be possible to enforce proper structure of the JSON data without keeping track of what
+command used what tag.
+
+Please note that these provisions for {\em future} pipelining are here mainly to design the protocol in
+forward-compatible way; none of the implementations shipped in Deska support command pipelining (as of 2011).  This
+specification will be extended if pipelining gets allowed in future.
 
 \subsubsection{Passing Arguments}
 
 Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
-the one we discussed above, with the arguments simply appended to the top-level JSON object.  All parameters are also
-repeated in the relevant response:
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are,
+however, not repeated in the relevant response, which retains just the (response, tag) pair:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
 free to add it to make the JSON data more readable, or not include them at all.  In addition, to improve the
 interoperability, the Deska DBAPI mandates that the order of appearance of individual key-value pairs inside a JSON
 object is {\em not} significant, and therefore one is explicitly allowed to use a sequence of {\tt arg2}, {\tt command},
-{\tt arg1} for the example above.  Please note that the order of key-value pairs in the response object can be different
-than in the associated command.
+{\tt arg1} for the example above.  The order of key-value pairs in the response object can be also different.
 
 \subsubsection{Returning Data}
 
@@ -126,9 +136,8 @@ would look like this one:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value", "foo": "The returned value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0", "foo": "The returned value"}
 \end{lstlisting}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
@@ -180,14 +189,14 @@ underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2,
 {\tt foo}:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": [1, 2, 3]}
+    {"command": "foo", "tag": "0", "a1": [1, 2, 3]}
 \end{lstlisting}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": ["a": 1, "b": 2, "c": 3]}
+    {"command": "foo", "tag": "0", "a1": ["a": 1, "b": 2, "c": 3]}
 \end{lstlisting}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
@@ -208,7 +217,7 @@ passed prefixed by their name.  Therefore, given class {\tt Foo} with the follow
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": {"i": 10, "s": "something"}}
+    {"command": "foo", "tag": "0", "a1": {"i": 10, "s": "something"}}
 \end{lstlisting}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
@@ -235,8 +244,8 @@ between the two conventions, so the following examples are equivalent, provided 
 an accept NULL:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": null}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0", "a1": null}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
 Please note that this rule does {\em not} translate to ``one can freely omit {\tt null} values in any place''; indeed,
@@ -552,9 +561,9 @@ description for more details.
 
 {#5}
 
-\subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
+\subparagraph{Sample JSON input} {\tt \{"command": "{#1}", "tag": "T"{#2}\}}
 
-\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}", "tag": "T"\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
 
 }
 

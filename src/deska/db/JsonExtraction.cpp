@@ -884,7 +884,7 @@ void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const 
 }
 
 JsonField::JsonField(const std::string &name):
-    isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
+    isForSending(false), isRequiredToReceive(true), isAllowedToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
     jsonFieldRead(name), jsonFieldWrite(name)
 {
 }

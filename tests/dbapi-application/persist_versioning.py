@@ -33,7 +33,7 @@ declarative = [
     detachFromCurrentChangeset("detaching once again").throws(NoChangesetError()),
     # FIXME: resumeChangeset("xyz").throws(ChangesetParsingError()),
     resumeChangeset("xyz").throws(ServerError()),
-    pendingChangesets().returns(ListEnd(clist)), # fails, #247
+    pendingChangesets().returns(ListEnd(clist)),
     # FIXME: call pendingChangesets with a filter
     resumeChangeset(Variable("changeset")),
     resumeChangeset(Variable("changeset")).throws(ChangesetAlreadyOpenError()),

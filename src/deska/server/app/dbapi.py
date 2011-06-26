@@ -6,33 +6,33 @@ import json
 
 class DB:
 	methods = dict({
-		"kindNames": [],
-                "kindAttributes": ["kindName"],
-                "kindRelations": ["kindName"],
-                "kindInstances": ["kindName","revision"],
-                #"kindInstances": ["kindName","revision","filter"],
-                "deleteObject": ["kindName","objectName"],
-                "restoreDeletedObject": ["kindName","objectName"],
-                "createObject": ["kindName","objectName"],
-                "renameObject": ["kindName","oldObjectName","newObjectName"],
-                "setAttribute": ["kindName","objectName","attributeName","attributeData"],
-                "startChangeset": [],
-                "commitChangeset": ["commitMessage"],
-                "rebaseChangeset": ["parentRevision"],
-                "pendingChangesets": ["filter"],
-                "resumeChangeset": ["changeset"],
-                "detachFromCurrentChangeset": ["message"],
-                "abortCurrentChangeset": [],
-		"dataDifference": ["revisionA", "revisionB"],
-		"dataDifferenceInTemporaryChangeset": [],
-		#"resolvedDataDifference": ["revisionA", "revisionB"],
-		#"resolvedDataDifferenceInTemporaryChangeset": [],
-		"objectData": ["kindName", "objectName","revision"],
-		"objectData": ["kindName", "objectName","revision"],
-		#"objectData": ["kindName", "objectName","revision", "filter"],
-		"multipleObjectData": ["kindName", "revision"],
-		#"multipleObjectData": ["kindName", "revision", "filter"],
-		"listRevisions": ["filter"]
+		"kindNames": ["tag"],
+                "kindAttributes": ["tag", "kindName"],
+                "kindRelations": ["tag", "kindName"],
+                "kindInstances": ["tag", "kindName","revision"],
+                #"kindInstances": ["tag", "kindName","revision","filter"],
+                "deleteObject": ["tag", "kindName","objectName"],
+                "restoreDeletedObject": ["tag", "kindName","objectName"],
+                "createObject": ["tag", "kindName","objectName"],
+                "renameObject": ["tag", "kindName","oldObjectName","newObjectName"],
+                "setAttribute": ["tag", "kindName","objectName","attributeName","attributeData"],
+                "startChangeset": ["tag"],
+                "commitChangeset": ["tag", "commitMessage"],
+                "rebaseChangeset": ["tag", "parentRevision"],
+                "pendingChangesets": ["tag", "filter"],
+                "resumeChangeset": ["tag", "changeset"],
+                "detachFromCurrentChangeset": ["tag", "message"],
+                "abortCurrentChangeset": ["tag"],
+		"dataDifference": ["tag", "revisionA", "revisionB"],
+		"dataDifferenceInTemporaryChangeset": ["tag"],
+		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
+		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", ],
+		"objectData": ["tag", "kindName", "objectName","revision"],
+		"objectData": ["tag", "kindName", "objectName","revision"],
+		#"objectData": ["tag", "kindName", "objectName","revision", "filter"],
+		"multipleObjectData": ["tag", "kindName", "revision"],
+		#"multipleObjectData": ["tag", "kindName", "revision", "filter"],
+		"listRevisions": ["tag", "filter"]
 	})
 
 	def __init__(self,**kwargs):
@@ -40,6 +40,9 @@ class DB:
 			self.db = psycopg2.connect(**kwargs);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
+			# commit search_path
+			self.db.commit()
+			self.freeze = False
 			self.error = None
 		except Exception, e:
 			self.error = e
@@ -59,17 +62,57 @@ class DB:
 		else:
 			return str(data)
 
-	def errorJson(self,command,message):
-		jsn = dict({"response": command,
+	def errorJson(self,command,tag,message):
+		jsn = dict({"response": command, "tag": tag,
 			"dbException": {"type": "ServerError", "message": message}
 		})
 		return json.dumps(jsn)
+	
+	def responseJson(self,command,tag):
+		jsn = dict({"response": command, "tag": tag})
+		return json.dumps(jsn)
+
+	def freezeUnfreeze(self,name,tag):
+		if name == "freezeView":
+			# set isolation level serializable, and read only transaction
+			# FIXME: better solution needs psycopg2.4.2
+			# self.db.set_session(SERIALIZABLE,True)
+			self.db.set_isolation_level(2)
+			self.db.commit()
+			# commit and start new transaction with selected properties
+			self.freeze = True
+			return self.responseJson(name,tag)
+		elif name == "unFreezeView":
+			# set isolation level readCommited
+			# FIXME: better solution needs psycopg2.4.2
+			#self.db.set_session(DEFAULT,False)
+			self.db.set_isolation_level(1)
+			self.db.commit()
+			# commit and start new transaction with selected properties
+			self.db.commit()
+			self.freeze = False
+			return self.responseJson(name,tag)
+		else:
+				return self.errorJson(name,tag,"Only freeze or unFreeze")
+
+	def commit(self):
+		if not self.freeze:
+			self.db.commit()
 
 	def run(self,name,args):
 		logging.debug("start run method({n}, {a})".format(n = name, a = args))
 		# test if connection is ok
 		if self.error is not None:
 			return self.errorJson(name,"No connection to DB")
+
+		if "tag" not in args:
+			return self.errorJson(name,"ERROR","Missing 'tag'!")
+		tag = args["tag"]
+
+		# this two spectial commands handle db transactions
+		if name in set(["freezeView","unFreezeView"]):
+			return self.freezeUnfreeze(name,tag)
+
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
@@ -83,7 +126,7 @@ class DB:
 					args["revision"] = None
 				logging.debug("{0} was not present, pass None arguments".format(not_present))
 			else:
-				return self.errorJson(name,"Missing arguments: {0}".format(list(not_present)))
+				return self.errorJson(name,tag,"Missing arguments: {0}".format(list(not_present)))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -98,11 +141,11 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: {e})".format(e = e))
-			self.db.commit()
-			return self.errorJson(name,e.message.split("\n")[0])
+			self.commit()
+			return self.errorJson(name,tag,e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: {d})".format(d = data))
-		self.db.commit()
+		self.commit()
 		return data
 
 
