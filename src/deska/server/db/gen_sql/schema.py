@@ -43,6 +43,14 @@ CREATE FUNCTION commit_all(message text)
 		self.tables = set()
 		# dict of attributes dicts
 		self.atts = dict()
+		# dict of embeded
+		self.embed = dict()
+		# dict of merged
+		self.merge = dict()
+		# dict of templated
+		self.template = dict()
+		# dict of refs
+		self.refs = dict()
 
 		# select all tables
 		record = self.plpy.execute(self.table_str)
@@ -77,6 +85,10 @@ CREATE FUNCTION commit_all(message text)
 		# create some python helper functions
 		print self.py_fn_str.format(name = "kinds", args = '', result = list(self.tables))
 		print self.py_fn_str.format(name = "atts", args = 'kind', result = str(self.atts) + "[kind]")
+		print self.py_fn_str.format(name = "embed", args = '', result = str(self.embed))
+		print self.py_fn_str.format(name = "template", args = '', result = str(self.template))
+		print self.py_fn_str.format(name = "merge", args = '', result = str(self.merge))
+		print self.py_fn_str.format(name = "refs", args = '', result = str(self.refs))
 		return
 
 	# generate sql for one table
@@ -105,6 +117,16 @@ CREATE FUNCTION commit_all(message text)
 			table.add_fk(col[0],col[1],col[2],col[3])
 			# if there is a reference, change int for identifier
 			self.atts[tbl][col[1]] = 'identifier'
+			prefix = col[0][0:6]
+			if prefix == "rembed":
+				self.embed[tbl] = col[1]
+			#FIXME: this is not right, only for remember, merge has to be defined in another way
+			elif prefix == "rmerge":
+				self.merge[tbl] = col[1]
+			elif prefix == "rtempl":
+				self.template[tbl] = col[1]
+			else:
+				self.refs[tbl] = col[1]
 
 		# generate sql
 		self.table_sql.write(table.gen_hist())
