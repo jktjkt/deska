@@ -421,14 +421,15 @@ The Deska DBAPI provides functions for accessing the information contained in th
 
 \subsection{The Deska DBAPI at a Glance}
 
-The API can be divided into five groups.  The first part are commands for querying the database scheme, which are
+The API can be divided into six groups.  The first part are commands for querying the database scheme, which are
 described in section \ref{sec:api-group-dbscheme}.  These commands inform the user about what kinds of top-level objects are
 defined, what relations exist among them and which attributes belong to each object.  Second part of the API
 (section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
 part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
 part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results, or provide a frozen view of the DB state for consistency.  The last part (section \ref{sec:api-group-history})
-discusses browsing the revision history.
+results, or provide a frozen view of the DB state for consistency.  The fifth part (section \ref{sec:api-group-history})
+discusses browsing the revision history and the last part (section \ref{sec:api-group-conf-generators}) controls
+execution of the server-side configuration generators.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
 are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
@@ -476,7 +477,8 @@ immediate attributes of an object, and do not take templates into account; for f
 state of objects, use the \deskaFuncRef{resolvedDataDifference} and
 \deskaFuncRef{resolvedDataDifferenceInTemporaryChangeset}.
 
-FIXME: add server-side config generators, issue 239 -- maybe in a different section -> s/five/six/ at the top of this chapter
+Use the \deskaFuncRef{showConfigDiff} function to retrieve a human-readable description of how the actions performed in
+the current changeset affect the generated configuration output.
 
 \subsubsection{Revision Semantics}
 \label{sec:api-revision-semantics}
@@ -862,5 +864,18 @@ Functions for browsing history of individual objects, retrieving lists of differ
     ]}
     {Return differences between the resolved database state in the specified changeset and its parent revision}
     {See \deskaFuncRef{dataDifferenceInTemporaryChangeset} and \deskaFuncRef{resolvedDataDifference} for details.}
+
+\subsubsection{Server-side Configuration Generators}
+\label{sec:api-group-conf-generators}
+
+Functions that control generating of configuration files on the server side.
+
+\deskaFunc{showConfigDiff}{}
+    {"human-readable-output"}
+    {Show the human readable difference in the generated configuration, as determined by changes in the current
+    changeset.}
+    {This function will make sure that the server has run its configuration generators at least once for the current
+    state of the active changeset, and then return a human readable description of these changes.  The format of the
+    resulting data is not meant for machine processing, but for a direct consumption by humans.}
 
 \end{document}
