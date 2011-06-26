@@ -1,5 +1,4 @@
 /*
-* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 * Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
@@ -21,8 +20,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_PARSERPRIVATE_KINDSONLYPARSER_H
-#define DESKA_CLI_PARSERPRIVATE_KINDSONLYPARSER_H
+#ifndef DESKA_CLI_PARSERPRIVATE_KINDSFILTERSPARSER_H
+#define DESKA_CLI_PARSERPRIVATE_KINDSFILTERSPARSER_H
 
 #include "Parser_p.h"
 #include "ParserErrors.h"
@@ -33,59 +32,63 @@ namespace Deska
 namespace Cli
 {
 
-/** @short Parser for kinds definitions.
+template <typename Iterator> class FiltersParser;
+
+
+/** @short Parser for kinds filters.
 *
-*   This grammar parses only one pair from set of <kind_name object_name> definitions.
+*   This grammar parses only one kind filter like <kind_name "where" filter>. For parsing set of thees pairs,
+*   use some boost::spirit operator like kleene star.
+*
+*   For parsing of the filter is used FiltersParser.
 *
 *   The grammar is based on a symbols table with lazy lookup function. This method could be found under name
-*   "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic action parsedKind().
+*   "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic action parsedFilter().
 *
-*   This parser is connected to two error handlers. KindErrorHandler for reporting an error while parsing a kind name
-*   and ValueErrorHandler for reporting an error while parsing an object name.
+*   This parser is connected to one error handler. KindErrorHandler for reporting an error while parsing a kind name.
 *
+*   @see FiltersParser
 *   @see KindErrorHandler
-*   @see ValueErrorHandler
 */
 template <typename Iterator>
-class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
+class KindsFiltersParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
 
     /** @short Constructor only initializes the grammar with empty symbols table.
     *
-    *   @param kindName Name of object type, to which the parser belongs in case of parser for nested kinds.
+    *   @param kindName Name of object type, to which the parser belongs in case of parser for filters for nested kinds.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+    KindsFiltersParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser.
     *
     *   @param kindName Name of the kind.
-    *   @param identifierParser Identifier parser obtained from PredefinedRules class.
+    *   @param filtersParser Parser for parsing filters for the kind.
     */
-    void addKind(const Db::Identifier &kindName,
-                 qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
+    void addKindFilter(const Db::Identifier &kindName,
+                       FiltersParser<Iterator> *filtersParser);
 
 private:
 
-    /** @short Function used as semantic action for parsed kind.
+    /** @short Function used as semantic action for parsed filter.
     *
-    *   Calls appropriate method in main parser and updates context stack.
+    *   Calls appropriate method in main parser.
     *
     *   @param kindName Name of the kind.
-    *   @param objectName Parsed name of the object.
+    *   @param filter Parsed filter.
     */
-    void parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
+    void parsedFilter(const Db::Identifier &kindName, const Db::Filter &filter);
 
     /** Kind name - identifier type pairs definitions for purposes of Nabialek trick. */
-    qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds;
+    qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > filters;
 
     /** Rule for parsing kind names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
-    /** Rule for parsing object names. */
-    qi::rule<Iterator, ascii::space_type,
-             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > dispatch;
+    /** Rule for parsing filters. */
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Filter(), ascii::space_type> > > dispatch;
 
     /** Name of kind which identifier is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentKindName;
@@ -101,4 +104,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_PARSERPRIVATE_KINDSONLYPARSER_H
+#endif  // DESKA_CLI_PARSERPRIVATE_KINDSFILTERSPARSER_H

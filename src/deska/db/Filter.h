@@ -55,6 +55,10 @@ struct MetadataExpression
     MetadataValue constantValue;
 
     MetadataExpression(const ComparisonOperator comparison, const Identifier &metadata, const MetadataValue &constantValue);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    MetadataExpression() {};
 };
 
 /** @short Compare attribute value against a constant using given comparison operator */
