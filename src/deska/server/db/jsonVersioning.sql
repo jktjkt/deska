@@ -189,3 +189,58 @@ def main(tag,filter):
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifference(tag text, a text, b text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import oneKindDiff
+
+@pytypes
+def main(tag,a,b):
+	name = "dataDifference"
+	jsn = dutil.jsn(name,tag)
+
+	res = list()
+	try:
+		for kindName in dutil.generated.kinds():
+			res.extend(oneKindDiff(kindName,a,b))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import oneKindDiff
+
+@pytypes
+def main(tag):
+	name = "dataDifferenceInTemporaryChangeset"
+	jsn = dutil.jsn(name,tag)
+
+	res = list()
+	try:
+		for kindName in dutil.generated.kinds():
+			res.extend(oneKindDiff(kindName))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
