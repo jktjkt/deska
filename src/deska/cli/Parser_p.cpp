@@ -366,8 +366,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     functionWordParsed = phrase_parse(iter, end, *functionWordsParser, ascii::space);
 
     // Function word parsed alone
-    if ((iter == end) && (functionWordParsed))
-    {
+    if ((iter == end) && (functionWordParsed)) {
         switch (parsingMode) {
             case PARSING_MODE_SHOW:
                 // Function show does not require any parameters -> emit signals
