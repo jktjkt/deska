@@ -28,6 +28,7 @@ BEGIN;
 \i jsonObjects.sql
 \i jsonVersioning.sql
 \i jsonFunctions.sql
+\i jsonData.sql
 
 
 -- user can use api fucntions
