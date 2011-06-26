@@ -47,6 +47,8 @@ namespace qi = boost::spirit::qi;
 typedef enum {
     /** @short Error in a kinds's name */
     PARSE_ERROR_TYPE_KIND,
+    /** @short Error in a kinds's name in a filter */
+    PARSE_ERROR_TYPE_KIND_FILTER,
     /** @short Error in nesting */
     PARSE_ERROR_TYPE_NESTING,
     /** @short Error in an attribute's name */
@@ -88,6 +90,34 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                     const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
+                    const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
+/** @short Handle errors during parsing a kind's name in a filter. */
+template <typename Iterator>
+class KindFiltersErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function invoked when some error occures during parsing of kind name.
+    *
+    *   Generates appropriate parse error and pushes it to errors stack.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kinds Symbols table with possible kind names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+                    const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
                     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
@@ -286,6 +316,19 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
                const Db::Identifier &kindName);
+    /** @short Create error using KindFilterErrorHandler when some error occures in kind name in filter parsing.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kinds Symbols table with possible kind names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @see KindFiltersErrorHandler
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+               const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
+               const Db::Identifier &kindName);
     /** @short Create error using NestingErrorHandler when some error occures in kind name or attribute name parsing
     *          and parsed name corresponds to another defined kind name, that can not be nested in current kind.
     *
@@ -386,6 +429,7 @@ public:
     *
     *   Error types and context content:
     *   PARSE_ERROR_TYPE_KIND - kind name or no context when in top-level
+    *   PARSE_ERROR_TYPE_KIND_FILTER - kind name or no context when in top-level
     *   PARSE_ERROR_TYPE_NESTING - kind name
     *   PARSE_ERROR_TYPE_ATTRIBUTE - kind name
     *   PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL - kind name
@@ -432,6 +476,16 @@ private:
     */
     void extractKindName(const Db::Identifier &name,
                          const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
+    /** @short Function for extracting kind names from symbols table used in filters grammar.
+    *
+    *   This function should be used for extracting kind names from symbols table using for_each function.
+    *
+    *   @param name Key from the symbols table
+    *   @param grammar Value from the symbols table
+    *   @see KindsFiltersParser
+    */
+    void extractKindFilterName(const Db::Identifier &name,
+                               const qi::rule<Iterator, Db::Filter(), ascii::space_type> &rule);
     /** @short Function for extracting attribute names from symbols table used in attributes grammars.
     *
     *   This function should be used for extracting attributes names from symbols table using for_each function.
