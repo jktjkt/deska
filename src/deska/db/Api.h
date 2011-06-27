@@ -280,6 +280,11 @@ public:
 
     /** @short Return differences in resolved data created in a temporary changeset */
     virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+
+    // Output generators
+
+    /** @short Show the human readable difference in the generated configuration, as determined by changes in the current changeset */
+    virtual std::string showConfigDiff(bool forceRegenerate=false) = 0;
 };
 
 }

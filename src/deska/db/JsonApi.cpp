@@ -423,6 +423,18 @@ std::vector<ObjectModification> JsonApiParser::resolvedDataDifferenceInTemporary
     return diffHelper(this, "resolvedDataDifferenceInTemporaryChangeset", filter, changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
 }
 
+std::string JsonApiParser::showConfigDiff(bool forceRegenerate)
+{
+    JsonCommandContext c1("showConfigDiff");
+    JsonHandlerApiWrapper h(this, "showConfigDiff");
+    if (forceRegenerate)
+        h.argument("forceRegenerate", forceRegenerate);
+    std::string res;
+    h.read("showConfigDiff").extract(&res);
+    h.work();
+    return res;
+}
+
 JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
 {
 }

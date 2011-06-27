@@ -131,6 +131,9 @@ public:
     virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
     virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
 
+    // Configuration output generators
+    virtual std::string showConfigDiff(bool forceRegenerate=false);
+
     /** @short Request stream for reading JSON data */
     boost::signals2::signal<std::istream *(), boost::signals2::last_value<std::istream*> > willRead;
     /** @short Request stream for writing JSON data */
