@@ -63,6 +63,8 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
     operators.add("<", Db::FILTER_COLUMN_LT);
     operators.add("<=", Db::FILTER_COLUMN_LE);
 
+    start %= qi::lit("(") >> attrExpr >> qi::lit(")");
+
     // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
@@ -71,7 +73,7 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
 
     // Attribute name recognized -> try to parse filter value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
+    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
                                                                       phoenix::ref(currentAttributeName), _1)]));
 

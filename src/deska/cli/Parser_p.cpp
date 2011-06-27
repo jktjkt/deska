@@ -34,7 +34,7 @@
 #include "Parser_p_TopLevelParser.h"
 #include "deska/db/Api.h"
 
-//#define PARSER_DEBUG
+#define PARSER_DEBUG
 
 namespace Deska
 {
