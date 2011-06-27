@@ -49,8 +49,6 @@ template<typename T> T extractRevisionFromJson(const std::string &prefix, const 
 
 }
 
-RevisionId RevisionId::null = RevisionId(0);
-
 RevisionId::RevisionId(const unsigned int revision): r(revision)
 {
 }
@@ -75,8 +73,6 @@ std::ostream& operator<<(std::ostream &stream, const RevisionId r)
     return stream << "r" << r.r;
 }
 
-
-TemporaryChangesetId TemporaryChangesetId::null = TemporaryChangesetId(0);
 
 TemporaryChangesetId::TemporaryChangesetId(const unsigned int revision): t(revision)
 {

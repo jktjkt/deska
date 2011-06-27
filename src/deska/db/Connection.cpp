@@ -52,27 +52,27 @@ std::vector<ObjectRelation> Connection::kindRelations(const Identifier &kindName
     return p->kindRelations(kindName);
 }
 
-std::vector<Identifier> Connection::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId revision) const
+std::vector<Identifier> Connection::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision) const
 {
     return p->kindInstances(kindName, filter, revision);
 }
 
-std::map<Identifier, Value> Connection::objectData(const Identifier &kindName, const Identifier &objectName, const RevisionId revision)
+std::map<Identifier, Value> Connection::objectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     return p->objectData(kindName, objectName, revision);
 }
 
-std::map<Identifier, std::map<Identifier, Value> > Connection::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
+std::map<Identifier, std::map<Identifier, Value> > Connection::multipleObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleObjectData(kindName, filter, revision);
 }
 
-std::map<Identifier, std::pair<Identifier, Value> > Connection::resolvedObjectData(const Identifier &kindName, const Identifier &objectName, const RevisionId revision)
+std::map<Identifier, std::pair<Identifier, Value> > Connection::resolvedObjectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     return p->resolvedObjectData(kindName, objectName, revision);
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleResolvedObjectData(kindName, filter, revision);
 }

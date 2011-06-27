@@ -339,10 +339,10 @@ template<>
 PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
     JsonHandler h;
-    TemporaryChangesetId changeset = TemporaryChangesetId::null;
+    TemporaryChangesetId changeset(0);
     std::string author;
     boost::posix_time::ptime timestamp;
-    RevisionId parentRevision = RevisionId::null;
+    RevisionId parentRevision(0);
     std::string message;
     PendingChangeset::AttachStatus attachStatus;
     boost::optional<std::string> activeConnectionInfo;
@@ -355,9 +355,6 @@ PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spir
     h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
     h.parseJsonObject(v.get_obj());
 
-    // These asserts are enforced by the JsonHandler, as all fields are required here.
-    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
-    BOOST_ASSERT(parentRevision != RevisionId::null);
     // This is guaranteed by the extractor
     BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
 
@@ -399,7 +396,7 @@ template<>
 RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
     JsonHandler h;
-    RevisionId revision = RevisionId::null;
+    RevisionId revision(0);
     std::string author;
     boost::posix_time::ptime timestamp;
     std::string commitMessage;
@@ -409,7 +406,6 @@ RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spir
     h.read("commitMessage").extract(&commitMessage);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
-    BOOST_ASSERT(revision != RevisionId::null);
     return RevisionMetadata(revision, author, timestamp, commitMessage);
 }
 

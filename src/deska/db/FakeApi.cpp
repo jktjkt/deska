@@ -79,7 +79,7 @@ vector<ObjectRelation> FakeApi::kindRelations(const Identifier &kindName) const
 
 
 
-vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId) const
+vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision) const
 {
     vector<Identifier> empty;
     return empty;
@@ -87,27 +87,27 @@ vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const boos
 
 
 
-map<Identifier, Value> FakeApi::objectData(const Identifier &kindName, const Identifier &objectName, const RevisionId)
+map<Identifier, Value> FakeApi::objectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     map<Identifier, Value> empty;
     return empty;
 }
 
 std::map<Identifier, std::map<Identifier, Value> > FakeApi::multipleObjectData(
-        const Identifier &kindName, const Filter &filter, const RevisionId)
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     return map<Identifier, map<Identifier, Value> >();
 }
 
 map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(const Identifier &kindName,
-                                                                      const Identifier &objectName, const RevisionId)
+                                                                      const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     map<Identifier, pair<Identifier, Value> > empty;
     return empty;
 }
 
 std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > FakeApi::multipleResolvedObjectData(
-    const Identifier &kindName, const Filter &filter, const RevisionId)
+    const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     return map<Identifier, map<Identifier, pair<Identifier, Value> > >();
 }
@@ -145,14 +145,14 @@ void FakeApi::applyBatchedChanges(const std::vector<ObjectModification> &modific
 
 TemporaryChangesetId FakeApi::startChangeset()
 {
-    return TemporaryChangesetId::null;
+    return TemporaryChangesetId(666);
 }
 
 
 
 RevisionId FakeApi::commitChangeset(const std::string &commitMessage)
 {
-    return RevisionId::null;
+    return RevisionId(666);
 }
 
 
