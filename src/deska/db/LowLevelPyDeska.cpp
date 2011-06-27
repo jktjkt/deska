@@ -20,12 +20,17 @@
 * */
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/db/Connection.h"
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
     using namespace boost::python;
     using namespace Deska::Db;
+
+    typedef std::vector<std::string> vect_string;
+    class_<vect_string>("std_vector_string")
+            .def(vector_indexing_suite<vect_string>());
 
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames);
