@@ -329,6 +329,7 @@ template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const R
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const TemporaryChangesetId &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const Filter &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const std::vector<ObjectModification> &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const bool &);
 
 }
 }

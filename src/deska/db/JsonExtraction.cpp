@@ -446,6 +446,13 @@ json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const 
     return boost::posix_time::to_simple_string(value);
 }
 
+/** @short Convert boolean to JSON */
+template<>
+json_spirit::Value JsonConversionTraits<bool>::toJson(const bool &value)
+{
+    return value;
+}
+
 /** @short Helper for extracting an optional value */
 template<typename T> struct JsonConversionTraits<boost::optional<T> > {
     static boost::optional<T> extract(const json_spirit::Value &v) {
