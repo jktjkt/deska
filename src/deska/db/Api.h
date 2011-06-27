@@ -32,18 +32,6 @@
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
 
-/*
- * TODO items for the DB API:
- *
- * - Think about how to retrieve older revisions from the DB (is the default RevisionId=0
- *   enough/suitable?)
- * - Exceptions -- current idea is that all Deska::Api operations throw an exception upon any error
- * - Reorganize namespace and class names?
- *
- *
- * */
-
-
 namespace Deska {
 namespace Db {
 
