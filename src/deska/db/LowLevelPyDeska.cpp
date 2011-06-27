@@ -20,8 +20,13 @@
 * */
 
 #include <boost/python.hpp>
+#include "deska/db/Connection.h"
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
     using namespace boost::python;
+    using namespace Deska::Db;
+
+    class_<Connection, boost::noncopyable>("Connection")
+            .def("kindNames", &Connection::kindNames);
 }
