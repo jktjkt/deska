@@ -22,40 +22,165 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <cstdlib>
 #include "Connection.h"
-#include "ProcessIO.h"
+#include "Connection_p.h"
 
 namespace Deska {
 namespace Db {
 
-Connection::Connection(): io(0)
+Connection::Connection()
 {
-    // FIXME: don't hardcode these
-    std::vector<std::string> args;
-    args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska_server.py");
-
-    // FIXME: switch to boost::program_options, see redmine #179
-    char *deska_user = ::getenv("DESKA_USER");
-    if (deska_user) {
-        args.push_back("-U");
-        args.push_back(deska_user);
-    }
-    char *deska_db = ::getenv("DESKA_DB");
-    if (deska_db) {
-        args.push_back("-d");
-        args.push_back(deska_db);
-    }
-
-    io = new ProcessIO(args);
-    willRead.connect(boost::phoenix::bind(&ProcessIO::readStream, *io));
-    willWrite.connect(boost::phoenix::bind(&ProcessIO::writeStream, *io));
-    wantJustReadData.connect(boost::phoenix::bind(&ProcessIO::recentlyReadData, *io));
+    p = new Connection_p();
 }
 
 Connection::~Connection()
 {
-    delete io;
+    delete p;
 }
 
+std::vector<Identifier> Connection::kindNames() const
+{
+    return p->kindNames();
+}
+
+std::vector<KindAttributeDataType> Connection::kindAttributes(const Identifier &kindName) const
+{
+    return p->kindAttributes(kindName);
+}
+
+std::vector<ObjectRelation> Connection::kindRelations(const Identifier &kindName) const
+{
+    return p->kindRelations(kindName);
+}
+
+std::vector<Identifier> Connection::kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter, const RevisionId revision) const
+{
+    return p->kindInstances(kindName, filter, revision);
+}
+
+std::map<Identifier, Value> Connection::objectData(const Identifier &kindName, const Identifier &objectName, const RevisionId revision)
+{
+    return p->objectData(kindName, objectName, revision);
+}
+
+std::map<Identifier, std::map<Identifier, Value> > Connection::multipleObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
+{
+    return p->multipleObjectData(kindName, filter, revision);
+}
+
+std::map<Identifier, std::pair<Identifier, Value> > Connection::resolvedObjectData(const Identifier &kindName, const Identifier &objectName, const RevisionId revision)
+{
+    return p->resolvedObjectData(kindName, objectName, revision);
+}
+
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const RevisionId revision)
+{
+    return p->multipleResolvedObjectData(kindName, filter, revision);
+}
+
+void Connection::deleteObject(const Identifier &kindName, const Identifier &objectName)
+{
+    p->deleteObject(kindName, objectName);
+}
+
+void Connection::restoreDeletedObject(const Identifier &kindName, const Identifier &objectName)
+{
+    p->restoreDeletedObject(kindName, objectName);
+}
+
+void Connection::createObject(const Identifier &kindName, const Identifier &objectName)
+{
+    p->createObject(kindName, objectName);
+}
+
+void Connection::renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName)
+{
+    p->renameObject(kindName, oldObjectName, newObjectName);
+}
+
+void Connection::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData)
+{
+    p->setAttribute(kindName, objectName, attributeName, attributeData);
+}
+
+void Connection::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
+{
+    p->applyBatchedChanges(modifications);
+}
+
+TemporaryChangesetId Connection::startChangeset()
+{
+    return p->startChangeset();
+}
+
+RevisionId Connection::commitChangeset(const std::string &commitMessage)
+{
+    return p->commitChangeset(commitMessage);
+}
+
+void Connection::rebaseChangeset(const RevisionId parentRevision)
+{
+    return p->rebaseChangeset(parentRevision);
+}
+
+std::vector<PendingChangeset> Connection::pendingChangesets(const boost::optional<Filter> &filter)
+{
+    return p->pendingChangesets(filter);
+}
+
+void Connection::resumeChangeset(const TemporaryChangesetId changeset)
+{
+    return p->resumeChangeset(changeset);
+}
+
+void Connection::detachFromCurrentChangeset(const std::string &message)
+{
+    return p->detachFromCurrentChangeset(message);
+}
+
+void Connection::abortCurrentChangeset()
+{
+    p->abortCurrentChangeset();
+}
+
+void Connection::freezeView()
+{
+    p->freezeView();
+}
+
+void Connection::unFreezeView()
+{
+    p->unFreezeView();
+}
+
+std::vector<RevisionMetadata> Connection::listRevisions(const boost::optional<Filter> &filter) const
+{
+    return p->listRevisions(filter);
+}
+
+std::vector<ObjectModification> Connection::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+{
+    return p->dataDifference(revisionA, revisionB, filter);
+}
+
+std::vector<ObjectModification> Connection::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+{
+    return p->resolvedDataDifference(revisionA, revisionB, filter);
+}
+
+std::vector<ObjectModification> Connection::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+{
+    return p->dataDifferenceInTemporaryChangeset(changeset, filter);
+}
+
+std::vector<ObjectModification> Connection::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+{
+    return p->resolvedDataDifferenceInTemporaryChangeset(changeset, filter);
+}
+
+std::string Connection::showConfigDiff(bool forceRegenerate)
+{
+    return p->showConfigDiff(forceRegenerate);
+}
 
 }
 }
