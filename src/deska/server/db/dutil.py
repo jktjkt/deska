@@ -120,31 +120,35 @@ class Condition():
 	def __init__(self,data,condId):
 		'''Constructor, set local data and parse condition'''
 		self.newcond = None
-		try:
-			self.val = data["value"]
-			self.op = data["condition"]
-			self.counter = condId
-			self.id = "${0}".format(condId)
-			if "metadata" in data:
-				self.kind = "metadata"
-				self.col = data["metadata"]
-				# we cannot see now, if it is about pending changeset or list revisions
-				if self.col not in ["revision","message","author","timestamp","changeset"]:
-					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
-			elif "kind" in data:
-				self.kind = data["kind"]
-				self.col = data["column"]
-				if self.kind not in generated.kinds():
-					raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
-				# add also name 
-				if self.col not in generated.atts(self.kind) and self.col != "name":
-					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
-			else:
-				raise DutilException("FilterError","Syntax error in condition.")
-		except Exception as e:
-			raise DutilException("FilterError","Syntax error in condition: "+str(e))
+		if "value" not in data:
+			raise DutilException("FilterError","Item 'value' is missing in condition.")
+		if "condition" not in data:
+			raise DutilException("FilterError","Item 'condition' is missing in condition.")
+			
+		self.val = data["value"]
+		self.op = data["condition"]
+		self.counter = condId
+		self.id = "${0}".format(condId)
+		if "metadata" in data:
+			self.kind = "metadata"
+			self.col = data["metadata"]
+			# we cannot see now, if it is about pending changeset or list revisions
+			if self.col not in ["revision","message","author","timestamp","changeset"]:
+				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
+		elif "kind" in data:
+			self.kind = data["kind"]
+			if "column" not in data:
+				raise DutilException("FilterError","Item 'column' is missing in condition.")
+			self.col = data["column"]
+			if self.kind not in generated.kinds():
+				raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
+			# add also name 
+			if self.col not in generated.atts(self.kind) and self.col != "name":
+				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
+		else:
+			raise DutilException("FilterError","Item 'kind' or 'metadata' must be in condition.")
 		self.parse()
-	
+
 	def parse(self):
 		'''Update condition data for easy creation of Deska SQL condition'''
 		if self.col == "changeset" and self.kind == "metadata":
@@ -172,6 +176,8 @@ class Condition():
 			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 			self.kind = revEmbed[self.col]
 
+		if self.op not in self.opMap:
+			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
 		self.op = self.opMap[self.op]
 	
 	def get(self):
