@@ -32,18 +32,6 @@
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
 
-/*
- * TODO items for the DB API:
- *
- * - Think about how to retrieve older revisions from the DB (is the default RevisionId=0
- *   enough/suitable?)
- * - Exceptions -- current idea is that all Deska::Api operations throw an exception upon any error
- * - Reorganize namespace and class names?
- *
- *
- * */
-
-
 namespace Deska {
 namespace Db {
 
@@ -141,7 +129,7 @@ public:
 
     /** @short Get identifiers of all concrete objects of a given Kind */
     virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter=boost::optional<Filter>(),
-                                                  const RevisionId=RevisionId::null) const = 0;
+                                                  const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) const = 0;
 
     /** @short Get all attributes for a named object of a particular kind
      *
@@ -149,11 +137,11 @@ public:
      * resolvedObjectData() for template support.
      * */
     virtual std::map<Identifier, Value> objectData(
-        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Version of objectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
-        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null) = 0;
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -171,11 +159,11 @@ public:
      *      ...
      * */
     virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
-        const Identifier &kindName, const Identifier &objectName, const RevisionId = RevisionId::null) = 0;
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
-        const Identifier &kindName, const Filter &filter, const RevisionId = RevisionId::null) = 0;
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     // Manipulating objects
 
@@ -292,6 +280,11 @@ public:
 
     /** @short Return differences in resolved data created in a temporary changeset */
     virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+
+    // Output generators
+
+    /** @short Show the human readable difference in the generated configuration, as determined by changes in the current changeset */
+    virtual std::string showConfigDiff(bool forceRegenerate=false) = 0;
 };
 
 }

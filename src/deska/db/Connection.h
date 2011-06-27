@@ -22,21 +22,68 @@
 #ifndef DESKA_DB_CONNECTION_H
 #define DESKA_DB_CONNECTION_H
 
-#include "CachingJsonApi.h"
+#include <boost/noncopyable.hpp>
+#include "deska/db/Api.h"
 
 namespace Deska {
 namespace Db {
 
-class ProcessIO;
+class Connection_p;
 
-// FIXME: change this to derive directly from the abstract Api to prevent cluttering up the namespace with implementation details
-class Connection: public CachingJsonApi
+class Connection: public Api, private boost::noncopyable
 {
 public:
     Connection();
     virtual ~Connection();
+
+    // Querying schema definition
+    virtual std::vector<Identifier> kindNames() const;
+    virtual std::vector<KindAttributeDataType> kindAttributes(const Identifier &kindName) const;
+    virtual std::vector<ObjectRelation> kindRelations(const Identifier &kindName) const;
+
+    // Returning data for existing objects
+    virtual std::vector<Identifier> kindInstances(const Identifier &kindName, const boost::optional<Filter> &filter=boost::optional<Filter>(),
+                                                  const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) const;
+    virtual std::map<Identifier, Value> objectData(
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
+            const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+
+    // Manipulating objects
+    virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void createObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
+    virtual void setAttribute(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);
+    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
+
+    // SCM-like operation and transaction control
+    virtual TemporaryChangesetId startChangeset();
+    virtual RevisionId commitChangeset(const std::string &commitMessage);
+    virtual void rebaseChangeset(const RevisionId parentRevision);
+    virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
+    virtual void resumeChangeset(const TemporaryChangesetId changeset);
+    virtual void detachFromCurrentChangeset(const std::string &message);
+    virtual void abortCurrentChangeset();
+    virtual void freezeView();
+    virtual void unFreezeView();
+
+    // Diffing
+    virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+
+    // Output config runners
+    virtual std::string showConfigDiff(bool forceRegenerate=false);
 private:
-    ProcessIO *io;
+    Connection_p *p;
 };
 
 }

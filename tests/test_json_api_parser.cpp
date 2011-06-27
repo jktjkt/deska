@@ -745,6 +745,29 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
     expectEmpty();
 }
 
+/** @short Test that showConfigDiff() returns a reasonable result */
+BOOST_FIXTURE_TEST_CASE(json_showConfigDiff, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"showConfigDiff\",\"tag\":\"T\"}\n");
+    expectRead("{\"showConfigDiff\": \"blabla\", \"tag\":\"T\", \"response\": \"showConfigDiff\"}\n");
+    std::string expected = "blabla";
+    std::string res = j->showConfigDiff();
+    BOOST_CHECK_EQUAL(res, expected);
+    expectEmpty();
+}
+
+/** @short Test that showConfigDiff() with a forced regen returns a reasonable result */
+BOOST_FIXTURE_TEST_CASE(json_showConfigDiff_regen, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"showConfigDiff\",\"tag\":\"T\",\"forceRegenerate\":true}\n");
+    expectRead("{\"showConfigDiff\": \"foo bar\", \"tag\":\"T\", \"response\": \"showConfigDiff\"}\n");
+    std::string expected = "foo bar";
+    std::string res = j->showConfigDiff(true);
+    BOOST_CHECK_EQUAL(res, expected);
+    expectEmpty();
+}
+
+
 /** @short Test that we catch reports of server-side exceptions */
 BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
 {

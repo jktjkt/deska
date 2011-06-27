@@ -1,5 +1,4 @@
 /*
-* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 * Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
@@ -22,7 +21,9 @@
 * */
 
 #include <boost/assert.hpp>
-#include "Parser_p_FunctionWordsParser.h"
+#include "Parser_p_KindsOnlyParser.h"
+#include "Parser_p_KindsFiltersParser.h"
+#include "Parser_p_TopLevelParser.h"
 #include "deska/db/Api.h"
 
 namespace Deska
@@ -31,49 +32,31 @@ namespace Cli
 {
 
 
-
 template <typename Iterator>
-FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
-    FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
+TopLevelParser<Iterator>::TopLevelParser(KindsOnlyParser<Iterator> *topLevelKinds,
+                                         KindsFiltersParser<Iterator> *topLevelKindsFilters,
+                                         ParserImpl<Iterator> *parent):
+    TopLevelParser<Iterator>::base_type(start), m_parent(parent)
 {
-    start = ((qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
-           | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)])
-           | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
+    start = (((*topLevelKinds)[phoenix::bind(&TopLevelParser::parsedSingleKind, this)])
+            | (*topLevelKindsFilters));
 }
 
 
 
 template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionDelete()
+void TopLevelParser<Iterator>::parsedSingleKind()
 {
-    m_parent->setParsingMode(PARSING_MODE_DELETE);
-}
-
-
-
-template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionShow()
-{
-    m_parent->setParsingMode(PARSING_MODE_SHOW);
-}
-
-
-
-template <typename Iterator>
-void FunctionWordsParser<Iterator>::actionRename()
-{
-    m_parent->setParsingMode(PARSING_MODE_RENAME);
+    m_parent->parsedSingleKind();
 }
 
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template FunctionWordsParser<iterator_type>::FunctionWordsParser(ParserImpl<iterator_type> *parent);
+template TopLevelParser<iterator_type>::TopLevelParser(KindsOnlyParser<iterator_type> *topLevelKinds, KindsFiltersParser<iterator_type> *topLevelKindsFilters, ParserImpl<iterator_type> *parent);
 
-template void FunctionWordsParser<iterator_type>::actionDelete();
-
-template void FunctionWordsParser<iterator_type>::actionShow();
+template void TopLevelParser<iterator_type>::parsedSingleKind();
 
 }
 }

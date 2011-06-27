@@ -32,9 +32,7 @@ namespace Db {
 /** @short An identification of a persistent revision in the DB */
 struct RevisionId {
     explicit RevisionId(const unsigned int revision);
-    static RevisionId fromJson(const std::string &jsonStr);
     unsigned int r;
-    static RevisionId null;
 };
 
 bool operator==(const RevisionId a, const RevisionId b);
@@ -44,9 +42,7 @@ std::ostream& operator<<(std::ostream &stream, const RevisionId r);
 /** @short An identification of a temporary changeset in the DB */
 struct TemporaryChangesetId {
     explicit TemporaryChangesetId(const unsigned int tmp);
-    static TemporaryChangesetId fromJson(const std::string &jsonStr);
     unsigned int t;
-    static TemporaryChangesetId null;
 };
 
 bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b);
