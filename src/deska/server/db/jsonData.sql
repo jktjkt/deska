@@ -18,15 +18,23 @@ def main(tag,kindName,revision,filter):
 	embed = dutil.generated.embed()
 	if kindName in embed:
 		#FIXME: propagate delimiter constant here,or drop this argument
-		columns = "join_with_delim({ref}_get_name({ref}, $1), name, '->')".format(ref = embed[kindName])
+		columns = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->')".format(ref = embed[kindName], kind = kindName)
 	else:
 		columns = "{0}.name"
-	select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} '
-	select = select.format(kindName)
+
+	try:
+		# set start to 2, $1 - version is set
+		filter = dutil.Filter(filter,2)
+		where, values = filter.getWhere()
+		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
+		select = select.format(kindName)
+	except dutil.DutilException as err:
+		return err.json(name,jsn)
 
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
-		colnames, cur = dutil.getdata(select,revisionNumber)
+		args = [revisionNumber]+values
+		colnames, cur = dutil.getdata(select,*args)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	

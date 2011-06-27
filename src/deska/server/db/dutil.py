@@ -119,9 +119,11 @@ class Condition():
 
 	def __init__(self,data,condId):
 		'''Constructor, set local data and parse condition'''
+		self.newcond = None
 		try:
 			self.val = data["value"]
 			self.op = data["condition"]
+			self.counter = condId
 			self.id = "${0}".format(condId)
 			if "metadata" in data:
 				self.kind = "metadata"
@@ -131,18 +133,17 @@ class Condition():
 					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
 			elif "kind" in data:
 				self.kind = data["kind"]
+				self.col = data["column"]
 				if self.kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
-				self.col = data["column"]
 				# add also name 
 				if self.col not in generated.atts(self.kind) and self.col != "name":
 					raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
 			else:
 				raise DutilException("FilterError","Syntax error in condition.")
-			self.parse()
-			return
 		except Exception as e:
 			raise DutilException("FilterError","Syntax error in condition: "+str(e))
+		self.parse()
 	
 	def parse(self):
 		'''Update condition data for easy creation of Deska SQL condition'''
@@ -152,12 +153,36 @@ class Condition():
 		if self.col == "revision" and self.kind == "metadata":
 			self.col = "num"
 			self.id = "revision2num({0})".format(self.id)
+		embed = generated.embed()
+		if self.kind in embed and self.col == "name":
+			# FIXME: delimiter
+			parent, name = fcall("embed_name(text,text)",self.val,'->')
+			self.val = mystr(name)
+			newcond = dict()
+			newcond["column"] = embed[self.kind]
+			newcond["kind"] = self.kind
+			newcond["condition"] = self.op
+			newcond["value"] = mystr(parent)
+			self.newcond = Condition(newcond,self.counter + 1)
+		revEmbed = {v:k for k,v in embed.items()}
+		if self.col in revEmbed:
+			# We are called from else part - self.newcond...
+			# because this is column refers to another table
+			#FIXME: version parametr, $1 every time, check for conflicts
+			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
+			self.kind = revEmbed[self.col]
 
 		self.op = self.opMap[self.op]
 	
 	def get(self):
 		'''Return deska SQL condition'''
-		return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), self.val
+		if self.newcond is None:
+			return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), [self.val]
+		else:
+			'''We need to add one condition'''
+			cond1 = "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id)
+			cond2, val2 = self.newcond.get()
+			return "( {0} AND {1} )".format(cond1,cond2), [self.val]+val2
 	
 	def getAffectedKind(self):
 		'''Return kind in condition'''
@@ -197,9 +222,10 @@ class Filter():
 		for kind in self.kinds:
 			if mykind == "metadata":
 				joincond = "{0}.id = {1}.version".format(mykind,kind)
+				ret = ret + " JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 			else:
 				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
-			ret = ret + " JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 		return ret
 	
 	def parse(self,data):
@@ -217,12 +243,12 @@ class Filter():
 			else:
 				raise DutilException("FilterError","Bad operands.")
 		cond = Condition(data,self.counter)
-		self.counter = self.counter + 1
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
-		ret, value = cond.get()
-		#add value into list
-		self.values.append(value)
+		ret, newValues = cond.get()
+		self.counter = self.counter + len(newValues)
+		#add values into list
+		self.values.extend(newValues)
 		return ret
 
 def oneKindDiff(kindName,a = None,b = None):
