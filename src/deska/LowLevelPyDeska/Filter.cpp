@@ -205,6 +205,60 @@ class no_compare_indexing_suite :
     }
 };
 
+typedef std::vector<Filter> vect_Filter;
+
+std::string repr_Filter(const Filter &v);
+
+/** @short __repr__ for a std::vector<Deska::Db::Filter> */
+std::string repr_vect_Filter(const vect_Filter &v)
+{
+    std::ostringstream ss;
+    ss << "[";
+    BOOST_FOREACH(const Filter& f, v) {
+        ss << repr_Filter(f) << ", ";
+    }
+    ss << "]";
+    return ss.str();
+}
+
+/** @short __repr__ for a Deska::Db::AndFilter */
+std::string repr_AndFilter(const AndFilter& v)
+{
+    std::ostringstream ss;
+    ss << "AndFilter(" << repr_vect_Filter(v.operands) << ")";
+    return ss.str();
+}
+
+/** @short __repr__ for a Deska::Db::OrFilter */
+std::string repr_OrFilter(const OrFilter& v)
+{
+    std::ostringstream ss;
+    ss << "OrFilter(" << repr_vect_Filter(v.operands) << ")";
+    return ss.str();
+}
+
+/** @short Helper visitor for Deska::Db::Filter's __repr__ */
+struct DeskaFilterToString: public boost::static_visitor<std::string>
+{
+    result_type operator()(const AndFilter &v) const
+    {
+        return repr_AndFilter(v);
+    }
+    result_type operator()(const OrFilter &v) const
+    {
+        return repr_OrFilter(v);
+    }
+    result_type operator()(const Expression &v) const
+    {
+        return repr_Expression(v);
+    }
+};
+
+/** @short __repr__ for a Deska::Db::Filter */
+std::string repr_Filter(const Filter &v)
+{
+    return boost::apply_visitor(DeskaFilterToString(), v);
+}
 
 void exportDeskaFilter()
 {
@@ -242,15 +296,27 @@ void exportDeskaFilter()
             .def_readonly("constantValue", &AttributeExpression::constantValue)
             .def("__repr__", repr_AttributeExpression);
 
-    class_<Expression>("Expression")
+    class_<Expression>("Expression", no_init)
             .def(init<const MetadataExpression&>())
             .def(init<const AttributeExpression&>())
             .def("__repr__", repr_Expression);
-    class_<OrFilter>("OrFilter", no_init);
-    class_<AndFilter>("AndFilter", no_init);
-    class_<Filter>("Filter");
 
-    typedef std::vector<Filter> vect_filter;
-    class_<vect_filter>("std_vector_filter")
-            .def(no_compare_indexing_suite<vect_filter>());
+    class_<vect_Filter>("std_vector_Filter")
+            .def(no_compare_indexing_suite<vect_Filter>())
+            .def("__repr__", repr_vect_Filter);
+
+    class_<OrFilter>("OrFilter", no_init)
+            .def(init<const vect_Filter&>())
+            .def("__repr__", repr_OrFilter);
+
+    class_<AndFilter>("AndFilter", no_init)
+            .def(init<const vect_Filter&>())
+            .def("__repr__", repr_AndFilter);
+
+    class_<Filter>("Filter")
+            .def(init<const Expression&>())
+            .def(init<const OrFilter&>())
+            .def(init<const AndFilter&>())
+            .def("__repr__", repr_Filter)
+            ;
 }

@@ -59,6 +59,12 @@ print libLowLevelPyDeska.Expression(fe1)
 print fe2
 print libLowLevelPyDeska.Expression(fe2)
 
+tmp = libLowLevelPyDeska.std_vector_Filter()
+tmp.append(libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(fe1)))
+tmp.append(libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(fe2)))
+of = libLowLevelPyDeska.OrFilter(tmp)
+del tmp
+print of
 print
 
 c = libLowLevelPyDeska.Connection()
