@@ -134,8 +134,8 @@ set(deskaCli_SRCS
 )
 
 set(libLowLevelPyDeska_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/LowLevelPyDeska.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/PythonDateTimeConversions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Module.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
