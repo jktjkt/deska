@@ -4,20 +4,16 @@ import datetime
 sys.path.append(os.getcwd())
 import libLowLevelPyDeska
 
-p = libLowLevelPyDeska.DeskaDbValue_2_Py
-v = libLowLevelPyDeska.Py_2_DeskaDbValue
-d = libLowLevelPyDeska.deoptionalify
-
 def verify(x):
     print "%s: %s" % (type(x), x)
-    deska_val = v(x)
+    deska_val = libLowLevelPyDeska.Py_2_DeskaDbValue(x)
     try:
-        non_opt = d(deska_val)
+        non_opt = libLowLevelPyDeska.deoptionalify(deska_val)
         print "Deska::Db::NonOptionalValue: str  %s" % str(non_opt)
         print "Deska::Db::NonOptionalValue: repr %s" % repr(non_opt)
     except RuntimeError, e:
         print "deoptionalify failed"
-    py_x = p(deska_val)
+    py_x = libLowLevelPyDeska.DeskaDbValue_2_Py(deska_val)
     print "Deska::Db::Value -> Py str : %s" % str(py_x)
     print "Deska::Db::Value -> Py repr: %s" % repr(py_x)
     if str(x) != str(py_x):
