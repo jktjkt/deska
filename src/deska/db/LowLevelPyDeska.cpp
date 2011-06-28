@@ -50,7 +50,28 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def_readonly("target", &ObjectRelation::target)
             .def(self_ns::str(self));
 
+    // required for kindAttributes
+    typedef std::vector<KindAttributeDataType> vect_KindAttributeDataType;
+    class_<vect_KindAttributeDataType>("std_vector_Deska_Db_KindAttributeDataType")
+            .def(vector_indexing_suite<vect_KindAttributeDataType>());
+    enum_<Type>("AttributeType")
+            .value("IDENTIFIER", TYPE_IDENTIFIER)
+            .value("STRING", TYPE_STRING)
+            .value("INT", TYPE_INT)
+            .value("DOUBLE", TYPE_DOUBLE)
+            .value("IPV4_ADDRESS", TYPE_IPV4_ADDRESS)
+            .value("IPV6_ADDRESS", TYPE_IPV6_ADDRESS)
+            .value("MAC_ADDRESS", TYPE_MAC_ADDRESS)
+            .value("DATE", TYPE_DATE)
+            .value("TIMESTAMP", TYPE_TIMESTAMP);
+
+    class_<KindAttributeDataType>("KindAttributeDataType", no_init)
+            .def_readonly("name", &KindAttributeDataType::name)
+            .def_readonly("type", &KindAttributeDataType::type)
+            .def(self_ns::str(self));
+
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames)
-            .def("kindRelations", &Connection::kindRelations);
+            .def("kindRelations", &Connection::kindRelations)
+            .def("kindAttributes", &Connection::kindAttributes);
 }
