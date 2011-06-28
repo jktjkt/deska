@@ -88,16 +88,27 @@ api::object pythonify(const Value &v)
 /** @short Convert a python object into the Deska::Db::Value */
 Value valueify(const api::object &o)
 {
+    // None
+    if (o == api::object())
+        return Value();
+
+    // string
     extract<std::string> get_str(o);
     if (get_str.check())
         return NonOptionalValue(get_str());
+
+    // int
     extract<int> get_int(o);
     if (get_int.check())
         return NonOptionalValue(get_int());
+
+    // double
     extract<double> get_double(o);
     if (get_double.check())
         return NonOptionalValue(get_double());
-    return Value();
+
+    throw std::runtime_error("Unsupported type of a python object");
+    //return Value();
 }
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
