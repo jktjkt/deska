@@ -31,13 +31,8 @@ using namespace Deska::Db;
 // from the PythonDateTimeConversions.cpp
 void bind_datetime();
 
-BOOST_PYTHON_MODULE(libLowLevelPyDeska)
+void exportObjectRelations()
 {
-    // required for kindNames
-    typedef std::vector<std::string> vect_string;
-    class_<vect_string>("std_vector_string")
-            .def(vector_indexing_suite<vect_string>());
-
     // required for kindRelations
     typedef std::vector<ObjectRelation> vect_ObjectRelation;
     class_<vect_ObjectRelation>("std_vector_Deska_Db_ObjectRelation")
@@ -54,8 +49,11 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def_readonly("kind", &ObjectRelation::kind)
             .def_readonly("target", &ObjectRelation::target)
             .def(self_ns::str(self));
+}
 
-    // required for kindAttributesboost::python::
+void exportAttributeTypes()
+{
+    // required for kindAttributes
     typedef std::vector<KindAttributeDataType> vect_KindAttributeDataType;
     class_<vect_KindAttributeDataType>("std_vector_Deska_Db_KindAttributeDataType")
             .def(vector_indexing_suite<vect_KindAttributeDataType>());
@@ -74,7 +72,10 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def_readonly("name", &KindAttributeDataType::name)
             .def_readonly("type", &KindAttributeDataType::type)
             .def(self_ns::str(self));
+}
 
+void exportRevisions()
+{
     // revisions and changesets (required for filters)
     class_<RevisionId>("RevisionId", init<const unsigned int>())
             .def(self == other<RevisionId>())
@@ -82,9 +83,10 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<TemporaryChangesetId>("TemporaryChangesetId", init<const unsigned int>())
             .def(self == other<TemporaryChangesetId>())
             .def(self_ns::str(self));
+}
 
-    // The attribute value
-
+void exportDeskaValue()
+{
     // At first, wrap the boost::optional. This is not meant to be used directly.
     class_<Value>("Value")
             .def(not self)
@@ -114,7 +116,10 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<MacAddress>("MacAddress", init<const std::string&>())
             .def(self == other<MacAddress>())
             .def(self_ns::str(self));
+}
 
+void exportFilters()
+{
     // filters
     enum_<ComparisonOperator>("ComparisonOperator")
             .value("COLUMN_EQ", FILTER_COLUMN_EQ)
@@ -124,6 +129,20 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .value("COLUMN_LT", FILTER_COLUMN_LT)
             .value("COLUMN_LE", FILTER_COLUMN_LE);
     //class_<MetadataValue>
+}
+
+BOOST_PYTHON_MODULE(libLowLevelPyDeska)
+{
+    exportObjectRelations();
+    exportAttributeTypes();
+    exportRevisions();
+    exportDeskaValue();
+    exportFilters();
+
+    // required for kindNames
+    typedef std::vector<std::string> vect_string;
+    class_<vect_string>("std_vector_string")
+            .def(vector_indexing_suite<vect_string>());
 
     // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
