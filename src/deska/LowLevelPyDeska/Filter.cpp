@@ -260,6 +260,24 @@ std::string repr_Filter(const Filter &v)
     return boost::apply_visitor(DeskaFilterToString(), v);
 }
 
+/** @short __repr__ for the boost::optional<Deska::Db::Filter> */
+std::string repr_optionalFilter(const boost::optional<Filter> &v)
+{
+    return v ? repr_Filter(*v) : std::string("None");
+}
+
+/** @short __repr__ for the boost::optional<Deska::Db::RevisionId> */
+std::string repr_optionalRevisionId(const boost::optional<RevisionId> &v)
+{
+    if (v) {
+        std::ostringstream ss;
+        ss << *v;
+        return ss.str();
+    } else {
+        return "None";
+    }
+}
+
 void exportDeskaFilter()
 {
     // filters
@@ -319,4 +337,12 @@ void exportDeskaFilter()
             .def(init<const AndFilter&>())
             .def("__repr__", repr_Filter)
             ;
+
+    class_<boost::optional<Filter> >("OptionalFilter")
+            .def(init<const Filter&>())
+            .def("__repr__", repr_optionalFilter);
+
+    class_<boost::optional<RevisionId> >("OptionalRevisionId")
+            .def(init<const RevisionId>())
+            .def("__repr__", repr_optionalRevisionId);
 }

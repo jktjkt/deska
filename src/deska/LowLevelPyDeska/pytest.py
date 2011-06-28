@@ -78,3 +78,8 @@ for kind in kindNames:
 for kind in kindNames:
     kindAttributes = c.kindAttributes(kind)
     print "kindAttributes(%s): %s" % (kind, [str(x) for x in kindAttributes])
+
+for kind in kindNames:
+    kindInstances = c.kindInstances(kind, libLowLevelPyDeska.OptionalFilter(),
+                                    libLowLevelPyDeska.OptionalRevisionId())
+    print "kindInstances(%s): %s" % (kind, [str(x) for x in kindInstances])

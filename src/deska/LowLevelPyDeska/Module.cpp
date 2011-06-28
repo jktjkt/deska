@@ -104,5 +104,6 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
-            .def("kindAttributes", &Connection::kindAttributes);
+            .def("kindAttributes", &Connection::kindAttributes)
+            .def("kindInstances", &Connection::kindInstances);
 }
