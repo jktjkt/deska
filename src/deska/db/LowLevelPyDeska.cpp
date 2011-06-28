@@ -55,41 +55,10 @@ NonOptionalValue deoptionalify(const Value &v)
 /** @short Variant visitor for converting a Deska::Db::Value to a Python object */
 struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
 {
-    result_type operator()(const std::string &v) const
-    {
-        return result_type(v);
-    }
-
-    result_type operator()(const int &v) const
-    {
-        return result_type(v);
-    }
-
-    result_type operator()(const double &v) const
-    {
-        return result_type(v);
-    }
-
-    result_type operator()(const boost::asio::ip::address_v4 &v) const
-    {
-        return result_type(v);
-    }
-
-    result_type operator()(const boost::asio::ip::address_v6 &v) const
-    {
-        return result_type(v);
-    }
-
-    result_type operator()(const MacAddress &v) const
-    {
-        return result_type(v);
-    }
-
     template <typename T>
     result_type operator()(const T &v) const
     {
-        throw std::runtime_error("Cannot convert a Deska::Db::Value of this type");
-        //return result_type();
+        return result_type(v);
     }
 };
 
