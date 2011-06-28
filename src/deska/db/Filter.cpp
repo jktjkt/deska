@@ -24,17 +24,23 @@
 namespace Deska {
 namespace Db {
 
-Expression::Expression(const ComparisonKind comparison_, const Identifier &column_, const ExpressionValue &constantValue_):
-    comparison(comparison_), column(column_), constantValue(constantValue_)
+MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
+    comparison(comparison_), metadata(metadata_), constantValue(constantValue_)
 {
 }
 
-OrFilter::OrFilter(const std::vector<Expression> operands_):
+AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
+                                         const Value &constantValue_):
+    comparison(comparison_), kind(kind_), attribute(attribute_), constantValue(constantValue_)
+{
+}
+
+OrFilter::OrFilter(const std::vector<Filter> operands_):
     operands(operands_)
 {
 }
 
-AndFilter::AndFilter(const std::vector<Expression> operands_):
+AndFilter::AndFilter(const std::vector<Filter> operands_):
     operands(operands_)
 {
 }

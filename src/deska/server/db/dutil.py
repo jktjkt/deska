@@ -2,6 +2,7 @@
 
 import Postgres
 import json
+import generated
 
 class DeskaException(Exception):
 	'''Exception class for deska exceptions'''
@@ -9,24 +10,24 @@ class DeskaException(Exception):
 	typeDict = {
 		'70002': 'ChangesetAlreadyOpenError',
 		'70003': 'NoChangesetError',
+		'70010': 'ReCreateObjectError',
 		'70021': 'NotFoundError',
 		'*': 'ServerError'
 	}
 
 	def __init__(self,dberr):
 		'''Construct DeskaException from Postgres.dberr exception'''
-		self.dberr = dberr
+		self.code = dberr.code
+		self.message = dberr.message
 		self.parseDberr()
 		
 	def parseDberr(self):
 		'''Parse Postgres.dberr into variables used for json dump'''
-		self.type = self.getType(self.dberr.code)
-		if self.dberr.code == '42601':
+		self.type = self.getType(self.code)
+		if self.code == '42601':
 			self.message = "Syntax error, something strange happend."
-		if self.dberr.code == '42883':
+		if self.code == '42883':
 			self.message = "Either kindName or attribute does not exists."
-		else:
-			self.message = self.dberr.message
 
 	def getType(self,errcode):
 		'''Return DeskaExceptionType for given error code'''
@@ -49,14 +50,29 @@ class DeskaException(Exception):
 
 		return json.dumps(jsn)
 
+class DutilException(DeskaException):
+	'''Exception in pgpython code'''
+
+	def __init__(self,type,message):
+		self.type = type
+		self.message = message
+
+def jsn(name,tag):
+	'''Create json sceleton'''
+	return {"response": name, "tag": tag}
+
+def errorJson(command,tag,typ,message):
+	'''Create json error string'''
+	jsn = dict({"response": command, "tag": tag,
+		"dbException": {"type": typ, "message": message}
+		})
+	return json.dumps(jsn)
 
 def mystr(s):
 	'''Like str but only not for all'''
 	if s is None:
 		return s
 	return str(s)
-
-
 
 def fcall(fname,*args):
 	'''Call stored procedure with params.
@@ -104,15 +120,21 @@ class Condition():
 	def __init__(self,data):
 		'''Constructor, set local data and parse condition'''
 		try:
-			self.col = data["column"]
 			self.val = data["value"]
 			self.op = data["condition"]
-			self.kind = data["kind"]
+			if "metadata" in data:
+				self.kind = "metadata"
+				self.col = data["metadata"]
+			elif "kind" in data:
+				self.kind = data["kind"]
+				self.col = data["column"]
+			#else:
+				# throw here something
+			# and here some kind / attribute checking
 			self.parse()
 			return
 		except:
-			pass # do not raise here
-		Postgres.ERROR("Syntax error in condition",code = 70020)
+			raise DutilException("FilterError","Syntax error in condition.")
 	
 	def parse(self):
 		'''Update condition data for easy creation of Deska SQL condition'''
@@ -143,20 +165,18 @@ class Filter():
 		'''loads json filter data'''
 		self.kinds = set()
 		self.where = ''
-		if filterData == '':
-			self.data = filterData
+		if filterData is None:
+			self.data = None
 			return
 		try:
 			self.data = json.loads(filterData)
-			self.where = self.parse(self.data)
-			return
 		except Exception as err:
-			pass # do not raise another exception in except part
-		Postgres.ERROR("Syntax error when parsing filterData.",code = 70020)
+			raise DutilException("FilterError","Syntax error in filter.")
+		self.where = self.parse(self.data)
 		
 	def getWhere(self):
 		'''Return where part of sql statement'''
-		if self.data == '':
+		if self.data is None:
 			return ''
 		return "WHERE " + self.where
 	
@@ -176,7 +196,7 @@ class Filter():
 		'''Parse filter data and create SQL WHERE part'''
 		if self.data == '':
 			return ''
-		try:
+		if "operator" in data:
 			operator = data["operator"]
 			if operator == "and":
 				res = [self.parse(expresion) for expresion in data["operands"]]
@@ -185,11 +205,56 @@ class Filter():
 				res = [self.parse(expresion) for expresion in data["operands"]]
 				return "(" + ") OR (".join(res) + ")"
 			else:
-				Postgres.ERROR("Syntax error: bad operands",code = 70020)
-		except:
-			pass
+				raise DutilException("FilterError","Bad operands.")
 		cond = Condition(data)
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
 		return cond.get()
 
+def kinds():
+        return list(["vendor","hardware","host","interface"])
+
+def oneKindDiff(kindName,a = None,b = None):
+	with xact():
+		if (a is None) and (b is None):
+			# diff for temporaryChangeset
+			init = proc(kindName + "_init_diff()")
+			init()
+		else:
+			# diff for 2 revisions
+			init = proc(kindName + "_init_diff(bigint,bigint)")
+			#get changeset ids first
+			revision2num = proc("revision2num(text)")
+			a = revision2num(a)
+			b = revision2num(b)
+			init(a,b)
+
+		terminate = proc(kindName + "_terminate_diff()")
+		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
+		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
+
+		res = list()
+		for line in created():
+			obj = dict()
+			obj["command"] = "createObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		for line in setattr(a,b):
+			obj = dict()
+			obj["command"] = "setAttribute"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			obj["attributeName"] = mystr(line[1])
+			obj["oldValue"] = mystr(line[2])
+			obj["newValue"] = mystr(line[3])
+			res.append(obj)
+		for line in deleted():
+			obj = dict()
+			obj["command"] = "deleteObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		terminate()
+	return res

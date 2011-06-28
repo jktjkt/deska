@@ -1,0 +1,181 @@
+Schuze Deska, 2011-06-17 FZU
+----------------------------
+
+Pritomni: Honza, Lukas, Tomas
+Omluveni: Martina (dovolena)
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- Finalizovani DBAPI specifikace (pridani mnoha novych funkci, kompletni review,
+  konzistence, filtry, tagovani, frozen views, razeni vysledku a mnoho jineho,
+  viz git). Napady s REFERS_TO relaci.
+- Implementace tagovaneho DBAPI
+- Bugfixy C++ JSON DBAPI (povinne atributy/relace, nove funkce, filtry, testy).
+- Refactoring C++ JSONu
+- Testy DBAPI:
+    - slouceni/portace velke casti Lukasovych testu
+    - nove testy
+- Bugfixy, testovani, review atd
+    - cmake a linkovani
+    - procisteni header -> rychlejsi kompilace
+    - DESKA_SKIP_DB_INIT
+    - readline
+- Integrace CLI testu
+- SQL injection
+- Migrace projects.flaska.net/git.flaska.net (IPv6, SSL, spolehlivy HW)
+- Cleanup ticketu
+
+Tomas:
+- help, automaticke sbirani z Parseru, Commandu
+- prikazy pres tridy, umi to parametry,...
+- dump do souboru, restore (zatim kvuli embedovani nefunguje)
+- restoreDeletedObject
+- debugovani CLI a parseru
+- readline wrapper
+- tab completion
+- testovani CLI
+- parser pro dalsi typy
+- rekurzivni parsovani filtru
+
+Lukas:
+- uklid ticketu
+- opravy a testovani diffovani
+- nove funkce z DBAPI
+- transakce (lokalne)
+- mailovani
+- Nemoc, znechuceni.
+
+Ukoly z minula:
+---------------
+
+- Honza: formalni popis JSON API (#183)
+    - hotovo
+- Honza: rozsireni API pro WHERE (#210)
+    - hotovo
+- Honza: dalsi testy k DB serveru
+    - hotovo
+- Honza: uprava DBAPI specifikace:
+    - embed objekty atd (#230)
+        - hotovo
+    - multipleObjectData
+        - hotovo
+    - token pro prikazy
+        - hotovo
+- Honza: sloucit testy -- jak to udelat?
+    - vymysleno, cast testu prevedena
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+    - neni
+- Tomas: dal pokracovat na CLI
+    - ok
+- Tomas: testy k CLI
+    - ok
+- Tomas: zrusit konfirmaci u mazani argumentu
+    - hotovo
+
+U Lukase jsem tohle zrejme bod po bodu neprosel.
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: otestovat diffovani (#214)
+- Lukas: prekontrolovat, ze uz tam neni removeAttribute
+- Lukas: error reporting
+- Lukas: filtry
+- Lukas: do DB, aby start/resume changeset vratilo vyjimku
+
+Martina je pryc.
+- Martina: prekontrolovat testy generatoru (#111) -- zavrit ticket
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+- Martina: tets pro setName by mel vyzkouset oba dva druhy rename zvlast i
+najednou
+
+Diskuse:
+--------
+
+Probrat:
+- H->L: SQL injection a styl komunikace
+    - Diskutovali jsme, dekuji za popsani problemu. Lukas prislibil, ze finalni
+    verze nebude nachylna ani na 1=1 utok.
+
+- H->T: identifikatory v DBAPI
+    - v CREATE TABLE bude uveden odpovidajici datovy typ namisto "string"
+
+- H->T: CLI: parsovani IP adres
+    - CLI Parser bude parsovat primo do odpovidajici C++ tridy, ktera bude
+      pouzita ve variantu Deska::Db::Value
+
+- H->T: CLI: zahodit extra typ pro uint atd
+    - nechame int, currency, string, date, ipv4, ipv6
+
+- H->T: CLI: identifikator vs. unquoted string
+    - zustane jeden string a jeden identifier
+
+- jak rozlisit filtry koukajici na raw, nebo resolved hodnoty atributu?
+    - odlozeno
+
+- syntaxe filtru (column vs. attribute/emetadata), viz maily
+    - zneni podle DBAPI je platne
+
+- relace REFERS_TO
+    - zni to jako dobry napad, Honza naspecifikuje
+
+- stav threadu "nesting a vztah ke CLI"
+    - ???
+
+Strankovani: az se bude kindInstances etc umet vracet jen prvnich X vysledku,
+    bude potreba zajistit stabilni serazeni, nejspis pres jmeno, abecedne. Zatim
+    neresime.
+
+Lukas zminil, ze si do vykazovaneho casu nepocita cas, ktery stravil ctenim kodu
+po Martine. Honza rika, ze je zadouci i toto vykazovat.
+
+Prodleva oproti casovemu planu: data +/- sedi
+
+Schuze trvala cca. 3.45.
+
+Ukoly:
+------
+
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+- Honza: vice testu
+- Honza: portace Lukasovych testu
+- Honza: Python DBAPI
+- Honza: DBAPI spec: spousteni server-side config generatoru (#239)
+- Honza: rozsireni DB typu
+- Honza: zrevidovat, zda DBAPI dostatecne jasne popisuje filtry
+- Honza: naspecifikovat REFERS_TO
+- Honza: filtry naspecifikovat a naimpl. rekurzivne
+- Honza: kouknout na testy CLI, zjistit a predvest, jak sloucit ocekavany return
+  funkci, a jak to udelat makrama
+
+- FIXME: testy pro merge
+- FIXME: validace uzivatelova navrhu DB
+- FIXME: jak rozlisit filtry koukajici na raw, nebo resolved hodnoty atributu?
+
+- Tomas, Martina, Lukas: precist DBAPI PDF specifikaci jako celek
+
+- Tomas: CLI bude parsovat vice datovych typu do C++ struktur
+- Tomas: dokumentace CLI
+- Tomas: testy ke CLI
+- Tomas: pouziti filtru, mj. pro embedding
+- Tomas: manipulace pres vic objektu (filtry, parsovani pres CLI,...)
+
+- Lukas: identifikator jako specialni typ pro "name" pro kindy
+- Lukas: generovani python struktur (ci neceho podobneho) pro rozumnou validaci
+  filtru atd
+- Lukas: implementace filtru
+- Lukas: joiny ve filtrech
+- Lukas: transkace, aka. frozen views
+- Lukas: templaty
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: pouziti spravnych exceptions pro error reporting
+
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+- Martina: test pro setName by mel vyzkouset oba dva druhy rename zvlast i
+najednou
+
+Pristi schuzka:
+---------------
+
+V tydnu 27.6. - 1.7.; je potreba se take nekdy sejit se Zavoralem.

@@ -42,39 +42,56 @@ typedef enum {
     FILTER_COLUMN_LT,
     /** @short Compare column's value for being less-or-equal than a constant */
     FILTER_COLUMN_LE
-} ComparisonKind;
+} ComparisonOperator;
 
 /** @short Anything against which we can compare */
-typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> ExpressionValue;
+typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
 
-/** @short Compare one value against a constant using given comparison operator */
-struct Expression
+/** @short Compare metadata against a constant using  given comparison operator */
+struct MetadataExpression
 {
-    ComparisonKind comparison;
-    Identifier column;
-    ExpressionValue constantValue;
+    ComparisonOperator comparison;
+    Identifier metadata;
+    MetadataValue constantValue;
 
-    Expression(const ComparisonKind comparison, const Identifier &column, const ExpressionValue &constantValue);
+    MetadataExpression(const ComparisonOperator comparison, const Identifier &metadata, const MetadataValue &constantValue);
 };
+
+/** @short Compare attribute value against a constant using given comparison operator */
+struct AttributeExpression
+{
+    ComparisonOperator comparison;
+    Identifier kind;
+    Identifier attribute;
+    Value constantValue;
+
+    AttributeExpression(const ComparisonOperator comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
+};
+
+/** @short A generic expression */
+typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
+
+struct OrFilter;
+struct AndFilter;
+
+/** @short Filter for limiting the result set of an operation */
+typedef boost::variant<Expression, boost::recursive_wrapper<OrFilter>, boost::recursive_wrapper<AndFilter> > Filter;
 
 /** @short Perform a logical disjunction of all expression included below */
 struct OrFilter
 {
-    std::vector<Expression> operands;
+    std::vector<Filter> operands;
 
-    OrFilter(const std::vector<Expression> operands);
+    OrFilter(const std::vector<Filter> operands);
 };
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
 {
-    std::vector<Expression> operands;
+    std::vector<Filter> operands;
 
-    AndFilter(const std::vector<Expression> operands);
+    AndFilter(const std::vector<Filter> operands);
 };
-
-/** @short Filter for limiting the result set of an operation */
-typedef boost::variant<Expression, OrFilter, AndFilter> Filter;
 
 }
 }

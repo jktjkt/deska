@@ -412,7 +412,7 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		SELECT uid INTO tmp FROM {tbl}_history WHERE version = ver AND name = name_ AND dest_bit = '1';
 		IF FOUND THEN
-			RAISE EXCEPTION 'object with name % was deleted, ...', name_;
+			RAISE 'Object with name % was deleted, ...', name_ USING ERRCODE = '70010';
 		END IF;
 		INSERT INTO {tbl}_history (name,version)
 			VALUES (name_,ver);
@@ -677,7 +677,7 @@ class Templates:
 	# template string for names
 	names_string = '''CREATE FUNCTION
 	{tbl}_names(from_version bigint = 0)
-	RETURNS SETOF text
+	RETURNS SETOF identifier
 	AS
 	$$
 	DECLARE
@@ -765,7 +765,7 @@ class Templates:
 #template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION 
 {tbl}_diff_deleted()
-RETURNS SETOF text
+RETURNS SETOF identifier
 AS
 $$
 BEGIN
@@ -780,7 +780,7 @@ LANGUAGE plpgsql;
  #template for getting created objects between two versions
 	diff_created_string = '''CREATE FUNCTION 
 {tbl}_diff_created()
-RETURNS SETOF text
+RETURNS SETOF identifier
 AS
 $$
 BEGIN
@@ -907,6 +907,7 @@ $$
 LANGUAGE plpgsql;
 
 '''
+
 
 #template for function which selects all changes of all objects, that where done between from_version and to_version versions
 #is used in diff functions

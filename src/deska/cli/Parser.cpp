@@ -42,14 +42,29 @@ Parser::~Parser()
     delete d_ptr;
 }
 
+std::map<std::string, std::string> Parser::parserKeywordsUsage()
+{
+    return d_ptr->parserKeywordsUsage();
+}
+
+std::vector<Db::Identifier> Parser::parserKindsEmbeds(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsEmbeds(kindName);
+}
+
+std::vector<std::pair<Db::Identifier, std::string> > Parser::parserKindsAttributes(const Db::Identifier &kindName)
+{
+    return d_ptr->parserKindsAttributes(kindName);
+}
+
 void Parser::parseLine(const std::string &line)
 {
     d_ptr->parseLine(line);
 }
 
-std::vector<std::string> Parser::tabCompletitionPossibilities(const std::string &line)
+std::vector<std::string> Parser::tabCompletionPossibilities(const std::string &line)
 {
-    return d_ptr->tabCompletitionPossibilities(line);
+    return d_ptr->tabCompletionPossibilities(line);
 }
 
 bool Parser::isNestedInContext() const

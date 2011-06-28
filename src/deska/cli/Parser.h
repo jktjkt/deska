@@ -121,17 +121,37 @@ public:
 
     virtual ~Parser();
 
+    /** @short Obtains some help for usage of parser keywords.
+    *   
+    *   @return Map of keywords, where key is the keyword name and value is description of its usage.
+    */
+    std::map<std::string, std::string> parserKeywordsUsage();
+
+    /** @short Obtains list of embedded kinds for given kind name.
+    *   
+    *   @param kindName Kind name for which the embedded kinds will be obtained
+    *   @return Vector of embedded kinds
+    */
+    std::vector<Db::Identifier> parserKindsEmbeds(const Db::Identifier &kindName);
+
+    /** @short Obtains list of attributes for given kind name.
+    *   
+    *   @param kindName Kind name for which the attributes will be obtained
+    *   @return Vector of pairs, where first item is attribute name and second is attribute value type name
+    */
+    std::vector<std::pair<Db::Identifier, std::string> > parserKindsAttributes(const Db::Identifier &kindName);
+
     /** @short Parse a full line of user's input
     *
     *   As a result of this parsing, events could get triggered and the state may change.
     */
     void parseLine(const std::string &line);
 
-    /** @short Get list of strings for tab completition of current line
+    /** @short Get list of strings for tab completion of current line
     *
     *   @return Vector of strings, that are possible continuations of current line.
     */
-    std::vector<std::string> tabCompletitionPossibilities(const std::string &line);
+    std::vector<std::string> tabCompletionPossibilities(const std::string &line);
 
     /** @short The input indicates that the following signals will be related to a particular object
     *

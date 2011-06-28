@@ -15,26 +15,31 @@ if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
-DESKA_DB_STATE_FILE=./.db_initialized
 
-if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
-    # Use the fast way of doing things
-    pushd "${DESKA_SOURCES}/install"
-    ./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
-    popd
+if [[ -z ${DESKA_SKIP_DB_INIT} ]]; then
+    DESKA_DB_STATE_FILE=./.db_initialized
+
+    if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
+        # Use the fast way of doing things
+        pushd "${DESKA_SOURCES}/install"
+        ./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
+        popd
+    else
+        # Use the slower way which is completely deterministic
+
+        # Always remove stuff, so that a possible error in previous test does not leave
+        # stuff broken
+        ./util-delete-database.sh 2>/dev/null
+
+        ./util-create-database.sh || die "Preparing the DB environment"
+
+        pushd "${DESKA_SOURCES}/install"
+        ./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
+        popd
+        touch $DESKA_DB_STATE_FILE
+    fi
 else
-    # Use the slower way which is completely deterministic
-
-    # Always remove stuff, so that a possible error in previous test does not leave
-    # stuff broken
-    ./util-delete-database.sh 2>/dev/null
-
-    ./util-create-database.sh || die "Preparing the DB environment"
-
-    pushd "${DESKA_SOURCES}/install"
-    ./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
-    popd
-    touch $DESKA_DB_STATE_FILE
+    echo "Skipping the DB init altogether"
 fi
 
 case "${TESTMODE}" in
@@ -56,6 +61,11 @@ case "${TESTMODE}" in
         export DESKA_DB
         python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
             $TESTCASE || die "Test"
+        ;;
+    run)
+        export DESKA_USER
+        export DESKA_DB
+        ${TESTCASE} || die "Test"
         ;;
     *)
         die "Unknown test"

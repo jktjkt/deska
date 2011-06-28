@@ -58,8 +58,11 @@ import Postgres
 
 @pytypes
 def main(rev):
+	# if NULL on input, it means revision with id 0 (current)
+	if rev is None:
+		return 0
 	if not re.match('r\d',rev):
-		Postgres.ERROR('"{rev}" is not valid changeset id,'.format(rev = rev),code = 70012)
+		Postgres.ERROR('"{rev}" is not valid revision id.'.format(rev = rev),code = 70012)
 
 	return rev[1:len(rev)]
 $$

@@ -20,6 +20,7 @@
 * */
 
 #include <boost/date_time/posix_time/time_parsers.hpp>
+#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/foreach.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
@@ -51,7 +52,7 @@ DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(const T &va
     // How come that this builds fine:
     // template <typename T>
     // result_type operator()(T &value) const
-    return value;
+    return JsonConversionTraits<T>::toJson(value);
 }
 
 // Template instances for the Deska::Db::Value conversions from JSON
@@ -63,6 +64,16 @@ template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(co
 template<>
 json_spirit::Value JsonConversionTraits<Value>::toJson(const Value &value) {
     return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
+}
+
+template<>
+inline json_spirit::Value JsonConversionTraits<int>::toJson(const int &value) {
+    return value;
+}
+
+template<>
+inline json_spirit::Value JsonConversionTraits<double>::toJson(const double &value) {
+    return value;
 }
 
 std::string jsonValueTypeToString(const json_spirit::Value_type type)
@@ -173,8 +184,66 @@ template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
     }
 };
 
-/** @short Variant visitor for converting Deska::Db::ExpressionValue to json_spirit::Value */
-struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_spirit::Value>
+/** @short Convert an IPv4 address to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::asio::ip::address_v4> {
+    static boost::asio::ip::address_v4 extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::asio::ip::address_v4");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::asio::ip::address_v4::from_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::asio::ip::address_v4 &value) {
+        return value.to_string();
+    }
+};
+
+/** @short Convert an IPv6 address to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::asio::ip::address_v6> {
+    static boost::asio::ip::address_v6 extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::asio::ip::address_v6");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::asio::ip::address_v6::from_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::asio::ip::address_v6 &value) {
+        return value.to_string();
+    }
+};
+
+/** @short Convert boost::grgorian::date to and from its JSON representation */
+template<> struct JsonConversionTraits<boost::gregorian::date> {
+    static boost::gregorian::date extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting boost::gregorian::date");
+        checkJsonValueType(v, json_spirit::str_type);
+        return boost::gregorian::from_simple_string(v.get_str());
+    }
+
+    static json_spirit::Value toJson(const boost::gregorian::date &value) {
+        return boost::gregorian::to_simple_string(value);
+    }
+};
+
+/** @short Convert a MAC address to and from its JSON representation */
+template<> struct JsonConversionTraits<Deska::Db::MacAddress> {
+    static Deska::Db::MacAddress extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting Deska::Db::MacAddress");
+        checkJsonValueType(v, json_spirit::str_type);
+        try {
+            return Deska::Db::MacAddress(v.get_str());
+        } catch (std::domain_error &e) {
+            throw JsonStructureError(e.what());
+        }
+    }
+
+    static json_spirit::Value toJson(const Deska::Db::MacAddress &value) {
+        std::ostringstream ss;
+        ss << value;
+        return ss.str();
+    }
+};
+
+/** @short Variant visitor for converting Deska::Db::MetadataValue to json_spirit::Value */
+struct DeskaFilterMetadataValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
     template <typename T>
     result_type operator()(const T& value) const
@@ -183,47 +252,54 @@ struct DeskaFilterExpressionValueToJsonValue: public boost::static_visitor<json_
     }
 };
 
-template <>
-DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
-{
-    json_spirit::Object o;
-    std::string comparison;
-    switch (expression.comparison) {
-    case FILTER_COLUMN_EQ:
-        comparison = "columnEq";
-        break;
-    case FILTER_COLUMN_NE:
-        comparison = "columnNe";
-        break;
-    case FILTER_COLUMN_GT:
-        comparison = "columnGt";
-        break;
-    case FILTER_COLUMN_GE:
-        comparison = "columnGe";
-        break;
-    case FILTER_COLUMN_LT:
-        comparison = "columnLt";
-        break;
-    case FILTER_COLUMN_LE:
-        comparison = "columnLe";
-        break;
-    }
-    if (comparison.empty()) {
+template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
+    static json_spirit::Value toJson(const Deska::Db::ComparisonOperator &value) {
+        switch (value) {
+        case FILTER_COLUMN_EQ:
+            return std::string("columnEq");
+        case FILTER_COLUMN_NE:
+            return std::string("columnNe");
+        case FILTER_COLUMN_GT:
+            return std::string("columnGt");
+        case FILTER_COLUMN_GE:
+            return std::string("columnGe");
+        case FILTER_COLUMN_LT:
+            return std::string("columnLt");
+        case FILTER_COLUMN_LE:
+            return std::string("columnLe");
+        }
         throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
     }
-    o.push_back(json_spirit::Pair("condition", comparison));
-    o.push_back(json_spirit::Pair("column", expression.column));
-    o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterExpressionValueToJsonValue(), expression.constantValue)));
-    return o;
+};
+
+struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spirit::Value>
+{
+    result_type operator()(const Deska::Db::MetadataExpression &expression) const
+    {
+        json_spirit::Object o;
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonOperator>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("metadata", expression.metadata));
+        o.push_back(json_spirit::Pair("value", boost::apply_visitor(DeskaFilterMetadataValueToJsonValue(), expression.constantValue)));
+        return o;
+    }
+
+    result_type operator()(const Deska::Db::AttributeExpression &expression) const
+    {
+        json_spirit::Object o;
+        o.push_back(json_spirit::Pair("condition", JsonConversionTraits<ComparisonOperator>::toJson(expression.comparison)));
+        o.push_back(json_spirit::Pair("kind", expression.kind));
+        o.push_back(json_spirit::Pair("attribute", expression.attribute));
+        o.push_back(json_spirit::Pair("value", JsonConversionTraits<Value>::toJson(expression.constantValue)));
+        return o;
+    }
 };
 
 template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::AndFilter &filter) const
 {
     json_spirit::Array a;
-    DeskaFilterToJsonValue convertor;
-    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(convertor(expression));
+    BOOST_FOREACH(const Deska::Db::Filter &element, filter.operands) {
+        a.push_back(boost::apply_visitor(DeskaFilterToJsonValue(), element));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("and")));
@@ -235,9 +311,8 @@ template <>
 DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::OrFilter &filter) const
 {
     json_spirit::Array a;
-    DeskaFilterToJsonValue convertor;
-    BOOST_FOREACH(const Deska::Db::Expression &expression, filter.operands) {
-        a.push_back(convertor(expression));
+    BOOST_FOREACH(const Deska::Db::Filter &element, filter.operands) {
+        a.push_back(boost::apply_visitor(DeskaFilterToJsonValue(), element));
     }
     json_spirit::Object o;
     o.push_back(json_spirit::Pair("operator", json_spirit::Value("or")));
@@ -245,6 +320,11 @@ DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Des
     return o;
 };
 
+template <>
+DeskaFilterToJsonValue::result_type DeskaFilterToJsonValue::operator()(const Deska::Db::Expression &expression) const
+{
+    return boost::apply_visitor(DeskaFilterExpressionToJsonValue(), expression);
+};
 
 /** @short Specialization for extracting Identifiers from JSON */
 template<>
@@ -303,6 +383,8 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
         return ObjectRelation::isTemplate(target);
     } else if (relationKind == "MERGE_WITH") {
         return ObjectRelation::mergeWith(target);
+    } else if (relationKind == "REFERS_TO") {
+        return ObjectRelation::refersTo(target);
     } else if (relationKind == "TEMPLATIZED") {
         return ObjectRelation::templatized(target);
     } else {
@@ -353,7 +435,15 @@ template<>
 boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract(const json_spirit::Value &v)
 {
     JsonContext c1("When extracting boost::posix_time::ptime");
+    checkJsonValueType(v, json_spirit::str_type);
     return boost::posix_time::time_from_string(v.get_str());
+}
+
+/** @short Convert timestamp to JSON */
+template<>
+json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const boost::posix_time::ptime &value)
+{
+    return boost::posix_time::to_simple_string(value);
 }
 
 /** @short Helper for extracting an optional value */
@@ -403,6 +493,16 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
             } else if (datatype == "double") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+            } else if (datatype == "macaddress") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_MAC_ADDRESS));
+            } else if (datatype == "ipv4address") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IPV4_ADDRESS));
+            } else if (datatype == "ipv6address") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IPV6_ADDRESS));
+            } else if (datatype == "timestamp") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_TIMESTAMP));
+            } else if (datatype == "date") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_DATE));
             } else {
                 std::ostringstream s;
                 s << "Unsupported data type \"" << datatype << "\" for attribute \"" << item.name_ << "\"";
@@ -507,31 +607,25 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         // "message" is said to be shared by all server-side errors
         std::string message;
         h.read("message").extract(&message);
-        if (exceptionClass == "ServerError" ) {
-            JsonContext c2("When parsing ServerError");
-            h.parseJsonObject(v.get_obj());
-            throw ServerError(message);
-        } else if (exceptionClass == "NotFoundError") {
-            JsonContext c2("When parsing NotFoundError");
-            h.parseJsonObject(v.get_obj());
-            throw NotFoundError(message);
-        } else if (exceptionClass == "NoChangesetError") {
-            JsonContext c2("When parsing NoChangesetError");
-            h.parseJsonObject(v.get_obj());
-            throw NoChangesetError(message);
-        } else if (exceptionClass == "ChangesetAlreadyOpenError") {
-            JsonContext c2("When parsing ChangesetAlreadyOpenError");
-            h.parseJsonObject(v.get_obj());
-            throw ChangesetAlreadyOpenError(message);
-        } else if (exceptionClass == "FilterError") {
-            JsonContext c2("When parsing FilterError");
-            h.parseJsonObject(v.get_obj());
-            throw FilterError(message);
-        } else if (exceptionClass == "SqlError") {
-            JsonContext c2("When parsing SqlError");
-            h.parseJsonObject(v.get_obj());
-            throw SqlError(message);
-        } else {
+
+#define DESKA_CATCH_REMOTE_EXCEPTION(X) \
+    if (exceptionClass == #X ) { \
+        JsonContext c2("When parsing " #X); \
+        h.parseJsonObject(v.get_obj()); \
+        throw X(message); \
+    }
+        DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NotFoundError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(InvalidKindError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(InvalidAttributeError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NoChangesetError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetAlreadyOpenError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(FilterError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ReCreateObjectError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(RevisionParsingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetParsingError)
+        else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");
             // We don't have any idea about this exception, so be future-proof and allow optional arguments here
@@ -542,6 +636,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
             ss << "Unknown class of server-side exception '" << exceptionClass << "'. Server's message: " << message;
             throw JsonStructureError(ss.str());
         }
+#undef DESKA_CATCH_REMOTE_EXCEPTION
 };
 
 template <typename T>
@@ -588,6 +683,36 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");
         target->value = value.get_real();
+        return;
+    }
+    case TYPE_IPV4_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_IPV4_ADDRES");
+        target->value = JsonConversionTraits<boost::asio::ip::address_v4>::extract(value);
+        return;
+    }
+    case TYPE_IPV6_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_IPV6_ADDRES");
+        target->value = JsonConversionTraits<boost::asio::ip::address_v6>::extract(value);
+        return;
+    }
+    case TYPE_MAC_ADDRESS:
+    {
+        JsonContext c2("When extracting TYPE_MAC_ADDRESS");
+        target->value = JsonConversionTraits<Deska::Db::MacAddress>::extract(value);
+        return;
+    }
+    case TYPE_DATE:
+    {
+        JsonContext c2("When extracting TYPE_DATE");
+        target->value = JsonConversionTraits<boost::gregorian::date>::extract(value);
+        return;
+    }
+    case TYPE_TIMESTAMP:
+    {
+        JsonContext c2("When extracting TYPE_TIMESTAMP");
+        target->value = JsonConversionTraits<boost::posix_time::ptime>::extract(value);
         return;
     }
     }
@@ -759,7 +884,7 @@ void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const 
 }
 
 JsonField::JsonField(const std::string &name):
-    isForSending(false), isRequiredToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
+    isForSending(false), isRequiredToReceive(true), isAllowedToReceive(true), isAlreadyReceived(false), valueShouldMatch(false),
     jsonFieldRead(name), jsonFieldWrite(name)
 {
 }

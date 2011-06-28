@@ -1,6 +1,6 @@
 SET search_path TO api,deska;
 
-CREATE OR REPLACE FUNCTION jsn.setAttribute(kindName text, objectName text, attributeName text, attributeData text)
+CREATE OR REPLACE FUNCTION jsn.setAttribute(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
 $$
@@ -8,24 +8,28 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName,attributeName,attributeData):
-	jsn = dict()
-	jsn["response"] = "setAttribute"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
-	jsn["attributeName"] = attributeName
-	jsn["attributeData"] = attributeData
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttribute"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	# check attribute 
+	if attributeName not in dutil.generated.atts(kindName):
+		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
+
 	fname = kindName+"_set_"+attributeName+"(text,text)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
 	except dutil.DeskaException as err:
-		return err.json("setAttribute",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.renameObject(kindName text, oldName text, newName text)
+CREATE OR REPLACE FUNCTION jsn.renameObject(tag text, kindName text, oldName text, newName text)
 RETURNS text
 AS
 $$
@@ -33,23 +37,25 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,oldName,newName):
-	jsn = dict()
-	jsn["response"] = "renameObject"
-	jsn["kindName"] = kindName
-	jsn["oldObjectName"] = oldName
-	jsn["newObjectName"] = newName
+def main(tag,kindName,oldName,newName):
+	name = "renameObject"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_set_name(text,text)"
 	try:
 		dutil.fcall(fname,oldName,newName)
 	except dutil.DeskaException as err:
-		return err.json("renameObject",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.createObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.createObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -57,22 +63,25 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
-	jsn = dict()
-	jsn["response"] = "createObject"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
+def main(tag,kindName,objectName):
+	name = "createObject"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_add(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("createObject",jsn)
+		return err.json(name,jsn)
 
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.deleteObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.deleteObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -80,22 +89,25 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(tag,kindName,objectName):
+	name = "deleteObject"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_del(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("deleteObject")
+		return err.json(name)
 
-	jsn = dict()
-	jsn["response"] = "deleteObject"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
 $$
@@ -103,22 +115,25 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
+def main(tag,kindName,objectName):
+	name = "restoreDeletedObject"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
 	fname = kindName+"_undel(text)"
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json("restoreDeletedObject")
+		return err.json(name)
 
-	jsn = dict()
-	jsn["response"] = "restoreDeletedObject"
-	jsn["kindName"] = kindName
-	jsn["objectName"] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.objectData(kindName text, objectName text)
+CREATE OR REPLACE FUNCTION jsn.objectData(tag text, kindName text, objectName text, revision text)
 RETURNS text
 AS
 $$
@@ -126,94 +141,78 @@ import dutil
 import json
 
 @pytypes
-def main(kindName,objectName):
-	jsn = dict()
-	jsn["response"] = "objectData"
-	jsn["objectName"] = objectName
-	jsn["kindName"] = kindName
+def main(tag,kindName,objectName,revision):
+	name = "objectData"
+	jsn = dutil.jsn(name,tag)
 
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
+	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
 	try:
-		sql = "SELECT * FROM {0}_get_data($1)".format(kindName)
-		colnames, data = dutil.getdata(sql,objectName)
+		revisionNumber = dutil.fcall("revision2num(text)",revision)
+		colnames, data = dutil.getdata(select,objectName,revisionNumber)
 	except dutil.DeskaException as dberr:
-		return dberr.json("objectData",jsn)
+		return dberr.json(name,jsn)
 
 	data = [dutil.mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
-	jsn["objectData"] = res
+	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.dataDifference(a text, b text)
+CREATE OR REPLACE FUNCTION jsn.dataDifference(tag text, a text, b text)
 RETURNS text
 AS
 $$
 import Postgres
 import json
 import dutil
-from dutil import mystr
-
-def kinds():
-	return list(["vendor","hardware","host","interface"])
-
-def oneKindDiff(kindName,a,b):
-	with xact():
-		init = proc(kindName + "_init_diff(bigint,bigint)")
-		terminate = proc(kindName + "_terminate_diff()")
-		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
-		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
-		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
-		revision2num = proc("revision2num(text)")
-		
-		#get changeset ids first
-		a = revision2num(a)
-		b = revision2num(b)
-
-		res = list()
-		
-		init(a,b)
-		for line in created():
-			obj = dict()
-			obj["command"] = "createObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		for line in setattr(a,b):
-			obj = dict()
-			obj["command"] = "setAttribute"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			obj["attributeName"] = mystr(line[1])
-			obj["oldValue"] = mystr(line[2])
-			obj["newValue"] = mystr(line[3])
-			res.append(obj)
-		for line in deleted():
-			obj = dict()
-			obj["command"] = "deleteObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		terminate()
-
-	return res
+from dutil import mystr,oneKindDiff
 
 @pytypes
-def main(a,b):
-	jsn = dict()
-	jsn["response"] = "dataDifference"
-	jsn["revisionA"] = a
-	jsn["revisionB"] = b
+def main(tag,a,b):
+	name = "dataDifference"
+	jsn = dutil.jsn(name,tag)
 	
 	res = list()
 	try:
-		for kindName in kinds():
+		for kindName in dutil.generated.kinds():
 			res.extend(oneKindDiff(kindName,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
-		return err.json("dataDifference",jsn)
+		return err.json(name,jsn)
 
-	jsn["dataDifference"] = res
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import mystr,oneKindDiff
+
+@pytypes
+def main(tag):
+	name = "dataDifferenceInTemporaryChangeset"
+	jsn = dutil.jsn(name,tag)
+	
+	res = list()
+	try:
+		for kindName in dutil.generated.kinds():
+			res.extend(oneKindDiff(kindName))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;

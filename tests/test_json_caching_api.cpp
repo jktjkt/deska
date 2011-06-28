@@ -20,7 +20,7 @@
 * */
 
 #include <boost/foreach.hpp>
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE json_caching_api
 #include <boost/test/unit_test.hpp>
 #include "JsonApiTestFixture.h"
 #include "deska/db/CachingJsonApi.h"
@@ -37,20 +37,20 @@ will rmember the result and use it for further inquiries.
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
     // At first, it has to find out what the top-level object types are
-    expectWrite("{\"command\":\"kindNames\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"a\", \"b\"]}\n");
+    expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"kindNames\", \"tag\":\"T\", \"kindNames\": [\"a\", \"b\"]}\n");
     // The, for each of them, it asks for a list of attributes, and then for a list of relations.
     // Start with "a":
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"a\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"a\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"a\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"a\"}\n");
-    expectRead("{\"kindName\": \"a\", \"kindRelations\": [{\"relation\": \"IS_TEMPLATE\", \"target\":\"b\"}], \"response\": \"kindRelations\"}\n");
+            "\"price\": \"double\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"a\"}\n");
+    expectRead("{\"kindRelations\": [{\"relation\": \"IS_TEMPLATE\", \"target\":\"b\"}], \"response\": \"kindRelations\", \"tag\":\"T\"}\n");
     // ...and move to "b":
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"kindName\": \"b\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindName\": \"b\", \"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\"}], \"response\": \"kindRelations\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
+    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
+    expectRead("{\"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\"}], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
     delete j;

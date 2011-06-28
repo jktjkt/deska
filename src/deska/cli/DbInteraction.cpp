@@ -23,6 +23,7 @@
 
 #include <boost/foreach.hpp>
 #include "DbInteraction.h"
+#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -42,6 +43,14 @@ void DbInteraction::createObject(const Db::ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     m_api->createObject(context.back().kind, Db::contextStackToPath(context));
+}
+
+
+
+void DbInteraction::restoreDeletedObject(const Db::ContextStack &context)
+{
+    BOOST_ASSERT(!context.empty());
+    m_api->restoreDeletedObject(context.back().kind, Db::contextStackToPath(context));
 }
 
 

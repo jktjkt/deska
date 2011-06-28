@@ -15,8 +15,8 @@ BEGIN;
 -- constraints functions
 \i fn-constraints.sql
 
--- creates functions - string operations
-\i fn-strlib.sql
+-- creates domains - deska data types
+\i deska-types.sql
 
 -- create revision functions
 \i fn-revisions.sql

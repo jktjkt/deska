@@ -19,8 +19,9 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/date_time/posix_time/time_formatters.hpp>
 #include <boost/foreach.hpp>
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE json_api_parser
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
 #include "JsonApiTestFixture.h"
@@ -66,8 +67,8 @@ struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
 /** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindNames\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
+    expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"kindNames\",\"tag\":\"T\", \"kindNames\": [\"z\", \"a\", \"b\", \"foo bar\"]}\n");
     vector<Identifier> expected;
     expected.push_back("z");
     expected.push_back("a");
@@ -81,41 +82,69 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Test that kindAttributes() retrieves data */
 BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-            "\"price\": \"double\"}, \"kindName\": \"some-object\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\", \"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", "
+            "\"timestamp\": \"timestamp\", \"date\": \"date\""
+            "}, \"tag\": \"T\", \"response\": \"kindAttributes\"}\n");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
     expected.push_back(KindAttributeDataType("baz", TYPE_IDENTIFIER));
     expected.push_back(KindAttributeDataType("foo", TYPE_STRING));
     expected.push_back(KindAttributeDataType("price", TYPE_DOUBLE));
+    expected.push_back(KindAttributeDataType("ipv4", TYPE_IPV4_ADDRESS));
+    expected.push_back(KindAttributeDataType("mac", TYPE_MAC_ADDRESS));
+    expected.push_back(KindAttributeDataType("ipv6", TYPE_IPV6_ADDRESS));
+    expected.push_back(KindAttributeDataType("timestamp", TYPE_TIMESTAMP));
+    expected.push_back(KindAttributeDataType("date", TYPE_DATE));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
 
-/** @short Test that kindAtttributes() can catch wrong referenced objects */
-BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_object, JsonApiTestFixtureFailOnStreamThrow)
+/** @short Test that kindAtttributes() screams loudly when seeing a different response */
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_response, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"some-object\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"kindName\": \"some-object-2\", \"response\": \"kindAttributes\"}\n");
+            "\"price\": \"double\"}, \"response\": \"kindAttributesBlah\",\"tag\":\"T\"}\n");
     BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
+    expectEmpty();
+}
+
+/** @short Test that kindAtttributes() screams loudly when seeing a different tag */
+BOOST_FIXTURE_TEST_CASE(json_kindAttributes_wrong_tag, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
+    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
+            "\"price\": \"double\"}, \"response\": \"kindAttributes\",\"tag\":\"T2\"}\n");
+    BOOST_CHECK_THROW(j->kindAttributes("some-object"), JsonStructureError);
+    expectEmpty();
+}
+
+/** @short Test that the parser throws an exception upon seeing an argument being returned back */
+BOOST_FIXTURE_TEST_CASE(json_returned_argument, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"resumeChangeset\",\"tag\":\"T\",\"changeset\":\"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\", \"changeset\": \"tmp123\"}\n");
+    BOOST_CHECK_THROW(j->resumeChangeset(TemporaryChangesetId(123)), JsonStructureError);
     expectEmpty();
 }
 
 /** @short Test that kindRelations() can fetch data */
 BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
-    expectRead("{\"kindName\": \"identifier\", \"kindRelations\": ["
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"identifier\"}\n");
+    expectRead("{\"kindRelations\": ["
             "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
             "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
+            "{\"relation\": \"REFERS_TO\", \"target\": \"reference\"}, "
             "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
-            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\"}\n");
+            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\",\"tag\":\"T\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind"));
+    expected.push_back(ObjectRelation::refersTo("reference"));
     expected.push_back(ObjectRelation::isTemplate("target-kind"));
     expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
@@ -137,8 +166,8 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
     data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"foo\": \"bar\"}",
                                                  "JSON field 'foo' is not allowed in this context (expecting one of: relation target)."));
     BOOST_FOREACH(const PairStringString &value, data) {
-        expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"identifier\"}\n");
-        expectRead("{\"kindName\": \"identifier\", \"kindRelations\": [" + value.first + "], \"response\": \"kindRelations\"}\n");
+        expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"identifier\"}\n");
+        expectRead("{\"kindRelations\": [" + value.first + "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
         try {
             j->kindRelations("identifier");
             BOOST_ERROR(string("Passing '" + value.first + "' should have thrown an exception."));
@@ -152,8 +181,8 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
 /** @short Test that kindInstances() returns a reasonable result */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r666\"}\n");
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
+    expectRead("{\"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"tag\":\"T\", \"response\": \"kindInstances\"}\n");
     vector<Identifier> expected;
     expected.push_back("foo");
     expected.push_back("bar");
@@ -163,23 +192,13 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances, JsonApiTestFixtureFailOnStreamThrow)
     expectEmpty();
 }
 
-/** @short Test that kindInstances() fails when faced with wrong revision */
-BOOST_FIXTURE_TEST_CASE(json_kindInstances_wrong_revision, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\"}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [\"foo\", \"bar\", \"ahoj\"], \"response\": \"kindInstances\", \"revision\": \"r333\"}\n");
-    BOOST_CHECK_THROW(j->kindInstances("blah", boost::optional<Filter>(), RevisionId(666)), JsonStructureError);
-    expectEmpty();
-}
-
 /** @short Test that simple filter for IS NULL works fine */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"attr\",\"value\":null}}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
-               "\"filter\": {\"condition\": \"columnEq\", \"column\": \"attr\", \"value\": null}}\n");
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind\",\"attribute\":\"attr\",\"value\":null}}\n");
+    expectRead("{\"kindInstances\": [], \"response\": \"kindInstances\",\"tag\":\"T\"}\n");
     vector<Identifier> expected;
-    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_EQ, "attr", Value())), RevisionId(666));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind", "attr", Value())), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -187,11 +206,10 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterEq, JsonApiTestFixtureFailOnStr
 /** @short Test that simple filter for != string */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"attr\",\"value\":\"foo\"}}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
-               "\"filter\": {\"condition\": \"columnNe\", \"column\": \"attr\", \"value\": \"foo\"}}\n");
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"attr\",\"value\":\"foo\"}}\n");
+    expectRead("{\"kindInstances\": [], \"response\": \"kindInstances\", \"tag\":\"T\"}\n");
     vector<Identifier> expected;
-    vector<Identifier> res = j->kindInstances("blah", Filter(Expression(FILTER_COLUMN_NE, "attr", Value("foo"))), RevisionId(666));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind", "attr", Value("foo"))), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -199,17 +217,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStr
 /** @short Test for AND, less-than and greater-or-equal */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
-                "{\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
-                "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
-               "\"filter\": {\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"column\":\"attr1\",\"value\":666},"
-               "{\"condition\":\"columnGe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"and\",\"operands\":[{\"condition\":\"columnLt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                "{\"condition\":\"columnGe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
+    expectRead("{\"kindInstances\": [], \"tag\":\"T\", \"response\": \"kindInstances\"}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(Expression(FILTER_COLUMN_LT, "attr1", Value(666)));
-    expressions.push_back(Expression(FILTER_COLUMN_GE, "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AndFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -217,40 +233,63 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_and_lt_ge, JsonApiTestFixtureF
 /** @short Test for OR, greater-than and less-or-equal */
 BOOST_FIXTURE_TEST_CASE(json_kindInstances_filter_or_gt_le, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindInstances\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
-                "{\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"column\":\"attr1\",\"value\":666},"
-                "{\"condition\":\"columnLe\",\"column\":\"attr2\",\"value\":333}]}}\n");
-    expectRead("{\"kindName\": \"blah\", \"kindInstances\": [], \"response\": \"kindInstances\", \"revision\": \"r666\", "
-               "\"filter\": {\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"column\":\"attr1\",\"value\":666},"
-               "{\"condition\":\"columnLe\",\"column\":\"attr2\",\"value\":333}]}}\n");
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"or\",\"operands\":[{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333}]}}\n");
+    expectRead("{\"kindInstances\": [], \"response\": \"kindInstances\", \"tag\":\"T\"}\n");
     vector<Identifier> expected;
-    std::vector<Expression> expressions;
-    expressions.push_back(Expression(FILTER_COLUMN_GT, "attr1", Value(666)));
-    expressions.push_back(Expression(FILTER_COLUMN_LE, "attr2", Value(333)));
-    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(expressions)), RevisionId(666));
+    std::vector<Filter> subExpressions;
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    subExpressions.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions)), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
 
+/** @short Test filter recursion */
+BOOST_FIXTURE_TEST_CASE(json_kindInstances_recursive_filter, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":"
+                "{\"operator\":\"or\",\"operands\":["
+                    "{\"condition\":\"columnGt\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":666},"
+                    "{\"operator\":\"and\",\"operands\":["
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr2\",\"value\":333},"
+                        "{\"condition\":\"columnLe\",\"kind\":\"kind1\",\"attribute\":\"attr3\",\"value\":333666}"
+                    "]}"
+                "]}}\n");
+    expectRead("{\"kindInstances\": [], \"response\": \"kindInstances\", \"tag\": \"T\"}\n");
+    vector<Identifier> expected;
+    std::vector<Filter> subExpressions1;
+    subExpressions1.push_back(AttributeExpression(FILTER_COLUMN_GT, "kind1", "attr1", Value(666)));
+    std::vector<Filter> subExpressions2;
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr2", Value(333)));
+    subExpressions2.push_back(AttributeExpression(FILTER_COLUMN_LE, "kind1", "attr3", Value(333666)));
+    subExpressions1.push_back(AndFilter(subExpressions2));
+    vector<Identifier> res = j->kindInstances("blah", Filter(OrFilter(subExpressions1)), RevisionId(666));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
 
 /** @short Basic test for objectData() */
 BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"int\", \"anotherKind\": \"int\", "
+               "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"objectData\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666}, "
-            "\"objectName\": \"oo\", \"response\": \"objectData\", \"revision\": \"r3\"}\n");
+    expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
+    expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
+            "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\""
+            "}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -258,6 +297,11 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
     expected["baz"] = "id";
+    expected["mac"] = Deska::Db::MacAddress(0x00, 0x16, 0x3e, 0x37, 0x53, 0x2b);
+    expected["ipv4"] = boost::asio::ip::address_v4::from_string("127.0.0.1");
+    expected["ipv6"] = boost::asio::ip::address_v6::from_string("::1");
+    expected["date"] = boost::gregorian::date(2011, 6, 20);
+    expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -282,23 +326,21 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
 BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"template\": \"int\", \"anotherKind\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"multipleObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
-    expectRead("{\"kindName\": \"kk\", \"multipleObjectData\": {"
+    expectWrite("{\"command\":\"multipleObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
+    expectRead("{\"multipleObjectData\": {"
                "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10}, "
                "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20} "
-               "}, "
-            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleObjectData\"}\n");
+               "}, \"tag\":\"T\", \"response\": \"multipleObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
     expected["a"]["foo"] = "barA";
     expected["a"]["int"] = 10;
@@ -307,7 +349,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     expected["b"]["int"] = 20;
     expected["b"]["baz"] = "idB";
     // Check just the interesting items
-    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
+    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind", "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }
@@ -315,15 +357,15 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
 /** @short Basic test for resolvedObjectData() */
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
-               "\"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
-    expectRead("{\"response\":\"kindRelations\",\"kindName\":\"kk\", \"kindRelations\": []}\n");
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
+    expectRead("{\"response\":\"kindRelations\", \"tag\":\"T\", \"kindRelations\": []}\n");
 
-    expectWrite("{\"command\":\"resolvedObjectData\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
-    expectRead("{\"kindName\": \"kk\", \"objectName\": \"oo\", \"resolvedObjectData\": "
-            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"response\": \"resolvedObjectData\"}\n");
+    expectWrite("{\"command\":\"resolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
+    expectRead("{\"resolvedObjectData\": "
+            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"tag\":\"T\", \"response\": \"resolvedObjectData\"}\n");
     map<Identifier, std::pair<Identifier,Value> > expected;
     expected["foo"] = std::make_pair("obj-defining-this", "bar");
     expected["baz"] = std::make_pair("this-obj", 666);
@@ -340,23 +382,22 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
 BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailOnStreamThrow)
 {
     // The JsonApiParser needs to know type information for the individual object kinds
-    expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
                "\"template\": \"int\", \"anotherKind\": \"int\"}, "
-               " \"kindName\": \"kk\", \"response\": \"kindAttributes\"}\n");
+               "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
-    expectWrite("{\"command\":\"kindRelations\",\"kindName\":\"kk\"}\n");
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
                "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
-               "], \"kindName\": \"kk\", \"response\": \"kindRelations\"}\n");
+               "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
-    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}}\n");
-    expectRead("{\"kindName\": \"kk\", \"multipleResolvedObjectData\": {"
+    expectWrite("{\"command\":\"multipleResolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
+    expectRead("{\"multipleResolvedObjectData\": {"
                "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10]}, "
                "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20]} "
-               "}, "
-            "\"filter\": {\"condition\":\"columnNe\",\"column\":\"int\",\"value\":666}, \"response\": \"multipleResolvedObjectData\"}\n");
+               "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectData\"}\n");
     map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
     expected["a"]["foo"] = std::make_pair("1", "barA");
     expected["a"]["baz"] = std::make_pair("1", "idA");
@@ -364,7 +405,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     expected["b"]["foo"] = std::make_pair("1", "barB");
     expected["b"]["baz"] = std::make_pair("2", "idB");
     expected["b"]["int"] = std::make_pair("22", 20);
-    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectData("kk", Expression(FILTER_COLUMN_NE, "int", Value(666)));
+    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }
@@ -372,8 +413,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
 /** @short Basic test for createObject() */
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"createObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"createObject\"}\n");
+    expectWrite("{\"command\":\"createObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"createObject\",\"tag\":\"T\"}\n");
     j->createObject("k", "o");
     expectEmpty();
 }
@@ -381,8 +422,8 @@ BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for deleteObject() */
 BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"deleteObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"deleteObject\"}\n");
+    expectWrite("{\"command\":\"deleteObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"deleteObject\",\"tag\":\"T\"}\n");
     j->deleteObject("k", "o");
     expectEmpty();
 }
@@ -390,8 +431,8 @@ BOOST_FIXTURE_TEST_CASE(json_deleteObject, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for restoreDeletedObject() */
 BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"restoreDeletedObject\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"kindName\": \"k\", \"objectName\": \"o\", \"response\": \"restoreDeletedObject\"}\n");
+    expectWrite("{\"command\":\"restoreDeletedObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
+    expectRead("{\"response\": \"restoreDeletedObject\",\"tag\":\"T\"}\n");
     j->restoreDeletedObject("k", "o");
     expectEmpty();
 }
@@ -399,8 +440,8 @@ BOOST_FIXTURE_TEST_CASE(json_restoreDeletedObject, JsonApiTestFixtureFailOnStrea
 /** @short Basic test for renameObject() */
 BOOST_FIXTURE_TEST_CASE(json_renameObject, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"renameObject\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
-    expectRead("{\"kindName\": \"kind\", \"newObjectName\": \"new\", \"oldObjectName\": \"ooooold\", \"response\": \"renameObject\"}\n");
+    expectWrite("{\"command\":\"renameObject\",\"tag\":\"T\",\"kindName\":\"kind\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"}\n");
+    expectRead("{\"response\": \"renameObject\",\"tag\":\"T\"}\n");
     j->renameObject("kind", "ooooold", "new");
     expectEmpty();
 }
@@ -419,12 +460,11 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 {
     // We want to test all of the supported data types, that's why we use a vector and some rather complicated boilerplate code here
     vector<SetAttrTestData> data;
-    std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
-    std::string jsonOutputSuffix = "{\"attributeName\": \"a\", \"kindName\": \"k\", \"objectName\": \"o\", "
-            "\"response\": \"setAttribute\", \"attributeData\": ";
-    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutputSuffix + "\"some string\"}\n", Deska::Db::Value("some string")));
-    data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutputSuffix + " 123}\n", Deska::Db::Value(123)));
-    data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutputSuffix + " 333.666}\n", Deska::Db::Value(333.666)));
+    std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
+    std::string jsonOutput = "{\"response\": \"setAttribute\", \"tag\":\"T\"}\n";
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutput, Deska::Db::Value("some string")));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutput, Deska::Db::Value(123)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutput, Deska::Db::Value(333.666)));
     BOOST_FOREACH(const SetAttrTestData &value, data) {
         expectWrite(value.jsonIn);
         expectRead(value.jsonOut);
@@ -436,8 +476,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Basic test for startChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"startChangeset\"}\n");
-    expectRead("{\"response\": \"startChangeset\", \"startChangeset\": \"tmp333\"}\n");
+    expectWrite("{\"command\":\"startChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"startChangeset\", \"tag\":\"T\", \"startChangeset\": \"tmp333\"}\n");
     BOOST_CHECK_EQUAL(j->startChangeset(), TemporaryChangesetId(333));
     expectEmpty();
 }
@@ -445,8 +485,8 @@ BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow
 /** @short Basic test for commitChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"commitChangeset\",\"commitMessage\":\"description\"}\n");
-    expectRead("{\"response\": \"commitChangeset\", \"commitChangeset\": \"r666\", \"commitMessage\":\"description\"}\n");
+    expectWrite("{\"command\":\"commitChangeset\",\"tag\":\"T\",\"commitMessage\":\"description\"}\n");
+    expectRead("{\"response\": \"commitChangeset\", \"tag\":\"T\", \"commitChangeset\": \"r666\"}\n");
     BOOST_CHECK_EQUAL(j->commitChangeset("description"), RevisionId(666));
     expectEmpty();
 }
@@ -454,8 +494,8 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for reabseChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"rebaseChangeset\",\"parentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"parentRevision\": \"r666\"}\n");
+    expectWrite("{\"command\":\"rebaseChangeset\",\"tag\":\"T\",\"parentRevision\":\"r666\"}\n");
+    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\"}\n");
     j->rebaseChangeset(RevisionId(666));
     expectEmpty();
 }
@@ -463,8 +503,8 @@ BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for pendingChangesets() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\"}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"pendingChangesets\": ["
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": ["
                "{\"changeset\":\"tmp123\", \"author\": \"user\", \"status\": \"DETACHED\", "
                    "\"timestamp\": \"2011-04-07 17:22:33\", \"parentRevision\": \"r666\", \"message\": \"message\"}, "
                // The next one is the same, except that we use JSON's null here
@@ -495,10 +535,10 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamTh
 /** @short Test that simple filter for pendingChangesets against TemporaryChangesetId works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnNe\",\"column\":\"changeset\",\"value\":\"tmp123\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnNe\",\"column\":\"changeset\",\"value\":\"tmp123\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnNe\",\"metadata\":\"changeset\",\"value\":\"tmp123\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
-    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_NE, "changeset", TemporaryChangesetId(123))));
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_NE, "changeset", TemporaryChangesetId(123))));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -506,10 +546,10 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterNe, JsonApiTestFixtureFailO
 /** @short Test that simple filter for pendingChangesets against "being detached" works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"DETACHED\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"DETACHED\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
-    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_DETACHED)));
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_DETACHED)));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -517,10 +557,10 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusDetached, JsonApiTest
 /** @short Test that simple filter for pendingChangesets against "being in progress" works */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"pendingChangesets\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}}\n");
-    expectRead("{\"response\": \"pendingChangesets\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"status\",\"value\":\"INPROGRESS\"}, \"pendingChangesets\": []}\n");
+    expectWrite("{\"command\":\"pendingChangesets\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"status\",\"value\":\"INPROGRESS\"}}\n");
+    expectRead("{\"response\": \"pendingChangesets\", \"tag\":\"T\", \"pendingChangesets\": []}\n");
     std::vector<PendingChangeset> expected;
-    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(Expression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_IN_PROGRESS)));
+    std::vector<PendingChangeset> res = j->pendingChangesets(Filter(MetadataExpression(FILTER_COLUMN_EQ, "status", PendingChangeset::ATTACH_IN_PROGRESS)));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -528,8 +568,8 @@ BOOST_FIXTURE_TEST_CASE(json_pendingChangesets_filterStatusInProgress, JsonApiTe
 /** @short Basic test for resumeChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"resumeChangeset\",\"changeset\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"resumeChangeset\", \"changeset\": \"tmp123\"}\n");
+    expectWrite("{\"command\":\"resumeChangeset\",\"tag\":\"T\",\"changeset\":\"tmp123\"}\n");
+    expectRead("{\"response\": \"resumeChangeset\", \"tag\":\"T\"}\n");
     j->resumeChangeset(TemporaryChangesetId(123));
     expectEmpty();
 }
@@ -537,8 +577,8 @@ BOOST_FIXTURE_TEST_CASE(json_resumeChangeset, JsonApiTestFixtureFailOnStreamThro
 /** @short Basic test for detachFromCurrentChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_detachFromCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"detachFromCurrentChangeset\",\"message\":\"foobar\"}\n");
-    expectRead("{\"response\": \"detachFromCurrentChangeset\",\"message\":\"foobar\"}\n");
+    expectWrite("{\"command\":\"detachFromCurrentChangeset\",\"tag\":\"T\",\"message\":\"foobar\"}\n");
+    expectRead("{\"response\": \"detachFromCurrentChangeset\", \"tag\":\"T\"}\n");
     j->detachFromCurrentChangeset("foobar");
     expectEmpty();
 }
@@ -546,19 +586,38 @@ BOOST_FIXTURE_TEST_CASE(json_detachFromCurrentChangeset, JsonApiTestFixtureFailO
 /** @short Basic test for abortCurrentChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"abortCurrentChangeset\"}\n");
-    expectRead("{\"response\": \"abortCurrentChangeset\"}\n");
+    expectWrite("{\"command\":\"abortCurrentChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"abortCurrentChangeset\",\"tag\":\"T\"}\n");
     j->abortCurrentChangeset();
     expectEmpty();
 }
 
+/** @short Basic test for freezeView() */
+BOOST_FIXTURE_TEST_CASE(json_freezeView, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"freezeView\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"freezeView\", \"tag\":\"T\"}\n");
+    j->freezeView();
+    expectEmpty();
+}
+
+/** @short Basic test for unFreezeView() */
+BOOST_FIXTURE_TEST_CASE(json_unFreezeView, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"unFreezeView\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"unFreezeView\", \"tag\":\"T\"}\n");
+    j->unFreezeView();
+    expectEmpty();
+}
+
+
 /** @short Test listRevisions() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"listRevisions\"}\n");
+    expectWrite("{\"command\":\"listRevisions\",\"tag\":\"T\"}\n");
     expectRead("{\"response\": \"listRevisions\", \"listRevisions\": ["
                "{\"revision\": \"r123\", \"author\": \"user\", \"timestamp\": \"2011-04-07 17:22:33\", \"commitMessage\": \"message\"}"
-               "]}\n");
+               "], \"tag\":\"T\"}\n");
     std::vector<RevisionMetadata> expected;
     expected.push_back(RevisionMetadata(
                            RevisionId(123), "user",
@@ -572,10 +631,10 @@ BOOST_FIXTURE_TEST_CASE(json_listRevisions, JsonApiTestFixtureFailOnStreamThrow)
 /** @short Test that simple filter for listRevisions works */
 BOOST_FIXTURE_TEST_CASE(json_listRevisions_filterEq, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"listRevisions\",\"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}}\n");
-    expectRead("{\"response\": \"listRevisions\", \"filter\":{\"condition\":\"columnEq\",\"column\":\"revision\",\"value\":\"r123\"}, \"listRevisions\": []}\n");
+    expectWrite("{\"command\":\"listRevisions\",\"tag\":\"T\",\"filter\":{\"condition\":\"columnEq\",\"metadata\":\"revision\",\"value\":\"r123\"}}\n");
+    expectRead("{\"response\": \"listRevisions\", \"tag\":\"T\", \"listRevisions\": []}\n");
     std::vector<RevisionMetadata> expected;
-    std::vector<RevisionMetadata> res = j->listRevisions(Filter(Expression(FILTER_COLUMN_EQ, "revision", RevisionId(123))));
+    std::vector<RevisionMetadata> res = j->listRevisions(Filter(MetadataExpression(FILTER_COLUMN_EQ, "revision", RevisionId(123))));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -600,19 +659,19 @@ std::vector<ObjectModification> diffObjects()
 
 void schemeForDiff(JsonApiTestFixtureFailOnStreamThrow &f)
 {
-    f.expectWrite("{\"command\":\"kindNames\"}\n");
-    f.expectRead("{\"response\": \"kindNames\", \"kindNames\": [\"k1\", \"k2\", \"k3\", \"k4\", \"k5\"]}\n");
+    f.expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
+    f.expectRead("{\"response\": \"kindNames\", \"tag\":\"T\", \"kindNames\": [\"k1\", \"k2\", \"k3\", \"k4\", \"k5\"]}\n");
 
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k1\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k1\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k2\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k2\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k3\"}\n");
-    f.expectRead("{\"kindAttributes\": {}, \"kindName\": \"k3\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k4\"}\n");
-    f.expectRead("{\"kindAttributes\": {\"fancyAttr\": \"int\"}, \"kindName\": \"k4\", \"response\": \"kindAttributes\"}\n");
-    f.expectWrite("{\"command\":\"kindAttributes\",\"kindName\":\"k5\"}\n");
-    f.expectRead("{\"kindAttributes\": {\"a5\": \"string\"}, \"kindName\": \"k5\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k1\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k2\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k3\"}\n");
+    f.expectRead("{\"kindAttributes\": {}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k4\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"fancyAttr\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+    f.expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"k5\"}\n");
+    f.expectRead("{\"kindAttributes\": {\"a5\": \"string\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
 
 }
 
@@ -620,12 +679,13 @@ void schemeForDiff(JsonApiTestFixtureFailOnStreamThrow &f)
 BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\"}\n");
-    expectRead("{\"response\": \"dataDifference\",\"revisionA\":\"r1\",\"revisionB\":\"r2\", \"dataDifference\": ["
-               + exampleJsonDiff +
-               "]}\n");
+    expectWrite("{\"command\":\"dataDifference\",\"tag\":\"T\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"dataDifference\", \"tag\":\"T\", \"dataDifference\": ["
+               + exampleJsonDiff + "]}\n");
     std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2));
+    std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2),
+                                                            Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -634,8 +694,8 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow
 BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
     schemeForDiff(*this);
-    expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\"}\n");
-    expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\",\"changeset\":\"tmp666\", \"dataDifferenceInTemporaryChangeset\": ["
+    expectWrite("{\"command\":\"dataDifferenceInTemporaryChangeset\",\"tag\":\"T\",\"changeset\":\"tmp666\"}\n");
+    expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"dataDifferenceInTemporaryChangeset\": ["
                + exampleJsonDiff +
                "]}\n");
     std::vector<ObjectModification> expected = diffObjects();
@@ -644,11 +704,43 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
     expectEmpty();
 }
 
+/** @short Test resolvedDataDifference() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStreamThrow)
+{
+    schemeForDiff(*this);
+    expectWrite("{\"command\":\"resolvedDataDifference\",\"tag\":\"T\",\"revisionA\":\"r1\",\"revisionB\":\"r2\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"resolvedDataDifference\", \"tag\":\"T\", \"resolvedDataDifference\": ["
+               + exampleJsonDiff + "]}\n");
+    std::vector<ObjectModification> expected = diffObjects();
+    std::vector<ObjectModification> res = j->resolvedDataDifference(RevisionId(1), RevisionId(2),
+                                                                    Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+/** @short Test resolvedDataDifferenceInTemporaryChangeset() from JSON */
+BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApiTestFixtureFailOnStreamThrow)
+{
+    schemeForDiff(*this);
+    expectWrite("{\"command\":\"resolvedDataDifferenceInTemporaryChangeset\",\"tag\":\"T\",\"changeset\":\"tmp1\","
+                "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
+    expectRead("{\"response\": \"resolvedDataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"resolvedDataDifferenceInTemporaryChangeset\": ["
+               + exampleJsonDiff + "]}\n");
+    std::vector<ObjectModification> expected = diffObjects();
+    std::vector<ObjectModification> res = j->resolvedDataDifferenceInTemporaryChangeset(
+                TemporaryChangesetId(1), Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
+    BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
+    expectEmpty();
+}
+
+
+
 /** @short Test applyBatchedChanges() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"applyBatchedChanges\",\"modifications\":[" + exampleJsonDiff + "]}\n");
-    expectRead("{\"response\": \"applyBatchedChanges\",\"modifications\": [" + exampleJsonDiff + "]}\n");
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":[" + exampleJsonDiff + "]}\n");
+    expectRead("{\"response\": \"applyBatchedChanges\", \"tag\":\"T\"}\n");
     j->applyBatchedChanges(diffObjects());
     expectEmpty();
 }
@@ -657,7 +749,7 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
 BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
 {
 #define JSON_ERR_TEST(X) \
-    expectWrite("{\"command\":\"startChangeset\"}\n"); \
+    expectWrite("{\"command\":\"startChangeset\",\"tag\":\"T\"}\n"); \
     expectRead("{\"dbException\": {\"type\":\"" #X "\",\"message\":\"x\"}}\n"); \
     BOOST_CHECK_THROW(j->startChangeset(), X); expectEmpty();
 
@@ -665,23 +757,12 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(NoChangesetError);
     JSON_ERR_TEST(ChangesetAlreadyOpenError);
     JSON_ERR_TEST(FilterError);
+    JSON_ERR_TEST(ReCreateObjectError);
+    JSON_ERR_TEST(InvalidKindError);
+    JSON_ERR_TEST(InvalidAttributeError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST
-}
-
-
-/** @short Verify correctness of parsing of revisions from JSON */
-BOOST_FIXTURE_TEST_CASE(json_revision_parsing_ok, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
-    expectRead("{\"response\": \"c\", \"r\": \"tmp3\"}\n");
-    TemporaryChangesetId r(123);
-    JsonHandlerApiWrapper h(j, "c");
-    h.write("r", r).extract(&r).valueShouldMatch = false;
-    h.work();
-    BOOST_CHECK_EQUAL(r, TemporaryChangesetId(3));
-    expectEmpty();
 }
 
 
@@ -695,7 +776,7 @@ struct MalformedJsonFixture: public JsonApiTestFixtureFailOnStreamThrow {
     std::string line;
     ~MalformedJsonFixture()
     {
-        expectWrite("{\"command\":\"abortCurrentChangeset\"}\n");
+        expectWrite("{\"command\":\"abortCurrentChangeset\",\"tag\":\"T\"}\n");
         if (!line.empty())
             expectRead(line);
         mockBuffer.expectReadEof();
@@ -729,7 +810,7 @@ BOOST_FIXTURE_TEST_CASE(json_malformed_json_unterminated_value, MalformedJsonFix
 
 BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_close_brace, MalformedJsonFixture)
 {
-    line = "{\"command\":\"c\"";
+    line = "{\"command\":\"c\",\"tag\":\"T\"";
 }
 
 BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_next_command, MalformedJsonFixture)
@@ -737,37 +818,32 @@ BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_next_command, MalformedJsonF
     line = "{\"command\":\"c\",";
 }
 
-/** @short Verify that parsing of TemporaryChangesetId from JSON is satisfied exclusively by valid TemporaryChangesetId representation */
-BOOST_FIXTURE_TEST_CASE(json_revision_parsing_kind_mismatch, JsonApiTestFixtureFailOnStreamThrow)
+BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_comma, MalformedJsonFixture)
 {
-    std::vector<std::string> offendingItems;
-    offendingItems.push_back("r3");
-    offendingItems.push_back("r");
-    offendingItems.push_back("tm");
-    offendingItems.push_back("tmp");
-    offendingItems.push_back("tmpabc");
-    offendingItems.push_back("foo");
-    offendingItems.push_back("666");
-    offendingItems.push_back("");
+    line = "{\"command\":\"c\"";
+}
 
-    BOOST_FOREACH(const std::string &s, offendingItems) {
-        expectWrite("{\"command\":\"c\",\"r\":\"tmp123\"}\n");
-        expectRead("{\"response\": \"c\", \"r\": \"" + s + "\"}\n");
 
-        // Got to duplicate the behavior of how a JsonApiParser would use the JsonHandler
-        TemporaryChangesetId r(123);
-        JsonHandlerApiWrapper h(j, "c");
-        // Make sure to explicitly request extraction, but also don't request comparison of JSON serialization
-        h.write("r", r).extract(&r).valueShouldMatch = false;
-        // ...if we didn't use the valueShouldMatch here, the error would get caught much earlier, even before
-        // the actual extraction happens.
-        try {
-            h.work();
-            BOOST_ERROR(std::string("Passing '" + s + "' should have thrown an exception."));
-        } catch (JsonStructureError &e) {
-            // this is actually what we want
-            //std::cerr << "OK: " << e.what() << std::endl;
-        }
-        expectEmpty();
-    }
+namespace boost {
+// FIXME: is there any safer way of doing this?
+namespace gregorian {
+
+/** @short Got to provide specialization in order for the linker to be happy */
+std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
+{
+    return s << boost::gregorian::to_simple_string(d);
+}
+
+}
+
+namespace posix_time {
+
+/** @short Got to provide specialization in order for the linker to be happy */
+std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime &t)
+{
+    return s << boost::posix_time::to_simple_string(t);
+}
+
+}
+
 }

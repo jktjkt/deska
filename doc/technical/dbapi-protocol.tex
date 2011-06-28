@@ -6,6 +6,9 @@
 \usepackage{listings}
 \usepackage{longtable}
 \usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
 
 \begin{document}
 
@@ -15,9 +18,11 @@
 
 \maketitle
 
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
 \begin{abstract}
 This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
-database server.  We discuss the overall design, as well as provide a detailed API reference along with example usage.
+database server.  We describe the overall design, as well as provide a detailed API reference along with example usage.
 This document is intended to serve as a complete source of information for both DBAPI usage and possible independent
 reimplementation.
 \end{abstract}
@@ -25,7 +30,7 @@ reimplementation.
 \section{Background}
 
 First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
-database, after all, is built on PostgreSQL which already provides a library which can be used to access database
+database, after all, is built on PostgreSQL, which already provides a library which can be used to access database
 servers.  However, using a RDBMS-specific transport library would make the Deska application suite needlessly tied to
 one particular database server implementation.  Exposing a low-level SQL-like interface, even when wrapped by stored
 procedures, would make it very hard to prevent users from accessing the database without first going through a
@@ -72,40 +77,52 @@ This section defines how an abstract notion of a command or response is converte
 
 \subsection{Commands and Responses}
 
-Each command is uniquely identified by its name, and each command has a matching response with the same name. Therefore,
-the hypothetical command {\tt foo}, which does not accept any arguments, will be transmitted in the following form (we
-will omit the trailing line feed for brevity in the following examples):
+First of all, each command has to identify its purpose, ie. which function to invoke on the remote end of the
+connection.  A name is a perfect identifier.  Furthermore, to allow future pipelining of commands to achieve greater
+throughput, we have to add some identification to each command-response pair.  This identification has to be provided by
+the client.  This identification is called a {\em tag}, and apart from being a string, there are no further
+requirements on its format.
+
+Suppose the hypothetical command {\tt foo}, which does not accept any arguments.  It will be transmitted using the
+following format, provided the client decided to use {\tt "0"} as the associated tag (we will omit the trailing line
+feed for brevity in the following examples):
 
 \begin{lstlisting}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
-A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal, therefore a
-response for the above command will look like this:
+A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal and repeating the
+{\tt tag} key, therefore a response for the above command will look like this:
 
 \begin{lstlisting}
-    {"response": "foo"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
+
+The {\tt response} key is included in order to allow stateless implementations of the DBAPI parsers.  Had the parameter
+been omitted, it would not be possible to enforce proper structure of the JSON data without keeping track of what
+command used what tag.
+
+Please note that these provisions for {\em future} pipelining are here mainly to design the protocol in
+forward-compatible way; none of the implementations shipped in Deska support command pipelining (as of 2011).  This
+specification will be extended if pipelining gets allowed in future.
 
 \subsubsection{Passing Arguments}
 
 Most of the commands will very likely accept a few arguments.  These commands are transmitted in a very similar way to
-the one we discussed above, with the arguments simply appended to the top-level JSON object.  All parameters are also
-repeated in the relevant response:
+the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are,
+however, not repeated in the relevant response, which retains just the (response, tag) pair:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0"}
 \end{lstlisting}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
 free to add it to make the JSON data more readable, or not include them at all.  In addition, to improve the
 interoperability, the Deska DBAPI mandates that the order of appearance of individual key-value pairs inside a JSON
 object is {\em not} significant, and therefore one is explicitly allowed to use a sequence of {\tt arg2}, {\tt command},
-{\tt arg1} for the example above.  Please note that the order of key-value pairs in the response object can be different
-than in the associated command.
+{\tt arg1} for the example above.  The order of key-value pairs in the response object can be also different.
 
 \subsubsection{Returning Data}
 
@@ -119,9 +136,8 @@ would look like this one:
 
 \begin{lstlisting}
     {"command": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value"}
-    {"response": "foo", "arg1": "arg1 value",
-        "name of arg2": "some value", "foo": "The returned value"}
+        "name of arg2": "some value", "tag": "0"}
+    {"response": "foo", "tag": "0", "foo": "The returned value"}
 \end{lstlisting}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
@@ -153,8 +169,8 @@ Suppose the following C++ definition:
 \end{lstlisting}
 
 A value of {\tt BAR} is transferred as a JSON string {\tt "BAR"}.  There is no technical way of distinguishing between
-a value of the {\tt enum Foo(BAR)} and the string literal {\tt "BAR"}; the difference is always provided by the
-context.
+a value of the {\tt enum Foo(BAR)} and the string literal {\tt "BAR"}; the correct interpretation is always defined by
+the context in which that literal occurs.
 
 The JSON string is further overloaded for serialization of timestamps, ie. particular moments in time.  The C++ API uses
 Boost's {\tt boost::posix\_time::ptime} as a timestamp representation, and serializes the data in the {\tt "YYYY-mm-dd
@@ -168,30 +184,31 @@ Similarly, a date is stored into the {\tt boost::gregorian::date} and serialized
 The Deska DBAPI supports passing two different kinds of containers, a {\em sequence} and a {\em map}.  The sequence is
 usually represented by the C++'s {\tt std::vector}, while the map maps well to the {\tt std::map}.
 
-A sequence is represented as the JSON's list with the individual list items being the respective serialization of the
+A sequence is represented as the JSON list with the individual list items being the respective serialized values of the
 underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2, 3) as the {\tt a1} argument of command
 {\tt foo}:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": [1, 2, 3]}
+    {"command": "foo", "tag": "0", "a1": [1, 2, 3]}
 \end{lstlisting}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": ["a": 1, "b": 2, "c": 3]}
+    {"command": "foo", "tag": "0", "a1": ["a": 1, "b": 2, "c": 3]}
 \end{lstlisting}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
 \rightarrow 2$ and $"c" \rightarrow 3$.  Please note that the order of appearance of these items in a map is undefined,
-as the {\tt std::map} container will not respect the order of insertion.
+as the {\tt std::map} container will not respect the order of insertion.  This is consistent with the general rule of
+the Deska DBAPI which mandates that the order of occurrence of the individual items in a JSON object is not significant.
 
 \subsubsection{Custom Objects}
 
 Custom objects, ie. instances of C++'s classes, are transmitted as JSON objects. Due to various popular JSON
-impleemntations not respecting the order of appearance of individual values, the arguments to a class' constructor are
-passed prefixed by name.  Therefore, given class {\tt Foo} with the following C++ constructor:
+implementations not respecting the order of appearance of individual values, the arguments to a class' constructor are
+passed prefixed by their name.  Therefore, given class {\tt Foo} with the following C++ constructor:
 
 \begin{lstlisting}[language=c++]
     Foo::Foo(int i, const std::string &s);
@@ -200,12 +217,13 @@ passed prefixed by name.  Therefore, given class {\tt Foo} with the following C+
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": {"i": 10, "s": "something"}}
+    {"command": "foo", "tag": "0", "a1": {"i": 10, "s": "something"}}
 \end{lstlisting}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
 information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
-existence of class {\tt Foo} at all.
+existence of class {\tt Foo} at all.  That crucial information is, as usual, determined from the current context in a
+command or response.
 
 Alternatively, certain simpler classes (like the IP addresses or MAC addresses of Ethernet interfaces) are better
 transfered in their canonical string form.  As a rule of thumb, if a particular class has a rich internal structure, or
@@ -221,12 +239,13 @@ see section \ref{sec:json-extending} for details.
 Certain data fields are designed to allow either a value of the underlying data type, or a special NULL value.  On the
 C++ side, this is achieved by wrapping the data type inside a {\tt boost::optional<>} container.  In the JSON
 serialization, the NULL can be simulated in two ways, either by omitting the value altogether, or by using JSON's {\tt
-null} keyword as the JSON value.  The Deska DBAPI does not distinguish between the two conventions, so the following
-examples are equivalent, provided that the arguments {\tt a1} is defined an accept NULL:
+null} keyword as the JSON value.  In the context of optional function arguments, the Deska DBAPI does not distinguish
+between the two conventions, so the following examples are equivalent, provided that the arguments {\tt a1} is defined
+an accept NULL:
 
 \begin{lstlisting}
-    {"command": "foo", "a1": null}
-    {"command": "foo"}
+    {"command": "foo", "tag": "0", "a1": null}
+    {"command": "foo", "tag": "0"}
 \end{lstlisting}
 
 Please note that this rule does {\em not} translate to ``one can freely omit {\tt null} values in any place''; indeed,
@@ -251,7 +270,7 @@ of adding the returned data in a key named after the API method, it will create 
 
 Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
 with a textual message usable for debugging.  The object might contain more data, which could be used to pass
-computer-readable data to the API user.  Usual rules for representing values apply here.
+computer-readable data to the API user.  The usual rules for representing values apply.
 
 This is the list of currently defined exceptions, along with their other arguments:
 
@@ -260,14 +279,26 @@ This is the list of currently defined exceptions, along with their other argumen
     Exception Name & Meaning & Additional arguments \\
     \hline
     \endhead
-    {\tt NotFoundError} & The database does not contain such object & -- \\
+    {\tt InvalidKindError} & The specified kind is not valid & -- \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & -- \\
+    {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
+    better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
+    InvalidKindError}, etc. & -- \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
         without one & -- \\
     {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+    {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
+    manipulation & -- \\
     {\tt FilterError} & The specified filter is not valid & -- \\
+    {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
+    \deskaFuncRef{restoreDeletedObject}. & -- \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
-    {\tt ServerError} & The server has experienced an internal error & -- \\
+    {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
+
+FIXME: more filter exceptions with fine-grained semantics
 
 \subsection{Adding Low-Level Data Types}
 \label{sec:json-extending}
@@ -279,16 +310,16 @@ prevent possible namespace clashes in future.
 In general, the following has to be done to add a low-level data type to Deska:
 
 \begin{itemize}
-    \item Pick up an identifier to use
+    \item Pick up an identifier to use for identifying the new type
     \item Create the SQL data type, if applicable
     \item Create the corresponding C++ class, if applicable
     \item Extend the {\tt Deska::Db::Value} variant to include the new type
-    \item Add further specializations of {\tt DeskaValueToJsonValue}'s {\tt operator()} for serializing the new type
-        into JSON
-    \item Create a specialization of the {\tt template<> struct JsonExtractionTraits<ObjectModification>} and its {\tt
-        implementation()} method which is responsible for proper de-serialization of the JSON values
-    \item Instantiate {\tt template JsonField\& JsonField::extract(T*);}
+    \item Create a specialization of the {\tt template<> struct JsonConversionTraits<>}, its {\tt extract()} and {\tt
+        toJson()} methods, which are responsible for proper serialization and de-serialization of the native C++ data
+        types to JSON
+    \item Instantiate the {\tt template JsonField\& JsonField::extract(T*)} method
     \item Update the documentation and unit tests
+    \item Add the new type to the {\tt Deska::Db::KindAttributeDataType}
 \end{itemize}
 
 \subsection{Serialization Quick Reference}
@@ -298,7 +329,7 @@ The following table provides a quick and compact overview of the officially supp
 JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
 API function.
 
-\begin{longtable}{ p{18mm} | p{35mm} p{41mm} p{45mm} }
+\begin{longtable}{ p{20mm} | p{29mm} p{47mm} p{30mm} }
     \caption{JSON serialization of data types for attribute values} \\
     Name & SQL Data Type & C++ Data Type & JSON Serialization \\
     \hline
@@ -309,18 +340,17 @@ API function.
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
     {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
     {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
+    {\tt ipv4address} & FIXME & {\tt boost::asio::ip::address\_v4} & {\tt "127.0.0.1"} \\
+    {\tt ipv6address} & FIXME & {\tt boost::asio::ip::address\_v6} & {\tt "::1"} \\
+    {\tt macaddress} & macaddr & {\tt Deska::Db::MacAddress} & {\tt "00:16:3e:37:53:2B"} \\
     {\tt enum\_X}\footnote{See section \ref{sec:json-extending} for instructions about how to add new enumerations to both
         the Deska DB and the C++ library.} & ENUM (``A'', ``B'') & {\tt typedef enum \{A, B\} X} & {\tt "A"} \\
-    {\tt X\_null}\footnote{The {\tt X} notion means that when there's an {\tt X} type defined and not postfixed by {\tt
-        \_null} already, it is allowed to create a new data type by prefixing the original name with {\tt \_null}.} &
-        \textless TYPE\textgreater~without the {\tt NOT~NULL} stanza & {\tt boost::optional<T>} &
-        {\tt null} or the respective serialization for \textless TYPE\textgreater \\
 \end{longtable}
 
 In addition to the types mentioned above, which are usable and allowed as the data types for objects' attributes, there
 are several ``internal'' data types which are exchanged over JSON, but which cannot be used in the context of
-attributes.  These types are typically utilized for transfer of various data fields for internal purposes of the Deska
-DBAPI JSON protocol, like type-safe serialization of revisions, changeset identification, passing along the object kind
+attributes.  These types are typically utilized in transfer of various data for internal purposes of the Deska
+DBAPI JSON protocol, like type-safe serialization of revisions, changeset identification, or for passing along the object kind
 relation information etc.  The following types are defined:
 
 \begin{longtable}{ p{60mm} p{90mm} }
@@ -339,14 +369,14 @@ relation information etc.  The following types are defined:
     {\tt Deska::Db::PendingChangeset} &
         {\tt \{"changeset": }TemporaryChangesetId{\tt, "author": }string{\tt, "status": }
         PendingChangeset::AttachStatus{\tt, "timestamp": }timestamp{\tt, "parentRevision": }RevisionId{\tt, "message": }
-        string {\tt\}} \\
+        string {\tt, "activeConnectionInfo": }string/{\tt null\}} \\
     {\tt Deska::Db::KindAttributeDataType} &
-        One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"}, {\tt "enum\_X"} and
-        {\tt "X\_null"} \\
+        One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"}, {\tt
+        "enum\_X"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
         One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}},
-        \newline
+        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "IS\_TEMPLATE", "target": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -364,22 +394,22 @@ relation information etc.  The following types are defined:
         or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
-    {\tt Deska::Db::ExpressionKind} &
+    {\tt Deska::Db::ComparisonOperator} &
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
         {\tt "columnLe"}
         \\
     {\tt Deska::Db::Expression} &
         One of \newline
-        {\tt \{"condition": }ExpressionKind{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
+        {\tt \{"condition": }ComparisonOperator{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
         }Value{\tt \}}, \newline
         or \newline
-        {\tt \{"condition": }ExpressionKind{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
+        {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
-        {\tt \{"operator": "and", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "and", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
-        {\tt \{"operator": "or", "operands": [}Expression, Expression,\ldots{\tt]\}}, \newline
+        {\tt \{"operator": "or", "operands": [}Filter, Filter,\ldots{\tt]\}}, \newline
         or \newline
         Expression
 
@@ -389,17 +419,16 @@ relation information etc.  The following types are defined:
 
 The Deska DBAPI provides functions for accessing the information contained in the database.
 
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
-
 \subsection{The Deska DBAPI at a Glance}
 
-The API can be divided into a few groups.  The first part are commands for querying the database scheme, which are
-described in section \ref{sec:api-group-dbscheme}.  These commands inform you about what kinds of top-level objects are
+The API can be divided into five groups.  The first part are commands for querying the database scheme, which are
+described in section \ref{sec:api-group-dbscheme}.  These commands inform the user about what kinds of top-level objects are
 defined, what relations exist among them and which attributes belong to each object.  Second part of the API
 (section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
 part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
 part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results.  The last part (section \ref{sec:api-group-history}) discusses browsing the revision history.
+results, or provide a frozen view of the DB state for consistency.  The last part (section \ref{sec:api-group-history})
+discusses browsing the revision history.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
 are defined at all.  Applications which are interested in relations between objects, like what objects are designed to
@@ -411,7 +440,8 @@ After establishing the metadata structure, applications which require only read-
 individual objects' data.  The API provides a few functions for that, starting with the \deskaFuncRef{kindInstances} for
 determining identifiers (names) of particular objects, \deskaFuncRef{objectData} for fetching values of object's
 attributes, and \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
-resolving inherited values from object templates.
+resolving inherited values from object templates.  For batched retrieval of data for multiple objects of the same kind,
+use the \deskaFuncRef{multipleObjectData} and \deskaFuncRef{multipleResolvedObjectData}.
 
 Before potentially using any methods for object modification, each application has to open a changeset to work in.  The
 application can achieve that either by calling the \deskaFuncRef{startChangeset}, or possibly by attaching into one of
@@ -420,6 +450,11 @@ Should the user decide not to need the pending changeset anymore, she can call t
 to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
 changeset, preserving the modifications for a later commit.  When all changes have been performed and the user decides to
 make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.
+
+Certain applications, like dumping the database contents, require to temporarily ``freeze'' the state of the database to
+guarantee that the result accurately represents the real database state.  The DBAPI provides a pair of functions for
+this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see section
+\ref{sec:api-revision-semantics} for details.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 she attempted a commit.  In that case, the new commit won't be performed, and the user should verify that the changes are still
@@ -431,48 +466,91 @@ Objects can be created via the \deskaFuncRef{createObject} function, deleted thr
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
 \deskaFuncRef{setAttribute}.  In case an object gets deleted by accident in a pending changeset, it can be restored to
-its previous state via the \deskaFuncRef{restoreDeletedObject}.
+its previous state via the \deskaFuncRef{restoreDeletedObject}.  It is an error to attempt to delete and create an
+object with the same name in one changeset.  Users can perform several actions in one DBAPI command by calling the
+\deskaFuncRef{applyBatchedChanges} function.
 
 Results of these modifying operations can be consulted via the \deskaFuncRef{listRevisions},
-\deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.
+\deskaFuncRef{dataDifference} and \deskaFuncRef{dataDifferenceInTemporaryChangeset}.  These functions work on the
+immediate attributes of an object, and do not take templates into account; for functions which operate on the resolved
+state of objects, use the \deskaFuncRef{resolvedDataDifference} and
+\deskaFuncRef{resolvedDataDifferenceInTemporaryChangeset}.
+
+FIXME: add server-side config generators, issue 239 -- maybe in a different section -> s/five/six/ at the top of this chapter
 
 \subsubsection{Revision Semantics}
 \label{sec:api-revision-semantics}
 
-Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to which
-the current query applies.  When the version is not specified, the implicit value is fixed at the latest persistent
-revision which was committed at the time the session started.
+Certain methods of the Deska DBAPI accept an optional argument for specifying a revision of the database data to
+operate on.  When the session is attached into a pending changeset, an unspecified revision always refers to the current
+state of the changeset, ie. the parent revision and all changes applied in the active changeset so far.
 
-When user attaches an existing pending changeset, this implicit value changes to the ``parent revision'' of the
-current in-progress changeset.  Upon a successful commit, the implicit revision is set to the just committed revision.
-Detaching from a pending changeset or aborting one sets the implicit revision number of the session to the latest
-commit.
-
-FIXME: atomicity
+When the version is not specified and there is no active changeset, though, the implicit revision value means ``whatever
+the database connection happens to see at the moment'', which clearly lacks important consistency promises.  There are
+few ways to achieve consistent operation.  The first option is to always use absolute revision specification in each
+query,  the second option is to operate from inside a changeset, and the third is to start a lightweight multiversion
+control transaction on the database side by means of \deskaFuncRef{freezeView}.  This transaction is freed upon
+disconnect from the database, or by an explicit call to the \deskaFuncRef{unFreezeView}.  It is an error to try to start
+or resume a changeset when in the multiversion transaction and vice versa.
 
 \subsubsection{Filtering Results}
 \label{sec:api-filters}
 
 Some functions defined in the DBAPI support reducing the working set of the data that they operate on via {\em filters}.
-These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{dataDifference}, \deskaFuncRef{listRevisions} and
-\deskaFuncRef{pendingChangesets}.  Each of them allows the user to specify a condition which, if present and not null,
-will be applied to the domain of the data they operate on, and records which do not match the user-supplied filter will
-be excluded from further evaluation.  This is intended to serve as an accelerator for operations which are best handled
-with server-side searching.
+These functions are \deskaFuncRef{kindInstances}, \deskaFuncRef{multipleObjectData},
+\deskaFuncRef{multipleResolvedObjectData}, \deskaFuncRef{listRevisions}, \deskaFuncRef{pendingChangesets} and all
+diffing functions (\deskaFuncRef{dataDifference}, \deskaFuncRef{dataDifferenceInTemporaryChangeset},
+\deskaFuncRef{resolvedDataDifference} and \deskaFuncRef{resolvedDataDifferenceInTemporaryChangeset}.  Each of them
+allows the user to specify a condition which, if present and not null, will be applied to the domain of the data they
+operate on, and records which do not match the user-supplied filter will be excluded from further evaluation.  This is
+intended to serve as an accelerator for operations which are best handled with server-side searching.
 
-A basic unit for building filters is a simple {\em expression}.  An expression compares value of an object's property
-against a user-supplied constant using defined comparison operator.  At this time, the defined comparison operators are
-equality, non-equality, being greater/lesser than, and greater-or-equal and less-or-equal.  The constant value against
-which a property is compared can be anything which is acceptable in the context of a Deska attribute value, a revision
-identification, or a temporary changeset identification.  The ``property name'' refers to the identifier of a property;
-in case of regular objects stored in the Deska DB, these are the same as the attribute names.  In case of revisions, the
-filter can query any property that is present in the objects included in the method's output, like revision IDs,
-commit/changeset timestamps, revision authors, etc.
+A basic unit for building filters is a simple {\em expression}.  There are two basic kinds of expressions, an expression
+referring to a revision or changeset {\em metadata}, or an expression comparing the value of an object's attribute.  In
+both cases, the comparison is performed using defined comparison operator against a user-supplied constant.  At this
+time, the defined comparison operators are equality, non-equality, being greater/lesser than, and greater-or-equal and
+less-or-equal.  The constant value against which a property is compared can be anything which is acceptable in the
+context of a Deska attribute value, a revision identification, a temporary changeset identification, or any similar
+revision (or changeset) metadata.
 
-More complicated conditions can be created by chaining the operators into logical conjunction and disjunction.  At this
-time, a filter can contain only one AND or one OR operator with a flat list of operands. No further nesting of these
-operators is not allowed; this limitation might be lifted in future revision of the DBAPI specifications if the need
-arises.
+When comparing against revision or changeset metadata, the ``property name'' is specified using the {\tt metadata} key,
+and can refer to any property which is normally returned by the function being extended with a filter (like revision
+IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
+object's attribute, the key has to be specified by a tuple of {\tt kind} and {\tt attribute} identifiers.
+
+More complicated conditions can be created by chaining the expressions into logical conjunction and disjunction.
+Implementations are expected to limit the maximal allowed depth of operator nesting to prevent overly expensive
+operations and to mitigate a possible DoS attack.
+
+Under certain circumstances, it is be useful to allow querying of objects using indirect criteria, like ``return all
+hosts with an interface that is connected to a particular VLAN''.  The \deskaFuncRef{multipleObjectData} querying {\em
+hosts} should be used for this purpose, and its filter shall be set to the following:
+
+{\tt \{"condition": }ComparisonOperator{\tt, "kind": "interface", "attribute": "vlan", "value": }Value{\tt \}}
+
+The database server will parse this filter and attempt to issue a corresponding {\tt JOIN} statement, connecting the
+corresponding tables to each other via correct relation.  Using these
+``foreign'' attributes is allowed only in case that both kinds are connected via a compatible relation.  If there is no
+such relation, the Deska server returns the {\tt FilterError} exception.
+
+FIXME: change the sentence above when fine-grained filter exceptions are introduced
+
+\subsubsection{Output Ordering}
+
+Certain functions return a list of values.  The general rule is that the order of returned items is not stable, unless
+specified otherwise.  The sorting may even vary among several executions of the same command with the very same
+arguments executed in a single session.  That said, there are certain situations where sorting the results on the server
+side clearly improves the client's efficiency, and is therefore fixed for the DBAPI.
+
+Any function which returns a list of pending changesets or a list of persistent revisions is guaranteed to sort the
+result by the changeset or revision, lower numbers first.  Examples of these functions are \deskaFuncRef{listRevisions}
+and \deskaFuncRef{pendingChangesets}.
+
+Functions which return lists of objects or their identifiers, like \deskaFuncRef{kindNames},
+\deskaFuncRef{kindInstances} etc, do not provide any guarantees about the sort order.
+
+The diffing functions (see section \ref{sec:api-group-history}) sorts the results according to special rules, see their
+description for more details.
 
 \subsection{API Reference}
 
@@ -483,11 +561,13 @@ arises.
 
 {#5}
 
-\subparagraph{Sample JSON input} {\tt \{"command": "{#1}"{#2}\}}
+\subparagraph{Sample JSON input} {\tt \{"command": "{#1}", "tag": "T"{#2}\}}
 
-\subparagraph{Sample JSON output} {\tt \{"response": "{#1}"{#2}\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
+\subparagraph{Sample JSON output} {\tt \{"response": "{#1}", "tag": "T"\ifstrequal{#3}{}{}{, "{#1}": {#3}}\}}
 
 }
+
+\newcommand{\deskaUnsortedRes}{The order of the returned data is not specified.}
 
 % usage: \deskaFunc{id}{comma and a list of arguments}{returned value}{summary}{detail}
 \setcounter{secnumdepth}{4}
@@ -499,24 +579,26 @@ Functions in this group are used to query the scheme of the database, ie. a list
 and the defined object relations.
 
 \deskaFunc{kindNames}{}{["z", "a", "b", "foo bar"]}
-    {Return list of names of configured top-level Kinds.}
+    {Return list of names of configured top-level Kinds}
     {This function returns a list of configured top-level objects.  Any of these objects can be subsequently used in the
-    {\tt kindName} argument to various other functions.}
+    {\tt kindName} argument to various other functions.  \deskaUnsortedRes}
 
 \deskaFunc{kindAttributes}{, "kindName": "something"}
     {\{"bar": "int", "baz": "identifier", "foo": "string", "price": "double"\}}
     {Return a list of attributes defined for a particular kind identified by {\tt kindName}}
-    {The returned data is a list of \textless name, datatype\textgreater { }pairs.}
+    {The returned data is a list of \textless name, datatype\textgreater { }pairs.  \deskaUnsortedRes}
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware"\}, \\
             \{"relation": "MERGE\_WITH", "target": "second-kind"\}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind"\}, \\
             \{"relation": "IS\_TEMPLATE", "target": "target-kind"\}, \\
             \{"relation": "TEMPLATIZED", "target": "by-which-kind"\} \\
             ]}
     {Retrieve relations between different Kinds}
-    {This function returns a list of relations for the specified kind of entities -- for more details and examples, see the ObjectRelation struct.}
+    {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
+    the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
 \label{sec:api-group-data-retrieval}
@@ -529,25 +611,33 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
     database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
     depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
-    \pageref{sec:api-revision-semantics} for details.}
+    \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
+    a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
+    selected object kind, but can also follow defined object relations to create more complex queries.  \deskaUnsortedRes}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
     {Get all attributes for a particular object instance}
     {This function returns values of all attributes which are defined for the given object.  No template resolving is
-    performed, see \deskaFuncRef{resolvedObjectData} for details.
+    performed, see \deskaFuncRef{resolvedObjectData} for a function which operates on the resolved object state.
 
-    This function guarantees to return all attribute instances, including the {\tt null} values.  The only exception are
+    This function is guaranteed to return all attribute instances, including the {\tt null} values.  The only exception are
     embedded objects, for which the \deskaFuncRef{kindAttributes} returns a special attribute referring to the foreign
     key reference (in the demo setup, this would be the {\tt host} attribute for an {\tt interface}), but this special
-    attribute is missing from the \deskaFuncRef{objectData} output.}
+    attribute is always missing from the \deskaFuncRef{objectData} output.
+
+    For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
+    \deskaFuncRef{multipleResolvedObjectData}.  \deskaUnsortedRes
+    }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     {\{"object1": \{"foo": "bar1", "baz": "id1", "int": 1, "real": 100.666, "price": 666\}, \\
        "object2": \{"foo": "bar2", "baz": "id2", "int": 2, "real": 200.666, "price": 333\}
       \}}
     {Get all attributes for instances matching the specified filter}
-    {This is the batched equivalent of \deskaFuncRef{objectData}.}
+    {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
+    present in the result, even if it has no attributes.  The amount of data returned is the same as in
+    \deskaFuncRef{objectData} function.  \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
@@ -555,7 +645,7 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
 
-    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.}
+    The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
 \deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
     { \{ \\
@@ -563,9 +653,7 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.}
-
-FIXME: document output filters (\#210)
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  \deskaUnsortedRes}
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
@@ -582,17 +670,20 @@ Any function which modifies objects stored in the Deska database belongs to this
     {Create a new instance of an object}
     {This function creates a new instance of a given object.  All attributes are initially unset, which means that you
     might have to call \deskaFuncRef{setAttribute} before you will be allowed to commit your changes if some attributes
-    have a constraint not to be NULL.}
+    have a constraint not to be NULL.
+
+    It is an error to attempt to create an object which has been deleted in the current changeset; see
+    \deskaFuncRef{restoreDeletedObject} for details.  Doing so will return the {\tt ReCreateObjectError} exception.}
 
 \deskaFunc{restoreDeletedObject}{, "kindName": "something", "objectName": "name"}
     {}
-    {Undo an object deletion in the same pending changeset}
+    {Undo an object deletion that was performed in the same pending changeset}
     {This function exists in order to enable ``undoing'' an object deletion in the same changeset where the deletion was
     attempted.  Due to the way how changesets are implemented, it is not allowed to delete an object and simultaneously
     create a new one with the same name in just one changeset.  Therefore, attempting to re-create a just deleted object
-    as a remedy of the inadvertent action via \deskaFuncRef{createObject} will fail.  This function will instead
-    completely undo the deletion, without leaving any trace in the history.  The object is completely restored,
-    including all attributes and references.}
+    as a remedy of the inadvertent action via \deskaFuncRef{createObject} will fail with the {\tt ReCreateObjectError}
+    exception.  This function will instead completely undo the deletion, without leaving any trace in the history.  The
+    object is completely restored, including all attributes and references.}
 
 \deskaFunc{renameObject}{, "kindName": "something", "oldObjectName": "name", "newObjectName": "name"}
     {}
@@ -603,10 +694,10 @@ Any function which modifies objects stored in the Deska database belongs to this
 \deskaFunc{setAttribute}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "something"}
     {}
     {Set an object's attribute to something}
-    {This function will update the value of a particular object's attribute.  To remove an object's attribute, set its
-    value to null.}
+    {This function will update the value of a particular object's attribute.  To ``remove'' an object's attribute, set its
+    value to {\tt null}.}
 
-\deskaFunc{applyBatchedChanges}{"modifications": [ \\
+\deskaFunc{applyBatchedChanges}{, "modifications": [ \\
     \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
     \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
@@ -616,30 +707,36 @@ Any function which modifies objects stored in the Deska database belongs to this
     {}
     {Apply a list of batched modifications at once}
     {Use this function to send a list of modifications to the database in one network operation, potentially saving
-    substantial amounts of time.}
+    substantial amounts of time.
+
+    The format of the list of changes to be performed is the same as what the various diffing functions (section
+    \ref{sec:api-group-history} return.)
+    }
 
 \subsubsection{Version Control}
 \label{sec:api-group-vcs}
 
-This group contains functions for creating, modifying and committing changesets.  For history, see the {\em Querying
-History}, section \ref{sec:api-group-history}.
+This group contains functions for creating, modifying and committing changesets.  For history retrieval, see the {\em
+Querying History}, section \ref{sec:api-group-history}.
 
 \deskaFunc{startChangeset}{}
     {"tmp123"}
     {Create a temporary changeset for modifying the DB}
-    {This function will create a new changeset and immediately attach current session to it.  All changes performed in
-    the session are stored in the temporary changeset.
+    {This function will create a new changeset and immediately attach current session to it.  All subsequent changes
+    performed in the session will be stored in this temporary changeset.
 
-    It is an error to attempt to create a new changeset while being attached to another one.
+    It is an error to attempt to create a new changeset while being already attached to another one, or to combine
+    changeset access with frozen views.
     }
 
-\deskaFunc{commitChangeset}{"commitMessage": "message"}
+\deskaFunc{commitChangeset}{, "commitMessage": "message"}
     {"r123"}
     {Commit current in-progress changeset}
     {This operation will commit the temporary changeset (ie. everything since the corresponding
-    \deskaFuncRef{startChangeset} call) into the production DB.  A new persistent revision will be created.}
+    \deskaFuncRef{startChangeset}/\deskaFuncRef{resumeChangeset} call) into the production DB.  A new persistent
+    revision will be created.}
 
-\deskaFunc{rebaseChangeset}{"parentRevision": "r666"}
+\deskaFunc{rebaseChangeset}{, "parentRevision": "r666"}
     {}
     {Make current in-progress changeset appear as a child of a specified revision}
     {In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
@@ -655,38 +752,56 @@ History}, section \ref{sec:api-group-history}.
      \{"changeset": "tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
      "parentRevision": "r666", "message": "message", \\ "activeConnectionInfo": null\}
     ]}
-    {Return a list of all pending changesets}
-    {This function returns a vector of metadata for all pending changesets which are currently available in the
-    database.  Without further arguments, this function will return information about changesets without any owner
-    filtering.}
+    {Return a list of pending changesets}
+    {This function returns a vector of metadata for pending changesets which are currently available in the
+    database.
 
-\deskaFunc{resumeChangeset}{"revision": "r123"}
+    An optional argument {\tt filter} can be used to limit the amount of data returned.  Filters can reference any
+    available property of the temporary changeset.
+
+    The results are sorted by the changeset identification using numeric sort of its value, lowest changesets first.}
+
+\deskaFunc{resumeChangeset}{, "revision": "r123"}
     {}
     {Re-open a pre-existing changeset}
     {This function will attach current session to a pre-existing changeset which hasn't been committed yet. An example
     where doing that would be handy is upon the initial connect to the DB, where the client would typically call
-    pendingRevisionsByMyself(), and ask the real person whether she wants to resume working on her changes, perhaps
-    because the original session has died.}
+    \deskaFuncRef{pendingChangesets}, and ask the real person whether she wants to resume working on her changes,
+    perhaps because the original session has died.}
 
 \deskaFunc{detachFromCurrentChangeset}{"message": "clarify why"}
     {}
     {Detach this session from its active changeset}
-    {This function will detach current session from its associated active changeset.  There could be many changesets in
-    the Deska DB (all stored on the Deska DB server) which might belong to various users.  Each session (ie. a
-    connection to the database) could only have at most one particular changeset associated with itself, and that
-    changeset is called the {\em current} one.  It is the changeset that will receive all updates from the functions
-    which perform database modifications.
+    {The purpose of this function is to facilitate a way to temporarily detach from a changeset which still needs some
+    time before it could be committed.
 
-    The purpose of this function is to facilitate a way to temporarily detach from a revision which still needs some
-    time before it could be committed. After the former active changeset is detached, it remains available for further
-    processing via the \deskaFuncRef{resumeChangeset} function, but the current session is not associated with an active
-    changeset anymore. This is intended to make sure that user has to explicitly ask for her changes to be "set aside"
-    instead of doing that implicitly from inside \deskaFuncRef{startChangeset}.}
+    There could be many changesets in the Deska DB (all stored on the Deska DB server) which might belong to various
+    users.  Each session (ie. a connection to the database) could only have at most one particular changeset associated
+    with itself, and that changeset is called the {\em current} one.  That changeset that will receive all updates from
+    the functions which perform database modifications.
+
+    After the former active changeset is detached, it remains available for further processing via the
+    \deskaFuncRef{resumeChangeset} function, but the current session is not associated with an active changeset anymore.
+    This is intended to make sure that user has to explicitly ask for her changes to be "set aside" instead of doing
+    that implicitly from inside \deskaFuncRef{startChangeset}.}
 
 \deskaFunc{abortCurrentChangeset}{}{}
     {Abort an in-progress changeset}
-    {This function will throw away any changes made so far in the active changeset and remove that changeset from the
-    list of pending changestes.}
+    {This function will throw away any changes made so far in the current active changeset and remove that changeset
+    from the list of pending changestes.}
+
+\deskaFunc{freezeView}{}{}
+    {Freeze the view of the revisions}
+    {Start a server-side multiversion transaction which freezes the server's idea about what the latest revision in the
+    database is. See section \ref{sec:api-revision-semantics} for details.
+
+    It is an error to start or resume a changeset while the database state is frozen via this function; doing so will
+    result in the {\tt FreezingError} exception.}
+
+\deskaFunc{unFreezeView}{}{}
+    {Unfreeze the client's view on the persistent revisions}
+    {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
+    \ref{sec:api-revision-semantics} for details.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}
@@ -698,9 +813,11 @@ Functions for browsing history of individual objects, retrieving lists of differ
     \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
     ]}
     {Return a list of metadata for matching revisions}
-    {This function returns a list of metadata for revisions matching the search criteria.  Given that there is currently
-    no way to specify the search options (FIXME: add optional arguments?), the function will currently return metadata
-    for all persistent revisions.}
+    {This function returns a list of metadata for revisions matching the search criteria.  When no search criteria are
+    specified, it will return metadata for all persistent revisions.  The filter can reference all attributes of a
+    revision, as well as any object data.
+
+    The result is sorted by the revision using a numeric sort, with lowest values returned first.}
 
 \deskaFunc{dataDifference}{, "revisionA": "r1", "revisionB": "r2"}
     {[ \\
@@ -713,9 +830,12 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {Return differences between the database state in the specified versions}
     {This function will produce a list of differences between the database state in the two indicated revisions.  The
     returned value is a list of ``basic modifications'', each representing creation of a new object, deletion of an
-    existing one, or setting a single attribute.  The order of the returned data is significant; for example, if an
-    object has been created and its attribute set to a particular value, the creation shall be present before the record
-    for setting an attribute.
+    existing one, or setting a single attribute.
+
+    The order of the returned data is significant; for example, if an object has been created and its attribute set to a
+    particular value, the creation shall be present before the record for setting an attribute.
+
+    An optional filter is allowed to reference any object's attributes, as well as revision metadata.
 
     The format of the returned data is the same as the argument of \deskaFuncRef{applyBatchedChanges}.}
 
@@ -723,7 +843,24 @@ Functions for browsing history of individual objects, retrieving lists of differ
     {[ \\
     \{"command": "createObject", "kindName": "k1", "objectName": "o1"\} \\
     ]}
-    {Return differences between the database state in the specified versions}
+    {Return differences of the database state in the specified changeset compared against its parent revision}
     {See \deskaFuncRef{dataDifference} for details.}
+
+\deskaFunc{resolvedDataDifference}{, "revisionA": "r1", "revisionB": "r2"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
+    \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
+    ]}
+    {Return differences in the resolved versions of object states between the specified versions}
+    {This function behaves in the exactly same way as the \deskaFuncRef{dataDifference}, except that the changes are not
+    between the ``raw'' object attributes, but reflect the differences in the fully resolved versions of data, taking
+    templates  into account.}
+
+\deskaFunc{resolvedDataDifferenceInTemporaryChangeset}{, "changeset": "tmp123"}
+    {[ \\
+    \{"command": "createObject", "kindName": "k1", "objectName": "o1"\} \\
+    ]}
+    {Return differences between the resolved database state in the specified changeset and its parent revision}
+    {See \deskaFuncRef{dataDifferenceInTemporaryChangeset} and \deskaFuncRef{resolvedDataDifference} for details.}
 
 \end{document}

@@ -22,6 +22,10 @@
 * */
 
 #include <sstream>
+#include <iomanip>
+
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "UserInterfaceIO.h"
 
@@ -32,33 +36,79 @@ namespace Cli
 {
 
 
-
-UserInterfaceIO::UserInterfaceIO():
-    tabSize(4), promptEnd("> ")//, reader(".deska_cli_history", 64)
+CliCompleter::CliCompleter(Parser* parser): m_parser(parser)
 {
-    // FIXME: Completitions will be obtained from the UserInterface dynamicly
-    std::vector<std::string> completitions;
-    completitions.push_back("exit");
-    completitions.push_back("quit");
-    completitions.push_back("dump");
-    completitions.push_back("commit");
-    completitions.push_back("detach");
-    completitions.push_back("abort");
-    completitions.push_back("start");
-    completitions.push_back("resume");
-    completitions.push_back("status");
-    completitions.push_back("help");
-    completitions.push_back("show");
-    completitions.push_back("delete");
-    completitions.push_back("rename");
-    reader.RegisterCompletions(completitions);
+}
+
+
+
+CliCompleter::~CliCompleter()
+{
+}
+
+
+
+std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
+                                                       std::string::const_iterator start,
+                                                       std::string::const_iterator end)
+{
+    // Do not pass the last incomplete token to the parser
+    std::string::const_iterator space = end;
+    bool noSpace = false;
+    while (*space != ' ') {
+        if (space == line.begin()) {
+            noSpace = true;
+            break;
+        }
+        --space;
+    }
+    std::vector<std::string> completions;
+    if (noSpace)
+        completions = m_parser->tabCompletionPossibilities(std::string());
+    else
+        completions = m_parser->tabCompletionPossibilities(std::string(line.begin(), (space + 1)));
+
+    completions.insert(completions.end(), commandCompletions.begin(), commandCompletions.end());
+    return completions;
+}
+
+
+
+void CliCompleter::addCommandCompletion(const std::string &completion)
+{
+    commandCompletions.push_back(completion);
+}
+
+
+
+UserInterfaceIO::UserInterfaceIO()
+{
+}
+
+
+
+UserInterfaceIO::UserInterfaceIO(Parser* parser):
+    tabSize(4), promptEnd("> ")
+{
+    completer = new CliCompleter(parser);
+    reader = new ReadlineWrapper::Readline(".deska_cli_history", 64, completer);
+}
+
+
+
+UserInterfaceIO::~UserInterfaceIO()
+{
+    delete reader;
+    delete completer;
 }
 
 
 
 void UserInterfaceIO::reportError(const std::string &errorMessage)
 {
-    std::cerr << errorMessage << std::endl;
+    std::vector<std::string> lines = wrap(errorMessage, 80);
+    for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+        std::cerr << *it << std::endl;
 }
 
 
@@ -83,6 +133,15 @@ bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << object << " does not exist. Create?";
+    return askForConfirmation(ss.str());
+}
+
+
+
+bool UserInterfaceIO::confirmRestoration(const Db::ObjectDefinition &object)
+{
+    std::ostringstream ss;
+    ss << object << " was deleted in current changeset. Restore?";
     return askForConfirmation(ss.str());
 }
 
@@ -119,38 +178,102 @@ std::string UserInterfaceIO::askForDetachMessage()
 
 
 
-void UserInterfaceIO::printHelp()
+void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
+                                const std::map<std::string, std::string> &parserKeywords)
 {
+    unsigned int maxWordWidth = 0;
+    for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it)
+        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+    for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it)
+        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+
     std::cout << "CLI commands:" << std::endl;
-    std::cout << "start  - Starts new changeset" << std::endl;
-    std::cout << "resume - Displays list of pending changesets with ability to connect to one." << std::endl;
-    std::cout << "commit - Displays promt for commit message and commits current changeset." << std::endl;
-    std::cout << "detach - Displays promt for detach message and detaches from current changeset." << std::endl;
-    std::cout << "abort  - Aborts current changeset." << std::endl;
-    std::cout << "status - Shows if you are connected to any changeset or not." << std::endl;
-    std::cout << "exit   - Exits the CLI." << std::endl;
-    std::cout << "quit   - Exits the CLI." << std::endl;
-    std::cout << "dump   - Prints everything in the DB." << std::endl;
-    std::cout << "help   - Displays this list of commands." << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
+        std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+            if (itd != wrappedDscr.begin())
+                std::cout << indent(maxWordWidth + 3, 1);
+            std::cout << *itd << std::endl;
+        }
+    }
     std::cout << std::endl;
     std::cout << "Parser keywords:" << std::endl;
-    std::cout << "delete - Deletes object given as parameter (e.g. delete hardware hp456). Longer" << std::endl;
-    std::cout << "         parameters are also allowed (e.g. delete host golias120 interface eth0)" << std::endl;
-    std::cout << "         This will delete only interface eth0 in the object host golias120." << std::endl;
-    std::cout << "show   - Shows attributes and nested kinds of the object. Parameter is here" << std::endl;
-    std::cout << "         optional and works in the same way as for delete. When executed without" << std::endl;
-    std::cout << "         parameter at top-level, it shows all object kinds and names." << std::endl;
-    std::cout << "rename - Renames an object to name given as parameter" << std::endl;
-    std::cout << "         (e.g. rename hardware hp456 hp567). Object in current context could be" << std::endl;
-    std::cout << "         renamed also using short form (e.g. rename hp567)." << std::endl;
-    std::cout << "end    - Leaves one level of current context" << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
+        std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
+        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+            if (itd != wrappedDscr.begin())
+                std::cout << indent(maxWordWidth + 3, 1);
+            std::cout << *itd << std::endl;
+        }
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
+{
+    std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
+    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 78);
+    for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+        std::cout << indent(2, 1) << *itd << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
+{
+    std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
+    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 78);
+    for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
+        std::cout << indent(2, 1) << *itd << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpKind(const std::string &kindName,
+                                    const std::vector<std::pair<std::string, std::string> > &kindAttrs,
+                                    const std::vector<std::string> &nestedKinds)
+{
+    std::cout << "Content of " << kindName << ":" << std::endl;
+    std::cout << indent(2, 1) << "Attributes:" << std::endl;
+    if (kindAttrs.empty()) {
+        std::cout << indent(4, 1) << "No attributes" << std::endl;
+    } else {
+        unsigned int maxWordWidth = 0;
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
+             it != kindAttrs.end(); ++it)
+            maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+        for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
+             it != kindAttrs.end(); ++it)
+            std::cout << indent(4, 1) << std::left << std::setw(maxWordWidth) << it->first << " : " << it->second << std::endl;
+    }
+    std::cout << indent(2, 1) << "Nested kinds:" << std::endl;
+    if (nestedKinds.empty()) {
+        std::cout << indent(4, 1) << "No nested kinds" << std::endl;
+    } else {
+        for (std::vector<std::string>::const_iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it)
+            std::cout << indent(4, 1) << *it << std::endl;
+    }
+}
+
+
+
+void UserInterfaceIO::printHelpShowKinds(const std::vector<std::string> &kinds)
+{
+    std::cout << "Defined kinds:" << std::endl;
+    for (std::vector<std::string>::const_iterator it = kinds.begin(); it != kinds.end(); ++it)
+        std::cout << indent(2, 1) << *it << std::endl;
 }
 
 
 
 int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pendingChangesets)
 {
-    std::cout << "Pending changesets: " << std::endl << std::endl;
+    std::cout << "Pending changesets:" << std::endl << std::endl;
     if (pendingChangesets.empty()) {
         std::cout << "No pending changesets." << std::endl;
         return -2;
@@ -186,68 +309,101 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
 
 std::string UserInterfaceIO::readLine(const std::string &prompt)
 {
-    return reader.GetLine(prompt + promptEnd);
+    return reader->getLine(prompt + promptEnd);
 }
 
 
 
-void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel)
+void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+                                      std::ostream &out)
 {
-    if (attributes.empty())
-        return;
     for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        printAttribute(*it, indentLevel);
+        printAttribute(*it, indentLevel, out);
     }
-    if (indentLevel > 0)
-        printEnd(indentLevel - 1);
 }
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel, bool fullName)
+void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+                                   bool fullName, std::ostream &out)
 {
-    if (objects.empty())
-        return;
     for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
-        printObject(*it, indentLevel, fullName);
+        printObject(*it, indentLevel, fullName, out);
     }
-    if (indentLevel > 0)
-        printEnd(indentLevel - 1);
 }
 
 
 
-void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel)
+void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
 {
-    std::cout << indent(indentLevel) << attribute << std::endl;
+    out << indent(indentLevel) << attribute << std::endl;
 }
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName)
+void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
 {
     if (fullName)
-        std::cout << indent(indentLevel) << object << std::endl;
+        out << indent(indentLevel) << object << std::endl;
     else
-        std::cout << indent(indentLevel) << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
+        out << indent(indentLevel)
+            << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
 }
 
 
 
-void UserInterfaceIO::printEnd(int indentLevel)
+void UserInterfaceIO::printEnd(int indentLevel, std::ostream &out)
 {
-    std::cout << indent(indentLevel) << "end" << std::endl;
+    out << indent(indentLevel) << "end" << std::endl;
 }
 
 
 
-std::string UserInterfaceIO::indent(int indentLevel)
+void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 {
+    completer->addCommandCompletion(completion);
+}
+
+
+
+std::string UserInterfaceIO::indent(unsigned int indentLevel, unsigned int tab)
+{
+    if (tab == 0)
+        tab = tabSize;
     std::ostringstream ss;
-    for (unsigned int i = 0; i < (indentLevel * tabSize); ++i) {
+    for (unsigned int i = 0; i < (indentLevel * tab); ++i) {
         ss << " ";
     }
     return ss.str();
+}
+
+
+
+std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int width)
+{
+    std::vector<std::string> lines;
+    boost::char_separator<char> separators(" \t\n");
+    boost::tokenizer<boost::char_separator<char> > tokenizer(text, separators);
+    std::string word;
+    std::string line;
+    
+    for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
+         it != tokenizer.end(); ++it) {
+        word = *it;
+        boost::algorithm::trim(word);
+        if ((line.length() + word.length() + 1) > width) {
+            lines.push_back(line);
+            line.clear();
+        }
+        if (!line.empty())
+            line += " ";
+        line += word;
+    }
+
+    if (!line.empty())
+        lines.push_back(line);
+
+    return lines;
 }
 
 

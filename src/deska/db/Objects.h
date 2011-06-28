@@ -25,18 +25,32 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+#include <boost/asio/ip/address_v4.hpp>
+#include <boost/asio/ip/address_v6.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include "MacAddress.h"
 
 namespace Deska {
 namespace Db {
 
-/** @short @short Value of an object's attribute
+/** @short INTERNAL: variant forming the core of the Deska::Db::Value */
+typedef boost::variant<
+    // Primitive types
+    std::string, double, int,
+    // Network addresses
+    boost::asio::ip::address_v4, boost::asio::ip::address_v6, MacAddress,
+    // Date and time
+    boost::posix_time::ptime, boost::gregorian::date
+> NonOptionalValue;
+
+/** @short Value of an object's attribute
  *
  * This is the definition that should be extended when adding more supported
  * formats for attribute values.
  * */
-typedef boost::optional<boost::variant<std::string,double,int> > Value;
+typedef boost::optional<NonOptionalValue> Value;
 
 /** @short Type of an object's attribute */
 typedef enum {
@@ -47,7 +61,17 @@ typedef enum {
     /** @short Integer */
     TYPE_INT,
     /** @short Double */
-    TYPE_DOUBLE
+    TYPE_DOUBLE,
+    /** @short IPv4 address */
+    TYPE_IPV4_ADDRESS,
+    /** @short IPv6 address */
+    TYPE_IPV6_ADDRESS,
+    /** @short MAC address */
+    TYPE_MAC_ADDRESS,
+    /** @short Date like YYYY-MM-DD */
+    TYPE_DATE,
+    /** @short Timestamp like YYYY-MM-DD HH:MM:SS */
+    TYPE_TIMESTAMP
 } Type;
 
 std::ostream& operator<<(std::ostream &stream, const Type t);
@@ -98,6 +122,12 @@ typedef enum {
      * */
     RELATION_EMBED_INTO,
 
+    /** @short There's a relation between the two kinds
+     *
+     * The current kind contains a reference to the other kind, using the name of the other kind as the attribute name.
+     * */
+    RELATION_REFERS_TO,
+
     /** @short This object is a template
      *
      * This objects acts as a template, that is, it can provide partial defaults for instances of the kind defined by the
@@ -139,6 +169,10 @@ typedef enum {
  *
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
+ *
+ * Finally, to model generic relations (just a foreign key in the database table), use a RELATION_REFERS_TO. For example, if a "hw"
+ * table has a foregin key "vendor" which references the "vendor" table, the "hw" kind will have the following relation record:
+ * (RELATION_REFERS_TO, "vendor")
  * */
 struct ObjectRelation
 {
@@ -147,6 +181,9 @@ struct ObjectRelation
 
     /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &target);
+
+    /** @short COnstruct a RELATION_REFERS_TO */
+    static ObjectRelation refersTo(const Identifier &target);
 
     /** @short Construct a RELATION_IS_TEMPLATE */
     static ObjectRelation isTemplate(const Identifier &target);
@@ -160,11 +197,6 @@ struct ObjectRelation
     Identifier target;
 
 private:
-    /** @short Private constructor for creating a half-baked object
-
-    This is very much needed for ObjectRelation::embedInto.
-    */
-    ObjectRelation();
     ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target);
 };
 
@@ -211,6 +243,8 @@ struct AttributeDefinition
 };
 
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a);
+bool operator==(const AttributeDefinition &a, const AttributeDefinition &b);
+bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b);
 
 
 /** @short Typedef for context stack. */

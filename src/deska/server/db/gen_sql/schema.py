@@ -1,6 +1,10 @@
 from table import Table
 
 class Schema:
+	py_fn_str = """
+def {name}({args}):
+	return {result}
+"""
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
@@ -39,6 +43,8 @@ CREATE FUNCTION commit_all(message text)
 
 		# init set of tables
 		self.tables = set()
+		# dict of attributes dicts
+		self.atts = dict()
 
 		# select all tables
 		record = self.plpy.execute(self.table_str)
@@ -76,18 +82,25 @@ CREATE FUNCTION commit_all(message text)
 
 		self.fn_sql.close()
 		self.table_sql.close()
+
+		# create some python helper functions
+		print self.py_fn_str.format(name = "kinds", args = '', result = list(self.tables))
+		print self.py_fn_str.format(name = "atts", args = 'kind', result = str(self.atts) + "[kind]")
 		return
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
 		# select col info
-		tables = self.plpy.execute(self.column_str.format(tbl))
+		columns = self.plpy.execute(self.column_str.format(tbl))
+		self.atts[tbl] = dict(columns)
+		del self.atts[tbl]['uid']
+		del self.atts[tbl]['name']
 
 		# create table obj
 		table = Table(tbl)
 
 		# add columns
-		for col in tables[:]:
+		for col in columns[:]:
 			table.add_column(col[0],col[1])
 
 		# add pk constraints
@@ -96,9 +109,11 @@ CREATE FUNCTION commit_all(message text)
 			table.add_pk(col[0],col[1])
 
 		# add fk constraints
-		constraints = self.plpy.execute(self.fk_str.format(tbl))
-		for col in constraints[:]:
+		fkconstraints = self.plpy.execute(self.fk_str.format(tbl))
+		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
+			# if there is a reference, change int for identifier
+			self.atts[tbl][col[1]] = 'identifier'
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str.format(tbl))
 		table.embed_into = ""
@@ -122,10 +137,10 @@ CREATE FUNCTION commit_all(message text)
 
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
-		#cols_ref_uid = table.get_cols_reference_uid()
-		for col in tables[:]:
-			if (col[0] in table.refuid_columns):
-				reftable = table.refuid_columns[col[0]]
+		cols_ref_uid = table.get_cols_reference_uid()
+		for col in columns[:]:
+			if (col[0] in cols_ref_uid):
+				reftable = cols_ref_uid[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
 				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):

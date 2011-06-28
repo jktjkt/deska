@@ -22,9 +22,14 @@
 * */
 
 #include <sstream>
+#include <fstream>
 #include <boost/foreach.hpp>
 
+#include "DbInteraction.h"
+#include "Exceptions.h"
+#include "Parser.h"
 #include "UserInterface.h"
+#include "UserInterfaceIOBase.h"
 #include "deska/db/JsonApi.h"
 
 
@@ -36,38 +41,524 @@ namespace Cli
 
 
 
-UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIO *_io):
+Command::Command(UserInterface *userInterface): ui(userInterface)
+{
+}
+
+
+
+Command::~Command()
+{
+}
+
+
+
+std::vector<std::string> Command::completionPatterns()
+{
+    return complPatterns;
+}
+
+
+
+std::string Command::name()
+{
+    return cmdName;
+}
+
+
+
+std::string Command::usage()
+{
+    return cmdUsage;
+}
+
+
+
+Start::Start(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "start";
+    cmdUsage = "Starts new changeset.";
+    complPatterns.push_back("start");
+}
+
+
+
+Start::~Start()
+{
+}
+
+
+
+void Start::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (ui->inChangeset) {
+        ui->io->reportError("Error: You are already in the changeset!");
+        return;
+    }
+    ui->m_dbInteraction->createNewChangeset(); 
+    ui->inChangeset = true;
+    ui->io->printMessage("Changeset started.");
+}
+
+
+
+Resume::Resume(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "resume";
+    cmdUsage = "Displays list of pending changesets with ability to connect to one.";
+    complPatterns.push_back("resume");
+}
+
+
+
+Resume::~Resume()
+{
+}
+
+
+
+void Resume::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (ui->inChangeset) {
+        ui->io->reportError("Error: You are already in the changeset!");
+        return;
+    }
+    try {
+        // Print list of pending changesets, so user can choose one
+        std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
+        int choice = ui->io->chooseChangeset(pendingChangesets);
+
+        if (choice >= 0) {
+            // Some changeset was choosen
+            ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+            ui->inChangeset = true;
+            ui->io->printMessage("Changeset resumed.");
+        }
+        
+    } catch (Deska::Db::NotFoundError &e) {
+        ui->io->reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::NoChangesetError &e) {
+        ui->io->reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
+        ui->io->reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::SqlError &e) {
+        ui->io->reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::ServerError &e) {
+        ui->io->reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonSyntaxError &e) {
+        ui->io->reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
+    } catch (Deska::Db::JsonStructureError &e) {
+        ui->io->reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
+    }
+}
+
+
+
+Commit::Commit(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "commit";
+    cmdUsage = "Displays promt for commit message and commits current changeset.";
+    complPatterns.push_back("commit");
+}
+
+
+
+Commit::~Commit()
+{
+}
+
+
+
+void Commit::operator()(const std::string &params)
+{
+    if (!(ui->inChangeset)) {
+        ui->io->reportError("Error: You are not in any changeset!");
+        return;
+    }
+    std::string commitMessage;
+    if (!params.empty()) {
+        commitMessage = params;
+    } else {
+        commitMessage = ui->io->askForCommitMessage();
+    }
+    ui->m_dbInteraction->commitChangeset(commitMessage);
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset commited.");
+    ui->m_parser->clearContextStack();
+}
+
+
+
+Detach::Detach(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "detach";
+    cmdUsage = "Displays promt for detach message and detaches from current changeset.";
+    complPatterns.push_back("detach");
+}
+
+
+
+Detach::~Detach()
+{
+}
+
+
+
+void Detach::operator()(const std::string &params)
+{
+    if (!(ui->inChangeset)) {
+        ui->io->reportError("Error: You are not in any changeset!");
+        return;
+    }
+    std::string detachMessage;
+    if (!params.empty()) {
+        detachMessage = params;
+    } else {
+        detachMessage = ui->io->askForDetachMessage();
+    }
+    ui->m_dbInteraction->detachFromChangeset(detachMessage);
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset detached.");
+    ui->m_parser->clearContextStack();
+}
+
+
+
+Abort::Abort(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "abort";
+    cmdUsage = "Aborts current changeset.";
+    complPatterns.push_back("abort");
+}
+
+
+
+Abort::~Abort()
+{
+}
+
+
+
+void Abort::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (!(ui->inChangeset)) {
+        ui->io->reportError("Error: You are not in any changeset!");
+        return;
+    }
+    ui->m_dbInteraction->abortChangeset();
+    ui->inChangeset = false;
+    ui->io->printMessage("Changeset aborted.");
+    ui->m_parser->clearContextStack();
+}
+
+
+
+Status::Status(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "status";
+    cmdUsage = "Shows if you are connected to any changeset or not.";
+    complPatterns.push_back("status");
+}
+
+
+
+Status::~Status()
+{
+}
+
+
+
+void Status::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (ui->inChangeset) {
+        ui->io->printMessage("You are connected to a changeset.");
+    } else {
+        ui->io->printMessage("You are not connected to any changeset.");
+    }
+}
+
+
+
+Exit::Exit(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "exit";
+    cmdUsage = "Exits the CLI.";
+    complPatterns.push_back("exit");
+    complPatterns.push_back("quit");
+}
+
+
+
+Exit::~Exit()
+{
+}
+
+
+
+void Exit::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    ui->exitLoop = true;
+}
+
+
+
+Dump::Dump(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "dump";
+    cmdUsage = "Prints everything in the DB. Optional parameter is filename, where to save the dump.";
+    complPatterns.push_back("dump %file");
+}
+
+
+
+Dump::~Dump()
+{
+}
+
+
+
+void Dump::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                ui->io->printObject(object, 0, true);
+                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1);
+                ui->io->printEnd(0);
+            }
+        }
+    } else {
+        std::ofstream ofs(params.c_str());
+        if (!ofs) {
+            ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
+            return;
+        }
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                ui->io->printObject(object, 0, true, ofs);
+                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1, ofs);
+                ui->io->printEnd(0, ofs);
+            }
+        }
+        ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
+    }  
+}
+
+
+
+Restore::Restore(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "restore";
+    cmdUsage = "Executes commands from a file. Can be used for restoring the DB from a dump. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
+    complPatterns.push_back("restore %file");
+}
+
+
+
+Restore::~Restore()
+{
+}
+
+
+
+void Restore::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        ui->io->reportError("Error: This command requires file name as a parameter.");
+        return;
+    }
+    if (!ui->inChangeset) {
+        ui->io->reportError("Error: Wou have to be connected to a changeset to perform restoration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return;
+    }
+    std::ifstream ifs(params.c_str());
+    if (!ifs) {
+        ui->io->reportError("Error while opening commands file \"" + params + "\".");
+        return;
+    }
+    ui->nonInteractiveMode = true;
+    std::string line;
+    unsigned int lineNumber = 0;
+    while (!getline(ifs, line).eof()) {
+        ++lineNumber;
+        if (!line.empty() && line[0] == '#')
+            continue;
+        ui->m_parser->parseLine(line);
+        if (ui->parsingFailed)
+            break;
+    }
+    ui->nonInteractiveMode = false;
+    if (ui->parsingFailed) {
+        std::ostringstream ostr;
+        ostr << "Parsing of commands file failed on line " << lineNumber << ".";
+        ui->io->reportError(ostr.str());
+    } else {
+        ui->io->printMessage("All commands successfully executed.");
+    }
+}
+
+
+
+Help::Help(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "help";
+    cmdUsage = "Displays this list of commands with usages. Accepts parameter. For command name or parser keyword as parametr, usage is displayed, for kind name is displayed content of the kind and for word \"kinds\" are all defined kind names printed.";
+    complPatterns.push_back("help kinds");
+    // Help is not in commands map, because we are constructing it now.
+    complPatterns.push_back("help help");
+    for (UserInterface::CommandMap::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
+        complPatterns.push_back("help " + it->first);
+    }
+    std::vector<std::string> kinds = ui->m_dbInteraction->kindNames();
+    for (std::vector<std::string>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        complPatterns.push_back("help " + *it);
+    }
+    std::map<std::string, std::string> keywords = ui->m_parser->parserKeywordsUsage();
+    for (std::map<std::string, std::string>::iterator it = keywords.begin(); it != keywords.end(); ++it) {
+        complPatterns.push_back("help " + it->first);
+    }
+}
+
+
+
+Help::~Help()
+{
+}
+
+
+
+void Help::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        if (params == "kinds") {
+            ui->io->printHelpShowKinds(ui->m_dbInteraction->kindNames());
+            return;
+        }
+        UserInterface::CommandMap::iterator itc = ui->commandsMap.find(params);
+        if ( itc != ui->commandsMap.end()) {
+            ui->io->printHelpCommand(params, itc->second->usage());
+            return;
+        }
+        std::map<std::string, std::string> keywords = ui->m_parser->parserKeywordsUsage();
+        std::map<std::string, std::string>::iterator itke = keywords.find(params);
+        if ( itke != keywords.end()) {
+            ui->io->printHelpKeyword(params, itke->second);
+            return;
+        }
+        std::vector<std::string> kinds = ui->m_dbInteraction->kindNames();
+        std::vector<std::string>::iterator itki = std::find(kinds.begin(), kinds.end(), params);
+        if ( itki != kinds.end()) {
+            ui->io->printHelpKind(params, ui->m_parser->parserKindsAttributes(params),
+                                  ui->m_parser->parserKindsEmbeds(params));
+            return;
+        }
+        ui->io->reportError("Error: No help entry for \"" + params + "\".");
+        return;
+    }
+    std::map<std::string, std::string> cliCommands;
+    for (UserInterface::CommandMap::iterator it = ui->commandsMap.begin(); it != ui->commandsMap.end(); ++it) {
+        cliCommands[it->first] = it->second->usage();
+    }
+    ui->io->printHelp(cliCommands, ui->m_parser->parserKeywordsUsage());
+}
+
+
+
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io):
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), inChangeset(false)
 {
+    // Register all commands
+    typedef std::tr1::shared_ptr<Command> Ptr;
+    commandsMap["start"] = Ptr(new Start(this));
+    commandsMap["resume"] = Ptr(new Resume(this));
+    commandsMap["commit"] = Ptr(new Commit(this));
+    commandsMap["detach"] = Ptr(new Detach(this));
+    commandsMap["abort"] = Ptr(new Abort(this));
+    commandsMap["status"] = Ptr(new Status(this));
+    commandsMap["exit"] = Ptr(new Exit(this));
+    commandsMap["quit"] = commandsMap["exit"];
+    commandsMap["dump"] = Ptr(new Dump(this));
+    commandsMap["restore"] = Ptr(new Restore(this));
+    // Help has to be constructed last because of completions generating
+    commandsMap["help"] = Ptr(new Help(this));
+
+    // Register all commands completions
+    for (CommandMap::iterator it = commandsMap.begin(); it != commandsMap.end(); ++it) {
+        std::vector<std::string> cmdCompletions = it->second->completionPatterns();
+        for (std::vector<std::string>::iterator itc = cmdCompletions.begin(); itc != cmdCompletions.end(); ++itc)
+            io->addCommandCompletion(*itc);
+    }
+    nonInteractiveMode = false;
 }
 
 
 
-void UserInterface::applyCategoryEntered(const Db::ContextStack &context,
+UserInterface::~UserInterface()
+{
+}
+
+
+
+bool UserInterface::applyCategoryEntered(const Db::ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
-    if (!m_dbInteraction->objectExists(context))
+    if (m_dbInteraction->objectExists(context))
+        return true;
+
+    // Object does not exist -> try to create it
+    try {
         m_dbInteraction->createObject(context);
+        return true;
+    } catch (Deska::Db::ReCreateObjectError &e) {
+        if (io->confirmRestoration(Db::ObjectDefinition(kind,object))) {
+            m_dbInteraction->restoreDeletedObject(context);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 
 
-void UserInterface::applySetAttribute(const Db::ContextStack &context,
+bool UserInterface::applySetAttribute(const Db::ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
+    return true;
 }
 
 
 
-void UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
     m_dbInteraction->removeAttribute(context, attribute);
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionShow(const Db::ContextStack &context)
+bool UserInterface::applyFunctionShow(const Db::ContextStack &context)
 {
     if (context.empty()) {
         // Print top level objects if we are not in any context
@@ -81,20 +572,23 @@ void UserInterface::applyFunctionShow(const Db::ContextStack &context)
         std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
         io->printObjects(kinds, 0, false);
     }
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionDelete(const Db::ContextStack &context)
+bool UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 {
     m_dbInteraction->deleteObject(context);
+    return true;
 }
 
 
 
-void UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+bool UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
 {
     m_dbInteraction->renameObject(context, newName);
+    return true;
 }
 
 
@@ -106,6 +600,15 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
     // ask the user whether to create it.
     if (m_dbInteraction->objectExists(context))
         return true;
+
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
+    if (nonInteractiveMode)
+        return true;
+
     // Object does not exist -> ask the user here
     return io->confirmCreation(Db::ObjectDefinition(kind,object));
 }
@@ -115,6 +618,10 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to sat an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
     return true;
 }
 
@@ -122,6 +629,10 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
     return true;
 }
 
@@ -136,6 +647,13 @@ bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
+    if (nonInteractiveMode)
+        return true;
     return io->confirmDeletion(context.back());
 }
 
@@ -143,58 +661,23 @@ bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 
 bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
 {
+    if (!inChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to rename an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
     return true;
 }
 
 
 
-void UserInterface::reportError(const std::string &errorMessage)
+void UserInterface::reportParseError(const ParserException &error)
 {
-    io->reportError(errorMessage);
-}
-
-
-
-void UserInterface::dumpDbContents()
-{
-    BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
-        BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, m_dbInteraction->kindInstances(kindName)) {
-            io->printObject(object, 0, true);
-            io->printAttributes(m_dbInteraction->allAttributes(object), 1);
-        }
-    }
-}
-
-
-
-void UserInterface::resumeChangeset()
-{
-    try {
-        // Print list of pending changesets, so user can choose one
-        std::vector<Db::PendingChangeset> pendingChangesets = m_dbInteraction->allPendingChangesets();
-        int choice = io->chooseChangeset(pendingChangesets);
-
-        if (choice >= 0) {
-            // Some changeset was choosen
-            m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-            inChangeset = true;
-            io->printMessage("Changeset resumed.");
-        }
-        
-    } catch (Deska::Db::NotFoundError &e) {
-        reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::NoChangesetError &e) {
-        reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
-        reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::SqlError &e) {
-        reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::ServerError &e) {
-        reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::JsonSyntaxError &e) {
-        reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::JsonStructureError &e) {
-        reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
+    parsingFailed = true;
+    if (error.offset() == 0) {
+        io->reportError("Error while parsing CLI command or " + error.dump());
+    } else {
+        io->reportError(error.dump());
     }
 }
 
@@ -204,68 +687,25 @@ void UserInterface::run()
 {
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
-    Db::ContextStack context;
-    for (;;) {
-        line = io->readLine(Db::contextStackToString(context));
+    exitLoop = false;
+    while (!exitLoop) {
+        parsingFailed = false;
+        line = io->readLine(Db::contextStackToString(m_parser->currentContextStack()));
 
-        if (line == "exit" || line == "quit") {
-            break;
-        } else if (line == "dump") {
-            dumpDbContents();
-        } else if (line == "commit") {
-            if (inChangeset) {
-                m_dbInteraction->commitChangeset(io->askForCommitMessage());
-                inChangeset = false;
-                io->printMessage("Changeset commited.");
-                m_parser->clearContextStack();
-            } else {
-                reportError("Error: You are not in any changeset!");
-            }
-        } else if (line == "detach") {
-            if (inChangeset) {
-                m_dbInteraction->detachFromChangeset(io->askForDetachMessage());
-                inChangeset = false;
-                io->printMessage("Changeset detached.");
-                m_parser->clearContextStack();
-            } else {
-                reportError("Error: You are not in any changeset!");
-            }
-        } else if (line == "abort") {
-            if (inChangeset) {
-                m_dbInteraction->abortChangeset();
-                inChangeset = false;
-                io->printMessage("Changeset aborted.");
-                m_parser->clearContextStack();
-            } else {
-                reportError("Error: You are not in any changeset!");
-            }
-        } else if (line == "start") {
-            if (inChangeset) {
-                reportError("Error: You are already in the changeset!");
-            } else {
-                m_dbInteraction->createNewChangeset(); 
-                inChangeset = true;
-                io->printMessage("Changeset started.");
-            }
-        } else if (line == "resume") {
-            if (inChangeset) {
-                reportError("Error: You are already in the changeset!");
-            } else {
-                resumeChangeset();
-            }
-        } else if (line == "status") {
-            if (inChangeset) {
-                io->printMessage("You are connected to a changeset.");
-            } else {
-                io->printMessage("You are not connected to any changeset.");
-            }
-        } else if (line == "help") {
-            io->printHelp();
-        } else {
+        // Split line to command and arguments
+        std::string::iterator commandEnd = line.begin();
+        while ((commandEnd != line.end()) && (*commandEnd != ' '))
+            ++commandEnd;
+        std::string parsedCommand(line.begin(), commandEnd);
+        std::string parsedArguments((commandEnd == line.end() ? commandEnd : (commandEnd +1)), line.end());
+        
+        if (commandsMap.find(parsedCommand) == commandsMap.end()) {
+            // Command not found -> use CLI parser
             m_parser->parseLine(line);
+        } else {
+            // Command found -> run it
+            (*(commandsMap[parsedCommand]))(parsedArguments);
         }
-
-        context = m_parser->currentContextStack();
     }
 }
 

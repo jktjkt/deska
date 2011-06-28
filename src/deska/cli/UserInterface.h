@@ -25,20 +25,335 @@
 #define DESKA_USER_INTERFACE_H
 
 #include <string>
+#include <tr1/memory>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
-
-#include "UserInterfaceIO.h"
-#include "DbInteraction.h"
-#include "Parser.h"
-#include "Exceptions.h"
-
 
 namespace Deska
 {
 namespace Cli
 {
+
+class DbInteraction;
+class Parser;
+class ParserException;
+class UserInterfaceIOBase;
+class UserInterface;
+
+// FIXME: Add more try catch block around each function, that can throw an exception. Create some exceptions hiearchy.
+//        For example recoverable, non recoverable...
+
+/** @short Abstract class for each command.
+*
+*   These classes are stored in the map in the UserInterface and called based on user input.
+*/
+class Command
+{
+public:
+    /** Sets pointer to the UserInterface for performing actions.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Command(UserInterface *userInterface);
+
+    virtual ~Command();
+
+    /** @short This function is invoken when right command name is parsed.
+    *
+    *   @param params Parameters of the command.
+    */
+    virtual void operator()(const std::string &params) = 0;
+
+    /** @short Gets command completion patterns.
+    *
+    *   @return Vector with command completion patterns.
+    */
+    virtual std::vector<std::string> completionPatterns();
+    
+    /** @short Gets command name.
+    *
+    *   @return Command name.
+    */
+    virtual std::string name();
+
+    /** @short Gets command usage description.
+    *
+    *   @return Command usage.
+    */
+    virtual std::string usage();
+
+protected:
+    /** Patterns for tab completition purposes. */
+    std::vector<std::string> complPatterns;
+    /** Name of the command. Command will be invoked typinh this stirng into the CLI. */
+    std::string cmdName;
+    /** Description of usage of the command. */
+    std::string cmdUsage;
+    /** Pointer to the UserInterface for performing actions. */
+    UserInterface *ui;
+};
+
+
+
+/** @short Cli command.
+*
+*   Starts new changeset.
+*
+*   @see Command
+*/
+class Start: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Start(UserInterface *userInterface);
+
+    virtual ~Start();
+
+    /** @short Starts new changeset.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Displays list of pending changesets with ability to connect to one.
+*
+*   @see Command
+*/
+class Resume: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Resume(UserInterface *userInterface);
+
+    virtual ~Resume();
+
+    /** @short Displays list of pending changesets with ability to connect to one.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Displays promt for commit message and commits current changeset.
+*
+*   @see Command
+*/
+class Commit: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Commit(UserInterface *userInterface);
+
+    virtual ~Commit();
+
+    /** @short Displays promt for commit message and commits current changeset.
+    *
+    *   @param params Commit message. Will be prompted, when omitted.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Displays promt for detach message and detaches from current changeset.
+*
+*   @see Command
+*/
+class Detach: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Detach(UserInterface *userInterface);
+
+    virtual ~Detach();
+
+    /** @short Displays promt for detach message and detaches from current changeset.
+    *
+    *   @param params Detach message. Will be prompted, when omitted.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Aborts current changeset.
+*
+*   @see Command
+*/
+class Abort: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Abort(UserInterface *userInterface);
+
+    virtual ~Abort();
+
+    /** @short Aborts current changeset.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Shows if you are connected to any changeset or not.
+*
+*   @see Command
+*/
+class Status: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Status(UserInterface *userInterface);
+
+    virtual ~Status();
+
+    /** @short Shows if you are connected to any changeset or not.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Exits the application.
+*
+*   @see Command
+*/
+class Exit: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Exit(UserInterface *userInterface);
+
+    virtual ~Exit();
+
+    /** @short Exits the application.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Dumps DB contents.
+*
+*   @see Command
+*/
+class Dump: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Dump(UserInterface *userInterface);
+
+    virtual ~Dump();
+
+    /** @short Dumps DB contents.
+    *
+    *   @param params File name where to dump the DB. Dump to standard output when ommited.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Runs commands from file.
+*
+*   @see Command
+*/
+class Restore: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Restore(UserInterface *userInterface);
+
+    virtual ~Restore();
+
+    /** @short Restores DB from a dump.
+    *
+    *   @param params File name where the dump is stored.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Displays this list of commands with usages.
+*
+*   @see Command
+*/
+class Help: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Help(UserInterface *userInterface);
+
+    virtual ~Help();
+
+    /** @short Displays this list of commands with usages.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
 
 
 /** @short Class for communication with the user.
@@ -59,7 +374,10 @@ public:
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
     *   @param _io Pointer to the UserInterfaceIO class for IO oparations
     */
-    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIO *_io);
+    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIOBase *_io);
+
+    /** @short Deletes commands from commands map. */
+    ~UserInterface();
 
     //@{
     /** @short Functions for confirmation and applying actions connected with parser signals.
@@ -68,14 +386,14 @@ public:
     *   @see ParserSignals
     *   @see Parser
     */
-    void applyCategoryEntered(const Db::ContextStack &context,
+    bool applyCategoryEntered(const Db::ContextStack &context,
                               const Db::Identifier &kind, const Db::Identifier &object);
-    void applySetAttribute(const Db::ContextStack &context,
+    bool applySetAttribute(const Db::ContextStack &context,
                            const Db::Identifier &attribute, const Db::Value &value);
-    void applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
-    void applyFunctionShow(const Db::ContextStack &context);
-    void applyFunctionDelete(const Db::ContextStack &context);
-    void applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
+    bool applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
+    bool applyFunctionShow(const Db::ContextStack &context);
+    bool applyFunctionDelete(const Db::ContextStack &context);
+    bool applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
 
     bool confirmCategoryEntered(const Db::ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
@@ -87,34 +405,48 @@ public:
     bool confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
     //@}
 
-    /** @short Reports any error to the user (error output).
+    /** @short Reports parse error generated by the Parser to the user (error output).
     *
-    *   @param errorMessage Error message to report
+    *   @param error Error to report
+    *   @see ParserException
     */
-    void reportError(const std::string &errorMessage);
+    void reportParseError(const ParserException &error);
 
     /** @short Function for listening to users input and calling appropriate actions. */
     void run();
 
 private:
 
-    /** @short Displays list of pending changesets, lets user to pick one and connects to it. */
-    void resumeChangeset();
-
-    /** @short Dump everything in the DB */
-    void dumpDbContents();
-
-    /** @short Prints help for CLI usage. */
-    void printHelp();
+    friend class Start;
+    friend class Resume;
+    friend class Commit;
+    friend class Detach;
+    friend class Abort;
+    friend class Status;
+    friend class Exit;
+    friend class Dump;
+    friend class Restore;
+    friend class Help;
 
     /** Pointer to the class used for communication with the database. */
     DbInteraction *m_dbInteraction;
     /** Pointer to the parser used for parsing commands that are not any known keyword. */
     Parser* m_parser;
+    /** Pointer to the class for performing IO operations. */
+    UserInterfaceIOBase *io;
 
-    UserInterfaceIO *io;
+    typedef std::map<std::string, std::tr1::shared_ptr<Command> > CommandMap;
+    /** Map for commands indexed by their names. */
+    CommandMap commandsMap;
 
+    /** Flag signalising, if we are currently connected to a changeset, or not. */
     bool inChangeset;
+    /** Flag singalising, that the event loop will end after this cycle. */
+    bool exitLoop;
+    /** Flag signalising, that parsing current line using Parser failed. */
+    bool parsingFailed;
+    /** Flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed. */
+    bool nonInteractiveMode;
 };
 
 

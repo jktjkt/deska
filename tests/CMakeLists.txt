@@ -49,18 +49,35 @@ macro(deska_dbapi_persist_test fname)
         persist ${fname})
 endmacro(deska_dbapi_persist_test)
 
+macro(deska_cli_test fname)
+    # See comments in tests/fix_boost_test_sigchld.h for why this is different
+    # from regular boost::test usage
+    set(test_cli_${fname}_SRCS test_cli_${fname}.cpp)
+    add_executable(test_cli_${fname} ${test_cli_${fname}_SRCS})
+    target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers)
+    add_test(test_cli_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
+endmacro(deska_cli_test)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/JsonApiTestFixture.cpp
 )
 
+set(CliTestHelpers_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/MockCliEvent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
+)
+
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
+add_library(CliTestHelpers ${CliTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
-deska_test(parser-mock-objects)
+deska_test(parser_mock_objects)
 deska_test(mock_streambuf)
-deska_test(parser-top-level-objects)
+deska_test(cli_parser)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
 
@@ -92,11 +109,21 @@ if(RUN_SQL_TESTS)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
+    deska_dbapi_test(createObjects)
 
-    deska_dbapi_persist_test(test_1_metadata)
-    deska_dbapi_persist_test(test_1_versioning)
+    # unit tests which work on any reasonable state of the DB, no matter what
+    # changesets are already present, etc
+    deska_dbapi_test(persist_kindInstances)
+    deska_dbapi_test(persist_metadata)
+    deska_dbapi_test(persist_versioning)
+
+    # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)
     deska_dbapi_persist_test(test_2_diff)
+    deska_dbapi_persist_test(test_2_objectData)
+
+    # Tests for interaction between the CLI and the DB parts
+    deska_cli_test(io)
 endif()
 
 # Copy files from source directory to destination directory, substituting any

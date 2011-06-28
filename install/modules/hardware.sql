@@ -1,7 +1,7 @@
 --
 -- every module must be place in schema production
 --
-SET search_path TO production;
+SET search_path TO production,deska;
 
 CREATE SEQUENCE hardware_uid START 1;
 
@@ -11,7 +11,7 @@ CREATE TABLE hardware (
 	uid bigint DEFAULT nextval('hardware_uid')
 		CONSTRAINT hardware_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text
+	name identifier
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor bigint 

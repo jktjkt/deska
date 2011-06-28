@@ -28,6 +28,12 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
+set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} Coverage )
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "Coverage")
+set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+set(CMAKE_C_FLAGS_COVERAGE "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
       "Choose the type of build"
@@ -43,6 +49,8 @@ FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framewo
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
+# we do not want to link with whole boost here; there's simply no point in our libraries bringing the test framework in
+set(DESKA_BOOST_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
 
 FIND_PATH(LIBEBT_PATH libebt/libebt.hh
     ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/libebt-1.3.0)
@@ -71,24 +79,6 @@ else()
     include_directories(${BOOST_PROCESS_PATH})
 endif()
 
-FIND_PATH(RLMM_PATH rlmm/readline.hh
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/rlmm-2.0.9)
-if(NOT RLMM_PATH)
-    message(FATAL "Cannot find readline--, and the internal copy seems unusable")
-else()
-    message(STATUS "Using readline-- from ${RLMM_PATH}")
-    include_directories(${RLMM_PATH})
-endif()
-
-FIND_PATH(SREADLINE_PATH SReadline/SReadline.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/3rd-party/SReadline-0.3)
-if(NOT SREADLINE_PATH)
-    message(FATAL "Cannot find SReadline, and the internal copy seems unusable")
-else()
-    message(STATUS "Using SReadline from ${SREADLINE_PATH}")
-    include_directories(${SREADLINE_PATH})
-endif()
-
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 FIND_PACKAGE(Readline REQUIRED)
 
@@ -98,6 +88,7 @@ INCLUDE_DIRECTORIES(
 
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ObjectModification.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Filter.cpp
@@ -114,12 +105,19 @@ set(libDeskaDb_SRCS
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributeRemovalsParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FunctionWordsParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsOnlyParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_PredefinedRules.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_WholeKindParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterfaceIO.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ReadlineWrapper.cpp
 )
 
 set(deskaCli_SRCS
@@ -127,7 +125,7 @@ set(deskaCli_SRCS
 )
 
 add_library(DeskaDb ${libDeskaDb_SRCS})
-target_link_libraries(DeskaDb ${Boost_LIBRARIES})
+target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli ${deskaCli_SRCS})

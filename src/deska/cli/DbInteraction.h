@@ -26,11 +26,14 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include "deska/db/Api.h"
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
 namespace Deska {
+
+namespace Db {
+class Api;
+}
 
 namespace Cli {
 
@@ -54,6 +57,11 @@ public:
     *   @param context Path and object definition to create
     */
     void createObject(const Db::ContextStack &context);
+    /** @short Restores deleted object.
+    *
+    *   @param context Path and object definition to restore
+    */
+    void restoreDeletedObject(const Db::ContextStack &context);
     /** @short Deletes object.
     *
     *   @param context Path and object definition to delete

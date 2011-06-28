@@ -178,27 +178,35 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
+void FakeApi::freezeView()
+{
+}
+
+void FakeApi::unFreezeView()
+{
+}
+
 std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filter> &filter) const
 {
     return std::vector<RevisionMetadata>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId a, const RevisionId b) const
+std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId a, const RevisionId b) const
+std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }
 
-std::vector<ObjectModification> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset) const
+std::vector<ObjectModification> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
     return std::vector<ObjectModification>();
 }

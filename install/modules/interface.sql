@@ -1,7 +1,7 @@
 --
 -- every module must be place in schema production
 --
-SET search_path TO production;
+SET search_path TO production,deska;
 
 CREATE SEQUENCE interface_uid START 1;
 
@@ -11,14 +11,15 @@ CREATE TABLE interface (
 	uid bigint DEFAULT nextval('interface_uid')
 		CONSTRAINT interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name text NOT NULL,
+	name identifier NOT NULL,
 	-- host
 	-- TODO better use uid
 	host bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
 	-- TODO unique constraint
-	ip inet,
+	ip4 ipv4,
+	ip6 ipv6,
 	-- MAC
 	-- TODO unique constraint
 	mac macaddr,
