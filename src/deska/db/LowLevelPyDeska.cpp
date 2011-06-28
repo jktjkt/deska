@@ -22,12 +22,86 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/db/Connection.h"
+#include "deska/db/AdditionalValueStreamOperators.h"
+
+using namespace boost::python;
+using namespace Deska::Db;
+
+// FIXME: remove later?
+template<typename T>
+T Value_extract(const Value &v)
+{
+    if (v) {
+        try {
+            return boost::get<T>(*v);
+        } catch (const boost::bad_get &e) {
+            throw std::runtime_error(std::string("Deska::Db::Value is of a different type: ") + e.what());
+        }
+    } else {
+        throw std::runtime_error("Deska::Db::Value is null");
+    }
+}
+
+/** @short Convert a Deska::Db::Value into Deska::Db::NonOptionalValue or throw an exception */
+NonOptionalValue deoptionalify(const Value &v)
+{
+    if (v) {
+        return *v;
+    } else {
+        throw std::runtime_error("Deska::Db::Value is null");
+    }
+}
+
+/** @short Variant visitor for converting a Deska::Db::Value to a Python object */
+struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
+{
+    result_type operator()(const std::string &v) const
+    {
+        return result_type(v);
+    }
+
+    result_type operator()(const int &v) const
+    {
+        return result_type(v);
+    }
+
+    result_type operator()(const double &v) const
+    {
+        return result_type(v);
+    }
+
+    template <typename T>
+    result_type operator()(const T &v) const
+    {
+        throw std::runtime_error("Cannot convert a Deska::Db::Value of this type");
+        //return result_type();
+    }
+};
+
+
+/** @short Convert a Deska::Db::Value to a python object */
+api::object pythonify(const Value &v)
+{
+    return v ? boost::apply_visitor(DeskaValueToPythonObject(), *v): api::object();
+}
+
+/** @short Convert a python object into the Deska::Db::Value */
+Value valueify(const api::object &o)
+{
+    extract<std::string> get_str(o);
+    if (get_str.check())
+        return NonOptionalValue(get_str());
+    extract<int> get_int(o);
+    if (get_int.check())
+        return NonOptionalValue(get_int());
+    extract<double> get_double(o);
+    if (get_double.check())
+        return NonOptionalValue(get_double());
+    return Value();
+}
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
-    using namespace boost::python;
-    using namespace Deska::Db;
-
     // required for kindNames
     typedef std::vector<std::string> vect_string;
     class_<vect_string>("std_vector_string")
@@ -50,7 +124,7 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def_readonly("target", &ObjectRelation::target)
             .def(self_ns::str(self));
 
-    // required for kindAttributes
+    // required for kindAttributesboost::python::
     typedef std::vector<KindAttributeDataType> vect_KindAttributeDataType;
     class_<vect_KindAttributeDataType>("std_vector_Deska_Db_KindAttributeDataType")
             .def(vector_indexing_suite<vect_KindAttributeDataType>());
@@ -70,6 +144,41 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def_readonly("type", &KindAttributeDataType::type)
             .def(self_ns::str(self));
 
+    // revisions and changesets (required for filters)
+    class_<RevisionId>("RevisionId", init<const unsigned int>())
+            .def(self == other<RevisionId>())
+            .def(self_ns::str(self));
+    class_<TemporaryChangesetId>("TemporaryChangesetId", init<const unsigned int>())
+            .def(self == other<TemporaryChangesetId>())
+            .def(self_ns::str(self));
+
+    // The attribute value
+
+    // At first, wrap the boost::optional. This is not meant to be used directly.
+    class_<Value>("Value")
+            .def(not self)
+            .def(self == other<Value>())
+            .def(self_ns::str(self));
+    // Then wrap the underlying variant
+    class_<NonOptionalValue>("NonOptionalValue")
+            .def(self == other<NonOptionalValue>())
+            .def(self_ns::str(self));
+
+    def("deoptionalify", deoptionalify);
+    def("pythonify", pythonify);
+    def("valueify", valueify);
+
+    // filters
+    enum_<ComparisonOperator>("ComparisonOperator")
+            .value("COLUMN_EQ", FILTER_COLUMN_EQ)
+            .value("COLUMN_NE", FILTER_COLUMN_NE)
+            .value("COLUMN_GT", FILTER_COLUMN_GT)
+            .value("COLUMN_GE", FILTER_COLUMN_GE)
+            .value("COLUMN_LT", FILTER_COLUMN_LT)
+            .value("COLUMN_LE", FILTER_COLUMN_LE);
+    //class_<MetadataValue>
+
+    // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
