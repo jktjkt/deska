@@ -80,6 +80,11 @@ struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
         return result_type(v);
     }
 
+    result_type operator()(const MacAddress &v) const
+    {
+        return result_type(v);
+    }
+
     template <typename T>
     result_type operator()(const T &v) const
     {
@@ -126,6 +131,11 @@ Value valueify(const api::object &o)
     extract<boost::asio::ip::address_v6> get_ipv6(o);
     if (get_ipv6.check())
         return NonOptionalValue(get_ipv6());
+
+    // MAC address
+    extract<MacAddress> get_mac(o);
+    if (get_mac.check())
+        return NonOptionalValue(get_mac());
 
     throw std::runtime_error("Unsupported type of a python object");
     //return Value();
@@ -218,6 +228,9 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<boost::asio::ip::address_v6>("IPv6Address")
             .def("__init__", make_constructor(ipv6AddressFromString))
             .def(self == other<boost::asio::ip::address_v6>())
+            .def(self_ns::str(self));
+    class_<MacAddress>("MacAddress", init<const std::string&>())
+            .def(self == other<MacAddress>())
             .def(self_ns::str(self));
 
     // filters

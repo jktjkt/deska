@@ -22,6 +22,7 @@ def verify(x):
 for x in ("ahoj", 1, 333.666, None,
           libLowLevelPyDeska.IPv4Address("127.0.0.1"),
           libLowLevelPyDeska.IPv6Address("::1"),
+          libLowLevelPyDeska.MacAddress("00:16:3e:37:53:2B"),
          ):
     verify(x)
 
