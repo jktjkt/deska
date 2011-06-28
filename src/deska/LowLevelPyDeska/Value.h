@@ -34,7 +34,6 @@ boost::python::api::object pythonify(const Deska::Db::Value &v);
 /** @short Convert a python object into the Deska::Db::Value */
 Deska::Db::Value valueify(const boost::python::api::object &o);
 
-boost::asio::ip::address_v4 *ipv4AddressFromString(const std::string &s);
-boost::asio::ip::address_v6 *ipv6AddressFromString(const std::string &s);
+void exportDeskaValue();
 
 #endif // DESKA_LOWLEVELPYDESKA_H

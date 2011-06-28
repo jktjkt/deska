@@ -22,7 +22,6 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/db/Connection.h"
-#include "deska/db/AdditionalValueStreamOperators.h"
 #include "deska/LowLevelPyDeska/Value.h"
 
 using namespace boost::python;
@@ -85,39 +84,6 @@ void exportRevisions()
             .def(self_ns::str(self));
 }
 
-void exportDeskaValue()
-{
-    // At first, wrap the boost::optional. This is not meant to be used directly.
-    class_<Value>("Value")
-            .def(not self)
-            .def(self == other<Value>())
-            .def(self_ns::str(self));
-    // Then wrap the underlying variant
-    class_<NonOptionalValue>("NonOptionalValue")
-            .def(self == other<NonOptionalValue>())
-            .def(self_ns::str(self));
-
-    // Functions that convert between the Python and Deska representations of various values
-    def("deoptionalify", deoptionalify);
-    def("pythonify", pythonify);
-    def("valueify", valueify);
-
-    bind_datetime();
-
-    // Custom classes for the Deska::Db::Value
-    class_<boost::asio::ip::address_v4>("IPv4Address")
-            .def("__init__", make_constructor(ipv4AddressFromString))
-            .def(self == other<boost::asio::ip::address_v4>())
-            .def(self_ns::str(self));
-    class_<boost::asio::ip::address_v6>("IPv6Address")
-            .def("__init__", make_constructor(ipv6AddressFromString))
-            .def(self == other<boost::asio::ip::address_v6>())
-            .def(self_ns::str(self));
-    class_<MacAddress>("MacAddress", init<const std::string&>())
-            .def(self == other<MacAddress>())
-            .def(self_ns::str(self));
-}
-
 void exportFilters()
 {
     // filters
@@ -133,6 +99,7 @@ void exportFilters()
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
+    bind_datetime();
     exportObjectRelations();
     exportAttributeTypes();
     exportRevisions();
