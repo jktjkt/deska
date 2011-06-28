@@ -149,12 +149,15 @@ void exportDeskaValue()
     class_<boost::asio::ip::address_v4>("IPv4Address")
             .def("__init__", make_constructor(ipv4AddressFromString))
             .def(self == other<boost::asio::ip::address_v4>())
+            .def(self != other<boost::asio::ip::address_v4>())
             .def(self_ns::str(self));
     class_<boost::asio::ip::address_v6>("IPv6Address")
             .def("__init__", make_constructor(ipv6AddressFromString))
             .def(self == other<boost::asio::ip::address_v6>())
+            .def(self != other<boost::asio::ip::address_v6>())
             .def(self_ns::str(self));
     class_<MacAddress>("MacAddress", init<const std::string&>())
             .def(self == other<MacAddress>())
+            .def(self != other<MacAddress>())
             .def(self_ns::str(self));
 }
