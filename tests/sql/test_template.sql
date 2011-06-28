@@ -201,6 +201,11 @@ END
 $$
 LANGUAGE plpgsql;
 
+
+/* ************************************************
+*	 testing  replacing template with another	***
+************************************************ */
+
 CREATE FUNCTION test_set_template()
 RETURNS SETOF text
 AS

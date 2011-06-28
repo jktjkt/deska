@@ -206,6 +206,7 @@ class Table(constants.Templates):
 		"""gen_commit_templated generates commit function for templated tables.
 		
 		Differs from untemplated version by resolving data from templates and after that updating production.
+		Commit of template modificationb should do changes in templated objects.
 		"""
 		collist = self.col.copy();
 		
