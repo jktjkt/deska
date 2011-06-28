@@ -133,6 +133,34 @@ std::string str_MetadataValue(const MetadataValue &v)
     return boost::apply_visitor(DeskaMetadataValueToString(), v);
 }
 
+/** @short __str__ for the Deska::Db::ComparisonOperator */
+std::string str_ComparisonOperator(const ComparisonOperator op)
+{
+    switch (op) {
+    case FILTER_COLUMN_EQ:
+        return std::string("==");
+    case FILTER_COLUMN_NE:
+        return std::string("!=");
+    case FILTER_COLUMN_GT:
+        return std::string(">");
+    case FILTER_COLUMN_GE:
+        return std::string(">=");
+    case FILTER_COLUMN_LT:
+        return std::string("<");
+    case FILTER_COLUMN_LE:
+        return std::string("<=");
+    }
+    throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
+}
+
+/** @short __repr__ for Deska::Db::MetadataExpression */
+std::string repr_MetadataExpression(const MetadataExpression &e)
+{
+    std::ostringstream ss;
+    ss << "MetadataExpression(" << e.metadata << " " << str_ComparisonOperator(e.comparison) << " " << repr_MetadataValue(e.constantValue) << ")";
+    return ss.str();
+}
+
 void exportDeskaFilter()
 {
     // filters
@@ -155,4 +183,10 @@ void exportDeskaFilter()
 
     def("DeskaMetadataValue_2_Py", DeskaMetadataValue_2_Py);
     def("Py_2_DeskaMetadataValue", Py_2_DeskaMetadataValue);
+
+    class_<MetadataExpression>("MetadataExpression", init<ComparisonOperator, Identifier, MetadataValue>())
+            .def_readonly("comparison", &MetadataExpression::comparison)
+            .def_readonly("metadata", &MetadataExpression::metadata)
+            .def_readonly("constantValue", &MetadataExpression::constantValue)
+            .def("__repr__", repr_MetadataExpression);
 }

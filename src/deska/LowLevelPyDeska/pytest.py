@@ -48,6 +48,13 @@ for x in variants:
             type(x), x, type(py_x), py_x)
     print
 
+fe1 = libLowLevelPyDeska.MetadataExpression(
+    libLowLevelPyDeska.ComparisonOperator.COLUMN_EQ, "revision",
+    libLowLevelPyDeska.Py_2_DeskaMetadataValue(libLowLevelPyDeska.RevisionId(333)))
+print fe1
+
+print
+
 c = libLowLevelPyDeska.Connection()
 kindNames = c.kindNames()
 print "kindNames: %s" % str([x for x in kindNames])
