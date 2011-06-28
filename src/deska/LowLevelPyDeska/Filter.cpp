@@ -193,27 +193,6 @@ std::string repr_Expression(const Expression &e)
     return boost::apply_visitor(DeskaExpressionToString(), e);
 }
 
-/*
-bool operator==(const AndFilter &a, const AndFilter &b)
-{
-    return a.operands == b.operands;
-}
-
-bool operator!=(const AndFilter &a, const AndFilter &b)
-{
-    return !(a==b);
-}
-
-bool operator==(const OrFilter &a, const OrFilter &b)
-{
-    return a.operands == b.operands;
-}
-
-bool operator!=(const OrFilter &a, const OrFilter &b)
-{
-    return !(a==b);
-}*/
-
 template <class T>
 class no_compare_indexing_suite :
   public vector_indexing_suite<T, false, no_compare_indexing_suite<T> >
