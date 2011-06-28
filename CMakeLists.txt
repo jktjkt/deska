@@ -136,6 +136,7 @@ set(deskaCli_SRCS
 set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Module.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Value.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Filter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 

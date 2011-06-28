@@ -22,6 +22,7 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/db/Connection.h"
+#include "deska/LowLevelPyDeska/Filter.h"
 #include "deska/LowLevelPyDeska/Value.h"
 
 using namespace boost::python;
@@ -84,18 +85,6 @@ void exportRevisions()
             .def(self_ns::str(self));
 }
 
-void exportFilters()
-{
-    // filters
-    enum_<ComparisonOperator>("ComparisonOperator")
-            .value("COLUMN_EQ", FILTER_COLUMN_EQ)
-            .value("COLUMN_NE", FILTER_COLUMN_NE)
-            .value("COLUMN_GT", FILTER_COLUMN_GT)
-            .value("COLUMN_GE", FILTER_COLUMN_GE)
-            .value("COLUMN_LT", FILTER_COLUMN_LT)
-            .value("COLUMN_LE", FILTER_COLUMN_LE);
-    //class_<MetadataValue>
-}
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
@@ -104,7 +93,7 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     exportAttributeTypes();
     exportRevisions();
     exportDeskaValue();
-    exportFilters();
+    exportDeskaFilter();
 
     // required for kindNames
     typedef std::vector<std::string> vect_string;
