@@ -70,6 +70,11 @@ struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
         return result_type(v);
     }
 
+    result_type operator()(const boost::asio::ip::address_v4 &v) const
+    {
+        return result_type(v);
+    }
+
     template <typename T>
     result_type operator()(const T &v) const
     {
@@ -107,8 +112,18 @@ Value valueify(const api::object &o)
     if (get_double.check())
         return NonOptionalValue(get_double());
 
+    // IPv4 address
+    extract<boost::asio::ip::address_v4> get_ipv4(o);
+    if (get_ipv4.check())
+        return NonOptionalValue(get_ipv4());
+
     throw std::runtime_error("Unsupported type of a python object");
     //return Value();
+}
+
+boost::asio::ip::address_v4 *ipv4AddressFromString(const std::string &s)
+{
+    return new boost::asio::ip::address_v4(boost::asio::ip::address_v4::from_string(s));
 }
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
@@ -179,6 +194,12 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     def("deoptionalify", deoptionalify);
     def("pythonify", pythonify);
     def("valueify", valueify);
+
+    // Custom classes for the Deska::Db::Value
+    class_<boost::asio::ip::address_v4>("IPv4Address")
+            .def("__init__", make_constructor(ipv4AddressFromString))
+            .def(self == other<boost::asio::ip::address_v4>())
+            .def(self_ns::str(self));
 
     // filters
     enum_<ComparisonOperator>("ComparisonOperator")

@@ -19,7 +19,8 @@ def verify(x):
     print "Deska::Db::Value -> Py: %s %s" % (type(py_x), py_x)
     print
 
-for x in ("ahoj", 1, 333.666, None):
+for x in ("ahoj", 1, 333.666, None,
+          libLowLevelPyDeska.IPv4Address("127.0.0.1")):
     verify(x)
 
 c = libLowLevelPyDeska.Connection()
