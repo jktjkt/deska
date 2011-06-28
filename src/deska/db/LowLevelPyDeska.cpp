@@ -164,6 +164,7 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def(self == other<NonOptionalValue>())
             .def(self_ns::str(self));
 
+    // Functions that convert between the Python and Deska representations of various values
     def("deoptionalify", deoptionalify);
     def("pythonify", pythonify);
     def("valueify", valueify);
