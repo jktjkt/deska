@@ -118,17 +118,19 @@ Value valueify(const api::object &o)
     //return Value();
 }
 
+/** @short Construct an IPv4Address from string */
 boost::asio::ip::address_v4 *ipv4AddressFromString(const std::string &s)
 {
     return new boost::asio::ip::address_v4(boost::asio::ip::address_v4::from_string(s));
 }
 
+/** @short Construct an IPv6Address from string */
 boost::asio::ip::address_v6 *ipv6AddressFromString(const std::string &s)
 {
     return new boost::asio::ip::address_v6(boost::asio::ip::address_v6::from_string(s));
 }
 
-/** @short Variant visitor that returns a string identifying a Deska::Db::Value's type */
+/** @short Variant visitor that returns the type name of a Deska::Db::Value */
 struct DeskaValueTypeName: public boost::static_visitor<std::string>
 {
     result_type operator()(const std::string &v) const
@@ -165,6 +167,7 @@ struct DeskaValueTypeName: public boost::static_visitor<std::string>
     }
 };
 
+/** @short __repr__ for Deska::Db::NonOptionalValue */
 std::string repr_NonOptionalValue(const NonOptionalValue &v)
 {
     std::ostringstream ss;
@@ -172,10 +175,23 @@ std::string repr_NonOptionalValue(const NonOptionalValue &v)
     return ss.str();
 }
 
+/** @short __repr__ for Deska::Db::Value */
 std::string repr_Value(const Value &v)
 {
     return v ? repr_NonOptionalValue(*v) : std::string("Value(None)");
 }
+
+/** @short __str__ for Deska::Db::Value */
+std::string str_Value(const Value &v)
+{
+    if (v) {
+        std::ostringstream ss;
+        ss << *v;
+        return ss.str();
+    }
+    return "None";
+}
+
 
 void exportDeskaValue()
 {
@@ -183,11 +199,15 @@ void exportDeskaValue()
     class_<Value>("Value")
             .def(not self)
             .def(self == other<Value>())
-            .def("__repr__", repr_Value);
+            .def("__repr__", repr_Value)
+            .def("__str__", str_Value) // cannot use the self_ns::str because of boost::optional whose operator<< sucks
+            ;
     // Then wrap the underlying variant
     class_<NonOptionalValue>("NonOptionalValue")
             .def(self == other<NonOptionalValue>())
-            .def("__repr__", repr_NonOptionalValue);
+            .def("__repr__", repr_NonOptionalValue)
+            .def(self_ns::str(self))
+            ;
 
     // Functions that convert between the Python and Deska representations of various values
     def("deoptionalify", deoptionalify);

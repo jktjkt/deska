@@ -28,8 +28,12 @@
 /** @short Convert a python object into the Deska::Db::Value */
 Deska::Db::Value valueify(const boost::python::api::object &o);
 
+/** @short Convert a Deska::Db::Value to a python object */
+boost::python::api::object pythonify(const Deska::Db::Value &v);
+
 /** @short Return a Python string representation of a Deska::Db::Value */
 std::string repr_Value(const Deska::Db::Value &v);
+std::string str_Value(const Deska::Db::Value &v);
 
 void exportDeskaValue();
 
