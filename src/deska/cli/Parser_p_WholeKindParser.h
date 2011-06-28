@@ -35,12 +35,14 @@ namespace Cli
 *
 *   Combines all needed grammars into one parser for parsing the whole kind with its all attributes and nested kinds.
 *   For parsing of kind definitions is used grammar KindsOnlyParser, for attribute setting is used grammar
-*   AttributesParser and for attribute removing grammar AttributeRemovalsParser. Besides these grammars is also
-*   keyword "end" parsed here for leaving one level of context.
+*   AttributesParser and for attribute removing grammar AttributeRemovalsParser. For parsing filters for nested
+*   kinds is used grammar KindsFiltersParser. Besides these grammars is also keyword "end" parsed here for leaving
+*   one level of context.
 *
 *   @see AttributesParser
 *   @see AttributeRemovalsParser
 *   @see KindsOnlyParser
+*   @see KindsFiltersParser
 */
 template <typename Iterator>
 class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>
@@ -54,11 +56,13 @@ public:
     *   @param attributesParser Grammar used for parsing of attributes of the kind.
     *   @param attributesRemovalParser Grammar used for parsing of attributes removals of the kind.
     *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
+    *   @param nestedKindsFilters Grammar used for parsing filters for nested kinds of the kind.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
                     AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
-                    KindsOnlyParser<Iterator> *nestedKinds, ParserImpl<Iterator> *parent);
+                    KindsOnlyParser<Iterator> *nestedKinds, KindsFiltersParser<Iterator> *nestedKindsFilters,
+                    ParserImpl<Iterator> *parent);
 
 private:
 

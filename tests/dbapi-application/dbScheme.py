@@ -26,7 +26,11 @@ declarative = [
     kindRelations("interface").returns(
         [{'relation': 'EMBED_INTO', 'target': 'host'}]
     ),
+    kindRelations("host").returns(
+        [{'relation': 'REFERS_TO', 'target': 'hardware'}]
+    ),
+    kindRelations("hardware").returns(
+        [{'relation': 'REFERS_TO', 'target': 'vendor'}]
+    ),
     kindRelations("vendor").returns([]),
-    kindRelations("host").returns([]),
-    kindRelations("hardware").returns([]),
 ]

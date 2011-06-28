@@ -63,11 +63,15 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
                                                        phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
 }
 
+
+
 template <typename Iterator>
 void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attributeName)
 {
     attributes.add(attributeName, qi::eps);
 }
+
+
 
 template <typename Iterator>
 void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identifier &attribute)
@@ -75,10 +79,14 @@ void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identif
     m_parent->attributeRemove(attribute);
 }
 
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template AttributeRemovalsParser<iterator_type>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+
 template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName);
+
 template void AttributeRemovalsParser<iterator_type>::parsedAttributeRemoval(const Db::Identifier &parameter);
 
 

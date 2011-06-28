@@ -55,6 +55,10 @@ struct MetadataExpression
     MetadataValue constantValue;
 
     MetadataExpression(const ComparisonOperator comparison, const Identifier &metadata, const MetadataValue &constantValue);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    MetadataExpression() {};
 };
 
 /** @short Compare attribute value against a constant using given comparison operator */
@@ -82,7 +86,7 @@ struct OrFilter
 {
     std::vector<Filter> operands;
 
-    OrFilter(const std::vector<Filter> operands);
+    OrFilter(const std::vector<Filter> &operands);
 };
 
 /** @short Perform a logical conjunction of all expression included below */
@@ -90,7 +94,7 @@ struct AndFilter
 {
     std::vector<Filter> operands;
 
-    AndFilter(const std::vector<Filter> operands);
+    AndFilter(const std::vector<Filter> &operands);
 };
 
 }

@@ -19,8 +19,10 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
@@ -339,10 +341,10 @@ template<>
 PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
     JsonHandler h;
-    TemporaryChangesetId changeset = TemporaryChangesetId::null;
+    TemporaryChangesetId changeset(0);
     std::string author;
     boost::posix_time::ptime timestamp;
-    RevisionId parentRevision = RevisionId::null;
+    RevisionId parentRevision(0);
     std::string message;
     PendingChangeset::AttachStatus attachStatus;
     boost::optional<std::string> activeConnectionInfo;
@@ -355,9 +357,6 @@ PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spir
     h.read("activeConnectionInfo").extract(&activeConnectionInfo).isRequiredToReceive = false;
     h.parseJsonObject(v.get_obj());
 
-    // These asserts are enforced by the JsonHandler, as all fields are required here.
-    BOOST_ASSERT(changeset != TemporaryChangesetId::null);
-    BOOST_ASSERT(parentRevision != RevisionId::null);
     // This is guaranteed by the extractor
     BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
 
@@ -399,7 +398,7 @@ template<>
 RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
     JsonHandler h;
-    RevisionId revision = RevisionId::null;
+    RevisionId revision(0);
     std::string author;
     boost::posix_time::ptime timestamp;
     std::string commitMessage;
@@ -409,8 +408,25 @@ RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spir
     h.read("commitMessage").extract(&commitMessage);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
-    BOOST_ASSERT(revision != RevisionId::null);
     return RevisionMetadata(revision, author, timestamp, commitMessage);
+}
+
+template<typename T> T extractRevisionFromJson(const std::string &prefix, const std::string &name, const std::string &jsonStr)
+{
+    if (boost::starts_with(jsonStr, prefix)) {
+        try {
+            return T(boost::lexical_cast<unsigned int>(jsonStr.substr(prefix.size())));
+        } catch (const boost::bad_lexical_cast &) {
+            std::ostringstream s;
+            s << "Value \"" << jsonStr << "\" can't be interpreted as a " << name << ".";
+            throw JsonStructureError(s.str());
+        }
+    } else {
+        std::ostringstream s;
+        s << "Value \"" << jsonStr << "\" does not look like a valid " << name << ".";
+        throw JsonStructureError(s.str());
+    }
+
 }
 
 /** @short Extract a RevisionId from JSON */
@@ -418,7 +434,7 @@ template<>
 RevisionId JsonConversionTraits<RevisionId>::extract(const json_spirit::Value &v) {
     JsonContext c1("When extracting RevisionId");
     checkJsonValueType(v, json_spirit::str_type);
-    return RevisionId::fromJson(v.get_str());
+    return extractRevisionFromJson<RevisionId>("r", "RevisionId", v.get_str());
 }
 
 /** @short Extract a TemporaryChangesetId form JSON */
@@ -427,7 +443,7 @@ TemporaryChangesetId JsonConversionTraits<TemporaryChangesetId>::extract(const j
 {
     JsonContext c1("When extracting TemporaryChangesetId");
     checkJsonValueType(v, json_spirit::str_type);
-    return TemporaryChangesetId::fromJson(v.get_str());
+    return extractRevisionFromJson<TemporaryChangesetId>("tmp", "TemporaryChangesetId", v.get_str());
 }
 
 /** @short Extract timestamp from JSON */
@@ -444,6 +460,13 @@ template<>
 json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const boost::posix_time::ptime &value)
 {
     return boost::posix_time::to_simple_string(value);
+}
+
+/** @short Convert boolean to JSON */
+template<>
+json_spirit::Value JsonConversionTraits<bool>::toJson(const bool &value)
+{
+    return value;
 }
 
 /** @short Helper for extracting an optional value */

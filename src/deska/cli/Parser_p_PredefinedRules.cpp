@@ -38,7 +38,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 {
     tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
     tSimpleString %= qi::lexeme[+(ascii::char_ - ('"' | ascii::space))];
-    tIdentifier %= qi::lexeme[+(ascii::alnum | '_')];
+    tIdentifier %= qi::lexeme[!qi::lit("where") >> +(ascii::alnum | '_')];
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
     tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];
     tMACHexPair %= qi::raw[qi::lexeme[qi::repeat(2)[ascii::xdigit]]];
@@ -146,7 +146,9 @@ const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<I
 /////////////////////////Template instances for linker//////////////////////////
 
 template PredefinedRules<iterator_type>::PredefinedRules();
+
 template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Db::Type attrType);
+
 template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 
 }

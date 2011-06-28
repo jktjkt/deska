@@ -30,6 +30,7 @@ namespace Deska
 namespace Cli
 {
 
+
 template <typename Iterator>
 KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
     KindsOnlyParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
@@ -74,6 +75,8 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
 
+
+
 template <typename Iterator>
 void KindsOnlyParser<Iterator>::addKind(const Db::Identifier &kindName,
                                         qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser)
@@ -81,16 +84,22 @@ void KindsOnlyParser<Iterator>::addKind(const Db::Identifier &kindName,
     kinds.add(kindName, identifierParser);
 }
 
+
+
 template <typename Iterator>
 void KindsOnlyParser<Iterator>::parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName)
 {
     m_parent->categoryEntered(kindName, objectName);
 }
 
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template KindsOnlyParser<iterator_type>::KindsOnlyParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+
 template void KindsOnlyParser<iterator_type>::addKind(const Db::Identifier &kindName,qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
+
 template void KindsOnlyParser<iterator_type>::parsedKind(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
 }

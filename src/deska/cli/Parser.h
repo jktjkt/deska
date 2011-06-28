@@ -27,6 +27,7 @@
 #include <boost/signals2.hpp>
 
 #include "deska/db/Objects.h"
+#include "deska/db/Filter.h"
 
 namespace Deska {
 namespace Db {
@@ -181,6 +182,12 @@ public:
     *   of the attribute
     */
     boost::signals2::signal<void (const Db::Identifier &name)> attributeRemove;
+
+    /** @short Filter objects.
+    *
+    *   This signal is triggered whenever a filter for objects is parsed.
+    */
+    boost::signals2::signal<void (const Db::Filter &filter)> objectsFilter;
 
     /** @short An error during parsing
     *

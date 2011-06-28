@@ -18,7 +18,7 @@ def main(tag):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
-	jsn[name] =str(ver)
+	jsn[name] = dutil.mystr(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -84,7 +84,7 @@ def main(tag,commitMessage):
 		ver = dutil.fcall(fname,commitMessage)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] =str(ver)
+	jsn[name] = dutil.mystr(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -116,6 +116,7 @@ RETURNS text
 AS
 $$
 import dutil
+from dutil import mystr
 import json
 
 @pytypes
@@ -124,36 +125,38 @@ def main(tag,filter):
 	jsn = dutil.jsn(name,tag)
 
 	try:
-		filter = dutil.Filter(filter)
-		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + filter.getWhere() + " ORDER BY metadata.id"
+		filter = dutil.Filter(filter,1)
+		where, values = filter.getWhere()
+		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.id"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
-	return select
+
 	try:
-		colnames,data = dutil.getdata(select)
+		colnames,data = dutil.getdata(select,*values)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
 	res = list()
 	for line in data:
 		ver = dict()
-		ver["changeset"] = str(line[0])
-		ver["author"] = str(line[1])
-		ver["status"] = str(line[2])
-		ver["parentRevision"] = str(line[3])
-		ver["timestamp"] = str(line[4])
-		ver["message"] = str(line[5])
+		ver["changeset"] = mystr(line[0])
+		ver["author"] = mystr(line[1])
+		ver["status"] = mystr(line[2])
+		ver["parentRevision"] = mystr(line[3])
+		ver["timestamp"] = mystr(line[4])
+		ver["message"] = mystr(line[5])
 		res.append(ver)
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text)
+CREATE OR REPLACE FUNCTION jsn.listRevisions(tag text, filter text = NULL)
 RETURNS text
 AS
 $$
 import dutil
+from dutil import mystr
 import json
 
 @pytypes
@@ -161,23 +164,83 @@ def main(tag,filter):
 	name = "listRevisions"
 	jsn = dutil.jsn(name,tag)
 
-	filter = dutil.Filter(filter)
-	select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + filter.getWhere() + "ORDER BY metadata.num"
 	try:
-		colnames,data = dutil.getdata(select)
+		filter = dutil.Filter(filter,1)
+		where, values = filter.getWhere()
+		select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
+	except dutil.DutilException as err:
+		return err.json(name,jsn)
+	
+	try:
+		colnames,data = dutil.getdata(select,*values)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
 	res = list()
 	for line in data:
 		ver = dict()
-		ver["version"] = str(line[0])
-		ver["author"] = str(line[1])
-		ver["timestamp"] = str(line[2])
-		ver["message"] = str(line[3])
+		ver["version"] = mystr(line[0])
+		ver["author"] = mystr(line[1])
+		ver["timestamp"] = mystr(line[2])
+		ver["message"] = mystr(line[3])
 		res.append(ver)
 
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifference(tag text, a text, b text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import oneKindDiff
+
+@pytypes
+def main(tag,a,b):
+	name = "dataDifference"
+	jsn = dutil.jsn(name,tag)
+
+	res = list()
+	try:
+		for kindName in dutil.generated.kinds():
+			res.extend(oneKindDiff(kindName,a,b))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text)
+RETURNS text
+AS
+$$
+import Postgres
+import json
+import dutil
+from dutil import oneKindDiff
+
+@pytypes
+def main(tag):
+	name = "dataDifferenceInTemporaryChangeset"
+	jsn = dutil.jsn(name,tag)
+
+	res = list()
+	try:
+		for kindName in dutil.generated.kinds():
+			res.extend(oneKindDiff(kindName))
+	except Postgres.Exception as dberr:
+		err = dutil.DeskaException(dberr)
+		return err.json(name,jsn)
+
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+

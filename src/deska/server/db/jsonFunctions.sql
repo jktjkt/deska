@@ -62,6 +62,11 @@ $$
 import dutil
 import json
 
+class RelationList(list):
+	def addRelation(self,type,kind,source):
+		if kind in source:
+			self.append({"relation": type, "target": source[kind]})
+
 @pytypes
 def main(tag,kindName):
 	name = "kindRelations"
@@ -71,52 +76,16 @@ def main(tag,kindName):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = 'SELECT * FROM api.kindRelations($1)'
-	try:
-		colnames, cur = dutil.getdata(select,kindName)
-	except dutil.DeskaException as err:
-		return err.json(name,jsn)
+	res = RelationList()
+	res.addRelation("EMBED_INTO",kindName,dutil.generated.embed())
+	res.addRelation("MERGE_WITH",kindName,dutil.generated.merge())
+	templates = dutil.generated.template()
+	# revert dict
+	revtemplates = {v:k for k, v in templates.items()}
+	res.addRelation("IS_TEMPLATE",kindName,templates)
+	res.addRelation("TEMPLATIZED",kindName,revtemplates)
+	res.addRelation("REFERS_TO",kindName,dutil.generated.refs())
 	
-	res = list()
-	for line in cur:
-		rel = dict()
-		# FIXME: hotfix until rewrite relations get functions
-		rel["relation"] = "EMBED_INTO"
-		rel["target"] = str(line[1])
-		res.append(rel)
-
-	jsn[name] = res
-	return json.dumps(jsn)
-$$
-LANGUAGE python SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION jsn.kindInstances(tag text, kindName text, revision text)
-RETURNS text
-AS
-$$
-import dutil
-import json
-
-@pytypes
-def main(tag,kindName,revision):
-	name = "kindInstances"
-	jsn = dutil.jsn(name,tag)
-
-	# check kind name
-	if kindName not in dutil.generated.kinds():
-		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
-
-	select = 'SELECT * FROM {0}_names($1)'.format(kindName)
-	try:
-		revisionNumber = dutil.fcall("revision2num(text)",revision)
-		colnames, cur = dutil.getdata(select,revisionNumber)
-	except dutil.DeskaException as err:
-		return err.json(name,jsn)
-	
-	res = list()
-	for line in cur:
-		res.append(str(line[0]))
-
 	jsn[name] = res
 	return json.dumps(jsn)
 $$

@@ -19,31 +19,27 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include "Filter.h"
+#ifndef DESKA_DB_CONNECTION_P_H
+#define DESKA_DB_CONNECTION_P_H
+
+#include <boost/noncopyable.hpp>
+#include "deska/db/CachingJsonApi.h"
 
 namespace Deska {
 namespace Db {
 
-MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
-    comparison(comparison_), metadata(metadata_), constantValue(constantValue_)
-{
-}
+class ProcessIO;
 
-AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
-                                         const Value &constantValue_):
-    comparison(comparison_), kind(kind_), attribute(attribute_), constantValue(constantValue_)
+class Connection_p: public CachingJsonApi
 {
-}
-
-OrFilter::OrFilter(const std::vector<Filter> &operands_):
-    operands(operands_)
-{
-}
-
-AndFilter::AndFilter(const std::vector<Filter> &operands_):
-    operands(operands_)
-{
-}
+public:
+    Connection_p();
+    virtual ~Connection_p();
+private:
+     ProcessIO *io;
+};
 
 }
 }
+
+#endif // DESKA_DB_CONNECTION_P_H
