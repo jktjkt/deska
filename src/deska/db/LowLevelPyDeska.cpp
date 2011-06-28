@@ -32,6 +32,23 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<vect_string>("std_vector_string")
             .def(vector_indexing_suite<vect_string>());
 
+    typedef std::vector<ObjectRelation> vect_ObjectRelation;
+    class_<vect_ObjectRelation>("std_vector_Deska_Db_ObjectRelation")
+            .def(vector_indexing_suite<vect_ObjectRelation>());
+
+    enum_<ObjectRelationKind>("ObjectRelationKind")
+            .value("MERGE_WITH", RELATION_MERGE_WITH)
+            .value("EMBED_INTO", RELATION_EMBED_INTO)
+            .value("REFERS_TO", RELATION_REFERS_TO)
+            .value("IS_TEMPLATE", RELATION_IS_TEMPLATE)
+            .value("TEMPLATIZED", RELATION_TEMPLATIZED);
+
+    class_<ObjectRelation>("ObjectRelation", no_init)
+            .def_readonly("kind", &ObjectRelation::kind)
+            .def_readonly("target", &ObjectRelation::target)
+            .def(self_ns::str(self));
+
     class_<Connection, boost::noncopyable>("Connection")
-            .def("kindNames", &Connection::kindNames);
+            .def("kindNames", &Connection::kindNames)
+            .def("kindRelations", &Connection::kindRelations);
 }
