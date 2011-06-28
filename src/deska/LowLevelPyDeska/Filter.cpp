@@ -30,7 +30,7 @@ struct DeskaMetadataValueToPythonObjectVisitor: public boost::static_visitor<api
 {
     result_type operator()(const Value &v) const
     {
-        return pythonify(v);
+        return DeskaDbValue_2_Py(v);
     }
 
     template <typename T>
@@ -42,16 +42,16 @@ struct DeskaMetadataValueToPythonObjectVisitor: public boost::static_visitor<api
 
 
 /** @short Convert a Deska::Db::MetadataValue to a python object */
-api::object DeskaMetadataValueToPythonObject(const MetadataValue &v)
+api::object DeskaMetadataValue_2_Py(const MetadataValue &v)
 {
     return boost::apply_visitor(DeskaMetadataValueToPythonObjectVisitor(), v);
 }
 
 /** @short Convert a python object into the Deska::Db::Value */
-MetadataValue PythonObjectToDeskaMetadataValue(const api::object &o)
+MetadataValue Py_2_DeskaMetadataValue(const api::object &o)
 {
     try {
-        Value val = valueify(o);
+        Value val = Py_2_DeskaDbValue(o);
         return val;
     } catch (std::runtime_error &e) {
         // failed conversion, do nothing now
@@ -153,6 +153,6 @@ void exportDeskaFilter()
             .def("__repr__", repr_MetadataValue)
             .def("__str__", str_MetadataValue);
 
-    def("DeskaMetadataValueToPy", DeskaMetadataValueToPythonObject);
-    def("PyToDeskaMetadataValue", PythonObjectToDeskaMetadataValue);
+    def("DeskaMetadataValue_2_Py", DeskaMetadataValue_2_Py);
+    def("Py_2_DeskaMetadataValue", Py_2_DeskaMetadataValue);
 }

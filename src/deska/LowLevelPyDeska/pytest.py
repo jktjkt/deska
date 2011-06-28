@@ -4,8 +4,8 @@ import datetime
 sys.path.append(os.getcwd())
 import libLowLevelPyDeska
 
-p = libLowLevelPyDeska.pythonify
-v = libLowLevelPyDeska.valueify
+p = libLowLevelPyDeska.DeskaDbValue_2_Py
+v = libLowLevelPyDeska.Py_2_DeskaDbValue
 d = libLowLevelPyDeska.deoptionalify
 
 def verify(x):
@@ -38,11 +38,11 @@ for x in variants:
 
 for x in variants:
     print "%s: %s" % (type(x), x)
-    metadataval = libLowLevelPyDeska.PyToDeskaMetadataValue(x)
+    metadataval = libLowLevelPyDeska.Py_2_DeskaMetadataValue(x)
 
     print "Deska::Db::MetadataValue: str  %s" % str(metadataval)
     print "Deska::Db::MetadataValue: repr %s" % repr(metadataval)
-    py_x = libLowLevelPyDeska.DeskaMetadataValueToPy(metadataval)
+    py_x = libLowLevelPyDeska.DeskaMetadataValue_2_Py(metadataval)
     print "Deska::Db::MetadataValue -> Py: str  %s" % str(py_x)
     print "Deska::Db::MetadataValue -> Py: repr %s" % repr(py_x)
     if str(x) != str(py_x):

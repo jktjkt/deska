@@ -62,13 +62,13 @@ struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
 
 
 /** @short Convert a Deska::Db::Value to a python object */
-api::object pythonify(const Value &v)
+api::object DeskaDbValue_2_Py(const Value &v)
 {
     return v ? boost::apply_visitor(DeskaValueToPythonObject(), *v): api::object();
 }
 
 /** @short Convert a python object into the Deska::Db::Value */
-Value valueify(const api::object &o)
+Value Py_2_DeskaDbValue(const api::object &o)
 {
     // None
     if (o == api::object())
@@ -211,8 +211,8 @@ void exportDeskaValue()
 
     // Functions that convert between the Python and Deska representations of various values
     def("deoptionalify", deoptionalify);
-    def("pythonify", pythonify);
-    def("valueify", valueify);
+    def("Py_2_DeskaDbValue", Py_2_DeskaDbValue);
+    def("DeskaDbValue_2_Py", DeskaDbValue_2_Py);
 
     // Custom classes for the Deska::Db::Value
     class_<boost::asio::ip::address_v4>("IPv4Address")
