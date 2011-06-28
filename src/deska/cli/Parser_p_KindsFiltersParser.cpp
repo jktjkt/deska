@@ -62,7 +62,7 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
 
     // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = (raw[filters[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] >> qi::lit("where")
+    dispatch = (raw[filters[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > qi::lit("where")
         > lazy(_a)[phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName), _1)]);
 
     phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();

@@ -34,7 +34,7 @@
 #include "Parser_p_TopLevelParser.h"
 #include "deska/db/Api.h"
 
-//#define PARSER_DEBUG
+#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -264,7 +264,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
     if (!dryRun)
         m_parser->attributeSet(name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << name << "=" << *value << std::endl;
+    std::cout << "Set attribute: " << name << "=" << value << std::endl;
 #endif
 }
 
