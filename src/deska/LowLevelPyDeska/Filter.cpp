@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/LowLevelPyDeska/Filter.h"
 #include "deska/LowLevelPyDeska/Value.h"
 
@@ -192,6 +193,40 @@ std::string repr_Expression(const Expression &e)
     return boost::apply_visitor(DeskaExpressionToString(), e);
 }
 
+/*
+bool operator==(const AndFilter &a, const AndFilter &b)
+{
+    return a.operands == b.operands;
+}
+
+bool operator!=(const AndFilter &a, const AndFilter &b)
+{
+    return !(a==b);
+}
+
+bool operator==(const OrFilter &a, const OrFilter &b)
+{
+    return a.operands == b.operands;
+}
+
+bool operator!=(const OrFilter &a, const OrFilter &b)
+{
+    return !(a==b);
+}*/
+
+template <class T>
+class no_compare_indexing_suite :
+  public vector_indexing_suite<T, false, no_compare_indexing_suite<T> >
+{
+  public:
+    static bool contains(T &container, typename T::value_type const &key)
+    {
+        PyErr_SetString(PyExc_NotImplementedError, "containment checking not supported on this container");
+        throw boost::python::error_already_set();
+    }
+};
+
+
 void exportDeskaFilter()
 {
     // filters
@@ -235,4 +270,8 @@ void exportDeskaFilter()
     class_<OrFilter>("OrFilter", no_init);
     class_<AndFilter>("AndFilter", no_init);
     class_<Filter>("Filter");
+
+    typedef std::vector<Filter> vect_filter;
+    class_<vect_filter>("std_vector_filter")
+            .def(no_compare_indexing_suite<vect_filter>());
 }
