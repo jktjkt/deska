@@ -29,7 +29,7 @@ namespace boost {
 namespace gregorian {
 
 /** @short Got to provide specialization in order for the linker to be happy */
-std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
+inline std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
 {
     return s << boost::gregorian::to_simple_string(d);
 }
@@ -39,7 +39,7 @@ std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
 namespace posix_time {
 
 /** @short Got to provide specialization in order for the linker to be happy */
-std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime &t)
+inline std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime &t)
 {
     return s << boost::posix_time::to_simple_string(t);
 }
