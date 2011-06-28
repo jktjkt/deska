@@ -36,6 +36,22 @@ variants = ("ahoj", 3, 333.666, None,
 for x in variants:
     verify(x)
 
+for x in variants:
+    print "%s: %s" % (type(x), x)
+    metadataval = libLowLevelPyDeska.PyToDeskaMetadataValue(x)
+
+    print "Deska::Db::MetadataValue: str  %s" % str(metadataval)
+    print "Deska::Db::MetadataValue: repr %s" % repr(metadataval)
+    py_x = libLowLevelPyDeska.DeskaMetadataValueToPy(metadataval)
+    print "Deska::Db::MetadataValue -> Py: str  %s" % str(py_x)
+    print "Deska::Db::MetadataValue -> Py: repr %s" % repr(py_x)
+    if str(x) != str(py_x):
+        print "*DIFFERENT* strings: %s, %s" % (str(x), str(py_x))
+    if x != py_x:
+        print "*DIFFERENT* objects: %s %s, %s %s" % (
+            type(x), x, type(py_x), py_x)
+    print
+
 c = libLowLevelPyDeska.Connection()
 kindNames = c.kindNames()
 print "kindNames: %s" % str([x for x in kindNames])

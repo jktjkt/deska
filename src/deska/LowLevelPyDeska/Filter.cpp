@@ -20,9 +20,118 @@
 * */
 
 #include "deska/LowLevelPyDeska/Filter.h"
+#include "deska/LowLevelPyDeska/Value.h"
 
 using namespace boost::python;
 using namespace Deska::Db;
+
+/** @short Variant visitor for converting a Deska::Db::MetadataValue to a Python object */
+struct DeskaMetadataValueToPythonObjectVisitor: public boost::static_visitor<api::object>
+{
+    result_type operator()(const Value &v) const
+    {
+        return pythonify(v);
+    }
+
+    template <typename T>
+    result_type operator()(const T &v) const
+    {
+        return result_type(v);
+    }
+};
+
+
+/** @short Convert a Deska::Db::MetadataValue to a python object */
+api::object DeskaMetadataValueToPythonObject(const MetadataValue &v)
+{
+    return boost::apply_visitor(DeskaMetadataValueToPythonObjectVisitor(), v);
+}
+
+/** @short Convert a python object into the Deska::Db::Value */
+MetadataValue PythonObjectToDeskaMetadataValue(const api::object &o)
+{
+    try {
+        Value val = valueify(o);
+        return val;
+    } catch (std::runtime_error &e) {
+        // failed conversion, do nothing now
+    }
+    // Deska::Db::RevisionId
+    extract<RevisionId> get_revision(o);
+    if (get_revision.check())
+        return MetadataValue(get_revision());
+
+    throw std::runtime_error("Unsupported type of a python object");
+}
+
+/** @short Variant visitor that returns the type name of a Deska::Db::MetadataValue */
+struct DeskaMetadataValueTypeName: public boost::static_visitor<std::string>
+{
+    result_type operator()(const Value &v) const
+    {
+        return "Value";
+    }
+    result_type operator()(const RevisionId &v) const
+    {
+        return "RevisionId";
+    }
+    result_type operator()(const TemporaryChangesetId &v) const
+    {
+        return "TemporaryChangesetId";
+    }
+    result_type operator()(const PendingChangeset::AttachStatus &v) const
+    {
+        return "PendingChangeset::AttachStatus";
+    }
+};
+
+/** @short Variant visitor; helper for Deska::Db::MetadataValue's __repr__ */
+struct DeskaMetadataValueRepr: public boost::static_visitor<std::string>
+{
+    result_type operator()(const Value &v) const
+    {
+        return repr_Value(v);
+    }
+
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << v;
+        return ss.str();
+    }
+};
+
+/** @short Variant visitor; helper for Deska::Db::MetadataValue's __str__ */
+struct DeskaMetadataValueToString: public boost::static_visitor<std::string>
+{
+    result_type operator()(const Value &v) const
+    {
+        return str_Value(v);
+    }
+
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << v;
+        return ss.str();
+    }
+};
+
+/** @short __repr__ for Deska::Db::MetadataValue */
+std::string repr_MetadataValue(const MetadataValue &v)
+{
+    std::ostringstream ss;
+    ss << "MetadataValue<" << boost::apply_visitor(DeskaMetadataValueTypeName(), v) << ">(" << boost::apply_visitor(DeskaMetadataValueRepr(), v) << ")";
+    return ss.str();
+}
+
+/** @short __str__ for Deska::Db::MetadataValue */
+std::string str_MetadataValue(const MetadataValue &v)
+{
+    return boost::apply_visitor(DeskaMetadataValueToString(), v);
+}
 
 void exportDeskaFilter()
 {
@@ -34,5 +143,16 @@ void exportDeskaFilter()
             .value("COLUMN_GE", FILTER_COLUMN_GE)
             .value("COLUMN_LT", FILTER_COLUMN_LT)
             .value("COLUMN_LE", FILTER_COLUMN_LE);
-    //class_<MetadataValue>
+
+    enum_<PendingChangeset::AttachStatus>("PendingChangesetAttachStatus")
+            .value("DETACHED", PendingChangeset::ATTACH_DETACHED)
+            .value("IN_PROGRESS", PendingChangeset::ATTACH_IN_PROGRESS);
+
+    class_<MetadataValue>("MetadataValue", no_init)
+            .def(self == other<MetadataValue>())
+            .def("__repr__", repr_MetadataValue)
+            .def("__str__", str_MetadataValue);
+
+    def("DeskaMetadataValueToPy", DeskaMetadataValueToPythonObject);
+    def("PyToDeskaMetadataValue", PythonObjectToDeskaMetadataValue);
 }
