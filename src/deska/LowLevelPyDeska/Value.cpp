@@ -41,7 +41,7 @@ T Value_extract(const Value &v)
 }
 
 /** @short Convert a Deska::Db::Value into Deska::Db::NonOptionalValue or throw an exception */
-NonOptionalValue deoptionalify(const Value &v)
+NonOptionalValue DeskaDbValue_2_DeskaDbNonOptionalValue(const Value &v)
 {
     if (v) {
         return *v;
@@ -210,7 +210,7 @@ void exportDeskaValue()
             ;
 
     // Functions that convert between the Python and Deska representations of various values
-    def("deoptionalify", deoptionalify);
+    def("DeskaDbValue_2_DeskaDbNonOptionalValue", DeskaDbValue_2_DeskaDbNonOptionalValue);
     def("Py_2_DeskaDbValue", Py_2_DeskaDbValue);
     def("DeskaDbValue_2_Py", DeskaDbValue_2_Py);
 
