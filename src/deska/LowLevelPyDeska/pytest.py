@@ -24,13 +24,14 @@ def verify(x):
         print "*DIFFERENT* objects"
     print
 
-for x in ("ahoj", 3, 333.666, None,
-          libLowLevelPyDeska.IPv4Address("127.0.0.1"),
-          libLowLevelPyDeska.IPv6Address("::1"),
-          libLowLevelPyDeska.MacAddress("00:16:3e:37:53:2B"),
-          datetime.datetime.now(),
-          datetime.date.today(),
-         ):
+variants = ("ahoj", 3, 333.666, None,
+            libLowLevelPyDeska.IPv4Address("127.0.0.1"),
+            libLowLevelPyDeska.IPv6Address("::1"),
+            libLowLevelPyDeska.MacAddress("00:16:3e:37:53:2B"),
+            datetime.datetime.now(), datetime.date.today(),
+           )
+
+for x in variants:
     verify(x)
 
 c = libLowLevelPyDeska.Connection()
