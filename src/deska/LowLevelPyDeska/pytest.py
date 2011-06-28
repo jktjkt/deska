@@ -49,7 +49,7 @@ for x in variants:
     print
 
 fe1 = libLowLevelPyDeska.MetadataExpression(
-    libLowLevelPyDeska.ComparisonOperator.COLUMN_EQ, "revision",
+    libLowLevelPyDeska.ComparisonOperator.COLUMN_LT, "revision",
     libLowLevelPyDeska.Py_2_DeskaMetadataValue(libLowLevelPyDeska.RevisionId(333)))
 print fe1
 
