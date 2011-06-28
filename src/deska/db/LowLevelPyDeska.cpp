@@ -75,6 +75,11 @@ struct DeskaValueToPythonObject: public boost::static_visitor<api::object>
         return result_type(v);
     }
 
+    result_type operator()(const boost::asio::ip::address_v6 &v) const
+    {
+        return result_type(v);
+    }
+
     template <typename T>
     result_type operator()(const T &v) const
     {
@@ -117,6 +122,11 @@ Value valueify(const api::object &o)
     if (get_ipv4.check())
         return NonOptionalValue(get_ipv4());
 
+    // IPv6 address
+    extract<boost::asio::ip::address_v6> get_ipv6(o);
+    if (get_ipv6.check())
+        return NonOptionalValue(get_ipv6());
+
     throw std::runtime_error("Unsupported type of a python object");
     //return Value();
 }
@@ -124,6 +134,11 @@ Value valueify(const api::object &o)
 boost::asio::ip::address_v4 *ipv4AddressFromString(const std::string &s)
 {
     return new boost::asio::ip::address_v4(boost::asio::ip::address_v4::from_string(s));
+}
+
+boost::asio::ip::address_v6 *ipv6AddressFromString(const std::string &s)
+{
+    return new boost::asio::ip::address_v6(boost::asio::ip::address_v6::from_string(s));
 }
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
@@ -199,6 +214,10 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<boost::asio::ip::address_v4>("IPv4Address")
             .def("__init__", make_constructor(ipv4AddressFromString))
             .def(self == other<boost::asio::ip::address_v4>())
+            .def(self_ns::str(self));
+    class_<boost::asio::ip::address_v6>("IPv6Address")
+            .def("__init__", make_constructor(ipv6AddressFromString))
+            .def(self == other<boost::asio::ip::address_v6>())
             .def(self_ns::str(self));
 
     // filters

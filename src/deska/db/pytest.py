@@ -20,7 +20,9 @@ def verify(x):
     print
 
 for x in ("ahoj", 1, 333.666, None,
-          libLowLevelPyDeska.IPv4Address("127.0.0.1")):
+          libLowLevelPyDeska.IPv4Address("127.0.0.1"),
+          libLowLevelPyDeska.IPv6Address("::1"),
+         ):
     verify(x)
 
 c = libLowLevelPyDeska.Connection()
