@@ -19,7 +19,9 @@ def verify(x):
     py_x = p(deska_val)
     print "Deska::Db::Value -> Py: %s %s" % (type(py_x), py_x)
     if str(x) != str(py_x):
-        print "*DIFFERENT*"
+        print "*DIFFERENT* strings"
+    if x != py_x:
+        print "*DIFFERENT* objects"
     print
 
 for x in ("ahoj", 3, 333.666, None,
