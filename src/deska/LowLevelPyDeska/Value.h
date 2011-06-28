@@ -25,6 +25,12 @@
 #include <boost/python.hpp>
 #include "deska/db/Objects.h"
 
+/** @short Convert a python object into the Deska::Db::Value */
+Deska::Db::Value valueify(const boost::python::api::object &o);
+
+/** @short Return a Python string representation of a Deska::Db::Value */
+std::string repr_Value(const Deska::Db::Value &v);
+
 void exportDeskaValue();
 
 #endif // DESKA_LOWLEVELPYDESKA_VALUE_H

@@ -128,17 +128,66 @@ boost::asio::ip::address_v6 *ipv6AddressFromString(const std::string &s)
     return new boost::asio::ip::address_v6(boost::asio::ip::address_v6::from_string(s));
 }
 
+/** @short Variant visitor that returns a string identifying a Deska::Db::Value's type */
+struct DeskaValueTypeName: public boost::static_visitor<std::string>
+{
+    result_type operator()(const std::string &v) const
+    {
+        return "string";
+    }
+    result_type operator()(const int &v) const
+    {
+        return "int";
+    }
+    result_type operator()(const double &v) const
+    {
+        return "double";
+    }
+    result_type operator()(const boost::asio::ip::address_v4 &v) const
+    {
+        return "IPv4Address";
+    }
+    result_type operator()(const boost::asio::ip::address_v6 &v) const
+    {
+        return "IPv6Address";
+    }
+    result_type operator()(const MacAddress &v) const
+    {
+        return "MacAddress";
+    }
+    result_type operator()(const boost::posix_time::ptime &v) const
+    {
+        return "timestamp";
+    }
+    result_type operator()(const boost::gregorian::date &v) const
+    {
+        return "date";
+    }
+};
+
+std::string repr_NonOptionalValue(const NonOptionalValue &v)
+{
+    std::ostringstream ss;
+    ss << "Value<" << boost::apply_visitor(DeskaValueTypeName(), v) << ">(" << v << ")";
+    return ss.str();
+}
+
+std::string repr_Value(const Value &v)
+{
+    return v ? repr_NonOptionalValue(*v) : std::string("Value(None)");
+}
+
 void exportDeskaValue()
 {
     // At first, wrap the boost::optional. This is not meant to be used directly.
     class_<Value>("Value")
             .def(not self)
             .def(self == other<Value>())
-            .def(self_ns::str(self));
+            .def("__repr__", repr_Value);
     // Then wrap the underlying variant
     class_<NonOptionalValue>("NonOptionalValue")
             .def(self == other<NonOptionalValue>())
-            .def(self_ns::str(self));
+            .def("__repr__", repr_NonOptionalValue);
 
     // Functions that convert between the Python and Deska representations of various values
     def("deoptionalify", deoptionalify);
