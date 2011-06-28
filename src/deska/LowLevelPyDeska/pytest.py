@@ -51,7 +51,11 @@ for x in variants:
 fe1 = libLowLevelPyDeska.MetadataExpression(
     libLowLevelPyDeska.ComparisonOperator.COLUMN_LT, "revision",
     libLowLevelPyDeska.Py_2_DeskaMetadataValue(libLowLevelPyDeska.RevisionId(333)))
+fe2 = libLowLevelPyDeska.AttributeExpression(
+    libLowLevelPyDeska.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
+    libLowLevelPyDeska.Py_2_DeskaDbValue("hp"))
 print fe1
+print fe2
 
 print
 

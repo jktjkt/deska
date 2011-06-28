@@ -161,6 +161,15 @@ std::string repr_MetadataExpression(const MetadataExpression &e)
     return ss.str();
 }
 
+/** @short __repr__ for Deska::Db::AttributeExpression */
+std::string repr_AttributeExpression(const AttributeExpression &e)
+{
+    std::ostringstream ss;
+    ss << "AttributeExpression(" << e.kind << "." << e.attribute << " " << str_ComparisonOperator(e.comparison) << " " << repr_Value(e.constantValue) << ")";
+    return ss.str();
+}
+
+
 void exportDeskaFilter()
 {
     // filters
@@ -189,4 +198,11 @@ void exportDeskaFilter()
             .def_readonly("metadata", &MetadataExpression::metadata)
             .def_readonly("constantValue", &MetadataExpression::constantValue)
             .def("__repr__", repr_MetadataExpression);
+
+    class_<AttributeExpression>("AttributeExpression", init<ComparisonOperator, Identifier, Identifier, Value>())
+            .def_readonly("comparison", &AttributeExpression::comparison)
+            .def_readonly("kind", &AttributeExpression::kind)
+            .def_readonly("attribute", &AttributeExpression::attribute)
+            .def_readonly("constantValue", &AttributeExpression::constantValue)
+            .def("__repr__", repr_AttributeExpression);
 }
