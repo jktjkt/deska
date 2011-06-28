@@ -162,14 +162,14 @@ void bind_datetime()
 
     ptime_from_python_datetime();
 
-    to_python_converter<
+    boost::python::to_python_converter<
         const boost::posix_time::ptime
       , ptime_to_python_datetime
     >();
 
     tduration_from_python_delta();
 
-    to_python_converter<
+    boost::python::to_python_converter<
         const boost::posix_time::time_duration
       , tduration_to_python_delta
     >();
