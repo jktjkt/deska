@@ -13,13 +13,15 @@ def verify(x):
     deska_val = v(x)
     try:
         non_opt = d(deska_val)
-        print "Deska::Db::NonOptionalValue: %s" % str(non_opt)
+        print "Deska::Db::NonOptionalValue: str  %s" % str(non_opt)
+        print "Deska::Db::NonOptionalValue: repr %s" % repr(non_opt)
     except RuntimeError, e:
         print "deoptionalify failed"
     py_x = p(deska_val)
-    print "Deska::Db::Value -> Py: %s %s" % (type(py_x), py_x)
+    print "Deska::Db::Value -> Py str : %s" % str(py_x)
+    print "Deska::Db::Value -> Py repr: %s" % repr(py_x)
     if str(x) != str(py_x):
-        print "*DIFFERENT* strings"
+        print "*DIFFERENT* strings: %s, %s" % (str(x), str(py_x))
     if x != py_x:
         print "*DIFFERENT* objects"
     print
