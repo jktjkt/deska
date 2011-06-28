@@ -114,6 +114,11 @@ Value valueify(const api::object &o)
     if (get_ptime.check())
         return NonOptionalValue(get_ptime());
 
+    // boost::gregorian::date
+    extract<boost::gregorian::date> get_date(o);
+    if (get_date.check())
+        return NonOptionalValue(get_date());
+
     throw std::runtime_error("Unsupported type of a python object");
     //return Value();
 }

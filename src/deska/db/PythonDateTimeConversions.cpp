@@ -91,6 +91,59 @@ struct ptime_from_python_datetime
 };
 
 
+/* Convert date to/from python */
+struct date_to_python_date
+{
+    static PyObject* convert(boost::gregorian::date const& date)
+    {
+        return PyDate_FromDate((int)date.year(),
+                               (int)date.month(),
+                               (int)date.day());
+    }
+};
+
+
+struct date_from_python_date
+{
+     date_from_python_date()
+     {
+         boost::python::converter::registry::push_back(
+             &convertible,
+             &construct,
+             boost::python::type_id<boost::gregorian::date > ());
+     }
+
+     static void* convertible(PyObject * obj_ptr)
+     {
+       if ( ! PyDate_Check(obj_ptr))
+           return 0;
+       return obj_ptr;
+     }
+
+     static void construct(
+         PyObject* obj_ptr,
+         boost::python::converter::rvalue_from_python_stage1_data * data)
+     {
+       PyDateTime_Date const* pydate
+           = reinterpret_cast<PyDateTime_Date*>(obj_ptr);
+
+       // Create date object
+       boost::gregorian::date _date(PyDateTime_GET_YEAR(pydate),
+                                            PyDateTime_GET_MONTH(pydate),
+                                            PyDateTime_GET_DAY(pydate));
+
+       // Create posix time object
+       void* storage = (
+                              (boost::python::converter::rvalue_from_python_storage<boost::gregorian::date>*)
+                              data)->storage.bytes;
+       new (storage)
+           boost::gregorian::date(_date);
+       data->convertible = storage;
+     }
+};
+
+
+
 /* Convert time_duration to/from python */
 struct tduration_to_python_delta
 {
@@ -166,6 +219,9 @@ void bind_datetime()
         const boost::posix_time::ptime
       , ptime_to_python_datetime
     >();
+
+    date_from_python_date();
+    boost::python::to_python_converter<const boost::gregorian::date, date_to_python_date>();
 
     tduration_from_python_delta();
 
