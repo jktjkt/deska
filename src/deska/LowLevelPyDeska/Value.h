@@ -19,8 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_LOWLEVELPYDESKA_H
-#define DESKA_LOWLEVELPYDESKA_H
+#ifndef DESKA_LOWLEVELPYDESKA_VALUE_H
+#define DESKA_LOWLEVELPYDESKA_VALUE_H
 
 #include <boost/python.hpp>
 #include "deska/db/Objects.h"
@@ -36,4 +36,4 @@ Deska::Db::Value valueify(const boost::python::api::object &o);
 
 void exportDeskaValue();
 
-#endif // DESKA_LOWLEVELPYDESKA_H
+#endif // DESKA_LOWLEVELPYDESKA_VALUE_H
