@@ -27,6 +27,9 @@
 using namespace boost::python;
 using namespace Deska::Db;
 
+// from the PythonDateTimeConversions.cpp
+void bind_datetime();
+
 // FIXME: remove later?
 template<typename T>
 T Value_extract(const Value &v)
@@ -105,6 +108,11 @@ Value valueify(const api::object &o)
     extract<MacAddress> get_mac(o);
     if (get_mac.check())
         return NonOptionalValue(get_mac());
+
+    // boost::posix_time::ptime
+    extract<boost::posix_time::ptime> get_ptime(o);
+    if (get_ptime.check())
+        return NonOptionalValue(get_ptime());
 
     throw std::runtime_error("Unsupported type of a python object");
     //return Value();
@@ -188,6 +196,8 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     def("deoptionalify", deoptionalify);
     def("pythonify", pythonify);
     def("valueify", valueify);
+
+    bind_datetime();
 
     // Custom classes for the Deska::Db::Value
     class_<boost::asio::ip::address_v4>("IPv4Address")
