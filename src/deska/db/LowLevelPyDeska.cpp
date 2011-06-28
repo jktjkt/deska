@@ -28,10 +28,12 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     using namespace boost::python;
     using namespace Deska::Db;
 
+    // required for kindNames
     typedef std::vector<std::string> vect_string;
     class_<vect_string>("std_vector_string")
             .def(vector_indexing_suite<vect_string>());
 
+    // required for kindRelations
     typedef std::vector<ObjectRelation> vect_ObjectRelation;
     class_<vect_ObjectRelation>("std_vector_Deska_Db_ObjectRelation")
             .def(vector_indexing_suite<vect_ObjectRelation>());
