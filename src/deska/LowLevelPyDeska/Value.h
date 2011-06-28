@@ -25,15 +25,6 @@
 #include <boost/python.hpp>
 #include "deska/db/Objects.h"
 
-/** @short Convert a Deska::Db::Value into Deska::Db::NonOptionalValue or throw an exception */
-Deska::Db::NonOptionalValue deoptionalify(const Deska::Db::Value &v);
-
-/** @short Convert a Deska::Db::Value to a python object */
-boost::python::api::object pythonify(const Deska::Db::Value &v);
-
-/** @short Convert a python object into the Deska::Db::Value */
-Deska::Db::Value valueify(const boost::python::api::object &o);
-
 void exportDeskaValue();
 
 #endif // DESKA_LOWLEVELPYDESKA_VALUE_H
