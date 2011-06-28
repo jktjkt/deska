@@ -55,7 +55,9 @@ fe2 = libLowLevelPyDeska.AttributeExpression(
     libLowLevelPyDeska.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
     libLowLevelPyDeska.Py_2_DeskaDbValue("hp"))
 print fe1
+print libLowLevelPyDeska.Expression(fe1)
 print fe2
+print libLowLevelPyDeska.Expression(fe2)
 
 print
 

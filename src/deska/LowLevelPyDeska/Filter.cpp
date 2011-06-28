@@ -169,6 +169,28 @@ std::string repr_AttributeExpression(const AttributeExpression &e)
     return ss.str();
 }
 
+/** @short Helper visitor for Deska::Db::Expression's __repr__ */
+struct DeskaExpressionToString: public boost::static_visitor<std::string>
+{
+    result_type operator()(const MetadataExpression &v) const
+    {
+        std::ostringstream ss;
+        ss << "Expression<MetadataExpression>(" << repr_MetadataExpression(v) << ")";
+        return ss.str();
+    }
+    result_type operator()(const AttributeExpression &v) const
+    {
+        std::ostringstream ss;
+        ss << "Expression<AttributeExpression>(" << repr_AttributeExpression(v) << ")";
+        return ss.str();
+    }
+};
+
+/** @short __repr__ for Deska::Db::Expression */
+std::string repr_Expression(const Expression &e)
+{
+    return boost::apply_visitor(DeskaExpressionToString(), e);
+}
 
 void exportDeskaFilter()
 {
@@ -205,4 +227,12 @@ void exportDeskaFilter()
             .def_readonly("attribute", &AttributeExpression::attribute)
             .def_readonly("constantValue", &AttributeExpression::constantValue)
             .def("__repr__", repr_AttributeExpression);
+
+    class_<Expression>("Expression")
+            .def(init<const MetadataExpression&>())
+            .def(init<const AttributeExpression&>())
+            .def("__repr__", repr_Expression);
+    class_<OrFilter>("OrFilter", no_init);
+    class_<AndFilter>("AndFilter", no_init);
+    class_<Filter>("Filter");
 }
