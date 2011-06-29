@@ -128,6 +128,8 @@ if(RUN_SQL_TESTS)
     # for the first one, but it isn't worth the effort to make an extra branch
     # just for this case IMHO.
     deska_dbapi_test(LowLevelPyDeska_Values)
+    # The following tests need the connection, though.
+    deska_dbapi_test(LowLevelPyDeska_Api)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
