@@ -123,6 +123,11 @@ if(RUN_SQL_TESTS)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
+
+    # Test the Python bindings. The connection to the DB is not really required
+    # for the first one, but it isn't worth the effort to make an extra branch
+    # just for this case IMHO.
+    deska_dbapi_test(LowLevelPyDeska_Values)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
