@@ -71,7 +71,6 @@ CREATE FUNCTION commit_all(message text)
 		for row in record:
 			self.templates[row[0]] = row[1]
 
-
 	# generate sql for all tables
 	def gen_schema(self,filename):
 		name_split = filename.rsplit('/', 1)
@@ -159,10 +158,10 @@ CREATE FUNCTION commit_all(message text)
 
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
-		cols_ref_uid = table.get_cols_reference_uid()
+		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
-			if (col[0] in cols_ref_uid):
-				reftable = cols_ref_uid[col[0]]
+			if (col[0] in table.refuid_columns):
+				reftable = table.refuid_columns[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
 				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
