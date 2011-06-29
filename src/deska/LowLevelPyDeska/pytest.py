@@ -4,25 +4,6 @@ import datetime
 sys.path.append(os.getcwd())
 import libLowLevelPyDeska as _l
 
-fe1 = _l.MetadataExpression(
-    _l.ComparisonOperator.COLUMN_LT, "revision",
-    _l.Py_2_DeskaMetadataValue(_l.RevisionId(333)))
-fe2 = _l.AttributeExpression(
-    _l.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
-    _l.Py_2_DeskaDbValue("hp"))
-print fe1
-print _l.Expression(fe1)
-print fe2
-print _l.Expression(fe2)
-
-tmp = _l.std_vector_Filter()
-tmp.append(_l.Filter(_l.Expression(fe1)))
-tmp.append(_l.Filter(_l.Expression(fe2)))
-of = _l.OrFilter(tmp)
-del tmp
-print of
-print
-
 c = _l.Connection()
 kindNames = c.kindNames()
 print "kindNames: %s" % kindNames
