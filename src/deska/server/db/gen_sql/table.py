@@ -274,6 +274,7 @@ class Table(constants.Templates):
 		
 		collist.remove('template')
 		cols = ','.join(collist)
+		columns_ex_template = list(collist)
 		
 		#table tbl is templated by table tbl_template
 		#table tbl_template is templated by tbl_template
@@ -289,14 +290,46 @@ class Table(constants.Templates):
 			resolved_data_string = self.resolved_data_string
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
-		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0})".format,collist)))
+		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
+
+		cols_ex_template_dict = dict()
+		for col in self.col:
+			if col in columns_ex_template:
+				cols_ex_template_dict[col] = self.col[col]
+				
 		# replace uid of referenced object its name
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
 				collist[pos] = "{0}_get_name({0}) AS {0}".format(col)
+				cols_ex_template_dict[col] = "text"
 		
 		cols_ex_templ = ",".join(collist)
-			
-		return resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
+		
+		ticols = ',\n'.join(list(map("{0} {1}".format,cols_ex_template_dict.keys(),cols_ex_template_dict.values()))) + ',\n' + ',\n'.join(list(map("{0}_templ {1}".format,cols_ex_template_dict.keys(),['text']*len(cols_ex_template_dict))))
+		case_col_string = '''
+		CASE	WHEN {0} IS NULL THEN NULL 
+			ELSE name
+		END AS {0}_templ'''
+		case_cols = ','.join(list(map(case_col_string.format,cols_ex_template_dict.keys())))
+	
+		templ_case_cols = '''
+		CASE	WHEN rd.{0}_templ IS NOT NULL THEN rd.{0}_templ
+			WHEN rd.{0}_templ IS NULL AND dv.{0} IS NOT NULL THEN dv.name
+			ELSE NULL
+		END AS {0}_templ'''
+		templ_case_cols = ','.join(list(map(templ_case_cols.format,cols_ex_template_dict.keys())))
+		templ_columns_list = list(map("{0}_templ".format, cols_ex_template_dict.keys()))
+		cols_templ = ','.join(templ_columns_list)
+		#SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+		all_columns = columns_ex_template
+		all_columns.extend(templ_columns_list)
+		all_columns.append('template')
+		dticols = ','.join(list(map("data.{0}".format,all_columns)))
+		
+		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols)
+		resolve_data_fce = resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
+		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
+		resolve_object_data_template_info = self.resolved_object_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ, data_columns = dticols)
+		return  resolve_data_fce + '\n' + templ_info_type + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 		

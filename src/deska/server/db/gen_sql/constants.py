@@ -1079,3 +1079,84 @@ LANGUAGE plpgsql;
 	
 	
 '''
+
+	resolved_data_template_info_type_string = '''CREATE TYPE {tbl}_data_template_info_type AS(
+	{columns},
+	template text
+);
+'''
+
+	resolved_object_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data_template_info(name_ text, from_version bigint = 0)
+RETURNS {tbl}_data_template_info_type
+AS
+$$
+DECLARE
+	data {tbl}_data_template_info_type;
+	current_changeset bigint;
+	dbit bit(1);
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, {case_columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE name = name_
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			{templ_case_columns},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+	FROM resolved_data WHERE template IS NULL;
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	
+	DROP TABLE template_data_version;
+	
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data_template_info(from_version bigint = 0)
+RETURNS SETOF {tbl}_data_template_info_type
+AS
+$$
+DECLARE
+	data {tbl}_data_template_info_type;
+	current_changeset bigint;
+	dbit bit(1);
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	RETURN QUERY WITH recursive resolved_data AS (
+        SELECT {columns}, {case_columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			{templ_case_columns},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
+	FROM resolved_data WHERE template IS NULL;
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	
+	DROP TABLE template_data_version;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
