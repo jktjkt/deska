@@ -115,7 +115,6 @@ Value Py_2_DeskaDbValue(const api::object &o)
         return NonOptionalValue(get_date());
 
     throw std::runtime_error("Unsupported type of a python object");
-    //return Value();
 }
 
 /** @short Construct an IPv4Address from string */
