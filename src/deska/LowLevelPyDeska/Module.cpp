@@ -109,6 +109,7 @@ struct PairToTupleConverter {
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectData, multipleResolvedObjectData, 2, 3);
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
@@ -129,11 +130,26 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     class_<map_Identifier_Value>("std_map_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_Value>());
 
+    // this one is the inner type inside the multipleResolvedObjectData return type
+    typedef std::pair<Identifier, Value> pair_Identifier_Value;
+    to_python_converter<pair_Identifier_Value, PairToTupleConverter<Identifier, Value> >();
+
+    // ...the middle one...
+    typedef std::map<Identifier, pair_Identifier_Value> map_Identifier_pair_Identifier_Value;
+    class_<map_Identifier_pair_Identifier_Value>("std_map_Identifier_pair_Identifier_Value")
+            .def(map_indexing_suite<map_Identifier_pair_Identifier_Value>());
+
+    // ...and even the outer one :)
+    typedef std::map<Identifier, map_Identifier_pair_Identifier_Value> map_Identifier_map_Identifier_pair_Identifier_Value;
+    class_<map_Identifier_map_Identifier_pair_Identifier_Value>("std_map_Identifier_std_map_Identifier_pair_Identifier_Value")
+            .def(map_indexing_suite<map_Identifier_map_Identifier_pair_Identifier_Value>());
+
     // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
             .def("kindAttributes", &Connection::kindAttributes)
             .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads())
-            .def("objectData", &Connection::objectData, Connection_objectData_overloads());
+            .def("objectData", &Connection::objectData, Connection_objectData_overloads())
+            .def("multipleResolvedObjectData", &Connection::multipleResolvedObjectData, Connection_multipleResolvedObjectData());
 }

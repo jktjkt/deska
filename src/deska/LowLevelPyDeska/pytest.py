@@ -104,3 +104,13 @@ print objData
 for x in objData:
     print "%s %r" % (type(x.key()), x.key())
     print "%s %r" % (type(x.data()), x.data())
+
+f2 = libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(
+    libLowLevelPyDeska.AttributeExpression(
+        libLowLevelPyDeska.ComparisonOperator.COLUMN_NE,
+        "host", "name", libLowLevelPyDeska.Py_2_DeskaDbValue("non-existant"))
+))
+print f2
+# this would fail, it is not implemented yet
+#multipleResolved = c.multipleResolvedObjectData("host", f2)
+#print multipleResolved
