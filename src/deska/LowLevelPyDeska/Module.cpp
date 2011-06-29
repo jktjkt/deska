@@ -31,12 +31,25 @@ using namespace Deska::Db;
 // from the PythonDateTimeConversions.cpp
 void bind_datetime();
 
+template<typename T>
+std::string repr_vect(const std::vector<T> &v)
+{
+    std::ostringstream ss;
+    ss << "[";
+    BOOST_FOREACH(const T &item, v) {
+        ss << item << ", ";
+    }
+    ss << "]";
+    return ss.str();
+}
+
 void exportObjectRelations()
 {
     // required for kindRelations
     typedef std::vector<ObjectRelation> vect_ObjectRelation;
     class_<vect_ObjectRelation>("std_vector_Deska_Db_ObjectRelation")
-            .def(vector_indexing_suite<vect_ObjectRelation>());
+            .def(vector_indexing_suite<vect_ObjectRelation>())
+            .def("__repr__", repr_vect<ObjectRelation>);
 
     enum_<ObjectRelationKind>("ObjectRelationKind")
             .value("MERGE_WITH", RELATION_MERGE_WITH)
@@ -56,7 +69,8 @@ void exportAttributeTypes()
     // required for kindAttributes
     typedef std::vector<KindAttributeDataType> vect_KindAttributeDataType;
     class_<vect_KindAttributeDataType>("std_vector_Deska_Db_KindAttributeDataType")
-            .def(vector_indexing_suite<vect_KindAttributeDataType>());
+            .def(vector_indexing_suite<vect_KindAttributeDataType>())
+            .def("__repr__", repr_vect<KindAttributeDataType>);
     enum_<Type>("AttributeType")
             .value("IDENTIFIER", TYPE_IDENTIFIER)
             .value("STRING", TYPE_STRING)
@@ -99,7 +113,8 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     // required for kindNames
     typedef std::vector<std::string> vect_string;
     class_<vect_string>("std_vector_string")
-            .def(vector_indexing_suite<vect_string>());
+            .def(vector_indexing_suite<vect_string>())
+            .def("__repr__", repr_vect<std::string>);
 
     // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
