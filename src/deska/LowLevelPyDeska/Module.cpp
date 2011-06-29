@@ -107,27 +107,9 @@ struct PairToTupleConverter {
     }
 };
 
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleObjectData, multipleObjectData, 2, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectData, resolvedObjectData, 2, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectData, multipleResolvedObjectData, 2, 3);
-
-BOOST_PYTHON_MODULE(libLowLevelPyDeska)
+/** @short Add Python definitions for various convoluted Deska map structures */
+void exportNastyMaps()
 {
-    bind_datetime();
-    exportObjectRelations();
-    exportAttributeTypes();
-    exportRevisions();
-    exportDeskaValue();
-    exportDeskaFilter();
-
-    // required for kindNames
-    typedef std::vector<std::string> vect_string;
-    class_<vect_string>("std_vector_string")
-            .def(vector_indexing_suite<vect_string>())
-            .def("__repr__", repr_vect<std::string>);
-
     typedef std::map<Identifier, Value> map_Identifier_Value;
     class_<map_Identifier_Value>("std_map_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_Value>());
@@ -145,6 +127,29 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
     typedef std::map<Identifier, map_Identifier_pair_Identifier_Value> map_Identifier_map_Identifier_pair_Identifier_Value;
     class_<map_Identifier_map_Identifier_pair_Identifier_Value>("std_map_Identifier_std_map_Identifier_pair_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_map_Identifier_pair_Identifier_Value>());
+}
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleObjectData, multipleObjectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectData, resolvedObjectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectData, multipleResolvedObjectData, 2, 3);
+
+BOOST_PYTHON_MODULE(libLowLevelPyDeska)
+{
+    bind_datetime();
+    exportObjectRelations();
+    exportAttributeTypes();
+    exportRevisions();
+    exportDeskaValue();
+    exportDeskaFilter();
+    exportNastyMaps();
+
+    // required for kindNames
+    typedef std::vector<std::string> vect_string;
+    class_<vect_string>("std_vector_string")
+            .def(vector_indexing_suite<vect_string>())
+            .def("__repr__", repr_vect<std::string>);
 
     // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
