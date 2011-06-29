@@ -73,6 +73,4 @@ def imperative(r):
     #kindInstances.append(c.kindInstances("host",
     #                                     _l.OptionalFilter(of)))
     for res in kindInstances:
-        # FIXME: it fails right now, there are duplicate entries
-        pass
-        #r.assertEquals(repr(res), repr(["a", "b", "c"]))
+        r.assertEquals(set(res), set(["a", "b", "c"]))
