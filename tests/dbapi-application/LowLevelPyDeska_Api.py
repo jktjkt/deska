@@ -13,7 +13,10 @@ def imperative(r):
     for obj in objectNames:
         r.c(createObject("host", obj))
         r.c(setAttribute("host", obj, "note", "This is host %s" % obj))
-    r.c(commitChangeset("Added three objects"))
+    revision = r.c(commitChangeset("Added three objects"))
+
+    r.assertTrue(revision.startswith("r"))
+    revisionNum = int(revision[1:])
 
     # let's actually test the bindings now
     c = _l.Connection()
