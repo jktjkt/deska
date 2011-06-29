@@ -40,3 +40,28 @@ def imperative(r):
         r.assertEqual(str(x), str(py_x))
         r.assertEqual(x, py_x)
 
+    # test filter expressions
+    fe1 = _l.MetadataExpression(
+        _l.ComparisonOperator.COLUMN_LT, "revision",
+        _l.Py_2_DeskaMetadataValue(_l.RevisionId(333)))
+    fe2 = _l.AttributeExpression(
+        _l.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
+        _l.Py_2_DeskaDbValue("hp"))
+    r.assertEqual(repr(fe1), "MetadataExpression(revision < MetadataValue<RevisionId>(r333))")
+    r.assertEqual(repr(fe2), "AttributeExpression(hardware.vendor == Value<string>(hp))")
+    r.assertEqual(repr(_l.Expression(fe1)),
+        "Expression<MetadataExpression>(MetadataExpression(revision < MetadataValue<RevisionId>(r333)))")
+    r.assertEqual(repr(_l.Expression(fe2)),
+        "Expression<AttributeExpression>(AttributeExpression(hardware.vendor == Value<string>(hp)))")
+
+    f1 = _l.std_vector_Filter()
+    f1.append(_l.Filter(_l.Expression(fe1)))
+    f1.append(_l.Filter(_l.Expression(fe2)))
+    of = _l.OrFilter(f1)
+    del f1
+    r.assertEqual(repr(of),
+        "OrFilter([" +
+        "Expression<MetadataExpression>(MetadataExpression(revision < MetadataValue<RevisionId>(r333))), " +
+        "Expression<AttributeExpression>(AttributeExpression(hardware.vendor == Value<string>(hp))), " +
+        "])")
+
