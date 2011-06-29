@@ -339,7 +339,9 @@ void exportDeskaFilter()
             ;
 
     class_<boost::optional<Filter> >("OptionalFilter")
-            .def(init<const Filter&>())
+            .def(init<const Expression&>())
+            .def(init<const AndFilter&>())
+            .def(init<const OrFilter&>())
             .def("__repr__", repr_optionalFilter);
 
     class_<boost::optional<RevisionId> >("OptionalRevisionId")
