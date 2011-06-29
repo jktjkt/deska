@@ -655,7 +655,12 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  \deskaUnsortedRes}
+    {This is the batched version of the \deskaFuncRef{resolvedObjectData}.  The sample return data below means that the
+    result set contains two objects, the "obj1" and "obj2".  The "obj1" has two attributes, "foo" and "baz"; the "foo"
+    is inherited from object with name "obj-defining-this" and its value is "bar"; the value of "baz" is specified at
+    the level of object "obj1" (ie. by the object itself) and the value is 666.
+
+    \deskaUnsortedRes}
 
 \subsubsection{Performing Modifications}
 \label{sec:api-group-data-modification}
