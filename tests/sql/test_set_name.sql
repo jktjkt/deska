@@ -112,10 +112,60 @@ BEGIN
 	DEALLOCATE retnames;
 	DEALLOCATE expnames;
 	DEALLOCATE not_in_expnames;
+
+	DELETE FROM test_interface;
 END
 $$
 LANGUAGE plpgsql;
 
+--tries if set name works good, even if both part of embed_object's names are modified 
+CREATE FUNCTION  test_set_both_part()
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	INSERT INTO test_interface VALUES ('hosthp1->eth0',1);
+	INSERT INTO test_interface VALUES ('hosthp2->eth4',2);
+	INSERT INTO test_interface VALUES ('hosthp1->eth0',3);
+
+	PERFORM startchangeset();
+	PERFORM host_add('hosthp1');
+	PERFORM host_add('hosthp2');
+	PERFORM interface_add('hosthp1->eth0');
+	PERFORM commitchangeset('');
+
+	PREPARE retnames AS SELECT interface_names();
+	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 1;
+	RETURN NEXT set_has('retnames', 'expnames', 'returns good names in changeset');
+	DEALLOCATE retnames;
+	DEALLOCATE expnames;
+
+	PERFORM startchangeset();
+	PERFORM interface_set_name('hosthp1->eth0', 'hosthp1->eth4');
+	PERFORM interface_set_host('hosthp1->eth4', 'hosthp2');
+	PERFORM commitchangeset('');
+
+	PREPARE retnames AS SELECT interface_names();
+	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 2;
+	RETURN NEXT set_has('retnames', 'expnames', 'returns good names after renamening interface and setting another host');
+	DEALLOCATE retnames;
+	DEALLOCATE expnames;
+
+	PERFORM startchangeset();
+	PERFORM interface_set_host('hosthp2->eth4', 'hosthp1');
+	PERFORM interface_set_name('hosthp1->eth4', 'hosthp1->eth0');
+	PERFORM commitchangeset('');
+
+	PREPARE retnames AS SELECT interface_names();
+	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 3;
+	RETURN NEXT set_has('retnames', 'expnames', 'returns good names after renamening interface and setting another host');
+	DEALLOCATE retnames;
+	DEALLOCATE expnames;
+
+	DELETE FROM test_interface;
+END
+$$
+LANGUAGE plpgsql;
 
 SELECT runtests();
 
