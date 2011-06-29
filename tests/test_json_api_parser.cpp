@@ -27,6 +27,7 @@
 #include "JsonApiTestFixture.h"
 #include "deska/db/JsonApi.h"
 #include "deska/db/JsonHandler.h"
+#include "deska/db/AdditionalValueStreamOperators.h"
 
 using std::vector;
 using std::map;
@@ -846,27 +847,3 @@ BOOST_FIXTURE_TEST_CASE(json_malformed_json_missing_comma, MalformedJsonFixture)
     line = "{\"command\":\"c\"";
 }
 
-
-namespace boost {
-// FIXME: is there any safer way of doing this?
-namespace gregorian {
-
-/** @short Got to provide specialization in order for the linker to be happy */
-std::ostream &operator<<(std::ostream &s, const boost::gregorian::date &d)
-{
-    return s << boost::gregorian::to_simple_string(d);
-}
-
-}
-
-namespace posix_time {
-
-/** @short Got to provide specialization in order for the linker to be happy */
-std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime &t)
-{
-    return s << boost::posix_time::to_simple_string(t);
-}
-
-}
-
-}

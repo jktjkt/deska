@@ -61,6 +61,9 @@ struct MetadataExpression
     MetadataExpression() {};
 };
 
+bool operator==(const MetadataExpression &a, const MetadataExpression &b);
+bool operator!=(const MetadataExpression &a, const MetadataExpression &b);
+
 /** @short Compare attribute value against a constant using given comparison operator */
 struct AttributeExpression
 {
@@ -72,8 +75,13 @@ struct AttributeExpression
     AttributeExpression(const ComparisonOperator comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
 };
 
+bool operator==(const AttributeExpression &a, const AttributeExpression &b);
+bool operator!=(const AttributeExpression &a, const AttributeExpression &b);
+
 /** @short A generic expression */
 typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
+
+bool operator!=(const Expression &a, const Expression &b);
 
 struct OrFilter;
 struct AndFilter;
