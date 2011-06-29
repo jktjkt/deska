@@ -220,6 +220,12 @@ def createObject(kindName, objectName):
     return ApiMethod("createObject", {"kindName": kindName, "objectName":
                                       objectName})
 
+def setAttribute(kindName, objectName, attributeName, attributeData):
+    return ApiMethod("setAttribute", {"kindName": kindName, "objectName":
+                                      objectName, "attributeName":
+                                      attributeName,
+                                      "attributeData": attributeData})
+
 def kindInstances(kindName, revision=None):
     # FIXME: filter
     args = {"kindName": kindName}
