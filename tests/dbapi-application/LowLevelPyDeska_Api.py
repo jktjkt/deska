@@ -28,7 +28,9 @@ def imperative(r):
     # continue with kindRelations
     expectedRelations = {
         "interface": "[embedInto(host), ]",
-        "hardware": "[]", "host": "[]", "vendor": "[]"
+        "hardware": "[refersTo(vendor), ]",
+        "host": "[refersTo(hardware), ]",
+        "vendor": "[]"
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
