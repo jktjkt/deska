@@ -44,3 +44,32 @@ def imperative(r):
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
         r.assertEquals(repr(kindAttributes), expectedAttrs[kind])
+
+    print revision
+
+    # check kindInstances and their behavior with various combinations of filters and RevisionIds
+    kindInstances = []
+    kindInstances.append(c.kindInstances("host"))
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter()))
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(),
+                                         _l.OptionalRevisionId()))
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(),
+                                         _l.OptionalRevisionId(
+                                             _l.RevisionId(revisionNum)
+                                         )))
+    # we have to build a filter now
+    fe1 = _l.MetadataExpression(
+        _l.ComparisonOperator.COLUMN_LT, "revision",
+        _l.Py_2_DeskaMetadataValue(_l.RevisionId(333)))
+    f1 = _l.std_vector_Filter()
+    of = _l.OrFilter(f1)
+
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(of)))
+    for res in kindInstances:
+        # FIXME: it fails right now, there are duplicate entries
+        pass
+        #r.assertEquals(repr(res), repr(["a", "b", "c"]))
