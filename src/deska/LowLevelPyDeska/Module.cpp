@@ -100,6 +100,13 @@ void exportRevisions()
             .def(self_ns::str(self));
 }
 
+template<class T1, class T2>
+struct PairToTupleConverter {
+    static PyObject* convert(const std::pair<T1, T2>& pair) {
+        return incref(boost::python::make_tuple(pair.first, pair.second).ptr());
+    }
+};
+
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
 
