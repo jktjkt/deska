@@ -140,14 +140,13 @@ set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
-add_library(DeskaDb ${libDeskaDb_SRCS})
+add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli ${deskaCli_SRCS})
 target_link_libraries(deska-cli DeskaCliParser DeskaDb ${READLINE_LIBRARY})
 
-# FIXME: creating a shared library from a static one leads to DT_TEXTREL
 add_library(LowLevelPyDeska SHARED ${libLowLevelPyDeska_SRCS})
 target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
 
