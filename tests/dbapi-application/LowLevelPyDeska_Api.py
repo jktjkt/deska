@@ -69,8 +69,9 @@ def imperative(r):
     f1 = _l.std_vector_Filter()
     of = _l.OrFilter(f1)
 
-    kindInstances.append(c.kindInstances("host",
-                                         _l.OptionalFilter(of)))
+    # this one doesn't work, redmine #254
+    #kindInstances.append(c.kindInstances("host",
+    #                                     _l.OptionalFilter(of)))
     for res in kindInstances:
         # FIXME: it fails right now, there are duplicate entries
         pass
