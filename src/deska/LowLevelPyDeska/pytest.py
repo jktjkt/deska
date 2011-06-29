@@ -112,5 +112,8 @@ f2 = libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(
 ))
 print f2
 # this would fail, it is not implemented yet
+#multipleData = c.multipleObjectData("host", f2)
+#print multipleData
+# not implemented, either
 #multipleResolved = c.multipleResolvedObjectData("host", f2)
 #print multipleResolved
