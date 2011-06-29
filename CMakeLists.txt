@@ -83,7 +83,8 @@ FIND_PACKAGE(Readline REQUIRED)
 
 # We have to bring in Python explicitly
 find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
+# yay, different versions of this package use different variable names for increased fun
+include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
 #link_directories(${PYTHON_LIBRARIES})
 
 INCLUDE_DIRECTORIES(
