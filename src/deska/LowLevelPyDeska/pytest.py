@@ -80,6 +80,21 @@ for kind in kindNames:
     print "kindAttributes(%s): %s" % (kind, [str(x) for x in kindAttributes])
 
 for kind in kindNames:
-    kindInstances = c.kindInstances(kind, libLowLevelPyDeska.OptionalFilter(),
-                                    libLowLevelPyDeska.OptionalRevisionId())
-    print "kindInstances(%s): %s" % (kind, [str(x) for x in kindInstances])
+    kindInstances = []
+    kindInstances.append(c.kindInstances(kind))
+    kindInstances.append(c.kindInstances(kind,
+                                         libLowLevelPyDeska.OptionalFilter()))
+    kindInstances.append(c.kindInstances(kind,
+                                         libLowLevelPyDeska.OptionalFilter(),
+                                         libLowLevelPyDeska.OptionalRevisionId()))
+    kindInstances.append(c.kindInstances(kind,
+                                         libLowLevelPyDeska.OptionalFilter(),
+                                         libLowLevelPyDeska.OptionalRevisionId(
+                                             libLowLevelPyDeska.RevisionId(1)
+                                         )))
+    kindInstances.append(c.kindInstances(kind,
+                                         libLowLevelPyDeska.OptionalFilter(of)))
+
+
+    for answer in kindInstances:
+        print "kindInstances(%s): %s" % (kind, [str(x) for x in answer])

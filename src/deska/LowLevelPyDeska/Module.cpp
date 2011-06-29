@@ -85,6 +85,7 @@ void exportRevisions()
             .def(self_ns::str(self));
 }
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
@@ -105,5 +106,5 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
             .def("kindAttributes", &Connection::kindAttributes)
-            .def("kindInstances", &Connection::kindInstances);
+            .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads());
 }
