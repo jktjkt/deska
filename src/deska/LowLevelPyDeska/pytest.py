@@ -2,18 +2,18 @@ import sys
 import os
 import datetime
 sys.path.append(os.getcwd())
-import libLowLevelPyDeska
+import libLowLevelPyDeska as _l
 
 def verify(x):
     print "%s: %s" % (type(x), x)
-    deska_val = libLowLevelPyDeska.Py_2_DeskaDbValue(x)
+    deska_val = _l.Py_2_DeskaDbValue(x)
     try:
-        non_opt = libLowLevelPyDeska.DeskaDbValue_2_DeskaDbNonOptionalValue(deska_val)
+        non_opt = _l.DeskaDbValue_2_DeskaDbNonOptionalValue(deska_val)
         print "Deska::Db::NonOptionalValue: str  %s" % str(non_opt)
         print "Deska::Db::NonOptionalValue: repr %s" % repr(non_opt)
     except RuntimeError, e:
         print "deoptionalify failed"
-    py_x = libLowLevelPyDeska.DeskaDbValue_2_Py(deska_val)
+    py_x = _l.DeskaDbValue_2_Py(deska_val)
     print "Deska::Db::Value -> Py str : %s" % str(py_x)
     print "Deska::Db::Value -> Py repr: %s" % repr(py_x)
     if str(x) != str(py_x):
@@ -23,9 +23,9 @@ def verify(x):
     print
 
 variants = ("ahoj", 3, 333.666, None,
-            libLowLevelPyDeska.IPv4Address("127.0.0.1"),
-            libLowLevelPyDeska.IPv6Address("::1"),
-            libLowLevelPyDeska.MacAddress("00:16:3e:37:53:2B"),
+            _l.IPv4Address("127.0.0.1"),
+            _l.IPv6Address("::1"),
+            _l.MacAddress("00:16:3e:37:53:2B"),
             datetime.datetime.now(), datetime.date.today(),
            )
 
@@ -34,11 +34,11 @@ for x in variants:
 
 for x in variants:
     print "%s: %s" % (type(x), x)
-    metadataval = libLowLevelPyDeska.Py_2_DeskaMetadataValue(x)
+    metadataval = _l.Py_2_DeskaMetadataValue(x)
 
     print "Deska::Db::MetadataValue: str  %s" % str(metadataval)
     print "Deska::Db::MetadataValue: repr %s" % repr(metadataval)
-    py_x = libLowLevelPyDeska.DeskaMetadataValue_2_Py(metadataval)
+    py_x = _l.DeskaMetadataValue_2_Py(metadataval)
     print "Deska::Db::MetadataValue -> Py: str  %s" % str(py_x)
     print "Deska::Db::MetadataValue -> Py: repr %s" % repr(py_x)
     if str(x) != str(py_x):
@@ -48,26 +48,26 @@ for x in variants:
             type(x), x, type(py_x), py_x)
     print
 
-fe1 = libLowLevelPyDeska.MetadataExpression(
-    libLowLevelPyDeska.ComparisonOperator.COLUMN_LT, "revision",
-    libLowLevelPyDeska.Py_2_DeskaMetadataValue(libLowLevelPyDeska.RevisionId(333)))
-fe2 = libLowLevelPyDeska.AttributeExpression(
-    libLowLevelPyDeska.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
-    libLowLevelPyDeska.Py_2_DeskaDbValue("hp"))
+fe1 = _l.MetadataExpression(
+    _l.ComparisonOperator.COLUMN_LT, "revision",
+    _l.Py_2_DeskaMetadataValue(_l.RevisionId(333)))
+fe2 = _l.AttributeExpression(
+    _l.ComparisonOperator.COLUMN_EQ, "hardware", "vendor",
+    _l.Py_2_DeskaDbValue("hp"))
 print fe1
-print libLowLevelPyDeska.Expression(fe1)
+print _l.Expression(fe1)
 print fe2
-print libLowLevelPyDeska.Expression(fe2)
+print _l.Expression(fe2)
 
-tmp = libLowLevelPyDeska.std_vector_Filter()
-tmp.append(libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(fe1)))
-tmp.append(libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(fe2)))
-of = libLowLevelPyDeska.OrFilter(tmp)
+tmp = _l.std_vector_Filter()
+tmp.append(_l.Filter(_l.Expression(fe1)))
+tmp.append(_l.Filter(_l.Expression(fe2)))
+of = _l.OrFilter(tmp)
 del tmp
 print of
 print
 
-c = libLowLevelPyDeska.Connection()
+c = _l.Connection()
 kindNames = c.kindNames()
 print "kindNames: %s" % kindNames
 
@@ -83,17 +83,17 @@ for kind in kindNames:
     kindInstances = []
     kindInstances.append(c.kindInstances(kind))
     kindInstances.append(c.kindInstances(kind,
-                                         libLowLevelPyDeska.OptionalFilter()))
+                                         _l.OptionalFilter()))
     kindInstances.append(c.kindInstances(kind,
-                                         libLowLevelPyDeska.OptionalFilter(),
-                                         libLowLevelPyDeska.OptionalRevisionId()))
+                                         _l.OptionalFilter(),
+                                         _l.OptionalRevisionId()))
     kindInstances.append(c.kindInstances(kind,
-                                         libLowLevelPyDeska.OptionalFilter(),
-                                         libLowLevelPyDeska.OptionalRevisionId(
-                                             libLowLevelPyDeska.RevisionId(1)
+                                         _l.OptionalFilter(),
+                                         _l.OptionalRevisionId(
+                                             _l.RevisionId(1)
                                          )))
     kindInstances.append(c.kindInstances(kind,
-                                         libLowLevelPyDeska.OptionalFilter(of)))
+                                         _l.OptionalFilter(of)))
 
 
     for answer in kindInstances:
@@ -105,10 +105,10 @@ for x in objData:
     print "%s %r" % (type(x.key()), x.key())
     print "%s %r" % (type(x.data()), x.data())
 
-f2 = libLowLevelPyDeska.Filter(libLowLevelPyDeska.Expression(
-    libLowLevelPyDeska.AttributeExpression(
-        libLowLevelPyDeska.ComparisonOperator.COLUMN_NE,
-        "host", "name", libLowLevelPyDeska.Py_2_DeskaDbValue("non-existant"))
+f2 = _l.Filter(_l.Expression(
+    _l.AttributeExpression(
+        _l.ComparisonOperator.COLUMN_NE,
+        "host", "name", _l.Py_2_DeskaDbValue("non-existant"))
 ))
 print f2
 # this would fail, it is not implemented yet
