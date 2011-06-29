@@ -20,6 +20,7 @@
 * */
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/db/Connection.h"
 #include "deska/LowLevelPyDeska/Filter.h"
@@ -100,6 +101,7 @@ void exportRevisions()
 }
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
@@ -116,10 +118,15 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def(vector_indexing_suite<vect_string>())
             .def("__repr__", repr_vect<std::string>);
 
+    typedef std::map<Identifier, Value> map_Identifier_Value;
+    class_<map_Identifier_Value>("std_map_Identifier_Value")
+            .def(map_indexing_suite<map_Identifier_Value>());
+
     // DBAPI connection implementation
     class_<Connection, boost::noncopyable>("Connection")
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
             .def("kindAttributes", &Connection::kindAttributes)
-            .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads());
+            .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads())
+            .def("objectData", &Connection::objectData, Connection_objectData_overloads());
 }

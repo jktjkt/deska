@@ -98,3 +98,9 @@ for kind in kindNames:
 
     for answer in kindInstances:
         print "kindInstances(%s): %s" % (kind, answer)
+
+objData = c.objectData("host", "hpv2")
+print objData
+for x in objData:
+    print "%s %r" % (type(x.key()), x.key())
+    print "%s %r" % (type(x.data()), x.data())
