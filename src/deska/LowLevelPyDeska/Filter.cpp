@@ -193,6 +193,10 @@ std::string repr_Expression(const Expression &e)
     return boost::apply_visitor(DeskaExpressionToString(), e);
 }
 
+/** @short A vector_indexing_suite without the __contains__ oeprator
+
+That operator requires a rather strange operator== specialization. The compiler claims that such a specialization is not here.
+*/
 template <class T>
 class no_compare_indexing_suite :
   public vector_indexing_suite<T, false, no_compare_indexing_suite<T> >
