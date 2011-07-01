@@ -99,14 +99,14 @@ std::map<Identifier, std::map<Identifier, Value> > FakeApi::multipleObjectData(
     return map<Identifier, map<Identifier, Value> >();
 }
 
-map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectData(const Identifier &kindName,
+map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     map<Identifier, pair<Identifier, Value> > empty;
     return empty;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > FakeApi::multipleResolvedObjectData(
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > FakeApi::multipleResolvedObjectDataWithOrigin(
     const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     return map<Identifier, map<Identifier, pair<Identifier, Value> > >();

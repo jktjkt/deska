@@ -177,34 +177,34 @@ std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObject
 }
 
 
-map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectData(const Identifier &kindName,
+map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
-    JsonCommandContext c1("resolvedObjectData");
+    JsonCommandContext c1("resolvedObjectDataWithOrigin");
 
-    JsonHandlerApiWrapper h(this, "resolvedObjectData");
+    JsonHandlerApiWrapper h(this, "resolvedObjectDataWithOrigin");
     h.argument(j_kindName, kindName);
     h.argument(j_objName, objectName);
     if (revision)
         h.argument(j_revision, *revision);
     JsonWrappedAttributeMapWithOrigin res(kindAttributesWithoutRelation(kindName));
-    h.read("resolvedObjectData").extract(&res);
+    h.read("resolvedObjectDataWithOrigin").extract(&res);
     h.work();
     return res.attributes;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectData(
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectDataWithOrigin(
     const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
-    JsonCommandContext c1("multipleResolvedObjectData");
+    JsonCommandContext c1("multipleResolvedObjectDataWithOrigin");
 
-    JsonHandlerApiWrapper h(this, "multipleResolvedObjectData");
+    JsonHandlerApiWrapper h(this, "multipleResolvedObjectDataWithOrigin");
     h.argument(j_kindName, kindName);
     h.argument(j_filter, filter);
     if (revision)
         h.argument(j_revision, *revision);
     JsonWrappedAttributeMapWithOriginList res(kindAttributesWithoutRelation(kindName));
-    h.read("multipleResolvedObjectData").extract(&res);
+    h.read("multipleResolvedObjectDataWithOrigin").extract(&res);
     h.work();
     return res.objects;
 }

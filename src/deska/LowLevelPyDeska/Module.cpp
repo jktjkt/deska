@@ -114,7 +114,7 @@ void exportNastyMaps()
     class_<map_Identifier_Value>("std_map_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_Value>());
 
-    // this one is the inner type inside the multipleResolvedObjectData return type
+    // this one is the inner type inside the multipleResolvedObjectDataWithOrigin return type
     typedef std::pair<Identifier, Value> pair_Identifier_Value;
     to_python_converter<pair_Identifier_Value, PairToTupleConverter<Identifier, Value> >();
 
@@ -132,8 +132,8 @@ void exportNastyMaps()
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleObjectData, multipleObjectData, 2, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectData, resolvedObjectData, 2, 3);
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectData, multipleResolvedObjectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectDataWithOrigin, resolvedObjectDataWithOrigin, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectDataWithOrigin, multipleResolvedObjectDataWithOrigin, 2, 3);
 
 BOOST_PYTHON_MODULE(libLowLevelPyDeska)
 {
@@ -159,6 +159,6 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads())
             .def("objectData", &Connection::objectData, Connection_objectData_overloads())
             .def("multipleObjectData", &Connection::multipleObjectData, Connection_multipleObjectData())
-            .def("resolvedObjectData", &Connection::resolvedObjectData, Connection_resolvedObjectData())
-            .def("multipleResolvedObjectData", &Connection::multipleResolvedObjectData, Connection_multipleResolvedObjectData());
+            .def("resolvedObjectDataWithOrigin", &Connection::resolvedObjectDataWithOrigin, Connection_resolvedObjectDataWithOrigin())
+            .def("multipleResolvedObjectDataWithOrigin", &Connection::multipleResolvedObjectDataWithOrigin, Connection_multipleResolvedObjectDataWithOrigin());
 }

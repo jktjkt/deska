@@ -49,11 +49,11 @@ f2 = _l.Filter(_l.Expression(
 ))
 print f2
 # this would fail, it is not implemented yet
-#resolvedData = c.resolvedObjectData("host", "hpv2")
+#resolvedData = c.resolvedObjectDataWithOrigin("host", "hpv2")
 #print resolvedData
 # not implemented, either
 #multipleData = c.multipleObjectData("host", f2)
 #print multipleData
 # not implemented, either
-#multipleResolved = c.multipleResolvedObjectData("host", f2)
+#multipleResolved = c.multipleResolvedObjectDataWithOrigin("host", f2)
 #print multipleResolved
