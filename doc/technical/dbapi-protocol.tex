@@ -440,9 +440,11 @@ top-level object will return attributes valid at the scope of each object.
 After establishing the metadata structure, applications which require only read-only access can proceed with retrieving
 individual objects' data.  The API provides a few functions for that, starting with the \deskaFuncRef{kindInstances} for
 determining identifiers (names) of particular objects, \deskaFuncRef{objectData} for fetching values of object's
-attributes, and \deskaFuncRef{resolvedObjectDataWithOrigin} as a variant of \deskaFuncRef{objectData} which natively supports
-resolving inherited values from object templates.  For batched retrieval of data for multiple objects of the same kind,
-use the \deskaFuncRef{multipleObjectData} and \deskaFuncRef{multipleResolvedObjectDataWithOrigin}.
+attributes, \deskaFuncRef{resolvedObjectData} as a variant of \deskaFuncRef{objectData} which natively supports
+resolving inherited values from object templates, and \deskaFuncRef{resolvedObjectDataWithOrigin} which adds information
+about the origin of each attribute to the output.  For batched retrieval of data for multiple objects of the same kind,
+use the \deskaFuncRef{multipleObjectData}, \deskaFuncRef{multipleResolvedObjectData} and
+\deskaFuncRef{multipleResolvedObjectDataWithOrigin}.
 
 Before potentially using any methods for object modification, each application has to open a changeset to work in.  The
 application can achieve that either by calling the \deskaFuncRef{startChangeset}, or possibly by attaching into one of
@@ -621,15 +623,18 @@ Functions from this group are used for fetching actual data from the database.
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
     {Get all attributes for a particular object instance}
     {This function returns values of all attributes which are defined for the given object.  No template resolving is
-    performed, see \deskaFuncRef{resolvedObjectDataWithOrigin} for a function which operates on the resolved object state.
+    performed, see \deskaFuncRef{resolvedObjectData} and \deskaFuncRef{resolvedObjectDataWithOrigin} for a function
+    which operates on the resolved object state.
 
     This function is guaranteed to return all attribute instances, including the {\tt null} values.  The only exception are
     embedded objects, for which the \deskaFuncRef{kindAttributes} returns a special attribute referring to the foreign
     key reference (in the demo setup, this would be the {\tt host} attribute for an {\tt interface}), but this special
     attribute is always missing from the \deskaFuncRef{objectData} output.
 
-    For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData} and
-    \deskaFuncRef{multipleResolvedObjectDataWithOrigin}.  \deskaUnsortedRes
+    For a batched equivalent for bulk retrieval of object data, see \deskaFuncRef{multipleObjectData},
+    \deskaFuncRef{multipleResolvedObjectData} and \deskaFuncRef{multipleResolvedObjectDataWithOrigin}.
+
+    \deskaUnsortedRes
     }
 
 \deskaFunc{multipleObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
@@ -640,6 +645,28 @@ Functions from this group are used for fetching actual data from the database.
     {This is the batched equivalent of \deskaFuncRef{objectData}.  Each object which matches the criteria will be
     present in the result, even if it has no attributes.  The amount of data returned is the same as in
     \deskaFuncRef{objectData} function.  \deskaUnsortedRes}
+
+\deskaFunc{resolvedObjectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
+    {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
+    {Get all attributes for a particular object instance}
+    {This function returns values of all attributes which are defined for the given object, taking templates into
+    account and resolving the effective value of each attribute from templates.
+
+    The format of the output as well as its guarantees are the same as for the \deskaFuncRef{objectData}.
+
+    \deskaUnsortedRes
+    }
+
+\deskaFunc{multipleResolvedObjectData}{, "kindName": "kind", "filter": Filter, "revision": "r123"}
+    {\{"object1": \{"foo": "bar1", "baz": "id1", "int": 1, "real": 100.666, "price": 666\}, \\
+       "object2": \{"foo": "bar2", "baz": "id2", "int": 2, "real": 200.666, "price": 333\}
+      \}}
+    {Get all attributes for instances matching the specified filter}
+    {This is the batched equivalent of \deskaFuncRef{resolvedObjectData}.  Each object which matches the criteria will
+    be present in the result, even if it has no attributes.  The amount of data returned is the same as in
+    \deskaFuncRef{resolvedDataDifference} function.
+
+    \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectDataWithOrigin}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
