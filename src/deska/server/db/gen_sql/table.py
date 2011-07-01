@@ -286,8 +286,10 @@ class Table(constants.Templates):
 		#table which is thatone embed into
 		if self.embed_into <> "":
 			resolved_data_string = self.resolved_data_embed_string
+			resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
 		else:
 			resolved_data_string = self.resolved_data_string
+			resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
@@ -330,6 +332,6 @@ class Table(constants.Templates):
 		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols)
 		resolve_data_fce = resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
 		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
-		resolve_object_data_template_info = self.resolved_object_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ, data_columns = dticols)
+		resolve_object_data_template_info = resolved_object_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ, data_columns = dticols)
 		return  resolve_data_fce + '\n' + templ_info_type + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 		
