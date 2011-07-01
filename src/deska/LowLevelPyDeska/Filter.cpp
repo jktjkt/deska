@@ -329,11 +329,13 @@ void exportDeskaFilter()
 
     class_<OrFilter>("OrFilter", no_init)
             .def(init<const vect_Filter&>())
-            .def("__repr__", repr_OrFilter);
+            .def("__repr__", repr_OrFilter)
+            .def_readonly("operands", &OrFilter::operands);
 
     class_<AndFilter>("AndFilter", no_init)
             .def(init<const vect_Filter&>())
-            .def("__repr__", repr_AndFilter);
+            .def("__repr__", repr_AndFilter)
+            .def_readonly("operands", &AndFilter::operands);
 
     class_<Filter>("Filter")
             .def(init<const Expression&>())
