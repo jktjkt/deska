@@ -131,7 +131,9 @@ void exportNastyMaps()
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_objectData_overloads, objectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectData_overloads, resolvedObjectData, 2, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleObjectData, multipleObjectData, 2, 3);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectData, multipleResolvedObjectData, 2, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_resolvedObjectDataWithOrigin, resolvedObjectDataWithOrigin, 2, 3);
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_multipleResolvedObjectDataWithOrigin, multipleResolvedObjectDataWithOrigin, 2, 3);
 
@@ -158,7 +160,9 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def("kindAttributes", &Connection::kindAttributes)
             .def("kindInstances", &Connection::kindInstances, Connection_kindInstances_overloads())
             .def("objectData", &Connection::objectData, Connection_objectData_overloads())
+            .def("resolvedObjectData", &Connection::resolvedObjectData, Connection_resolvedObjectData_overloads())
             .def("multipleObjectData", &Connection::multipleObjectData, Connection_multipleObjectData())
+            .def("multipleResolvedObjectData", &Connection::multipleResolvedObjectData, Connection_multipleResolvedObjectData())
             .def("resolvedObjectDataWithOrigin", &Connection::resolvedObjectDataWithOrigin, Connection_resolvedObjectDataWithOrigin())
             .def("multipleResolvedObjectDataWithOrigin", &Connection::multipleResolvedObjectDataWithOrigin, Connection_multipleResolvedObjectDataWithOrigin());
 }
