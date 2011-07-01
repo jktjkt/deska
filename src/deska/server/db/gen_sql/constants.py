@@ -1008,6 +1008,8 @@ BEGIN
 		END IF;
 	END IF;
 
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+	
 	WITH recursive resolved_data AS (
         SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
@@ -1016,7 +1018,7 @@ BEGIN
         SELECT
 			{rd_dv_coalesce},
 			dv.template, rd.orig_template
-        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
 	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
@@ -1025,6 +1027,9 @@ BEGIN
 	IF NOT FOUND THEN
 		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 	END IF;
+	
+	DROP TABLE template_data_version;
+	
 	RETURN data;
 END
 $$
@@ -1055,6 +1060,8 @@ BEGIN
 		END IF;
 	END IF;
 
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
 	WITH recursive resolved_data AS (
         SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
@@ -1063,7 +1070,7 @@ BEGIN
         SELECT
 			{rd_dv_coalesce},
 			dv.template, rd.orig_template
-        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
 	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
@@ -1072,6 +1079,8 @@ BEGIN
 	IF NOT FOUND THEN
 		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 	END IF;
+	
+	DROP TABLE template_data_version;
 	RETURN data;
 END
 $$
