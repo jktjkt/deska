@@ -4,10 +4,10 @@ from apiUtils import *
 
 declarative = [
     kindNames().returns(
-        AnyOrderList(('interface', 'vendor', 'host', 'hardware'))),
+        AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware'))),
 
     kindAttributes("interface").returns(
-        {"note": "string", "ip4": "string", "ip6": "string", "host": "identifier", "mac": "string"}),
+        {"note": "string", "ip4": "string", "ip6": "string", "host": "identifier", "mac": "string", "template": "identifier"}),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
@@ -16,12 +16,12 @@ declarative = [
     ),
     kindAttributes("hardware").returns(
         {"warranty": "string", "purchase": "string",
-         "vendor": "identifier", 
+         "vendor": "identifier", "template": "identifier",
          "cpu_num": "int", "ram": "int", "note": "string"}
     ),
 
     # try to ask for a non-existing object
-    kindAttributes("pwnpwn").throws(InvalidKindError()), 
+    kindAttributes("pwnpwn").throws(InvalidKindError()),
 
     kindRelations("interface").returns(
         [{'relation': 'EMBED_INTO', 'target': 'host'}]

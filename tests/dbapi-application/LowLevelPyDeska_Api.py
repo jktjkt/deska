@@ -23,7 +23,8 @@ def imperative(r):
     # start with kindNames
     kindNames = c.kindNames()
     r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "vendor",
-                                              "interface"]))
+                                              "interface", "interface_template",
+                                              "hardware_template"]))
 
     # continue with kindRelations
     expectedRelations = {
