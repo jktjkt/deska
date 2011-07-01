@@ -27,6 +27,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_cpu_num_positive
 		CHECK (cpu_num > 0),
 	-- add cpu type, when we have cpu type table
-	note text
+	note text,
+	template bigint
 );
 

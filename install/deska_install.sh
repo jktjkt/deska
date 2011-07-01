@@ -45,10 +45,23 @@ function stage(){
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
+function create_templates(){
+	echo "Creating templates ..."
+	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f "templates.sql" -v dbname="$DATABASE" 2>&1 > /dev/null \
+		|| return $? \
+		| grep -v NOTICE | grep -v "current transaction is aborted"
+}
+
 function generate(){
 	echo "Generating stored procedures ..."
 	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql" > ${DB_SOURCES}/generated.py
 }
+
+function generate_templates(){
+	echo "Generating templates ..."
+	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"
+}
+
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
 
@@ -145,6 +158,8 @@ then
 		pylib dutil.py || die "Error installing python utils - are you root?"
 	fi
 	stage 1 || die "Error running stage 1"
+	generate_templates || die "Error running generate templates"
+	create_templates || die "Error running creating templates"
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
@@ -178,6 +193,8 @@ then
 		stage 0 || die "Error running stage 0"
 	fi
 	stage 1 || die "Error running stage 1"
+	generate_templates || die "Error running generate templates"
+	create_templates || die "Error running creating templates"
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
