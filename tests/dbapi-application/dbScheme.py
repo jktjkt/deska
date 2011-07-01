@@ -2,23 +2,29 @@
 
 from apiUtils import *
 
+helper_interface_attrs = {
+    "note": "string", "ip4": "string", "ip6": "string", "host": "identifier",
+    "mac": "string", "template": "identifier"
+}
+helper_hardware_attrs = {
+    "warranty": "string", "purchase": "string", "vendor": "identifier",
+    "template": "identifier", "cpu_num": "int", "ram": "int", "note": "string"
+}
+
 declarative = [
     kindNames().returns(
         AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware'))),
 
-    kindAttributes("interface").returns(
-        {"note": "string", "ip4": "string", "ip6": "string", "host": "identifier", "mac": "string", "template": "identifier"}),
+    kindAttributes("interface").returns(helper_interface_attrs),
+    kindAttributes("interface_template").returns(helper_interface_attrs),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
             "hardware": "identifier",
             "note": "string"}
     ),
-    kindAttributes("hardware").returns(
-        {"warranty": "string", "purchase": "string",
-         "vendor": "identifier", "template": "identifier",
-         "cpu_num": "int", "ram": "int", "note": "string"}
-    ),
+    kindAttributes("hardware").returns(helper_hardware_attrs),
+    kindAttributes("hardware_template").returns(helper_hardware_attrs),
 
     # try to ask for a non-existing object
     kindAttributes("pwnpwn").throws(InvalidKindError()),
