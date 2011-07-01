@@ -161,6 +161,21 @@ map<Identifier, Value> JsonApiParser::objectData(const Identifier &kindName, con
     return res.attributes;
 }
 
+map<Identifier, Value> JsonApiParser::resolvedObjectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
+{
+    JsonCommandContext c1("resolvedObjectData");
+
+    JsonHandlerApiWrapper h(this, "resolvedObjectData");
+    h.argument(j_kindName, kindName);
+    h.argument(j_objName, objectName);
+    if (revision)
+        h.argument(j_revision, *revision);
+    JsonWrappedAttributeMap res(kindAttributesWithoutRelation(kindName));
+    h.read("resolvedObjectData").extract(&res);
+    h.work();
+    return res.attributes;
+}
+
 std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
 {
     JsonCommandContext c1("multipleObjectData");
@@ -176,6 +191,20 @@ std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleObject
     return res.objects;
 }
 
+std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
+{
+    JsonCommandContext c1("multipleResolvedObjectData");
+
+    JsonHandlerApiWrapper h(this, "multipleResolvedObjectData");
+    h.argument(j_kindName, kindName);
+    h.argument(j_filter, filter);
+    if (revision)
+        h.argument(j_revision, *revision);
+    JsonWrappedAttributeMapList res(kindAttributesWithoutRelation(kindName));
+    h.read("multipleResolvedObjectData").extract(&res);
+    h.work();
+    return res.objects;
+}
 
 map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)

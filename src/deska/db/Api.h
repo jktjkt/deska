@@ -139,8 +139,16 @@ public:
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
+    /** @short Get resolved values of all attributes for a particular object */
+    virtual std::map<Identifier, Value> resolvedObjectData(
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+
     /** @short Version of objectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+
+    /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
         const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Get all attributes, including the inherited ones
