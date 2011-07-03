@@ -29,10 +29,30 @@ MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, con
 {
 }
 
+bool operator==(const MetadataExpression &a, const MetadataExpression &b)
+{
+    return a.comparison == b.comparison && a.metadata == b.metadata && a.constantValue == b.constantValue;
+}
+
+bool operator!=(const MetadataExpression &a, const MetadataExpression &b)
+{
+    return !(a==b);
+}
+
 AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
                                          const Value &constantValue_):
     comparison(comparison_), kind(kind_), attribute(attribute_), constantValue(constantValue_)
 {
+}
+
+bool operator==(const AttributeExpression &a, const AttributeExpression &b)
+{
+    return a.comparison == b.comparison && a.kind == b.kind && a.attribute == b.attribute && a.constantValue == b.constantValue;
+}
+
+bool operator!=(const AttributeExpression &a, const AttributeExpression &b)
+{
+    return !(a==b);
 }
 
 OrFilter::OrFilter(const std::vector<Filter> &operands_):
@@ -43,6 +63,11 @@ OrFilter::OrFilter(const std::vector<Filter> &operands_):
 AndFilter::AndFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
+}
+
+bool operator!=(const Expression &a, const Expression &b)
+{
+    return !(a==b);
 }
 
 }

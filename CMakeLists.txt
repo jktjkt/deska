@@ -29,7 +29,6 @@ add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
 set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} Coverage )
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo" "Coverage")
 set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 set(CMAKE_C_FLAGS_COVERAGE "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -45,7 +44,7 @@ add_definitions(-DCMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # RHEL5 with EPEL Boost
 SET(BOOST_INCLUDEDIR /usr/include/boost141)
 SET(BOOST_LIBRARYDIR /usr/lib64/boost141)
-FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework)
+FIND_PACKAGE(Boost 1.41.0 REQUIRED COMPONENTS system date_time unit_test_framework python)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
 endif(Boost_FOUND)
@@ -81,6 +80,12 @@ endif()
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 FIND_PACKAGE(Readline REQUIRED)
+
+# We have to bring in Python explicitly
+find_package(PythonLibs REQUIRED)
+# yay, different versions of this package use different variable names for increased fun
+include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
+#link_directories(${PYTHON_LIBRARIES})
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -128,12 +133,22 @@ set(deskaCli_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
-add_library(DeskaDb ${libDeskaDb_SRCS})
+set(libLowLevelPyDeska_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Module.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Value.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/Filter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
+)
+
+add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
 add_executable(deska-cli ${deskaCli_SRCS})
 target_link_libraries(deska-cli DeskaCliParser DeskaDb ${READLINE_LIBRARY})
+
+add_library(LowLevelPyDeska SHARED ${libLowLevelPyDeska_SRCS})
+target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
 
 include(CTest)
 add_subdirectory(tests)

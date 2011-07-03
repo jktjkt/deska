@@ -9,6 +9,10 @@ def {name}({args}):
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	templates_str = "SELECT * FROM get_templates_info();"
+	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
+	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('{0}');"
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -35,7 +39,7 @@ CREATE FUNCTION commit_all(message text)
 '''
 	def __init__(self,db_connection):
 		self.plpy = db_connection;
-		self.plpy.execute("SET search_path TO deska,production")
+		self.plpy.execute("SET search_path TO deska,api,production")
 
 		# init set of tables
 		self.tables = set()
@@ -57,6 +61,15 @@ CREATE FUNCTION commit_all(message text)
 
 		# print foreign keys at the end
 		self.fks = ""
+		record = self.plpy.execute(self.templ_tables_str)
+		self.templated_tables = set()
+		for tbl in record:
+			self.templated_tables.add(tbl[0])
+
+		record = self.plpy.execute(self.templates_str)
+		self.templates = dict()
+		for row in record:
+			self.templates[row[0]] = row[1]
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -71,10 +84,7 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
-
-		# print fks at the end of generation
-		#self.sql.write(self.fks)
-
+			
 		self.fn_sql.write(self.gen_commit())
 
 		self.fn_sql.close()
@@ -126,15 +136,32 @@ CREATE FUNCTION commit_all(message text)
 			else:
 				self.refs[tbl] = col[1]
 
+		embed_into_rec = self.plpy.execute(self.embed_into_str.format(tbl))
+		table.embed_into = ""
+		for row in embed_into_rec:
+			table.embed_into = row[0]
+			
+		refuid_rec = self.plpy.execute(self.refuid_columns_str.format(tbl))
+		table.refuid_columns = dict()
+		for row in refuid_rec:
+			table.refuid_columns[row[0]] = row[1]
+		
+		if tbl in self.templates:
+			templated_table = self.templates[tbl]
+			refuid_rec = self.plpy.execute(self.refuid_columns_str.format(templated_table))
+			for row in refuid_rec:
+				if row[0] not in table.refuid_columns:
+					table.refuid_columns[row[0]] = row[1]
+		
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 
 		self.fks = self.fks + (table.gen_fks())
 		#get dictionary of colname and reftable, which uid colname references
-		cols_ref_uid = table.get_cols_reference_uid()
+		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
-			if (col[0] in cols_ref_uid):
-				reftable = cols_ref_uid[col[0]]
+			if (col[0] in table.refuid_columns):
+				reftable = table.refuid_columns[col[0]]
 				#column that references uid has another set function(with finding corresponding uid)
 				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
@@ -143,29 +170,32 @@ CREATE FUNCTION commit_all(message text)
 			#get uid of that references uid should not return uid but name of according instance
 
 		#get uid from embed object
-		embed_column = table.get_col_embed_reference_uid()
-		if (embed_column != ""):
-			reftable = cols_ref_uid[embed_column[0]]
+		if (table.embed_into != ""):
+			reftable = table.embed_into
+			for k, v in table.refuid_columns.iteritems():
+				if v == table.embed_into:
+					embed_column = k
+					break
+			
 			#adding full quolified name with _ delimiter
-			self.fn_sql.write(table.gen_add_embed(embed_column[0],reftable))
+			self.fn_sql.write(table.gen_add_embed(embed_column,reftable))
 			#get uid from embed object, again name have to be full
-			self.fn_sql.write(table.gen_get_uid_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_get_name_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_names_embed(embed_column[0],reftable))
-			self.fn_sql.write(table.gen_set_name_embed(embed_column[0], reftable))
+			self.fn_sql.write(table.gen_get_uid_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_get_name_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_names_embed(embed_column,reftable))
+			self.fn_sql.write(table.gen_set_name_embed(embed_column, reftable))
 		else:
 			self.fn_sql.write(table.gen_add())
 			self.fn_sql.write(table.gen_get_uid())
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set('name'))
-
+			
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.fn_sql.write(table.gen_del())
 		self.fn_sql.write(table.gen_undel())
 		self.fn_sql.write(table.gen_get_object_data())
-		self.fn_sql.write(table.gen_commit())
 		self.fn_sql.write(table.gen_diff_deleted())
 		self.fn_sql.write(table.gen_diff_created())
 		self.fn_sql.write(table.gen_diff_set_attribute())
@@ -173,6 +203,20 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.write(table.gen_diff_terminate_function())
 		self.fn_sql.write(table.gen_data_version())
 		self.fn_sql.write(table.gen_data_changes())
+		
+		#different generated functions for templated and not templated tables
+		if tbl in self.templated_tables:
+			self.fn_sql.write(table.gen_resolved_data())
+
+			if tbl in self.templates:
+			#tbl is template
+				table.templates = self.templates[tbl]
+			else:
+				table.templates = ""
+			self.fn_sql.write(table.gen_commit_templated())
+		else:
+			self.fn_sql.write(table.gen_commit())
+			
 		return
 
 	def gen_commit(self):
@@ -184,3 +228,9 @@ CREATE FUNCTION commit_all(message text)
 
 		return self.commit_string.format(commit_tables = commit_tables)
 
+	def pygen_commit(self):
+		commit_str = '''def commit():
+	return db.callproc("commit")
+	'''
+		return commit_str
+		

@@ -24,7 +24,7 @@ macro(deska_test fname)
     set(test_${fname}_SRCS test_${fname}.cpp)
     add_definitions(-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN)
     add_executable(test_${fname} ${test_${fname}_SRCS})
-    target_link_libraries(test_${fname} ParserTestHelpers ${Boost_LIBRARIES})
+    target_link_libraries(test_${fname} ParserTestHelpers ${DESKA_BOOST_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
     add_test(test_${fname} ${CMAKE_CURRENT_BINARY_DIR}/test_${fname})
 endmacro(deska_test)
 
@@ -105,6 +105,8 @@ if(RUN_SQL_TESTS)
     deska_sql_test(set_attribute)
     deska_sql_test(undel)
     deska_sql_test(set_name)
+    deska_sql_test(template)
+    deska_sql_test(template_data_origin)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
@@ -123,6 +125,13 @@ if(RUN_SQL_TESTS)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
+
+    # Test the Python bindings. The connection to the DB is not really required
+    # for the first one, but it isn't worth the effort to make an extra branch
+    # just for this case IMHO.
+    deska_dbapi_test(LowLevelPyDeska_Values)
+    # The following tests need the connection, though.
+    deska_dbapi_test(LowLevelPyDeska_Api)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
