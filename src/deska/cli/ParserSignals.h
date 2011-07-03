@@ -31,6 +31,7 @@
 #include <boost/signals2/trackable.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Api.h"
+#include "ContextStack.h"
 
 
 namespace Deska
@@ -55,7 +56,7 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const Db::ContextStack &context,
+    ParserSignalCategoryEntered(const ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
@@ -75,7 +76,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -125,7 +126,7 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const Db::ContextStack &context,
+    ParserSignalSetAttribute(const ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -145,7 +146,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -166,7 +167,7 @@ public:
     *   @param context Current parser context
     *   @param attribute Name of attribute being changed
     */
-    ParserSignalRemoveAttribute(const Db::ContextStack &context,
+    ParserSignalRemoveAttribute(const ContextStack &context,
                                 const Db::Identifier &attribute);
 
     /** @short Performs action, that is the signal connected with.
@@ -186,7 +187,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -205,7 +206,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const Db::ContextStack &context);
+    ParserSignalFunctionShow(const ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -224,7 +225,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 };
 
 
@@ -238,7 +239,7 @@ public:
     *
     *   @param context Current parser context 
     */
-    ParserSignalFunctionDelete(const Db::ContextStack &context);
+    ParserSignalFunctionDelete(const ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -257,7 +258,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 };
 
 
@@ -272,7 +273,7 @@ public:
     *   @param context Current parser context
     *   @param newName New name of the object in the context stack
     */
-    ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
+    ParserSignalFunctionRename(const ContextStack &context, const Db::Identifier &newName);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -291,7 +292,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -414,7 +415,7 @@ private:
     std::vector<ParserSignal> signalsStack;
 
     /** The context is held there. */
-    Db::ContextStack contextStack;
+    ContextStack contextStack;
 
     /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;

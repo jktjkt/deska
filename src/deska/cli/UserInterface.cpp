@@ -519,7 +519,7 @@ UserInterface::~UserInterface()
 
 
 
-bool UserInterface::applyCategoryEntered(const Db::ContextStack &context,
+bool UserInterface::applyCategoryEntered(const ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object)
 {
     if (m_dbInteraction->objectExists(context))
@@ -541,7 +541,7 @@ bool UserInterface::applyCategoryEntered(const Db::ContextStack &context,
 
 
 
-bool UserInterface::applySetAttribute(const Db::ContextStack &context,
+bool UserInterface::applySetAttribute(const ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
@@ -550,7 +550,7 @@ bool UserInterface::applySetAttribute(const Db::ContextStack &context,
 
 
 
-bool UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
 {
     m_dbInteraction->removeAttribute(context, attribute);
     return true;
@@ -558,7 +558,15 @@ bool UserInterface::applyRemoveAttribute(const Db::ContextStack &context, const 
 
 
 
-bool UserInterface::applyFunctionShow(const Db::ContextStack &context)
+bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Filter &filter)
+{
+    // TODO
+    return true;
+}
+
+
+
+bool UserInterface::applyFunctionShow(const ContextStack &context)
 {
     if (context.empty()) {
         // Print top level objects if we are not in any context
@@ -577,7 +585,7 @@ bool UserInterface::applyFunctionShow(const Db::ContextStack &context)
 
 
 
-bool UserInterface::applyFunctionDelete(const Db::ContextStack &context)
+bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
     m_dbInteraction->deleteObject(context);
     return true;
@@ -585,7 +593,7 @@ bool UserInterface::applyFunctionDelete(const Db::ContextStack &context)
 
 
 
-bool UserInterface::applyFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
     m_dbInteraction->renameObject(context, newName);
     return true;
@@ -593,7 +601,7 @@ bool UserInterface::applyFunctionRename(const Db::ContextStack &context, const D
 
 
 
-bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
+bool UserInterface::confirmCategoryEntered(const ContextStack &context,
                                            const Db::Identifier &kind, const Db::Identifier &object)
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
@@ -615,7 +623,7 @@ bool UserInterface::confirmCategoryEntered(const Db::ContextStack &context,
 
 
 
-bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
+bool UserInterface::confirmSetAttribute(const ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     if (!inChangeset) {
@@ -627,7 +635,7 @@ bool UserInterface::confirmSetAttribute(const Db::ContextStack &context,
 
 
 
-bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
 {
     if (!inChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
@@ -638,14 +646,21 @@ bool UserInterface::confirmRemoveAttribute(const Db::ContextStack &context, cons
 
 
 
-bool UserInterface::confirmFunctionShow(const Db::ContextStack &context)
+bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Filter &filter)
 {
     return true;
 }
 
 
 
-bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
+bool UserInterface::confirmFunctionShow(const ContextStack &context)
+{
+    return true;
+}
+
+
+
+bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
     if (!inChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
@@ -659,7 +674,7 @@ bool UserInterface::confirmFunctionDelete(const Db::ContextStack &context)
 
 
 
-bool UserInterface::confirmFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName)
+bool UserInterface::confirmFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
     if (!inChangeset) {
         io->reportError("Error: You have to be connected to a changeset to rename an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
@@ -690,7 +705,7 @@ void UserInterface::run()
     exitLoop = false;
     while (!exitLoop) {
         parsingFailed = false;
-        line = io->readLine(Db::contextStackToString(m_parser->currentContextStack()));
+        line = io->readLine(contextStackToString(m_parser->currentContextStack()));
 
         // Split line to command and arguments
         std::string::iterator commandEnd = line.begin();

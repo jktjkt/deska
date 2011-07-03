@@ -24,7 +24,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <vector>
 #include <boost/asio/ip/address_v4.hpp>
 #include <boost/asio/ip/address_v6.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -245,35 +244,6 @@ struct AttributeDefinition
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a);
 bool operator==(const AttributeDefinition &a, const AttributeDefinition &b);
 bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b);
-
-
-/** @short Typedef for context stack. */
-typedef std::vector<ObjectDefinition> ContextStack;
-
-/** @short Function for converting context stack into name path to the object on the top.
-*
-*   This function is for obtaining full name from the context stack, so we can pass it to the DB.
-*   
-*   Example: For context stack [host hpv2, interface eth0] will the result of the function be hpv2->eth0
-*
-*   @param contextStack Context stack, where the top object is the one for which we want to get the path.
-*   @return Identifier of a object composed from single identifiers from the context stack
-*/
-Identifier contextStackToPath(const ContextStack &contextStack);
-
-/** @short Function for converting context stack into string representation.
-*
-*   @param contextStack Context stack to convert
-*   @return String representation of the context stack composed from single object definitions
-*/
-std::string contextStackToString(const ContextStack &contextStack);
-
-/** @short Function for converting object path into vector of identifiers.
-*
-*   @param contextStack Context stack to convert
-*   @return Vector of identifiers extracted from the path
-*/
-std::vector<Identifier> PathToVector(const std::string &path);
 
 }
 }
