@@ -78,6 +78,10 @@ struct AttributeExpression
     Value constantValue;
 
     AttributeExpression(const ComparisonOperator comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    AttributeExpression() {};
 };
 
 bool operator==(const AttributeExpression &a, const AttributeExpression &b);
@@ -101,7 +105,13 @@ struct OrFilter
     std::vector<Filter> operands;
 
     OrFilter(const std::vector<Filter> &operands);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    OrFilter() {};
 };
+
+//std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
@@ -109,7 +119,15 @@ struct AndFilter
     std::vector<Filter> operands;
 
     AndFilter(const std::vector<Filter> &operands);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    AndFilter() {};
 };
+
+//std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
+
+//std::ostream& operator<<(std::ostream &stream, const Filter &f);
 
 }
 }

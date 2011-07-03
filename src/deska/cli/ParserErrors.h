@@ -492,7 +492,7 @@ private:
     *
     *   @param name Key from the symbols table
     *   @param rule Value from the symbols table
-    *   @see AttributesParser
+    *   @see AttributesSettingParser
     */
     void extractAttributeName(const Db::Identifier &name,
                               const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);

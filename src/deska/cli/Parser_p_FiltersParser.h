@@ -73,6 +73,9 @@ private:
     /** Main rule. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type> start;
 
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> andFilter;
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> orFilter;
+
     /** Rule for parsing attribute names. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type, qi::locals<bool> > attrExpr;
     /** Rule for parsing attribute values. */

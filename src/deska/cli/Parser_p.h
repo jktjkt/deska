@@ -63,11 +63,13 @@ public:
 
 
 template <typename Iterator> class AttributeRemovalsParser;
+template <typename Iterator> class AttributesSettingParser;
 template <typename Iterator> class AttributesParser;
 template <typename Iterator> class FunctionWordsParser;
 template <typename Iterator> class KindsOnlyParser;
 template <typename Iterator> class PredefinedRules;
 template <typename Iterator> class FiltersParser;
+template <typename Iterator> class KindsParser;
 template <typename Iterator> class KindsFiltersParser;
 template <typename Iterator> class WholeKindParser;
 template <typename Iterator> class TopLevelParser;
@@ -102,7 +104,7 @@ template <typename Iterator> class TopLevelParser;
 *   The whole parser communicates with the outer world through emitting the signals of the parent parser.
 *
 *   @see Parser
-*   @see Db::ContextStack
+*   @see ContextStack
 */
 template <typename Iterator>
 class ParserImpl: boost::noncopyable
@@ -161,7 +163,7 @@ public:
     *   @return Current context stack.
     *   @see Db::ObjectDefinition
     */
-    Db::ContextStack currentContextStack() const;
+    ContextStack currentContextStack() const;
 
     /** @short Get list of strings for tab completion of current line.
     *
@@ -181,7 +183,7 @@ public:
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);
     void attributeRemove(const Db::Identifier &name);
-    void objectsFilter(const Db::Filter &filter);
+    void objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     //@}
 
     /** @short Sets flag singleKind to true.
@@ -228,7 +230,7 @@ public:
     *
     *   @param stack Vector of object definitions representing new context stack
     */
-    void setContextStack(const Db::ContextStack &stack);
+    void setContextStack(const ContextStack &stack);
     
     /** @short Clears context stack.
     *
@@ -239,7 +241,7 @@ public:
 private:
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
-    void addKindAttributes(const Db::Identifier &kindName, AttributesParser<Iterator>* attributesParser,
+    void addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<Iterator>* attributesSettingParser,
                            AttributeRemovalsParser<Iterator>* attributeRemovalsParser,
                            FiltersParser<Iterator> *filtersParser);
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
@@ -281,11 +283,13 @@ private:
     /** All rules and grammars, that is the whole parser build of are stored there.
     *   Only pointers are used in the main parser.
     */
-    std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
+    std::map<std::string, AttributesSettingParser<Iterator>* > attributesSettingParsers;
     std::map<std::string, AttributeRemovalsParser<Iterator>* > attributeRemovalsParsers;
+    std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, FiltersParser<Iterator>* > filtersParsers;
     std::map<std::string, KindsFiltersParser<Iterator>* > kindsFiltersParsers;
+    std::map<std::string, KindsParser<Iterator>* > kindsParsers;
     std::map<std::string, WholeKindParser<Iterator>* > wholeKindParsers;
     KindsOnlyParser<Iterator> *topLevelKindsParser;
     KindsFiltersParser<Iterator> *topLevelKindsFiltersParser;
@@ -298,7 +302,7 @@ private:
     std::vector<Db::Identifier> topLevelKindsIds;
 
     /** The parser context is held there. */
-    Db::ContextStack contextStack;
+    ContextStack contextStack;
     /** Stack with errors, that occures during parsing. @see void addParseError(const ParseError<Iterator> &error) */
     std::vector<ParseError<Iterator> > parseErrors;
     
@@ -308,6 +312,8 @@ private:
     bool dryRun;
     /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
     bool singleKind;
+    /** True when some filter was entered. */
+    bool inFilter;
     /** Current parsing mode. @see ParsingMode */
     ParsingMode parsingMode;
 };

@@ -197,6 +197,45 @@ private:
 
 
 
+class ParserSignalObjectsFilter
+{
+public:
+
+    /** @short Constructor for storing signal objectsFilter().
+    *
+    *   @param context Current parser context
+    *   @param filter Parsed filter
+    */
+    ParserSignalObjectsFilter(const ContextStack &context,
+                              const Db::Filter &filter);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Filter objectsFilter;
+    //@}
+};
+
+
+
 /** @short Represents signal functionShow() from the parser. */
 class ParserSignalFunctionShow
 {
@@ -304,8 +343,8 @@ private:
 
 /** @short Represents one signal from the Parser. */
 typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
-                       ParserSignalRemoveAttribute, ParserSignalFunctionShow, ParserSignalFunctionDelete,
-                       ParserSignalFunctionRename> ParserSignal;
+                       ParserSignalRemoveAttribute, ParserSignalObjectsFilter, ParserSignalFunctionShow,
+                       ParserSignalFunctionDelete, ParserSignalFunctionRename> ParserSignal;
 
 
 
@@ -396,6 +435,7 @@ private:
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
     void slotRemoveAttribute(const Db::Identifier &attribute);
+    void slotObjectsFilter(const Db::Filter &filter);
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotFunctionRename(const Db::Identifier &newName);
@@ -407,6 +447,7 @@ private:
     friend class ParserSignalCategoryLeft;
     friend class ParserSignalSetAttribute;
     friend class ParserSignalRemoveAttribute;
+    friend class ParserSignalObjectsFilter;
     friend class ParserSignalFunctionShow;
     friend class ParserSignalFunctionDelete;
     friend class ParserSignalFunctionRename;

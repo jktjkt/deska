@@ -82,20 +82,47 @@ bool operator!=(const AttributeExpression &a, const AttributeExpression &b)
 std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a)
 {
     return stream << a.kind << "." << a.attribute << " " << a.comparison << " " << a.constantValue;
+}
+
 OrFilter::OrFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
 }
-
+/*
+std::ostream& operator<<(std::ostream &stream, const OrFilter &o)
+{
+    for (std::vector<Filter>::const_iterator it = o.operands.begin(); it != o.operands.end(); ++it) {
+        if (it != o.operands.begin())
+            stream << " & ";
+        stream << *it;
+    }
+    return stream;
+}
+*/
 AndFilter::AndFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
 }
-
+/*
+std::ostream& operator<<(std::ostream &stream, const AndFilter &a)
+{
+    for (std::vector<Filter>::const_iterator it = a.operands.begin(); it != a.operands.end(); ++it) {
+        if (it != a.operands.begin())
+            stream << " | ";
+        stream << *it;
+    }
+    return stream;
+}
+*/
 bool operator!=(const Expression &a, const Expression &b)
 {
     return !(a==b);
 }
+/*
+std::ostream& operator<<(std::ostream &stream, const Filter &f)
+{
+    return stream << "(" << f << ")";
+}*/
 
 }
 }
