@@ -869,7 +869,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     }
 }
 
-/** @short Convert JSON into a wrapped, type-checked structure for multipleResolvedObjectData()
+/** @short Convert JSON into a wrapped, type-checked structure for multipleResolvedObjectDataWithOrigin()
 
 @see SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract
 @see SpecializedExtractor<JsonWrappedAttributeMapList>::extract

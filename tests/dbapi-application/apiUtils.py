@@ -26,12 +26,12 @@ class DeskaDbUser(object):
 
 class AnyOrderList(object):
     def __init__(self, items):
-        self.items = frozenset(items)
+        self.items = sorted(items)
 
     def __eq__(self, other):
         if not isinstance(other, list):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
-        return self.items == frozenset(other)
+        return self.items == sorted(other)
 
 class Any(object):
     """Compare against anything with True result"""

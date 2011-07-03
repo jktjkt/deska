@@ -89,49 +89,41 @@ class Table(constants.Templates):
 		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable, columns = self.get_columns())
 
 	def gen_get_object_data(self):
-		collist = self.col.copy()
+		collist = self.col.copy()		
 		del collist['uid']
 		del collist['name']
 		if len(collist) == 0:
 			return ""
 
-		get_data_string = self.get_data_string
-		embed_table = ""
-		# replace uid of referenced object its name
-		# old column : new column selector
-		newcollist = dict()
-		for refs in self.fks.att:
-			tbl = self.fks.tbl[refs]
-			if self.fks.ratt[refs] != list(['uid']):
-				raise Exception("ref to not uid column")
-			for col in self.fks.att[refs]:
-				collist[col] = 'text'
-				if "rembed_" in refs:
-					# delete this col from output
-					del collist[col]
-					get_data_string = self.get_embed_data_string
-					embed_table = tbl
-				else:
-					newcol = tbl + "_get_name(" + col + ") as " + col 
-					newcollist[col] = newcol
+		dattributes = map("data.{0}".format,collist.keys())
+		dcols = ",".join(dattributes)
+
+		if self.embed_into <> "":
+			get_data_string = self.get_embed_data_string
+			del collist[self.embed_into]
+		else:
+			get_data_string = self.get_data_string
+
+		#replace uid of referenced table object by its name
+		for col in self.refuid_columns:
+			collist[col] = 'text'
+
+		attributes = collist.keys()
+		#attributes.sort()
+		atttypes = collist.values()
+		#for att in attributes:
+			#atttypes.append(collist[att])
+			
+		coltypes = ",\n".join(map("{0} {1}".format,attributes, atttypes))
+
+		for col in self.refuid_columns:
+			if col in collist:
+				pos = attributes.index(col)
+				attributes[pos] = "{1}_get_name({0}) AS {0}".format(col, self.refuid_columns[col])
 		
-		# create col: type dict
-		coltypeslist = dict()
-		for col in collist:
-			coltypeslist[col] = " ".join([col,collist[col]])
-
-		# prepare: values = keys
-		keys = collist.keys()
-		keys.sort()
-		collist = dict(zip(keys,keys))
-		# replace old cols with new 
-		for col in newcollist:
-			collist[col] = newcollist[col]
-
-		coltypes = ",\n".join(coltypeslist.values())
-		cols = ",".join(collist.values())
+		cols = ",".join(attributes)
 		type_def = self.get_data_type_string.format(tbl = self.name, columns = coltypes)
-		cols_def = get_data_string.format(tbl = self.name, columns = cols, embedtbl = embed_table)
+		cols_def = get_data_string.format(tbl = self.name, columns = cols, data_columns = dcols, embedtbl = self.embed_into)
 		return type_def + "\n" + cols_def
 	
 	#generates function that returns all changes of columns between two versions
@@ -210,6 +202,38 @@ class Table(constants.Templates):
 	def gen_get_uid_embed(self, refcolumn, reftable):
 		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
+	def gen_commit_templated(self):
+		"""gen_commit_templated generates commit function for templated tables.
+		
+		Differs from untemplated version by resolving data from templates and after that updating production.
+		Commit of template modificationb should do changes in templated objects.
+		"""
+		collist = self.col.copy();
+		
+		del collist['template']
+		cols_ex_templ = ','.join(collist)
+		del collist['name']
+		del collist['uid']
+		
+		rddvcoal = ""
+		if len(collist) > 0:
+			rddvcoal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist))) + ','
+	
+		cols = ','.join(collist)
+		
+		#table tbl is templated by table tbl_template
+		#table tbl_template is templated by tbl_template
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+			
+		commit_templated_string = self.commit_templated_string
+		if self.templates is "":
+		#table is template, modification should be propagated to templated kind
+			return self.commit_templated_string.format(tbl = self.name, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
+		else:
+			return self.commit_kind_template_string.format(tbl = self.templates, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
 
 	def gen_commit(self):
 		#TODO if there is more columns...
@@ -235,4 +259,77 @@ class Table(constants.Templates):
 	def gen_data_changes(self):
 		return self.data_changes_function_string.format(tbl = self.name)
 
+	def gen_resolved_data(self):
+		"""gen_resolved_data is function for generating {tbl}_resolved_data(name_ text, version bigint = 0)
+			
+		Function is called only for tables that could be templated by some template (has column template).
+		"""
+		#list of columns of given kind
+		collist = self.col.keys()
+		collist.remove('uid')
+		collist.remove('name')
+		
+		data_attributes = map('data.{0}'.format, collist)
+		dcols = ','.join(data_attributes)
+		
+		collist.remove('template')
+		cols = ','.join(collist)
+		columns_ex_template = list(collist)
+		
+		#table tbl is templated by table tbl_template
+		#table tbl_template is templated by tbl_template
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+		
+		#table which is thatone embed into
+		if self.embed_into <> "":
+			resolved_data_string = self.resolved_data_embed_string
+		else:
+			resolved_data_string = self.resolved_data_string
 
+		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
+		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
+
+		cols_ex_template_dict = dict()
+		for col in self.col:
+			if col in columns_ex_template:
+				cols_ex_template_dict[col] = self.col[col]
+				
+		# replace uid of referenced object its name
+		for col in self.refuid_columns:
+			if col in collist:
+				pos = collist.index(col)
+				collist[pos] = "{0}_get_name({0}) AS {0}".format(col)
+				cols_ex_template_dict[col] = "text"
+		
+		cols_ex_templ = ",".join(collist)
+		
+		ticols = ',\n'.join(list(map("{0} {1}".format,cols_ex_template_dict.keys(),cols_ex_template_dict.values()))) + ',\n' + ',\n'.join(list(map("{0}_templ {1}".format,cols_ex_template_dict.keys(),['text']*len(cols_ex_template_dict))))
+		case_col_string = '''
+		CASE	WHEN {0} IS NULL THEN NULL 
+			ELSE name
+		END AS {0}_templ'''
+		case_cols = ','.join(list(map(case_col_string.format,cols_ex_template_dict.keys())))
+	
+		templ_case_cols = '''
+		CASE	WHEN rd.{0}_templ IS NOT NULL THEN rd.{0}_templ
+			WHEN rd.{0}_templ IS NULL AND dv.{0} IS NOT NULL THEN dv.name
+			ELSE NULL
+		END AS {0}_templ'''
+		templ_case_cols = ','.join(list(map(templ_case_cols.format,cols_ex_template_dict.keys())))
+		templ_columns_list = list(map("{0}_templ".format, cols_ex_template_dict.keys()))
+		cols_templ = ','.join(templ_columns_list)
+		#SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+		all_columns = columns_ex_template
+		all_columns.extend(templ_columns_list)
+		all_columns.append('template')
+		dticols = ','.join(list(map("data.{0}".format,all_columns)))
+		
+		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols)
+		resolve_data_fce = resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
+		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
+		resolve_object_data_template_info = self.resolved_object_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ, data_columns = dticols)
+		return  resolve_data_fce + '\n' + templ_info_type + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
+		

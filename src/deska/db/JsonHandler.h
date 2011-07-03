@@ -52,7 +52,7 @@ struct JsonWrappedAttributeMapList
     JsonWrappedAttributeMapList(const std::vector<KindAttributeDataType> dataTypes);
 };
 
-/** @short Helper class for type-safe parsing of JSON into a representaiton usable for resolvedObjectData() DBAPI method */
+/** @short Helper class for type-safe parsing of JSON into a representaiton usable for resolvedObjectDataWithOrigin() DBAPI method */
 struct JsonWrappedAttributeMapWithOrigin
 {
     std::vector<KindAttributeDataType> dataTypes;

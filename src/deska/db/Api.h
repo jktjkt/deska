@@ -134,13 +134,21 @@ public:
     /** @short Get all attributes for a named object of a particular kind
      *
      * Templates: this function should not have any knowledge of "templates"; see the
-     * resolvedObjectData() for template support.
+     * resolvedObjectDataWithOrigin() for template support.
      * */
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
+    /** @short Get resolved values of all attributes for a particular object */
+    virtual std::map<Identifier, Value> resolvedObjectData(
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+
     /** @short Version of objectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+
+    /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
         const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Get all attributes, including the inherited ones
@@ -158,11 +166,11 @@ public:
      *      height: (template-1U, 1)
      *      ...
      * */
-    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
+    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectDataWithOrigin(
         const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
-    /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
-    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
+    /** @short Version of resolvedObjectDataWithOrigin that returns multiple objects of the same kind at once */
+    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
         const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     // Manipulating objects

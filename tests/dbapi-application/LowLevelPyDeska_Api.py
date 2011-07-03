@@ -22,8 +22,9 @@ def imperative(r):
     c = _l.Connection()
     # start with kindNames
     kindNames = c.kindNames()
-    r.assertEquals(set(kindNames), set(["hardware", "host", "vendor",
-                                        "interface"]))
+    r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "vendor",
+                                              "interface", "interface_template",
+                                              "hardware_template"]))
 
     # continue with kindRelations
     expectedRelations = {
@@ -73,4 +74,4 @@ def imperative(r):
     #kindInstances.append(c.kindInstances("host",
     #                                     _l.OptionalFilter(of)))
     for res in kindInstances:
-        r.assertEquals(set(res), set(["a", "b", "c"]))
+        r.assertEquals(sorted(res), sorted(["a", "b", "c"]))

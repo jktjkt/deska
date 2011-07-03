@@ -44,11 +44,15 @@ public:
                                                   const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) const;
     virtual std::map<Identifier, Value> objectData(
         const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+    virtual std::map<Identifier, Value> resolvedObjectData(
+        const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
         const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
-    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectData(
+    virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
+        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
+    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectDataWithOrigin(
             const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
-    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectData(
+    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
         const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
 
     // Manipulating objects

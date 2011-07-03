@@ -1,0 +1,188 @@
+Schuze Deska, 2011-06-30 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- rozsireni DB typu (spec, C++, testy)
+- spousteni server-side generatoru (spec, C++, testy)
+- relace REFERS_TO (spec, C++, testy)
+- rekurzivni filtry (spec, C++, testy)
+- implementace typu pro MAC adresu
+- trida Connection pouziva PIMPL (ABI kompatibilita)
+- podtrzitka v LaTeXu :)
+- DBAPI je kompletne naspecifikovano, C++ cast je naimplementovana a otestovana
+- CLI testy pomacrovane
+- opravy buildu
+- code coverage a testy
+- Python knihovna pro Desku:
+    - datove typy
+    - prevod read-only funkci pro praci s objekty
+    - zbyva udelat Python wrapper s high-level funkcemi
+
+Tomas:
+- nove datove typy
+- filtry, bude potreba hodne predelat parser
+- cet specifikaci, posle podnety mailem
+
+Martina:
+- templaty
+- testy k templatum, integrovane v extra branchi, Martina mergne
+- puvod dat tez funguje
+- neni hromadne resolvovani dat
+- Lukas ma k dispozici vsechny potrebne funkce
+
+Lukas:
+- SQL typ identifier
+- SQL typ pro v4/v6/mac adresy
+- SQL REFERS_TO
+- opravy tu a tam
+- DB uz na kindNames etc kouka jako na predpripravene veci
+- atributy atd se kontroluji proti whitelistu skoro vsude
+- filtry funguji stylem, ze umi resolvnout symbolicke jmeno na cislo
+
+Ukoly z minula:
+---------------
+
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+    - neni
+- Honza: vice testu
+    - neni
+- Honza: portace Lukasovych testu
+    - neni
+- Honza: Python DBAPI
+    - bindingy hotove
+- Honza: DBAPI spec: spousteni server-side config generatoru (#239)
+    - hotovo
+- Honza: rozsireni DB typu
+    - hotovo
+- Honza: zrevidovat, zda DBAPI dostatecne jasne popisuje filtry
+    - hotovo
+- Honza: naspecifikovat REFERS_TO
+    - hotovo
+- Honza: filtry naspecifikovat a naimpl. rekurzivne
+    - hotovo
+- Honza: kouknout na testy CLI, zjistit a predvest, jak sloucit ocekavany return
+  funkci, a jak to udelat makrama
+    - hotovo
+
+- Tomas: precist DBAPI PDF specifikaci jako celek
+    - ok
+- Tomas: CLI bude parsovat vice datovych typu do C++ struktur
+    - hotovo
+- Tomas: dokumentace CLI
+    - rozdelano, Parser je, handlery nejsou
+- Tomas: testy ke CLI
+    - nic noveho
+- Tomas: pouziti filtru, mj. pro embedding
+    - je, neni vubec otestovano
+- Tomas: manipulace pres vic objektu (filtry, parsovani pres CLI,...)
+    - neni
+
+- Martina: dokumentace (#168, 169,...)
+    - dokumentovany veci k sablonam
+- Martina: templates
+    - pracuje
+- Martina: test pro setName by mel vyzkouset oba dva druhy rename zvlast i najednou
+    - hotovo
+
+- Lukas: identifikator jako specialni typ pro "name" pro kindy
+    - hotovo
+- Lukas: generovani python struktur (ci neceho podobneho) pro rozumnou validaci
+  filtru atd
+    - hotovo
+- Lukas: implementace filtru
+    - funguje pro dotazy na listRevisions, pendingChangestes, kindInstances
+    - nefunguje pro multipleObjectData
+    - filtry jsou bezpecne i podle Honzovy definice
+- Lukas: joiny ve filtrech
+    - hotovo
+- Lukas: transkace, aka. frozen views
+    - hotovo
+- Lukas: templaty
+    - ceka na Martinu
+- Lukas: dokumentace (#168, 169,...)
+    - prubezne pracuje
+- Lukas: pouziti spravnych exceptions pro error reporting
+    - hotovo
+
+
+Co zbyva do konce:
+------------------
+
+Honza:
+- dal s unit testy
+- Python
+- generatory konfigurace
+- skripty kolem
+- dokumentace
+
+Lukas:
+- filtrovani, joinovani
+- performance testy s templaty
+- schema pro FZU 
+- dokumentace pro DBA
+
+Martina:
+- dodelani templatu (embedding,...)
+- hromadne sosani dat
+
+Tomas:
+- filtry v CLI + batched operace
+- rebase
+- historie (log) verzovani, diffy
+
+
+Co chybi:
+---------
+
+- instalator
+- rebase v CLI
+- reportovani vyjimek
+- dotazy na historii ze CLI
+
+
+Ukoly:
+------
+
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+- Honza: vice testu
+- Honza: portace Lukasovych testu
+- Honza: Python DBAPI: high-level pristup
+- Honza: operator<< pro filtry pro Tomase
+- Honza: misto set() dat do testu serazeni (kvuli duplicitam)
+- Honza: pridat dalsi dve varianty objectData do DBAPI
+
+- FIXME: testy pro merge
+- FIXME: validace uzivatelova navrhu DB
+- FIXME: jak rozlisit filtry koukajici na raw, nebo resolved hodnoty atributu?
+
+- Tomas: dokumentace CLI
+- Tomas: testy ke CLI
+- Tomas: pouziti filtru, mj. pro embedding
+- Tomas: manipulace pres vic objektu (filtry, parsovani pres CLI,...)
+- Tomas: boost::program_options
+
+- Lukas: zmenit typ pro MAC
+- Lukas: filtry
+- Lukas: templaty
+- Lukas: dokumentace (#168, 169,...)
+- Lukas -> exceptions: pokud je znam tag, ma ho poslat zpet, pokud neni, tak si ho
+nevymysli
+
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+
+Pristi schuzka:
+---------------
+
+Schuzka trvala necele dve hodiny.
+
+Honza: v Praze opet od 17. cervence
+
+Lukas se se Zav. dohodne, jak se s nim sejdem
+
+Schuzka idealne nekdy od 18. cervence (cim driv, tim lip)

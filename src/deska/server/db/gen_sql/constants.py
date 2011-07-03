@@ -18,6 +18,7 @@ class Templates:
 	{constraints}
 );
 '''
+
 	# template string for set functions
 	set_string = '''CREATE FUNCTION
 	{tbl}_set_{colname}(IN name_ text,IN value text)
@@ -146,28 +147,28 @@ class Templates:
 	DECLARE
 		current_changeset bigint;
 		data {tbl}_type;
+		dbit bit(1);
 	BEGIN
 		IF from_version = 0 THEN
 			current_changeset = get_current_changeset_or_null();
 			IF current_changeset IS NULL THEN
-				--user wants current data from production
-				SELECT {columns} INTO data FROM production.{tbl} WHERE name = name_;
-				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+				--user wants last data
+				SELECT MAX(num) INTO  from_version FROM version;
+			ELSE			
+				SELECT {columns},dest_bit INTO {data_columns}, dbit FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
+					RETURN data;
 				END IF;
-				RETURN data;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
 			END IF;
-			
-			SELECT {columns} INTO data FROM {tbl}_history WHERE name = name_ AND version = current_changeset;
-			IF FOUND THEN
-				--we have result and can return it
-				RETURN data;
-			END IF;
-			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(current_changeset));
 		END IF;
 
-		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+		SELECT {columns} INTO {data_columns} FROM {tbl}_data_version(from_version)
 			WHERE name = name_;
 		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
@@ -201,23 +202,20 @@ class Templates:
 			IF current_changeset IS NULL THEN
 				--user wants current data from production
 				--name in table is only local part of object, we should look for object by uid
-				SELECT {columns} INTO data FROM production.{tbl} WHERE uid = obj_uid;
-				IF NOT FOUND THEN
-					RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
-				END IF;				
-				RETURN data;
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				--first we look for result in current changeset than in parent revision
+				SELECT {columns} INTO {data_columns} FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					RETURN data;
+				END IF;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
 			END IF;
-			--first we look for result in current changeset than in parent revision
-			SELECT {columns} INTO data FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
-			IF FOUND THEN
-				--we have result and can return it
-				RETURN data;
-			END IF;
-			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(current_changeset));
 		END IF;
 		
-		SELECT {columns} INTO data FROM {tbl}_data_version(from_version)
+		SELECT {columns} INTO {data_columns} FROM {tbl}_data_version(from_version)
 			WHERE uid = obj_uid;
 		IF NOT FOUND THEN
 			RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
@@ -507,7 +505,7 @@ class Templates:
 	AS
 	$$
 	DECLARE	ver bigint;
-	BEGIN
+	BEGIN	
 		SELECT get_current_changeset() INTO ver;
 		UPDATE {tbl} as tbl SET {assign}
 			FROM {tbl}_history as new
@@ -518,6 +516,157 @@ class Templates:
 		DELETE FROM {tbl}
 			WHERE uid IN (SELECT uid FROM {tbl}_history
 				WHERE version = ver AND dest_bit = '1');
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for commit function
+	commit_templated_string = '''CREATE FUNCTION
+	{tbl}_commit()
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		CREATE TEMP TABLE temp_{tbl}_current_changeset AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM {tbl}_history
+			WHERE version = get_current_changeset()
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM {template_tbl}_data_version() dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+			
+		SELECT get_current_changeset() INTO ver;
+		UPDATE {tbl} AS tbl SET {assign}
+			FROM temp_{tbl}_current_changeset as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl} ({columns},name,uid,template)
+			SELECT {columns},name,uid,template FROM temp_{tbl}_current_changeset
+				WHERE uid NOT IN ( SELECT uid FROM {tbl} ) AND dest_bit = '0';
+		DELETE FROM {tbl}
+			WHERE uid IN (SELECT uid FROM temp_{tbl}_current_changeset
+				WHERE version = ver AND dest_bit = '1');
+				
+		DROP TABLE temp_{tbl}_current_changeset;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for commit function (for templates of some kind)
+	# in addition to another commits modification of template affectes contain of templated objects by it
+	#tbl is here table that is templated by template_table for which is this commit function
+	commit_kind_template_string = '''CREATE FUNCTION
+	{tbl}_template_commit()
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+	BEGIN
+		SELECT get_current_changeset() INTO ver; 
+		CREATE TEMP TABLE temp_{tbl}_template_data AS SELECT * FROM {tbl}_template_data_version();
+
+		--resolved data that are new in current changeset
+		CREATE TEMP TABLE temp_{tbl}_template_current_changeset AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM {tbl}_template_history
+			WHERE version = ver
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+
+		UPDATE {tbl}_template AS tbl SET {assign}
+			FROM temp_{tbl}_template_current_changeset as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+		INSERT INTO {tbl}_template ({columns},name,uid,template)
+			SELECT {columns},name,uid,template FROM temp_{tbl}_template_current_changeset
+				WHERE uid NOT IN ( SELECT uid FROM {tbl}_template ) AND dest_bit = '0';
+		DELETE FROM {tbl}_template
+			WHERE uid IN (SELECT uid FROM temp_{tbl}_template_current_changeset
+				WHERE version = ver AND dest_bit = '1');
+
+		--create temp table with uids of affected tbl_templates
+		--it is needed to update templates and table in production that are templated by some affected template
+		CREATE TEMP TABLE affected_templates AS (
+			WITH RECURSIVE resolved_data AS (
+				SELECT uid FROM {tbl}_template_history WHERE version = ver
+				UNION ALL
+				SELECT dv.uid FROM temp_{tbl}_template_data dv, resolved_data rd WHERE dv.template = rd.uid
+			)
+			SELECT uid
+			FROM resolved_data
+		);
+
+		--resolved data for all templates that where affected by some change of template and wasn't changed in current changeset
+		--templates changed in current changeset was already updated
+		CREATE TEMP TABLE temp_affected_{tbl}_template_data AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM temp_{tbl}_template_data
+			WHERE  version <> ver
+				AND template IN (SELECT uid FROM affected_templates)
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+			
+		--object which is not modified in currentchangeset (is not updated by tbl_commit) and is templated by modified template, should be updated now
+		--update production.tbl_template
+		UPDATE {tbl}_template AS tbl SET {assign}
+			FROM temp_affected_{tbl}_template_data as new
+				WHERE tbl.uid = new.uid AND dest_bit = '0';
+
+		--update production.{tbl} as tbl set att = new.att ... from resolved_data
+		CREATE TEMP TABLE temp_{tbl}_data AS SELECT * FROM {tbl}_data_version();
+		CREATE TEMP TABLE temp_affected_{tbl}_data AS 
+			WITH RECURSIVE resolved_data AS (
+			SELECT {columns}, template,name,uid,version,dest_bit,template as orig_template
+			FROM temp_{tbl}_data
+			WHERE template IN (SELECT uid FROM affected_templates)
+			UNION ALL
+			SELECT
+				{rd_dv_coalesce}
+				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+			FROM temp_{tbl}_template_data dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+			)
+			SELECT {columns_except_template}, version,dest_bit, orig_template AS template
+			FROM resolved_data WHERE template IS NULL;
+
+		UPDATE {tbl} AS tbl SET {assign}
+			FROM temp_affected_{tbl}_data as new
+				WHERE tbl.uid = new.uid;
+
+		DROP TABLE temp_{tbl}_template_current_changeset;
+		DROP TABLE affected_templates;
+		DROP TABLE temp_affected_{tbl}_data;
+		DROP TABLE temp_affected_{tbl}_template_data;
+		DROP TABLE temp_{tbl}_template_data;
+		DROP TABLE temp_{tbl}_data;		
 		RETURN 1;
 	END
 	$$
@@ -832,6 +981,181 @@ $$
 BEGIN
 	DROP TABLE {tbl}_diff_data;
 END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+RETURNS {tbl}_type
+AS
+$$
+DECLARE
+	data {tbl}_type;
+	current_changeset bigint;
+	dbit bit(1);
+BEGIN
+	IF from_version = 0 THEN
+		current_changeset = get_current_changeset_or_null();
+		IF current_changeset IS NULL THEN
+			--user wants current data from production
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO {data_columns}
+			FROM production.{tbl} WHERE name = name_;
+			IF NOT FOUND THEN
+				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			END IF;
+			RETURN data;
+		END IF;
+	END IF;
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE name = name_
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			dv.template, rd.orig_template
+        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+	FROM resolved_data WHERE template IS NULL;
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+RETURNS {tbl}_type
+AS
+$$
+DECLARE
+	data {tbl}_type;
+	current_changeset bigint;
+	obj_uid bigint;
+BEGIN
+	obj_uid = {tbl}_get_uid(name_, from_version);
+	IF from_version = 0 THEN
+		current_changeset = get_current_changeset_or_null();
+		IF current_changeset IS NULL THEN
+			--user wants current data from production
+			SELECT {columns_ex_templ}, {templ_tbl}_get_name(template) INTO {data_columns}
+			FROM production.{tbl} WHERE uid = obj_uid;
+			IF NOT FOUND THEN
+				RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '10021';
+			END IF;
+			RETURN data;
+		END IF;
+	END IF;
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE uid = obj_uid
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			dv.template, rd.orig_template
+        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+	FROM resolved_data WHERE template IS NULL;
+
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+	
+	
+'''
+
+	resolved_data_template_info_type_string = '''CREATE TYPE {tbl}_data_template_info_type AS(
+	{columns},
+	template text
+);
+'''
+
+	resolved_object_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data_template_info(name_ text, from_version bigint = 0)
+RETURNS {tbl}_data_template_info_type
+AS
+$$
+DECLARE
+	data {tbl}_data_template_info_type;
+	current_changeset bigint;
+	dbit bit(1);
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	WITH recursive resolved_data AS (
+        SELECT {columns}, {case_columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        WHERE name = name_
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			{templ_case_columns},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
+	FROM resolved_data WHERE template IS NULL;
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	
+	DROP TABLE template_data_version;
+	
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data_template_info(from_version bigint = 0)
+RETURNS SETOF {tbl}_data_template_info_type
+AS
+$$
+DECLARE
+	data {tbl}_data_template_info_type;
+	current_changeset bigint;
+	dbit bit(1);
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	RETURN QUERY WITH recursive resolved_data AS (
+        SELECT {columns}, {case_columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        UNION ALL
+        SELECT
+			{rd_dv_coalesce},
+			{templ_case_columns},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
+	FROM resolved_data WHERE template IS NULL;
+	
+	IF NOT FOUND THEN
+		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+	END IF;
+	
+	DROP TABLE template_data_version;
+END
 $$
 LANGUAGE plpgsql;
 
