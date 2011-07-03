@@ -1,5 +1,4 @@
 /*
-* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 * Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
@@ -22,9 +21,9 @@
 * */
 
 #include <boost/assert.hpp>
-#include "Parser_p_AttributesParser.h"
+#include "Parser_p_KindsOnlyParser.h"
+#include "Parser_p_KindsFiltersParser.h"
 #include "Parser_p_KindsParser.h"
-#include "Parser_p_WholeKindParser.h"
 #include "deska/db/Api.h"
 
 namespace Deska
@@ -34,46 +33,23 @@ namespace Cli
 
 
 template <typename Iterator>
-WholeKindParser<Iterator>::WholeKindParser(const Db::Identifier &kindName,
-                                           AttributesParser<Iterator> *attributesParser,
-                                           KindsParser<Iterator> *kindsParser,
-                                           ParserImpl<Iterator> *parent):
-    WholeKindParser<Iterator>::base_type(start), m_parent(parent)
+KindsParser<Iterator>::KindsParser(const Db::Identifier &kindName,
+                                   KindsOnlyParser<Iterator> *nestedKinds,
+                                   KindsFiltersParser<Iterator> *nestedKindsFilters,
+                                   ParserImpl<Iterator> *parent):
+    KindsParser<Iterator>::base_type(start), m_parent(parent)
 {
     // If the boost::spirit::qi::grammar API was sane, the following line would read setName(kindName).
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
-    start = (((*attributesParser) >> -(*kindsParser))
-        | ((*kindsParser)[phoenix::bind(&WholeKindParser::parsedSingleKind, this)])
-        | (qi::lit("end")[phoenix::bind(&WholeKindParser::parsedEnd, this)]));
+    start = ((*nestedKinds) | (*nestedKindsFilters));
 }
-
-
-
-template <typename Iterator>
-void WholeKindParser<Iterator>::parsedSingleKind()
-{
-    m_parent->parsedSingleKind();
-}
-
-
-
-template <typename Iterator>
-void WholeKindParser<Iterator>::parsedEnd()
-{
-    m_parent->categoryLeft();
-}
-
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template WholeKindParser<iterator_type>::WholeKindParser(const std::string &kindName, AttributesParser<iterator_type> *attributesParser, KindsParser<iterator_type> *kindsParser, ParserImpl<iterator_type> *parent);
-
-template void WholeKindParser<iterator_type>::parsedSingleKind();
-
-template void WholeKindParser<iterator_type>::parsedEnd();
+template KindsParser<iterator_type>::KindsParser(const std::string &kindName, KindsOnlyParser<iterator_type> *nestedKinds, KindsFiltersParser<iterator_type> *nestedKindsFilters, ParserImpl<iterator_type> *parent);
 
 }
 }

@@ -1,4 +1,5 @@
 /*
+* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 * Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
@@ -21,8 +22,7 @@
 * */
 
 #include <boost/assert.hpp>
-#include "Parser_p_KindsFiltersParser.h"
-#include "Parser_p_FiltersParser.h"
+#include "Parser_p_AttributesSettingParser.h"
 #include "deska/db/Api.h"
 
 namespace Deska
@@ -31,10 +31,9 @@ namespace Cli
 {
 
 
-
 template <typename Iterator>
-KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
-    KindsFiltersParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
+AttributesSettingParser<Iterator>::AttributesSettingParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
+    AttributesSettingParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
 {
     using qi::_1;
     using qi::_2;
@@ -62,46 +61,47 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
 
     // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = (raw[filters[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > qi::lit("where")
-        > lazy(_a)[phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName), _1)]);
+    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
+        > lazy(_a)[phoenix::bind(&AttributesSettingParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
 
-    phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();
+    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
-    on_error<fail>(start, kindFiltersErrorHandler(_1, _2, _3, _4, phoenix::ref(filters), phoenix::ref(m_name), m_parent));
-    // In case of enabling error handler for nesting, on_error<fail> for kindErrorHandler have to be changed
+    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
+    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
+                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    // In case of enabling error handler for nesting, on_error<fail> for attributeErrorHandler have to be changed
     // to on_error<rethrow>.
-    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
+    //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName),
     //                                          phoenix::ref(m_name), m_parent));
+    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 
 
 
 template <typename Iterator>
-void KindsFiltersParser<Iterator>::addKindFilter(const Db::Identifier &kindName,
-                                                 FiltersParser<Iterator> *filtersParser)
+void AttributesSettingParser<Iterator>::addAtrribute(const Db::Identifier &attributeName,
+                                              qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
 {
-    // This creates rule reference to our grammar so we can store it in symbols table.
-    qi::rule<Iterator, Db::Filter(), ascii::space_type> filterRuleRef = (*filtersParser);
-    filters.add(kindName, filterRuleRef);
+    attributes.add(attributeName, attributeParser);
 }
 
 
 
 template <typename Iterator>
-void KindsFiltersParser<Iterator>::parsedFilter(const Db::Identifier &kindName, const Db::Filter &filter)
+void AttributesSettingParser<Iterator>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value)
 {
-    m_parent->objectsFilter(kindName, filter);
+    m_parent->attributeSet(parameter, value);
 }
 
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template KindsFiltersParser<iterator_type>::KindsFiltersParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+template AttributesSettingParser<iterator_type>::AttributesSettingParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void KindsFiltersParser<iterator_type>::addKindFilter(const Db::Identifier &kindName, FiltersParser<iterator_type> *filtersParser);
+template void AttributesSettingParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
 
-template void KindsFiltersParser<iterator_type>::parsedFilter(const Db::Identifier &kindName, const Db::Filter &filter);
+template void AttributesSettingParser<iterator_type>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
 }
 }

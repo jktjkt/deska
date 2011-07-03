@@ -21,8 +21,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
-#define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
+#ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESSETTINGPARSER_H
+#define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESSETTINGPARSER_H
 
 #include "Parser_p.h"
 
@@ -31,22 +31,23 @@ namespace Deska
 namespace Cli
 {
 
-/** @short Parser for set of attribute removals of specific top-level grammar.
+/** @short Parser for set of attributes of specific top-level grammar.
 *
-*   This grammar parses only one pair <"no" attribute_name>.
+*   This grammar parses only one pair from set of <attribute_name attribute_value> definitions.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
 *
 *   The grammar is based on a symbols table with lazy lookup function. This method could be found
 *   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
-*   action parsedAttributeRemoval().
+*   action parsedAttribute().
 *
-*   This parser is connected to one error handler AttributeRemovalErrorHandler for reporting an error
-*   while parsing an attribute name.
+*   This parser is connected to two error handlers. AttributeErrorHandler for reporting an error while parsing
+*   an attribute name and ValueErrorHandler for reporting an error while parsing a value on an attribute.
 *
-*   @see AttributeRemovalErrorHandler
+*   @see AttributeErrorHandler
+*   @see ValueErrorHandler
 */
 template <typename Iterator>
-class AttributeRemovalsParser: public qi::grammar<Iterator, ascii::space_type>
+class AttributesSettingParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
 {
 
 public:
@@ -56,31 +57,36 @@ public:
     *   @param kindName Name of top-level object type, to which the attributes belong.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+    AttributesSettingParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser.
     *
     *   @param attributeName Name of the attribute.
+    *   @param attributeParser Attribute parser obtained from PredefinedRules class.
+    *   @see PredefinedRules
     */
-    void addAtrribute(const Db::Identifier &attributeName);
+    void addAtrribute(const Db::Identifier &attributeName,
+                      qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
 private:
 
-    /** @short Function used as semantic action for each parsed attribute removal.
+    /** @short Function used as semantic action for each parsed attribute.
     *
     *   Calls appropriate method in main parser.
     *
-    *   @param attribute Name of the attribute.
+    *   @param parameter Name of the attribute.
+    *   @param value Parsed value of the attribute.
+    *   @see Db::Value
     */
-    void parsedAttributeRemoval(const Db::Identifier &attribute);
+    void parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 
     /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
-    qi::symbols<char, qi::rule<Iterator, ascii::space_type> > attributes;
+    qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
 
-    /** Rule for parsing "no" keyword. */
-    qi::rule<Iterator, ascii::space_type> start;
     /** Rule for parsing attribute names. */
-    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
+    /** Rule for parsing attribute values. */
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type> > > dispatch;
 
     /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentAttributeName;
@@ -96,4 +102,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
+#endif  // DESKA_CLI_PARSERPRIVATE_ATTRIBUTESSETTINGPARSER_H

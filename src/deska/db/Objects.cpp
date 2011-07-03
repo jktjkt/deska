@@ -20,7 +20,6 @@
 * */
 
 #include <sstream>
-#include <boost/spirit/include/qi.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "Objects.h"
@@ -193,45 +192,6 @@ bool operator==(const AttributeDefinition &a, const AttributeDefinition &b)
 bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
 {
     return !(a == b);
-}
-
-
-Identifier contextStackToPath(const ContextStack &contextStack)
-{
-    std::ostringstream ss;
-    for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
-        if (it != contextStack.begin())
-            ss << "->";
-        ss << it->name;
-    }
-    return ss.str();
-}
-
-std::string contextStackToString(const ContextStack &contextStack)
-{
-    std::ostringstream ss;
-    for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
-        if (it != contextStack.begin())
-            ss << "->";
-        ss << *it;
-    }
-    return ss.str();
-}
-
-std::vector<Identifier> PathToVector(const std::string &path)
-{
-    std::string::const_iterator first = path.begin();
-    std::string::const_iterator last = path.end();
-
-    std::vector<Identifier> identifiers;
-
-    bool r = boost::spirit::qi::phrase_parse(first,last,
-                                             +(boost::spirit::ascii::alnum | '_') % "->",
-                                             boost::spirit::ascii::space, identifiers);
-    if (!r || first != last)
-        throw std::runtime_error("Deska::Db::PathToVector conversion failed while parsing " + path);
-    
-    return identifiers;
 }
 
 }
