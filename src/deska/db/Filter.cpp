@@ -24,6 +24,25 @@
 namespace Deska {
 namespace Db {
 
+std::ostream& operator<<(std::ostream &stream, ComparisonOperator o)
+{
+    switch (o) {
+    case FILTER_COLUMN_EQ:
+        return stream << "==";
+    case FILTER_COLUMN_NE:
+        return stream << "!=";
+    case FILTER_COLUMN_GT:
+        return stream << ">";
+    case FILTER_COLUMN_GE:
+        return stream << ">=";
+    case FILTER_COLUMN_LT:
+        return stream << "<";
+    case FILTER_COLUMN_LE:
+        return stream << "<=";
+    }
+    return stream << "[Invalid operator:" << static_cast<int>(o) << "]";
+}
+
 MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
     comparison(comparison_), metadata(metadata_), constantValue(constantValue_)
 {
@@ -37,6 +56,11 @@ bool operator==(const MetadataExpression &a, const MetadataExpression &b)
 bool operator!=(const MetadataExpression &a, const MetadataExpression &b)
 {
     return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const MetadataExpression &m)
+{
+    return stream << m.metadata << " " << m.comparison << " " << m.constantValue;
 }
 
 AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
@@ -55,6 +79,9 @@ bool operator!=(const AttributeExpression &a, const AttributeExpression &b)
     return !(a==b);
 }
 
+std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a)
+{
+    return stream << a.kind << "." << a.attribute << " " << a.comparison << " " << a.constantValue;
 OrFilter::OrFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {

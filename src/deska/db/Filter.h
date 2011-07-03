@@ -22,6 +22,8 @@
 #ifndef DESKA_DB_FILTER_H
 #define DESKA_DB_FILTER_H
 
+#include <vector>
+
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
@@ -44,6 +46,8 @@ typedef enum {
     FILTER_COLUMN_LE
 } ComparisonOperator;
 
+std::ostream& operator<<(std::ostream &stream, ComparisonOperator o);
+
 /** @short Anything against which we can compare */
 typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
 
@@ -63,6 +67,7 @@ struct MetadataExpression
 
 bool operator==(const MetadataExpression &a, const MetadataExpression &b);
 bool operator!=(const MetadataExpression &a, const MetadataExpression &b);
+std::ostream& operator<<(std::ostream &stream, const MetadataExpression &m);
 
 /** @short Compare attribute value against a constant using given comparison operator */
 struct AttributeExpression
@@ -77,6 +82,7 @@ struct AttributeExpression
 
 bool operator==(const AttributeExpression &a, const AttributeExpression &b);
 bool operator!=(const AttributeExpression &a, const AttributeExpression &b);
+std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a);
 
 /** @short A generic expression */
 typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
