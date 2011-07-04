@@ -125,14 +125,14 @@ CREATE FUNCTION commit_all(message text)
 			table.add_fk(col[0],col[1],col[2],col[3])
 			# if there is a reference, change int for identifier
 			self.atts[tbl][col[1]] = 'identifier'
-			prefix = col[0][0:6]
-			if prefix == "rembed":
+			prefix = col[0][0:7]
+			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
 			#FIXME: this is not right, only for remember, merge has to be defined in another way
-			elif prefix == "rmerge":
+			elif prefix == "rmerge_":
 				self.merge[tbl] = col[1]
-			elif prefix == "rtempl":
-				self.template[tbl] = col[1]
+			elif prefix == "rtempl_":
+				self.template[tbl] = col[2]
 			else:
 				self.refs[tbl] = col[1]
 

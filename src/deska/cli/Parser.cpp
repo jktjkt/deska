@@ -72,12 +72,12 @@ bool Parser::isNestedInContext() const
     return d_ptr->isNestedInContext();
 }
 
-Db::ContextStack Parser::currentContextStack() const
+ContextStack Parser::currentContextStack() const
 {
     return d_ptr->currentContextStack();
 }
 
-void Parser::setContextStack(const Db::ContextStack &stack)
+void Parser::setContextStack(const ContextStack &stack)
 {
     d_ptr->setContextStack(stack);
 }

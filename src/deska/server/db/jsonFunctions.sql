@@ -82,8 +82,8 @@ def main(tag,kindName):
 	templates = dutil.generated.template()
 	# revert dict
 	revtemplates = {v:k for k, v in templates.items()}
-	res.addRelation("IS_TEMPLATE",kindName,templates)
-	res.addRelation("TEMPLATIZED",kindName,revtemplates)
+	res.addRelation("TEMPLATIZED",kindName,templates)
+	res.addRelation("IS_TEMPLATE",kindName,revtemplates)
 	res.addRelation("REFERS_TO",kindName,dutil.generated.refs())
 	
 	jsn[name] = res

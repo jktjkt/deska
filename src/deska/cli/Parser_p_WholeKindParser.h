@@ -34,15 +34,12 @@ namespace Cli
 /** @short Parser for set of attributes and nested objects of specific top-level grammar.
 *
 *   Combines all needed grammars into one parser for parsing the whole kind with its all attributes and nested kinds.
-*   For parsing of kind definitions is used grammar KindsOnlyParser, for attribute setting is used grammar
-*   AttributesParser and for attribute removing grammar AttributeRemovalsParser. For parsing filters for nested
-*   kinds is used grammar KindsFiltersParser. Besides these grammars is also keyword "end" parsed here for leaving
-*   one level of context.
+*   For parsing of kind definitions and filters is used grammar KindsParser, for attribute setting and removal
+*   is used grammar AttributesParser. Besides these grammars is also keyword "end" parsed here for leaving one
+*   level of context.
 *
 *   @see AttributesParser
-*   @see AttributeRemovalsParser
-*   @see KindsOnlyParser
-*   @see KindsFiltersParser
+*   @see KindsParser
 */
 template <typename Iterator>
 class WholeKindParser: public qi::grammar<Iterator, ascii::space_type>
@@ -53,21 +50,14 @@ public:
     /** @short Constructor initializes the grammar with all rules.
     *
     *   @param kindName Name of top-level object type, to which the parser belongs.
-    *   @param attributesParser Grammar used for parsing of attributes of the kind.
-    *   @param attributesRemovalParser Grammar used for parsing of attributes removals of the kind.
-    *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
-    *   @param nestedKindsFilters Grammar used for parsing filters for nested kinds of the kind.
+    *   @param attributesParser Grammar used for parsing of attributes setting and removal of the kind.
+    *   @param kindsParser Grammar used for parsing nested kinds definitions anf filters of the kind.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     WholeKindParser(const Db::Identifier &kindName, AttributesParser<Iterator> *attributesParser,
-                    AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
-                    KindsOnlyParser<Iterator> *nestedKinds, KindsFiltersParser<Iterator> *nestedKindsFilters,
-                    ParserImpl<Iterator> *parent);
+                    KindsParser<Iterator> *kindsParser, ParserImpl<Iterator> *parent);
 
 private:
-
-    /** @short Function used as semantic action for parsed end keyword. */
-    void parsedEnd();
 
     /** @short Function used as semantic action when there is only single kind on the line
     *          and so parser should nest into this kind.
@@ -75,6 +65,9 @@ private:
     *   Calls appropriate method in main parser.
     */
     void parsedSingleKind();
+
+    /** @short Function used as semantic action for parsed end keyword. */
+    void parsedEnd();
 
     qi::rule<Iterator, ascii::space_type > start;
 

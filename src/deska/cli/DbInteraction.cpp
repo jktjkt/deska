@@ -39,54 +39,54 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-void DbInteraction::createObject(const Db::ContextStack &context)
+void DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->createObject(context.back().kind, Db::contextStackToPath(context));
+    m_api->createObject(context.back().kind, contextStackToPath(context));
 }
 
 
 
-void DbInteraction::restoreDeletedObject(const Db::ContextStack &context)
+void DbInteraction::restoreDeletedObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->restoreDeletedObject(context.back().kind, Db::contextStackToPath(context));
+    m_api->restoreDeletedObject(context.back().kind, contextStackToPath(context));
 }
 
 
 
-void DbInteraction::deleteObject(const Db::ContextStack &context)
+void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->deleteObject(context.back().kind, Db::contextStackToPath(context));
+    m_api->deleteObject(context.back().kind, contextStackToPath(context));
 }
 
 
 
-void DbInteraction::renameObject(const Db::ContextStack &context, const Db::Identifier &newName)
+void DbInteraction::renameObject(const ContextStack &context, const Db::Identifier &newName)
 {
     BOOST_ASSERT(!context.empty());
-    Db::ContextStack newContext = context;
+    ContextStack newContext = context;
     newContext.back().name = newName;
-    m_api->renameObject(context.back().kind, Db::contextStackToPath(context), Db::contextStackToPath(newContext));
+    m_api->renameObject(context.back().kind, contextStackToPath(context), contextStackToPath(newContext));
 }
 
 
 
-void DbInteraction::setAttribute(const Db::ContextStack &context,
+void DbInteraction::setAttribute(const ContextStack &context,
                                  const Db::AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute.attribute, attribute.value);
+    m_api->setAttribute(context.back().kind, contextStackToPath(context), attribute.attribute, attribute.value);
 }
 
 
 
-void DbInteraction::removeAttribute(const Db::ContextStack &context,
+void DbInteraction::removeAttribute(const ContextStack &context,
                                     const Db::Identifier &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, Db::contextStackToPath(context), attribute, Deska::Db::Value());
+    m_api->setAttribute(context.back().kind, contextStackToPath(context), attribute, Deska::Db::Value());
 }
 
 
@@ -126,7 +126,7 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 
 
 
-std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ContextStack &context)
+std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const ContextStack &context)
 {
     std::vector<Db::AttributeDefinition> attributes;
 
@@ -137,7 +137,7 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Cont
             return attributes;
 
         typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
-        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, Db::contextStackToPath(context))) {
+        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, contextStackToPath(context))) {
             attributes.push_back(Db::AttributeDefinition(x.first, x.second));
         }
     }
@@ -146,7 +146,7 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Cont
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::ContextStack &context)
+std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<Db::ObjectDefinition> kinds;
@@ -156,11 +156,11 @@ std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const Db::Contex
 
 
 
-bool DbInteraction::objectExists(const Db::ContextStack &context)
+bool DbInteraction::objectExists(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<Db::Identifier> instances = m_api->kindInstances(context.back().kind);
-    if (std::find(instances.begin(), instances.end(), Db::contextStackToPath(context)) == instances.end()) {
+    if (std::find(instances.begin(), instances.end(), contextStackToPath(context)) == instances.end()) {
         return false;
     } else {
         return true;

@@ -22,6 +22,8 @@
 #ifndef DESKA_DB_FILTER_H
 #define DESKA_DB_FILTER_H
 
+#include <vector>
+
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
 
@@ -44,6 +46,8 @@ typedef enum {
     FILTER_COLUMN_LE
 } ComparisonOperator;
 
+std::ostream& operator<<(std::ostream &stream, ComparisonOperator o);
+
 /** @short Anything against which we can compare */
 typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
 
@@ -63,6 +67,7 @@ struct MetadataExpression
 
 bool operator==(const MetadataExpression &a, const MetadataExpression &b);
 bool operator!=(const MetadataExpression &a, const MetadataExpression &b);
+std::ostream& operator<<(std::ostream &stream, const MetadataExpression &m);
 
 /** @short Compare attribute value against a constant using given comparison operator */
 struct AttributeExpression
@@ -73,10 +78,15 @@ struct AttributeExpression
     Value constantValue;
 
     AttributeExpression(const ComparisonOperator comparison, const Identifier &kind, const Identifier &attribute, const Value &constantValue);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    AttributeExpression() {};
 };
 
 bool operator==(const AttributeExpression &a, const AttributeExpression &b);
 bool operator!=(const AttributeExpression &a, const AttributeExpression &b);
+std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a);
 
 /** @short A generic expression */
 typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
@@ -95,7 +105,13 @@ struct OrFilter
     std::vector<Filter> operands;
 
     OrFilter(const std::vector<Filter> &operands);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    OrFilter() {};
 };
+
+//std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
@@ -103,7 +119,15 @@ struct AndFilter
     std::vector<Filter> operands;
 
     AndFilter(const std::vector<Filter> &operands);
+
+    // FIXME: This is here for initialization of the Filter variant for the grammar.
+    // Do not know, if there is some other solution now.
+    AndFilter() {};
 };
+
+//std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
+
+//std::ostream& operator<<(std::ostream &stream, const Filter &f);
 
 }
 }

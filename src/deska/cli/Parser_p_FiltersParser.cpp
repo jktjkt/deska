@@ -63,7 +63,12 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
     operators.add("<", Db::FILTER_COLUMN_LT);
     operators.add("<=", Db::FILTER_COLUMN_LE);
 
-    start %= qi::lit("(") >> attrExpr >> qi::lit(")");
+    start %= ((qi::lit("(") >> andFilter >> qi::lit(")"))
+            | (qi::lit("(") >> orFilter >> qi::lit(")"))
+            | (qi::lit("(") >> attrExpr >> qi::lit(")")));
+
+    andFilter = (start % qi::lit("&"))[_val = phoenix::construct<Db::AndFilter>(_1)];
+    orFilter = (start % qi::lit("|"))[_val = phoenix::construct<Db::OrFilter>(_1)];
 
     // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every

@@ -31,6 +31,7 @@
 #include <boost/signals2/trackable.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Api.h"
+#include "ContextStack.h"
 
 
 namespace Deska
@@ -55,7 +56,7 @@ public:
     *   @param kind Kind name of object being entered
     *   @param object Kind instance of object being entered
     */
-    ParserSignalCategoryEntered(const Db::ContextStack &context,
+    ParserSignalCategoryEntered(const ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
 
     /** @short Performs action, that is the signal connected with.
@@ -75,7 +76,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -125,7 +126,7 @@ public:
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const Db::ContextStack &context,
+    ParserSignalSetAttribute(const ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -145,7 +146,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -166,7 +167,7 @@ public:
     *   @param context Current parser context
     *   @param attribute Name of attribute being changed
     */
-    ParserSignalRemoveAttribute(const Db::ContextStack &context,
+    ParserSignalRemoveAttribute(const ContextStack &context,
                                 const Db::Identifier &attribute);
 
     /** @short Performs action, that is the signal connected with.
@@ -186,11 +187,50 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
     Db::Identifier attributeName;
+    //@}
+};
+
+
+
+class ParserSignalObjectsFilter
+{
+public:
+
+    /** @short Constructor for storing signal objectsFilter().
+    *
+    *   @param context Current parser context
+    *   @param filter Parsed filter
+    */
+    ParserSignalObjectsFilter(const ContextStack &context,
+                              const Db::Filter &filter);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Filter objectsFilter;
     //@}
 };
 
@@ -205,7 +245,7 @@ public:
     *
     *   @param context Current parser context
     */
-    ParserSignalFunctionShow(const Db::ContextStack &context);
+    ParserSignalFunctionShow(const ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -224,7 +264,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 };
 
 
@@ -238,7 +278,7 @@ public:
     *
     *   @param context Current parser context 
     */
-    ParserSignalFunctionDelete(const Db::ContextStack &context);
+    ParserSignalFunctionDelete(const ContextStack &context);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -257,7 +297,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 };
 
 
@@ -272,7 +312,7 @@ public:
     *   @param context Current parser context
     *   @param newName New name of the object in the context stack
     */
-    ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName);
+    ParserSignalFunctionRename(const ContextStack &context, const Db::Identifier &newName);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -291,7 +331,7 @@ public:
 private:
 
     /** Context stack, that was actual when signal was triggered. */
-    Db::ContextStack signalsContext;
+    ContextStack signalsContext;
 
     //@{
     /** Additional information needed to be stored for particular signals. */
@@ -303,8 +343,8 @@ private:
 
 /** @short Represents one signal from the Parser. */
 typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
-                       ParserSignalRemoveAttribute, ParserSignalFunctionShow, ParserSignalFunctionDelete,
-                       ParserSignalFunctionRename> ParserSignal;
+                       ParserSignalRemoveAttribute, ParserSignalObjectsFilter, ParserSignalFunctionShow,
+                       ParserSignalFunctionDelete, ParserSignalFunctionRename> ParserSignal;
 
 
 
@@ -395,6 +435,7 @@ private:
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
     void slotRemoveAttribute(const Db::Identifier &attribute);
+    void slotObjectsFilter(const Db::Filter &filter);
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotFunctionRename(const Db::Identifier &newName);
@@ -406,6 +447,7 @@ private:
     friend class ParserSignalCategoryLeft;
     friend class ParserSignalSetAttribute;
     friend class ParserSignalRemoveAttribute;
+    friend class ParserSignalObjectsFilter;
     friend class ParserSignalFunctionShow;
     friend class ParserSignalFunctionDelete;
     friend class ParserSignalFunctionRename;
@@ -414,7 +456,7 @@ private:
     std::vector<ParserSignal> signalsStack;
 
     /** The context is held there. */
-    Db::ContextStack contextStack;
+    ContextStack contextStack;
 
     /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;

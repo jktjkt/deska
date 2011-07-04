@@ -27,6 +27,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
 
+#include "ContextStack.h"
 #include "UserInterfaceIO.h"
 
 
@@ -347,7 +348,7 @@ void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indent
         out << indent(indentLevel) << object << std::endl;
     else
         out << indent(indentLevel)
-            << Db::ObjectDefinition(object.kind, Db::PathToVector(object.name).back()) << std::endl;
+            << Db::ObjectDefinition(object.kind, pathToVector(object.name).back()) << std::endl;
 }
 
 

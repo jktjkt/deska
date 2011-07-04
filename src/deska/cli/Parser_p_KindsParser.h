@@ -20,8 +20,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESPARSER_H
-#define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESPARSER_H
+#ifndef DESKA_CLI_PARSERPRIVATE_KINDSPARSER_H
+#define DESKA_CLI_PARSERPRIVATE_KINDSPARSER_H
 
 #include "Parser_p.h"
 
@@ -30,16 +30,17 @@ namespace Deska
 namespace Cli
 {
 
-/** @short Parser for set of attributes specific top-level grammar.
+/** @short Parser for set of attributes and nested objects of specific top-level grammar.
 *
-*   Combines all needed grammars into one parser for parsing the attributes setting and removing of one kind.
-*   For attribute setting is used grammar AttributesSettingParser and for attribute removing grammar AttributeRemovalsParser.
+*   Combines all needed grammars into one parser for parsing the whole kind with its nested kinds.
+*   For parsing of kind definitions is used grammar KindsOnlyParser, for parsing filters for nested
+*   kinds is used grammar KindsFiltersParser.
 *
-*   @see AttributesSettingParser
-*   @see AttributeRemovalsParser
+*   @see KindsOnlyParser
+*   @see KindsFiltersParser
 */
 template <typename Iterator>
-class AttributesParser: public qi::grammar<Iterator, ascii::space_type>
+class KindsParser: public qi::grammar<Iterator, ascii::space_type>
 {
 
 public:
@@ -47,12 +48,12 @@ public:
     /** @short Constructor initializes the grammar with all rules.
     *
     *   @param kindName Name of top-level object type, to which the parser belongs.
-    *   @param attributesSettingParser Grammar used for parsing of attributes of the kind.
-    *   @param attributesRemovalParser Grammar used for parsing of attributes removals of the kind.
+    *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
+    *   @param nestedKindsFilters Grammar used for parsing filters for nested kinds of the kind.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    AttributesParser(const Db::Identifier &kindName, AttributesSettingParser<Iterator> *attributesSettingParser,
-                     AttributeRemovalsParser<Iterator> *attributeRemovalsParser, ParserImpl<Iterator> *parent);
+    KindsParser(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *nestedKinds,
+                KindsFiltersParser<Iterator> *nestedKindsFilters, ParserImpl<Iterator> *parent);
 
 private:
 
@@ -65,4 +66,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_PARSERPRIVATE_ATTRIBUTESPARSER_H
+#endif  // DESKA_CLI_PARSERPRIVATE_KINDSPARSER_H

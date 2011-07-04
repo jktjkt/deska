@@ -28,6 +28,7 @@
 #include <boost/noncopyable.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
+#include "ContextStack.h"
 
 namespace Deska {
 
@@ -56,35 +57,35 @@ public:
     *
     *   @param context Path and object definition to create
     */
-    void createObject(const Db::ContextStack &context);
+    void createObject(const ContextStack &context);
     /** @short Restores deleted object.
     *
     *   @param context Path and object definition to restore
     */
-    void restoreDeletedObject(const Db::ContextStack &context);
+    void restoreDeletedObject(const ContextStack &context);
     /** @short Deletes object.
     *
     *   @param context Path and object definition to delete
     */
-    void deleteObject(const Db::ContextStack &context);
+    void deleteObject(const ContextStack &context);
     /** @short Renames object.
     *
     *   @param context Path and object definition to delete
     *   @param newName New name of the object
     */
-    void renameObject(const Db::ContextStack &context, const Db::Identifier &newName);
+    void renameObject(const ContextStack &context, const Db::Identifier &newName);
     /** @short Sets attribute value in the object.
     *
     *   @param context Path to the object which attribute will be changed
     *   @param attribute Attribute and value to set
     */
-    void setAttribute(const Db::ContextStack &context, const Db::AttributeDefinition &attribute);
+    void setAttribute(const ContextStack &context, const Db::AttributeDefinition &attribute);
     /** @short Removes attribute value in the object.
     *
     *   @param context Path to the object which attribute value will be removed
     *   @param attribute Attribute to remove value from
     */
-    void removeAttribute(const Db::ContextStack &context, const Db::Identifier &attribute);
+    void removeAttribute(const ContextStack &context, const Db::Identifier &attribute);
 
     /** @short Obtains list of all defined kind names.
     *
@@ -111,21 +112,21 @@ public:
     *   @param context Path to the object for which the attributes are obtained
     *   @return Vector of all attributes
     */
-    std::vector<Db::AttributeDefinition> allAttributes(const Db::ContextStack &context);
+    std::vector<Db::AttributeDefinition> allAttributes(const ContextStack &context);
 
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
-    std::vector<Db::ObjectDefinition> allNestedKinds(const Db::ContextStack &context);
+    std::vector<Db::ObjectDefinition> allNestedKinds(const ContextStack &context);
 
     /** @short Check if object in the context exists or not.
     *
     *   @param context Path to the object to search for
     *   @return True if object exists else false
     */
-    bool objectExists(const Db::ContextStack &context);
+    bool objectExists(const ContextStack &context);
 
     /** @short Function for obtaining all pending chandesets.
     *

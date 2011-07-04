@@ -36,7 +36,7 @@ namespace Cli
 {
 
 
-ParserSignalCategoryEntered::ParserSignalCategoryEntered(const Db::ContextStack &context,
+ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
     signalsContext(context), kindName(kind), objectName(object)
 {
@@ -91,7 +91,7 @@ bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalSetAttribute::ParserSignalSetAttribute(const Db::ContextStack &context, 
+ParserSignalSetAttribute::ParserSignalSetAttribute(const ContextStack &context, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
     signalsContext(context), attributeName(attribute), setValue(value)
 {
@@ -113,7 +113,7 @@ bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const Db::ContextStack &context, 
+ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &context, 
                                                          const Db::Identifier &attribute):
     signalsContext(context), attributeName(attribute)
 {
@@ -135,7 +135,29 @@ bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalFunctionShow::ParserSignalFunctionShow(const Db::ContextStack &context):
+ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context, 
+                                                     const Db::Filter &filter):
+    signalsContext(context), objectsFilter(filter)
+{
+}
+
+
+
+bool ParserSignalObjectsFilter::apply(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->applyObjectsFilter(signalsContext, objectsFilter);
+}
+
+
+
+bool ParserSignalObjectsFilter::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmObjectsFilter(signalsContext, objectsFilter);
+}
+
+
+
+ParserSignalFunctionShow::ParserSignalFunctionShow(const ContextStack &context):
     signalsContext(context)
 {
 }
@@ -156,7 +178,7 @@ bool ParserSignalFunctionShow::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalFunctionDelete::ParserSignalFunctionDelete(const Db::ContextStack &context):
+ParserSignalFunctionDelete::ParserSignalFunctionDelete(const ContextStack &context):
     signalsContext(context)
 {
 }
@@ -177,7 +199,7 @@ bool ParserSignalFunctionDelete::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalFunctionRename::ParserSignalFunctionRename(const Db::ContextStack &context, const Db::Identifier &newName):
+ParserSignalFunctionRename::ParserSignalFunctionRename(const ContextStack &context, const Db::Identifier &newName):
     signalsContext(context), name(newName)
 {
 }
@@ -235,6 +257,7 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
     m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
     m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1));
+    m_parser->objectsFilter.connect(boost::phoenix::bind(&SignalsHandler::slotObjectsFilter, this, _1));
     m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
     m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
     m_parser->functionRename.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionRename, this, _1));
@@ -268,6 +291,13 @@ void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db:
 void SignalsHandler::slotRemoveAttribute(const Db::Identifier &attribute)
 {
     signalsStack.push_back(ParserSignalRemoveAttribute(m_parser->currentContextStack(), attribute));
+}
+
+
+
+void SignalsHandler::slotObjectsFilter(const Db::Filter &filter)
+{
+    signalsStack.push_back(ParserSignalObjectsFilter(m_parser->currentContextStack(), filter));
 }
 
 

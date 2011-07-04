@@ -109,9 +109,11 @@ set(libDeskaDb_SRCS
 )
 
 set(libDeskaCliParser_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ContextStack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributeRemovalsParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesSettingParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FunctionWordsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsOnlyParser.cpp
@@ -119,6 +121,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FiltersParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsFiltersParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_WholeKindParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_TopLevelParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
