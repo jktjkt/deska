@@ -2,6 +2,7 @@
 class Template:
 	table_query_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
 	not_null_query_str = "SELECT n_constraints_on_table('{tbl}');"
+	embed_into_str = "SELECT attname FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
 	
 	template_str = '''
 CREATE SEQUENCE production.{tbl}_template_uid;
@@ -15,11 +16,13 @@ ALTER TABLE {tbl}_template ALTER COLUMN uid SET DEFAULT nextval('{tbl}_template_
 ALTER TABLE {tbl} ADD CONSTRAINT rtempl_{tbl} FOREIGN KEY ("template") REFERENCES {tbl}_template(uid);
 
 '''
+	drop_column_str = "ALTER TABLE {0}_template DROP COLUMN {1};"
+
 	drop_not_null_str = "ALTER TABLE {0}_template ALTER COLUMN {1} DROP NOT NULL;"
 
 	def __init__(self,db_connection):
 		self.plpy = db_connection;
-		self.plpy.execute("SET search_path TO deska,production")
+		self.plpy.execute("SET search_path TO deska,production, api")
 
 		# init set of tables
 		self.tables = set()
@@ -48,9 +51,20 @@ ALTER TABLE {tbl} ADD CONSTRAINT rtempl_{tbl} FOREIGN KEY ("template") REFERENCE
 		for tbl in self.tables:
 			self.sql.write(self.gen_table_template(tbl))
 			self.sql.write(self.gen_table_drop_not_null(tbl))
+			self.sql.write(self.gen_drop_embed_parent_column(tbl))
 
 		self.sql.close()
 		return
+	
+	def gen_drop_embed_parent_column(self,table_name):
+		record = self.plpy.execute(self.embed_into_str.format(table_name))
+		embed_column = ""
+		for row in record:
+			embed_column = row[0]
+		if embed_column <> "":
+			return self.drop_column_str.format(table_name, embed_column)
+		else:
+			return ""
 
 	# generate sql for one table
 	def gen_table_template(self,table_name):

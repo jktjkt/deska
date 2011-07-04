@@ -214,10 +214,18 @@ class Table(constants.Templates):
 		cols_ex_templ = ','.join(collist)
 		del collist['name']
 		del collist['uid']
-		
-		rddvcoal = ""
-		if len(collist) > 0:
-			rddvcoal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist))) + ','
+
+
+		rddvcols = collist.keys()
+		rddv_list = list()
+		for col in rddvcols:
+			if col == self.embed_into:
+				rddv_list.append( "rd." + self.embed_into)
+			else:
+				rddv_list.append(("COALESCE(rd.{0},dv.{0}) AS {0}".format(col)))
+				
+		if len(rddv_list) > 0:
+			rddvcoal = ',\n'.join(rddv_list) + ','
 	
 		cols = ','.join(collist)
 		
