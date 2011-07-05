@@ -29,8 +29,7 @@ class DB:
 		"objectData": ["tag", "kindName", "objectName","revision"],
 		"objectData": ["tag", "kindName", "objectName","revision"],
 		#"objectData": ["tag", "kindName", "objectName","revision", "filter"],
-		"multipleObjectData": ["tag", "kindName", "revision"],
-		#"multipleObjectData": ["tag", "kindName", "revision", "filter"],
+		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
 		"listRevisions": ["tag", "filter"]
 	})
 
