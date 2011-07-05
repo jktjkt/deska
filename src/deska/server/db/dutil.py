@@ -230,6 +230,10 @@ class Filter():
 				joincond = "{0}.id = {1}.version".format(mykind,kind)
 				ret = ret + " JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 			else:
+				if kind not in generated.kinds():
+					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
+				if kind not in generated.refs() or mykind != generated.refs()[kind]:
+					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
 				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
 				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 		return ret
