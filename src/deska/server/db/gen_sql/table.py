@@ -301,8 +301,15 @@ class Table(constants.Templates):
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
-		rddvcoal = ','.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
-
+		rddv_list = list()
+		for col in collist:
+			if col == self.embed_into:
+				rddv_list.append( "rd." + self.embed_into)
+			else:
+				rddv_list.append(("COALESCE(rd.{0},dv.{0}) AS {0}".format(col)))
+		if len(rddv_list) > 0:
+			rddvcoal = ',\n'.join(rddv_list)
+			
 		cols_ex_template_dict = dict()
 		for col in self.col:
 			if col in columns_ex_template:
