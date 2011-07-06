@@ -175,6 +175,10 @@ class Condition():
 			#FIXME: version parametr, $1 every time, check for conflicts
 			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 			self.kind = revEmbed[self.col]
+		refs = generated.refs()
+		if self.kind in refs and self.col == refs[self.kind]:
+			# update coldef for identifier references
+			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 
 		if self.op not in self.opMap:
 			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
