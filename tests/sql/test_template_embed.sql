@@ -42,6 +42,11 @@ BEGIN
 	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('inf_template_all', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'ip4_ip6_template', 4);
 	INSERT INTO pgtap.test_interface (name, host, mac, note, template, version) VALUES ('host1->eth2', 'host1', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac',5);
 	INSERT INTO pgtap.test_interface (name, ip4, ip6, mac, note, template, version) VALUES ('host1->eth2', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'inf_template_all', 6);
+	INSERT INTO pgtap.test_interface_template (name, note, version) VALUES ('inf_note_template', 'note',7);
+	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('inf_template_all', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'ip4_ip6_template', 7);
+	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('ip4_ip6_template', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'note', 'inf_template_note_mac', 7);
+	INSERT INTO pgtap.test_interface_template (name, mac, note, template, version) VALUES ('inf_template_note_mac', '01:23:45:67:89:ab', 'note', 'inf_note_template', 7);
+	INSERT INTO pgtap.test_interface (name, ip4, ip6, mac, note, template, version) VALUES ('host1->eth2', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'inf_template_all', 7);
 
 	PERFORM startChangeset();
 	PERFORM host_add('host1');
@@ -144,15 +149,25 @@ BEGIN
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
+	PERFORM startchangeset();
+	PERFORM interface_template_set_note('inf_note_template', 'note');
+	PERFORM commitchangeset('7');
+
+	PREPARE expresolved_data AS SELECT  mac, note, template FROM pgtap.test_interface_template WHERE name = 'inf_template_note_mac' AND version = 7;
+	PREPARE retresolved_data AS SELECT  mac, note, template FROM interface_template_resolved_data('inf_template_note_mac');
+	RETURN NEXT results_eq( 'retresolved_data', 'expresolved_data', 'resolved template data after change in parent template' );
+	DEALLOCATE expresolved_data;
+	DEALLOCATE retresolved_data;
+
+	PREPARE expresolved_data AS SELECT  name, note FROM pgtap.test_interface_template WHERE name IN ('inf_template_note_mac', 'inf_template_all', 'ip4_ip6_template', 'inf_note_template') AND version = 7 order by name;
+	PREPARE retresolved_data AS SELECT  cast(name as text), note FROM production.interface_template WHERE name IN ('inf_template_note_mac', 'inf_template_all', 'ip4_ip6_template', 'inf_note_template') order by name;
+	RETURN NEXT results_eq( 'retresolved_data', 'expresolved_data', 'data in production after modification in template are ok' );
+	DEALLOCATE expresolved_data;
+	DEALLOCATE retresolved_data;
+
 END
 $$
 LANGUAGE plpgsql;
-
-
-/* ************************************************
-*	 testing  replacing template with another	***
-************************************************ */
-
 
 SELECT * FROM runtests();
 
