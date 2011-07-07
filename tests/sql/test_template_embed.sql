@@ -18,7 +18,6 @@ CREATE TABLE pgtap.test_interface_template(
 
 CREATE TABLE pgtap.test_interface(
 	name text,
-	host text,
 	ip4 ipv4,
 	ip6 ipv6,
 	mac macaddr,
@@ -35,12 +34,12 @@ DECLARE
 	old_version bigint;
 BEGIN
 	INSERT INTO pgtap.test_interface_template (name, note, version) VALUES ('inf_note_template', 'interface',1);
-	INSERT INTO pgtap.test_interface (name, host, note, template, version) VALUES ('host1->eth0', 'host1', 'interface', 'inf_note_template',1);
+	INSERT INTO pgtap.test_interface (name, note, template, version) VALUES ('host1->eth0', 'interface', 'inf_note_template',1);
 	INSERT INTO pgtap.test_interface_template (name, mac, note, template, version) VALUES ('inf_template_note_mac', '01:23:45:67:89:ab', 'interface', 'inf_note_template', 2);
-	INSERT INTO pgtap.test_interface (name, host, mac, note, template, version) VALUES ('host1->eth1', 'host1', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac',3);
+	INSERT INTO pgtap.test_interface (name, mac, note, template, version) VALUES ('host1->eth1', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac',3);
 	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('ip4_ip6_template', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac', 4);
 	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('inf_template_all', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'ip4_ip6_template', 4);
-	INSERT INTO pgtap.test_interface (name, host, mac, note, template, version) VALUES ('host1->eth2', 'host1', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac',5);
+	INSERT INTO pgtap.test_interface (name, mac, note, template, version) VALUES ('host1->eth2', '01:23:45:67:89:ab', 'interface', 'inf_template_note_mac',5);
 	INSERT INTO pgtap.test_interface (name, ip4, ip6, mac, note, template, version) VALUES ('host1->eth2', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'inf_template_all', 6);
 	INSERT INTO pgtap.test_interface_template (name, note, version) VALUES ('inf_note_template', 'note',7);
 	INSERT INTO pgtap.test_interface_template (name, ip4, ip6, mac, note, template, version) VALUES ('inf_template_all', '192.168.0.100', 'fec0::1', '01:23:45:67:89:ab', 'another note', 'ip4_ip6_template', 7);
@@ -70,8 +69,8 @@ BEGIN
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
-	PREPARE expresolved_data AS SELECT host, note, template FROM pgtap.test_interface WHERE name = 'host1->eth0' AND version = 1;
-	PREPARE retresolved_data AS SELECT host, note, template FROM interface_resolved_data('host1->eth0');
+	PREPARE expresolved_data AS SELECT note, template FROM pgtap.test_interface WHERE name = 'host1->eth0' AND version = 1;
+	PREPARE retresolved_data AS SELECT note, template FROM interface_resolved_data('host1->eth0');
 	RETURN NEXT results_eq( 'retresolved_data', 'expresolved_data', 'resolved object data are ok' );	
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
@@ -93,8 +92,8 @@ BEGIN
 	PERFORM interface_set_template('host1->eth1','inf_template_note_mac');
 	PERFORM commitchangeset('3');
 
-	PREPARE expresolved_data AS SELECT host, note, template FROM pgtap.test_interface WHERE name = 'host1->eth1' AND version = 3;
-	PREPARE retresolved_data AS SELECT host, note, template FROM interface_resolved_data('host1->eth1');
+	PREPARE expresolved_data AS SELECT note, template FROM pgtap.test_interface WHERE name = 'host1->eth1' AND version = 3;
+	PREPARE retresolved_data AS SELECT note, template FROM interface_resolved_data('host1->eth1');
 	RETURN NEXT results_eq( 'retresolved_data', 'expresolved_data', 'resolved object data are ok - 2 levels' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;

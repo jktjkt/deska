@@ -276,12 +276,6 @@ class Table(constants.Templates):
 		collist.remove('name')
 		
 		collist.remove('template')
-		cols = ','.join(collist)
-		columns_ex_template = list(collist)
-		
-		data_attributes = map('data.{0}'.format, collist)
-		#should be in right order at the last position
-		dcols = ','.join(data_attributes) + ', data.template'
 		
 		#table tbl is templated by table tbl_template
 		#table tbl_template is templated by tbl_template
@@ -294,19 +288,21 @@ class Table(constants.Templates):
 		if self.embed_into <> "":
 			resolved_data_string = self.resolved_data_embed_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
+			collist.remove(self.embed_into)
 		else:
 			resolved_data_string = self.resolved_data_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
+						
+		cols = ','.join(collist)
+		columns_ex_template = list(collist)
+		
+		data_attributes = map('data.{0}'.format, collist)
+		#should be in right order at the last position
+		dcols = ','.join(data_attributes) + ', data.template'
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
-		rddv_list = list()
-		for col in collist:
-			if col == self.embed_into:
-				rddv_list.append( "rd." + self.embed_into)
-			else:
-				rddv_list.append(("COALESCE(rd.{0},dv.{0}) AS {0}".format(col)))
-		if len(rddv_list) > 0:
-			rddvcoal = ',\n'.join(rddv_list)
+		if len(collist) > 0:
+			rddvcoal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
 			
 		cols_ex_template_dict = dict()
 		for col in self.col:
