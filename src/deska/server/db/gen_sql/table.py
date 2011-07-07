@@ -95,9 +95,6 @@ class Table(constants.Templates):
 		if len(collist) == 0:
 			return ""
 
-		dattributes = map("data.{0}".format,collist.keys())
-		dcols = ",".join(dattributes)
-
 		if self.embed_into <> "":
 			get_data_string = self.get_embed_data_string
 			del collist[self.embed_into]
@@ -106,15 +103,16 @@ class Table(constants.Templates):
 
 		#replace uid of referenced table object by its name
 		for col in self.refuid_columns:
-			collist[col] = 'text'
+			if col in collist:
+				collist[col] = 'text'
 
 		attributes = collist.keys()
-		#attributes.sort()
 		atttypes = collist.values()
-		#for att in attributes:
-			#atttypes.append(collist[att])
-			
+
 		coltypes = ",\n".join(map("{0} {1}".format,attributes, atttypes))
+
+		dattributes = map("data.{0}".format,attributes)
+		dcols = ",".join(dattributes)
 
 		for col in self.refuid_columns:
 			if col in collist:
@@ -331,12 +329,19 @@ class Table(constants.Templates):
 		END AS {0}_templ'''
 		case_cols = ','.join(list(map(case_col_string.format,cols_ex_template_dict.keys())))
 	
-		templ_case_cols = '''
+		templ_case_cols_str = '''
 		CASE	WHEN rd.{0}_templ IS NOT NULL THEN rd.{0}_templ
 			WHEN rd.{0}_templ IS NULL AND dv.{0} IS NOT NULL THEN dv.name
 			ELSE NULL
-		END AS {0}_templ'''
-		templ_case_cols = ','.join(list(map(templ_case_cols.format,cols_ex_template_dict.keys())))
+		END AS {0}_templ'''		
+		templ_case_list = list()
+		for col in cols_ex_template_dict.keys():
+			if col == self.embed_into:
+				templ_case_list.append("rd.{0}_templ AS {0}_templ".format(col))
+			else:
+				templ_case_list.append(templ_case_cols_str.format(col))
+		templ_case_cols = ','.join(templ_case_list)
+		
 		templ_columns_list = list(map("{0}_templ".format, cols_ex_template_dict.keys()))
 		cols_templ = ','.join(templ_columns_list)
 		#SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
