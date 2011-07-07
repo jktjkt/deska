@@ -108,6 +108,7 @@ if(RUN_SQL_TESTS)
 	deska_sql_test(template)
 	deska_sql_test(template_data_origin)
 	deska_sql_test(template_embed)
+	deska_sql_test(template_embed_data_origin)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
