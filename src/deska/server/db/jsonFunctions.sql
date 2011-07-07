@@ -48,7 +48,10 @@ def main(tag,kindName):
 
 	atts = dutil.generated.atts(kindName)
 	for att in atts:
-		atts[att] = type_dict[atts[att]]
+		if att in type_dict:
+			atts[att] = type_dict[atts[att]]
+		else:
+			atts[att] = "string"
 
 	jsn[name] = atts
 	return json.dumps(jsn)

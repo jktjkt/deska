@@ -40,9 +40,10 @@ RETURNS TRIGGER
 AS
 $$
 BEGIN
-	IF NEW.port_pos > (SELECT ports FROM interface WHERE uid = NEW.switch) THEN
-		RAISE EXCEPTION 'Switch does not have % ports!', NEW.port_pos;
+	IF NEW.switch_pos > (SELECT ports FROM switch WHERE uid = NEW.switch) THEN
+		RAISE EXCEPTION 'Switch does not have % ports!', NEW.switch_pos;
 	END IF;
+	RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;

@@ -13,7 +13,7 @@ CREATE TABLE cpu_type (
 	cores int
 		CONSTRAINT cpu_type_cores_positive
 		CHECK (cores > 0),
-	ht bit,
+	ht boolean,
 	performance int
 );
 
