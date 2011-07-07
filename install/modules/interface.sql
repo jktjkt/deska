@@ -16,6 +16,7 @@ CREATE TABLE interface (
 	-- TODO better use uid
 	host bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
+	dns_name text,
 	-- IP
 	-- TODO unique constraint
 	ip4 ipv4,
@@ -23,7 +24,28 @@ CREATE TABLE interface (
 	-- MAC
 	-- TODO unique constraint
 	mac macaddr,
+	switch bigint
+		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
+	switch_pos int
+		CONSTRAINT interface_switch_pos_positive
+		CHECK (switch_pos > 0),
 	note text,
 	template bigint,
 	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
 );
+
+-- function for trigger, checking ports number
+CREATE FUNCTION switch_check()
+RETURNS TRIGGER
+AS
+$$
+BEGIN
+	IF NEW.port_pos > (SELECT ports FROM interface WHERE uid = NEW.switch) THEN
+		RAISE EXCEPTION 'Switch does not have % ports!', NEW.port_pos;
+	END IF;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER switch_ports_check BEFORE INSERT OR UPDATE ON interface FOR EACH ROW
+EXECUTE PROCEDURE switch_check(uid,switch) 

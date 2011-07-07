@@ -7,6 +7,7 @@ BEGIN;
 \i modules/cpu_type.sql
 \i modules/hardware.sql
 \i modules/host.sql
+\i modules/switch.sql
 \i modules/interface.sql
 --\i modules/large_modul.sql
 
