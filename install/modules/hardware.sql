@@ -19,14 +19,24 @@ CREATE TABLE hardware (
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	-- GB of RAM
-	ram INT
+	ram int
 		CONSTRAINT hardware_ram_positive
 		CHECK (ram > 0),
 	-- number of CPU's
-	cpu_num INT
+	cpu_num int
 		CONSTRAINT hardware_cpu_num_positive
 		CHECK (cpu_num > 0),
-	-- add cpu type, when we have cpu type table
+	-- cpu type
+	cpu_type bigint
+		CONSTRAINT hardware_fk_cpu_type REFERENCES cpu_type(uid) DEFERRABLE,
+	-- hdd size
+	hdd_size int
+		CONSTRAINT hardware_hdd_size_positive
+		CHECK (hdd_size > 0),
+	weight int,
+	height int,
+	width int,
+	power int,
 	note text,
 	template bigint
 );

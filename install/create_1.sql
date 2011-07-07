@@ -4,6 +4,7 @@ BEGIN;
 
 -- create modules
 \i modules/vendor.sql
+\i modules/cpu_type.sql
 \i modules/hardware.sql
 \i modules/host.sql
 \i modules/interface.sql
