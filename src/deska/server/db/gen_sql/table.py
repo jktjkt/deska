@@ -269,13 +269,13 @@ class Table(constants.Templates):
 		collist.remove('uid')
 		collist.remove('name')
 		
-		data_attributes = map('data.{0}'.format, collist)
-		dcols = ','.join(data_attributes)
-		
 		collist.remove('template')
 		cols = ','.join(collist)
 		columns_ex_template = list(collist)
 		
+		data_attributes = map('data.{0}'.format, collist)
+		dcols = ','.join(data_attributes) + ',' + 'data.template'
+		 
 		#table tbl is templated by table tbl_template
 		#table tbl_template is templated by tbl_template
 		if self.name.endswith("_template"):
