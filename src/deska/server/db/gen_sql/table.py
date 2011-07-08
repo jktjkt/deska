@@ -270,12 +270,17 @@ class Table(constants.Templates):
 			
 		Function is called only for tables that could be templated by some template (has column template).
 		"""
-		#list of columns of given kind
-		collist = self.col.keys()
-		collist.remove('uid')
-		collist.remove('name')
 		
-		collist.remove('template')
+		cols_ex_template_dict = self.col.copy()
+		del cols_ex_template_dict['uid']
+		del cols_ex_template_dict['name']
+		del cols_ex_template_dict['template']
+
+		#for multiple data we dont want to loos data about embed into columns and we would like to left uid columns unresolved
+		multiple_ticols = ',\n'.join(list(map("{0} {1}".format,cols_ex_template_dict.keys(),cols_ex_template_dict.values())))
+		
+		#list of columns of given kind
+		collist = cols_ex_template_dict.keys()
 		
 		#table tbl is templated by table tbl_template
 		#table tbl_template is templated by tbl_template
@@ -284,15 +289,26 @@ class Table(constants.Templates):
 		else:
 			templ_table = self.name + "_template"
 		
+		#in case of multiple data we would like to select all columns in table
+		multiple_columns = ",".join(collist)
 		#table which is thatone embed into
 		if self.embed_into <> "":
-			resolved_data_string = self.resolved_data_embed_string
+			resolved_object_data_string = self.resolved_object_data_embed_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
+			multiple_rd_dv_coalesce_list = list()
+			for col in collist:
+				if col == self.embed_into:
+					multiple_rd_dv_coalesce_list.append("rd.{0} AS {0}".format(col))
+				else:
+					multiple_rd_dv_coalesce_list.append("COALESCE(rd.{0},dv.{0}) AS {0}".format(col))
 			collist.remove(self.embed_into)
+			del cols_ex_template_dict[self.embed_into]
 		else:
-			resolved_data_string = self.resolved_data_string
+			resolved_object_data_string = self.resolved_object_data_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
-						
+			multiple_rd_dv_coalesce_list = list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist))
+			
+		multiple_rd_dv_coalesce = ",".join(multiple_rd_dv_coalesce_list)
 		cols = ','.join(collist)
 		columns_ex_template = list(collist)
 		
@@ -303,12 +319,7 @@ class Table(constants.Templates):
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		if len(collist) > 0:
 			rddvcoal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
-			
-		cols_ex_template_dict = dict()
-		for col in self.col:
-			if col in columns_ex_template:
-				cols_ex_template_dict[col] = self.col[col]
-				
+		
 		# replace uid of referenced object its name
 		for col in self.refuid_columns:
 			if col in collist:
@@ -318,7 +329,8 @@ class Table(constants.Templates):
 		
 		cols_ex_templ = ",".join(collist)
 		
-		ticols = ',\n'.join(list(map("{0} {1}".format,cols_ex_template_dict.keys(),cols_ex_template_dict.values()))) + ',\n' + ',\n'.join(list(map("{0}_templ {1}".format,cols_ex_template_dict.keys(),['text']*len(cols_ex_template_dict))))
+		ticols = ',\n'.join(list(map("{0} {1}".format,cols_ex_template_dict.keys(),cols_ex_template_dict.values())))
+		templ_cols = ',\n'.join(list(map("{0}_templ {1}".format,cols_ex_template_dict.keys(),['text']*len(cols_ex_template_dict))))
 		case_col_string = '''
 		CASE	WHEN {0} IS NULL THEN NULL 
 			ELSE name
@@ -346,9 +358,16 @@ class Table(constants.Templates):
 		all_columns.append('template')
 		dticols = ','.join(list(map("data.{0}".format,all_columns)))
 		
-		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols)
-		resolve_data_fce = resolved_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
-		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
+		print
+		print self.name
+		print multiple_ticols
+		
+		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols, templ_columns = templ_cols )
+		resolve_object_data_fce = resolved_object_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
+		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = multiple_columns, rd_dv_coalesce = multiple_rd_dv_coalesce, columns_ex_templ = multiple_columns, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
 		resolve_object_data_template_info = resolved_object_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = cols, rd_dv_coalesce = rddvcoal, columns_ex_templ = cols_ex_templ, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ, data_columns = dticols)
-		return  resolve_data_fce + '\n' + templ_info_type + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
+		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string.format(tbl = self.name, columns = multiple_ticols, templ_columns = templ_cols )
+		multiple_data_type = self.multiple_resolved_data_type_string.format(tbl = self.name, columns = multiple_ticols)
+		resolve_data_fce = self.resolved_data_string.format(tbl = self.name, templ_tbl = templ_table, columns = multiple_columns, rd_dv_coalesce = multiple_rd_dv_coalesce, columns_ex_templ = multiple_columns)
+		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 		

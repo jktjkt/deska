@@ -986,7 +986,7 @@ LANGUAGE plpgsql;
 
 '''
 
-	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+	resolved_object_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data(name_ text, from_version bigint = 0)
 RETURNS {tbl}_type
 AS
 $$
@@ -1037,7 +1037,7 @@ LANGUAGE plpgsql;
 
 '''
 
-	resolved_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+	resolved_object_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data(name_ text, from_version bigint = 0)
 RETURNS {tbl}_type
 AS
 $$
@@ -1091,6 +1091,7 @@ LANGUAGE plpgsql;
 
 	resolved_data_template_info_type_string = '''CREATE TYPE {tbl}_data_template_info_type AS(
 	{columns},
+	{templ_columns},
 	template text
 );
 '''
@@ -1171,32 +1172,74 @@ LANGUAGE plpgsql;
 
 '''
 
+	multiple_resolved_data_template_info_type_string = '''CREATE TYPE multiple_{tbl}_data_template_info_type AS(
+	name identifier,
+	uid bigint,
+	version integer,
+	{columns},
+	{templ_columns},
+	template text
+);
+'''
+
+	multiple_resolved_data_type_string = '''CREATE TYPE multiple_{tbl}_data_type AS(
+	name identifier,
+	uid bigint,
+	version integer,
+	{columns},
+	template text
+);
+'''
+
 	resolved_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data_template_info(from_version bigint = 0)
-RETURNS SETOF {tbl}_data_template_info_type
+RETURNS SETOF multiple_{tbl}_data_template_info_type
 AS
 $$
-DECLARE
-	data {tbl}_data_template_info_type;
 BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
 	RETURN QUERY WITH recursive resolved_data AS (
-        SELECT {columns}, {case_columns}, template, template as orig_template
+        SELECT uid,name,version,{columns}, {case_columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
         UNION ALL
         SELECT
+			rd.uid AS uid, rd.name AS name, rd.version AS version,
 			{rd_dv_coalesce},
 			{templ_case_columns},
 			dv.template, rd.orig_template
         FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
+	SELECT name, uid, version, {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
 	FROM resolved_data WHERE template IS NULL;
 	
-	IF NOT FOUND THEN
-		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
-	END IF;
+	DROP TABLE template_data_version;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(from_version bigint = 0)
+RETURNS SETOF multiple_{tbl}_data_type
+AS
+$$
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	RETURN QUERY WITH recursive resolved_data AS (
+        SELECT uid,name,version,{columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        UNION ALL
+        SELECT
+			rd.uid AS uid, rd.name AS name, rd.version AS version,
+			{rd_dv_coalesce},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT name, uid, version, {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template
+	FROM resolved_data WHERE template IS NULL;
 	
 	DROP TABLE template_data_version;
 END
