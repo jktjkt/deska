@@ -1185,7 +1185,6 @@ LANGUAGE plpgsql;
 	multiple_resolved_data_type_string = '''CREATE TYPE multiple_{tbl}_data_type AS(
 	name identifier,
 	uid bigint,
-	version integer,
 	{columns},
 	template text
 );
@@ -1224,24 +1223,31 @@ LANGUAGE plpgsql;
 RETURNS SETOF multiple_{tbl}_data_type
 AS
 $$
+DECLARE
+	changeset_id integer;
 BEGIN
-	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+	changeset_id = get_current_changeset_or_null();
+	IF from_version = 0 AND changeset_id IS NULL  THEN
+		RETURN QUERY SELECT name, uid, {columns_ex_templ}, {templ_tbl}_get_name(template) AS template FROM production.{tbl};
+	ELSE
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
-	RETURN QUERY WITH recursive resolved_data AS (
-        SELECT uid,name,version,{columns}, template, template as orig_template
-        FROM {tbl}_data_version(from_version)
-        UNION ALL
-        SELECT
-			rd.uid AS uid, rd.name AS name, rd.version AS version,
-			{rd_dv_coalesce},
-			dv.template, rd.orig_template
-        FROM template_data_version dv, resolved_data rd 
-        WHERE dv.uid = rd.template
-	)
-	SELECT name, uid, version, {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template
-	FROM resolved_data WHERE template IS NULL;
-	
-	DROP TABLE template_data_version;
+		RETURN QUERY WITH recursive resolved_data AS (
+			SELECT uid,name,version,{columns}, template, template as orig_template
+			FROM {tbl}_data_version(from_version)
+			UNION ALL
+			SELECT
+				rd.uid AS uid, rd.name AS name, rd.version AS version,
+				{rd_dv_coalesce},
+				dv.template, rd.orig_template
+			FROM template_data_version dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+		)
+		SELECT name, uid, {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template
+		FROM resolved_data WHERE template IS NULL;
+		
+		DROP TABLE template_data_version;
+	END IF;
 END
 $$
 LANGUAGE plpgsql;

@@ -358,10 +358,6 @@ class Table(constants.Templates):
 		all_columns.append('template')
 		dticols = ','.join(list(map("data.{0}".format,all_columns)))
 		
-		print
-		print self.name
-		print multiple_ticols
-		
 		templ_info_type = self.resolved_data_template_info_type_string.format(tbl = self.name, columns = ticols, templ_columns = templ_cols )
 		resolve_object_data_fce = resolved_object_data_string.format(tbl = self.name, columns = cols, columns_ex_templ = cols_ex_templ, rd_dv_coalesce = rddvcoal, templ_tbl = templ_table, data_columns = dcols)
 		resolve_data_template_info_fce = self.resolved_data_template_info_string.format(tbl = self.name, templ_tbl = templ_table, columns = multiple_columns, rd_dv_coalesce = multiple_rd_dv_coalesce, columns_ex_templ = multiple_columns, case_columns = case_cols, templ_case_columns = templ_case_cols, columns_templ = cols_templ)
