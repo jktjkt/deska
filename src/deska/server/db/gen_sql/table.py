@@ -367,3 +367,37 @@ class Table(constants.Templates):
 		resolve_data_fce = self.resolved_data_string.format(tbl = self.name, templ_tbl = templ_table, columns = multiple_columns, rd_dv_coalesce = multiple_rd_dv_coalesce, columns_ex_templ = multiple_columns)
 		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 		
+			
+	def gen_resolved_data_diff(self):
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+		#	COALESCE(rd.warranty,dv.warranty) AS warranty, COALESCE(rd.purchase,dv.purchase) AS purchase, 
+
+		collist = self.col.keys()
+		collist.remove('template')
+		collist.remove('uid')
+		collist.remove('name')
+
+		rd_dv_coal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
+		columns = ','.join(collist)
+		
+		att_name_type = list()
+		for col in collist:
+			att_name_type.append("{0} {1}".format(col, self.col[col]))
+		columns_types = ",\n".join(att_name_type)
+		diff_type = self.diff_data_type_str.format(tbl = self.name, col_types = columns_types)
+		changeses_function = self.data_resolved_changes_function_string.format(tbl = self.name, templ_tbl = templ_table, rd_dv_coalesce = rd_dv_coal, columns_ex_templ = columns)
+
+		#template, name must be present
+		collist = self.col.keys()
+		collist.remove('uid')
+		select_new_attributes = list(map("chv.{0} AS new_{0}".format,collist))
+		select_new_attributes.append("chv.dest_bit AS new_dest_bit")
+		#dest_bit from resolved data is allways 0
+		select_old_attributes = list(map("dv.{0} AS old_{0}".format,collist))
+		select_old_attributes.append("CAST('0' AS bit(1)) AS old_dest_bit")
+		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+		init_function = self.diff_init_resolved_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
+		return diff_type + '\n' + changeses_function + '\n' + init_function

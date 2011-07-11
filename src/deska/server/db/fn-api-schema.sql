@@ -273,6 +273,7 @@ CREATE TYPE templates_info_type AS(
 
 --returns list of templates
 --is temporary before object relition functions would be ready to use
+--returns pair template table, table that is templated by template table
 CREATE FUNCTION get_templates_info()
 RETURNS SETOF templates_info_type
 AS

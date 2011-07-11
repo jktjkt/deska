@@ -770,7 +770,7 @@ AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1' AND old_dest_bit = '0';
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
 END;
 $$
 LANGUAGE plpgsql;
@@ -933,6 +933,55 @@ LANGUAGE plpgsql;
 
 '''
 
+	diff_data_type_str = '''CREATE TYPE {tbl}_diff_data_type AS(
+	uid bigint,
+	name identifier,
+	{col_types},
+	template bigint,
+	dest_bit bit(1)
+);
+'''
+
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	data_resolved_changes_function_string = '''CREATE OR REPLACE FUNCTION genproc.{tbl}_resolved_changes_between_versions(from_version bigint, to_version bigint)
+RETURNS SETOF {tbl}_diff_data_type AS
+$$
+DECLARE 
+	changeset_id bigint;
+BEGIN
+	changeset_id = get_current_changeset_or_null();
+	IF from_version = 0 AND changeset_id IS NULL  THEN
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM production.{templ_tbl};
+	ELSE
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(to_version);
+	END IF;
+		
+	--for each object uid finds its last modification between versions from_version and to_version
+	--joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
+	RETURN QUERY 
+	WITH RECURSIVE resolved_data AS (
+		SELECT uid,name,{columns_ex_templ}, template, template as orig_template,dest_bit
+		FROM hardware_changes_between_versions(from_version, to_version)
+		UNION ALL
+		SELECT
+			rd.uid AS uid, rd.name AS name, 
+			{rd_dv_coalesce},
+			dv.template AS template, rd.orig_template AS orig_template,
+			rd.dest_bit AS dest_bit
+		FROM template_data_version dv, resolved_data rd 
+		WHERE dv.uid = rd.template
+	)
+	SELECT uid, name, {columns_ex_templ},orig_template AS template, dest_bit
+	FROM resolved_data WHERE template IS NULL;
+
+	DROP TABLE template_data_version;
+END;
+$$
+LANGUAGE plpgsql;
+  
+'''
+
+
 #template for function that prepairs temp table for diff functions
 	diff_init_function_string = '''CREATE FUNCTION {tbl}_init_diff(from_version bigint, to_version bigint)
 RETURNS void
@@ -948,6 +997,23 @@ $$
 LANGUAGE plpgsql;
 
 '''
+
+#template for function that prepairs temp table for diff functions from resolved_data
+	diff_init_resolved_function_string = '''CREATE FUNCTION {tbl}_init_resolved_diff(from_version bigint, to_version bigint)
+RETURNS void
+AS
+$$
+BEGIN
+	--full outer join of data in from_version and list of changes made between from_version and to_version
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS SELECT {diff_columns}
+		FROM {tbl}_resolved_data(from_version) dv FULL OUTER JOIN {tbl}_resolved_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
 	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION {tbl}_init_diff()

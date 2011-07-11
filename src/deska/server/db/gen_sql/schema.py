@@ -49,7 +49,8 @@ CREATE FUNCTION commit_all(message text)
 		self.embed = dict()
 		# dict of merged
 		self.merge = dict()
-		# dict of templated
+		# dict of templated tables
+		#keys are template tables, values are tables templated by them
 		self.template = dict()
 		# dict of refs
 		self.refs = dict()
@@ -207,7 +208,7 @@ CREATE FUNCTION commit_all(message text)
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
 			self.fn_sql.write(table.gen_resolved_data())
-
+			self.fn_sql.write(table.gen_resolved_data_diff())
 			if tbl in self.templates:
 			#tbl is template
 				table.templates = self.templates[tbl]
