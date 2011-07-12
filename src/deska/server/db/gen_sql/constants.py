@@ -1241,10 +1241,9 @@ LANGUAGE plpgsql;
 	multiple_resolved_data_template_info_type_string = '''CREATE TYPE multiple_{tbl}_data_template_info_type AS(
 	name identifier,
 	uid bigint,
-	version integer,
 	{columns},
 	{templ_columns},
-	template text
+	template bigint
 );
 '''
 
@@ -1252,7 +1251,7 @@ LANGUAGE plpgsql;
 	name identifier,
 	uid bigint,
 	{columns},
-	template text
+	template bigint
 );
 '''
 
@@ -1264,18 +1263,18 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
 	RETURN QUERY WITH recursive resolved_data AS (
-        SELECT uid,name,version,{columns}, {case_columns}, template, template as orig_template
+        SELECT uid,name,{columns}, {case_columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
         UNION ALL
         SELECT
-			rd.uid AS uid, rd.name AS name, rd.version AS version,
+			rd.uid AS uid, rd.name AS name,
 			{rd_dv_coalesce},
 			{templ_case_columns},
 			dv.template, rd.orig_template
         FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT name, uid, version, {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
+	SELECT name, uid, {columns_ex_templ}, {columns_templ}, orig_template AS template
 	FROM resolved_data WHERE template IS NULL;
 	
 	DROP TABLE template_data_version;
@@ -1294,7 +1293,7 @@ DECLARE
 BEGIN
 	changeset_id = get_current_changeset_or_null();
 	IF from_version = 0 AND changeset_id IS NULL  THEN
-		RETURN QUERY SELECT name, uid, {columns_ex_templ}, {templ_tbl}_get_name(template) AS template FROM production.{tbl};
+		RETURN QUERY SELECT name, uid, {columns_ex_templ}, template AS template FROM production.{tbl};
 	ELSE
 		CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
@@ -1309,7 +1308,7 @@ BEGIN
 			FROM template_data_version dv, resolved_data rd 
 			WHERE dv.uid = rd.template
 		)
-		SELECT name, uid, {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template
+		SELECT name, uid, {columns_ex_templ}, orig_template AS template
 		FROM resolved_data WHERE template IS NULL;
 		
 		DROP TABLE template_data_version;
