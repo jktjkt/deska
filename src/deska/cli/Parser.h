@@ -188,7 +188,7 @@ public:
     *
     *   This signal is triggered whenever a filter for objects is parsed.
     */
-    boost::signals2::signal<void (const Db::Filter &filter)> objectsFilter;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Filter &filter)> objectsFilter;
 
     /** @short An error during parsing
     *

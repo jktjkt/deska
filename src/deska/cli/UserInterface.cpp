@@ -558,7 +558,8 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 
 
 
-bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Filter &filter)
+bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
+                                       const Db::Filter &filter)
 {
     // TODO
     return true;
@@ -646,7 +647,8 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 
 
 
-bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Filter &filter)
+bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
+                                         const Db::Filter &filter)
 {
     return true;
 }

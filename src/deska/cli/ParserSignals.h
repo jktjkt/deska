@@ -206,7 +206,7 @@ public:
     *   @param context Current parser context
     *   @param filter Parsed filter
     */
-    ParserSignalObjectsFilter(const ContextStack &context,
+    ParserSignalObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
                               const Db::Filter &filter);
 
     /** @short Performs action, that is the signal connected with.
@@ -230,6 +230,7 @@ private:
 
     //@{
     /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
     Db::Filter objectsFilter;
     //@}
 };
@@ -435,7 +436,7 @@ private:
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
     void slotRemoveAttribute(const Db::Identifier &attribute);
-    void slotObjectsFilter(const Db::Filter &filter);
+    void slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotFunctionRename(const Db::Identifier &newName);
