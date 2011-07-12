@@ -48,8 +48,10 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("help start");
     expectAddCommandCompletion("help status");
     expectAddCommandCompletion("help hardware");
+    expectAddCommandCompletion("help hardware_template");
     expectAddCommandCompletion("help host");
     expectAddCommandCompletion("help interface");
+    expectAddCommandCompletion("help interface_template");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
