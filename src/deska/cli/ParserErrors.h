@@ -67,7 +67,7 @@ typedef enum {
 
 
 
-/** @short Handle errors during parsing a kind's name. */
+/** @short Handles errors during parsing a kind's name. */
 template <typename Iterator>
 class KindErrorHandler
 {
@@ -95,7 +95,7 @@ public:
 
 
 
-/** @short Handle errors during parsing a kind's name in a filter. */
+/** @short Handles errors during parsing a kind's name in a filter. */
 template <typename Iterator>
 class KindFiltersErrorHandler
 {
@@ -152,7 +152,7 @@ public:
 
 
 
-/** @short Handle errors while parsing a name of an attribute. */
+/** @short Handles errors while parsing a name of an attribute. */
 template <typename Iterator>
 class AttributeErrorHandler
 {
@@ -180,7 +180,7 @@ public:
 
 
 
-/** @short Handle errors while parsing a name of an attribute while deleting attribute value. */
+/** @short Handles errors while parsing a name of an attribute while deleting attribute value. */
 template <typename Iterator>
 class AttributeRemovalErrorHandler
 {
@@ -208,7 +208,7 @@ public:
 
 
 
-/** @short Handle errors while parsing a kind's identifier. */
+/** @short Handles errors while parsing a kind's identifier. */
 template <typename Iterator>
 class IdentifierErrorHandler
 {
@@ -234,7 +234,7 @@ public:
 
 
 
-/** @short Handle errors while parsing an attribute's value. */
+/** @short Handles errors while parsing an attribute's value. */
 template <typename Iterator>
 class ValueErrorHandler
 {
@@ -260,7 +260,7 @@ public:
 
 
 
-/** @short Extract keywords from boost::spirit::info into a vector of strings
+/** @short Extracts keywords from boost::spirit::info into a vector of strings
 *
 *   This class is used as a visitor of boost::spirit::info to extract keywords from it to a std::vector passed
 *   to the constructor.
@@ -303,7 +303,7 @@ class ParseError
 
 public:
     
-    /** @short Create error using KindErrorHandler when some error occures in kind name parsing.
+    /** @short Creates error using KindErrorHandler when some error occures in kind name parsing.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -316,7 +316,7 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
                const Db::Identifier &kindName);
-    /** @short Create error using KindFilterErrorHandler when some error occures in kind name in filter parsing.
+    /** @short Creates error using KindFilterErrorHandler when some error occures in kind name in filter parsing.
     *
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -329,7 +329,7 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
                const Db::Identifier &kindName);
-    /** @short Create error using NestingErrorHandler when some error occures in kind name or attribute name parsing
+    /** @short Creates error using NestingErrorHandler when some error occures in kind name or attribute name parsing
     *          and parsed name corresponds to another defined kind name, that can not be nested in current kind.
     *
     *   @param start Begin of the input being parsed when the error occures
@@ -341,7 +341,7 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const std::string &failingToken, const Db::Identifier &kindName);
-    /** @short Create error using AttributeErrorHandler when some error occures in attribute name parsing.
+    /** @short Creates error using AttributeErrorHandler when some error occures in attribute name parsing.
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
@@ -352,7 +352,7 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
                const Db::Identifier &kindName);
-    /** @short Create error using AttributeErrorHandler when some error occures in attribute name parsing.
+    /** @short Creates error using AttributeErrorHandler when some error occures in attribute name parsing.
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
     *   @param errorPos Position where the error occures
@@ -363,7 +363,7 @@ public:
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                const Db::Identifier &kindName);
-    /** @short Create error using ValueErrorHandler when some error occures in attribute's value or kind's
+    /** @short Creates error using ValueErrorHandler when some error occures in attribute's value or kind's
     *          identifier parsing.
     *   
     *   @param start Begin of the input being parsed when the error occures
@@ -374,7 +374,7 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                const Db::Identifier &attributeName);
-    /** @short Create error when object definition expected, but not found.
+    /** @short Creates error when object definition expected, but not found.
     *   
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -384,7 +384,7 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                const std::vector<Db::Identifier> &expectedKinds);
-    /** @short Create error when object being used in some function does not exist.
+    /** @short Creates error when object being used in some function does not exist.
     *   
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -394,7 +394,7 @@ public:
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
                const Db::Identifier &objectName);
-    /** @short Create error when identifier was expected, but not found.
+    /** @short Creates error when identifier was expected, but not found.
     *   
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
