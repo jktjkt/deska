@@ -400,4 +400,5 @@ class Table(constants.Templates):
 		select_old_attributes.append("CAST('0' AS bit(1)) AS old_dest_bit")
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		init_function = self.diff_init_resolved_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
-		return diff_type + '\n' + changeses_function + '\n' + init_function
+		current_changeset_diff = self.diff_changeset_init_resolved_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes, columns_ex_templ = columns, templ_tbl = templ_table, rd_dv_coalesce = rd_dv_coal)
+		return diff_type + '\n' + changeses_function + '\n' + init_function + '\n' + current_changeset_diff

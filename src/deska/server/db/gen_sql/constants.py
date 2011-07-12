@@ -961,7 +961,7 @@ BEGIN
 	RETURN QUERY 
 	WITH RECURSIVE resolved_data AS (
 		SELECT uid,name,{columns_ex_templ}, template, template as orig_template,dest_bit
-		FROM hardware_changes_between_versions(from_version, to_version)
+		FROM {tbl}_changes_between_versions(from_version, to_version)
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name, 
@@ -1037,6 +1037,50 @@ $$
   LANGUAGE plpgsql;
   
 '''
+
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION {tbl}_init_resolved_diff()
+RETURNS void
+AS
+$$
+DECLARE
+	changeset_var bigint;
+	from_version bigint;	
+BEGIN
+	--it's necessary to have opened changeset in witch we would like to see diff
+	changeset_var = get_current_changeset();
+	from_version = id2num(parent(changeset_var));
+	
+	CREATE TEMP TABLE local_template_data_version AS (SELECT * FROM {templ_tbl}_data_version(0));
+	CREATE TEMP TABLE current_changest_resolved_data AS (
+		WITH RECURSIVE resolved_data AS(
+		SELECT uid, name, {columns_ex_templ}, template, template AS orig_template, dest_bit FROM {tbl}_history WHERE version = changeset_var
+		UNION ALL
+		SELECT
+			rd.uid AS uid, rd.name AS name, 
+			{rd_dv_coalesce},
+			dv.template AS template, rd.orig_template AS orig_template,
+			rd.dest_bit AS dest_bit
+		FROM local_template_data_version dv, resolved_data rd 
+		WHERE dv.uid = rd.template
+		)
+		SELECT uid, name, {columns_ex_templ},orig_template AS template, dest_bit
+		FROM resolved_data WHERE template IS NULL
+	);
+	--full outer join of data in parent revision and changes made in opened changeset
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS  SELECT {diff_columns}
+		FROM current_changest_resolved_data chv
+			FULL OUTER JOIN {tbl}_resolved_data(from_version) dv ON (dv.uid = chv.uid);
+			
+	DROP TABLE current_changest_resolved_data;
+	DROP TABLE local_template_data_version;
+END
+$$
+  LANGUAGE plpgsql;
+  
+'''
+
 
 #template for terminating diff, drops temp table with data for diff functions
 	diff_terminate_function_string = '''CREATE FUNCTION 
