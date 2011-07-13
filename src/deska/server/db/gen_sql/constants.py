@@ -942,7 +942,7 @@ LANGUAGE plpgsql;
 );
 '''
 
-#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+#template for function that returns resolved modifications between two versions
 	data_resolved_changes_function_string = '''CREATE OR REPLACE FUNCTION genproc.{tbl}_resolved_changes_between_versions(from_version bigint, to_version bigint)
 RETURNS SETOF {tbl}_diff_data_type AS
 $$

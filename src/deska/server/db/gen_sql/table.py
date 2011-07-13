@@ -380,7 +380,17 @@ class Table(constants.Templates):
 		collist.remove('uid')
 		collist.remove('name')
 
-		rd_dv_coal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
+		if self.embed_into <> "":
+			rd_dv_list = list()
+			for col in collist:
+				if col == self.embed_into:
+					rd_dv_list.append("rd." + col)
+				else:
+					rd_dv_list.append("COALESCE(rd.{0},dv.{0}) AS {0}".format(col))
+			rd_dv_coal = ',\n'.join(rd_dv_list)
+		else:
+			rd_dv_coal = ',\n'.join(list(map("COALESCE(rd.{0},dv.{0}) AS {0}".format,collist)))
+		
 		columns = ','.join(collist)
 		
 		att_name_type = list()
