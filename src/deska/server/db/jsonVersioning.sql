@@ -182,7 +182,7 @@ def main(tag,filter):
 		ver["version"] = mystr(line[0])
 		ver["author"] = mystr(line[1])
 		ver["timestamp"] = mystr(line[2])
-		ver["message"] = mystr(line[3])
+		ver["commitMessage"] = mystr(line[3])
 		res.append(ver)
 
 	jsn[name] = res
