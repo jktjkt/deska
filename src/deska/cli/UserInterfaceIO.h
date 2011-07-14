@@ -236,6 +236,18 @@ public:
     */
     virtual void printEnd(int indentLevel, std::ostream &out = std::cout);
 
+    /** @short Displays list of revisions.
+    *
+    *   @param revisions Vector of revisions metadata to print.
+    */
+    virtual void printRevisions(const std::vector<Db::RevisionMetadata> &revisions);
+
+    /** @short Prints difference using list of modifications.
+    *
+    *   @param modifications Vector of modifications representing the diff.
+    */
+    virtual void printDiff(const std::vector<Db::ObjectModification> &modifications);
+
     /** @short Adds completion string to the completions vector in the CliCompleter.
     *
     *   @param completion Completion to add.

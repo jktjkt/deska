@@ -30,6 +30,7 @@
 #include <string>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 
 
 #define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
@@ -117,6 +118,10 @@ struct MockCliEvent
         EVENT_PRINT_OBJECT,
         /** @short The printEnd() event */
         EVENT_PRINT_END,
+        /** @short The printRevisions() event */
+        EVENT_PRINT_REVISIONS,
+        /** @short The printDiff() event */
+        EVENT_PRINT_DIFF,
         /** @short The addCommandCompletion() event */
         EVENT_ADD_COMMAND_COMPLETION,
         /** @short Fake, invalid event */
@@ -137,6 +142,8 @@ struct MockCliEvent
     std::vector<std::pair<std::string, std::string> > vectpair;
     std::vector<std::string> vect;
     std::vector<Deska::Db::PendingChangeset> changesets;
+    std::vector<Deska::Db::RevisionMetadata> revisions;
+    std::vector<Deska::Db::ObjectModification> modifications;
     std::vector<Deska::Db::AttributeDefinition> attrs;
     std::vector<Deska::Db::ObjectDefinition> objects;
 };

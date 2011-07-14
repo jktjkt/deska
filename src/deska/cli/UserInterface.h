@@ -84,6 +84,14 @@ public:
     virtual std::string usage();
 
 protected:
+
+    /** @short Splits string with parameters divided by whitespace into a vector.
+    *
+    *   @param params String with parameters divided using spaces od tabs.
+    *   @return Vector of single parameters.
+    */
+    std::vector<std::string> extractParams(const std::string &params);
+
     /** Patterns for tab completition purposes. */
     std::vector<std::string> complPatterns;
     /** Name of the command. Command will be invoked typinh this stirng into the CLI. */
@@ -248,6 +256,41 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Command for operations with revisions and history.
+*
+*   @see Command
+*/
+class Log: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Log(UserInterface *userInterface);
+
+    virtual ~Log();
+
+    /** @short Function for operations with revisions and history.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+
+private:
+
+    /** Converts string to Db::RevisionId.
+    *
+    *   @param rev String in format r123.
+    *   @return Revision id.
+    */
+    Db::RevisionId stringToRevision(const std::string &rev);
 };
 
 
@@ -425,6 +468,7 @@ private:
     friend class Detach;
     friend class Abort;
     friend class Status;
+    friend class Log;
     friend class Exit;
     friend class Dump;
     friend class Restore;

@@ -271,6 +271,24 @@ MockCliEvent MockCliEvent::printEnd(int indentLevel, std::ostream &out)
 
 
 
+MockCliEvent MockCliEvent::printRevisions(const std::vector<Deska::Db::RevisionMetadata> &allRevisions)
+{
+    MockCliEvent res(EVENT_PRINT_REVISIONS);
+    res.revisions = allRevisions;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::printDiff(const std::vector<Deska::Db::ObjectModification> &objectsModifiactions)
+{
+    MockCliEvent res(EVENT_PRINT_DIFF);
+    res.modifications = objectsModifiactions;
+    return res;
+}
+
+
+
 MockCliEvent MockCliEvent::addCommandCompletion(const std::string &completion)
 {
     MockCliEvent res(EVENT_ADD_COMMAND_COMPLETION);
@@ -338,6 +356,8 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
            std::equal(vectpair.begin(), vectpair.end(), other.vectpair.begin()) &&
            std::equal(vect.begin(), vect.end(), other.vect.begin()) &&
            std::equal(changesets.begin(), changesets.end(), other.changesets.begin()) &&
+           std::equal(revisions.begin(), revisions.end(), other.revisions.begin()) &&
+           std::equal(modifications.begin(), modifications.end(), other.modifications.begin()) &&
            std::equal(attrs.begin(), attrs.end(), other.attrs.begin()) &&
            std::equal(objects.begin(), objects.end(), other.objects.begin());
 }
@@ -487,6 +507,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         break;
     case MockCliEvent::EVENT_PRINT_END:
         out << "printEnd( " << m.integer << " )";
+        break;
+    case MockCliEvent::EVENT_PRINT_REVISIONS:
+        out << "printRevisions( " << m.revisions << " )";
+        break;
+    case MockCliEvent::EVENT_PRINT_DIFF:
+        out << "printDiff( " << m.modifications << " )";
         break;
     case MockCliEvent::EVENT_ADD_COMMAND_COMPLETION:
         out << "addCommandCompletion( \"" << m.str1 << "\" )";

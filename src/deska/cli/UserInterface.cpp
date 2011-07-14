@@ -24,6 +24,9 @@
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/regex.hpp>
 
 #include "DbInteraction.h"
 #include "Exceptions.h"
@@ -70,6 +73,25 @@ std::string Command::name()
 std::string Command::usage()
 {
     return cmdUsage;
+}
+
+
+
+std::vector<std::string> Command::extractParams(const std::string &params)
+{
+    std::vector<std::string> paramsList;
+    boost::char_separator<char> separators(" \t");
+    boost::tokenizer<boost::char_separator<char> > tokenizer(params, separators);
+    std::string token;
+    
+    for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
+         it != tokenizer.end(); ++it) {
+        token = *it;
+        boost::algorithm::trim(token);
+        paramsList.push_back(token);
+    }
+
+    return paramsList;
 }
 
 
@@ -295,6 +317,68 @@ void Status::operator()(const std::string &params)
 
 
 
+Log::Log(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "log";
+    cmdUsage = "Command for operations with revisions and history.";
+    complPatterns.push_back("log");
+}
+
+
+
+Log::~Log()
+{
+}
+
+
+
+void Log::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
+        ui->io->printRevisions(revisions);
+        return;
+    }
+
+    std::vector<std::string> paramsList = extractParams(params);
+    if (paramsList.size() > 2)
+        ui->io->reportError("Too many parameters entered!");
+    // FIXME: Some linker error
+    /*boost::regex revRegex("^r[0-9]+$");
+    for (std::vector<std::string>::iterator it = paramsList.begin(); it != paramsList.end(); ++it) {
+        if (!boost::regex_match(*it, revRegex)) {
+            ui->io->reportError("Invalid parameters entered!");
+            return;
+        }
+    }*/
+
+    std::vector<Db::ObjectModification> modifications;
+    if (paramsList.size() == 1) {
+        
+    } else if (paramsList.size() == 2) {
+        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifference(
+            stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
+        ui->io->printDiff(modifications);
+    }
+}
+
+
+
+Db::RevisionId Log::stringToRevision(const std::string &rev)
+{
+    if (rev.size() < 2)
+        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    std::string revStr(rev.begin() + 1, rev.end());
+    unsigned int revInt;
+    std::istringstream iss(revStr);
+    iss >> revInt;
+    if (iss.fail())
+        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    return Db::RevisionId(revInt);
+}
+
+
+
 Exit::Exit(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "exit";
@@ -495,6 +579,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["detach"] = Ptr(new Detach(this));
     commandsMap["abort"] = Ptr(new Abort(this));
     commandsMap["status"] = Ptr(new Status(this));
+    commandsMap["log"] = Ptr(new Log(this));
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["dump"] = Ptr(new Dump(this));

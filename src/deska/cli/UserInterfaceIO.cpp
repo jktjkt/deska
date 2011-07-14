@@ -360,6 +360,32 @@ void UserInterfaceIO::printEnd(int indentLevel, std::ostream &out)
 
 
 
+void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &revisions)
+{
+    if (revisions.empty()) {
+        std::cout << "No revisions in history." << std::endl;
+    } else {
+        for (std::vector<Db::RevisionMetadata>::const_iterator it = revisions.begin(); it != revisions.end(); ++it) {
+            std::cout << *it << std::endl;
+        }
+    }
+}
+
+
+
+void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModification> &modifications)
+{
+    if (modifications.empty()) {
+        std::cout << "No difference." << std::endl;
+    } else {
+        for (std::vector<Db::ObjectModification>::const_iterator it = modifications.begin(); it != modifications.end(); ++it) {
+            std::cout << *it << std::endl;
+        }
+    }
+}
+
+
+
 void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 {
     completer->addCommandCompletion(completion);

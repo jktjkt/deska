@@ -210,5 +210,20 @@ void DbInteraction::abortChangeset()
 }
 
 
+
+std::vector<Db::RevisionMetadata> DbInteraction::allRevisions()
+{
+    return m_api->listRevisions();
+}
+
+
+
+std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
+                                                                       const Db::RevisionId &revisionB)
+{
+    return m_api->dataDifference(revisionA, revisionB);
+}
+
+
 }
 }

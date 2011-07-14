@@ -28,6 +28,7 @@
 #include <boost/noncopyable.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 #include "ContextStack.h"
 
 namespace Deska {
@@ -155,6 +156,19 @@ public:
     void detachFromChangeset(const std::string &message);
     /** @short Aborts current changeset. */
     void abortChangeset();
+    /** Function for obtaining all revisions.
+    *
+    *   @return Vector of all revisions.
+    */
+    std::vector<Db::RevisionMetadata> allRevisions();
+
+    /** @short Returns differences between two revisions
+    *
+    *   @param revisionA First revision.
+    *   @param revisionA Second revision.
+    *   @return Vector of modifications how to get from first revision to second revision.
+    */
+    std::vector<Db::ObjectModification> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
 
 private:
 

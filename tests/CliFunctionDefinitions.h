@@ -47,6 +47,8 @@ FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefin
 FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
 FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bool);
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
+FORWARD_1(printRevisions, PrintRevisions, std::vector<Deska::Db::RevisionMetadata>);
+FORWARD_1(printDiff, PrintDiff, std::vector<Deska::Db::ObjectModification>);
 FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
 
 #undef FORWARD_0_RETURN
