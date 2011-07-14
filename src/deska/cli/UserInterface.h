@@ -29,6 +29,7 @@
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/optional.hpp>
 
 namespace Deska
 {
@@ -485,8 +486,8 @@ private:
     /** Map for commands indexed by their names. */
     CommandMap commandsMap;
 
-    /** Flag signalising, if we are currently connected to a changeset, or not. */
-    bool inChangeset;
+    /** ID of currently connected changeset, or null when not in changeset. */
+    boost::optional<Db::TemporaryChangesetId> currentChangeset;
     /** Flag singalising, that the event loop will end after this cycle. */
     bool exitLoop;
     /** Flag signalising, that parsing current line using Parser failed. */
