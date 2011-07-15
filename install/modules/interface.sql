@@ -11,7 +11,8 @@ CREATE TABLE interface (
 	uid bigint DEFAULT nextval('interface_uid')
 		CONSTRAINT interface_pk PRIMARY KEY,
 	-- this column is required in all plugins
-	name identifier NOT NULL,
+	name identifier 
+		CONSTRAINT "interface with this name already exists" NOT NULL,
 	-- host
 	-- TODO better use uid
 	host bigint
@@ -27,11 +28,11 @@ CREATE TABLE interface (
 	switch bigint
 		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
 	switch_pos int
-		CONSTRAINT interface_switch_pos_positive
+		CONSTRAINT "interface switch_pos should be positive number"
 		CHECK (switch_pos > 0),
 	note text,
 	template bigint,
-	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
+	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
 );
 
 -- function for trigger, checking ports number

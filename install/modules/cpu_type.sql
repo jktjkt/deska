@@ -9,9 +9,9 @@ CREATE TABLE cpu_type (
 		CONSTRAINT cpu_type_pk PRIMARY KEY,
 -- this column is required in all plugins
 	name identifier
-		CONSTRAINT cpu_type_name_unique UNIQUE NOT NULL,
+		CONSTRAINT "cpu_type with this name already exists" UNIQUE NOT NULL,
 	cores int
-		CONSTRAINT cpu_type_cores_positive
+		CONSTRAINT "cpu_type cores should be positive number"
 		CHECK (cores > 0),
 	ht boolean,
 	performance int
