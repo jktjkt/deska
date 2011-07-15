@@ -43,7 +43,7 @@ class Table(constants.Templates):
 	def gen_pk_constraint(self,con):
 		# add version column into key constraint
 		self.pkset[con] = "version"
-		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
+		str = "CONSTRAINT \"{name}\" UNIQUE(".format(name = con)
 		str = str + ",".join(self.pkset[con])
 		return str + ") DEFERRABLE INITIALLY DEFERRED"
 
