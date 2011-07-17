@@ -164,7 +164,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
 template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbeds(const Db::Identifier &kindName)
 {
-    std::vector<std::string> embeds;
+    std::vector<Db::Identifier> embeds;
     std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
     for (std::vector<Db::Identifier>::iterator itk = kinds.begin(); itk != kinds.end(); ++itk) {
         std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*itk);
