@@ -44,6 +44,13 @@ std::string repr_vect(const std::vector<T> &v)
     return ss.str();
 }
 
+std::string repr_ObjectRelation(const ObjectRelation &r)
+{
+    std::ostringstream ss;
+    ss << r;
+    return ss.str();
+}
+
 void exportObjectRelations()
 {
     // required for kindRelations
@@ -62,6 +69,7 @@ void exportObjectRelations()
     class_<ObjectRelation>("ObjectRelation", no_init)
             .def_readonly("kind", &ObjectRelation::kind)
             .def_readonly("target", &ObjectRelation::target)
+            .def("__repr__", repr_ObjectRelation)
             .def(self_ns::str(self));
 }
 
