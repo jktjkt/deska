@@ -70,7 +70,8 @@ void exportObjectRelations()
             .def_readonly("kind", &ObjectRelation::kind)
             .def_readonly("target", &ObjectRelation::target)
             .def("__repr__", repr_ObjectRelation)
-            .def(self_ns::str(self));
+            .def(self_ns::str(self))
+            .def(self < other<ObjectRelation>());
 }
 
 void exportAttributeTypes()

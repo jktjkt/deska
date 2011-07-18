@@ -77,6 +77,16 @@ bool operator!=(const ObjectRelation &a, const ObjectRelation &b)
     return !(a == b);
 }
 
+
+bool operator<(const ObjectRelation &a, const ObjectRelation &b)
+{
+    if (a.kind == b.kind) {
+        return a.target < b.target;
+    } else {
+        return a.kind < b.kind;
+    }
+}
+
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 {
     switch (o.kind) {

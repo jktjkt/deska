@@ -201,6 +201,7 @@ private:
 
 bool operator==(const ObjectRelation &a, const ObjectRelation &b);
 bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
+bool operator<(const ObjectRelation &a, const ObjectRelation &b);
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
 
 
