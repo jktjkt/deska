@@ -28,8 +28,8 @@ def imperative(r):
 
     # continue with kindRelations
     expectedRelations = {
-        "interface": "[embedInto(host), ]",
-        "hardware": "[refersTo(vendor), ]",
+        "interface": "[embedInto(host), templatized(interface_template), ]",
+        "hardware": "[templatized(hardware_template), refersTo(vendor), ]",
         "host": "[refersTo(hardware), ]",
         "vendor": "[]"
     }
