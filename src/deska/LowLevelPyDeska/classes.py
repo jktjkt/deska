@@ -82,10 +82,21 @@ def _op_Expression_and(self, other):
     else:
         raise NotImplementedError
 
+def _op_nonzero(self):
+    """Fake operator for catching bool promotion
+
+    Python cannot provide overrides for the 'and' operator, so we just throw an error here. See PEP 335 for details."""
+    raise NotImplementedError, "It does not make sense to cast filter elements to bool. Use '&' instead of 'and'."
+
 def _addExpressionOperators():
     """Add overloaded operators to the expression classes"""
     _l.AttributeExpression.__and__ = _op_Expression_and
     _l.AndFilter.__and__ = _op_AndFilter_and
+    _l.AttributeExpression.__nonzero__ = _op_nonzero
+    _l.MetadataExpression.__nonzero__ = _op_nonzero
+    _l.Expression.__nonzero__ = _op_nonzero
+    _l.AndFilter.__nonzero__ = _op_nonzero
+    _l.OrFilter.__nonzero__ = _op_nonzero
 
 if __name__ == "__main__":
     conn = _l.Connection()
