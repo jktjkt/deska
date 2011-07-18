@@ -61,9 +61,36 @@ def _discoverScheme(conn, target=None):
         else:
             globals()[kind] = kindInstance
 
+def _op_AndFilter_and(self, other):
+    if isinstance(other, _l.AndFilter):
+        return _l.AndFilter(self.operands + other.operands)
+    elif isinstance(other, (_l.AttributeExpression, _l.MetadataExpression)):
+        res = self.operands
+        res.append(_l.Filter(_l.Expression(other)))
+        return _l.AndFilter(res)
+    else:
+        raise NotImplementedError
+
+def _op_Expression_and(self, other):
+    if isinstance(other, (_l.AttributeExpression, _l.MetadataExpression)):
+        res = _l.std_vector_Filter()
+        res.append(_l.Filter(_l.Expression(self)))
+        res.append(_l.Filter(_l.Expression(other)))
+        return _l.AndFilter(res)
+    elif isinstance(other, _l.AndFilter):
+        return _l.AndFilter([self] + other.operands)
+    else:
+        raise NotImplementedError
+
+def _addExpressionOperators():
+    """Add overloaded operators to the expression classes"""
+    _l.AttributeExpression.__and__ = _op_Expression_and
+    _l.AndFilter.__and__ = _op_AndFilter_and
+
 if __name__ == "__main__":
     conn = _l.Connection()
     _discoverScheme(conn)
+    _addExpressionOperators()
     #print dict(globals())
     #print host
     #print vendor
@@ -71,3 +98,8 @@ if __name__ == "__main__":
     print hardware.vendor == "ahoj"
     #print host.note == "bleh"
     #print host.pwn == "bleh"
+    op1 = hardware.vendor == "ahoj"
+    op2 = host.note == "foo"
+    op3 = host.note != None
+    print op1 & op2
+    print op1 & op2 & op3
