@@ -35,7 +35,7 @@ namespace Cli
 DbInteraction::DbInteraction(Db::Api *api):
     m_api(api)
 {
-    std::vector<Db::Identifier> allKinds = m_api->kindNames();
+    allKinds = m_api->kindNames();
     bool isEmbedded = false;
     for (std::vector<Db::Identifier>::iterator itk = allKinds.begin(); itk != allKinds.end(); ++itk) {
         std::vector<Db::ObjectRelation> relations = m_api->kindRelations(*itk);
