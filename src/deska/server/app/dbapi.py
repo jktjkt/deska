@@ -61,11 +61,13 @@ class DB:
 			return str(data)
 
 	def errorJson(self,command,tag,message):
-		jsn = dict({"response": command, "tag": tag,
+		jsn = dict({"response": command,
 			"dbException": {"type": "ServerError", "message": message}
 		})
+		if tag is not None:
+			jsn["tag"] = tag
 		return json.dumps(jsn)
-	
+
 	def responseJson(self,command,tag):
 		jsn = dict({"response": command, "tag": tag})
 		return json.dumps(jsn)
@@ -99,13 +101,15 @@ class DB:
 
 	def run(self,name,args):
 		logging.debug("start run method({n}, {a})".format(n = name, a = args))
-		# test if connection is ok
-		if self.error is not None:
-			return self.errorJson(name,"No connection to DB")
 
 		if "tag" not in args:
-			return self.errorJson(name,"ERROR","Missing 'tag'!")
+			return self.errorJson(name, None, "Missing 'tag'!")
 		tag = args["tag"]
+
+		# test if connection is ok
+		if self.error is not None:
+			return self.errorJson(name, tag, "No connection to DB")
+
 
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):
