@@ -671,15 +671,12 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 {
     if (context.empty()) {
         // Print top level objects if we are not in any context
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
     } else {
         // If we are in some context, print all attributes and kind names
-        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
-        io->printAttributes(attributes, 0);
-        std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-        io->printObjects(kinds, 0, false);
+        showKindRecursive(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
     }
     return true;
 }
@@ -824,6 +821,24 @@ void UserInterface::run()
             (*(commandsMap[parsedCommand]))(parsedArguments);
         }
     }
+}
+
+
+
+void UserInterface::showKindRecursive(const Db::ObjectDefinition &object, unsigned int depth)
+{
+    bool printEnd = false;
+    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(object);
+    printEnd = printEnd || !attributes.empty();
+    io->printAttributes(attributes, depth);
+    std::vector<Db::ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
+    printEnd = printEnd || !nestedObjs.empty();
+    for (std::vector<Db::ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+        io->printObject(*it, depth, false);
+        showKindRecursive(*it, depth + 1);
+    }
+    if (printEnd && (depth > 0))
+        io->printEnd(depth - 1);
 }
 
 

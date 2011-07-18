@@ -35,6 +35,21 @@ namespace Cli
 DbInteraction::DbInteraction(Db::Api *api):
     m_api(api)
 {
+    std::vector<Db::Identifier> allKinds = m_api->kindNames();
+    bool isEmbedded = false;
+    for (std::vector<Db::Identifier>::iterator itk = allKinds.begin(); itk != allKinds.end(); ++itk) {
+        std::vector<Db::ObjectRelation> relations = m_api->kindRelations(*itk);
+        isEmbedded = false;
+        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
+            if (itr->kind == Db::RELATION_EMBED_INTO) {
+                isEmbedded = true;
+                embeds[itr->target].push_back(*itk);
+                embeddedInto[*itk] = itr->target;
+            }
+        }
+        if (!isEmbedded)
+            pureTopLevelKinds.push_back(*itk);
+    }
 }
 
 
@@ -93,7 +108,14 @@ void DbInteraction::removeAttribute(const ContextStack &context,
 
 std::vector<Db::Identifier> DbInteraction::kindNames()
 {
-    return m_api->kindNames();
+    return allKinds;
+}
+
+
+
+std::vector<Db::Identifier> DbInteraction::topLevelKinds()
+{
+    return pureTopLevelKinds;
 }
 
 
@@ -128,30 +150,35 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 
 std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const ContextStack &context)
 {
-    std::vector<Db::AttributeDefinition> attributes;
-
-    if (!context.empty()) {
-
-        // Check whether this kind contains any attributes. If not, return empty list.
-        if (m_api->kindAttributes(context.back().kind).empty())
-            return attributes;
-
-        typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
-        BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(context.back().kind, contextStackToPath(context))) {
-            attributes.push_back(Db::AttributeDefinition(x.first, x.second));
-        }
-    }
-    return attributes;
+    if (!context.empty())
+        return allAttributes(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    else
+        return std::vector<Db::AttributeDefinition>();
 }
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allNestedKinds(const ContextStack &context)
+std::vector<Db::ObjectDefinition> DbInteraction::allNestedObjects(const Db::ObjectDefinition &object)
 {
-    BOOST_ASSERT(!context.empty());
     std::vector<Db::ObjectDefinition> kinds;
-    // TODO: Obtain list of nested kinds.
+    for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
+        // FIXME: Db::FilterError: "Item 'column' is missing in condition."
+        /*std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
+            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, object.kind, Db::Value(object.name))));
+        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite)
+            kinds.push_back(Db::ObjectDefinition(*it, *ite));*/
+    }
     return kinds;
+}
+
+
+
+std::vector<Db::ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack &context)
+{
+    if (!context.empty())
+        return allNestedObjects(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    else
+        return std::vector<Db::ObjectDefinition>();
 }
 
 
