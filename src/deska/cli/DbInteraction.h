@@ -94,6 +94,12 @@ public:
     */
     std::vector<Db::Identifier> kindNames();
 
+    /** @short Obtains list of top-level kinds.
+    *
+    *   @return Vector of kinds that are ambedded in any object.
+    */
+    std::vector<Db::Identifier> topLevelKinds();
+
     /** @short Obtains list of instances of given kind
     *
     *   @param kindName Kind for which the instances are obtained
@@ -117,10 +123,17 @@ public:
 
     /** @short Obtains all attributes of given object.
     *
+    *   @param object Object for which the nested kinds are obtained
+    *   @return Vector of all nested kinds when there is some context, else list of top-level objects
+    */
+    std::vector<Db::ObjectDefinition> allNestedObjects(const Db::ObjectDefinition &object);
+
+    /** @short Obtains all attributes of given object.
+    *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
-    std::vector<Db::ObjectDefinition> allNestedKinds(const ContextStack &context);
+    std::vector<Db::ObjectDefinition> allNestedObjects(const ContextStack &context);
 
     /** @short Check if object in the context exists or not.
     *
@@ -171,6 +184,15 @@ public:
     std::vector<Db::ObjectModification> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
 
 private:
+
+    /** Identifiers of top level kinds. */
+    std::vector<Db::Identifier> pureTopLevelKinds;
+    /** Identifiers of all kinds. */
+    std::vector<Db::Identifier> allKinds;
+    /** Map of kind names and kinds, where is the kind embedded. */
+    std::map<Db::Identifier, Db::Identifier> embeddedInto;
+    /** Map of kinds and vector of kinds, that are embedded in the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;

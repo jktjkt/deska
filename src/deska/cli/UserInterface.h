@@ -463,6 +463,13 @@ public:
 
 private:
 
+    /** @short Recursively shows kind with attributes and nested kinds.
+    *
+    *   @param object Object which attributes and nested kinds will be printed recursively.
+    *   @param depth Depth of nesting for indentation.
+    */
+    void showKindRecursive(const Db::ObjectDefinition &object, unsigned int depth);
+
     friend class Start;
     friend class Resume;
     friend class Commit;
