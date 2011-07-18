@@ -1,10 +1,10 @@
 from apiUtils import *
 
 vlist = [
-        {"timestamp": CurrentTimestamp(), "message": "commit-resumed",
-         "version": Variable("v1"), "author": DeskaDbUser()},
-        {"timestamp": CurrentTimestamp(), "message": "commit-fresh",
-         "version": Variable("v2"), "author": DeskaDbUser()}
+        {"timestamp": CurrentTimestamp(), "commitMessage": "commit-resumed",
+         "revision": Variable("v1"), "author": DeskaDbUser()},
+        {"timestamp": CurrentTimestamp(), "commitMessage": "commit-fresh",
+         "revision": Variable("v2"), "author": DeskaDbUser()}
     ]
 
 clist = [
