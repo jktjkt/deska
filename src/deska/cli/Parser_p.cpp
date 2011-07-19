@@ -195,6 +195,7 @@ std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<Iterator>::parse
 template <typename Iterator>
 void ParserImpl<Iterator>::parseLine(const std::string &line)
 {
+    m_parser->parsingStarted();
     dryRun = false;
     if (parseLineImpl(line)) {
         m_parser->parsingFinished();

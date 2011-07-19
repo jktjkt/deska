@@ -268,6 +268,7 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->functionRename.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionRename, this, _1));
     m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
     m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
+    m_parser->parsingStarted.connect(boost::phoenix::bind(&SignalsHandler::slotParsingStarted, this));
 }
 
 
@@ -362,6 +363,15 @@ void SignalsHandler::slotParsingFinished()
 
     // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
     m_parser->setContextStack(contextStack);
+}
+
+
+
+void SignalsHandler::slotParsingStarted()
+{
+    autoCreate = false;
+    signalsStack.clear();
+    contextStack = m_parser->currentContextStack();
 }
 
 

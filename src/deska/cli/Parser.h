@@ -220,6 +220,12 @@ public:
     */
     boost::signals2::signal<void ()> parsingFinished;
 
+    /** @short Parsing of current line started
+    *
+    *   The parser triggeres this signal when parsing of current line is started.
+    */
+    boost::signals2::signal<void ()> parsingStarted;
+
     /** @short True if the parser is currently nested in some block
     *
     *   The return value is false iff the currentContextStack() would return an empty vector.

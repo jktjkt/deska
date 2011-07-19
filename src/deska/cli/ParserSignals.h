@@ -442,6 +442,7 @@ private:
     void slotFunctionRename(const Db::Identifier &newName);
     void slotParserError(const ParserException &error);
     void slotParsingFinished();
+    void slotParsingStarted();
     //@}
 
     friend class ParserSignalCategoryEntered;
