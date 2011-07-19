@@ -81,6 +81,8 @@ REMOTEDBEXCEPTION(InvalidAttributeError)
 REMOTEDBEXCEPTION(RevisionParsingError)
 /** @short Failed to parse a TemporaryChangesetId */
 REMOTEDBEXCEPTION(ChangesetParsingError)
+/** @short The executed action violates an integrity constraint */
+REMOTEDBEXCEPTION(ConstraintError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
