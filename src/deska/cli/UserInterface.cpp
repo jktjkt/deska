@@ -439,9 +439,12 @@ Dump::~Dump()
 void Dump::operator()(const std::string &params)
 {
     if (params.empty()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+        // FIXME: Dump recursively
+        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
             BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                ui->io->printObject(object, 0, false);
+                //ui->io->printObject(object, 0, false);
+                ui->io->printObject(object, 0, true);
                 dumpObjectRecursive(object, 1);
             }
         }
@@ -451,9 +454,12 @@ void Dump::operator()(const std::string &params)
             ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
             return;
         }
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+        // FIXME: Dump recursively
+        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
             BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                ui->io->printObject(object, 0, false, ofs);
+                //ui->io->printObject(object, 0, false, ofs);
+                ui->io->printObject(object, 0, true, ofs);
                 dumpObjectRecursive(object, 1, ofs);
             }
         }
