@@ -275,7 +275,6 @@ void ParserImpl<Iterator>::categoryLeft()
     contextStack.pop_back();
     if (!dryRun)
         m_parser->categoryLeft();
-    inFilter = false;
 #ifdef PARSER_DEBUG
     std::cout << "Category left" << std::endl;
 #endif
@@ -310,7 +309,6 @@ void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &name)
 template <typename Iterator>
 void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const Db::Filter &filter)
 {
-    inFilter = true;
     contextStack.push_back(ContextStackItem(kind, filter));
     if (!dryRun)
         m_parser->objectsFilter(kind, filter);
@@ -433,7 +431,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     parsingMode = PARSING_MODE_STANDARD;
     bool parsingSucceeded = true;
     singleKind = false;
-    inFilter = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
     bool nonexistantObject = false;
