@@ -218,12 +218,19 @@ void Commit::operator()(const std::string &params)
     } else {
         commitMessage = ui->io->askForCommitMessage();
     }
-    ui->m_dbInteraction->commitChangeset(commitMessage);
-    std::ostringstream ostr;
-    ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
-    ui->io->printMessage(ostr.str());
-    ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
-    ui->m_parser->clearContextStack();
+    try {
+        ui->m_dbInteraction->commitChangeset(commitMessage);
+        std::ostringstream ostr;
+        ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
+        ui->io->printMessage(ostr.str());
+        ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
+        ui->m_parser->clearContextStack();
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: quick & durty "fix" for the demo
+        std::ostringstream ss;
+        ss << "Error: commit failed: " << e.what();
+        ui->io->reportError(ss.str());
+    }
 }
 
 
