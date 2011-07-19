@@ -287,5 +287,12 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 }
 
 
+
+std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
+{
+    return m_api->dataDifferenceInTemporaryChangeset(changeset);
+}
+
+
 }
 }
