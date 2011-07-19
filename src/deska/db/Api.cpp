@@ -38,7 +38,7 @@ std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Iden
         switch (relation.kind) {
         case RELATION_MERGE_WITH:
         case RELATION_EMBED_INTO:
-            end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == relation.target);
+            //end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == relation.target);
             break;
         case RELATION_IS_TEMPLATE:
         case RELATION_REFERS_TO:
