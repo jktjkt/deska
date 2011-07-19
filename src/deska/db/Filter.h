@@ -46,10 +46,16 @@ typedef enum {
     FILTER_COLUMN_LE
 } ComparisonOperator;
 
-std::ostream& operator<<(std::ostream &stream, ComparisonOperator o);
+std::ostream& operator<<(std::ostream &stream, const ComparisonOperator o);
 
 /** @short Anything against which we can compare */
 typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
+
+/** @short __repr__ for Deska::Db::MetadataValue */
+std::string repr_MetadataValue(const MetadataValue &v);
+
+/** @short __str__ for Deska::Db::MetadataValue */
+std::string str_MetadataValue(const MetadataValue &v);
 
 /** @short Compare metadata against a constant using  given comparison operator */
 struct MetadataExpression
@@ -111,7 +117,7 @@ struct OrFilter
     OrFilter() {};
 };
 
-//std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
+std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
@@ -125,9 +131,7 @@ struct AndFilter
     AndFilter() {};
 };
 
-//std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
-
-//std::ostream& operator<<(std::ostream &stream, const Filter &f);
+std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
 
 }
 }

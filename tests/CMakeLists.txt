@@ -78,6 +78,7 @@ target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 deska_test(parser_mock_objects)
 deska_test(mock_streambuf)
 deska_test(cli_parser)
+deska_test(api_filters)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
 

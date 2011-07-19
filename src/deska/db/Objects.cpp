@@ -23,6 +23,7 @@
 #include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "Objects.h"
+#include "deska/db/AdditionalValueStreamOperators.h"
 
 namespace Deska {
 namespace Db {
@@ -203,6 +204,69 @@ bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
 {
     return !(a == b);
 }
+
+/** @short Variant visitor that returns the type name of a Deska::Db::Value */
+struct DeskaValueTypeName: public boost::static_visitor<std::string>
+{
+    result_type operator()(const std::string &v) const
+    {
+        return "string";
+    }
+    result_type operator()(const int &v) const
+    {
+        return "int";
+    }
+    result_type operator()(const double &v) const
+    {
+        return "double";
+    }
+    result_type operator()(const boost::asio::ip::address_v4 &v) const
+    {
+        return "IPv4Address";
+    }
+    result_type operator()(const boost::asio::ip::address_v6 &v) const
+    {
+        return "IPv6Address";
+    }
+    result_type operator()(const MacAddress &v) const
+    {
+        return "MacAddress";
+    }
+    result_type operator()(const boost::posix_time::ptime &v) const
+    {
+        return "timestamp";
+    }
+    result_type operator()(const boost::gregorian::date &v) const
+    {
+        return "date";
+    }
+};
+
+/** @short __repr__ for Deska::Db::NonOptionalValue */
+std::string repr_NonOptionalValue(const NonOptionalValue &v)
+{
+    std::ostringstream ss;
+    ss << "Value<" << boost::apply_visitor(DeskaValueTypeName(), v) << ">(" << v << ")";
+    return ss.str();
+}
+
+/** @short __repr__ for Deska::Db::Value */
+std::string repr_Value(const Value &v)
+{
+    return v ? repr_NonOptionalValue(*v) : std::string("Value(None)");
+}
+
+/** @short __str__ for Deska::Db::Value */
+std::string str_Value(const Value &v)
+{
+    if (v) {
+        std::ostringstream ss;
+        ss << *v;
+        return ss.str();
+    }
+    return "None";
+}
+
 
 }
 }

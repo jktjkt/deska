@@ -51,6 +51,11 @@ typedef boost::variant<
  * */
 typedef boost::optional<NonOptionalValue> Value;
 
+/** @short Return a Python string representation of a Deska::Db::Value */
+std::string repr_NonOptionalValue(const NonOptionalValue &v);
+std::string repr_Value(const Deska::Db::Value &v);
+std::string str_Value(const Deska::Db::Value &v);
+
 /** @short Type of an object's attribute */
 typedef enum {
     /** @short An identifier */
