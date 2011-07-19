@@ -670,8 +670,14 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 bool UserInterface::applySetAttribute(const ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
-    return true;
+    try {
+        m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
+        return true;
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: potemkin's fix for the demo
+        io->reportError(e.what());
+        return false;
+    }
 }
 
 
