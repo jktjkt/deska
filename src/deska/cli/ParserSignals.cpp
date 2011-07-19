@@ -47,7 +47,7 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &con
 bool ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
     if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName)) {
-        signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
+        signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectName));
         return true;
     } else {
         return false;
@@ -146,7 +146,7 @@ ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context
 bool ParserSignalObjectsFilter::apply(SignalsHandler *signalsHandler) const
 {
     if (signalsHandler->userInterface->applyObjectsFilter(signalsContext, kindName, objectsFilter)) {
-        signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, "*FILTER*"));
+        signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectsFilter));
         return true;
     } else {
         return false;

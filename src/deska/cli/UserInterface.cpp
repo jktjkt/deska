@@ -827,7 +827,8 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 
     if (nonInteractiveMode)
         return true;
-    return io->confirmDeletion(context.back());
+    // FIXME
+    return io->confirmDeletion(Db::ObjectDefinition(context.back().kind, context.back().name));
 }
 
 

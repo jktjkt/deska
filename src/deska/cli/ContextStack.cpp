@@ -31,12 +31,60 @@ namespace Deska {
 namespace Cli {
 
 
+ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName):
+    kind(kindName), name(objectName), filter(boost::optional<Db::Filter>())
+{
+}
+
+
+
+ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Filter &objectsFilter):
+    kind(kindName), name(""), filter(objectsFilter)
+{
+}
+
+
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
+{
+    stream << i.kind;
+    if (i.filter)
+        stream << " where " << *(i.filter);
+    else
+        stream << " " << i.name;
+    return stream;
+}
+
+
+
+bool operator==(const ContextStackItem &a, const ContextStackItem &b)
+{
+    if ((a.filter) && (b.filter))
+        // FIXME
+        return a.kind == b.kind;// && *(a.filter) == *(b.filter);
+    else if (!(a.filter) && !(b.filter))
+        return a.kind == b.kind && a.name == b.name;
+    else
+        return false;
+}
+
+
+
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b)
+{
+    return !(a == b);
+}
+
+
+
 Db::Identifier contextStackToPath(const ContextStack &contextStack)
 {
     std::ostringstream ss;
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
         if (it != contextStack.begin())
             ss << "->";
+        if (it->filter)
+            throw std::runtime_error("Deska::Cli::contextStackToPath: Can not convert context stack with filters to path");
         ss << it->name;
     }
     return ss.str();
@@ -68,7 +116,7 @@ std::vector<Db::Identifier> pathToVector(const std::string &path)
                                              +(boost::spirit::ascii::alnum | '_') % "->",
                                              boost::spirit::ascii::space, identifiers);
     if (!r || first != last)
-        throw std::runtime_error("Deska::Cli::PathToVector conversion failed while parsing " + path);
+        throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
     
     return identifiers;
 }
