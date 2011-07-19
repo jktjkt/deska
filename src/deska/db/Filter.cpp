@@ -186,5 +186,40 @@ bool operator!=(const Expression &a, const Expression &b)
     return !(a==b);
 }
 
+/** @short Helper visitor for Deska::Db::Expression's __repr__ */
+struct DeskaExpressionToString: public boost::static_visitor<std::string>
+{
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << "Expression(" << v << ")";
+        return ss.str();
+    }
+};
+
+std::string repr_Expression(const Expression &e)
+{
+    return boost::apply_visitor(DeskaExpressionToString(), e);
+}
+
+/** @short Helper visitor for Deska::Db::Filter's __repr__ */
+struct DeskaFilterToString: public boost::static_visitor<std::string>
+{
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << "Filter(" << v << ")";
+        return ss.str();
+    }
+};
+
+/** @short __repr__ for a Deska::Db::Filter */
+std::string repr_Filter(const Filter &v)
+{
+    return boost::apply_visitor(DeskaFilterToString(), v);
+}
+
 }
 }

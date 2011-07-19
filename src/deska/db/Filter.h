@@ -99,11 +99,15 @@ typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
 
 bool operator!=(const Expression &a, const Expression &b);
 
+std::string repr_Expression(const Expression &e);
+
 struct OrFilter;
 struct AndFilter;
 
 /** @short Filter for limiting the result set of an operation */
 typedef boost::variant<Expression, boost::recursive_wrapper<OrFilter>, boost::recursive_wrapper<AndFilter> > Filter;
+
+std::string repr_Filter(const Filter &f);
 
 /** @short Perform a logical disjunction of all expression included below */
 struct OrFilter

@@ -83,8 +83,6 @@ class no_compare_indexing_suite :
 
 typedef std::vector<Filter> vect_Filter;
 
-std::string repr_Filter(const Filter &v);
-
 /** @short __repr__ for a std::vector<Deska::Db::Filter> */
 std::string repr_vect_Filter(const vect_Filter &v)
 {
@@ -95,24 +93,6 @@ std::string repr_vect_Filter(const vect_Filter &v)
     }
     ss << "]";
     return ss.str();
-}
-
-/** @short Helper visitor for Deska::Db::Filter's __repr__ */
-struct DeskaFilterToString: public boost::static_visitor<std::string>
-{
-    template<typename T>
-    result_type operator()(const T &v) const
-    {
-        std::ostringstream ss;
-        ss << v;
-        return ss.str();
-    }
-};
-
-/** @short __repr__ for a Deska::Db::Filter */
-std::string repr_Filter(const Filter &v)
-{
-    return boost::apply_visitor(DeskaFilterToString(), v);
 }
 
 /** @short __repr__ for the boost::optional<Deska::Db::Filter> */
@@ -160,19 +140,22 @@ void exportDeskaFilter()
             .def_readonly("comparison", &MetadataExpression::comparison)
             .def_readonly("metadata", &MetadataExpression::metadata)
             .def_readonly("constantValue", &MetadataExpression::constantValue)
-            .def(self_ns::str(self));
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self));
 
     class_<AttributeExpression>("AttributeExpression", init<ComparisonOperator, Identifier, Identifier, Value>())
             .def_readonly("comparison", &AttributeExpression::comparison)
             .def_readonly("kind", &AttributeExpression::kind)
             .def_readonly("attribute", &AttributeExpression::attribute)
             .def_readonly("constantValue", &AttributeExpression::constantValue)
-            .def(self_ns::str(self));
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self));
 
     class_<Expression>("Expression", no_init)
             .def(init<const MetadataExpression&>())
             .def(init<const AttributeExpression&>())
-            .def(self_ns::str(self));
+            .def(self_ns::str(self))
+            .def("__repr__", Deska::Db::repr_Expression);
 
     class_<vect_Filter>("std_vector_Filter")
             .def(no_compare_indexing_suite<vect_Filter>())
@@ -181,11 +164,13 @@ void exportDeskaFilter()
     class_<OrFilter>("OrFilter", no_init)
             .def(init<const vect_Filter&>())
             .def(self_ns::str(self))
+            .def(self_ns::repr(self))
             .def_readonly("operands", &OrFilter::operands);
 
     class_<AndFilter>("AndFilter", no_init)
             .def(init<const vect_Filter&>())
             .def(self_ns::str(self))
+            .def(self_ns::repr(self))
             .def_readonly("operands", &AndFilter::operands);
 
     class_<Filter>("Filter")
@@ -193,6 +178,8 @@ void exportDeskaFilter()
             .def(init<const OrFilter&>())
             .def(init<const AndFilter&>())
             .def(self_ns::str(self))
+            .def(self_ns::repr(self))
+            .def("__repr__", Deska::Db::repr_Filter);
             ;
 
     class_<boost::optional<Filter> >("OptionalFilter")
