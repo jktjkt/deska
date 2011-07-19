@@ -1,18 +1,44 @@
 from table import Table
 
+"""@package Schema
+This modul generates history, template tables and set, get functions for all tables in production.
+
+Template tables are generated into schema production for those tables that have column template.
+History tables are generated into schema history for all tables in production, even for template tables.
+"""
+
 class Schema:
+	"""Schema class contains methods for generating template, history tables and stored procedures to maintain these tables.
+
+    Template tables are generated into schema production for those tables that have column template.
+    History tables are generated into schema history for all tables in production, even for template tables.
+    Get, set, ... stored procedures are generated for all tables.
+    """
 	py_fn_str = """
 def {name}({args}):
 	return {result}
 """
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
+	"""Query to get all tables in the schema production."""
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
+	"""Query to get all the columns and their types in the table"""
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	"""Query to get for the table foreign key constraint, all the columns relate to this constraint and the name of referenced table."""
 	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	"""Query to get all tables that have attribute template.
+	For these tables would be generated template table.
+	"""
 	templates_str = "SELECT * FROM get_templates_info();"
+	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
 	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
+	"""Query to get the name of table which is this table embed into """
 	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('{0}');"
+	"""Query to get all refuid references in the table.
+	Refuid reference is reference to some table's uid column.
+	Gets name of column from which is uid referenced and the name of the table table that is referenced,
+	"""
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -37,7 +63,15 @@ CREATE FUNCTION commit_all(message text)
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 '''
+	"""Template for the commit_all stored procedure.
+	Commit_all stored procedure finds the parent revision of this revision and checks if the rebase is needed.
+	Sets all the deferrable constraints to deferred (mostly foreign key constraints).
+	Calls commit on all tables.
+	Creates new version.
+	"""
+	
 	def __init__(self,db_connection):
+		"""The constructor for the Schema class."""
 		self.plpy = db_connection;
 		self.plpy.execute("SET search_path TO deska,api,production")
 
@@ -74,6 +108,13 @@ CREATE FUNCTION commit_all(message text)
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
+		"""Generates sql files for creating history tables and stored procedures.
+	    
+		For each table in variable table (tables in the schema production) is called function gen_for_table.
+		Stored procedures for this table are generated into fn_sql file and the history table into table_sql file.
+		After that is called function gen_commit that generates commit_all function for committing all modifications of all tables.
+		"""
+		
 		name_split = filename.rsplit('/', 1)
 		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
@@ -102,6 +143,12 @@ CREATE FUNCTION commit_all(message text)
 
 	# generate sql for one table
 	def gen_for_table(self,tbl):
+		"""Generates sql files for creating history tables and stored procedures.
+
+		Calls functions for generating stored functions which differ for some cases. (embed tables, refuid columns)
+		Stored functions means function for add object, set attribute, get attribute, get object data, get list of instances and functions for diffing of versions.
+		For templated tables are generated stored functions to get resolved data or resolved data with its origin.
+		"""
 		# select col info
 		columns = self.plpy.execute(self.column_str.format(tbl))
 		self.atts[tbl] = dict(columns)
@@ -221,6 +268,10 @@ CREATE FUNCTION commit_all(message text)
 		return
 
 	def gen_commit(self):
+		"""Generates stored procedure that executes commit on all tables.
+		
+		Generates PERFORM commit on each table and include it into commit_all function.
+		"""
 		commit_table_template = '''PERFORM {tbl}_commit();
 		'''
 		commit_tables=""

@@ -4,6 +4,9 @@ from key_sets import PkSet,Fks
 import constants
 
 class Table(constants.Templates):
+	"""In class Table are generated all stored functions for maintanance of this table.
+	
+	"""
 	def __init__(self,name):
 		self.data = dict()
 		self.col = dict()
