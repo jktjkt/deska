@@ -30,6 +30,7 @@
 BOOST_FIXTURE_TEST_CASE( parsing_empty_string, ParserTestFixture )
 {
     parser->parseLine("");
+    expectParsingStarted();
     expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -39,6 +40,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_empty_string, ParserTestFixture )
 BOOST_FIXTURE_TEST_CASE( parsing_empty_line, ParserTestFixture )
 {
     parser->parseLine("\n");
+    expectParsingStarted();
     expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -48,6 +50,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_empty_line, ParserTestFixture )
 BOOST_FIXTURE_TEST_CASE( parsing_whitespaces, ParserTestFixture )
 {
     parser->parseLine("\t  \t \n");
+    expectParsingStarted();
     expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
@@ -58,6 +61,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, ParserTestFixtur
 {
     // Start a new context with nothing inside
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -65,6 +69,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_top_level_object_on_two_lines, ParserTestFixtur
 
     // ...and leave it immediately
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -76,6 +81,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -85,6 +91,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
 
     // Set the attribute
     parser->parseLine("name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
     expectParsingFinished();
     expectNothingElse();
@@ -92,6 +99,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -103,6 +111,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2 name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
     expectCategoryLeft();
@@ -116,6 +125,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -123,6 +133,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
 
     // Set the first attribute
     parser->parseLine("price 666\r\n");
+    expectParsingStarted();
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectParsingFinished();
     expectNothingElse();
@@ -130,6 +141,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
 
     // Set the second one
     parser->parseLine("name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
     expectParsingFinished();
     expectNothingElse();
@@ -137,6 +149,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -148,6 +161,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
@@ -162,6 +176,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 {
     // create hpv2
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -169,6 +184,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 
     // terminate hpv2
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -176,6 +192,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 
     // create second object
     parser->parseLine("host hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -183,6 +200,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 
     // terminate the host
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -193,6 +211,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_toplevel, ParserTestFixture )
 BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
 {
     parser->parseLine("hardware abcde id 1243 name \"jmeno\" price 1234.5\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", Deska::Db::Value(1243));
     expectSetAttr("name", Deska::Db::Value("jmeno"));
@@ -207,6 +226,7 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(parsing_simple_string_inline, ParserTestFixture)
 {
     parser->parseLine("hardware abcde id 1243 name jmeno price 1234.5\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", Deska::Db::Value(1243));
     expectSetAttr("name", Deska::Db::Value("jmeno"));
@@ -223,6 +243,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_simple_string_inline, ParserTestFixture)
     const std::string line = "hardware abcde id 1243 name jmeno pokracuje price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find("pokracuje");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", Deska::Db::Value(1243));
     expectSetAttr("name", Deska::Db::Value("jmeno"));
@@ -241,6 +262,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_datatype_of_first_inline, ParserTestFixture)
     const std::string line = "hardware abcde id xx name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find("xx");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for id. Expected one of [ <integer> ].", line, it));
     expectNothingElse();
@@ -259,6 +281,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, ParserTestFixture)
     const std::string line = "hardware abcde isd 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find("isd");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectNothingElse();
@@ -271,6 +294,7 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, ParserTestFixture)
     const std::string line = "haware abcde id 123 name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -280,24 +304,28 @@ BOOST_FIXTURE_TEST_CASE(error_toplevel_name, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(nested_interface, ParserTestFixture)
 {
     parser->parseLine("host abcde\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("name \"as123\"\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("as123"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("mac \"nejakamac\"\n");
+    expectParsingStarted();
     expectSetAttr("mac", Deska::Db::Value("nejakamac"));
     expectParsingFinished();
     expectNothingElse();
@@ -310,6 +338,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     const std::string line ="host abcde hardware_id 123 name \"jmeno\" interface eth0 mac \"nejakamac\" price 1234.5";
     const std::string::const_iterator it = line.begin() + line.find("price");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     // hardware_id is an identifier, not an int
     expectSetAttr("hardware_id", Deska::Db::Value("123"));
@@ -325,6 +354,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
 BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde interface eth0 mac \"nejakamac\"\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", Deska::Db::Value("nejakamac"));
@@ -339,6 +369,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_inline, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde hardware_id 1 interface eth0 mac \"nejakamac\"\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectSetAttr("hardware_id", Deska::Db::Value("1")); // identifier, not an int
     expectCategoryEntered("interface", "eth0");
@@ -355,6 +386,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFix
     const std::string line = "hardware abcde id 123 interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("id", Deska::Db::Value(123));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
@@ -368,6 +400,7 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture
     const std::string line = "hardware abcde interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectNothingElse();
@@ -378,12 +411,14 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture
 BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("name \"jmeno\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("jmeno"));
     expectParsingFinished();
     expectNothingElse();
@@ -392,6 +427,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
     const std::string line = "interface eth0 mac \"foo\" bar baz\r\n";
     const std::string::const_iterator it = line.begin() + line.find("bar");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", Deska::Db::Value("foo"));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
@@ -403,18 +439,21 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("name \"jmeno\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("jmeno"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("interface eth0 mac \"foo\"\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("mac", Deska::Db::Value("foo"));
     expectCategoryLeft();
@@ -427,36 +466,42 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(multiline_with_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("name \"jmeno\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("jmeno"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("mac \"foo\"\r\n");
+    expectParsingStarted();
     expectSetAttr("mac", Deska::Db::Value("foo"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -467,18 +512,21 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_embed, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("name \"jmeno\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("jmeno"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
@@ -487,17 +535,20 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
     const std::string line = "maaaac \"foo\"\r\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -510,6 +561,7 @@ BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
     const std::string line = "host 123 int3rf4ce 456\n";
     const std::string::const_iterator it = line.begin() + line.find("int3rf4ce");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"interface\" ].", line, it));
     expectNothingElse();
@@ -522,6 +574,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_single_definition, ParserTestFix
     const std::string line = "haware foo\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -533,6 +586,7 @@ BOOST_FIXTURE_TEST_CASE(error_end_no_context, ParserTestFixture)
     const std::string line = "end\n";
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -544,6 +598,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixt
     const std::string line = "hardware foo*bar\n";
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
@@ -557,6 +612,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTe
     const std::string line = "hardware *bar\n";
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <object identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -568,6 +624,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixtur
     const std::string line = "host hpv2 interface foo*bar\n";
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "hpv2");
     expectCategoryEntered("interface", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
@@ -580,6 +637,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixtur
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
 {
     parser->parseLine("host 123 interface 456\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectCategoryEntered("interface", "456");
     expectParsingFinished();
@@ -587,12 +645,14 @@ BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
     verifyStackTwoLevels("host", "123", "interface", "456");
 
     parser->parseLine("end\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 
     parser->parseLine("end\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -603,6 +663,7 @@ BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_nothing_else, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr, ParserTestFixture)
 {
     parser->parseLine("host 123 interface 456 ip \"x\"\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectCategoryEntered("interface", "456");
     expectSetAttr("ip", Deska::Db::Value("x"));
@@ -617,6 +678,7 @@ BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_show_no_context, ParserTestFixture)
 {
     parser->parseLine("show\n");
+    expectParsingStarted();
     expectFunctionShow();
     expectParsingFinished();
     expectNothingElse();
@@ -627,12 +689,14 @@ BOOST_FIXTURE_TEST_CASE(function_show_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_show_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "123");
     
     parser->parseLine("show\n");
+    expectParsingStarted();
     expectFunctionShow();
     expectParsingFinished();
     expectNothingElse();
@@ -645,6 +709,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_no_context, ParserTestFixture)
     const std::string line = "show host 123\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionShow();
@@ -660,6 +725,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_nest_no_context, ParserTestFixture)
     const std::string line = "show host 123 interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
@@ -675,6 +741,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_nest_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_show_param_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -683,6 +750,7 @@ BOOST_FIXTURE_TEST_CASE(function_show_param_in_context, ParserTestFixture)
     const std::string line = "show interface 456\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
     parser->parseLine(line);    
+    expectParsingStarted();
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionShow();
@@ -698,6 +766,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -708,6 +777,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
 {
     
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -716,6 +786,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
     const std::string line = "delete\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -727,6 +798,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_no_context, ParserTestFixture)
     const std::string line = "delete host 123\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionDelete();
@@ -742,6 +814,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_nest_no_context, ParserTestFixture)
     const std::string line = "delete host 123 interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
@@ -757,6 +830,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_nest_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_delete_param_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -765,6 +839,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_param_in_context, ParserTestFixture)
     const std::string line = "delete interface 456\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionDelete();
@@ -780,6 +855,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_no_context
     const std::string line = "delete hot 123\n";
     const std::string::const_iterator it = line.begin() + line.find("hot");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -791,6 +867,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_nest_no_context,
     const std::string line = "delete host 123 inteface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("123");//("inteface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
@@ -802,6 +879,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_nest_no_context,
 BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -810,6 +888,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_delete_param_in_context
     const std::string line = "delete inteface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("inteface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -821,6 +900,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_no_context, 
     const std::string line = "show hot 123\n";
     const std::string::const_iterator it = line.begin() + line.find("hot");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name. Unknown top-level kind. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -832,6 +912,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_nest_no_context, P
     const std::string line = "show host 123 inteface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("123");//("inteface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
@@ -843,6 +924,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_nest_no_context, P
 BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -851,6 +933,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_in_context, 
     const std::string line = "show inteface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("inteface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -860,6 +943,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_kind_name_function_show_param_in_context, 
 BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTestFixture)
 {
     parser->parseLine("hardware 123\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -868,6 +952,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTe
     const std::string line = "show interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "123");
@@ -877,6 +962,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTe
 BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, ParserTestFixture)
 {
     parser->parseLine("hardware 123\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -885,6 +971,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, Parser
     const std::string line = "show interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", "123");
@@ -895,6 +982,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -904,6 +992,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument, ParserTestFixture )
 
     // Set the attribute
     parser->parseLine("no name\r\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
@@ -911,6 +1000,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument, ParserTestFixture )
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -922,6 +1012,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_remove_argument_inline, ParserTestFixtu
 {
     // Start a new context
     parser->parseLine("hardware hpv2 no name\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectRemoveAttr("name");
     expectCategoryLeft();
@@ -935,6 +1026,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments, ParserTestFixture )
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -942,6 +1034,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments, ParserTestFixture )
 
     // Remove the first attribute
     parser->parseLine("no price\r\n");
+    expectParsingStarted();
     expectRemoveAttr("price");
     expectParsingFinished();
     expectNothingElse();
@@ -949,6 +1042,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments, ParserTestFixture )
 
     // Remove the second one
     parser->parseLine("no name\r\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
@@ -956,6 +1050,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments, ParserTestFixture )
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -967,6 +1062,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument, ParserTestFixture 
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -974,6 +1070,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument, ParserTestFixture 
 
     // Set the first attribute
     parser->parseLine("price 666\r\n");
+    expectParsingStarted();
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectParsingFinished();
     expectNothingElse();
@@ -981,6 +1078,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument, ParserTestFixture 
 
     // Remove the second one
     parser->parseLine("no name\r\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
@@ -988,6 +1086,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument, ParserTestFixture 
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -999,6 +1098,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture 
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -1006,6 +1106,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture 
 
     // Remove the first attribute
     parser->parseLine("no price\r\n");
+    expectParsingStarted();
     expectRemoveAttr("price");
     expectParsingFinished();
     expectNothingElse();
@@ -1013,6 +1114,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture 
 
     // Set the second one
     parser->parseLine("name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
     expectParsingFinished();
     expectNothingElse();
@@ -1020,6 +1122,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture 
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1031,6 +1134,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument, ParserTestFixture 
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -1038,6 +1142,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument, ParserTestFixture 
 
     // Remove the attribute
     parser->parseLine("no price\r\n");
+    expectParsingStarted();
     expectRemoveAttr("price");
     expectParsingFinished();
     expectNothingElse();
@@ -1045,6 +1150,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument, ParserTestFixture 
 
     // Set it again
     parser->parseLine("price 666\r\n");
+    expectParsingStarted();
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectParsingFinished();
     expectNothingElse();
@@ -1052,6 +1158,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument, ParserTestFixture 
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1063,6 +1170,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument, ParserTestFixture 
 {
     // Start a new context
     parser->parseLine("hardware hpv2\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectParsingFinished();
     expectNothingElse();
@@ -1070,6 +1178,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument, ParserTestFixture 
 
     // Set the attribute
     parser->parseLine("price 666\r\n");
+    expectParsingStarted();
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectParsingFinished();
     expectNothingElse();
@@ -1077,6 +1186,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument, ParserTestFixture 
     
     // And remove it
     parser->parseLine("no price\r\n");
+    expectParsingStarted();
     expectRemoveAttr("price");
     expectParsingFinished();
     expectNothingElse();
@@ -1084,6 +1194,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument, ParserTestFixture 
 
     // And terminate the input
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1095,6 +1206,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_two_arguments_inline, ParserTestFixture 
 {
     // Start a new context
     parser->parseLine("hardware hpv2 no price no name\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectRemoveAttr("price");
     expectRemoveAttr("name");
@@ -1109,6 +1221,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_one_remove_one_argument_inline, ParserTestF
 {
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 no name\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectRemoveAttr("name");
@@ -1123,6 +1236,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument_inline, ParserTestF
 {
     // Start a new context
     parser->parseLine("hardware hpv2 no price name \"foo bar baz\"\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectRemoveAttr("price");
     expectSetAttr("name", Deska::Db::Value("foo bar baz"));
@@ -1137,6 +1251,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_and_set_one_argument_inline, ParserTestF
 {
     // Start a new context
     parser->parseLine("hardware hpv2 no price price 666\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectRemoveAttr("price");
     expectSetAttr("price", Deska::Db::Value(666.0));
@@ -1151,6 +1266,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument_inline, ParserTestF
 {
     // Start a new context
     parser->parseLine("hardware hpv2 price 666 no price\r\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectSetAttr("price", Deska::Db::Value(666.0));
     expectRemoveAttr("price");
@@ -1164,6 +1280,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_set_and_remove_one_argument_inline, ParserTestF
 BOOST_FIXTURE_TEST_CASE(parsing_remove_multiple_arguments_inline, ParserTestFixture)
 {
     parser->parseLine("hardware abcde no id no name no price\n");
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectRemoveAttr("id");
     expectRemoveAttr("name");
@@ -1180,6 +1297,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_removal_inline, ParserTestFixtu
     const std::string line = "hardware abcde no isd name \"jmeno\" price 1234.5\n";
     const std::string::const_iterator it = line.begin() + line.find(" isd");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
     expectNothingElse();
@@ -1190,24 +1308,28 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_removal_inline, ParserTestFixtu
 BOOST_FIXTURE_TEST_CASE(nested_interface_attrs_removal, ParserTestFixture)
 {
     parser->parseLine("host abcde\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("no name\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("no mac\n");
+    expectParsingStarted();
     expectRemoveAttr("mac");
     expectParsingFinished();
     expectNothingElse();
@@ -1218,6 +1340,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_attrs_removal, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_attr_removal_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde interface eth0 no mac\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectCategoryEntered("interface", "eth0");
     expectRemoveAttr("mac");
@@ -1232,6 +1355,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_immediately_attr_removal_inline, Parser
 BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_attr_removal_inline, ParserTestFixture)
 {
     parser->parseLine("host abcde hardware_id 1 interface eth0 no mac\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectSetAttr("hardware_id", Deska::Db::Value("1")); // identifier, not an int
     expectCategoryEntered("interface", "eth0");
@@ -1246,18 +1370,21 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_attr_removal_inline, 
 BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed_attr_remove, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("name \"jmeno\"\r\n");
+    expectParsingStarted();
     expectSetAttr("name", Deska::Db::Value("jmeno"));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
     
     parser->parseLine("interface eth0 no mac\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectRemoveAttr("mac");
     expectCategoryLeft();
@@ -1270,36 +1397,42 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed_attr_remove, ParserTestFixtu
 BOOST_FIXTURE_TEST_CASE(multiline_with_embed_attrs_remove, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("no name\r\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("no mac\r\n");
+    expectParsingStarted();
     expectRemoveAttr("mac");
     expectParsingFinished();
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1310,18 +1443,21 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_embed_attrs_remove, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed_attr_remove, ParserTestFixture)
 {
     parser->parseLine("host abcde\r\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("no name\r\n");
+    expectParsingStarted();
     expectRemoveAttr("name");
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("interface eth0\r\n");
+    expectParsingStarted();
     expectCategoryEntered("interface", "eth0");
     expectParsingFinished();
     expectNothingElse();
@@ -1330,17 +1466,20 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed_attr_remove, Par
     const std::string line = "no maaaac\r\n";
     const std::string::const_iterator it = line.begin() + line.find(" maaaac");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectNothingElse();
     verifyStackTwoLevels("host", "abcde", "interface", "eth0");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", "abcde");
 
     parser->parseLine("end\r\n");
+    expectParsingStarted();
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1351,6 +1490,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed_attr_remove, Par
 BOOST_FIXTURE_TEST_CASE(nested_kinds_inline_attr_removal, ParserTestFixture)
 {
     parser->parseLine("host 123 interface 456 no ip\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectCategoryEntered("interface", "456");
     expectRemoveAttr("ip");
@@ -1367,6 +1507,7 @@ BOOST_FIXTURE_TEST_CASE(invalid_attr_removal, ParserTestFixture)
     const std::string line = "host 123 no bar\n";
     const std::string::const_iterator it = line.begin() + line.find(" bar");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" ].", line, it));
     expectNothingElse();
@@ -1379,6 +1520,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
     const std::string line = "rename\n";
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -1388,6 +1530,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_rename_in_context_no_object, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -1396,6 +1539,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_in_context_no_object, ParserTestFixture)
     const std::string line ="rename 456\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
     parser->parseLine(line);
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
@@ -1407,6 +1551,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_param_no_context, ParserTestFixture)
     const std::string line = "rename host 123 456\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectFunctionRename("456");
@@ -1422,6 +1567,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_nest_no_context, ParserTestFixture)
     const std::string line = "rename host 123 interface eth0 eth1\n";
     const std::string::const_iterator it = line.begin() + line.find("123");
     parser->parseLine(line);
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 123 does not exist.", line, it));
     //expectCategoryEntered("interface", "eth0");
@@ -1437,6 +1583,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_nest_no_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -1444,7 +1591,8 @@ BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
 
     const std::string line = "rename interface 456 789\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
-    parser->parseLine(line);    
+    parser->parseLine(line);  
+    expectParsingStarted();
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectFunctionRename("789");
@@ -1458,6 +1606,7 @@ BOOST_FIXTURE_TEST_CASE(function_rename_param_in_context, ParserTestFixture)
 BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_in_context, ParserTestFixture)
 {
     parser->parseLine("host 123\n");
+    expectParsingStarted();
     expectCategoryEntered("host", "123");
     expectParsingFinished();
     expectNothingElse();
@@ -1467,6 +1616,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_in_context, ParserTestFix
     const std::string::const_iterator it = line.begin() + line.find("456");
     //const std::string::const_iterator it = line.end();
     parser->parseLine(line);    
+    expectParsingStarted();
     expectCategoryEntered("interface", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
@@ -1480,7 +1630,8 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_ident_no_context, ParserTestFix
     const std::string line = "rename host 456\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
     //const std::string::const_iterator it = line.end();
-    parser->parseLine(line);    
+    parser->parseLine(line); 
+    expectParsingStarted();
     expectCategoryEntered("host", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
@@ -1494,7 +1645,8 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_more_data, ParserTestFixture)
     const std::string line = "rename host 456 789 abc\n";
     const std::string::const_iterator it = line.begin() + line.find("456");
     //const std::string::const_iterator it = line.begin() + line.find("abc");
-    parser->parseLine(line);    
+    parser->parseLine(line);   
+    expectParsingStarted();
     expectCategoryEntered("host", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));

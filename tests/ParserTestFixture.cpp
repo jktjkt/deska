@@ -61,6 +61,7 @@ ParserTestFixture::ParserTestFixture()
     renameCheckContextConnection = parser->functionRename.connect(bind(&ParserTestFixture::slotParserRenameCheckContext, this));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
     parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
+    parser->parsingStarted.connect(bind(&ParserTestFixture::slotParserParsingStarted, this));
 }
 
 ParserTestFixture::~ParserTestFixture()
@@ -112,6 +113,11 @@ void ParserTestFixture::slotParserParseError(const Deska::Cli::ParserException &
 void ParserTestFixture::slotParserParsingFinished()
 {
     parserEvents.push(MockParserEvent::parsingFinished());
+}
+
+void ParserTestFixture::slotParserParsingStarted()
+{
+    parserEvents.push(MockParserEvent::parsingStarted());
 }
 
 void ParserTestFixture::expectNothingElse()
@@ -166,6 +172,11 @@ void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exce
 void ParserTestFixture::expectParsingFinished()
 {
     expectHelper(MockParserEvent::parsingFinished());
+}
+
+void ParserTestFixture::expectParsingStarted()
+{
+    expectHelper(MockParserEvent::parsingStarted());
 }
 
 void ParserTestFixture::expectHelper(const MockParserEvent &e)

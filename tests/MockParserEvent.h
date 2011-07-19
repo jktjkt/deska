@@ -56,6 +56,9 @@ public:
     
     /** @short The parsingFinished() signal */
     static MockParserEvent parsingFinished();
+
+    /** @short The parsingStarted() signal */
+    static MockParserEvent parsingStarted();
     
     /** @short An empty event for debug printing */
     static MockParserEvent invalid();
@@ -84,6 +87,8 @@ private:
         EVENT_PARSE_ERROR,
         /** @short Handler for parsingFinished() */
         EVENT_PARSING_FINISHED,
+        /** @short Handler for parsingStarted() */
+        EVENT_PARSING_STARTED,
         /** @short Fake, invalid event */
         EVENT_INVALID
     } Event;
