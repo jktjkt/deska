@@ -50,9 +50,9 @@ def imperative(r):
     r.assertEqual(repr(fe1), "MetadataExpression(revision < MetadataValue<RevisionId>(r333))")
     r.assertEqual(repr(fe2), "AttributeExpression(hardware.vendor == Value<string>(hp))")
     r.assertEqual(repr(_l.Expression(fe1)),
-        "Expression<MetadataExpression>(MetadataExpression(revision < MetadataValue<RevisionId>(r333)))")
+        "Expression(MetadataExpression(revision < MetadataValue<RevisionId>(r333)))")
     r.assertEqual(repr(_l.Expression(fe2)),
-        "Expression<AttributeExpression>(AttributeExpression(hardware.vendor == Value<string>(hp)))")
+        "Expression(AttributeExpression(hardware.vendor == Value<string>(hp)))")
 
     f1 = _l.std_vector_Filter()
     f1.append(_l.Filter(_l.Expression(fe1)))
@@ -61,7 +61,7 @@ def imperative(r):
     del f1
     r.assertEqual(repr(of),
         "OrFilter([" +
-        "Expression<MetadataExpression>(MetadataExpression(revision < MetadataValue<RevisionId>(r333))), " +
-        "Expression<AttributeExpression>(AttributeExpression(hardware.vendor == Value<string>(hp))), " +
+        "MetadataExpression(revision < MetadataValue<RevisionId>(r333)), " +
+        "AttributeExpression(hardware.vendor == Value<string>(hp)), " +
         "])")
 

@@ -217,12 +217,19 @@ void Commit::operator()(const std::string &params)
     } else {
         commitMessage = ui->io->askForCommitMessage();
     }
-    ui->m_dbInteraction->commitChangeset(commitMessage);
-    std::ostringstream ostr;
-    ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
-    ui->io->printMessage(ostr.str());
-    ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
-    ui->m_parser->clearContextStack();
+    try {
+        ui->m_dbInteraction->commitChangeset(commitMessage);
+        std::ostringstream ostr;
+        ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
+        ui->io->printMessage(ostr.str());
+        ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
+        ui->m_parser->clearContextStack();
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: quick & durty "fix" for the demo
+        std::ostringstream ss;
+        ss << "Error: commit failed: " << e.what();
+        ui->io->reportError(ss.str());
+    }
 }
 
 
@@ -690,8 +697,14 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 bool UserInterface::applySetAttribute(const ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
-    return true;
+    try {
+        m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
+        return true;
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: potemkin's fix for the demo
+        io->reportError(e.what());
+        return false;
+    }
 }
 
 

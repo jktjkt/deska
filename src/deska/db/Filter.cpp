@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/foreach.hpp>
 #include "Filter.h"
 
 namespace Deska {
@@ -58,9 +59,76 @@ bool operator!=(const MetadataExpression &a, const MetadataExpression &b)
     return !(a==b);
 }
 
-std::ostream& operator<<(std::ostream &stream, const MetadataExpression &m)
+/** @short Variant visitor that returns the type name of a Deska::Db::MetadataValue */
+struct DeskaMetadataValueTypeName: public boost::static_visitor<std::string>
 {
-    return stream << m.metadata << " " << m.comparison << " " << m.constantValue;
+    result_type operator()(const Value &v) const
+    {
+        return "Value";
+    }
+    result_type operator()(const RevisionId &v) const
+    {
+        return "RevisionId";
+    }
+    result_type operator()(const TemporaryChangesetId &v) const
+    {
+        return "TemporaryChangesetId";
+    }
+    result_type operator()(const PendingChangeset::AttachStatus &v) const
+    {
+        return "PendingChangeset::AttachStatus";
+    }
+};
+
+/** @short Variant visitor; helper for Deska::Db::MetadataValue's __repr__ */
+struct DeskaMetadataValueRepr: public boost::static_visitor<std::string>
+{
+    result_type operator()(const Value &v) const
+    {
+        return repr_Value(v);
+    }
+
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << v;
+        return ss.str();
+    }
+};
+
+/** @short Variant visitor; helper for Deska::Db::MetadataValue's __str__ */
+struct DeskaMetadataValueToString: public boost::static_visitor<std::string>
+{
+    result_type operator()(const Value &v) const
+    {
+        return str_Value(v);
+    }
+
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << v;
+        return ss.str();
+    }
+};
+
+std::string repr_MetadataValue(const MetadataValue &v)
+{
+    std::ostringstream ss;
+    ss << "MetadataValue<" << boost::apply_visitor(DeskaMetadataValueTypeName(), v) << ">(" << boost::apply_visitor(DeskaMetadataValueRepr(), v) << ")";
+    return ss.str();
+}
+
+std::string str_MetadataValue(const MetadataValue &v)
+{
+    return boost::apply_visitor(DeskaMetadataValueToString(), v);
+}
+
+std::ostream& operator<<(std::ostream &stream, const MetadataExpression &e)
+{
+    return stream << "MetadataExpression(" << e.metadata << " " << e.comparison << " " << repr_MetadataValue(e.constantValue) << ")";
 }
 
 AttributeExpression::AttributeExpression(const ComparisonOperator comparison_, const Identifier &kind_, const Identifier &attribute_,
@@ -79,50 +147,79 @@ bool operator!=(const AttributeExpression &a, const AttributeExpression &b)
     return !(a==b);
 }
 
-std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a)
+std::ostream& operator<<(std::ostream &stream, const AttributeExpression &e)
 {
-    return stream << a.kind << "." << a.attribute << " " << a.comparison << " " << a.constantValue;
+    return stream << "AttributeExpression(" << e.kind << "." << e.attribute << " " << e.comparison << " " << repr_Value(e.constantValue) << ")";
 }
 
 OrFilter::OrFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
 }
-/*
-std::ostream& operator<<(std::ostream &stream, const OrFilter &o)
+
+std::ostream& operator<<(std::ostream &stream, const OrFilter &filter)
 {
-    for (std::vector<Filter>::const_iterator it = o.operands.begin(); it != o.operands.end(); ++it) {
-        if (it != o.operands.begin())
-            stream << " & ";
-        stream << *it;
+    stream << "OrFilter([";
+    BOOST_FOREACH(const Filter& item, filter.operands) {
+        stream << item << ", ";
     }
-    return stream;
+    return stream << "])";
 }
-*/
+
 AndFilter::AndFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
 }
-/*
-std::ostream& operator<<(std::ostream &stream, const AndFilter &a)
+
+std::ostream& operator<<(std::ostream &stream, const AndFilter &filter)
 {
-    for (std::vector<Filter>::const_iterator it = a.operands.begin(); it != a.operands.end(); ++it) {
-        if (it != a.operands.begin())
-            stream << " | ";
-        stream << *it;
+    stream << "AndFilter([";
+    BOOST_FOREACH(const Filter& item, filter.operands) {
+        stream << item << ", ";
     }
-    return stream;
+    return stream << "])";
 }
-*/
+
+
 bool operator!=(const Expression &a, const Expression &b)
 {
     return !(a==b);
 }
-/*
-std::ostream& operator<<(std::ostream &stream, const Filter &f)
+
+/** @short Helper visitor for Deska::Db::Expression's __repr__ */
+struct DeskaExpressionToString: public boost::static_visitor<std::string>
 {
-    return stream << "(" << f << ")";
-}*/
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << "Expression(" << v << ")";
+        return ss.str();
+    }
+};
+
+std::string repr_Expression(const Expression &e)
+{
+    return boost::apply_visitor(DeskaExpressionToString(), e);
+}
+
+/** @short Helper visitor for Deska::Db::Filter's __repr__ */
+struct DeskaFilterToString: public boost::static_visitor<std::string>
+{
+    template<typename T>
+    result_type operator()(const T &v) const
+    {
+        std::ostringstream ss;
+        ss << "Filter(" << v << ")";
+        return ss.str();
+    }
+};
+
+/** @short __repr__ for a Deska::Db::Filter */
+std::string repr_Filter(const Filter &v)
+{
+    return boost::apply_visitor(DeskaFilterToString(), v);
+}
 
 }
 }

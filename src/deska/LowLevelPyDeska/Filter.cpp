@@ -65,134 +65,6 @@ MetadataValue Py_2_DeskaMetadataValue(const api::object &o)
     throw std::runtime_error("Unsupported type of a python object");
 }
 
-/** @short Variant visitor that returns the type name of a Deska::Db::MetadataValue */
-struct DeskaMetadataValueTypeName: public boost::static_visitor<std::string>
-{
-    result_type operator()(const Value &v) const
-    {
-        return "Value";
-    }
-    result_type operator()(const RevisionId &v) const
-    {
-        return "RevisionId";
-    }
-    result_type operator()(const TemporaryChangesetId &v) const
-    {
-        return "TemporaryChangesetId";
-    }
-    result_type operator()(const PendingChangeset::AttachStatus &v) const
-    {
-        return "PendingChangeset::AttachStatus";
-    }
-};
-
-/** @short Variant visitor; helper for Deska::Db::MetadataValue's __repr__ */
-struct DeskaMetadataValueRepr: public boost::static_visitor<std::string>
-{
-    result_type operator()(const Value &v) const
-    {
-        return repr_Value(v);
-    }
-
-    template<typename T>
-    result_type operator()(const T &v) const
-    {
-        std::ostringstream ss;
-        ss << v;
-        return ss.str();
-    }
-};
-
-/** @short Variant visitor; helper for Deska::Db::MetadataValue's __str__ */
-struct DeskaMetadataValueToString: public boost::static_visitor<std::string>
-{
-    result_type operator()(const Value &v) const
-    {
-        return str_Value(v);
-    }
-
-    template<typename T>
-    result_type operator()(const T &v) const
-    {
-        std::ostringstream ss;
-        ss << v;
-        return ss.str();
-    }
-};
-
-/** @short __repr__ for Deska::Db::MetadataValue */
-std::string repr_MetadataValue(const MetadataValue &v)
-{
-    std::ostringstream ss;
-    ss << "MetadataValue<" << boost::apply_visitor(DeskaMetadataValueTypeName(), v) << ">(" << boost::apply_visitor(DeskaMetadataValueRepr(), v) << ")";
-    return ss.str();
-}
-
-/** @short __str__ for Deska::Db::MetadataValue */
-std::string str_MetadataValue(const MetadataValue &v)
-{
-    return boost::apply_visitor(DeskaMetadataValueToString(), v);
-}
-
-/** @short __str__ for the Deska::Db::ComparisonOperator */
-std::string str_ComparisonOperator(const ComparisonOperator op)
-{
-    switch (op) {
-    case FILTER_COLUMN_EQ:
-        return std::string("==");
-    case FILTER_COLUMN_NE:
-        return std::string("!=");
-    case FILTER_COLUMN_GT:
-        return std::string(">");
-    case FILTER_COLUMN_GE:
-        return std::string(">=");
-    case FILTER_COLUMN_LT:
-        return std::string("<");
-    case FILTER_COLUMN_LE:
-        return std::string("<=");
-    }
-    throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
-}
-
-/** @short __repr__ for Deska::Db::MetadataExpression */
-std::string repr_MetadataExpression(const MetadataExpression &e)
-{
-    std::ostringstream ss;
-    ss << "MetadataExpression(" << e.metadata << " " << str_ComparisonOperator(e.comparison) << " " << repr_MetadataValue(e.constantValue) << ")";
-    return ss.str();
-}
-
-/** @short __repr__ for Deska::Db::AttributeExpression */
-std::string repr_AttributeExpression(const AttributeExpression &e)
-{
-    std::ostringstream ss;
-    ss << "AttributeExpression(" << e.kind << "." << e.attribute << " " << str_ComparisonOperator(e.comparison) << " " << repr_Value(e.constantValue) << ")";
-    return ss.str();
-}
-
-/** @short Helper visitor for Deska::Db::Expression's __repr__ */
-struct DeskaExpressionToString: public boost::static_visitor<std::string>
-{
-    result_type operator()(const MetadataExpression &v) const
-    {
-        std::ostringstream ss;
-        ss << "Expression<MetadataExpression>(" << repr_MetadataExpression(v) << ")";
-        return ss.str();
-    }
-    result_type operator()(const AttributeExpression &v) const
-    {
-        std::ostringstream ss;
-        ss << "Expression<AttributeExpression>(" << repr_AttributeExpression(v) << ")";
-        return ss.str();
-    }
-};
-
-/** @short __repr__ for Deska::Db::Expression */
-std::string repr_Expression(const Expression &e)
-{
-    return boost::apply_visitor(DeskaExpressionToString(), e);
-}
-
 /** @short A vector_indexing_suite without the __contains__ oeprator
 
 That operator requires a rather strange operator== specialization. The compiler claims that such a specialization is not here.
@@ -211,8 +83,6 @@ class no_compare_indexing_suite :
 
 typedef std::vector<Filter> vect_Filter;
 
-std::string repr_Filter(const Filter &v);
-
 /** @short __repr__ for a std::vector<Deska::Db::Filter> */
 std::string repr_vect_Filter(const vect_Filter &v)
 {
@@ -223,45 +93,6 @@ std::string repr_vect_Filter(const vect_Filter &v)
     }
     ss << "]";
     return ss.str();
-}
-
-/** @short __repr__ for a Deska::Db::AndFilter */
-std::string repr_AndFilter(const AndFilter& v)
-{
-    std::ostringstream ss;
-    ss << "AndFilter(" << repr_vect_Filter(v.operands) << ")";
-    return ss.str();
-}
-
-/** @short __repr__ for a Deska::Db::OrFilter */
-std::string repr_OrFilter(const OrFilter& v)
-{
-    std::ostringstream ss;
-    ss << "OrFilter(" << repr_vect_Filter(v.operands) << ")";
-    return ss.str();
-}
-
-/** @short Helper visitor for Deska::Db::Filter's __repr__ */
-struct DeskaFilterToString: public boost::static_visitor<std::string>
-{
-    result_type operator()(const AndFilter &v) const
-    {
-        return repr_AndFilter(v);
-    }
-    result_type operator()(const OrFilter &v) const
-    {
-        return repr_OrFilter(v);
-    }
-    result_type operator()(const Expression &v) const
-    {
-        return repr_Expression(v);
-    }
-};
-
-/** @short __repr__ for a Deska::Db::Filter */
-std::string repr_Filter(const Filter &v)
-{
-    return boost::apply_visitor(DeskaFilterToString(), v);
 }
 
 /** @short __repr__ for the boost::optional<Deska::Db::Filter> */
@@ -299,8 +130,8 @@ void exportDeskaFilter()
 
     class_<MetadataValue>("MetadataValue", no_init)
             .def(self == other<MetadataValue>())
-            .def("__repr__", repr_MetadataValue)
-            .def("__str__", str_MetadataValue);
+            .def("__repr__", Deska::Db::repr_MetadataValue)
+            .def("__str__", Deska::Db::str_MetadataValue);
 
     def("DeskaMetadataValue_2_Py", DeskaMetadataValue_2_Py);
     def("Py_2_DeskaMetadataValue", Py_2_DeskaMetadataValue);
@@ -309,19 +140,22 @@ void exportDeskaFilter()
             .def_readonly("comparison", &MetadataExpression::comparison)
             .def_readonly("metadata", &MetadataExpression::metadata)
             .def_readonly("constantValue", &MetadataExpression::constantValue)
-            .def("__repr__", repr_MetadataExpression);
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self));
 
     class_<AttributeExpression>("AttributeExpression", init<ComparisonOperator, Identifier, Identifier, Value>())
             .def_readonly("comparison", &AttributeExpression::comparison)
             .def_readonly("kind", &AttributeExpression::kind)
             .def_readonly("attribute", &AttributeExpression::attribute)
             .def_readonly("constantValue", &AttributeExpression::constantValue)
-            .def("__repr__", repr_AttributeExpression);
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self));
 
     class_<Expression>("Expression", no_init)
             .def(init<const MetadataExpression&>())
             .def(init<const AttributeExpression&>())
-            .def("__repr__", repr_Expression);
+            .def(self_ns::str(self))
+            .def("__repr__", Deska::Db::repr_Expression);
 
     class_<vect_Filter>("std_vector_Filter")
             .def(no_compare_indexing_suite<vect_Filter>())
@@ -329,19 +163,23 @@ void exportDeskaFilter()
 
     class_<OrFilter>("OrFilter", no_init)
             .def(init<const vect_Filter&>())
-            .def("__repr__", repr_OrFilter)
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self))
             .def_readonly("operands", &OrFilter::operands);
 
     class_<AndFilter>("AndFilter", no_init)
             .def(init<const vect_Filter&>())
-            .def("__repr__", repr_AndFilter)
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self))
             .def_readonly("operands", &AndFilter::operands);
 
     class_<Filter>("Filter")
             .def(init<const Expression&>())
             .def(init<const OrFilter&>())
             .def(init<const AndFilter&>())
-            .def("__repr__", repr_Filter)
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self))
+            .def("__repr__", Deska::Db::repr_Filter);
             ;
 
     class_<boost::optional<Filter> >("OptionalFilter")
