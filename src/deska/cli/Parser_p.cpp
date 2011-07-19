@@ -322,6 +322,9 @@ void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const Db::F
 template <typename Iterator>
 void ParserImpl<Iterator>::parsedSingleKind()
 {
+#ifdef PARSER_DEBUG
+    std::cout << "Single kind" << std::endl;
+#endif
     singleKind = true;
 }
 
