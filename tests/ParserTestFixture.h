@@ -70,6 +70,9 @@ struct ParserTestFixture: public boost::signals2::trackable
     /** @short Handler for Parser's parsingFinished() */
     void slotParserParsingFinished();
 
+    /** @short Handler for Parser's parsingStarted() */
+    void slotParserParsingStarted();
+
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
 
@@ -123,6 +126,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered()
     */
     void expectParsingFinished();
+
+    /** @short Check for parsingStarted
+
+    @see expectCategoryEntered()
+    */
+    void expectParsingStarted();
 
     /** @short Helper for various expect* functions */
     void expectHelper(const MockParserEvent &e);
