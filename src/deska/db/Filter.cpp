@@ -159,11 +159,11 @@ OrFilter::OrFilter(const std::vector<Filter> &operands_):
 
 std::ostream& operator<<(std::ostream &stream, const OrFilter &filter)
 {
-    stream << "OrFilter(";
+    stream << "OrFilter([";
     BOOST_FOREACH(const Filter& item, filter.operands) {
         stream << item << ", ";
     }
-    return stream << ")";
+    return stream << "])";
 }
 
 AndFilter::AndFilter(const std::vector<Filter> &operands_):
@@ -173,11 +173,11 @@ AndFilter::AndFilter(const std::vector<Filter> &operands_):
 
 std::ostream& operator<<(std::ostream &stream, const AndFilter &filter)
 {
-    stream << "AndFilter(";
+    stream << "AndFilter([";
     BOOST_FOREACH(const Filter& item, filter.operands) {
         stream << item << ", ";
     }
-    return stream << ")";
+    return stream << "])";
 }
 
 
