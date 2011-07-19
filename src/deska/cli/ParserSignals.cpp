@@ -331,8 +331,6 @@ void SignalsHandler::slotFunctionRename(const Db::Identifier &newName)
 
 void SignalsHandler::slotParserError(const ParserException &error)
 {
-    autoCreate = false;
-    signalsStack.clear();
     userInterface->reportParseError(error);
 }
 
@@ -340,7 +338,6 @@ void SignalsHandler::slotParserError(const ParserException &error)
 
 void SignalsHandler::slotParsingFinished()
 {
-    autoCreate = false;
     bool allConfirmed = true;
     ApplyParserSignal applyParserSignal(this);
     ConfirmParserSignal confirmParserSignal(this);
@@ -358,8 +355,6 @@ void SignalsHandler::slotParsingFinished()
                 break;
         }
     }
-
-    signalsStack.clear();
 
     // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
     m_parser->setContextStack(contextStack);
