@@ -216,7 +216,7 @@ std::string UserInterfaceIO::askForDetachMessage()
 void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
                                 const std::map<std::string, std::string> &parserKeywords)
 {
-    unsigned int maxWordWidth = 0;
+    std::string::size_type maxWordWidth = 0;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it)
         maxWordWidth = std::max(maxWordWidth, it->first.length());
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it)
@@ -278,7 +278,7 @@ void UserInterfaceIO::printHelpKind(const std::string &kindName,
     if (kindAttrs.empty()) {
         std::cout << indent(4, 1) << "No attributes" << std::endl;
     } else {
-        unsigned int maxWordWidth = 0;
+        std::string::size_type maxWordWidth = 0;
         for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
              it != kindAttrs.end(); ++it)
              maxWordWidth = std::max(maxWordWidth, it->first.length());
@@ -315,7 +315,7 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
     } else {
         // Printing list of pending changesets
         unsigned int maxChWidth = 12;
-        unsigned int maxUserWidth = 13;
+        std::string::size_type maxUserWidth = 13;
         unsigned int maxNoWidth = 2;
         unsigned int log = digits(pendingChangesets.size() - 1);
         maxNoWidth = std::max(maxNoWidth, log);
@@ -450,7 +450,7 @@ void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &re
         std::cout << "No revisions in history." << std::endl;
     } else {
         unsigned int maxRevWidth = 8;
-        unsigned int maxUserWidth = 6;
+        std::string::size_type maxUserWidth = 6;
         for (std::vector<Db::RevisionMetadata>::const_iterator it = revisions.begin(); it != revisions.end(); ++it) {
             unsigned int log = (digits(it->revision.r) + 1);
             maxRevWidth = std::max(maxRevWidth, log);
