@@ -439,11 +439,10 @@ Dump::~Dump()
 void Dump::operator()(const std::string &params)
 {
     if (params.empty()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
             BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                ui->io->printObject(object, 0, true);
-                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1);
-                ui->io->printEnd(0);
+                ui->io->printObject(object, 0, false);
+                dumpObjectRecursive(object, 1);
             }
         }
     } else {
@@ -452,15 +451,29 @@ void Dump::operator()(const std::string &params)
             ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
             return;
         }
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
             BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                ui->io->printObject(object, 0, true, ofs);
-                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1, ofs);
-                ui->io->printEnd(0, ofs);
+                ui->io->printObject(object, 0, false, ofs);
+                dumpObjectRecursive(object, 1, ofs);
             }
         }
         ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
     }  
+}
+
+
+
+void Dump::dumpObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth, std::ostream &out)
+{
+    std::vector<Db::AttributeDefinition> attributes = ui->m_dbInteraction->allAttributes(object);
+    ui->io->printAttributes(attributes, depth, out);
+    std::vector<Db::ObjectDefinition> nestedObjs = ui->m_dbInteraction->allNestedObjects(object);
+    for (std::vector<Db::ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+        ui->io->printObject(*it, depth, false, out);
+        dumpObjectRecursive(*it, depth + 1, out);
+    }
+    if (depth > 0)
+        ui->io->printEnd(depth - 1, out);
 }
 
 
@@ -676,7 +689,7 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         }
     } else {
         // If we are in some context, print all attributes and kind names
-        showKindRecursive(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+        showObjectRecursive(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
     }
     return true;
 }
@@ -825,17 +838,18 @@ void UserInterface::run()
 
 
 
-void UserInterface::showKindRecursive(const Db::ObjectDefinition &object, unsigned int depth)
+void UserInterface::showObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth)
 {
     bool printEnd = false;
-    std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(object);
+    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > attributes =
+        m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
-    io->printAttributes(attributes, depth);
+    io->printAttributesWithOrigin(attributes, depth);
     std::vector<Db::ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
     for (std::vector<Db::ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
         io->printObject(*it, depth, false);
-        showKindRecursive(*it, depth + 1);
+        showObjectRecursive(*it, depth + 1);
     }
     if (printEnd && (depth > 0))
         io->printEnd(depth - 1);

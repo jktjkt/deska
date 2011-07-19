@@ -25,6 +25,7 @@
 #define DESKA_USER_INTERFACE_H
 
 #include <string>
+#include <iostream>
 #include <tr1/memory>
 
 #include <boost/algorithm/string/case_conv.hpp>
@@ -344,6 +345,15 @@ public:
     *   @param params File name where to dump the DB. Dump to standard output when ommited.
     */
     virtual void operator()(const std::string &params);
+
+private:
+    /** @short Recursively dumps kind with attributes and nested kinds.
+    *
+    *   @param object Object which attributes and nested kinds will be printed recursively.
+    *   @param depth Depth of nesting for indentation.
+    *   @param out Output file stream where to dump objects.
+    */
+    void dumpObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth, std::ostream &out = std::cout);
 };
 
 
@@ -463,12 +473,12 @@ public:
 
 private:
 
-    /** @short Recursively shows kind with attributes and nested kinds.
+    /** @short Recursively shows kind with attributes and nested kinds and origins.
     *
     *   @param object Object which attributes and nested kinds will be printed recursively.
     *   @param depth Depth of nesting for indentation.
     */
-    void showKindRecursive(const Db::ObjectDefinition &object, unsigned int depth);
+    void showObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth);
 
     friend class Start;
     friend class Resume;

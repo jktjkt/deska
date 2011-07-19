@@ -114,6 +114,22 @@ public:
     */
     std::vector<Db::AttributeDefinition> allAttributes(const Db::ObjectDefinition &object);
 
+    /** @short Obtains all attributes with resolved values from templates of given object with origins.
+    *
+    *   @param context Path to the object for which the attributes are obtained
+    *   @return Vector of pairs with all attributes and their origins
+    */
+    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
+        const ContextStack &context);
+
+    /** @short Obtains all attributes with resolved values from templates of given object with origins.
+    *
+    *   @param object Object for which the attributes are obtained
+    *   @return Vector of pairs with all attributes and their origins
+    */
+    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
+        const Db::ObjectDefinition &object);
+
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the attributes are obtained

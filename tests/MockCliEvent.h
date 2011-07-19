@@ -112,6 +112,10 @@ struct MockCliEvent
         EVENT_PRINT_ATTRIBUTES,
         /** @short The printAttribute() event */
         EVENT_PRINT_ATTRIBUTE,
+        /** @short The printAttributesWithOrigin() event */
+        EVENT_PRINT_ATTRIBUTES_WITH_ORIGIN,
+        /** @short The printAttributeWithOrigin() event */
+        EVENT_PRINT_ATTRIBUTE_WITH_ORIGIN,
         /** @short The printObjects() event */
         EVENT_PRINT_OBJECTS,
         /** @short The printObject() event */
@@ -133,6 +137,7 @@ struct MockCliEvent
     Event eventKind;
     std::string str1;
     std::string str2;
+    Deska::Db::Identifier ident;
     int integer;
     bool boolean;
     boost::optional<Deska::Db::ObjectDefinition> object;
@@ -145,6 +150,7 @@ struct MockCliEvent
     std::vector<Deska::Db::RevisionMetadata> revisions;
     std::vector<Deska::Db::ObjectModification> modifications;
     std::vector<Deska::Db::AttributeDefinition> attrs;
+    std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
     std::vector<Deska::Db::ObjectDefinition> objects;
 };
 

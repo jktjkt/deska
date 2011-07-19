@@ -386,6 +386,17 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 
 
+void UserInterfaceIO::printAttributesWithOrigin(
+    const std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > &attributes, int indentLevel, std::ostream &out)
+{
+    for (std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> >::const_iterator it = attributes.begin();
+         it != attributes.end(); ++it) {
+        printAttributeWithOrigin(it->first, it->second, indentLevel, out);
+    }
+}
+
+
+
 void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
                                    bool fullName, std::ostream &out)
 {
@@ -399,6 +410,17 @@ void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &obje
 void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
 {
     out << indent(indentLevel) << attribute << std::endl;
+}
+
+
+
+void UserInterfaceIO::printAttributeWithOrigin(const Db::AttributeDefinition &attribute, const Db::Identifier &origin,
+                                               int indentLevel, std::ostream &out)
+{
+    if (!origin.empty())
+        out << indent(indentLevel) << attribute << " -> " << origin << std::endl;
+    else
+        out << indent(indentLevel) << attribute << std::endl;
 }
 
 

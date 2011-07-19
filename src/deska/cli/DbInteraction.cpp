@@ -158,6 +158,41 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const ContextS
 
 
 
+std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
+    const Db::ObjectDefinition &object)
+{
+    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > attributes;
+
+    // Check whether this kind contains any attributes. If not, return empty list.
+    if (m_api->kindAttributes(object.kind).empty())
+        return attributes;
+
+    // FIXME: Allow obtaining really resolved data.
+    /*typedef std::map<Db::Identifier, std::pair<Db::Identifier, Db::Value> > ObjectDataMap;
+    BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->resolvedObjectDataWithOrigin(object.kind, object.name)) {
+        attributes.push_back(std::make_pair<Db::AttributeDefinition, Db::Identifier>(
+            Db::AttributeDefinition(x.first, x.second.second), (x.second.first == object.name ? "" : x.second.first)));*/
+    typedef std::map<Db::Identifier, Db::Value> ObjectDataMap;
+    BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
+        attributes.push_back(std::make_pair<Db::AttributeDefinition, Db::Identifier>(
+            Db::AttributeDefinition(x.first, x.second), ""));
+    }
+    return attributes;
+}
+
+
+
+std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
+    const ContextStack &context)
+{
+    if (!context.empty())
+        return allAttributesResolvedWithOrigin(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    else
+        return std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> >();
+}
+
+
+
 std::vector<Db::ObjectDefinition> DbInteraction::allNestedObjects(const Db::ObjectDefinition &object)
 {
     std::vector<Db::ObjectDefinition> kinds;

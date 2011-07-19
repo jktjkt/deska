@@ -157,6 +157,15 @@ public:
     virtual void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
                                  std::ostream &out = std::cout) = 0;
 
+    /** @short Prints list of attribute definitions with indentation and origin of templatized ones.
+    *
+    *   @param attributes Vector of pairs where first item is attribute to print and second is origin of the attribute
+    *   @param indentLevel Level of indentation (number of "tabs")
+    */
+    virtual void printAttributesWithOrigin(
+        const std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > &attributes, int indentLevel,
+        std::ostream &out = std::cout) = 0;
+
     /** @short Prints list of object definitions with indentation.
     *
     *   @param objects Vector of objects to print
@@ -172,6 +181,15 @@ public:
     */
     virtual void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
                         std::ostream &out = std::cout) = 0;
+
+    /** @short Prints an attribute definition with indentation and origin of templatized ones.
+    *
+    *   @param attribute Attribute to print
+    *   @param origin Origin of the value if the attribute is inherited from some templete, else empty string
+    *   @param indentLevel Level of indentation (number of "tabs")
+    */
+    virtual void printAttributeWithOrigin(const Db::AttributeDefinition &attribute, const Db::Identifier &origin,
+                                          int indentLevel, std::ostream &out = std::cout) = 0;
 
     /** @short Prints a object definition with indentation.
     *

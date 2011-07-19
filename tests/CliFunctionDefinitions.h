@@ -27,6 +27,7 @@
 
 typedef std::map<std::string, std::string> map_string_string;
 typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
+typedef std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> > vect_pair_attrdef_ident;
 
 FORWARD_1(reportError, ReportError, std::string);
 FORWARD_1(printMessage, PrintMessage, std::string);
@@ -43,8 +44,10 @@ FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vec
 FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
 FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
 FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Db::AttributeDefinition>, int);
+FORWARD_3_OSTREAM(printAttributesWithOrigin, PrintAttributesWithOrigin, vect_pair_attrdef_ident, int);
 FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Db::ObjectDefinition>, int, bool);
 FORWARD_3_OSTREAM(printAttribute, PrintAttribute, Deska::Db::AttributeDefinition, int);
+FORWARD_4_OSTREAM(printAttributeWithOrigin, PrintAttributeWithOrigin, Deska::Db::AttributeDefinition, Deska::Db::Identifier, int);
 FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Db::ObjectDefinition, int, bool);
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
 FORWARD_1(printRevisions, PrintRevisions, std::vector<Deska::Db::RevisionMetadata>);
