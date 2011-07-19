@@ -648,6 +648,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         else DESKA_CATCH_REMOTE_EXCEPTION(ReCreateObjectError)
         else DESKA_CATCH_REMOTE_EXCEPTION(RevisionParsingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetParsingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ConstraintError)
         else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");

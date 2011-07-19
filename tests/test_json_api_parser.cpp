@@ -846,6 +846,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(ReCreateObjectError);
     JSON_ERR_TEST(InvalidKindError);
     JSON_ERR_TEST(InvalidAttributeError);
+    JSON_ERR_TEST(ConstraintError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST
