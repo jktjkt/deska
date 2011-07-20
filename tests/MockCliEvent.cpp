@@ -43,7 +43,7 @@ MockCliEvent MockCliEvent::printMessage(const std::string &message)
 
 
 
-MockCliEvent MockCliEvent::confirmDeletion(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmDeletion(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_DELETION);
     res.object = object;
@@ -61,7 +61,7 @@ MockCliEvent MockCliEvent::returnConfirmDeletion(bool confirm)
 
 
 
-MockCliEvent MockCliEvent::confirmCreation(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmCreation(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_CREATION);
     res.object = object;
@@ -79,7 +79,7 @@ MockCliEvent MockCliEvent::returnConfirmCreation(bool confirm)
 
 
 
-MockCliEvent MockCliEvent::confirmRestoration(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmRestoration(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_RESTORATION);
     res.object = object;
@@ -218,7 +218,7 @@ MockCliEvent MockCliEvent::returnReadLine(const std::string &line)
 
 
 
-MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
+MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Cli::AttributeDefinition> &attributes, int indentLevel,
                                            std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_ATTRIBUTES);
@@ -229,7 +229,7 @@ MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Db::Attribut
 
 
 
-MockCliEvent MockCliEvent::printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
+MockCliEvent MockCliEvent::printAttribute(const Deska::Cli::AttributeDefinition &attribute, int indentLevel,
                                           std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_ATTRIBUTE);
@@ -241,7 +241,7 @@ MockCliEvent MockCliEvent::printAttribute(const Deska::Db::AttributeDefinition &
 
 
 MockCliEvent MockCliEvent::printAttributesWithOrigin(
-    const std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> > &attributes,
+    const std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > &attributes,
     int indentLevel, std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_ATTRIBUTES_WITH_ORIGIN);
@@ -252,7 +252,7 @@ MockCliEvent MockCliEvent::printAttributesWithOrigin(
 
 
 
-MockCliEvent MockCliEvent::printAttributeWithOrigin(const Deska::Db::AttributeDefinition &attribute,
+MockCliEvent MockCliEvent::printAttributeWithOrigin(const Deska::Cli::AttributeDefinition &attribute,
                                                     const Deska::Db::Identifier &origin, int indentLevel,
                                                     std::ostream &out)
 {
@@ -265,7 +265,7 @@ MockCliEvent MockCliEvent::printAttributeWithOrigin(const Deska::Db::AttributeDe
 
 
 
-MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
+MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Cli::ObjectDefinition> &objects, int indentLevel,
                                         bool fullName, std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_OBJECTS);
@@ -276,7 +276,7 @@ MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Db::ObjectDefin
 
 
 
-MockCliEvent MockCliEvent::printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
+MockCliEvent MockCliEvent::printObject(const Deska::Cli::ObjectDefinition &object, int indentLevel, bool fullName,
                                        std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_OBJECT);
@@ -439,10 +439,10 @@ std::ostream& operator<<(std::ostream &out, const std::vector<std::string> &v)
 
 
 std::ostream& operator<<(std::ostream &out,
-                         const std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> > &v)
+                         const std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > &v)
 {
     out << "[";
-    for (std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> >::const_iterator it = v.begin();
+    for (std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> >::const_iterator it = v.begin();
          it != v.end(); ++it) {
         if (it != v.begin())
             out << ", ";

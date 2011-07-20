@@ -28,7 +28,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "deska/db/Objects.h"
+#include "deska/cli/CliObjects.h"
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
 
@@ -140,8 +140,8 @@ struct MockCliEvent
     Deska::Db::Identifier ident;
     int integer;
     bool boolean;
-    boost::optional<Deska::Db::ObjectDefinition> object;
-    boost::optional<Deska::Db::AttributeDefinition> attr;
+    boost::optional<Deska::Cli::ObjectDefinition> object;
+    boost::optional<Deska::Cli::AttributeDefinition> attr;
     std::map<std::string, std::string> map1;
     std::map<std::string, std::string> map2;
     std::vector<std::pair<std::string, std::string> > vectpair;
@@ -149,9 +149,9 @@ struct MockCliEvent
     std::vector<Deska::Db::PendingChangeset> changesets;
     std::vector<Deska::Db::RevisionMetadata> revisions;
     std::vector<Deska::Db::ObjectModification> modifications;
-    std::vector<Deska::Db::AttributeDefinition> attrs;
-    std::vector<std::pair<Deska::Db::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
-    std::vector<Deska::Db::ObjectDefinition> objects;
+    std::vector<Deska::Cli::AttributeDefinition> attrs;
+    std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
+    std::vector<Deska::Cli::ObjectDefinition> objects;
 };
 
 

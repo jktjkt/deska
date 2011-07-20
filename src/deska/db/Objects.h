@@ -30,6 +30,7 @@
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include "MacAddress.h"
+#include "deska/db/AdditionalValueStreamOperators.h"
 
 namespace Deska {
 namespace Db {
@@ -208,48 +209,6 @@ bool operator==(const ObjectRelation &a, const ObjectRelation &b);
 bool operator!=(const ObjectRelation &a, const ObjectRelation &b);
 bool operator<(const ObjectRelation &a, const ObjectRelation &b);
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation &o);
-
-
-/** @short Structure for pairs kind name - object name. */
-struct ObjectDefinition
-{
-    /** @short Constructor only assignes the data members.
-    *
-    *   @param kindName Name of the kind (eg. host)
-    *   @param objectName Name of the instance of the kind (eg. hpv2)
-    */
-    ObjectDefinition(const Identifier &kindName, const Identifier &objectName);
-
-    /** Name of the kind */
-    Identifier kind;
-    /** Name of the instance of the kind */
-    Identifier name;
-};
-
-std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o);
-bool operator==(const ObjectDefinition &a, const ObjectDefinition &b);
-bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b);
-
-
-/** @short Structure for pairs attribute name - attribute value. */
-struct AttributeDefinition
-{
-    /** @short Constructor only assignes the data members.
-    *
-    *   @param attributeName Name of the attribute (eg. ip)
-    *   @param assignedValue Value of the attribute (eg. 192.168.10.56)
-    */
-    AttributeDefinition(const Identifier &attributeName, const Value &assignedValue);
-
-    /** Name of the attribute */
-    Identifier attribute;
-    /** Value of the attribute */
-    Value value;
-};
-
-std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a);
-bool operator==(const AttributeDefinition &a, const AttributeDefinition &b);
-bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b);
 
 }
 }

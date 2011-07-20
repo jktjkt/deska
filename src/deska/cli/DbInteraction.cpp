@@ -89,7 +89,7 @@ void DbInteraction::renameObject(const ContextStack &context, const Db::Identifi
 
 
 void DbInteraction::setAttribute(const ContextStack &context,
-                                 const Db::AttributeDefinition &attribute)
+                                 const AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
     m_api->setAttribute(context.back().kind, contextStackToPath(context), attribute.attribute, attribute.value);
@@ -120,20 +120,20 @@ std::vector<Db::Identifier> DbInteraction::topLevelKinds()
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::kindInstances(const Db::Identifier &kindName)
+std::vector<ObjectDefinition> DbInteraction::kindInstances(const Db::Identifier &kindName)
 {
-    std::vector<Db::ObjectDefinition> objects;
+    std::vector<ObjectDefinition> objects;
     BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
-        objects.push_back(Db::ObjectDefinition(kindName, objectName));
+        objects.push_back(ObjectDefinition(kindName, objectName));
     }
     return objects;
 }
 
 
 
-std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::ObjectDefinition &object)
+std::vector<AttributeDefinition> DbInteraction::allAttributes(const ObjectDefinition &object)
 {
-    std::vector<Db::AttributeDefinition> attributes;
+    std::vector<AttributeDefinition> attributes;
 
     // Check whether this kind contains any attributes. If not, return empty list.
     if (m_api->kindAttributes(object.kind).empty())
@@ -141,27 +141,27 @@ std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const Db::Obje
 
     typedef std::map<Deska::Db::Identifier, Deska::Db::Value> ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
-        attributes.push_back(Db::AttributeDefinition(x.first, x.second));
+        attributes.push_back(AttributeDefinition(x.first, x.second));
     }
     return attributes;
 }
 
 
 
-std::vector<Db::AttributeDefinition> DbInteraction::allAttributes(const ContextStack &context)
+std::vector<AttributeDefinition> DbInteraction::allAttributes(const ContextStack &context)
 {
     if (!context.empty())
-        return allAttributes(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+        return allAttributes(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     else
-        return std::vector<Db::AttributeDefinition>();
+        return std::vector<AttributeDefinition>();
 }
 
 
 
-std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
-    const Db::ObjectDefinition &object)
+std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
+    const ObjectDefinition &object)
 {
-    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > attributes;
+    std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes;
 
     // Check whether this kind contains any attributes. If not, return empty list.
     if (m_api->kindAttributes(object.kind).empty())
@@ -170,50 +170,50 @@ std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > DbInteraction::
     // FIXME: Allow obtaining really resolved data.
     /*typedef std::map<Db::Identifier, std::pair<Db::Identifier, Db::Value> > ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->resolvedObjectDataWithOrigin(object.kind, object.name)) {
-        attributes.push_back(std::make_pair<Db::AttributeDefinition, Db::Identifier>(
-            Db::AttributeDefinition(x.first, x.second.second), (x.second.first == object.name ? "" : x.second.first)));*/
+        attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
+            AttributeDefinition(x.first, x.second.second), (x.second.first == object.name ? "" : x.second.first)));*/
     typedef std::map<Db::Identifier, Db::Value> ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
-        attributes.push_back(std::make_pair<Db::AttributeDefinition, Db::Identifier>(
-            Db::AttributeDefinition(x.first, x.second), ""));
+        attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
+            AttributeDefinition(x.first, x.second), ""));
     }
     return attributes;
 }
 
 
 
-std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
+std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allAttributesResolvedWithOrigin(
     const ContextStack &context)
 {
     if (!context.empty())
-        return allAttributesResolvedWithOrigin(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+        return allAttributesResolvedWithOrigin(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     else
-        return std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> >();
+        return std::vector<std::pair<AttributeDefinition, Db::Identifier> >();
 }
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allNestedObjects(const Db::ObjectDefinition &object)
+std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefinition &object)
 {
-    std::vector<Db::ObjectDefinition> kinds;
+    std::vector<ObjectDefinition> kinds;
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
         // FIXME: Db::FilterError: "Item 'column' is missing in condition."
         /*std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
             Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
         for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite)
-            kinds.push_back(Db::ObjectDefinition(*it, *ite));*/
+            kinds.push_back(ObjectDefinition(*it, *ite));*/
     }
     return kinds;
 }
 
 
 
-std::vector<Db::ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack &context)
+std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack &context)
 {
     if (!context.empty())
-        return allNestedObjects(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)));
+        return allNestedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     else
-        return std::vector<Db::ObjectDefinition>();
+        return std::vector<ObjectDefinition>();
 }
 
 

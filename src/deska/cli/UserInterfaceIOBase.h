@@ -29,7 +29,7 @@
 
 #include <boost/noncopyable.hpp>
 
-#include "deska/db/Objects.h"
+#include "CliObjects.h"
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
 
@@ -68,21 +68,21 @@ public:
     *   @param object Object to be deleted
     *   @return True if the deletion was confirmed, else false
     */
-    virtual bool confirmDeletion(const Db::ObjectDefinition &object) = 0;
+    virtual bool confirmDeletion(const ObjectDefinition &object) = 0;
 
     /** @short Displays confirmation message for creation of a object and returns users choice.
     *
     *   @param object Object to be created
     *   @return True if the creation was confirmed, else false
     */
-    virtual bool confirmCreation(const Db::ObjectDefinition &object) = 0;
+    virtual bool confirmCreation(const ObjectDefinition &object) = 0;
 
     /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
     *
     *   @param object Object to be restored
     *   @return True if the restoration was confirmed, else false
     */
-    virtual bool confirmRestoration(const Db::ObjectDefinition &object) = 0;
+    virtual bool confirmRestoration(const ObjectDefinition &object) = 0;
 
     /** @short Asks user to enter a commit message.
     *
@@ -154,7 +154,7 @@ public:
     *   @param attributes Vector of attributes to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+    virtual void printAttributes(const std::vector<AttributeDefinition> &attributes, int indentLevel,
                                  std::ostream &out = std::cout) = 0;
 
     /** @short Prints list of attribute definitions with indentation and origin of templatized ones.
@@ -163,7 +163,7 @@ public:
     *   @param indentLevel Level of indentation (number of "tabs")
     */
     virtual void printAttributesWithOrigin(
-        const std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > &attributes, int indentLevel,
+        const std::vector<std::pair<AttributeDefinition, Db::Identifier> > &attributes, int indentLevel,
         std::ostream &out = std::cout) = 0;
 
     /** @short Prints list of object definitions with indentation.
@@ -171,7 +171,7 @@ public:
     *   @param objects Vector of objects to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+    virtual void printObjects(const std::vector<ObjectDefinition> &objects, int indentLevel,
                               bool fullName, std::ostream &out = std::cout) = 0;
 
     /** @short Prints an attribute definition with indentation.
@@ -179,7 +179,7 @@ public:
     *   @param attribute Attribute to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
+    virtual void printAttribute(const AttributeDefinition &attribute, int indentLevel,
                         std::ostream &out = std::cout) = 0;
 
     /** @short Prints an attribute definition with indentation and origin of templatized ones.
@@ -188,7 +188,7 @@ public:
     *   @param origin Origin of the value if the attribute is inherited from some templete, else empty string
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printAttributeWithOrigin(const Db::AttributeDefinition &attribute, const Db::Identifier &origin,
+    virtual void printAttributeWithOrigin(const AttributeDefinition &attribute, const Db::Identifier &origin,
                                           int indentLevel, std::ostream &out = std::cout) = 0;
 
     /** @short Prints a object definition with indentation.
@@ -196,7 +196,7 @@ public:
     *   @param object Object to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName,
+    virtual void printObject(const ObjectDefinition &object, int indentLevel, bool fullName,
                      std::ostream &out = std::cout) = 0;
 
     /** @short Prints "end" keyword with indentation.

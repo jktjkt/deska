@@ -23,7 +23,6 @@
 #include <boost/date_time/posix_time/time_formatters.hpp>
 
 #include "Objects.h"
-#include "deska/db/AdditionalValueStreamOperators.h"
 
 namespace Deska {
 namespace Db {
@@ -135,52 +134,6 @@ ObjectRelation ObjectRelation::isTemplate(const Identifier &target)
 ObjectRelation ObjectRelation::templatized(const Identifier &target)
 {
     return ObjectRelation(RELATION_TEMPLATIZED, target);
-}
-
-
-ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
-    kind(kindName), name(objectName)
-{
-}
-
-std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o)
-{
-    return stream << o.kind << " " << o.name;
-}
-
-bool operator==(const ObjectDefinition &a, const ObjectDefinition &b)
-{
-    return a.kind == b.kind && a.name == b.name;
-}
-
-bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
-{
-    return !(a == b);
-}
-
-
-AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const Value &assignedValue):
-    attribute(attributeName), value(assignedValue)
-{
-}
-
-std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
-{
-    if (a.value) {
-        return stream << a.attribute << " " << *a.value;
-    } else {
-        return stream << "no " << a.attribute;
-    }
-}
-
-bool operator==(const AttributeDefinition &a, const AttributeDefinition &b)
-{
-    return a.attribute == b.attribute && a.value == b.value;
-}
-
-bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
-{
-    return !(a == b);
 }
 
 /** @short Variant visitor that returns the type name of a Deska::Db::Value */

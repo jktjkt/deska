@@ -475,7 +475,7 @@ void Dump::operator()(const std::string &params)
         // FIXME: Dump recursively
         //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
                 //ui->io->printObject(object, 0, false);
                 ui->io->printObject(object, 0, true);
                 dumpObjectRecursive(object, 1);
@@ -490,7 +490,7 @@ void Dump::operator()(const std::string &params)
         // FIXME: Dump recursively
         //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
                 //ui->io->printObject(object, 0, false, ofs);
                 ui->io->printObject(object, 0, true, ofs);
                 dumpObjectRecursive(object, 1, ofs);
@@ -502,12 +502,12 @@ void Dump::operator()(const std::string &params)
 
 
 
-void Dump::dumpObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth, std::ostream &out)
+void Dump::dumpObjectRecursive(const ObjectDefinition &object, unsigned int depth, std::ostream &out)
 {
-    std::vector<Db::AttributeDefinition> attributes = ui->m_dbInteraction->allAttributes(object);
+    std::vector<AttributeDefinition> attributes = ui->m_dbInteraction->allAttributes(object);
     ui->io->printAttributes(attributes, depth, out);
-    std::vector<Db::ObjectDefinition> nestedObjs = ui->m_dbInteraction->allNestedObjects(object);
-    for (std::vector<Db::ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+    std::vector<ObjectDefinition> nestedObjs = ui->m_dbInteraction->allNestedObjects(object);
+    for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
         ui->io->printObject(*it, depth, false, out);
         dumpObjectRecursive(*it, depth + 1, out);
     }
@@ -683,7 +683,7 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (io->confirmRestoration(Db::ObjectDefinition(kind,object))) {
+        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             return true;
         } else {
@@ -698,7 +698,7 @@ bool UserInterface::applySetAttribute(const ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     try {
-        m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
+        m_dbInteraction->setAttribute(context, AttributeDefinition(attribute, value));
         return true;
     } catch (Deska::Db::RemoteDbError &e) {
         // FIXME: potemkin's fix for the demo
@@ -735,7 +735,7 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         }
     } else {
         // If we are in some context, print all attributes and kind names
-        showObjectRecursive(Db::ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+        showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
     }
     return true;
 }
@@ -775,7 +775,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return true;
 
     // Object does not exist -> ask the user here
-    return io->confirmCreation(Db::ObjectDefinition(kind,object));
+    return io->confirmCreation(ObjectDefinition(kind,object));
 }
 
 
@@ -828,7 +828,7 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
     if (nonInteractiveMode)
         return true;
     // FIXME
-    return io->confirmDeletion(Db::ObjectDefinition(context.back().kind, context.back().name));
+    return io->confirmDeletion(ObjectDefinition(context.back().kind, context.back().name));
 }
 
 
@@ -885,16 +885,16 @@ void UserInterface::run()
 
 
 
-void UserInterface::showObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth)
+void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned int depth)
 {
     bool printEnd = false;
-    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > attributes =
+    std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
     io->printAttributesWithOrigin(attributes, depth);
-    std::vector<Db::ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
+    std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
-    for (std::vector<Db::ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+    for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
         io->printObject(*it, depth, false);
         showObjectRecursive(*it, depth + 1);
     }

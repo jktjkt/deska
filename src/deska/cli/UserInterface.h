@@ -32,6 +32,8 @@
 #include <boost/noncopyable.hpp>
 #include <boost/optional.hpp>
 
+#include "CliObjects.h"
+
 namespace Deska
 {
 namespace Cli
@@ -379,7 +381,7 @@ private:
     *   @param depth Depth of nesting for indentation.
     *   @param out Output file stream where to dump objects.
     */
-    void dumpObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth, std::ostream &out = std::cout);
+    void dumpObjectRecursive(const ObjectDefinition &object, unsigned int depth, std::ostream &out = std::cout);
 };
 
 
@@ -504,7 +506,7 @@ private:
     *   @param object Object which attributes and nested kinds will be printed recursively.
     *   @param depth Depth of nesting for indentation.
     */
-    void showObjectRecursive(const Db::ObjectDefinition &object, unsigned int depth);
+    void showObjectRecursive(const ObjectDefinition &object, unsigned int depth);
 
     friend class Start;
     friend class Resume;
