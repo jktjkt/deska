@@ -132,23 +132,10 @@ typedef enum {
      * */
     RELATION_REFERS_TO,
 
-    /** @short This object is a template
-     *
-     * This objects acts as a template, that is, it can provide partial defaults for instances of the kind defined by the
-     * matching RELATION_TEMPLATIZED objects.  The template relation is a relation between two kinds of objects, and the
-     * RELATION_IS_TEMPLATE and RELATION_TEMPLATIZED is used to describe both sides of that.  Users of the API can expect
-     * to always find both of them.
-     *
-     * @see RELATION_TEMPLATIZED
-     * */
-    RELATION_IS_TEMPLATE,
-
     /** @short This object's values should be combined from its parent's values to derive a full set
      *
      * This objects supports incremental setting of values, that is, data which are not defined at
      * this level shall be looked up at the parent.
-     *
-     * @see RELATION_IS_TEMPLATE
      * */
     RELATION_TEMPLATIZED,
 
@@ -169,7 +156,6 @@ typedef enum {
  *
  * This is how templates work:
  * (RELATION_TEMPLATIZED, "hw-template") -- for the "hw" kind
- * (RELATION_IS_TEMPLATE, "hw") -- for the "hw-template" kind
  *
  * Whereas for the "interface":
  * (RELATION_EMBED_INTO, "host")
@@ -188,9 +174,6 @@ struct ObjectRelation
 
     /** @short COnstruct a RELATION_REFERS_TO */
     static ObjectRelation refersTo(const Identifier &target);
-
-    /** @short Construct a RELATION_IS_TEMPLATE */
-    static ObjectRelation isTemplate(const Identifier &target);
 
     /** @short Construct a RELATION_TEMPLATIZED */
     static ObjectRelation templatized(const Identifier &target);

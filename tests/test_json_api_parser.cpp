@@ -140,13 +140,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
             "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
             "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
             "{\"relation\": \"REFERS_TO\", \"target\": \"reference\"}, "
-            "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
             "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\",\"tag\":\"T\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind"));
     expected.push_back(ObjectRelation::refersTo("reference"));
-    expected.push_back(ObjectRelation::isTemplate("target-kind"));
     expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());

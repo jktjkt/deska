@@ -45,7 +45,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
             "\"price\": \"double\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"a\"}\n");
-    expectRead("{\"kindRelations\": [{\"relation\": \"IS_TEMPLATE\", \"target\":\"b\"}], \"response\": \"kindRelations\", \"tag\":\"T\"}\n");
+    expectRead("{\"kindRelations\": [], \"response\": \"kindRelations\", \"tag\":\"T\"}\n");
     // ...and move to "b":
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
     expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
@@ -94,7 +94,6 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 
     // ...and continue with "a":
     expectedRelations.clear();
-    expectedRelations.push_back(ObjectRelation::isTemplate("b"));
     resRelations = j->kindRelations("a");
     BOOST_CHECK_EQUAL_COLLECTIONS(resRelations.begin(), resRelations.end(), expectedRelations.begin(), expectedRelations.end());
 

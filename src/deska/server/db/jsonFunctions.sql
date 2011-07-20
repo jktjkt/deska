@@ -83,7 +83,6 @@ def main(tag,kindName):
 	# revert dict
 	revtemplates = {v:k for k, v in templates.items()}
 	res.addRelation("TEMPLATIZED",kindName,templates)
-	res.addRelation("IS_TEMPLATE",kindName,revtemplates)
 	res.addRelation("REFERS_TO",kindName,dutil.generated.refs())
 	
 	jsn[name] = res

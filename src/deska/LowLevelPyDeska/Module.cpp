@@ -63,7 +63,6 @@ void exportObjectRelations()
             .value("MERGE_WITH", RELATION_MERGE_WITH)
             .value("EMBED_INTO", RELATION_EMBED_INTO)
             .value("REFERS_TO", RELATION_REFERS_TO)
-            .value("IS_TEMPLATE", RELATION_IS_TEMPLATE)
             .value("TEMPLATIZED", RELATION_TEMPLATIZED);
 
     class_<ObjectRelation>("ObjectRelation", no_init)
