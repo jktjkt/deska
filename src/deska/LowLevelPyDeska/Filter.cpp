@@ -65,22 +65,6 @@ MetadataValue Py_2_DeskaMetadataValue(const api::object &o)
     throw std::runtime_error("Unsupported type of a python object");
 }
 
-/** @short A vector_indexing_suite without the __contains__ oeprator
-
-That operator requires a rather strange operator== specialization. The compiler claims that such a specialization is not here.
-*/
-template <class T>
-class no_compare_indexing_suite :
-  public vector_indexing_suite<T, false, no_compare_indexing_suite<T> >
-{
-  public:
-    static bool contains(T &container, typename T::value_type const &key)
-    {
-        PyErr_SetString(PyExc_NotImplementedError, "containment checking not supported on this container");
-        throw boost::python::error_already_set();
-    }
-};
-
 typedef std::vector<Filter> vect_Filter;
 
 /** @short __repr__ for a std::vector<Deska::Db::Filter> */
@@ -158,7 +142,7 @@ void exportDeskaFilter()
             .def("__repr__", Deska::Db::repr_Expression);
 
     class_<vect_Filter>("std_vector_Filter")
-            .def(no_compare_indexing_suite<vect_Filter>())
+            .def(vector_indexing_suite<vect_Filter>())
             .def("__repr__", repr_vect_Filter);
 
     class_<OrFilter>("OrFilter", no_init)
