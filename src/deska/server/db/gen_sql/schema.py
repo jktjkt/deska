@@ -22,6 +22,8 @@ def {name}({args}):
 	"""Query to get all tables in the schema production."""
 	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
 	"""Query to get all the columns and their types in the table"""
+	att_type_str = "SELECT attname,typename from kindAttributes('{0}')"
+	"""Query to get all the columns and their types in the table"""
 	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
 	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
@@ -151,9 +153,8 @@ CREATE FUNCTION commit_all(message text)
 		"""
 		# select col info
 		columns = self.plpy.execute(self.column_str.format(tbl))
-		self.atts[tbl] = dict(columns)
-		del self.atts[tbl]['uid']
-		del self.atts[tbl]['name']
+		att_types = self.plpy.execute(self.att_type_str.format(tbl))
+		self.atts[tbl] = dict(att_types)
 
 		# create table obj
 		table = Table(tbl)

@@ -188,18 +188,24 @@ CREATE OR REPLACE FUNCTION kindAttributes(tabname name)
 RETURNS SETOF attr_info
 AS
 $$
+DECLARE
+	base_table name;
 BEGIN
-RETURN QUERY 
-	SELECT attname, typname 
+	SELECT kind INTO base_table FROM get_templates_info() WHERE template = tabname AND template <> kind;
+	IF base_table IS NULL THEN
+		base_table := tabname;
+	END IF;
+	RETURN QUERY 
+	SELECT attname, CASE 
+						WHEN attname IN (SELECT attname FROM cols_ref_uid(base_table)) THEN 'identifier'
+						ELSE typname
+					END
 		FROM pg_class AS cl
 			JOIN pg_tables AS tab ON (schemaname ='production' and cl.relname = tab.tablename)
 			JOIN pg_attribute AS att ON (att.attrelid = cl.oid )
 			JOIN pg_type AS typ ON (typ.oid = att.atttypid)
 		-- don't return also uid and name columns - internal
-		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name')
-			AND attname NOT IN (SELECT attname FROM cols_ref_uid(tabname))
-	UNION
-	SELECT attname, 'text' FROM cols_ref_uid(tabname);
+		WHERE cl.relname = tabname AND  att.attname NOT IN ('tableoid','cmax','xmax','cmin','xmin','ctid','uid','name');
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
