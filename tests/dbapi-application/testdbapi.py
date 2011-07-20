@@ -77,10 +77,16 @@ class JsonApiTester(unittest.TestCase):
         self.assertTrue("response" in res)
         self.assertTrue("tag" in res)
         self.assertTrue("dbException" not in res)
-        if command.name in res:
-            return res[command.name]
-        else:
-            return None
+        self.assertTrue(command.name in res)
+        return res[command.name]
+
+    def cvoid(self, command):
+        """Execute a command, but scream loudly when no result is returned"""
+        res = self.runJSON(command.command)
+        self.assertTrue("response" in res)
+        self.assertTrue("tag" in res)
+        self.assertTrue("dbException" not in res)
+        self.assertTrue(command.name not in res)
 
     def cfail(self, command, exception=None):
         """Make sure that the commands fails"""

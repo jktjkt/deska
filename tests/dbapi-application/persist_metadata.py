@@ -7,7 +7,7 @@ def imperative(r):
     # now repeat the test from inside a changeset
     r.c(startChangeset())
     doStuff(r, kinds)
-    r.c(abortCurrentChangeset())
+    r.cvoid(abortCurrentChangeset())
 
 def doStuff(r, kinds):
     res_kindNames = r.c(kindNames())
