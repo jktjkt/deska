@@ -16,7 +16,8 @@ declarative = [
         AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware'))),
 
     kindAttributes("interface").returns(helper_interface_attrs),
-    kindAttributes("interface_template").returns(helper_interface_attrs),
+    kindAttributes("interface_template").returns(
+        dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host")),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
