@@ -31,13 +31,17 @@ declarative = [
     kindAttributes("pwnpwn").throws(InvalidKindError()),
 
     kindRelations("interface").returns(
-        [{'relation': 'EMBED_INTO', 'target': 'host'}]
+        AnyOrderList([
+            {'relation': 'EMBED_INTO', 'target': 'host'},
+            {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
     ),
     kindRelations("host").returns(
-        [{'relation': 'REFERS_TO', 'target': 'hardware'}]
+        AnyOrderList([{'relation': 'REFERS_TO', 'target': 'hardware'}])
     ),
     kindRelations("hardware").returns(
-        [{'relation': 'REFERS_TO', 'target': 'vendor'}]
+        AnyOrderList([
+            {'relation': 'REFERS_TO', 'target': 'vendor'},
+            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
     kindRelations("vendor").returns([]),
 ]
