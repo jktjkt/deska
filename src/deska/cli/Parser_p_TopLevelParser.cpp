@@ -38,8 +38,8 @@ TopLevelParser<Iterator>::TopLevelParser(KindsOnlyParser<Iterator> *topLevelKind
                                          ParserImpl<Iterator> *parent):
     TopLevelParser<Iterator>::base_type(start), m_parent(parent)
 {
-    start = (((*topLevelKinds)[phoenix::bind(&TopLevelParser::parsedSingleKind, this)])
-            | (*topLevelKindsFilters));
+    start = ((*topLevelKinds)
+            | (*topLevelKindsFilters))[phoenix::bind(&TopLevelParser::parsedSingleKind, this)];
 }
 
 

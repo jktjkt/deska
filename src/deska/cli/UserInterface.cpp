@@ -26,7 +26,6 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/regex.hpp>
 
 #include "DbInteraction.h"
 #include "Exceptions.h"
@@ -342,7 +341,7 @@ void Status::operator()(const std::string &params)
 Log::Log(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "log";
-    cmdUsage = "Command for operations with revisions and history.";
+    cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions.";
     complPatterns.push_back("log");
 }
 
@@ -361,34 +360,61 @@ void Log::operator()(const std::string &params)
         ui->io->printRevisions(revisions);
         return;
     }
+}
 
-    std::vector<std::string> paramsList = extractParams(params);
-    if (paramsList.size() > 2)
-        ui->io->reportError("Too many parameters entered!");
-    // FIXME: Some linker error
-    /*boost::regex revRegex("^r[0-9]+$");
-    for (std::vector<std::string>::iterator it = paramsList.begin(); it != paramsList.end(); ++it) {
-        if (!boost::regex_match(*it, revRegex)) {
-            ui->io->reportError("Invalid parameters entered!");
+
+
+Diff::Diff(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "diff";
+    cmdUsage = "Command for showing difference between revisions. Without parameters shows diff of current changeset with its parent. With two parameters, revisions IDs shows diff between these revisions.";
+    complPatterns.push_back("diff");
+}
+
+
+
+Diff::~Diff()
+{
+}
+
+
+
+void Diff::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        if (!ui->currentChangeset) {
+            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
             return;
         }
-    }*/
+        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+            *(ui->currentChangeset));
+        ui->io->printDiff(modifications);
+        return;
+    }
 
-    std::vector<Db::ObjectModification> modifications;
-    if (paramsList.size() == 1) {
-        
-    } else if (paramsList.size() == 2) {
+    std::vector<std::string> paramsList = extractParams(params);
+    if (paramsList.size() != 2) {
+        ui->io->reportError("Invalid number of parameters entered!");
+        return;
+    }
+
+    try {
+        Db::RevisionId revA = stringToRevision(paramsList[0]);
+        Db::RevisionId revB = stringToRevision(paramsList[1]);
         std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifference(
             stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
         ui->io->printDiff(modifications);
+    } catch (std::invalid_argument &e) {
+        ui->io->reportError("Invalid parameters entered!");
+        return;
     }
 }
 
 
 
-Db::RevisionId Log::stringToRevision(const std::string &rev)
+Db::RevisionId Diff::stringToRevision(const std::string &rev)
 {
-    if (rev.size() < 2)
+    if ((rev.size() < 2) || (rev[0] != 'r'))
         throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
     std::string revStr(rev.begin() + 1, rev.end());
     unsigned int revInt;
@@ -621,6 +647,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["abort"] = Ptr(new Abort(this));
     commandsMap["status"] = Ptr(new Status(this));
     commandsMap["log"] = Ptr(new Log(this));
+    commandsMap["diff"] = Ptr(new Diff(this));
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["dump"] = Ptr(new Dump(this));
@@ -800,7 +827,8 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 
     if (nonInteractiveMode)
         return true;
-    return io->confirmDeletion(context.back());
+    // FIXME
+    return io->confirmDeletion(Db::ObjectDefinition(context.back().kind, context.back().name));
 }
 
 

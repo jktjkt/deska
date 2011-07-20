@@ -284,6 +284,32 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Command for showing differences between revisions.
+*
+*   @see Command
+*/
+class Diff: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Diff(UserInterface *userInterface);
+
+    virtual ~Diff();
+
+    /** @short Function for showing diffs between revisions.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
 
 private:
 
@@ -487,6 +513,7 @@ private:
     friend class Abort;
     friend class Status;
     friend class Log;
+    friend class Diff;
     friend class Exit;
     friend class Dump;
     friend class Restore;

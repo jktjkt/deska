@@ -259,7 +259,7 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
 template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    contextStack.push_back(Db::ObjectDefinition(kind, name));
+    contextStack.push_back(ContextStackItem(kind, name));
     if (!dryRun)
         m_parser->categoryEntered(kind, name);
 #ifdef PARSER_DEBUG
@@ -275,7 +275,6 @@ void ParserImpl<Iterator>::categoryLeft()
     contextStack.pop_back();
     if (!dryRun)
         m_parser->categoryLeft();
-    inFilter = false;
 #ifdef PARSER_DEBUG
     std::cout << "Category left" << std::endl;
 #endif
@@ -310,12 +309,11 @@ void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &name)
 template <typename Iterator>
 void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const Db::Filter &filter)
 {
-    inFilter = true;
-    contextStack.push_back(Db::ObjectDefinition(kind, "*FILTER*"));
+    contextStack.push_back(ContextStackItem(kind, filter));
     if (!dryRun)
         m_parser->objectsFilter(kind, filter);
 #ifdef PARSER_DEBUG
-    std::cout << "Objects filter: " << kind << ": " << /*filter <<*/ std::endl;
+    std::cout << "Objects filter: " << kind << ": " << filter << std::endl;
 #endif
 }
 
@@ -324,6 +322,9 @@ void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const Db::F
 template <typename Iterator>
 void ParserImpl<Iterator>::parsedSingleKind()
 {
+#ifdef PARSER_DEBUG
+    std::cout << "Single kind" << std::endl;
+#endif
     singleKind = true;
 }
 
@@ -433,7 +434,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
     parsingMode = PARSING_MODE_STANDARD;
     bool parsingSucceeded = true;
     singleKind = false;
-    inFilter = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
     bool nonexistantObject = false;
@@ -510,12 +510,14 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 case PARSING_MODE_SHOW:
                 case PARSING_MODE_RENAME:
                     // Modes SHOW, DELETE and RENAME requires existing kind instances.
-                    instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
-                    if (std::find(instances.begin(), instances.end(), contextStackToPath(contextStack)) == instances.end()) {
-                        addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
-                                                           contextStack.back().kind, contextStack.back().name));
-                        parsingSucceeded = false;
-                        nonexistantObject = true;
+                    if (!contextStack.back().filter) {
+                        instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
+                        if (std::find(instances.begin(), instances.end(), contextStackToPath(contextStack)) == instances.end()) {
+                            addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
+                                                               contextStack.back().kind, contextStack.back().name));
+                            parsingSucceeded = false;
+                            nonexistantObject = true;
+                        }
                     }
                     break;
                 default:

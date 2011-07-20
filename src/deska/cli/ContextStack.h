@@ -26,7 +26,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/variant.hpp>
+#include <boost/optional.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Filter.h"
 
@@ -35,10 +35,34 @@ namespace Deska {
 namespace Cli {
 
 
-/** @short Typedef for one particular context stack item. */
-// FIXME: Allow Filter here
-//typedef boost::variant<Db::ObjectDefinition, Db::Filter> ContextStackItem;
-typedef Db::ObjectDefinition ContextStackItem;
+/** @short Structure for pairs kind name - object name of filter. */
+struct ContextStackItem
+{
+    /** @short Constructor only assignes the data members.
+    *
+    *   @param kindName Name of the kind (eg. host)
+    *   @param objectName Name of the instance of the kind (eg. hpv2)
+    */
+    ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName);
+
+    /** @short Constructor only assignes the data members.
+    *
+    *   @param kindName Name of the kind (eg. host)
+    *   @param objectName Name of the instance of the kind (eg. hpv2)
+    */
+    ContextStackItem(const Db::Identifier &kindName, const Db::Filter &objectsFilter);
+
+    /** Name of the kind */
+    Db::Identifier kind;
+    /** Name of the instance of the kind */
+    Db::Identifier name;
+    /** Filter */
+    boost::optional<Db::Filter> filter;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i);
+bool operator==(const ContextStackItem &a, const ContextStackItem &b);
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
 
 /** @short Typedef for context stack. */
 typedef std::vector<ContextStackItem> ContextStack;

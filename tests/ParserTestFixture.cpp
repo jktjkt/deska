@@ -191,9 +191,9 @@ void ParserTestFixture::expectHelper(const MockParserEvent &e)
 
 void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
-    const std::vector<Deska::Db::ObjectDefinition> &stack = parser->currentContextStack();
-    std::vector<Deska::Db::ObjectDefinition> specimen;
-    specimen.push_back(Deska::Db::ObjectDefinition(kind, name));
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind, name));
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
@@ -201,10 +201,10 @@ void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, c
 void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
                              const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2)
 {
-    const std::vector<Deska::Db::ObjectDefinition> &stack = parser->currentContextStack();
-    std::vector<Deska::Db::ObjectDefinition> specimen;
-    specimen.push_back(Deska::Db::ObjectDefinition(kind1, name1));
-    specimen.push_back(Deska::Db::ObjectDefinition(kind2, name2));
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind1, name1));
+    specimen.push_back(Deska::Cli::ContextStackItem(kind2, name2));
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
