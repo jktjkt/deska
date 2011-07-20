@@ -720,7 +720,6 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
                                        const Db::Filter &filter)
 {
-    // TODO
     return true;
 }
 
@@ -735,7 +734,15 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         }
     } else {
         // If we are in some context, print all attributes and kind names
-        showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+        try {
+            showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+        } catch (std::runtime_error &e) {
+            std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
+            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+                io->printObject(*it, 0, true);
+                showObjectRecursive(*it, 1);
+            }
+        }
     }
     return true;
 }
@@ -806,7 +813,12 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
                                          const Db::Filter &filter)
 {
-    return true;
+    if (m_dbInteraction->expandContextStack(context).empty()) {
+        io->printMessage("Entered filter does not match any object.");
+        return false;
+    } else {
+        return true;
+    }
 }
 
 
@@ -827,8 +839,11 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 
     if (nonInteractiveMode)
         return true;
-    // FIXME
-    return io->confirmDeletion(ObjectDefinition(context.back().kind, context.back().name));
+    // FIXME: Some better messages
+    if (context.back().filter)
+        return io->confirmDeletion(ObjectDefinition(context.back().kind, "from filter"));
+    else
+        return io->confirmDeletion(ObjectDefinition(context.back().kind, context.back().name));
 }
 
 

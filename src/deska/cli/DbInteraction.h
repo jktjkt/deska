@@ -151,6 +151,13 @@ public:
     */
     std::vector<ObjectDefinition> allNestedObjects(const ContextStack &context);
 
+    /** @short Check if object in exists or not.
+    *
+    *   @param object The object to search for
+    *   @return True if object exists else false
+    */
+    bool objectExists(const ObjectDefinition &object);
+
     /** @short Check if object in the context exists or not.
     *
     *   @param context Path to the object to search for
@@ -205,6 +212,16 @@ public:
     *   @return Vector of modifications how to get from first revision to second revision.
     */
     std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
+
+    /** @short Expands context stack int vector of objects.
+    *
+    *   When context stack doec not contain any filter, result will be only one object, but in case of filters,
+    *   all objects, that are identified by the sequence of filters and kindNames are extracted in the vector.
+    *
+    *   @param context Context stack to expand.
+    *   @return Vector of objects with fully qualified names.
+    */
+    std::vector<ObjectDefinition> expandContextStack(const ContextStack &context);
 
 private:
 

@@ -57,7 +57,11 @@ DbInteraction::DbInteraction(Db::Api *api):
 void DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->createObject(context.back().kind, contextStackToPath(context));
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (!objectExists(*it))
+            m_api->createObject(it->kind, it->name);
+    }
 }
 
 
@@ -65,7 +69,11 @@ void DbInteraction::createObject(const ContextStack &context)
 void DbInteraction::restoreDeletedObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->restoreDeletedObject(context.back().kind, contextStackToPath(context));
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (!objectExists(*it))
+            m_api->restoreDeletedObject(it->kind, it->name);
+    }
 }
 
 
@@ -73,13 +81,18 @@ void DbInteraction::restoreDeletedObject(const ContextStack &context)
 void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->deleteObject(context.back().kind, contextStackToPath(context));
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (objectExists(*it))
+            m_api->deleteObject(it->kind, it->name);
+    }
 }
 
 
 
 void DbInteraction::renameObject(const ContextStack &context, const Db::Identifier &newName)
 {
+    // FIXME
     BOOST_ASSERT(!context.empty());
     ContextStack newContext = context;
     newContext.back().name = newName;
@@ -92,7 +105,10 @@ void DbInteraction::setAttribute(const ContextStack &context,
                                  const AttributeDefinition &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, contextStackToPath(context), attribute.attribute, attribute.value);
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        m_api->setAttribute(it->kind, it->name, attribute.attribute, attribute.value);
+    }    
 }
 
 
@@ -101,7 +117,10 @@ void DbInteraction::removeAttribute(const ContextStack &context,
                                     const Db::Identifier &attribute)
 {
     BOOST_ASSERT(!context.empty());
-    m_api->setAttribute(context.back().kind, contextStackToPath(context), attribute, Deska::Db::Value());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        m_api->setAttribute(it->kind, it->name, attribute, Deska::Db::Value());
+    }
 }
 
 
@@ -218,15 +237,27 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack
 
 
 
-bool DbInteraction::objectExists(const ContextStack &context)
+bool DbInteraction::objectExists(const ObjectDefinition &object)
 {
-    BOOST_ASSERT(!context.empty());
-    std::vector<Db::Identifier> instances = m_api->kindInstances(context.back().kind);
-    if (std::find(instances.begin(), instances.end(), contextStackToPath(context)) == instances.end()) {
+    std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind);
+    if (std::find(instances.begin(), instances.end(), object.name) == instances.end()) {
         return false;
     } else {
         return true;
     }
+}
+
+
+
+bool DbInteraction::objectExists(const ContextStack &context)
+{
+    BOOST_ASSERT(!context.empty());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (!objectExists(*it))
+            return false;
+    }
+    return true;
 }
 
 
@@ -291,6 +322,21 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
 {
     return m_api->dataDifferenceInTemporaryChangeset(changeset);
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextStack &context)
+{
+    std::vector<ObjectDefinition> objects;
+
+    try {
+        objects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    } catch (std::runtime_error &e) {
+
+    }
+
+    return objects;
 }
 
 

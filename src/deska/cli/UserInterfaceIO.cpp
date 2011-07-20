@@ -158,7 +158,7 @@ void UserInterfaceIO::printMessage(const std::string &message)
 bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << "Are you sure you want to delete object " << object << "?";
+    ss << "Are you sure you want to delete object(s) " << object << "?";
     return askForConfirmation(ss.str());
 }
 
@@ -167,7 +167,7 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " does not exist. Create?";
+    ss << "Object(s) " << object << " do(es) not exist. Create?";
     return askForConfirmation(ss.str());
 }
 
@@ -176,7 +176,7 @@ bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " was deleted in current changeset. Restore?";
+    ss << "Object(s) " << object << " was/were deleted in current changeset. Restore?";
     return askForConfirmation(ss.str());
 }
 
