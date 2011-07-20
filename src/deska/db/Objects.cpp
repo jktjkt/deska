@@ -164,32 +164,10 @@ AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const 
 {
 }
 
-/** @short Variant visitor for printing the attribute into an ostream
-
-This is required because the boost::posix_time::ptime lacks a proper operator<<.
-*/
-struct PrintValue: public boost::static_visitor<void> {
-    std::ostream *str;
-    PrintValue(std::ostream *stream): str(stream) {}
-
-    /** @short Default implementation: just use proper operator<< */
-    template<typename T>
-    void operator()(const T &t) const {
-        *str << t;
-    }
-
-    /** @short Got to provide a specialization for boost::posix_time::ptime */
-    void operator()(const boost::posix_time::ptime &t) const {
-        *str << boost::posix_time::to_simple_string(t);
-    }
-};
-
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
 {
     if (a.value) {
-        stream << a.attribute << " ";
-        boost::apply_visitor(PrintValue(&stream), *(a.value));
-        return stream;
+        return stream << a.attribute << " " << *a.value;
     } else {
         return stream << "no " << a.attribute;
     }
