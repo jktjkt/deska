@@ -121,6 +121,8 @@ struct OrFilter
     OrFilter() {};
 };
 
+bool operator==(const OrFilter &a, const OrFilter &b);
+bool operator!=(const OrFilter &a, const OrFilter &b);
 std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
 
 /** @short Perform a logical conjunction of all expression included below */
@@ -135,6 +137,8 @@ struct AndFilter
     AndFilter() {};
 };
 
+bool operator==(const AndFilter &a, const AndFilter &b);
+bool operator!=(const AndFilter &a, const AndFilter &b);
 std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
 
 }

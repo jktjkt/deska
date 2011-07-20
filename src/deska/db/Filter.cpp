@@ -157,6 +157,16 @@ OrFilter::OrFilter(const std::vector<Filter> &operands_):
 {
 }
 
+bool operator==(const OrFilter &a, const OrFilter &b)
+{
+    return a.operands == b.operands;
+}
+
+bool operator!=(const OrFilter &a, const OrFilter &b)
+{
+    return !(a==b);
+}
+
 std::ostream& operator<<(std::ostream &stream, const OrFilter &filter)
 {
     stream << "OrFilter([";
@@ -169,6 +179,16 @@ std::ostream& operator<<(std::ostream &stream, const OrFilter &filter)
 AndFilter::AndFilter(const std::vector<Filter> &operands_):
     operands(operands_)
 {
+}
+
+bool operator==(const AndFilter &a, const AndFilter &b)
+{
+    return a.operands == b.operands;
+}
+
+bool operator!=(const AndFilter &a, const AndFilter &b)
+{
+    return !(a==b);
 }
 
 std::ostream& operator<<(std::ostream &stream, const AndFilter &filter)

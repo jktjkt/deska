@@ -39,6 +39,7 @@ void verifyFilterObject(const std::string &str, const T &value)
     ss.str("");
     ss << Filter(value);
     BOOST_CHECK_EQUAL(str, ss.str());
+    BOOST_CHECK_EQUAL(Filter(value), Filter(value));
 }
 
 /** @short Test stream dumping of the filters */
