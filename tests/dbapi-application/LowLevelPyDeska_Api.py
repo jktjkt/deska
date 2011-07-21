@@ -44,7 +44,7 @@ def imperative(r):
     expectedAttrs = {
         "hardware": "[warranty: TYPE_STRING, purchase: TYPE_STRING, vendor: TYPE_IDENTIFIER, cpu_num: TYPE_INT, ram: TYPE_INT, note: TYPE_STRING, ]",
         "host": "[hardware: TYPE_IDENTIFIER, note: TYPE_STRING, ]",
-        "interface": "[note: TYPE_STRING, host: TYPE_IDENTIFIER, ip6: TYPE_STRING, mac: TYPE_STRING, ip4: TYPE_STRING, ]",
+        "interface": "[note: TYPE_STRING, host: TYPE_IDENTIFIER, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, ip4: TYPE_IPV4_ADDRESS, ]",
         "vendor": "[]"
     }
     for kind in kindNames:

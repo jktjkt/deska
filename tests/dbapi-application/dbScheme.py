@@ -3,8 +3,8 @@
 from apiUtils import *
 
 helper_interface_attrs = {
-    "note": "string", "ip4": "string", "ip6": "string", "host": "identifier",
-    "mac": "string", "template": "identifier"
+    "note": "string", "ip4": "ipv4address", "ip6": "ipv6address", "host": "identifier",
+    "mac": "macaddress", "template": "identifier"
 }
 helper_hardware_attrs = {
     "warranty": "string", "purchase": "string", "vendor": "identifier",
