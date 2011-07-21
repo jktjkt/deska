@@ -328,12 +328,15 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(
 
 std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextStack &context)
 {
+    if (context.empty())
+        return std::vector<ObjectDefinition>();
+
     std::vector<ObjectDefinition> objects;
 
     try {
         objects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     } catch (std::runtime_error &e) {
-
+        // TODO
     }
 
     return objects;

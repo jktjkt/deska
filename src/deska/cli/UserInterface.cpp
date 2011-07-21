@@ -517,6 +517,47 @@ void Dump::dumpObjectRecursive(const ObjectDefinition &object, unsigned int dept
 
 
 
+Context::Context(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "context";
+    cmdUsage = "Shows current context with detail of filters. With parameter \"objects\" prints list of objects matched by current context with its filters.";
+    complPatterns.push_back("context objects");
+}
+
+
+
+Context::~Context()
+{
+}
+
+
+
+void Context::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        std::string contextDump = dumpContextStack(ui->m_parser->currentContextStack());
+        if (contextDump.empty())
+            ui->io->printMessage("No context.");
+        else
+            ui->io->printMessage(contextDump);
+        return;
+    }
+
+    if (params != "objects") {
+        ui->io->reportError("Error: Unknown parameter. Function context supports parameter \"objects\". Try \"help context\".");
+        return;
+    }
+    
+    std::vector<ObjectDefinition> objects =
+        ui->m_dbInteraction->expandContextStack(ui->m_parser->currentContextStack());
+    if (objects.empty())
+        ui->io->printMessage("No objects matched by current context stack.");
+    else
+        ui->io->printObjects(objects, 0, true);
+}
+
+
+
 Restore::Restore(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "restore";
@@ -650,6 +691,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["diff"] = Ptr(new Diff(this));
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
+    commandsMap["context"] = Ptr(new Context(this));
     commandsMap["dump"] = Ptr(new Dump(this));
     commandsMap["restore"] = Ptr(new Restore(this));
     // Help has to be constructed last because of completions generating

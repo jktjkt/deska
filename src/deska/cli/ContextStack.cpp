@@ -98,6 +98,22 @@ std::string contextStackToString(const ContextStack &contextStack)
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
         if (it != contextStack.begin())
             ss << "->";
+        if (it->filter)
+            ss << "filter on " << it->kind;
+        else
+            ss << *it;
+    }
+    return ss.str();
+}
+
+
+
+std::string dumpContextStack(const ContextStack &contextStack)
+{
+    std::ostringstream ss;
+    for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
+        if (it != contextStack.begin())
+            ss << "->";
         ss << *it;
     }
     return ss.str();

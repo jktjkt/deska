@@ -80,10 +80,21 @@ Db::Identifier contextStackToPath(const ContextStack &contextStack);
 
 /** @short Function for converting context stack into string representation.
 *
+*   This function does not dump filters, but only identifies, that the object is a filter to save place.
+*
 *   @param contextStack Context stack to convert
 *   @return String representation of the context stack composed from single object definitions
 */
 std::string contextStackToString(const ContextStack &contextStack);
+
+/** @short Function for converting context stack into string representation.
+*
+*   Function does dumb also filters with their string representation.
+*
+*   @param contextStack Context stack to convert
+*   @return String representation of the context stack composed from single object definitions
+*/
+std::string dumpContextStack(const ContextStack &contextStack);
 
 /** @short Function for converting object path into vector of identifiers.
 *

@@ -31,6 +31,7 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
 {
     expectAddCommandCompletion("abort");
     expectAddCommandCompletion("commit");
+    expectAddCommandCompletion("context objects");
     expectAddCommandCompletion("detach");
     expectAddCommandCompletion("diff");
     expectAddCommandCompletion("dump %file");
@@ -40,6 +41,7 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("help help");
     expectAddCommandCompletion("help abort");
     expectAddCommandCompletion("help commit");
+    expectAddCommandCompletion("help context");
     expectAddCommandCompletion("help detach");
     expectAddCommandCompletion("help diff");
     expectAddCommandCompletion("help dump");

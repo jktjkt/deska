@@ -353,6 +353,32 @@ public:
 
 /** @short Cli command.
 *
+*   Shows current context.
+*
+*   @see Command
+*/
+class Context: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Context(UserInterface *userInterface);
+
+    virtual ~Context();
+
+    /** @short Shows current context.
+    *
+    *   @param params For parameter "objects" shows list of objects matched by current context.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
 *   Dumps DB contents.
 *
 *   @see Command
@@ -517,6 +543,7 @@ private:
     friend class Log;
     friend class Diff;
     friend class Exit;
+    friend class Context;
     friend class Dump;
     friend class Restore;
     friend class Help;
