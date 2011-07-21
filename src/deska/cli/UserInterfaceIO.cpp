@@ -155,28 +155,28 @@ void UserInterfaceIO::printMessage(const std::string &message)
 
 
 
-bool UserInterfaceIO::confirmDeletion(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << "Are you sure you want to delete object " << object << "?";
+    ss << "Are you sure you want to delete object(s) " << object << "?";
     return askForConfirmation(ss.str());
 }
 
 
 
-bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " does not exist. Create?";
+    ss << "Object(s) " << object << " do(es) not exist. Create?";
     return askForConfirmation(ss.str());
 }
 
 
 
-bool UserInterfaceIO::confirmRestoration(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " was deleted in current changeset. Restore?";
+    ss << "Object(s) " << object << " was/were deleted in current changeset. Restore?";
     return askForConfirmation(ss.str());
 }
 
@@ -376,10 +376,10 @@ std::string UserInterfaceIO::readLine(const std::string &prompt)
 
 
 
-void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+void UserInterfaceIO::printAttributes(const std::vector<AttributeDefinition> &attributes, int indentLevel,
                                       std::ostream &out)
 {
-    for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
+    for (std::vector<AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         printAttribute(*it, indentLevel, out);
     }
 }
@@ -387,9 +387,9 @@ void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition>
 
 
 void UserInterfaceIO::printAttributesWithOrigin(
-    const std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > &attributes, int indentLevel, std::ostream &out)
+    const std::vector<std::pair<AttributeDefinition, Db::Identifier> > &attributes, int indentLevel, std::ostream &out)
 {
-    for (std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> >::const_iterator it = attributes.begin();
+    for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::const_iterator it = attributes.begin();
          it != attributes.end(); ++it) {
         printAttributeWithOrigin(it->first, it->second, indentLevel, out);
     }
@@ -397,24 +397,24 @@ void UserInterfaceIO::printAttributesWithOrigin(
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+void UserInterfaceIO::printObjects(const std::vector<ObjectDefinition> &objects, int indentLevel,
                                    bool fullName, std::ostream &out)
 {
-    for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         printObject(*it, indentLevel, fullName, out);
     }
 }
 
 
 
-void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
+void UserInterfaceIO::printAttribute(const AttributeDefinition &attribute, int indentLevel, std::ostream &out)
 {
     out << indent(indentLevel) << attribute << std::endl;
 }
 
 
 
-void UserInterfaceIO::printAttributeWithOrigin(const Db::AttributeDefinition &attribute, const Db::Identifier &origin,
+void UserInterfaceIO::printAttributeWithOrigin(const AttributeDefinition &attribute, const Db::Identifier &origin,
                                                int indentLevel, std::ostream &out)
 {
     if (!origin.empty())
@@ -425,13 +425,13 @@ void UserInterfaceIO::printAttributeWithOrigin(const Db::AttributeDefinition &at
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
+void UserInterfaceIO::printObject(const ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
 {
     if (fullName)
         out << indent(indentLevel) << object << std::endl;
     else
         out << indent(indentLevel)
-            << Db::ObjectDefinition(object.kind, pathToVector(object.name).back()) << std::endl;
+            << ObjectDefinition(object.kind, pathToVector(object.name).back()) << std::endl;
 }
 
 

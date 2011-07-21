@@ -110,6 +110,7 @@ set(libDeskaDb_SRCS
 
 set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ContextStack.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliObjects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributeRemovalsParser.cpp

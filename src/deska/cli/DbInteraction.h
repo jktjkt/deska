@@ -26,7 +26,7 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include "deska/db/Objects.h"
+#include "CliObjects.h"
 #include "deska/db/Revisions.h"
 #include "deska/db/ObjectModification.h"
 #include "ContextStack.h"
@@ -80,7 +80,7 @@ public:
     *   @param context Path to the object which attribute will be changed
     *   @param attribute Attribute and value to set
     */
-    void setAttribute(const ContextStack &context, const Db::AttributeDefinition &attribute);
+    void setAttribute(const ContextStack &context, const AttributeDefinition &attribute);
     /** @short Removes attribute value in the object.
     *
     *   @param context Path to the object which attribute value will be removed
@@ -105,21 +105,21 @@ public:
     *   @param kindName Kind for which the instances are obtained
     *   @return Vector of all instances of the kind
     */
-    std::vector<Db::ObjectDefinition> kindInstances(const Db::Identifier &kindName);
+    std::vector<ObjectDefinition> kindInstances(const Db::Identifier &kindName);
 
     /** @short Obtains all attributes of given object.
     *
     *   @param object Object for which the attributes are obtained
     *   @return Vector of all attributes
     */
-    std::vector<Db::AttributeDefinition> allAttributes(const Db::ObjectDefinition &object);
+    std::vector<AttributeDefinition> allAttributes(const ObjectDefinition &object);
 
     /** @short Obtains all attributes with resolved values from templates of given object with origins.
     *
     *   @param context Path to the object for which the attributes are obtained
     *   @return Vector of pairs with all attributes and their origins
     */
-    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
+    std::vector<std::pair<AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
         const ContextStack &context);
 
     /** @short Obtains all attributes with resolved values from templates of given object with origins.
@@ -127,31 +127,38 @@ public:
     *   @param object Object for which the attributes are obtained
     *   @return Vector of pairs with all attributes and their origins
     */
-    std::vector<std::pair<Db::AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
-        const Db::ObjectDefinition &object);
+    std::vector<std::pair<AttributeDefinition, Db::Identifier> > allAttributesResolvedWithOrigin(
+        const ObjectDefinition &object);
 
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the attributes are obtained
     *   @return Vector of all attributes
     */
-    std::vector<Db::AttributeDefinition> allAttributes(const ContextStack &context);
+    std::vector<AttributeDefinition> allAttributes(const ContextStack &context);
 
     /** @short Obtains all attributes of given object.
     *
     *   @param object Object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
-    std::vector<Db::ObjectDefinition> allNestedObjects(const Db::ObjectDefinition &object);
+    std::vector<ObjectDefinition> allNestedObjects(const ObjectDefinition &object);
 
     /** @short Obtains all attributes of given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
-    std::vector<Db::ObjectDefinition> allNestedObjects(const ContextStack &context);
+    std::vector<ObjectDefinition> allNestedObjects(const ContextStack &context);
 
-    /** @short Check if object in the context exists or not.
+    /** @short Check if object exists or not
+    *
+    *   @param object The object to search for
+    *   @return True if object exists else false
+    */
+    bool objectExists(const ObjectDefinition &object);
+
+    /** @short Check if object in the context exists or not
     *
     *   @param context Path to the object to search for
     *   @return True if object exists else false
@@ -205,6 +212,16 @@ public:
     *   @return Vector of modifications how to get from first revision to second revision.
     */
     std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
+
+    /** @short Expands context stack into a vector of objects
+    *
+    *   When context stack does not contain any filter, result will be only one object, but in case of filters,
+    *   all objects that are matched by the sequence of filters and kindNames are extracted into the vector.
+    *
+    *   @param context Context stack to expand.
+    *   @return Vector of objects with fully qualified names.
+    */
+    std::vector<ObjectDefinition> expandContextStack(const ContextStack &context);
 
 private:
 
