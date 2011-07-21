@@ -58,10 +58,12 @@ void DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
-            m_api->createObject(it->kind, it->name);
+            modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
     }
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -82,10 +84,12 @@ void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (objectExists(*it))
-            m_api->deleteObject(it->kind, it->name);
+            modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
     }
+    m_api->applyBatchedChanges(modifications);
 }
 
 
