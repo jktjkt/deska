@@ -4,10 +4,11 @@ from key_sets import PkSet,Fks
 import constants
 
 class Table(constants.Templates):
-	"""In class Table are generated all stored functions for maintanance of this table.
+	"""In the class Table are generated all the stored functions for the maintanance of this table.
 	
 	"""
 	def __init__(self,name):
+		"""Constructor of the class Table"""
 		self.data = dict()
 		self.col = dict()
 		self.pkset = PkSet()
@@ -15,35 +16,44 @@ class Table(constants.Templates):
 		self.name= name
 
 	def add_column(self,col_name,col_type):
+		"""Adds the col_name column and its type to the dict with columns"""
 		self.col[col_name] = col_type
 
 	# add pk and unique
 	def add_pk(self,con_name,att_name):
+		"""Adds the constraints con_name to the PkSet structure pkset"""
 		self.pkset[con_name] = att_name
 
 	# add fk 
 	def add_fk(self,con_name,att_name,ref_table,ref_att):
+		"""Adds the constraint con_name to the Fks structure fks."""
 		self.fks.add(con_name,att_name,ref_table,ref_att)
 
 	def get_cols_reference_uid(self):
+		"""Gets the columns that references some uid column in some table"""
 		return self.fks.references_uid()
 
 	def get_col_embed_reference_uid(self):
+		"""From those columns that references some uid column gets the column that references the uid with embed_into relation"""
 		return self.fks.embed_col()
 
 	def gen_assign(self,colname):
+		"""Generates assignment for the colmn with colname."""
 		return "{col} = new.{col}".format(col= colname)
 
 	def gen_cols_assign(self):
+		"""Generates assignment of all columns in table."""
 		#TODO remove uid
 		assign = map(self.gen_assign,self.col.keys())
 		return ",".join(assign)
 
 	def get_columns(self):
+		"""Returns comma separated list of columns."""
 		# comma separated list of values
 		return ",".join(self.col.keys())
 
 	def gen_pk_constraint(self,con):
+		"""Generates unique constraint for the history table, analogue of the unique contraint in the production."""
 		# add version column into key constraint
 		self.pkset[con] = "version"
 		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
@@ -51,6 +61,7 @@ class Table(constants.Templates):
 		return str + ") DEFERRABLE INITIALLY DEFERRED"
 
 	def gen_drop_notnull(self):
+		"""Generates dropping of not null constraints. Attributes in row of history tables are filled one by one and rows could be leaky."""
 		nncol = self.col.copy()
 		del nncol['uid']
 		del nncol['name']
@@ -60,10 +71,13 @@ class Table(constants.Templates):
 		return drop
 	
 	def gen_fks(self):
+		"""Generates foreign key constraints, analogue of foreign keys in production."""
 		return self.fks.gen_fk_constraints().format(tbl = self.name)
 	
-	
 	def gen_hist(self):
+		"""Generates the history table for this table.
+		Generates create table like the table in the production, create unique constraints and drop of not null constraints.
+		"""
 		constr = ""
 		for con in self.pkset:
 			constr = constr + ",\n" + self.gen_pk_constraint(con)
@@ -71,27 +85,37 @@ class Table(constants.Templates):
 		return self.hist_string.format(tbl = self.name, constraints = constr) + drop
 
 	def gen_add(self):
+		"""Generates the stored procedure for adding new object into this table."""
 		return self.add_string.format(tbl = self.name)
 
 	def gen_add_embed(self, col_name, reftable):
+		"""Generates the stored procedure for adding new object into this table. 
+		This function is used for tables that are embed into another one.
+		"""
 		return self.add_embed_string.format(tbl = self.name, column = col_name, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_del(self):
+		"""Generates the stored procedure for deleting object from this table"""
 		return self.del_string.format(tbl = self.name, columns = self.get_columns())
 		
 	def gen_undel(self):
+		"""Generates the stored procedure which anable restoring objects that were deleted in current changeset."""
 		return self.undel_string.format(tbl = self.name)
 		
 	def gen_set(self,col_name):
+		"""Generates the stored procedure that sets value of attribute named col_name."""
 		return self.set_string.format(tbl = self.name,colname = col_name, coltype = self.col[col_name], columns = self.get_columns())
 		
 	def gen_set_name_embed(self, col_name, reftable):
+		"""Generates the set_name stored procedure for setting name of embed kinds."""
 		return self.set_name_embed_string.format(tbl = self.name, refcolumn = col_name, columns = self.get_columns(), reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_set_ref_uid(self,col_name, reftable):
+		"""Generates the set_attribute stored procedure for those columns in table that references some uid column of some table."""
 		return self.set_fk_uid_string.format(tbl = self.name, colname = col_name, coltype = self.col[col_name], reftbl = reftable, columns = self.get_columns())
 
 	def gen_get_object_data(self):
+		"""Generates get_object_data stored function that returns data stored in this table"""
 		collist = self.col.copy()		
 		del collist['uid']
 		del collist['name']
@@ -129,6 +153,7 @@ class Table(constants.Templates):
 	
 	#generates function that returns all changes of columns between two versions
 	def gen_diff_set_attribute(self):
+		"""Generates function that returns all changes of all columns in this table between two versions."""
 		#collist is list of columns
 		collist = self.col.copy()
 		del collist['uid']
@@ -177,6 +202,7 @@ class Table(constants.Templates):
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions
 	def gen_diff_init_function(self):
+		"""Generates function which prepairs temp table with diff data for this table"""
 		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
 		#with dv (diff version), chv(changes between versions) prefix
 		collist = self.col.copy()
@@ -189,18 +215,28 @@ class Table(constants.Templates):
 	#generates function terminate_diff which is oposite of init_diff
 	#drops diff_data table
 	def gen_diff_terminate_function(self):
+		"""Generates function terminate_diff. 
+		Terminate_diff is oposite of init_diff."""
 		return self.diff_terminate_function_string.format(tbl = self.name)
 
 	def gen_get_name(self):
+		"""Generates stored function that returns the name of the object with the given uid."""
 		return self.get_name_string.format(tbl = self.name)
 
 	def gen_get_name_embed(self, refcolumn, reftable):
+		"""Generates stored function that returns the name of the object with the given uid.
+		This function is used for the tables that are embed into another.
+		"""
 		return self.get_name_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_get_uid(self):
+		"""Generates stored function that returns the uid of the object with the given name."""
 		return self.get_uid_string.format(tbl = self.name)
 	
 	def gen_get_uid_embed(self, refcolumn, reftable):
+		"""Generates stored function that returns the uid of the object with the given name.
+		This function is used for the tables that are embed into another.
+		"""
 		return self.get_uid_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
 	def gen_commit_templated(self):
@@ -245,24 +281,38 @@ class Table(constants.Templates):
 			return self.commit_kind_template_string.format(tbl = self.templates, template_tbl = templ_table, assign = self.gen_cols_assign(), columns = cols, rd_dv_coalesce = rddvcoal, columns_except_template = cols_ex_templ)
 
 	def gen_commit(self):
+		"""Generates commit function for this table.
+		Commit function adds new data, deletes data that were deleted and updates modified data in the corresponding history table.
+		"""
 		#TODO if there is more columns...
 		return self.commit_string.format(tbl = self.name, assign = self.gen_cols_assign(), columns = self.get_columns())
 
 	def gen_names(self):
+		"""Generates names stpred function that returns list of names in this table."""
 		return self.names_string.format(tbl = self.name)
 
 	def gen_names_embed(self, refcolumn, reftable):
+		"""Generates names stpred function that returns list of names in this table.
+		This function is used for the tables that are embed into another.
+		"""
 		return self.names_embed_string.format(tbl = self.name, column = refcolumn, reftbl = reftable, delim = constants.DELIMITER)
 
 	#generates function which finds all deleted objects in diff data table
 	def gen_diff_deleted(self):
+		"""Generates diff_deleted stored function that returns a list of names of objects that were deleted between two versions.
+		This list of deleted data is found out from temp table prepared in the init_diff function,
+		"""
 		return self.diff_deleted_string.format(tbl = self.name)
 	
 	#generates function which finds all created objects in diff data table
 	def gen_diff_created(self):
+		"""Generates diff_created stored function that returns a list of objecta that where created between two versions
+		This list of created objects is found out from temp table prepared in the init_diff function.
+		"""
 		return self.diff_created_string.format(tbl = self.name)
 		
 	def gen_data_version(self):
+		"""Generates data_version stored function that returns data of all object in this table taht were in the table in the given version."""
 		return self.data_version_function_string.format(tbl = self.name)
 	
 	def gen_data_changes(self):
@@ -375,6 +425,10 @@ class Table(constants.Templates):
 		
 			
 	def gen_resolved_data_diff(self):
+		"""gen_resolved_data_diff is function for generating functions that init_resolved_diff function.
+		
+		Function is called only for tables that could be templated by some template (has column template).
+		"""
 		if self.name.endswith("_template"):
 			templ_table = self.name
 		else:
@@ -418,3 +472,4 @@ class Table(constants.Templates):
 		init_function = self.diff_init_resolved_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes)
 		current_changeset_diff = self.diff_changeset_init_resolved_function_string.format(tbl = self.name, diff_columns = select_old_new_objects_attributes, columns_ex_templ = columns, templ_tbl = templ_table, rd_dv_coalesce = rd_dv_coal)
 		return diff_type + '\n' + changeses_function + '\n' + init_function + '\n' + current_changeset_diff
+ 
