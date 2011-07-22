@@ -163,7 +163,7 @@ class Condition():
 			parent, name = fcall("embed_name(text,text)",self.val,'->')
 			self.val = mystr(name)
 			newcond = dict()
-			newcond["column"] = embed[self.kind]
+			newcond["attribute"] = embed[self.kind]
 			newcond["kind"] = self.kind
 			newcond["condition"] = self.op
 			newcond["value"] = mystr(parent)
