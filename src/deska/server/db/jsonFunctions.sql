@@ -27,13 +27,15 @@ import json
 type_dict = ({
 	"int8": "int",
 	"int4": "int",
+	"float4": "double",
 	"text": "string",
 	"identifier": "identifier",
 	"bpchar": "string",
-	"date": "string",
-	"macaddr": "string",
-	"ipv4": "string",
-	"ipv6": "string",
+	"date": "date",
+	"timestamp": "timestamp",
+	"macaddr": "macaddress",
+	"ipv4": "ipv4address",
+	"ipv6": "ipv6address",
 	"inet": "string"
 })
 
