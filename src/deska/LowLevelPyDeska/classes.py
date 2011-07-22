@@ -36,7 +36,8 @@ class _Kind(object):
         if not self.conn:
             raise ValueError, "No active session"
 
-        return self.conn.multipleObjectData(self.kind, condition)
+        ret_map = self.conn.multipleObjectData(self.kind, condition)
+        return dict((x.key(), dict((y.key(), _l.DeskaDbValue_2_Py(y.data())) for y in x.data())) for x in ret_map)
 
 
 class _AttributePlaceholder(object):
@@ -136,5 +137,6 @@ if __name__ == "__main__":
     print op1 & op2 & op3
     #print host[_l.AndFilter(_l.std_vector_Filter())]
     print host[host.name != None]
+    print host[host.note == "foo"]
     print hardware[op1]
-    print hardware[op1 & op2 & op3]
+    #print hardware[op1 & op2 & op3]
