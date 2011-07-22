@@ -137,9 +137,9 @@ class Condition():
 				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
 		elif "kind" in data:
 			self.kind = data["kind"]
-			if "column" not in data:
-				raise DutilException("FilterError","Item 'column' is missing in condition.")
-			self.col = data["column"]
+			if "attribute" not in data:
+				raise DutilException("FilterError","Item 'attribute' is missing in condition.")
+			self.col = data["attribute"]
 			if self.kind not in generated.kinds():
 				raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
 			# add also name 
