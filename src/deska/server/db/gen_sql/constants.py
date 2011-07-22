@@ -391,7 +391,7 @@ class Templates:
 		
 		SELECT uid INTO {tbl}_uid FROM {tbl}_data_version(from_version) WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '70022';
+			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '70021';
 		END IF;
 
 		RETURN {tbl}_uid;
