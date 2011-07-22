@@ -227,10 +227,10 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       "attributeData": attributeData})
 
 def objectData(kindName, objectName, revision=None):
-	args = {"kindName": kindName, "objectName": objectName}
-	if revision is not None:
-		args["revision"] = revision
-	return ApiMethod("objectData", args)
+    args = {"kindName": kindName, "objectName": objectName}
+    if revision is not None:
+        args["revision"] = revision
+    return ApiMethod("objectData", args)
 
 def kindInstances(kindName, revision=None):
     # FIXME: filter
