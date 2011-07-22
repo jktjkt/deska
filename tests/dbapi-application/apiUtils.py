@@ -227,16 +227,16 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       "attributeData": attributeData})
 
 def objectData(kindName, objectName, revision=None):
-	args = {"kindName": kindName, "objectName": objectName}
-	if revision is not None:
-		args["revision"] = revision
-	return ApiMethod("objectData", args)
+    args = {"kindName": kindName, "objectName": objectName}
+    if revision is not None:
+        args["revision"] = revision
+    return ApiMethod("objectData", args)
 
 def resolvedObjectData(kindName, objectName, revision=None):
-	args = {"kindName": kindName, "objectName": objectName}
-	if revision is not None:
-		args["revision"] = revision
-	return ApiMethod("resolvedObjectData", args)
+    args = {"kindName": kindName, "objectName": objectName}
+    if revision is not None:
+        args["revision"] = revision
+    return ApiMethod("resolvedObjectData", args)
 
 def multipleObjectData(kindName, revision=None):
     # FIXME: filter

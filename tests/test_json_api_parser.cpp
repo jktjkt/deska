@@ -802,9 +802,16 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApi
 /** @short Test applyBatchedChanges() from JSON */
 BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStreamThrow)
 {
-    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":[" + exampleJsonDiff + "]}\n");
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":[" +
+                exampleJsonDiff +
+                ",{\"command\":\"setAttribute\",\"kindName\":\"k6\",\"objectName\":\"o6\",\"attributeName\":\"a6\",\"attributeData\":\"new6\"}" +
+                ",{\"command\":\"setAttribute\",\"kindName\":\"k7\",\"objectName\":\"o7\",\"attributeName\":\"a7\",\"attributeData\":\"new7\"}" +
+                "]}\n");
     expectRead("{\"response\": \"applyBatchedChanges\", \"tag\":\"T\"}\n");
-    j->applyBatchedChanges(diffObjects());
+    std::vector<ObjectModification> modifications = diffObjects();
+    modifications.push_back(SetAttributeModification("k6", "o6", "a6", Deska::Db::Value("new6")));
+    modifications.push_back(SetAttributeModification("k7", "o7", "a7", Deska::Db::Value("new7"), Deska::Db::Value()));
+    j->applyBatchedChanges(modifications);
     expectEmpty();
 }
 
