@@ -2,6 +2,22 @@ import sys
 sys.path.append(".")
 import libLowLevelPyDeska as _l
 
+class _KindInstanceInResult(object):
+    """A structure holding effective values of an object, as retrieved by the objectData"""
+
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return "{%s}" % ", ".join("%s: %s" % (attr, self.__getattribute__(attr)) for attr in dir(self) if not attr.startswith("__"))
+
+def _map_to_class_with_values(d):
+    """Convert a map<string, Value> into a class with native Python data"""
+    res = _KindInstanceInResult()
+    for x in d:
+        setattr(res, x.key(), _l.DeskaDbValue_2_Py(x.data()))
+    return res
+
 class _Kind(object):
     """Container storing _AttributePlaceholder s"""
 
@@ -37,8 +53,7 @@ class _Kind(object):
             raise ValueError, "No active session"
 
         ret_map = self.conn.multipleObjectData(self.kind, condition)
-        return dict((x.key(), dict((y.key(), _l.DeskaDbValue_2_Py(y.data())) for y in x.data())) for x in ret_map)
-
+        return dict((x.key(), _map_to_class_with_values(x.data())) for x in ret_map)
 
 class _AttributePlaceholder(object):
     """Represent an object's attribute in a filter statement"""
