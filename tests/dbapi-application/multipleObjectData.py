@@ -42,7 +42,7 @@ def doStuff(r):
 	hardwareData = r.c(multipleObjectData("hardware"))
 	r.assertEqual(hardwareData, expectedHardwareData)
 	revision = r.c(commitChangeset("test"))
-	
+
 	hardwareData = r.c(multipleObjectData("hardware", revision))
 	r.assertEqual(hardwareData, expectedHardwareData)
 
@@ -51,10 +51,10 @@ def doStuff(r):
 	hardwareNames = hardwareNames - presentHW
 
 	r.c(startChangeset())
-	
+
 	for obj in hardwareNames:
 		r.cvoid(createObject("hardware", obj))
-	
+
 	r.cvoid(setAttribute("hardware", "hw3", "vendor", "vendor2"))
 	r.cvoid(setAttribute("hardware", "hw3", "purchase", "2010-10-10"))
 	r.cvoid(setAttribute("hardware", "hw3", "warranty", "2012-10-10"))
