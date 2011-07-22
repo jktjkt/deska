@@ -120,7 +120,8 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(persist_kindInstances)
     deska_dbapi_test(persist_metadata)
     deska_dbapi_test(persist_versioning)
-	deska_dbapi_test(setGetData)
+    deska_dbapi_test(setGetData)
+    deska_dbapi_test(multipleObjectData)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)
