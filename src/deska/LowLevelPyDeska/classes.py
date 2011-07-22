@@ -134,7 +134,7 @@ if __name__ == "__main__":
     op3 = host.note != None
     print op1 & op2
     print op1 & op2 & op3
-    print host[_l.AndFilter(_l.std_vector_Filter())]
+    #print host[_l.AndFilter(_l.std_vector_Filter())]
     print host[host.name != None]
     print hardware[op1]
     print hardware[op1 & op2 & op3]
