@@ -4,7 +4,7 @@ from apiUtils import *
 
 expectedHardwareData = {
 	"hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note": None, "template": None},
-	"hw2": {"vendor": "vendor1", "warranty": "2006-06-06", "purchase": "2010-06-06", "cpu_num": None, "ram": None, "note": None, "template": None}
+	"hw2": {"vendor": "vendor1", "warranty": "2010-06-06", "purchase": "2006-06-06", "cpu_num": None, "ram": None, "note": None, "template": None}
 }
 expectedHardwareData2 = {
 	"hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note": None, "template": None},
@@ -25,8 +25,8 @@ def doStuff(r):
 	r.c(startChangeset())
 	for obj in vendorNames:
 		r.cvoid(createObject("vendor", obj))
-        
-	hardwareNames = set(["hw1", "hw2", "hw3"])
+
+	hardwareNames = set(["hw1", "hw2"])
 	presentHW = set(r.c(kindInstances("hardware")))
 	hardwareNames = hardwareNames - presentHW
 
