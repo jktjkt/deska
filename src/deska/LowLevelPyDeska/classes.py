@@ -5,9 +5,10 @@ import libLowLevelPyDeska as _l
 class _Kind(object):
     """Container storing _AttributePlaceholder s"""
 
-    def __init__(self, kind):
+    def __init__(self, kind, conn):
         """Simply remember the kind name for later"""
         self.kind = kind
+        self.conn = conn
 
     def __getattribute__(self, name):
         """Provide a nice exception instead of a generic one"""
@@ -20,6 +21,22 @@ class _Kind(object):
     def __repr__(self):
         return "%s(%s; attributes: %s)" % (self.__class__, self.kind,
             [attr for attr in dir(self) if not attr.startswith("__")] )
+
+    def __getitem__(self, condition):
+        """Implementation of the filtering"""
+        if isinstance(condition, (_l.AttributeExpression,_l.MetadataExpression)):
+            condition = _l.Filter(_l.Expression(condition))
+        elif isinstance(condition, (_l.Expression, _l.AndFilter, _l.OrFilter)):
+            condition = _l.Filter(condition)
+        elif isinstance(condition, _l.Filter):
+            pass
+        else:
+            raise TypeError, "Object filtering expects a proper Filter, not %s" % type(condition)
+
+        if not self.conn:
+            raise ValueError, "No active session"
+
+        return self.conn.multipleObjectData(self.kind, condition)
 
 
 class _AttributePlaceholder(object):
@@ -50,7 +67,7 @@ class _AttributePlaceholder(object):
 def _discoverScheme(conn, target=None):
     for kind in conn.kindNames():
         # Create a placeholder object at the kind level; this will contain all attributes
-        kindInstance = _Kind(kind)
+        kindInstance = _Kind(kind, conn)
         for attr in conn.kindAttributes(kind):
             # create our attribute placeholders
             setattr(kindInstance, attr.name,
@@ -114,3 +131,6 @@ if __name__ == "__main__":
     op3 = host.note != None
     print op1 & op2
     print op1 & op2 & op3
+    print host[host.name != None]
+    print hardware[op1]
+    print hardware[op1 & op2 & op3]
