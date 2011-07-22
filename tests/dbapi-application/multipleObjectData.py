@@ -15,8 +15,7 @@ expectedHardwareData2 = {
 
 def imperative(r):
 	doStuff(r)
-	doStuff_embed(r)
-	
+
 def doStuff(r):
 	vendorNames = set(["vendor1", "vendor2"])
 	presentVendors = set(r.c(kindInstances("vendor")))
