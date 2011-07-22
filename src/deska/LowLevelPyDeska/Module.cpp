@@ -136,6 +136,11 @@ void exportNastyMaps()
     typedef std::map<Identifier, map_Identifier_pair_Identifier_Value> map_Identifier_map_Identifier_pair_Identifier_Value;
     class_<map_Identifier_map_Identifier_pair_Identifier_Value>("std_map_Identifier_std_map_Identifier_pair_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_map_Identifier_pair_Identifier_Value>());
+
+    // also define a proper type for the multipleObjectData
+    typedef std::map<Identifier, std::map<Identifier, Value> > map_Identifier_map_Identifier_Value;
+    class_<map_Identifier_map_Identifier_Value>("std_map_Identifier_map_Identifier_Value")
+            .def(map_indexing_suite<map_Identifier_map_Identifier_Value>());
 }
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);
