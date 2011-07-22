@@ -20,7 +20,7 @@ class DeskaException(Exception):
 		self.code = dberr.code
 		self.message = dberr.message
 		self.parseDberr()
-		
+
 	def parseDberr(self):
 		'''Parse Postgres.dberr into variables used for json dump'''
 		self.type = self.getType(self.code)
@@ -99,11 +99,11 @@ def getdata(select,*args):
 			return plan.column_names, plan(*args)
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
-		
+
 def params(argString):
 	'''Get python structure from string'''
-	return json.loads(argString)	
-	
+	return json.loads(argString)
+
 
 class Condition():
 	'''Class to store and handle column/value/operator data'''
@@ -124,7 +124,7 @@ class Condition():
 			raise DutilException("FilterError","Item 'value' is missing in condition.")
 		if "condition" not in data:
 			raise DutilException("FilterError","Item 'condition' is missing in condition.")
-			
+
 		self.val = data["value"]
 		self.op = data["condition"]
 		self.counter = condId
@@ -142,7 +142,7 @@ class Condition():
 			self.col = data["attribute"]
 			if self.kind not in generated.kinds():
 				raise DutilException("FilterError","Kind {0} does not exists.".format(self.col))
-			# add also name 
+			# add also name
 			if self.col not in generated.atts(self.kind) and self.col != "name":
 				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
 		else:
@@ -183,7 +183,7 @@ class Condition():
 		if self.op not in self.opMap:
 			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
 		self.op = self.opMap[self.op]
-	
+
 	def get(self):
 		'''Return deska SQL condition'''
 		if self.newcond is None:
@@ -193,7 +193,7 @@ class Condition():
 			cond1 = "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id)
 			cond2, val2 = self.newcond.get()
 			return "( {0} AND {1} )".format(cond1,cond2), [self.val]+val2
-	
+
 	def getAffectedKind(self):
 		'''Return kind in condition'''
 		return self.kind
@@ -218,13 +218,13 @@ class Filter():
 		except Exception as err:
 			raise DutilException("FilterError","Syntax error in filter.")
 		self.where = self.parse(self.data)
-		
+
 	def getWhere(self):
 		'''Return where part of sql statement'''
 		if self.data is None:
 			return '',[]
 		return "WHERE " + self.where, self.values
-	
+
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
 		ret = ''
@@ -241,7 +241,7 @@ class Filter():
 				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
 				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 		return ret
-	
+
 	def parse(self,data):
 		'''Parse filter data and create SQL WHERE part'''
 		if self.data == '':
