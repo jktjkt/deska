@@ -69,9 +69,12 @@ def _discoverScheme(conn, target=None):
         # Create a placeholder object at the kind level; this will contain all attributes
         kindInstance = _Kind(kind, conn)
         for attr in conn.kindAttributes(kind):
+            if attr == "name":
+                raise KeyError, "The DB scheme claims that there's a 'name' attribute. That attribute is a special one and should not be returned by DBAPI."
             # create our attribute placeholders
             setattr(kindInstance, attr.name,
                     _AttributePlaceholder(kind, attr.name))
+        kindInstance.name = _AttributePlaceholder(kind, "name")
         # and register the completed object
         if target is not None:
             target[kind] = kindInstance
