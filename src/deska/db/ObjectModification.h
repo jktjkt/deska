@@ -68,6 +68,8 @@ struct SetAttributeModification {
 
     SetAttributeModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
                              const Value &attributeData, const Value &oldAttributeData);
+    SetAttributeModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
+                             const Value &attributeData);
 };
 
 bool operator==(const SetAttributeModification &a, const SetAttributeModification &b);

@@ -78,6 +78,12 @@ SetAttributeModification::SetAttributeModification(const Identifier &kindName_, 
 {
 }
 
+SetAttributeModification::SetAttributeModification(const Identifier &kindName_, const Identifier &objectName_,
+    const Identifier &attributeName_, const Value &attributeData_):
+    kindName(kindName_), objectName(objectName_), attributeName(attributeName_), attributeData(attributeData_)
+{
+}
+
 bool operator==(const SetAttributeModification &a, const SetAttributeModification &b)
 {
     return a.kindName == b.kindName && a.objectName == b.objectName && a.attributeName == b.attributeName &&

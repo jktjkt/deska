@@ -152,7 +152,9 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     o.push_back(json_spirit::Pair("objectName", value.objectName));
     o.push_back(json_spirit::Pair("attributeName", value.attributeName));
     o.push_back(json_spirit::Pair("attributeData", JsonConversionTraits<Value>::toJson(value.attributeData)));
-    o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
+    if (value.oldAttributeData) {
+        o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
+    }
     return o;
 }
 
