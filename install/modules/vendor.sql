@@ -14,7 +14,7 @@ CREATE TABLE vendor (
 		CONSTRAINT vendor_pk PRIMARY KEY,
 -- this column is required in all plugins
 	name identifier
-		CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+		CONSTRAINT "vendor with this name already exists" UNIQUE NOT NULL
 
 );
 

@@ -12,7 +12,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name identifier
-		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
+		CONSTRAINT "hardware with this name already exists" UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor bigint 
 		CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
@@ -20,18 +20,18 @@ CREATE TABLE hardware (
 	warranty date NOT NULL,
 	-- GB of RAM
 	ram int
-		CONSTRAINT hardware_ram_positive
+		CONSTRAINT "hardware ram should be positive number"
 		CHECK (ram > 0),
 	-- number of CPU's
 	cpu_num int
-		CONSTRAINT hardware_cpu_num_positive
+		CONSTRAINT "hardware cpu_num should be positive number"
 		CHECK (cpu_num > 0),
 	-- cpu type
 	cpu_type bigint
 		CONSTRAINT hardware_fk_cpu_type REFERENCES cpu_type(uid) DEFERRABLE,
 	-- hdd size
 	hdd_size int
-		CONSTRAINT hardware_hdd_size_positive
+		CONSTRAINT "hardware hdd_size should be positive number"
 		CHECK (hdd_size > 0),
 	weight int,
 	height int,

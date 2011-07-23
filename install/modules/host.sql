@@ -14,7 +14,7 @@ CREATE TABLE host (
 		CONSTRAINT host_pk PRIMARY KEY,
 	-- this column is required in all plugins
 	name identifier
-		CONSTRAINT host_name_unique UNIQUE NOT NULL,
+		CONSTRAINT "host with this name already exists" UNIQUE NOT NULL,
 	-- hardwere where it runs
 	-- TODO-virtual host
 	-- TODO - better use uid

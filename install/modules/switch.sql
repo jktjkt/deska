@@ -14,9 +14,9 @@ CREATE TABLE switch (
 		CONSTRAINT switch_pk PRIMARY KEY,
 -- this column is required in all plugins
 	name identifier
-		CONSTRAINT switch_name_unique UNIQUE NOT NULL,
+		CONSTRAINT "switch with this name already exists" UNIQUE NOT NULL,
 	ports int
-		CONSTRAINT switch_ports_positive
+		CONSTRAINT "swhitch ports should be positive number"
 		CHECK (ports > 0)
 );
 

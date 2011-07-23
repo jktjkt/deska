@@ -56,7 +56,7 @@ class Table(constants.Templates):
 		"""Generates unique constraint for the history table, analogue of the unique contraint in the production."""
 		# add version column into key constraint
 		self.pkset[con] = "version"
-		str = "CONSTRAINT history_{name} UNIQUE(".format(name = con)
+		str = "CONSTRAINT \"{name}\" UNIQUE(".format(name = con)
 		str = str + ",".join(self.pkset[con])
 		return str + ") DEFERRABLE INITIALLY DEFERRED"
 
