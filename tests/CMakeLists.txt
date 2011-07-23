@@ -137,6 +137,10 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(LowLevelPyDeska_Values)
     # The following tests need the connection, though.
     deska_dbapi_test(LowLevelPyDeska_Api)
+
+    # Tests which use the high-level 'deska' module, and hence really need the
+    # DB
+    deska_dbapi_test(pydeska_basic_filters)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
