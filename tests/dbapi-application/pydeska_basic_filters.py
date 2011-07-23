@@ -82,3 +82,37 @@ def doTests(r):
     #matching = deska.hardware[deska.vendor.name == "IBM"]
     #r.assertEqual(sorted(matching.keys()),
     #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] == "IBM"]))
+
+    # ask for a different vendor
+    #matching = deska.hardware[deska.hardware.vendor != "IBM"]
+    # FAILS, Redmine#269
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] != "IBM"]))
+
+    # ask for a different vendor indirectly
+    # FAILS, Redmine#268
+    #matching = deska.hardware[deska.vendor.name != "IBM"]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] != "IBM"]))
+
+    # ask for HW with known vendor
+    # FAILS, Redmine#266
+    #matching = deska.hardware[deska.hardware.vendor != None]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is not None]))
+    # Now the same, but indirectly
+    # FAILS, Redmine#268
+    #matching = deska.hardware[deska.vendor.name != None]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is not None]))
+
+    # ask for HW with UNKNOWN vendor
+    # FAILS, Redmine#266
+    #matching = deska.hardware[deska.hardware.vendor == None]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
+    # Now the same, but indirectly
+    # FAILS, Redmine#268
+    #matching = deska.hardware[deska.vendor.name == None]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
