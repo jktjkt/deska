@@ -69,15 +69,29 @@ class _AttributePlaceholder(object):
     def __repr__(self):
         return "%s(%s.%s)" % (self.__class__, self.kind, self.attribute)
 
-    def __eq__(self, other):
+
+    def _operatorHelper(self, other, comparator):
+        """Helper for __eq__, __ne__, __gt__, __ge__"""
         return _l.AttributeExpression(
-            _l.ComparisonOperator.COLUMN_EQ, self.kind, self.attribute,
-            _l.Py_2_DeskaDbValue(other))
+            comparator, self.kind, self.attribute, _l.Py_2_DeskaDbValue(other))
+
+    def __eq__(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_EQ)
 
     def __ne__(self, other):
-        return _l.AttributeExpression(
-            _l.ComparisonOperator.COLUMN_NE, self.kind, self.attribute,
-            _l.Py_2_DeskaDbValue(other))
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_NE)
+
+    def __lt__(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_LT)
+
+    def __le__(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_LE)
+
+    def __gt__(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_GT)
+
+    def __ge__(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_GE)
 
 
 def _discoverScheme(conn, target=None):
