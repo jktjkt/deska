@@ -6,6 +6,11 @@ import unittest
 import json
 import apiUtils
 
+# enable "import libLowLevelPyDeska"
+sys.path.append(os.path.normpath(os.getcwd() + "../../.."))
+# enable "import deska"
+sys.path.append(os.environ["DESKA_SOURCES"] + "/src/deska/LowLevelPyDeska")
+
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
     # courtesy of http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str

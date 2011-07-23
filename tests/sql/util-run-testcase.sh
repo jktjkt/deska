@@ -53,6 +53,7 @@ case "${TESTMODE}" in
     dbapi)
         export DESKA_USER
         export DESKA_DB
+        export DESKA_SOURCES
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
             $TESTCASE || die "Test"
         ;;
