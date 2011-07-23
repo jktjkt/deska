@@ -1,6 +1,7 @@
 '''Test basic features of the deska module'''
 
 from apiUtils import *
+import datetime
 
 myHw = {}
 
@@ -54,5 +55,19 @@ def doTests(r):
     r.assertEqual(deska.host[deska.host.note != "ahoj"].keys(), [])
     r.assertEqual(deska.host[deska.host.note == "bla"].keys(), [])
 
-    # filter by date
+    # filter by date and CMP_GE; the date is specified as string
     matching = deska.hardware[deska.hardware.warranty >= '2011-04-03']
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["date"] >= 3]))
+    # filter by date and CMP_GT; the date is now specified properly as a native type
+    matching = deska.hardware[deska.hardware.warranty > datetime.date(2011, 4, 3)]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["date"] > 3]))
+    # filter by date and CMP_LE; the date is specified as string
+    matching = deska.hardware[deska.hardware.warranty <= '2011-04-03']
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["date"] <= 3]))
+    # filter by date and CMP_LT; the date is now specified properly as a native type
+    matching = deska.hardware[deska.hardware.warranty < datetime.date(2011, 4, 3)]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["date"] < 3]))
