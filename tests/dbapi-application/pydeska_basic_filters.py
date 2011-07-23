@@ -12,13 +12,14 @@ def imperative(r):
 def prepareObjects(r):
     '''Seed the DB with some data'''
 
-    myVendors = ["HP", "IBM", "SGI"]
+    realVendors = ["HP", "IBM", "SGI"]
+    myVendors = realVendors + [None]
     r.c(startChangeset())
     for x in range(10):
         objname = "x%d" % x
         r.cvoid(createObject("host", objname))
         r.cvoid(setAttribute("host", objname, "note", "ahoj"))
-    for vendor in myVendors:
+    for vendor in realVendors:
         r.cvoid(createObject("vendor", vendor))
     for x in range(5):
         objname = "hw_%d" % x
@@ -71,3 +72,13 @@ def doTests(r):
     matching = deska.hardware[deska.hardware.warranty < datetime.date(2011, 4, 3)]
     r.assertEqual(sorted(matching.keys()),
                   sorted([k for (k, v) in myHw.iteritems() if v["date"] < 3]))
+
+    # ask for a specific vendor
+    matching = deska.hardware[deska.hardware.vendor == "IBM"]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["vendor"] == "IBM"]))
+    # ask for a specific vendor in an indirect way
+    # FAILS, Redmine#268
+    #matching = deska.hardware[deska.vendor.name == "IBM"]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] == "IBM"]))
