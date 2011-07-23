@@ -846,13 +846,16 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     expectRead("{\"dbException\": {\"type\":\"" #X "\",\"message\":\"x\"}}\n"); \
     BOOST_CHECK_THROW(j->startChangeset(), X); expectEmpty();
 
+    JSON_ERR_TEST(InvalidKindError);
+    JSON_ERR_TEST(InvalidAttributeError);
     JSON_ERR_TEST(NotFoundError);
     JSON_ERR_TEST(NoChangesetError);
     JSON_ERR_TEST(ChangesetAlreadyOpenError);
+    JSON_ERR_TEST(FreezingError);
     JSON_ERR_TEST(FilterError);
     JSON_ERR_TEST(ReCreateObjectError);
-    JSON_ERR_TEST(InvalidKindError);
-    JSON_ERR_TEST(InvalidAttributeError);
+    JSON_ERR_TEST(RevisionParsingError);
+    JSON_ERR_TEST(ChangesetParsingError);
     JSON_ERR_TEST(ConstraintError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
