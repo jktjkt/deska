@@ -2,17 +2,38 @@
 
 from apiUtils import *
 
+myHw = {}
+
 def imperative(r):
     prepareObjects(r)
     doTests(r)
 
 def prepareObjects(r):
     '''Seed the DB with some data'''
+
+    myVendors = ["HP", "IBM", "SGI"]
     r.c(startChangeset())
     for x in range(10):
         objname = "x%d" % x
         r.cvoid(createObject("host", objname))
         r.cvoid(setAttribute("host", objname, "note", "ahoj"))
+    for vendor in myVendors:
+        r.cvoid(createObject("vendor", vendor))
+    for x in range(5):
+        objname = "hw_%d" % x
+        myDate = x+1
+        myDateStr = "2011-04-%02d" % myDate
+        myVendor = myVendors[x % len(myVendors)]
+        myCPUs = str((x / 4) + 1)
+        myRAM = str((x / 2) + 2)
+        myHw[objname] = {"date": myDate, "vendor": myVendor, "cpu": myCPUs,
+                         "ram": myRAM}
+        r.cvoid(createObject("hardware", objname))
+        r.cvoid(setAttribute("hardware", objname, "warranty", myDateStr))
+        r.cvoid(setAttribute("hardware", objname, "purchase", myDateStr))
+        r.cvoid(setAttribute("hardware", objname, "vendor", myVendor))
+        r.cvoid(setAttribute("hardware", objname, "cpu_num", myCPUs))
+        r.cvoid(setAttribute("hardware", objname, "ram", myRAM))
     r.c(commitChangeset("objects set up"))
 
 def doTests(r):
@@ -32,3 +53,6 @@ def doTests(r):
     # make sure that the following returns no results
     r.assertEqual(deska.host[deska.host.note != "ahoj"].keys(), [])
     r.assertEqual(deska.host[deska.host.note == "bla"].keys(), [])
+
+    # filter by date
+    matching = deska.hardware[deska.hardware.warranty >= '2011-04-03']
