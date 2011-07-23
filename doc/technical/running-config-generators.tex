@@ -55,4 +55,13 @@ In most situations, the configuration output will likely be stored in a SCM syst
 integrate the output management logic to the SCM-specific operations.  The reference implementation of the Deska server
 uses {\tt git}'s {\tt git-new-workdir} and branches quite heavily.
 
+\subsubsection{How to do that in Git}
+
+\begin{itemize}
+    \item {\tt git-new-workdir} for setting up a WC the first time
+    \item {\tt git.cmd.Git(path).add('-A')} for creating an index
+    \item {\tt git.cmd.Git(path).diff('-{-}color', '-{-}staged')} for obtaining a diff
+    \item {\tt git reset -{-}hard HEAD \&\& git clean -d -f -f} for throwing out all the changes
+\end{itemize}
+
 \end{document}
