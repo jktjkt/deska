@@ -43,7 +43,7 @@ MockCliEvent MockCliEvent::printMessage(const std::string &message)
 
 
 
-MockCliEvent MockCliEvent::confirmDeletion(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmDeletion(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_DELETION);
     res.object = object;
@@ -61,7 +61,7 @@ MockCliEvent MockCliEvent::returnConfirmDeletion(bool confirm)
 
 
 
-MockCliEvent MockCliEvent::confirmCreation(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmCreation(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_CREATION);
     res.object = object;
@@ -79,7 +79,7 @@ MockCliEvent MockCliEvent::returnConfirmCreation(bool confirm)
 
 
 
-MockCliEvent MockCliEvent::confirmRestoration(const Deska::Db::ObjectDefinition &object)
+MockCliEvent MockCliEvent::confirmRestoration(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_RESTORATION);
     res.object = object;
@@ -218,7 +218,7 @@ MockCliEvent MockCliEvent::returnReadLine(const std::string &line)
 
 
 
-MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Db::AttributeDefinition> &attributes, int indentLevel,
+MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Cli::AttributeDefinition> &attributes, int indentLevel,
                                            std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_ATTRIBUTES);
@@ -229,18 +229,43 @@ MockCliEvent MockCliEvent::printAttributes(const std::vector<Deska::Db::Attribut
 
 
 
-MockCliEvent MockCliEvent::printAttribute(const Deska::Db::AttributeDefinition &attribute, int indentLevel,
+MockCliEvent MockCliEvent::printAttribute(const Deska::Cli::AttributeDefinition &attribute, int indentLevel,
                                           std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_ATTRIBUTE);
     res.attr = attribute;
     res.integer = indentLevel;
     return res;
-}                                  
+}        
 
 
 
-MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Db::ObjectDefinition> &objects, int indentLevel,
+MockCliEvent MockCliEvent::printAttributesWithOrigin(
+    const std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > &attributes,
+    int indentLevel, std::ostream &out)
+{
+    MockCliEvent res(EVENT_PRINT_ATTRIBUTES_WITH_ORIGIN);
+    res.attrsorig = attributes;
+    res.integer = indentLevel;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::printAttributeWithOrigin(const Deska::Cli::AttributeDefinition &attribute,
+                                                    const Deska::Db::Identifier &origin, int indentLevel,
+                                                    std::ostream &out)
+{
+    MockCliEvent res(EVENT_PRINT_ATTRIBUTE_WITH_ORIGIN);
+    res.ident = origin;
+    res.attr = attribute;
+    res.integer = indentLevel;
+    return res;
+}    
+
+
+
+MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Cli::ObjectDefinition> &objects, int indentLevel,
                                         bool fullName, std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_OBJECTS);
@@ -251,7 +276,7 @@ MockCliEvent MockCliEvent::printObjects(const std::vector<Deska::Db::ObjectDefin
 
 
 
-MockCliEvent MockCliEvent::printObject(const Deska::Db::ObjectDefinition &object, int indentLevel, bool fullName,
+MockCliEvent MockCliEvent::printObject(const Deska::Cli::ObjectDefinition &object, int indentLevel, bool fullName,
                                        std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_OBJECT);
@@ -266,6 +291,24 @@ MockCliEvent MockCliEvent::printEnd(int indentLevel, std::ostream &out)
 {
     MockCliEvent res(EVENT_PRINT_END);
     res.integer = indentLevel;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::printRevisions(const std::vector<Deska::Db::RevisionMetadata> &allRevisions)
+{
+    MockCliEvent res(EVENT_PRINT_REVISIONS);
+    res.revisions = allRevisions;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::printDiff(const std::vector<Deska::Db::ObjectModification> &objectsModifiactions)
+{
+    MockCliEvent res(EVENT_PRINT_DIFF);
+    res.modifications = objectsModifiactions;
     return res;
 }
 
@@ -332,13 +375,16 @@ bool MockCliEvent::myReturn(const MockCliEvent &other) const
 bool MockCliEvent::operator==(const MockCliEvent &other) const
 {
     return eventKind == other.eventKind && str1 == other.str1 && str2 == other.str2 && integer == other.integer &&
-           boolean == other.boolean && object == other.object && attr == other.attr &&
+           boolean == other.boolean && object == other.object && attr == other.attr && ident == other.ident &&
            std::equal(map1.begin(), map1.end(), other.map1.begin()) &&
            std::equal(map2.begin(), map2.end(), other.map2.begin()) &&
            std::equal(vectpair.begin(), vectpair.end(), other.vectpair.begin()) &&
            std::equal(vect.begin(), vect.end(), other.vect.begin()) &&
            std::equal(changesets.begin(), changesets.end(), other.changesets.begin()) &&
+           std::equal(revisions.begin(), revisions.end(), other.revisions.begin()) &&
+           std::equal(modifications.begin(), modifications.end(), other.modifications.begin()) &&
            std::equal(attrs.begin(), attrs.end(), other.attrs.begin()) &&
+           std::equal(attrsorig.begin(), attrsorig.end(), other.attrsorig.begin()) &&
            std::equal(objects.begin(), objects.end(), other.objects.begin());
 }
 
@@ -385,6 +431,22 @@ std::ostream& operator<<(std::ostream &out, const std::vector<std::string> &v)
         if (it != v.begin())
             out << ", ";
         out << "\"" << *it << "\"";
+    }
+    out << "]";
+    return out;
+}
+
+
+
+std::ostream& operator<<(std::ostream &out,
+                         const std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > &v)
+{
+    out << "[";
+    for (std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> >::const_iterator it = v.begin();
+         it != v.end(); ++it) {
+        if (it != v.begin())
+            out << ", ";
+        out << it->first << "->" << it->second;
     }
     out << "]";
     return out;
@@ -479,6 +541,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
     case MockCliEvent::EVENT_PRINT_ATTRIBUTE:
         out << "printAttribute( " << *(m.attr) << ", " << m.integer << " )";
         break;
+    case MockCliEvent::EVENT_PRINT_ATTRIBUTES_WITH_ORIGIN:
+        out << "printAttributesWithOrigin( " << m.attrsorig << ", " << m.integer << " )";
+        break;
+    case MockCliEvent::EVENT_PRINT_ATTRIBUTE_WITH_ORIGIN:
+        out << "printAttributeWithOrigin( " << *(m.attr) << ", " << m.ident << ", " << m.integer << " )";
+        break;
     case MockCliEvent::EVENT_PRINT_OBJECTS:
         out << "printObjects( " << m.objects << ", " << m.integer << " )";
         break;
@@ -487,6 +555,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         break;
     case MockCliEvent::EVENT_PRINT_END:
         out << "printEnd( " << m.integer << " )";
+        break;
+    case MockCliEvent::EVENT_PRINT_REVISIONS:
+        out << "printRevisions( " << m.revisions << " )";
+        break;
+    case MockCliEvent::EVENT_PRINT_DIFF:
+        out << "printDiff( " << m.modifications << " )";
         break;
     case MockCliEvent::EVENT_ADD_COMMAND_COMPLETION:
         out << "addCommandCompletion( \"" << m.str1 << "\" )";

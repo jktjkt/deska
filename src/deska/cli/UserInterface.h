@@ -25,10 +25,14 @@
 #define DESKA_USER_INTERFACE_H
 
 #include <string>
+#include <iostream>
 #include <tr1/memory>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/optional.hpp>
+
+#include "CliObjects.h"
 
 namespace Deska
 {
@@ -84,6 +88,14 @@ public:
     virtual std::string usage();
 
 protected:
+
+    /** @short Splits string with parameters divided by whitespace into a vector.
+    *
+    *   @param params String with parameters divided using spaces od tabs.
+    *   @return Vector of single parameters.
+    */
+    std::vector<std::string> extractParams(const std::string &params);
+
     /** Patterns for tab completition purposes. */
     std::vector<std::string> complPatterns;
     /** Name of the command. Command will be invoked typinh this stirng into the CLI. */
@@ -254,6 +266,67 @@ public:
 
 /** @short Cli command.
 *
+*   Command for operations with revisions and history.
+*
+*   @see Command
+*/
+class Log: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Log(UserInterface *userInterface);
+
+    virtual ~Log();
+
+    /** @short Function for operations with revisions and history.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Command for showing differences between revisions.
+*
+*   @see Command
+*/
+class Diff: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Diff(UserInterface *userInterface);
+
+    virtual ~Diff();
+
+    /** @short Function for showing diffs between revisions.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+
+private:
+
+    /** Converts string to Db::RevisionId.
+    *
+    *   @param rev String in format r123.
+    *   @return Revision id.
+    */
+    Db::RevisionId stringToRevision(const std::string &rev);
+};
+
+
+
+/** @short Cli command.
+*
 *   Exits the application.
 *
 *   @see Command
@@ -272,6 +345,32 @@ public:
     /** @short Exits the application.
     *
     *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Shows current context.
+*
+*   @see Command
+*/
+class Context: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Context(UserInterface *userInterface);
+
+    virtual ~Context();
+
+    /** @short Shows current context.
+    *
+    *   @param params For parameter "objects" shows list of objects matched by current context.
     */
     virtual void operator()(const std::string &params);
 };
@@ -300,6 +399,15 @@ public:
     *   @param params File name where to dump the DB. Dump to standard output when ommited.
     */
     virtual void operator()(const std::string &params);
+
+private:
+    /** @short Recursively dumps kind with attributes and nested kinds.
+    *
+    *   @param object Object which attributes and nested kinds will be printed recursively.
+    *   @param depth Depth of nesting for indentation.
+    *   @param out Output file stream where to dump objects.
+    */
+    void dumpObjectRecursive(const ObjectDefinition &object, unsigned int depth, std::ostream &out = std::cout);
 };
 
 
@@ -391,7 +499,7 @@ public:
     bool applySetAttribute(const ContextStack &context,
                            const Db::Identifier &attribute, const Db::Value &value);
     bool applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute);
-    bool applyObjectsFilter(const ContextStack &context, const Db::Filter &filter);
+    bool applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
     bool applyFunctionShow(const ContextStack &context);
     bool applyFunctionDelete(const ContextStack &context);
     bool applyFunctionRename(const ContextStack &context, const Db::Identifier &newName);
@@ -401,7 +509,7 @@ public:
     bool confirmSetAttribute(const ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
     bool confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute);
-    bool confirmObjectsFilter(const ContextStack &context, const Db::Filter &filter);
+    bool confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
     bool confirmFunctionShow(const ContextStack &context);
     bool confirmFunctionDelete(const ContextStack &context);
     bool confirmFunctionRename(const ContextStack &context, const Db::Identifier &newName);
@@ -419,13 +527,23 @@ public:
 
 private:
 
+    /** @short Recursively shows kind with attributes and nested kinds and origins.
+    *
+    *   @param object Object which attributes and nested kinds will be printed recursively.
+    *   @param depth Depth of nesting for indentation.
+    */
+    void showObjectRecursive(const ObjectDefinition &object, unsigned int depth);
+
     friend class Start;
     friend class Resume;
     friend class Commit;
     friend class Detach;
     friend class Abort;
     friend class Status;
+    friend class Log;
+    friend class Diff;
     friend class Exit;
+    friend class Context;
     friend class Dump;
     friend class Restore;
     friend class Help;
@@ -441,8 +559,8 @@ private:
     /** Map for commands indexed by their names. */
     CommandMap commandsMap;
 
-    /** Flag signalising, if we are currently connected to a changeset, or not. */
-    bool inChangeset;
+    /** ID of currently connected changeset, or null when not in changeset. */
+    boost::optional<Db::TemporaryChangesetId> currentChangeset;
     /** Flag singalising, that the event loop will end after this cycle. */
     bool exitLoop;
     /** Flag signalising, that parsing current line using Parser failed. */

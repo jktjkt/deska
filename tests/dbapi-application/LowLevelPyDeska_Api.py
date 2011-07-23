@@ -11,8 +11,8 @@ def imperative(r):
     objectNames = ["a", "b", "c"]
     r.c(startChangeset())
     for obj in objectNames:
-        r.c(createObject("host", obj))
-        r.c(setAttribute("host", obj, "note", "This is host %s" % obj))
+        r.cvoid(createObject("host", obj))
+        r.cvoid(setAttribute("host", obj, "note", "This is host %s" % obj))
     revision = r.c(commitChangeset("Added three objects"))
 
     r.assertTrue(revision.startswith("r"))
@@ -28,20 +28,23 @@ def imperative(r):
 
     # continue with kindRelations
     expectedRelations = {
-        "interface": "[embedInto(host), ]",
-        "hardware": "[refersTo(vendor), ]",
-        "host": "[refersTo(hardware), ]",
-        "vendor": "[]"
+        "interface": "[embedInto(host), templatized(interface_template)]",
+        "hardware": "[refersTo(vendor), templatized(hardware_template)]",
+        "host": "[refersTo(hardware)]",
+        "vendor": "[]",
+        "hardware_template": "[isTemplate(hardware_template), templatized(hardware_template)]",
+        # the embedInto is *not* present in this case, as templates cannot define this attribute
+        "interface_template": "[isTemplate(interface_template), templatized(interface_template)]",
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
-        r.assertEquals(repr(kindRelations), expectedRelations[kind])
+        r.assertEquals(repr(sorted(kindRelations)), expectedRelations[kind])
 
     # check kindAttributes
     expectedAttrs = {
-        "hardware": "[warranty: TYPE_STRING, purchase: TYPE_STRING, vendor: TYPE_IDENTIFIER, cpu_num: TYPE_INT, ram: TYPE_INT, note: TYPE_STRING, ]",
+        "hardware": "[warranty: TYPE_DATE, purchase: TYPE_DATE, vendor: TYPE_IDENTIFIER, cpu_num: TYPE_INT, ram: TYPE_INT, note: TYPE_STRING, ]",
         "host": "[hardware: TYPE_IDENTIFIER, note: TYPE_STRING, ]",
-        "interface": "[note: TYPE_STRING, host: TYPE_IDENTIFIER, ip6: TYPE_STRING, mac: TYPE_STRING, ip4: TYPE_STRING, ]",
+        "interface": "[note: TYPE_STRING, host: TYPE_IDENTIFIER, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, ip4: TYPE_IPV4_ADDRESS, ]",
         "vendor": "[]"
     }
     for kind in kindNames:

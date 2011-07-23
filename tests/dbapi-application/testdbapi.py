@@ -6,6 +6,11 @@ import unittest
 import json
 import apiUtils
 
+# enable "import libLowLevelPyDeska"
+sys.path.append(os.path.normpath(os.getcwd() + "../../.."))
+# enable "import deska"
+sys.path.append(os.environ["DESKA_SOURCES"] + "/src/deska/LowLevelPyDeska")
+
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
     # courtesy of http://stackoverflow.com/questions/1254454/fastest-way-to-convert-a-dicts-keys-values-from-unicode-to-str
@@ -75,18 +80,24 @@ class JsonApiTester(unittest.TestCase):
         """Access the result of a command"""
         res = self.runJSON(command.command)
         self.assertTrue("response" in res)
-        #self.assertTrue("tag" in res)
+        self.assertTrue("tag" in res)
         self.assertTrue("dbException" not in res)
-        if command.name in res:
-            return res[command.name]
-        else:
-            return None
+        self.assertTrue(command.name in res)
+        return res[command.name]
+
+    def cvoid(self, command):
+        """Execute a command, but scream loudly when no result is returned"""
+        res = self.runJSON(command.command)
+        self.assertTrue("response" in res)
+        self.assertTrue("tag" in res)
+        self.assertTrue("dbException" not in res)
+        self.assertTrue(command.name not in res)
 
     def cfail(self, command, exception=None):
         """Make sure that the commands fails"""
         res = self.runJSON(command.command)
         self.assertTrue("response" in res)
-        #self.assertTrue("tag" in res)
+        self.assertTrue("tag" in res)
         self.assertTrue("dbException" in res)
         if exception is not None:
             self.assertEqual(res["dbException"], exception)

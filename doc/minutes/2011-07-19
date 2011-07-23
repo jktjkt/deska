@@ -1,0 +1,130 @@
+Schuze Deska, 2011-07-19 MFF
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Lukas:
+- schema pro FZU
+- opravy
+- filtry
+
+Martina:
+- funkce pro batched ziskavani dat, pro embedovane zvlast
+- puvod dat
+- diffovani resolvovanych dat
+- drobnosti
+- testy
+- dokumentace kodu
+
+Tomas:
+- pouziti/predelani filtru
+- chybi operator<<, co mel udelat Honza
+- filtry zatim 
+- opravy chyb
+- vypisovani pending changesets, revizi,...
+- je naslepo udelana a neotestovana funkcnost pro ukazovani puvodu dat u prikazu show
+
+Honza:
+- high-level Python DBAPI (kindy a filtry)
+- unit testy
+- opravy chyb
+
+Co zbyva do konce:
+------------------
+
+Honza:
+- dal s unit testy
+- Python
+- generatory konfigurace
+- skripty kolem
+- dokumentace
+
+Lukas:
+- filtrovani, joinovani
+    - joiny funguji jenom jednostranne
+- performance testy s templaty
+- schema pro FZU
+    - chybi sluzby a umisteni HW (relativni pozicovani vs. vnorene krabice)
+- dokumentace pro DBA
+- zpristupnit nove funkce do DBAPI
+
+Martina:
+- dodelani templatu (embedding,...)
+- hromadne sosani dat
+    - je hotovo
+- nove: ucesat chybove hlasky
+- nove: aby po JSONu odchazely i nove excdeptiony
+- testy
+- merge gen_templates
+
+Tomas:
+- filtry v CLI + batched operace
+    - nevi, jestli funguje, protoze Honza nedodal operator<<
+    - pracuje na rozsireni contextstacku pro filtry
+- rebase
+- historie (log) verzovani, diffy
+
+
+Co chybi:
+---------
+
+- instalator
+- rebase v CLI
+- reportovani vyjimek
+- dotazy na historii ze CLI
+
+
+Z. je tu do pristiho utery/stredy, pak az od 15. do 22. srpna
+
+termin 15. ci 30. zari
+
+pokud bude schema, tak v utery 26. schuzka na MS + predvedeni Z.
+
+urcite schuzka i 16. srpna, nutne realna data + pouziti, struktura dokumentace
+
+odevzdani zrejme posledni tyden v srpnu
+
+Ukazka unit testu pro Martinu:
+- tests/dbapi-application/persist_kindInstances.py
+- tests/dbapi-application/persist_metadata.py
+- pri nejasnostech/komplikacich prosim poslat dotaz do listu
+
+Ukoly:
+------
+
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+- Honza: vice testu
+- Honza: portace Lukasovych testu
+- Honza: Python DBAPI: high-level pristup
+- Honza: operator<< pro filtry pro Tomase
+- Honza: exception pro neexistujici revizi/changeset/..., zaukolovat, aby byly
+testy tohleto kontrolovaly; totez pro obraceny rozsah revizi, atd atd
+
+- FIXME: testy pro merge
+- FIXME: validace uzivatelova navrhu DB
+- FIXME: jak rozlisit filtry koukajici na raw, nebo resolved hodnoty atributu?
+
+- Tomas: dokumentace CLI
+- Tomas: testy ke CLI
+- Tomas: pouziti filtru, mj. pro embedding
+- Tomas: manipulace pres vic objektu (filtry, parsovani pres CLI,...)
+- Tomas: boost::program_options
+- Tomas: proc parser zere "mac ahoj"?
+
+- Lukas: zmenit typ pro MAC
+- Lukas: filtry
+- Lukas: templaty
+- Lukas: dokumentace (#168, 169,...)
+- Lukas -> exceptions: pokud je znam tag, ma ho poslat zpet, pokud neni, tak si ho
+nevymysli
+
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+
+Pristi schuzka:
+---------------
+
+Utery 26. cervence, 13.00 MS

@@ -293,7 +293,9 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
     \deskaFuncRef{restoreDeletedObject}. & -- \\
     {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
+    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & -- \\
     {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
+    {\tt ConstraintError} & The executed action violates an integrity constraint & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -393,7 +395,13 @@ relation information etc.  The following types are defined:
         "newObjectName": }{\tt Identifier\}}, \newline
         or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
-        }Identifier{\tt, "attributeData": }Value{\tt, "oldAttributeData": }Value{\tt \}} \\
+        }Identifier{\tt, "attributeData": }Value{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}}\footnote{Both forms of the
+        {\tt setAttribute} are acceptable.  During regular use, the form without the {\tt oldAttributeData} shall be
+        used.  The longer form is accepted in order to enable simply feeding a result of a diff back into the Deska
+        server for further application.} \\
     {\tt Deska::Db::ComparisonOperator} &
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
         {\tt "columnLe"}
@@ -736,7 +744,7 @@ Any function which modifies objects stored in the Deska database belongs to this
     \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
     \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
-    "attributeData": "new", "oldAttributeData": "old"\} \\
+    "attributeData": "new"\} \\
     ]}
     {}
     {Apply a list of batched modifications at once}

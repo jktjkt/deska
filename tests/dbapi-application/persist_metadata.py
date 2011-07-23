@@ -7,7 +7,7 @@ def imperative(r):
     # now repeat the test from inside a changeset
     r.c(startChangeset())
     doStuff(r, kinds)
-    r.c(abortCurrentChangeset())
+    r.cvoid(abortCurrentChangeset())
 
 def doStuff(r, kinds):
     res_kindNames = r.c(kindNames())
@@ -19,7 +19,6 @@ def doStuff(r, kinds):
         r.assertEqual(type(r.c(kindRelations(kind))), list)
         r.assertEqual(type(r.c(kindAttributes(kind))), dict)
 
-    # the following tests FAIL, see redmine #246
     r.cfail(kindInstances("error_kind_name"), InvalidKindError())
     r.cfail(kindRelations("error_kind_name"), InvalidKindError())
     r.cfail(kindAttributes("error_kind_name"), InvalidKindError())

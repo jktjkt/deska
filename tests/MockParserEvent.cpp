@@ -79,6 +79,11 @@ MockParserEvent MockParserEvent::parsingFinished()
     return MockParserEvent(EVENT_PARSING_FINISHED);
 }
 
+MockParserEvent MockParserEvent::parsingStarted()
+{
+    return MockParserEvent(EVENT_PARSING_STARTED);
+}
+
 MockParserEvent MockParserEvent::invalid()
 {
     return MockParserEvent(EVENT_INVALID);
@@ -123,6 +128,9 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_PARSING_FINISHED:
         out << "parsingFinished()";
+        break;
+    case MockParserEvent::EVENT_PARSING_STARTED:
+        out << "parsingStarted()";
         break;
     case MockParserEvent::EVENT_INVALID:
         out << "[no event]";

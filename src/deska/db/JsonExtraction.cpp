@@ -152,7 +152,9 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     o.push_back(json_spirit::Pair("objectName", value.objectName));
     o.push_back(json_spirit::Pair("attributeName", value.attributeName));
     o.push_back(json_spirit::Pair("attributeData", JsonConversionTraits<Value>::toJson(value.attributeData)));
-    o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
+    if (value.oldAttributeData) {
+        o.push_back(json_spirit::Pair("oldAttributeData", JsonConversionTraits<Value>::toJson(value.oldAttributeData)));
+    }
     return o;
 }
 
@@ -637,17 +639,20 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         h.parseJsonObject(v.get_obj()); \
         throw X(message); \
     }
-        DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
-        else DESKA_CATCH_REMOTE_EXCEPTION(NotFoundError)
-        else DESKA_CATCH_REMOTE_EXCEPTION(InvalidKindError)
+        DESKA_CATCH_REMOTE_EXCEPTION(InvalidKindError)
         else DESKA_CATCH_REMOTE_EXCEPTION(InvalidAttributeError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NotFoundError)
         else DESKA_CATCH_REMOTE_EXCEPTION(NoChangesetError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetAlreadyOpenError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(FreezingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(FilterError)
-        else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ReCreateObjectError)
         else DESKA_CATCH_REMOTE_EXCEPTION(RevisionParsingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(RevisionRangeError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetParsingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ConstraintError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
         else {
             // Unsupported/unknown/invalid/... class of exception
             JsonContext c2("When parsing an unknown server-side exception");
@@ -695,6 +700,11 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_INT:
     {
         JsonContext c2("When extracting TYPE_INT");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: temporary workaround for Redmine#267
+            target->value = boost::lexical_cast<int>(value.get_str());
+            return;
+        }
         checkJsonValueType(value, json_spirit::int_type);
         target->value = value.get_int();
         return;

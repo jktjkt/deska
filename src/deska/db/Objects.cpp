@@ -77,6 +77,16 @@ bool operator!=(const ObjectRelation &a, const ObjectRelation &b)
     return !(a == b);
 }
 
+
+bool operator<(const ObjectRelation &a, const ObjectRelation &b)
+{
+    if (a.kind == b.kind) {
+        return a.target < b.target;
+    } else {
+        return a.kind < b.kind;
+    }
+}
+
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 {
     switch (o.kind) {
@@ -126,73 +136,68 @@ ObjectRelation ObjectRelation::templatized(const Identifier &target)
     return ObjectRelation(RELATION_TEMPLATIZED, target);
 }
 
-
-ObjectDefinition::ObjectDefinition(const Identifier &kindName, const Identifier &objectName):
-    kind(kindName), name(objectName)
+/** @short Variant visitor that returns the type name of a Deska::Db::Value */
+struct DeskaValueTypeName: public boost::static_visitor<std::string>
 {
-}
-
-std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o)
-{
-    return stream << o.kind << " " << o.name;
-}
-
-bool operator==(const ObjectDefinition &a, const ObjectDefinition &b)
-{
-    return a.kind == b.kind && a.name == b.name;
-}
-
-bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
-{
-    return !(a == b);
-}
-
-
-AttributeDefinition::AttributeDefinition(const Identifier &attributeName, const Value &assignedValue):
-    attribute(attributeName), value(assignedValue)
-{
-}
-
-/** @short Variant visitor for printing the attribute into an ostream
-
-This is required because the boost::posix_time::ptime lacks a proper operator<<.
-*/
-struct PrintValue: public boost::static_visitor<void> {
-    std::ostream *str;
-    PrintValue(std::ostream *stream): str(stream) {}
-
-    /** @short Default implementation: just use proper operator<< */
-    template<typename T>
-    void operator()(const T &t) const {
-        *str << t;
+    result_type operator()(const std::string &v) const
+    {
+        return "string";
     }
-
-    /** @short Got to provide a specialization for boost::posix_time::ptime */
-    void operator()(const boost::posix_time::ptime &t) const {
-        *str << boost::posix_time::to_simple_string(t);
+    result_type operator()(const int &v) const
+    {
+        return "int";
+    }
+    result_type operator()(const double &v) const
+    {
+        return "double";
+    }
+    result_type operator()(const boost::asio::ip::address_v4 &v) const
+    {
+        return "IPv4Address";
+    }
+    result_type operator()(const boost::asio::ip::address_v6 &v) const
+    {
+        return "IPv6Address";
+    }
+    result_type operator()(const MacAddress &v) const
+    {
+        return "MacAddress";
+    }
+    result_type operator()(const boost::posix_time::ptime &v) const
+    {
+        return "timestamp";
+    }
+    result_type operator()(const boost::gregorian::date &v) const
+    {
+        return "date";
     }
 };
 
-std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
+/** @short __repr__ for Deska::Db::NonOptionalValue */
+std::string repr_NonOptionalValue(const NonOptionalValue &v)
 {
-    if (a.value) {
-        stream << a.attribute << " ";
-        boost::apply_visitor(PrintValue(&stream), *(a.value));
-        return stream;
-    } else {
-        return stream << "no " << a.attribute;
+    std::ostringstream ss;
+    ss << "Value<" << boost::apply_visitor(DeskaValueTypeName(), v) << ">(" << v << ")";
+    return ss.str();
+}
+
+/** @short __repr__ for Deska::Db::Value */
+std::string repr_Value(const Value &v)
+{
+    return v ? repr_NonOptionalValue(*v) : std::string("Value(None)");
+}
+
+/** @short __str__ for Deska::Db::Value */
+std::string str_Value(const Value &v)
+{
+    if (v) {
+        std::ostringstream ss;
+        ss << *v;
+        return ss.str();
     }
+    return "None";
 }
 
-bool operator==(const AttributeDefinition &a, const AttributeDefinition &b)
-{
-    return a.attribute == b.attribute && a.value == b.value;
-}
-
-bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b)
-{
-    return !(a == b);
-}
 
 }
 }

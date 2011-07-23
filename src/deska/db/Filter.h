@@ -46,10 +46,16 @@ typedef enum {
     FILTER_COLUMN_LE
 } ComparisonOperator;
 
-std::ostream& operator<<(std::ostream &stream, ComparisonOperator o);
+std::ostream& operator<<(std::ostream &stream, const ComparisonOperator o);
 
 /** @short Anything against which we can compare */
 typedef boost::variant<Value,RevisionId,TemporaryChangesetId,PendingChangeset::AttachStatus> MetadataValue;
+
+/** @short __repr__ for Deska::Db::MetadataValue */
+std::string repr_MetadataValue(const MetadataValue &v);
+
+/** @short __str__ for Deska::Db::MetadataValue */
+std::string str_MetadataValue(const MetadataValue &v);
 
 /** @short Compare metadata against a constant using  given comparison operator */
 struct MetadataExpression
@@ -93,11 +99,15 @@ typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
 
 bool operator!=(const Expression &a, const Expression &b);
 
+std::string repr_Expression(const Expression &e);
+
 struct OrFilter;
 struct AndFilter;
 
 /** @short Filter for limiting the result set of an operation */
 typedef boost::variant<Expression, boost::recursive_wrapper<OrFilter>, boost::recursive_wrapper<AndFilter> > Filter;
+
+std::string repr_Filter(const Filter &f);
 
 /** @short Perform a logical disjunction of all expression included below */
 struct OrFilter
@@ -111,7 +121,9 @@ struct OrFilter
     OrFilter() {};
 };
 
-//std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
+bool operator==(const OrFilter &a, const OrFilter &b);
+bool operator!=(const OrFilter &a, const OrFilter &b);
+std::ostream& operator<<(std::ostream &stream, const OrFilter &o);
 
 /** @short Perform a logical conjunction of all expression included below */
 struct AndFilter
@@ -125,9 +137,9 @@ struct AndFilter
     AndFilter() {};
 };
 
-//std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
-
-//std::ostream& operator<<(std::ostream &stream, const Filter &f);
+bool operator==(const AndFilter &a, const AndFilter &b);
+bool operator!=(const AndFilter &a, const AndFilter &b);
+std::ostream& operator<<(std::ostream &stream, const AndFilter &a);
 
 }
 }

@@ -31,7 +31,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "deska/db/Objects.h"
+#include "CliObjects.h"
 #include "deska/db/Revisions.h"
 #include "ReadlineWrapper.h"
 #include "Parser.h"
@@ -82,6 +82,22 @@ private:
 
 
 
+/** @short Visitor for printing oject modifications. */
+struct ModificationPrinter: public boost::static_visitor<void> {
+    //@{
+    /** @short Function for printing single object modification.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    */
+    void operator()(const Db::CreateObjectModification &modification) const;
+    void operator()(const Db::DeleteObjectModification &modification) const;
+    void operator()(const Db::RenameObjectModification &modification) const;
+    void operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
 /** @short Class for IO operations needed in a command line user interface with a standard iostream implementation. */
 class UserInterfaceIO: public UserInterfaceIOBase
 {
@@ -117,21 +133,21 @@ public:
     *   @param object Object to be deleted
     *   @return True if the deletion was confirmed, else false
     */
-    virtual bool confirmDeletion(const Db::ObjectDefinition &object);
+    virtual bool confirmDeletion(const ObjectDefinition &object);
 
     /** @short Displays confirmation message for creation of a object and returns users choice.
     *
     *   @param object Object to be created
     *   @return True if the creation was confirmed, else false
     */
-    virtual bool confirmCreation(const Db::ObjectDefinition &object);
+    virtual bool confirmCreation(const ObjectDefinition &object);
 
     /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
     *
     *   @param object Object to be restored
     *   @return True if the restoration was confirmed, else false
     */
-    virtual bool confirmRestoration(const Db::ObjectDefinition &object);
+    virtual bool confirmRestoration(const ObjectDefinition &object);
 
     /** @short Asks user to enter a commit message.
     *
@@ -203,15 +219,24 @@ public:
     *   @param attributes Vector of attributes to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+    virtual void printAttributes(const std::vector<AttributeDefinition> &attributes, int indentLevel,
                                  std::ostream &out = std::cout);
+
+    /** @short Prints list of attribute definitions with indentation and origin of templatized ones.
+    *
+    *   @param attributes Vector of pairs where first item is attribute to print and second is origin of the attribute
+    *   @param indentLevel Level of indentation (number of "tabs")
+    */
+    virtual void printAttributesWithOrigin(
+        const std::vector<std::pair<AttributeDefinition, Db::Identifier> > &attributes, int indentLevel,
+        std::ostream &out = std::cout);
 
     /** @short Prints list of object definitions with indentation.
     *
     *   @param objects Vector of objects to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+    virtual void printObjects(const std::vector<ObjectDefinition> &objects, int indentLevel,
                               bool fullName, std::ostream &out = std::cout);
 
     /** @short Prints an attribute definition with indentation.
@@ -219,15 +244,24 @@ public:
     *   @param attribute Attribute to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printAttribute(const Db::AttributeDefinition &attribute, int indentLevel,
+    virtual void printAttribute(const AttributeDefinition &attribute, int indentLevel,
                         std::ostream &out = std::cout);
+
+    /** @short Prints an attribute definition with indentation and origin of templatized ones.
+    *
+    *   @param attribute Attribute to print
+    *   @param origin Origin of the value if the attribute is inherited from some templete, else empty string
+    *   @param indentLevel Level of indentation (number of "tabs")
+    */
+    virtual void printAttributeWithOrigin(const AttributeDefinition &attribute, const Db::Identifier &origin,
+                                          int indentLevel, std::ostream &out = std::cout);
 
     /** @short Prints a object definition with indentation.
     *
     *   @param object Object to print
     *   @param indentLevel Level of indentation (number of "tabs")
     */
-    virtual void printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName,
+    virtual void printObject(const ObjectDefinition &object, int indentLevel, bool fullName,
                      std::ostream &out = std::cout);
 
     /** @short Prints "end" keyword with indentation.
@@ -235,6 +269,18 @@ public:
     *   @param indentLevel Level of indentation (number of "tabs")
     */
     virtual void printEnd(int indentLevel, std::ostream &out = std::cout);
+
+    /** @short Displays list of revisions.
+    *
+    *   @param revisions Vector of revisions metadata to print.
+    */
+    virtual void printRevisions(const std::vector<Db::RevisionMetadata> &revisions);
+
+    /** @short Prints difference using list of modifications.
+    *
+    *   @param modifications Vector of modifications representing the diff.
+    */
+    virtual void printDiff(const std::vector<Db::ObjectModification> &modifications);
 
     /** @short Adds completion string to the completions vector in the CliCompleter.
     *
@@ -266,6 +312,13 @@ private:
     *   @return Vector of string wrapped to given width. Line by line.
     */
     std::vector<std::string> wrap(const std::string &text, unsigned int width);
+
+    /** @short function for counting number of digits in an unsigned integer.
+    *   
+    *   @param n Number
+    *   @return Number of digits
+    */
+    unsigned int digits(unsigned int n);
 
     /** Number of spaces for indenting an output. */
     unsigned int tabSize;

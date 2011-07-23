@@ -188,7 +188,7 @@ public:
     *
     *   This signal is triggered whenever a filter for objects is parsed.
     */
-    boost::signals2::signal<void (const Db::Filter &filter)> objectsFilter;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Filter &filter)> objectsFilter;
 
     /** @short An error during parsing
     *
@@ -219,6 +219,12 @@ public:
     *   The parser triggeres this signal when parsing of current line is finished successfully.
     */
     boost::signals2::signal<void ()> parsingFinished;
+
+    /** @short Parsing of current line started
+    *
+    *   The parser triggeres this signal when parsing of current line is started.
+    */
+    boost::signals2::signal<void ()> parsingStarted;
 
     /** @short True if the parser is currently nested in some block
     *

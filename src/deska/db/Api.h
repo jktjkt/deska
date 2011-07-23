@@ -79,8 +79,12 @@ REMOTEDBEXCEPTION(InvalidKindError)
 REMOTEDBEXCEPTION(InvalidAttributeError)
 /** @short Failed to parse a RevisionId */
 REMOTEDBEXCEPTION(RevisionParsingError)
+/** @short The range of revisions/changesets does not make sense */
+REMOTEDBEXCEPTION(RevisionRangeError)
 /** @short Failed to parse a TemporaryChangesetId */
 REMOTEDBEXCEPTION(ChangesetParsingError)
+/** @short The executed action violates an integrity constraint */
+REMOTEDBEXCEPTION(ConstraintError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */

@@ -78,6 +78,7 @@ target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 deska_test(parser_mock_objects)
 deska_test(mock_streambuf)
 deska_test(cli_parser)
+deska_test(api_filters)
 deska_test(json_api_parser)
 deska_test(json_caching_api)
 
@@ -107,6 +108,8 @@ if(RUN_SQL_TESTS)
     deska_sql_test(set_name)
     deska_sql_test(template)
     deska_sql_test(template_data_origin)
+    deska_sql_test(template_embed)
+    deska_sql_test(template_embed_data_origin)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
@@ -117,6 +120,8 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(persist_kindInstances)
     deska_dbapi_test(persist_metadata)
     deska_dbapi_test(persist_versioning)
+    deska_dbapi_test(setGetData)
+    deska_dbapi_test(multipleObjectData)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)
@@ -132,6 +137,10 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(LowLevelPyDeska_Values)
     # The following tests need the connection, though.
     deska_dbapi_test(LowLevelPyDeska_Api)
+
+    # Tests which use the high-level 'deska' module, and hence really need the
+    # DB
+    deska_dbapi_test(pydeska_basic_filters)
 endif()
 
 # Copy files from source directory to destination directory, substituting any

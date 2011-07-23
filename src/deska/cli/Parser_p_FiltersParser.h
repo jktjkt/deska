@@ -30,16 +30,17 @@ namespace Deska
 namespace Cli
 {
 
+template <typename Iterator> class FilterExpressionsParser;
+
 /** @short Parser for filter of specific kind.
 *
 *   The grammar is based on a symbols table with lazy lookup function. This method could be found
 *   under name "Nabialek trick".
 *
-*   This parser is connected to two error handlers. AttributeErrorHandler for reporting an error while parsing
-*   an attribute name and ValueErrorHandler for reporting an error while parsing a value on an attribute.
+*   This parser is connected to one error handler. KindErrorHandler for reporting an error while parsing
+*   name of nested kind.
 *
-*   @see AttributeErrorHandler
-*   @see ValueErrorHandler
+*   @see KindErrorHandler
 */
 template <typename Iterator>
 class FiltersParser: public qi::grammar<Iterator, Db::Filter(), ascii::space_type>
@@ -50,25 +51,24 @@ public:
     /** @short Constructor only initializes the grammar with empty symbols table.
     *
     *   @param kindName Name of top-level object type, to which the attributes belong.
+    *   @param ownAttrsExpressionsParser Parser for parsing expressions containing own attributes, not nested ones.
+    *   @param parent Pointer to main parser for error reporting purposes.
     */
-    FiltersParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+    FiltersParser(const Db::Identifier &kindName, FilterExpressionsParser<Iterator> *ownAttrsExpressionsParser,
+                  ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser.
     *
-    *   @param attributeName Name of the attribute.
-    *   @param attributeParser Attribute parser obtained from PredefinedRules class.
-    *   @see PredefinedRules
+    *   @param nestedKindName Name of nested kind.
+    *   @param expressionsParser Filter expressions parser for the nested kind.
     */
-    void addAtrributeToFilter(const Db::Identifier &attributeName,
-                              qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
+    void addNestedKindExpressionsParser(const Db::Identifier &nestedKindName,
+                                        FilterExpressionsParser<Iterator> *expressionsParser);
 
 private:
 
-    /** Symbols table with comparison operators. */
-    qi::symbols<char, Db::ComparisonOperator> operators;
-
-    /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
-    qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
+    /** Nested kind name - expressions parser pairs for purposes of Nabialek trick. */
+    qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > nestedAttributes;
 
     /** Main rule. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type> start;
@@ -76,16 +76,18 @@ private:
     qi::rule<Iterator, Db::Filter(), ascii::space_type> andFilter;
     qi::rule<Iterator, Db::Filter(), ascii::space_type> orFilter;
 
-    /** Rule for parsing attribute names. */
-    qi::rule<Iterator, Db::Filter(), ascii::space_type, qi::locals<bool> > attrExpr;
-    /** Rule for parsing attribute values. */
-    qi::rule<Iterator, Db::Filter(), ascii::space_type,
-             qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type>, Db::ComparisonOperator> > dispatch;
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> attrExpr;
 
-    /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
-    Db::Identifier currentAttributeName;
-    /** Name of the kind, whose filter are parsed by this grammar. */
+    /** Rule for parsing nested kind names in a filter. */
+    qi::rule<Iterator, Db::Filter(), ascii::space_type, qi::locals<bool> > nestedAttrExpr;
+    /** Rule for parsing expressions for attributes from nested kinds names. */
+    qi::rule<Iterator, Db::Filter(), ascii::space_type,
+             qi::locals<qi::rule<Iterator, Db::Filter(), ascii::space_type> > > dispatch;
+
+    /** Name of the kind, whose filter is parsed by this grammar. */
     Db::Identifier m_name;
+    /** Name of kind which filter expression is being currently parsed. */
+    Db::Identifier nestedKindName;
     /** Pointer to main parser for error reporting. */
     ParserImpl<Iterator> *m_parent;
 };

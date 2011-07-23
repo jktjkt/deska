@@ -19,6 +19,7 @@ data = list([
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011", "tag":"TAG"}',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "warranty", "attributeData":"10/10/2013", "tag":"TAG"}',
 	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
+	'{"command": "objectData", "kindName": "hardware", "objectName": "noneexisting" , "tag":"TAG"}',
 	'{"command": "commitChangeset", "commitMessage": "test message", "tag":"TAG"}',
 	'{"command": "pendingChangesets", "tag":"TAG"}',
 	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2", "tag":"TAG"}'

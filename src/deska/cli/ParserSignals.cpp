@@ -47,7 +47,7 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &con
 bool ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
     if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName)) {
-        signalsHandler->contextStack.push_back(Db::ObjectDefinition(kindName, objectName));
+        signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectName));
         return true;
     } else {
         return false;
@@ -135,9 +135,9 @@ bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context, 
+ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
                                                      const Db::Filter &filter):
-    signalsContext(context), objectsFilter(filter)
+    signalsContext(context), kindName(kind), objectsFilter(filter)
 {
 }
 
@@ -145,14 +145,19 @@ ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context
 
 bool ParserSignalObjectsFilter::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyObjectsFilter(signalsContext, objectsFilter);
+    if (signalsHandler->userInterface->applyObjectsFilter(signalsContext, kindName, objectsFilter)) {
+        signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectsFilter));
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
 
 bool ParserSignalObjectsFilter::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmObjectsFilter(signalsContext, objectsFilter);
+    return signalsHandler->userInterface->confirmObjectsFilter(signalsContext, kindName, objectsFilter);
 }
 
 
@@ -257,12 +262,13 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
     m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
     m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1));
-    m_parser->objectsFilter.connect(boost::phoenix::bind(&SignalsHandler::slotObjectsFilter, this, _1));
+    m_parser->objectsFilter.connect(boost::phoenix::bind(&SignalsHandler::slotObjectsFilter, this, _1, _2));
     m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
     m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
     m_parser->functionRename.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionRename, this, _1));
     m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
     m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
+    m_parser->parsingStarted.connect(boost::phoenix::bind(&SignalsHandler::slotParsingStarted, this));
 }
 
 
@@ -295,9 +301,9 @@ void SignalsHandler::slotRemoveAttribute(const Db::Identifier &attribute)
 
 
 
-void SignalsHandler::slotObjectsFilter(const Db::Filter &filter)
+void SignalsHandler::slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter)
 {
-    signalsStack.push_back(ParserSignalObjectsFilter(m_parser->currentContextStack(), filter));
+    signalsStack.push_back(ParserSignalObjectsFilter(m_parser->currentContextStack(), kind, filter));
 }
 
 
@@ -325,8 +331,6 @@ void SignalsHandler::slotFunctionRename(const Db::Identifier &newName)
 
 void SignalsHandler::slotParserError(const ParserException &error)
 {
-    autoCreate = false;
-    signalsStack.clear();
     userInterface->reportParseError(error);
 }
 
@@ -334,7 +338,6 @@ void SignalsHandler::slotParserError(const ParserException &error)
 
 void SignalsHandler::slotParsingFinished()
 {
-    autoCreate = false;
     bool allConfirmed = true;
     ApplyParserSignal applyParserSignal(this);
     ConfirmParserSignal confirmParserSignal(this);
@@ -353,10 +356,17 @@ void SignalsHandler::slotParsingFinished()
         }
     }
 
-    signalsStack.clear();
-
     // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
     m_parser->setContextStack(contextStack);
+}
+
+
+
+void SignalsHandler::slotParsingStarted()
+{
+    autoCreate = false;
+    signalsStack.clear();
+    contextStack = m_parser->currentContextStack();
 }
 
 

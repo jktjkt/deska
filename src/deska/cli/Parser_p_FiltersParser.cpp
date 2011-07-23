@@ -22,6 +22,7 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_FiltersParser.h"
+#include "Parser_p_FilterExpressionsParser.h"
 #include "deska/db/Api.h"
 
 namespace Deska
@@ -31,7 +32,9 @@ namespace Cli
 
 
 template <typename Iterator>
-FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
+FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName,
+                                       FilterExpressionsParser<Iterator> *ownAttrsExpressionsParser,
+                                       ParserImpl<Iterator> *parent):
     FiltersParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
 {
     using qi::_val;
@@ -40,7 +43,6 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
     using qi::_3;
     using qi::_4;
     using qi::_a;
-    using qi::_b;
     using qi::eps;
     using qi::raw;
     using qi::eoi;
@@ -53,16 +55,6 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
 
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    // Fill symbols table with conversions from string to Db::ComparisonOperator
-    operators.add("=", Db::FILTER_COLUMN_EQ);
-    operators.add("==", Db::FILTER_COLUMN_EQ);
-    operators.add("!=", Db::FILTER_COLUMN_NE);
-    operators.add("<>", Db::FILTER_COLUMN_NE);
-    operators.add(">", Db::FILTER_COLUMN_GT);
-    operators.add(">=", Db::FILTER_COLUMN_GE);
-    operators.add("<", Db::FILTER_COLUMN_LT);
-    operators.add("<=", Db::FILTER_COLUMN_LE);
-
     start %= ((qi::lit("(") >> andFilter >> qi::lit(")"))
             | (qi::lit("(") >> orFilter >> qi::lit(")"))
             | (qi::lit("(") >> attrExpr >> qi::lit(")")));
@@ -70,41 +62,42 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName, ParserImp
     andFilter = (start % qi::lit("&"))[_val = phoenix::construct<Db::AndFilter>(_1)];
     orFilter = (start % qi::lit("|"))[_val = phoenix::construct<Db::OrFilter>(_1)];
 
+    attrExpr %= (*ownAttrsExpressionsParser) | nestedAttrExpr;
+
     // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
-    attrExpr %= (eps(!_a) > dispatch >> -eoi[_a = true]);
+    nestedAttrExpr %= (eps(!_a) > dispatch >> -eoi[_a = true]);
 
-    // Attribute name recognized -> try to parse filter value. The raw function is here to get the name of the
-    // attribute being parsed.
-    dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
-        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
-                                                                      phoenix::ref(currentAttributeName), _1)]));
+    // Nested kind name recognized -> try to parse expression for the kind. The raw function is here to get the name
+    // of the kind for which the expression is being parsed.
+    dispatch = (raw[nestedAttributes[_a = _1]][rangeToString(_1, phoenix::ref(nestedKindName))] >
+               qi::lit(".") > lazy(_a))[_val = _2];
 
-    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
-    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(attrExpr, attributeErrorHandler(_1, _2, _3, _4,
-                                                   phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
+    phoenix::function<KindFiltersErrorHandler<Iterator> > kindErrorHandler = KindFiltersErrorHandler<Iterator>();
+    on_error<fail>(nestedAttrExpr, kindErrorHandler(_1, _2, _3, _4,
+                                                    phoenix::ref(nestedAttributes), phoenix::ref(m_name), m_parent));
 }
 
 
 
 template <typename Iterator>
-void FiltersParser<Iterator>::addAtrributeToFilter(const Db::Identifier &attributeName,
-                                                   qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
+void FiltersParser<Iterator>::addNestedKindExpressionsParser(const Db::Identifier &nestedKindName,
+                                                             FilterExpressionsParser<Iterator> *expressionsParser)
 {
-    attributes.add(attributeName, attributeParser);
+    // This creates rule reference to our grammar so we can store it in symbols table.
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> filterRuleRef = (*expressionsParser);
+    nestedAttributes.add(nestedKindName, filterRuleRef);
 }
 
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template FiltersParser<iterator_type>::FiltersParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+template FiltersParser<iterator_type>::FiltersParser(const Db::Identifier &kindName, FilterExpressionsParser<iterator_type> *ownAttrsExpressionsParser, ParserImpl<iterator_type> *parent);
 
-template void FiltersParser<iterator_type>::addAtrributeToFilter(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+template void FiltersParser<iterator_type>::addNestedKindExpressionsParser(const Db::Identifier &nestedKindName, FilterExpressionsParser<iterator_type> *expressionsParser);
 
 }
 }

@@ -23,9 +23,11 @@
 
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "ContextStack.h"
 #include "UserInterfaceIO.h"
@@ -82,6 +84,38 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 
 
 
+void ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::cout << "created " << modification.kindName << " " << modification.objectName << std::endl;
+}
+
+
+
+void ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    std::cout << "deleted " << modification.kindName << " " << modification.objectName << std::endl;
+}
+
+
+
+void ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
+{
+    std::cout << "renamed " << modification.kindName << " " << modification.oldObjectName << " to "
+              << modification.newObjectName << std::endl;
+}
+
+
+
+void ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::cout << "set attribute " << modification.kindName << " " << modification.objectName << " "
+              << modification.attributeName << " from "
+              << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
+              << (modification.attributeData ? *(modification.attributeData) : "null") << std::endl;
+}
+
+
+
 UserInterfaceIO::UserInterfaceIO()
 {
 }
@@ -121,28 +155,28 @@ void UserInterfaceIO::printMessage(const std::string &message)
 
 
 
-bool UserInterfaceIO::confirmDeletion(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << "Are you sure you want to delete object " << object << "?";
+    ss << "Are you sure you want to delete object(s) " << object << "?";
     return askForConfirmation(ss.str());
 }
 
 
 
-bool UserInterfaceIO::confirmCreation(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " does not exist. Create?";
+    ss << "Object(s) " << object << " do(es) not exist. Create?";
     return askForConfirmation(ss.str());
 }
 
 
 
-bool UserInterfaceIO::confirmRestoration(const Db::ObjectDefinition &object)
+bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << object << " was deleted in current changeset. Restore?";
+    ss << "Object(s) " << object << " was/were deleted in current changeset. Restore?";
     return askForConfirmation(ss.str());
 }
 
@@ -182,11 +216,11 @@ std::string UserInterfaceIO::askForDetachMessage()
 void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCommands,
                                 const std::map<std::string, std::string> &parserKeywords)
 {
-    unsigned int maxWordWidth = 0;
+    std::string::size_type maxWordWidth = 0;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it)
-        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+        maxWordWidth = std::max(maxWordWidth, it->first.length());
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it)
-        maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+        maxWordWidth = std::max(maxWordWidth, it->first.length());
 
     std::cout << "CLI commands:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
@@ -244,10 +278,10 @@ void UserInterfaceIO::printHelpKind(const std::string &kindName,
     if (kindAttrs.empty()) {
         std::cout << indent(4, 1) << "No attributes" << std::endl;
     } else {
-        unsigned int maxWordWidth = 0;
+        std::string::size_type maxWordWidth = 0;
         for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
              it != kindAttrs.end(); ++it)
-            maxWordWidth = ((maxWordWidth < it->first.length()) ? it->first.length() : maxWordWidth);
+             maxWordWidth = std::max(maxWordWidth, it->first.length());
         for (std::vector<std::pair<std::string, std::string> >::const_iterator it = kindAttrs.begin();
              it != kindAttrs.end(); ++it)
             std::cout << indent(4, 1) << std::left << std::setw(maxWordWidth) << it->first << " : " << it->second << std::endl;
@@ -279,11 +313,38 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
         std::cout << "No pending changesets." << std::endl;
         return -2;
     } else {
-        for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
-            std::cout << i << ": " << pendingChangesets[i] << std::endl;
+        // Printing list of pending changesets
+        unsigned int maxChWidth = 12;
+        std::string::size_type maxUserWidth = 13;
+        unsigned int maxNoWidth = 2;
+        unsigned int log = digits(pendingChangesets.size() - 1);
+        maxNoWidth = std::max(maxNoWidth, log);
+        for (std::vector<Db::PendingChangeset>::const_iterator it = pendingChangesets.begin();
+             it != pendingChangesets.end(); ++it) {
+            log = (digits(it->revision.t) + 3);
+            maxChWidth = std::max(maxChWidth, log);
+            maxUserWidth = std::max(maxUserWidth, it->author.size());
         }
+        std::cout << std::left << std::setw(maxNoWidth) << "No" << ": " << std::left
+                  << std::setw(maxChWidth) << "Changeset ID" << " | " << std::left
+                  << std::setw(maxUserWidth) << "Author" << " | " << "Time stamp                 " << " | "
+                  << "Parent revision" << std::endl << indent(maxNoWidth + 2 + maxChWidth, 1) << " | "
+                  << "Attach status" << " | " << "Connection info" << std::endl
+                  << indent(maxNoWidth + 2 + maxChWidth, 1) << " | " << "Detach message" << std::endl;
+        std::cout << "================================================================================" << std::endl;
+        for (unsigned int i = 0; i < pendingChangesets.size(); ++i) {
+            std::cout << std::left << std::setw(maxNoWidth) << i << ": " << pendingChangesets[i].revision
+                  << indent(maxChWidth - (digits(pendingChangesets[i].revision.t) + 3), 1) << " | " << std::left
+                  << std::setw(maxUserWidth) << pendingChangesets[i].author << " | " << pendingChangesets[i].timestamp
+                  << " | " << pendingChangesets[i].parentRevision << std::endl << indent(maxNoWidth + 2 + maxChWidth, 1)
+                  << " | " << std::left << std::setw(maxUserWidth) << pendingChangesets[i].attachStatus << " | "
+                  << (!pendingChangesets[i].activeConnectionInfo ? std::string("No info") :
+                      *(pendingChangesets[i].activeConnectionInfo)) << std::endl
+                  << indent(maxNoWidth + 2 + maxChWidth, 1) << " | " << pendingChangesets[i].message << std::endl;
+            std::cout << "--------------------------------------------------------------------------------" << std::endl;
+        }
+        std::cout << std::left << std::setw(maxNoWidth) << "n" << ": No changset" << std::endl << std::endl;
     }
-    std::cout << "n: No changset" << std::endl << std::endl;    
     // Waiting until user enteres correct input.
     for (;;)
     {
@@ -315,40 +376,62 @@ std::string UserInterfaceIO::readLine(const std::string &prompt)
 
 
 
-void UserInterfaceIO::printAttributes(const std::vector<Db::AttributeDefinition> &attributes, int indentLevel,
+void UserInterfaceIO::printAttributes(const std::vector<AttributeDefinition> &attributes, int indentLevel,
                                       std::ostream &out)
 {
-    for (std::vector<Db::AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
+    for (std::vector<AttributeDefinition>::const_iterator it = attributes.begin(); it != attributes.end(); ++it) {
         printAttribute(*it, indentLevel, out);
     }
 }
 
 
 
-void UserInterfaceIO::printObjects(const std::vector<Db::ObjectDefinition> &objects, int indentLevel,
+void UserInterfaceIO::printAttributesWithOrigin(
+    const std::vector<std::pair<AttributeDefinition, Db::Identifier> > &attributes, int indentLevel, std::ostream &out)
+{
+    for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::const_iterator it = attributes.begin();
+         it != attributes.end(); ++it) {
+        printAttributeWithOrigin(it->first, it->second, indentLevel, out);
+    }
+}
+
+
+
+void UserInterfaceIO::printObjects(const std::vector<ObjectDefinition> &objects, int indentLevel,
                                    bool fullName, std::ostream &out)
 {
-    for (std::vector<Db::ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         printObject(*it, indentLevel, fullName, out);
     }
 }
 
 
 
-void UserInterfaceIO::printAttribute(const Db::AttributeDefinition &attribute, int indentLevel, std::ostream &out)
+void UserInterfaceIO::printAttribute(const AttributeDefinition &attribute, int indentLevel, std::ostream &out)
 {
     out << indent(indentLevel) << attribute << std::endl;
 }
 
 
 
-void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
+void UserInterfaceIO::printAttributeWithOrigin(const AttributeDefinition &attribute, const Db::Identifier &origin,
+                                               int indentLevel, std::ostream &out)
+{
+    if (!origin.empty())
+        out << indent(indentLevel) << attribute << " -> " << origin << std::endl;
+    else
+        out << indent(indentLevel) << attribute << std::endl;
+}
+
+
+
+void UserInterfaceIO::printObject(const ObjectDefinition &object, int indentLevel, bool fullName, std::ostream &out)
 {
     if (fullName)
         out << indent(indentLevel) << object << std::endl;
     else
         out << indent(indentLevel)
-            << Db::ObjectDefinition(object.kind, pathToVector(object.name).back()) << std::endl;
+            << ObjectDefinition(object.kind, pathToVector(object.name).back()) << std::endl;
 }
 
 
@@ -356,6 +439,49 @@ void UserInterfaceIO::printObject(const Db::ObjectDefinition &object, int indent
 void UserInterfaceIO::printEnd(int indentLevel, std::ostream &out)
 {
     out << indent(indentLevel) << "end" << std::endl;
+}
+
+
+
+void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &revisions)
+{
+    std::cout << "Revisions:" << std::endl << std::endl;
+    if (revisions.empty()) {
+        std::cout << "No revisions in history." << std::endl;
+    } else {
+        unsigned int maxRevWidth = 8;
+        std::string::size_type maxUserWidth = 6;
+        for (std::vector<Db::RevisionMetadata>::const_iterator it = revisions.begin(); it != revisions.end(); ++it) {
+            unsigned int log = (digits(it->revision.r) + 1);
+            maxRevWidth = std::max(maxRevWidth, log);
+            maxUserWidth = std::max(maxUserWidth, it->author.size());
+        }
+        std::cout << std::left << std::setw(maxRevWidth) << "Revision" << " | " << std::left
+                  << std::setw(maxUserWidth) << "Author" << " | " << "Time stamp                 " << std::endl
+                  << indent(maxRevWidth, 1) << " | " << "Commit message" << std::endl;
+        std::cout << "================================================================================" << std::endl;
+        for (std::vector<Db::RevisionMetadata>::const_iterator it = revisions.begin(); it != revisions.end(); ++it) {
+            if (it != revisions.begin())
+                std::cout << "--------------------------------------------------------------------------------" << std::endl;
+            std::cout << it->revision << indent(maxRevWidth - (digits(it->revision.r) + 1), 1) << " | "
+                      << std::left << std::setw(maxUserWidth) << it->author << " | " << it->timestamp << std::endl
+                      << indent(maxRevWidth, 1) << " | " << it->commitMessage << std::endl;
+        }
+    }
+}
+
+
+
+void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModification> &modifications)
+{
+    if (modifications.empty()) {
+        std::cout << "No difference." << std::endl;
+    } else {
+        for (std::vector<Db::ObjectModification>::const_iterator it = modifications.begin();
+             it != modifications.end(); ++it) {
+            boost::apply_visitor(ModificationPrinter(), *it);
+        }
+    }
 }
 
 
@@ -376,6 +502,15 @@ std::string UserInterfaceIO::indent(unsigned int indentLevel, unsigned int tab)
         ss << " ";
     }
     return ss.str();
+}
+
+
+
+unsigned int UserInterfaceIO::digits(unsigned int n)
+{
+    if ((n == 0) || (n == 1))
+        return 1;
+    return std::floor(std::log10(n)) + 1;
 }
 
 

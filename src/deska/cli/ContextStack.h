@@ -26,7 +26,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/variant.hpp>
+#include <boost/optional.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Filter.h"
 
@@ -35,10 +35,34 @@ namespace Deska {
 namespace Cli {
 
 
-/** @short Typedef for one particular context stack item. */
-// FIXME: Allow Filter here
-//typedef boost::variant<Db::ObjectDefinition, Db::Filter> ContextStackItem;
-typedef Db::ObjectDefinition ContextStackItem;
+/** @short Structure for pairs kind name - object name of filter. */
+struct ContextStackItem
+{
+    /** @short Constructor only assignes the data members.
+    *
+    *   @param kindName Name of the kind (eg. host)
+    *   @param objectName Name of the instance of the kind (eg. hpv2)
+    */
+    ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName);
+
+    /** @short Constructor only assignes the data members.
+    *
+    *   @param kindName Name of the kind (eg. host)
+    *   @param objectName Name of the instance of the kind (eg. hpv2)
+    */
+    ContextStackItem(const Db::Identifier &kindName, const Db::Filter &objectsFilter);
+
+    /** Name of the kind */
+    Db::Identifier kind;
+    /** Name of the instance of the kind */
+    Db::Identifier name;
+    /** Filter */
+    boost::optional<Db::Filter> filter;
+};
+
+std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i);
+bool operator==(const ContextStackItem &a, const ContextStackItem &b);
+bool operator!=(const ContextStackItem &a, const ContextStackItem &b);
 
 /** @short Typedef for context stack. */
 typedef std::vector<ContextStackItem> ContextStack;
@@ -56,10 +80,21 @@ Db::Identifier contextStackToPath(const ContextStack &contextStack);
 
 /** @short Function for converting context stack into string representation.
 *
+*   This function does not dump filters, but only identifies, that the object is a filter to save place.
+*
 *   @param contextStack Context stack to convert
 *   @return String representation of the context stack composed from single object definitions
 */
 std::string contextStackToString(const ContextStack &contextStack);
+
+/** @short Function for converting context stack into string representation.
+*
+*   Function does dumb also filters with their string representation.
+*
+*   @param contextStack Context stack to convert
+*   @return String representation of the context stack composed from single object definitions
+*/
+std::string dumpContextStack(const ContextStack &contextStack);
 
 /** @short Function for converting object path into vector of identifiers.
 *

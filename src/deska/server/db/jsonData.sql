@@ -126,11 +126,16 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
-	res = list()
+	res = dict()
 	for line in cur:
 		data = [dutil.mystr(x) for x in line]
 		data = dict(zip(colnames,data))
-		res.append(data)
+
+		#FIXME? this shoud be slower, but its in protocol spec.
+		objectName = data['name']
+		del data['name']
+		res[objectName] = data
+
 
 	jsn[name] = res
 	return json.dumps(jsn)

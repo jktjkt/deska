@@ -179,10 +179,10 @@ def main(tag,filter):
 	res = list()
 	for line in data:
 		ver = dict()
-		ver["version"] = mystr(line[0])
+		ver["revision"] = mystr(line[0])
 		ver["author"] = mystr(line[1])
 		ver["timestamp"] = mystr(line[2])
-		ver["message"] = mystr(line[3])
+		ver["commitMessage"] = mystr(line[3])
 		res.append(ver)
 
 	jsn[name] = res

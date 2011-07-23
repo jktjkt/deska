@@ -391,7 +391,7 @@ class Templates:
 		
 		SELECT uid INTO {tbl}_uid FROM {tbl}_data_version(from_version) WHERE name = {tbl}_name AND {column} = {reftbl}_uid;
 		IF NOT FOUND THEN
-			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '70022';
+			RAISE 'No {tbl} with name % exist in this version', full_name USING ERRCODE = '70021';
 		END IF;
 
 		RETURN {tbl}_uid;
@@ -770,7 +770,7 @@ AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1' AND old_dest_bit = '0';
+	RETURN QUERY SELECT old_name FROM {tbl}_diff_data WHERE new_dest_bit = '1';
 END;
 $$
 LANGUAGE plpgsql;
@@ -933,6 +933,55 @@ LANGUAGE plpgsql;
 
 '''
 
+	diff_data_type_str = '''CREATE TYPE {tbl}_diff_data_type AS(
+	uid bigint,
+	name identifier,
+	{col_types},
+	template bigint,
+	dest_bit bit(1)
+);
+'''
+
+#template for function that returns resolved modifications between two versions
+	data_resolved_changes_function_string = '''CREATE OR REPLACE FUNCTION genproc.{tbl}_resolved_changes_between_versions(from_version bigint, to_version bigint)
+RETURNS SETOF {tbl}_diff_data_type AS
+$$
+DECLARE 
+	changeset_id bigint;
+BEGIN
+	changeset_id = get_current_changeset_or_null();
+	IF from_version = 0 AND changeset_id IS NULL  THEN
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM production.{templ_tbl};
+	ELSE
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(to_version);
+	END IF;
+		
+	--for each object uid finds its last modification between versions from_version and to_version
+	--joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
+	RETURN QUERY 
+	WITH RECURSIVE resolved_data AS (
+		SELECT uid,name,{columns_ex_templ}, template, template as orig_template,dest_bit
+		FROM {tbl}_changes_between_versions(from_version, to_version)
+		UNION ALL
+		SELECT
+			rd.uid AS uid, rd.name AS name, 
+			{rd_dv_coalesce},
+			dv.template AS template, rd.orig_template AS orig_template,
+			rd.dest_bit AS dest_bit
+		FROM template_data_version dv, resolved_data rd 
+		WHERE dv.uid = rd.template
+	)
+	SELECT uid, name, {columns_ex_templ},orig_template AS template, dest_bit
+	FROM resolved_data WHERE template IS NULL;
+
+	DROP TABLE template_data_version;
+END;
+$$
+LANGUAGE plpgsql;
+  
+'''
+
+
 #template for function that prepairs temp table for diff functions
 	diff_init_function_string = '''CREATE FUNCTION {tbl}_init_diff(from_version bigint, to_version bigint)
 RETURNS void
@@ -948,6 +997,23 @@ $$
 LANGUAGE plpgsql;
 
 '''
+
+#template for function that prepairs temp table for diff functions from resolved_data
+	diff_init_resolved_function_string = '''CREATE FUNCTION {tbl}_init_resolved_diff(from_version bigint, to_version bigint)
+RETURNS void
+AS
+$$
+BEGIN
+	--full outer join of data in from_version and list of changes made between from_version and to_version
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS SELECT {diff_columns}
+		FROM {tbl}_resolved_data(from_version) dv FULL OUTER JOIN {tbl}_resolved_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
 	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION {tbl}_init_diff()
@@ -972,6 +1038,50 @@ $$
   
 '''
 
+#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
+	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION {tbl}_init_resolved_diff()
+RETURNS void
+AS
+$$
+DECLARE
+	changeset_var bigint;
+	from_version bigint;	
+BEGIN
+	--it's necessary to have opened changeset in witch we would like to see diff
+	changeset_var = get_current_changeset();
+	from_version = id2num(parent(changeset_var));
+	
+	CREATE TEMP TABLE local_template_data_version AS (SELECT * FROM {templ_tbl}_data_version(0));
+	CREATE TEMP TABLE current_changest_resolved_data AS (
+		WITH RECURSIVE resolved_data AS(
+		SELECT uid, name, {columns_ex_templ}, template, template AS orig_template, dest_bit FROM {tbl}_history WHERE version = changeset_var
+		UNION ALL
+		SELECT
+			rd.uid AS uid, rd.name AS name, 
+			{rd_dv_coalesce},
+			dv.template AS template, rd.orig_template AS orig_template,
+			rd.dest_bit AS dest_bit
+		FROM local_template_data_version dv, resolved_data rd 
+		WHERE dv.uid = rd.template
+		)
+		SELECT uid, name, {columns_ex_templ},orig_template AS template, dest_bit
+		FROM resolved_data WHERE template IS NULL
+	);
+	--full outer join of data in parent revision and changes made in opened changeset
+	CREATE TEMP TABLE {tbl}_diff_data 
+	AS  SELECT {diff_columns}
+		FROM current_changest_resolved_data chv
+			FULL OUTER JOIN {tbl}_resolved_data(from_version) dv ON (dv.uid = chv.uid);
+			
+	DROP TABLE current_changest_resolved_data;
+	DROP TABLE local_template_data_version;
+END
+$$
+  LANGUAGE plpgsql;
+  
+'''
+
+
 #template for terminating diff, drops temp table with data for diff functions
 	diff_terminate_function_string = '''CREATE FUNCTION 
 {tbl}_terminate_diff()
@@ -986,7 +1096,7 @@ LANGUAGE plpgsql;
 
 '''
 
-	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+	resolved_object_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data(name_ text, from_version bigint = 0)
 RETURNS {tbl}_type
 AS
 $$
@@ -1008,6 +1118,8 @@ BEGIN
 		END IF;
 	END IF;
 
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+	
 	WITH recursive resolved_data AS (
         SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
@@ -1016,7 +1128,7 @@ BEGIN
         SELECT
 			{rd_dv_coalesce},
 			dv.template, rd.orig_template
-        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
 	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
@@ -1025,6 +1137,9 @@ BEGIN
 	IF NOT FOUND THEN
 		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 	END IF;
+	
+	DROP TABLE template_data_version;
+	
 	RETURN data;
 END
 $$
@@ -1032,7 +1147,7 @@ LANGUAGE plpgsql;
 
 '''
 
-	resolved_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(name_ text, from_version bigint = 0)
+	resolved_object_data_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data(name_ text, from_version bigint = 0)
 RETURNS {tbl}_type
 AS
 $$
@@ -1055,6 +1170,8 @@ BEGIN
 		END IF;
 	END IF;
 
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
 	WITH recursive resolved_data AS (
         SELECT {columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
@@ -1063,7 +1180,7 @@ BEGIN
         SELECT
 			{rd_dv_coalesce},
 			dv.template, rd.orig_template
-        FROM {templ_tbl}_data_version(from_version) dv, resolved_data rd 
+        FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
 	SELECT {columns_ex_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
@@ -1072,6 +1189,8 @@ BEGIN
 	IF NOT FOUND THEN
 		RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
 	END IF;
+	
+	DROP TABLE template_data_version;
 	RETURN data;
 END
 $$
@@ -1082,6 +1201,7 @@ LANGUAGE plpgsql;
 
 	resolved_data_template_info_type_string = '''CREATE TYPE {tbl}_data_template_info_type AS(
 	{columns},
+	{templ_columns},
 	template text
 );
 '''
@@ -1092,8 +1212,6 @@ AS
 $$
 DECLARE
 	data {tbl}_data_template_info_type;
-	current_changeset bigint;
-	dbit bit(1);
 BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
@@ -1125,20 +1243,21 @@ LANGUAGE plpgsql;
 
 '''
 
-	resolved_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data_template_info(from_version bigint = 0)
-RETURNS SETOF {tbl}_data_template_info_type
+	resolved_object_data_template_info_embed_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_object_data_template_info(name_ text, from_version bigint = 0)
+RETURNS {tbl}_data_template_info_type
 AS
 $$
 DECLARE
+	obj_uid bigint;
 	data {tbl}_data_template_info_type;
-	current_changeset bigint;
-	dbit bit(1);
 BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
 
-	RETURN QUERY WITH recursive resolved_data AS (
+	obj_uid = {tbl}_get_uid(name_, from_version);
+	WITH recursive resolved_data AS (
         SELECT {columns}, {case_columns}, template, template as orig_template
         FROM {tbl}_data_version(from_version)
+        WHERE uid = obj_uid
         UNION ALL
         SELECT
 			{rd_dv_coalesce},
@@ -1147,7 +1266,7 @@ BEGIN
         FROM template_data_version dv, resolved_data rd 
         WHERE dv.uid = rd.template
 	)
-	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template
+	SELECT {columns_ex_templ}, {columns_templ}, {templ_tbl}_get_name(orig_template) AS template INTO {data_columns}
 	FROM resolved_data WHERE template IS NULL;
 	
 	IF NOT FOUND THEN
@@ -1155,6 +1274,89 @@ BEGIN
 	END IF;
 	
 	DROP TABLE template_data_version;
+	
+	RETURN data;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	multiple_resolved_data_template_info_type_string = '''CREATE TYPE multiple_{tbl}_data_template_info_type AS(
+	name identifier,
+	uid bigint,
+	{columns},
+	{templ_columns},
+	template bigint
+);
+'''
+
+	multiple_resolved_data_type_string = '''CREATE TYPE multiple_{tbl}_data_type AS(
+	name identifier,
+	uid bigint,
+	{columns},
+	template bigint
+);
+'''
+
+	resolved_data_template_info_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data_template_info(from_version bigint = 0)
+RETURNS SETOF multiple_{tbl}_data_template_info_type
+AS
+$$
+BEGIN
+	CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+	RETURN QUERY WITH recursive resolved_data AS (
+        SELECT uid,name,{columns}, {case_columns}, template, template as orig_template
+        FROM {tbl}_data_version(from_version)
+        UNION ALL
+        SELECT
+			rd.uid AS uid, rd.name AS name,
+			{rd_dv_coalesce},
+			{templ_case_columns},
+			dv.template, rd.orig_template
+        FROM template_data_version dv, resolved_data rd 
+        WHERE dv.uid = rd.template
+	)
+	SELECT name, uid, {columns_ex_templ}, {columns_templ}, orig_template AS template
+	FROM resolved_data WHERE template IS NULL;
+	
+	DROP TABLE template_data_version;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	resolved_data_string = '''CREATE OR REPLACE FUNCTION {tbl}_resolved_data(from_version bigint = 0)
+RETURNS SETOF multiple_{tbl}_data_type
+AS
+$$
+DECLARE
+	changeset_id integer;
+BEGIN
+	changeset_id = get_current_changeset_or_null();
+	IF from_version = 0 AND changeset_id IS NULL  THEN
+		RETURN QUERY SELECT name, uid, {columns_ex_templ}, template AS template FROM production.{tbl};
+	ELSE
+		CREATE TEMP TABLE template_data_version AS SELECT * FROM {templ_tbl}_data_version(from_version);
+
+		RETURN QUERY WITH recursive resolved_data AS (
+			SELECT uid,name,version,{columns}, template, template as orig_template
+			FROM {tbl}_data_version(from_version)
+			UNION ALL
+			SELECT
+				rd.uid AS uid, rd.name AS name, rd.version AS version,
+				{rd_dv_coalesce},
+				dv.template, rd.orig_template
+			FROM template_data_version dv, resolved_data rd 
+			WHERE dv.uid = rd.template
+		)
+		SELECT name, uid, {columns_ex_templ}, orig_template AS template
+		FROM resolved_data WHERE template IS NULL;
+		
+		DROP TABLE template_data_version;
+	END IF;
 END
 $$
 LANGUAGE plpgsql;

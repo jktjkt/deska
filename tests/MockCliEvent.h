@@ -28,8 +28,9 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "deska/db/Objects.h"
+#include "deska/cli/CliObjects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 
 
 #define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
@@ -111,12 +112,20 @@ struct MockCliEvent
         EVENT_PRINT_ATTRIBUTES,
         /** @short The printAttribute() event */
         EVENT_PRINT_ATTRIBUTE,
+        /** @short The printAttributesWithOrigin() event */
+        EVENT_PRINT_ATTRIBUTES_WITH_ORIGIN,
+        /** @short The printAttributeWithOrigin() event */
+        EVENT_PRINT_ATTRIBUTE_WITH_ORIGIN,
         /** @short The printObjects() event */
         EVENT_PRINT_OBJECTS,
         /** @short The printObject() event */
         EVENT_PRINT_OBJECT,
         /** @short The printEnd() event */
         EVENT_PRINT_END,
+        /** @short The printRevisions() event */
+        EVENT_PRINT_REVISIONS,
+        /** @short The printDiff() event */
+        EVENT_PRINT_DIFF,
         /** @short The addCommandCompletion() event */
         EVENT_ADD_COMMAND_COMPLETION,
         /** @short Fake, invalid event */
@@ -128,17 +137,21 @@ struct MockCliEvent
     Event eventKind;
     std::string str1;
     std::string str2;
+    Deska::Db::Identifier ident;
     int integer;
     bool boolean;
-    boost::optional<Deska::Db::ObjectDefinition> object;
-    boost::optional<Deska::Db::AttributeDefinition> attr;
+    boost::optional<Deska::Cli::ObjectDefinition> object;
+    boost::optional<Deska::Cli::AttributeDefinition> attr;
     std::map<std::string, std::string> map1;
     std::map<std::string, std::string> map2;
     std::vector<std::pair<std::string, std::string> > vectpair;
     std::vector<std::string> vect;
     std::vector<Deska::Db::PendingChangeset> changesets;
-    std::vector<Deska::Db::AttributeDefinition> attrs;
-    std::vector<Deska::Db::ObjectDefinition> objects;
+    std::vector<Deska::Db::RevisionMetadata> revisions;
+    std::vector<Deska::Db::ObjectModification> modifications;
+    std::vector<Deska::Cli::AttributeDefinition> attrs;
+    std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
+    std::vector<Deska::Cli::ObjectDefinition> objects;
 };
 
 

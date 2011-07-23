@@ -24,6 +24,8 @@
 #include <sstream>
 #include <fstream>
 #include <boost/foreach.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "DbInteraction.h"
 #include "Exceptions.h"
@@ -74,6 +76,25 @@ std::string Command::usage()
 
 
 
+std::vector<std::string> Command::extractParams(const std::string &params)
+{
+    std::vector<std::string> paramsList;
+    boost::char_separator<char> separators(" \t");
+    boost::tokenizer<boost::char_separator<char> > tokenizer(params, separators);
+    std::string token;
+    
+    for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
+         it != tokenizer.end(); ++it) {
+        token = *it;
+        boost::algorithm::trim(token);
+        paramsList.push_back(token);
+    }
+
+    return paramsList;
+}
+
+
+
 Start::Start(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "start";
@@ -95,13 +116,16 @@ void Start::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return;
     }
-    if (ui->inChangeset) {
-        ui->io->reportError("Error: You are already in the changeset!");
+    if (ui->currentChangeset) {
+        std::ostringstream ostr;
+        ostr << "Error: You are already in the changeset " << *(ui->currentChangeset) << "!";
+        ui->io->reportError(ostr.str());
         return;
     }
-    ui->m_dbInteraction->createNewChangeset(); 
-    ui->inChangeset = true;
-    ui->io->printMessage("Changeset started.");
+    ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
+    std::ostringstream ostr;
+    ostr << "Changeset " << *(ui->currentChangeset) << " started.";
+    ui->io->printMessage(ostr.str());
 }
 
 
@@ -127,8 +151,10 @@ void Resume::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return;
     }
-    if (ui->inChangeset) {
-        ui->io->reportError("Error: You are already in the changeset!");
+    if (ui->currentChangeset) {
+        std::ostringstream ostr;
+        ostr << "Error: You are already in the changeset " << *(ui->currentChangeset) << "!";
+        ui->io->reportError(ostr.str());
         return;
     }
     try {
@@ -139,8 +165,10 @@ void Resume::operator()(const std::string &params)
         if (choice >= 0) {
             // Some changeset was choosen
             ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-            ui->inChangeset = true;
-            ui->io->printMessage("Changeset resumed.");
+            ui->currentChangeset = pendingChangesets[choice].revision;
+            std::ostringstream ostr;
+            ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
+            ui->io->printMessage(ostr.str());
         }
         
     } catch (Deska::Db::NotFoundError &e) {
@@ -179,7 +207,7 @@ Commit::~Commit()
 
 void Commit::operator()(const std::string &params)
 {
-    if (!(ui->inChangeset)) {
+    if (!(ui->currentChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
@@ -189,10 +217,19 @@ void Commit::operator()(const std::string &params)
     } else {
         commitMessage = ui->io->askForCommitMessage();
     }
-    ui->m_dbInteraction->commitChangeset(commitMessage);
-    ui->inChangeset = false;
-    ui->io->printMessage("Changeset commited.");
-    ui->m_parser->clearContextStack();
+    try {
+        ui->m_dbInteraction->commitChangeset(commitMessage);
+        std::ostringstream ostr;
+        ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
+        ui->io->printMessage(ostr.str());
+        ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
+        ui->m_parser->clearContextStack();
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: quick & durty "fix" for the demo
+        std::ostringstream ss;
+        ss << "Error: commit failed: " << e.what();
+        ui->io->reportError(ss.str());
+    }
 }
 
 
@@ -214,7 +251,7 @@ Detach::~Detach()
 
 void Detach::operator()(const std::string &params)
 {
-    if (!(ui->inChangeset)) {
+    if (!(ui->currentChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
@@ -225,8 +262,10 @@ void Detach::operator()(const std::string &params)
         detachMessage = ui->io->askForDetachMessage();
     }
     ui->m_dbInteraction->detachFromChangeset(detachMessage);
-    ui->inChangeset = false;
-    ui->io->printMessage("Changeset detached.");
+    std::ostringstream ostr;
+    ostr << "Changeset " << *(ui->currentChangeset) << " detached.";
+    ui->io->printMessage(ostr.str());
+    ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
     ui->m_parser->clearContextStack();
 }
 
@@ -253,13 +292,15 @@ void Abort::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return;
     }
-    if (!(ui->inChangeset)) {
+    if (!(ui->currentChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
     ui->m_dbInteraction->abortChangeset();
-    ui->inChangeset = false;
-    ui->io->printMessage("Changeset aborted.");
+    std::ostringstream ostr;
+    ostr << "Changeset " << *(ui->currentChangeset) << " aborted.";
+    ui->io->printMessage(ostr.str());
+    ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
     ui->m_parser->clearContextStack();
 }
 
@@ -286,11 +327,102 @@ void Status::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return;
     }
-    if (ui->inChangeset) {
-        ui->io->printMessage("You are connected to a changeset.");
+    if (ui->currentChangeset) {
+        std::ostringstream ostr;
+        ostr << "You are connected to changeset " << *(ui->currentChangeset) << ".";
+        ui->io->printMessage(ostr.str());
     } else {
         ui->io->printMessage("You are not connected to any changeset.");
     }
+}
+
+
+
+Log::Log(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "log";
+    cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions.";
+    complPatterns.push_back("log");
+}
+
+
+
+Log::~Log()
+{
+}
+
+
+
+void Log::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
+        ui->io->printRevisions(revisions);
+        return;
+    }
+}
+
+
+
+Diff::Diff(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "diff";
+    cmdUsage = "Command for showing difference between revisions. Without parameters shows diff of current changeset with its parent. With two parameters, revisions IDs shows diff between these revisions.";
+    complPatterns.push_back("diff");
+}
+
+
+
+Diff::~Diff()
+{
+}
+
+
+
+void Diff::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        if (!ui->currentChangeset) {
+            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+            return;
+        }
+        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+            *(ui->currentChangeset));
+        ui->io->printDiff(modifications);
+        return;
+    }
+
+    std::vector<std::string> paramsList = extractParams(params);
+    if (paramsList.size() != 2) {
+        ui->io->reportError("Invalid number of parameters entered!");
+        return;
+    }
+
+    try {
+        Db::RevisionId revA = stringToRevision(paramsList[0]);
+        Db::RevisionId revB = stringToRevision(paramsList[1]);
+        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifference(
+            stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
+        ui->io->printDiff(modifications);
+    } catch (std::invalid_argument &e) {
+        ui->io->reportError("Invalid parameters entered!");
+        return;
+    }
+}
+
+
+
+Db::RevisionId Diff::stringToRevision(const std::string &rev)
+{
+    if ((rev.size() < 2) || (rev[0] != 'r'))
+        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    std::string revStr(rev.begin() + 1, rev.end());
+    unsigned int revInt;
+    std::istringstream iss(revStr);
+    iss >> revInt;
+    if (iss.fail())
+        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    return Db::RevisionId(revInt);
 }
 
 
@@ -340,11 +472,13 @@ Dump::~Dump()
 void Dump::operator()(const std::string &params)
 {
     if (params.empty()) {
+        // FIXME: Dump recursively
+        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                //ui->io->printObject(object, 0, false);
                 ui->io->printObject(object, 0, true);
-                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1);
-                ui->io->printEnd(0);
+                dumpObjectRecursive(object, 1);
             }
         }
     } else {
@@ -353,15 +487,73 @@ void Dump::operator()(const std::string &params)
             ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
             return;
         }
+        // FIXME: Dump recursively
+        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Db::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                //ui->io->printObject(object, 0, false, ofs);
                 ui->io->printObject(object, 0, true, ofs);
-                ui->io->printAttributes(ui->m_dbInteraction->allAttributes(object), 1, ofs);
-                ui->io->printEnd(0, ofs);
+                dumpObjectRecursive(object, 1, ofs);
             }
         }
         ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
     }  
+}
+
+
+
+void Dump::dumpObjectRecursive(const ObjectDefinition &object, unsigned int depth, std::ostream &out)
+{
+    std::vector<AttributeDefinition> attributes = ui->m_dbInteraction->allAttributes(object);
+    ui->io->printAttributes(attributes, depth, out);
+    std::vector<ObjectDefinition> nestedObjs = ui->m_dbInteraction->allNestedObjects(object);
+    for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+        ui->io->printObject(*it, depth, false, out);
+        dumpObjectRecursive(*it, depth + 1, out);
+    }
+    if (depth > 0)
+        ui->io->printEnd(depth - 1, out);
+}
+
+
+
+Context::Context(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "context";
+    cmdUsage = "Shows current context with detail of filters. With parameter \"objects\" prints list of objects matched by current context with its filters.";
+    complPatterns.push_back("context objects");
+}
+
+
+
+Context::~Context()
+{
+}
+
+
+
+void Context::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        std::string contextDump = dumpContextStack(ui->m_parser->currentContextStack());
+        if (contextDump.empty())
+            ui->io->printMessage("No context.");
+        else
+            ui->io->printMessage(contextDump);
+        return;
+    }
+
+    if (params != "objects") {
+        ui->io->reportError("Error: Unknown parameter. Function context supports parameter \"objects\". Try \"help context\".");
+        return;
+    }
+    
+    std::vector<ObjectDefinition> objects =
+        ui->m_dbInteraction->expandContextStack(ui->m_parser->currentContextStack());
+    if (objects.empty())
+        ui->io->printMessage("No objects matched by current context stack.");
+    else
+        ui->io->printObjects(objects, 0, true);
 }
 
 
@@ -387,7 +579,7 @@ void Restore::operator()(const std::string &params)
         ui->io->reportError("Error: This command requires file name as a parameter.");
         return;
     }
-    if (!ui->inChangeset) {
+    if (!ui->currentChangeset) {
         ui->io->reportError("Error: Wou have to be connected to a changeset to perform restoration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return;
     }
@@ -485,7 +677,7 @@ void Help::operator()(const std::string &params)
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io):
-    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), inChangeset(false)
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset()
 {
     // Register all commands
     typedef std::tr1::shared_ptr<Command> Ptr;
@@ -495,8 +687,11 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["detach"] = Ptr(new Detach(this));
     commandsMap["abort"] = Ptr(new Abort(this));
     commandsMap["status"] = Ptr(new Status(this));
+    commandsMap["log"] = Ptr(new Log(this));
+    commandsMap["diff"] = Ptr(new Diff(this));
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
+    commandsMap["context"] = Ptr(new Context(this));
     commandsMap["dump"] = Ptr(new Dump(this));
     commandsMap["restore"] = Ptr(new Restore(this));
     // Help has to be constructed last because of completions generating
@@ -530,7 +725,7 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (io->confirmRestoration(Db::ObjectDefinition(kind,object))) {
+        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             return true;
         } else {
@@ -544,8 +739,14 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 bool UserInterface::applySetAttribute(const ContextStack &context,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    m_dbInteraction->setAttribute(context, Db::AttributeDefinition(attribute, value));
-    return true;
+    try {
+        m_dbInteraction->setAttribute(context, AttributeDefinition(attribute, value));
+        return true;
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: potemkin's fix for the demo
+        io->reportError(e.what());
+        return false;
+    }
 }
 
 
@@ -558,9 +759,9 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 
 
 
-bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Filter &filter)
+bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
+                                       const Db::Filter &filter)
 {
-    // TODO
     return true;
 }
 
@@ -570,15 +771,20 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 {
     if (context.empty()) {
         // Print top level objects if we are not in any context
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->kindNames()) {
+        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
     } else {
         // If we are in some context, print all attributes and kind names
-        std::vector<Db::AttributeDefinition> attributes = m_dbInteraction->allAttributes(context);
-        io->printAttributes(attributes, 0);
-        std::vector<Db::ObjectDefinition> kinds = m_dbInteraction->allNestedKinds(context);
-        io->printObjects(kinds, 0, false);
+        try {
+            showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+        } catch (std::runtime_error &e) {
+            std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
+            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+                io->printObject(*it, 0, true);
+                showObjectRecursive(*it, 1);
+            }
+        }
     }
     return true;
 }
@@ -609,7 +815,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
     if (m_dbInteraction->objectExists(context))
         return true;
 
-    if (!inChangeset) {
+    if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
@@ -618,7 +824,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return true;
 
     // Object does not exist -> ask the user here
-    return io->confirmCreation(Db::ObjectDefinition(kind,object));
+    return io->confirmCreation(ObjectDefinition(kind,object));
 }
 
 
@@ -626,7 +832,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 bool UserInterface::confirmSetAttribute(const ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
-    if (!inChangeset) {
+    if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to sat an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
@@ -637,7 +843,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context,
 
 bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
 {
-    if (!inChangeset) {
+    if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
@@ -646,9 +852,15 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 
 
 
-bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Filter &filter)
+bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
+                                         const Db::Filter &filter)
 {
-    return true;
+    if (m_dbInteraction->expandContextStack(context).empty()) {
+        io->printMessage("Entered filter does not match any object.");
+        return false;
+    } else {
+        return true;
+    }
 }
 
 
@@ -662,21 +874,25 @@ bool UserInterface::confirmFunctionShow(const ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
-    if (!inChangeset) {
+    if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
 
     if (nonInteractiveMode)
         return true;
-    return io->confirmDeletion(context.back());
+    // FIXME: Some better messages
+    if (context.back().filter)
+        return io->confirmDeletion(ObjectDefinition(context.back().kind, "from filter"));
+    else
+        return io->confirmDeletion(ObjectDefinition(context.back().kind, context.back().name));
 }
 
 
 
 bool UserInterface::confirmFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
-    if (!inChangeset) {
+    if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to rename an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
@@ -722,6 +938,25 @@ void UserInterface::run()
             (*(commandsMap[parsedCommand]))(parsedArguments);
         }
     }
+}
+
+
+
+void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned int depth)
+{
+    bool printEnd = false;
+    std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
+        m_dbInteraction->allAttributesResolvedWithOrigin(object);
+    printEnd = printEnd || !attributes.empty();
+    io->printAttributesWithOrigin(attributes, depth);
+    std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
+    printEnd = printEnd || !nestedObjs.empty();
+    for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
+        io->printObject(*it, depth, false);
+        showObjectRecursive(*it, depth + 1);
+    }
+    if (printEnd && (depth > 0))
+        io->printEnd(depth - 1);
 }
 
 

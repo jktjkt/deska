@@ -31,7 +31,9 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
 {
     expectAddCommandCompletion("abort");
     expectAddCommandCompletion("commit");
+    expectAddCommandCompletion("context objects");
     expectAddCommandCompletion("detach");
+    expectAddCommandCompletion("diff");
     expectAddCommandCompletion("dump %file");
     expectAddCommandCompletion("exit");
     expectAddCommandCompletion("quit");
@@ -39,22 +41,28 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("help help");
     expectAddCommandCompletion("help abort");
     expectAddCommandCompletion("help commit");
+    expectAddCommandCompletion("help context");
     expectAddCommandCompletion("help detach");
+    expectAddCommandCompletion("help diff");
     expectAddCommandCompletion("help dump");
     expectAddCommandCompletion("help exit");
+    expectAddCommandCompletion("help log");
     expectAddCommandCompletion("help quit");
     expectAddCommandCompletion("help restore");
     expectAddCommandCompletion("help resume");
     expectAddCommandCompletion("help start");
     expectAddCommandCompletion("help status");
     expectAddCommandCompletion("help hardware");
+    expectAddCommandCompletion("help hardware_template");
     expectAddCommandCompletion("help host");
     expectAddCommandCompletion("help interface");
+    expectAddCommandCompletion("help interface_template");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
     expectAddCommandCompletion("help no");
     expectAddCommandCompletion("help show");
+    expectAddCommandCompletion("log");
     expectAddCommandCompletion("exit");
     expectAddCommandCompletion("quit");
     expectAddCommandCompletion("restore %file");

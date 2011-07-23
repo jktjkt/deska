@@ -68,6 +68,7 @@ template <typename Iterator> class AttributesParser;
 template <typename Iterator> class FunctionWordsParser;
 template <typename Iterator> class KindsOnlyParser;
 template <typename Iterator> class PredefinedRules;
+template <typename Iterator> class FilterExpressionsParser;
 template <typename Iterator> class FiltersParser;
 template <typename Iterator> class KindsParser;
 template <typename Iterator> class KindsFiltersParser;
@@ -241,12 +242,13 @@ public:
 private:
 
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
-    void addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<Iterator>* attributesSettingParser,
-                           AttributeRemovalsParser<Iterator>* attributeRemovalsParser,
-                           FiltersParser<Iterator> *filtersParser);
+    void addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<Iterator> *attributesSettingParser,
+                           AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                           FilterExpressionsParser<Iterator> *filterExpressionsParser);
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
-    void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator>* kindsOnlyParser,
+    void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *kindsOnlyParser,
                         KindsFiltersParser<Iterator> *kindsFiltersParser);
+    void addNestedKinds(const Db::Identifier &kindName, FiltersParser<Iterator> *filtersParser);
 
     /** @short Parses the whole line and invokes appropriate signals.
     *
@@ -287,6 +289,7 @@ private:
     std::map<std::string, AttributeRemovalsParser<Iterator>* > attributeRemovalsParsers;
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
+    std::map<std::string, FilterExpressionsParser<Iterator>* > filterExpressionsParsers;
     std::map<std::string, FiltersParser<Iterator>* > filtersParsers;
     std::map<std::string, KindsFiltersParser<Iterator>* > kindsFiltersParsers;
     std::map<std::string, KindsParser<Iterator>* > kindsParsers;

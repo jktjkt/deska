@@ -38,6 +38,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     expectNothingElse();
 
     // Simulate slots triggered by the Parser
+    slotParserParsingStarted();
     slotParserCategoryEntered("a", "b");
     slotParserSetAttr("foo", Deska::Db::Value("bar"));
     slotParserRemoveAttr("rab");
@@ -45,6 +46,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     slotParserParsingFinished();
 
     // ...and verify that we indeed received them
+    expectParsingStarted();
     expectCategoryEntered("a", "b");
     expectSetAttr("foo", Deska::Db::Value("bar"));
     expectRemoveAttr("rab");
@@ -56,6 +58,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     verifyEmptyStack();
     
     // Simulate function slots triggered by the Parser
+    slotParserParsingStarted();
     slotParserCategoryEntered("a", "b");
     slotParserFunctionShow();
     slotParserFunctionDelete();
@@ -64,6 +67,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     slotParserParsingFinished();
     
     // ...and verify that we indeed received them
+    expectParsingStarted();
     expectCategoryEntered("a", "b");
     expectFunctionShow();
     expectFunctionDelete();
@@ -79,16 +83,23 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
 /** @short Test the implementation of equality test on caught exceptions */
 BOOST_FIXTURE_TEST_CASE(test_mock_exceptions, ParserTestFixture) {
     // Verify that basic exception handling works well
+    slotParserParsingStarted();
     slotParserParseError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
+    
+    expectParsingStarted();
     expectParseError(Deska::Cli::InvalidAttributeDataTypeError("foo bar"));
     expectNothingElse();
+
 
     // Test exception parameters
     std::string s1 = "this is a sample input";
     std::string::const_iterator it1 = s1.begin() + s1.size() / 2;
+    slotParserParsingStarted();
     slotParserParseError(Deska::Cli::UndefinedAttributeError("some message", s1, it1));
     std::string s2 = "this is a sample input";
     std::string::const_iterator it2 = s2.begin() + s2.size() / 2;
+
+    expectParsingStarted();
     expectParseError(Deska::Cli::UndefinedAttributeError("some message", s2, it2));
     expectNothingElse();
 }

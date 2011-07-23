@@ -44,6 +44,13 @@ std::string repr_vect(const std::vector<T> &v)
     return ss.str();
 }
 
+std::string repr_ObjectRelation(const ObjectRelation &r)
+{
+    std::ostringstream ss;
+    ss << r;
+    return ss.str();
+}
+
 void exportObjectRelations()
 {
     // required for kindRelations
@@ -62,7 +69,9 @@ void exportObjectRelations()
     class_<ObjectRelation>("ObjectRelation", no_init)
             .def_readonly("kind", &ObjectRelation::kind)
             .def_readonly("target", &ObjectRelation::target)
-            .def(self_ns::str(self));
+            .def("__repr__", repr_ObjectRelation)
+            .def(self_ns::str(self))
+            .def(self < other<ObjectRelation>());
 }
 
 void exportAttributeTypes()
@@ -127,6 +136,11 @@ void exportNastyMaps()
     typedef std::map<Identifier, map_Identifier_pair_Identifier_Value> map_Identifier_map_Identifier_pair_Identifier_Value;
     class_<map_Identifier_map_Identifier_pair_Identifier_Value>("std_map_Identifier_std_map_Identifier_pair_Identifier_Value")
             .def(map_indexing_suite<map_Identifier_map_Identifier_pair_Identifier_Value>());
+
+    // also define a proper type for the multipleObjectData
+    typedef std::map<Identifier, std::map<Identifier, Value> > map_Identifier_map_Identifier_Value;
+    class_<map_Identifier_map_Identifier_Value>("std_map_Identifier_map_Identifier_Value")
+            .def(map_indexing_suite<map_Identifier_map_Identifier_Value>());
 }
 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Connection_kindInstances_overloads, kindInstances, 1, 3);

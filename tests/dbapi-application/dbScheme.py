@@ -3,11 +3,11 @@
 from apiUtils import *
 
 helper_interface_attrs = {
-    "note": "string", "ip4": "string", "ip6": "string", "host": "identifier",
-    "mac": "string", "template": "identifier"
+    "note": "string", "ip4": "ipv4address", "ip6": "ipv6address", "host": "identifier",
+    "mac": "macaddress", "template": "identifier"
 }
 helper_hardware_attrs = {
-    "warranty": "string", "purchase": "string", "vendor": "identifier",
+    "warranty": "date", "purchase": "date", "vendor": "identifier",
     "template": "identifier", "cpu_num": "int", "ram": "int", "note": "string"
 }
 
@@ -16,7 +16,8 @@ declarative = [
         AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware'))),
 
     kindAttributes("interface").returns(helper_interface_attrs),
-    kindAttributes("interface_template").returns(helper_interface_attrs),
+    kindAttributes("interface_template").returns(
+        dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host")),
     kindAttributes("vendor").returns({}),
     kindAttributes("host").returns(
         {
@@ -30,13 +31,17 @@ declarative = [
     kindAttributes("pwnpwn").throws(InvalidKindError()),
 
     kindRelations("interface").returns(
-        [{'relation': 'EMBED_INTO', 'target': 'host'}]
+        AnyOrderList([
+            {'relation': 'EMBED_INTO', 'target': 'host'},
+            {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
     ),
     kindRelations("host").returns(
-        [{'relation': 'REFERS_TO', 'target': 'hardware'}]
+        AnyOrderList([{'relation': 'REFERS_TO', 'target': 'hardware'}])
     ),
     kindRelations("hardware").returns(
-        [{'relation': 'REFERS_TO', 'target': 'vendor'}]
+        AnyOrderList([
+            {'relation': 'REFERS_TO', 'target': 'vendor'},
+            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
     kindRelations("vendor").returns([]),
 ]
