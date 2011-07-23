@@ -700,6 +700,11 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_INT:
     {
         JsonContext c2("When extracting TYPE_INT");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: temporary workaround for Redmine#267
+            target->value = boost::lexical_cast<int>(value.get_str());
+            return;
+        }
         checkJsonValueType(value, json_spirit::int_type);
         target->value = value.get_int();
         return;
