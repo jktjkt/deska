@@ -176,7 +176,7 @@ class Condition():
 			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 			self.kind = revEmbed[self.col]
 		refs = generated.refs()
-		if self.kind in refs and self.col == refs[self.kind]:
+		if self.kind in refs and self.col in refs[self.kind]:
 			# update coldef for identifier references
 			self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 
@@ -236,7 +236,7 @@ class Filter():
 			else:
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
-				if kind not in generated.refs() or mykind != generated.refs()[kind]:
+				if kind not in generated.refs() or mykind not in generated.refs()[kind]:
 					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
 				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
 				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)

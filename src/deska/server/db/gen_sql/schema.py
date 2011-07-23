@@ -155,6 +155,7 @@ CREATE FUNCTION commit_all(message text)
 		columns = self.plpy.execute(self.column_str.format(tbl))
 		att_types = self.plpy.execute(self.att_type_str.format(tbl))
 		self.atts[tbl] = dict(att_types)
+		self.refs[tbl] = list()
 
 		# create table obj
 		table = Table(tbl)
@@ -183,7 +184,7 @@ CREATE FUNCTION commit_all(message text)
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 			else:
-				self.refs[tbl] = col[1]
+				self.refs[tbl].append(col[1])
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str.format(tbl))
 		table.embed_into = ""
