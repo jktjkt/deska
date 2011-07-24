@@ -138,5 +138,18 @@ std::vector<Db::Identifier> pathToVector(const std::string &path)
 }
 
 
+
+Db::Identifier vectorToPath(const std::vector<Db::Identifier> &identifiers)
+{
+    std::ostringstream ss;
+    for (std::vector<Db::Identifier>::const_iterator it = identifiers.begin(); it != identifiers.end(); ++it) {
+        if (it != identifiers.begin())
+            ss << "->";
+        ss << *it;
+    }
+    return ss.str();
+}
+
+
 }
 }

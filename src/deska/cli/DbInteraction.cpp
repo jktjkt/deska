@@ -58,10 +58,14 @@ void DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
+            //modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
             m_api->createObject(it->kind, it->name);
     }
+    //m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -82,21 +86,31 @@ void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (objectExists(*it))
+            //modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
             m_api->deleteObject(it->kind, it->name);
     }
+    //m_api->applyBatchedChanges(modifications);
 }
 
 
 
 void DbInteraction::renameObject(const ContextStack &context, const Db::Identifier &newName)
 {
-    // FIXME
     BOOST_ASSERT(!context.empty());
-    ContextStack newContext = context;
-    newContext.back().name = newName;
-    m_api->renameObject(context.back().kind, contextStackToPath(context), contextStackToPath(newContext));
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        std::vector<Db::Identifier> newObjName = pathToVector(it->name);
+        newObjName.back() = newName;
+        //modifications.push_back(Db::RenameObjectModification(it->kind, it->name, vectorToPath(newObjName)));
+        m_api->renameObject(it->kind, it->name, vectorToPath(newObjName));
+    }
+    //m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -106,9 +120,14 @@ void DbInteraction::setAttribute(const ContextStack &context,
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute.attribute,
+        //                                                     attribute.value));
         m_api->setAttribute(it->kind, it->name, attribute.attribute, attribute.value);
-    }    
+    }
+    //m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -118,9 +137,13 @@ void DbInteraction::removeAttribute(const ContextStack &context,
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute, Deska::Db::Value()));
         m_api->setAttribute(it->kind, it->name, attribute, Deska::Db::Value());
     }
+    //m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -322,6 +345,13 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
 {
     return m_api->dataDifferenceInTemporaryChangeset(changeset);
+}
+
+
+
+std::string DbInteraction::configDiff(bool forceRegenerate)
+{
+    return m_api->showConfigDiff(forceRegenerate);
 }
 
 

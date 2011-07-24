@@ -101,7 +101,14 @@ std::string dumpContextStack(const ContextStack &contextStack);
 *   @param contextStack Context stack to convert
 *   @return Vector of identifiers extracted from the path
 */
-std::vector<Db::Identifier> pathToVector(const std::string &path);
+std::vector<Db::Identifier> pathToVector(const Db::Identifier &path);
+
+/** @short Function for converting vector of identifiers into fully qualified object identifier.
+*
+*   @param Vector of identifiers specifying fully qualified object name
+*   @return Object name with "->" between each identifier
+*/
+Db::Identifier vectorToPath(const std::vector<Db::Identifier> &identifiers);
 
 }
 }
