@@ -106,8 +106,9 @@ def main(tag,kindName,revision,filter):
 		del atts[embed[kindName]]
 	if kindName in refs:
 		coldef = "{0}_get_name({0},$1) AS {0}".format(refs[kindName])
-		atts[coldef] = atts[refs[kindName]]
-		del atts[refs[kindName]]
+		# FIXME(jkt): this is just plain wrong
+		#atts[coldef] = atts[refs[kindName]]
+		#del atts[refs[kindName]]
 	columns = ",".join(atts)
 
 	try:
