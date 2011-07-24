@@ -12,7 +12,7 @@ fi
 
 function copy-update-file() {
     sed "s:import dutil:import sys\nsys.path.append('$DB_SOURCES')\nimport dutil:" \
-        "${1}" > "${DESKA_GENERATED_FILES}/"`basename "${1}"`
+        "${1}" | sed "s:-- create-all-modules-here:${EXPANDED_MODULES}:" > "${DESKA_GENERATED_FILES}/"`basename "${1}"`
 }
 
 function pylib(){
@@ -103,12 +103,16 @@ do
 	shift
 done
 
+DESKA_SCHEMA_PATH="${DB_SOURCES}/../../../../install/modules/${DESKA_SCHEME:-demo}/"
+EXPANDED_MODULES=""
+for x in "${DESKA_SCHEMA_PATH}"/*.sql; do
+    EXPANDED_MODULES="${EXPANDED_MODULES}\\\\i ${x}\n"
+done
+
 # every time copy all source files needed into pwd
 for FILE in "${DB_SOURCES}"/*.sql "${DB_SOURCES}/../../../../install"/*.sql; do
     copy-update-file "${FILE}"
 done
-
-cp -a "${DB_SOURCES}/../../../../install/modules" "${DESKA_GENERATED_FILES}"/
 
 cd "${DESKA_GENERATED_FILES}"
 
