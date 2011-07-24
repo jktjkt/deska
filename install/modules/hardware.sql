@@ -33,11 +33,30 @@ CREATE TABLE hardware (
 	hdd_size int
 		CONSTRAINT "hardware hdd_size should be positive number"
 		CHECK (hdd_size > 0),
-	weight int,
-	height int,
-	width int,
+	hwbox bigint
+		CONSTRAINT hardware_fk_hwbox REFERENCES hwbox(uid) DEFERRABLE,
+	position int
+		CONSTRAINT "hardware position in rack should be positive number"
+		CHECK (hdd_size > 0),
 	power int,
 	note text,
 	template bigint
 );
+
+-- function for trigger, checking position number
+CREATE FUNCTION hwbox_check()
+RETURNS TRIGGER
+AS
+$$
+BEGIN
+        IF NEW.position > (SELECT positions FROM hwbox WHERE uid = NEW.hwbox) THEN
+                RAISE EXCEPTION 'HWBox does not have % ports!', NEW.position;
+        END IF;
+        RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER hwbox_position_check BEFORE INSERT OR UPDATE ON hardware FOR EACH ROW
+        EXECUTE PROCEDURE hwbox_check()
 

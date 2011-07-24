@@ -21,7 +21,9 @@ CREATE TABLE interface (
 	-- IP
 	-- TODO unique constraint
 	ip4 ipv4,
-	ip6 ipv6,
+	network bigint
+		CONSTRAINT interface_fk_network REFERENCES network(uid) DEFERRABLE,
+	--ip6 ipv6,
 	-- MAC
 	-- TODO unique constraint
 	mac macaddr,
@@ -35,12 +37,17 @@ CREATE TABLE interface (
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
 );
 
--- function for trigger, checking ports number
-CREATE FUNCTION switch_check()
+-- function for trigger, checking ports number and IPs
+CREATE FUNCTION interface_check()
 RETURNS TRIGGER
 AS
 $$
+DECLARE net ipv4;
 BEGIN
+	SELECT ip4 INTO net FROM network WHERE uid = NEW.network;
+	IF NEW.ip4 << net THEN
+		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
+	END IF;
 	IF NEW.switch_pos > (SELECT ports FROM switch WHERE uid = NEW.switch) THEN
 		RAISE EXCEPTION 'Switch does not have % ports!', NEW.switch_pos;
 	END IF;
@@ -50,4 +57,5 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER switch_ports_check BEFORE INSERT OR UPDATE ON interface FOR EACH ROW
-EXECUTE PROCEDURE switch_check(uid,switch) 
+	EXECUTE PROCEDURE interface_check();
+
