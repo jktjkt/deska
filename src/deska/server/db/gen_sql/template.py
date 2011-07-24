@@ -10,7 +10,7 @@ CREATE TABLE production.{tbl}_template (
 	LIKE production.{tbl},
 	CONSTRAINT pk_{tbl}_template PRIMARY KEY (uid),
 	CONSTRAINT rtempl{tbl}_templ FOREIGN KEY ("template") REFERENCES {tbl}_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
-	CONSTRAINT u_{tbl}_template_name UNIQUE (name)
+	CONSTRAINT "{tbl}_template with this name already exists" UNIQUE (name)
 );
 ALTER TABLE {tbl}_template ALTER COLUMN uid SET DEFAULT nextval('{tbl}_template_uid'::regclass);
 ALTER TABLE {tbl} ADD CONSTRAINT rtempl_{tbl} FOREIGN KEY ("template") REFERENCES {tbl}_template(uid) DEFERRABLE INITIALLY IMMEDIATE;

@@ -50,7 +50,10 @@ def main(tag,kindName):
 
 	atts = dutil.generated.atts(kindName)
 	for att in atts:
-		atts[att] = type_dict[atts[att]]
+		if att in type_dict:
+			atts[att] = type_dict[atts[att]]
+		else:
+			atts[att] = "string"
 
 	jsn[name] = atts
 	return json.dumps(jsn)
@@ -65,9 +68,13 @@ import dutil
 import json
 
 class RelationList(list):
-	def addRelation(self,type,kind,source):
+	def addRelation(self,reltype,kind,source):
 		if kind in source:
-			self.append({"relation": type, "target": source[kind]})
+			if (type(source[kind]) == list):
+				for tbl in source[kind]:
+					self.append({"relation": reltype, "target": tbl})
+			else:
+				self.append({"relation": reltype, "target": source[kind]})
 
 @pytypes
 def main(tag,kindName):
