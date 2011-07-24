@@ -49,11 +49,11 @@ def main(tag,kindName):
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
 	atts = dutil.generated.atts(kindName)
-	for att in atts:
-		if att in type_dict:
-			atts[att] = type_dict[atts[att]]
+	for (attr_name, attr_type) in atts.items():
+		if attr_type in type_dict:
+			atts[attr_name] = type_dict[attr_type]
 		else:
-			atts[att] = "string"
+			atts[att_name] = "string"
 
 	jsn[name] = atts
 	return json.dumps(jsn)
