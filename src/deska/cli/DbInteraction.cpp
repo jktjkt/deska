@@ -349,6 +349,13 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(
 
 
 
+std::string DbInteraction::configDiff(bool forceRegenerate)
+{
+    return m_api->showConfigDiff(forceRegenerate);
+}
+
+
+
 std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextStack &context)
 {
     if (context.empty())

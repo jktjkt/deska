@@ -327,6 +327,33 @@ private:
 
 /** @short Cli command.
 *
+*   Command for operations with configuration generators.
+*
+*   @see Command
+*/
+class Config: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Config(UserInterface *userInterface);
+
+    virtual ~Config();
+
+    /** @short Function for operations with configuration generators.
+    *
+    *   @param params With parameter "diff" shows the difference in the generated configuration, as determined
+    *   by changes in the current changeset.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
 *   Exits the application.
 *
 *   @see Command
@@ -542,6 +569,7 @@ private:
     friend class Status;
     friend class Log;
     friend class Diff;
+    friend class Config;
     friend class Exit;
     friend class Context;
     friend class Dump;

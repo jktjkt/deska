@@ -213,6 +213,13 @@ public:
     */
     std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
 
+    /** @short Obtains string containing the human readable difference in the generated configuration,
+    *          as determined by changes in the current changeset
+    *
+    *   @param forceRegenerate Forces regeneration of the configurtation
+    */
+    std::string configDiff(bool forceRegenerate = false);
+
     /** @short Expands context stack into a vector of objects
     *
     *   When context stack does not contain any filter, result will be only one object, but in case of filters,
