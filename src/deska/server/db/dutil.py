@@ -185,24 +185,34 @@ class Condition():
 		self.op = self.opMap[self.op]
 
 		# propper work with nulls
-		if self.val == None:
+		if self.val is None:
 			if self.op == '==':
-				self.op = 'IS'
+				self.op = 'IS NULL'
 			elif self.op == '!=':
-				self.op = 'IS NOT'
+				self.op = 'IS NOT NULL'
 			else:
 				raise DutilException("FilterError","Operator '{0}' is not supported for NULL values.".format(self.op))
-
+			# and drop the values
 
 	def get(self):
 		'''Return deska SQL condition'''
 		if self.newcond is None:
-			return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), [self.val]
+			if self.val is None:
+				'''do not return none'''
+				return "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id), []
+			else:
+				return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), [self.val]
 		else:
 			'''We need to add one condition'''
-			cond1 = "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id)
-			cond2, val2 = self.newcond.get()
-			return "( {0} AND {1} )".format(cond1,cond2), [self.val]+val2
+			if self.val is None:
+				'''do not return none'''
+				cond1 = "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id)
+				cond2, val2 = self.newcond.get()
+				return "( {0} AND {1} )".format(cond1,cond2), [self.val]
+			else:
+				cond1 = "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id)
+				cond2, val2 = self.newcond.get()
+				return "( {0} AND {1} )".format(cond1,cond2), [self.val]+val2
 
 	def getAffectedKind(self):
 		'''Return kind in condition'''
