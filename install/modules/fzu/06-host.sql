@@ -13,7 +13,7 @@ CREATE TABLE host (
 	-- this column is required in all plugins
 	name identifier
 		CONSTRAINT "host with this name already exists" UNIQUE NOT NULL,
-	-- hardwere where it runs
+	-- hardware where it runs
 	hardware bigint
 		CONSTRAINT host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	virtual_hardware bigint
@@ -21,17 +21,17 @@ CREATE TABLE host (
 	note text
 );
 
--- function for trigger, checking ports number
+-- function for trigger, checking hardware/virtual_hardware consistency
 CREATE FUNCTION host_runs_on_hw()
 RETURNS TRIGGER
 AS
 $$
 BEGIN
         IF NEW.hardware IS NULL AND NEW.virtual_hardware IS NULL THEN
-                RAISE EXCEPTION 'Hardware % must runs on hardware or virtual_hardware!', NEW.name;
+                RAISE EXCEPTION 'Host % must run on either hardware or virtual_hardware', NEW.name;
         END IF;
         IF NEW.hardware IS NOT NULL AND NEW.virtual_hardware IS NOT NULL THEN
-                RAISE EXCEPTION 'Hardware % must runs either on hardware or virtual_hardware, not both!', NEW.name;
+                RAISE EXCEPTION 'Host % cannot run on both hardware and virtual_hardware', NEW.name;
         END IF;
         RETURN NEW;
 END
