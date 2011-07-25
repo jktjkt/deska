@@ -184,6 +184,16 @@ class Condition():
 			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
 		self.op = self.opMap[self.op]
 
+		# propper work with nulls
+		if self.val == None:
+			if self.op == '==':
+				self.op = 'IS'
+			elif self.op == '!=':
+				self.op = 'IS NOT'
+			else:
+				raise DutilException("FilterError","Operator '{0}' is not supported for NULL values.".format(self.op))
+
+
 	def get(self):
 		'''Return deska SQL condition'''
 		if self.newcond is None:
