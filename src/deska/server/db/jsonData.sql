@@ -95,21 +95,25 @@ def main(tag,kindName,revision,filter):
 	
 	atts = dutil.generated.atts(kindName)
 	atts["name"] = "identifier"
+	# dot the atts with kindName
+	new_atts = dict()
+	for att in atts:
+		new_atts[att] = "{0}.{1}".format(kindName,att)
+	atts = new_atts
+
 	embed = dutil.generated.embed()
 	refs = dutil.generated.refs()
 	if kindName in embed:
 		#FIXME: propagate delimiter constant here,or drop this argument
 		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts[coldef] = atts["name"]
-		del atts["name"]
+		atts["name"] = coldef
 		# delete embed attribute
 		del atts[embed[kindName]]
 	if kindName in refs:
-		coldef = "{0}_get_name({0},$1) AS {0}".format(refs[kindName])
-		# FIXME(jkt): this is just plain wrong
-		#atts[coldef] = atts[refs[kindName]]
-		#del atts[refs[kindName]]
-	columns = ",".join(atts)
+		for kind in refs[kindName]:
+			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
+			atts[kind] = coldef
+	columns = ",".join(atts.values())
 
 	try:
 		# set start to 2, $1 - version is set
