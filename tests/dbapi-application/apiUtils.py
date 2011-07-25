@@ -225,6 +225,14 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       objectName, "attributeName":
                                       attributeName,
                                       "attributeData": attributeData})
+                                      
+def deleteObject(kindName, objectName):
+    return ApiMethod("deleteObject", {"kindName": kindName, "objectName":
+                                      objectName})
+                                      
+def restoreDeletedObject(kindName, objectName):
+    return ApiMethod("restoreDeletedObject", {"kindName": kindName, "objectName":
+                                      objectName})
 
 def objectData(kindName, objectName, revision=None):
     args = {"kindName": kindName, "objectName": objectName}
