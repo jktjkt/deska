@@ -191,6 +191,7 @@ class Templates:
 		current_changeset bigint;
 		obj_uid bigint;
 		data {tbl}_type;
+		dbit bit(1);
 	BEGIN
 		obj_uid = {tbl}_get_uid(name_, from_version);
 		IF obj_uid IS NULL THEN
@@ -205,9 +206,12 @@ class Templates:
 				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
 				--first we look for result in current changeset than in parent revision
-				SELECT {columns} INTO {data_columns} FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
+				SELECT {columns}, dest_bit INTO {data_columns}, dbit FROM {tbl}_history WHERE uid = obj_uid AND version = current_changeset;
 				IF FOUND THEN
 					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No {tbl} named %. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
 					RETURN data;
 				END IF;
 				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
@@ -439,7 +443,7 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		SELECT uid INTO tmp FROM {tbl}_history WHERE version = ver AND uid = {reftbl}_uid AND dest_bit = '1';
 		IF FOUND THEN
-			RAISE EXCEPTION 'object with name % was deleted, ...', full_name;
+			RAISE EXCEPTION 'object with name % was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
 		INSERT INTO {tbl}_history(name, {column}, version) VALUES ({tbl}_name, {reftbl}_uid, ver);
 		RETURN 1;
