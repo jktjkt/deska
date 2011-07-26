@@ -134,7 +134,7 @@ def main(tag,kindName,revision,filter):
 	res = dict()
 	for line in cur:
 		data = [dutil.mystr(x) for x in line]
-		data = dict(zip(colnames,data))
+		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.
 		objectName = data['name']
