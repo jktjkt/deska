@@ -186,7 +186,7 @@ class Condition():
 
 		# propper work with nulls
 		if self.val is None:
-			if self.op == '==':
+			if self.op == '=':
 				self.op = 'IS NULL'
 			elif self.op == '!=':
 				self.op = 'IS NOT NULL'
