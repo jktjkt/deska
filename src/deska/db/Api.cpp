@@ -103,6 +103,7 @@ REMOTEEXCEPTION(RevisionParsingError)
 REMOTEEXCEPTION(RevisionRangeError)
 REMOTEEXCEPTION(ChangesetParsingError)
 REMOTEEXCEPTION(ConstraintError)
+REMOTEEXCEPTION(ObsoleteParentError)
 REMOTEEXCEPTION(SqlError)
 REMOTEEXCEPTION(ServerError)
 

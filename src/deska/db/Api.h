@@ -85,6 +85,8 @@ REMOTEDBEXCEPTION(RevisionRangeError)
 REMOTEDBEXCEPTION(ChangesetParsingError)
 /** @short The executed action violates an integrity constraint */
 REMOTEDBEXCEPTION(ConstraintError)
+/** @short Attempted to commit a changeset whose parent is too old */
+REMOTEDBEXCEPTION(ObsoleteParentError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
