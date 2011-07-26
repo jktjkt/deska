@@ -60,7 +60,6 @@ std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
 bool operator==(const ContextStackItem &a, const ContextStackItem &b)
 {
     if ((a.filter) && (b.filter))
-        // FIXME
         return a.kind == b.kind && *(a.filter) == *(b.filter);
     else if (!(a.filter) && !(b.filter))
         return a.kind == b.kind && a.name == b.name;

@@ -36,6 +36,7 @@
 #include "Parser_p_WholeKindParser.h"
 #include "Parser_p_TopLevelParser.h"
 #include "deska/db/Api.h"
+#include "deska/db/Filter.h"
 
 //#define PARSER_DEBUG
 
@@ -511,8 +512,10 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 case PARSING_MODE_RENAME:
                     // Modes SHOW, DELETE and RENAME requires existing kind instances.
                     if (!contextStack.back().filter) {
-                        instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind);
-                        if (std::find(instances.begin(), instances.end(), contextStackToPath(contextStack)) == instances.end()) {
+                        instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind,
+                            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, contextStack.back().kind,
+                                "name", Db::Value(contextStackToPath(contextStack)))));
+                        if (instances.empty()) {
                             addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                                contextStack.back().kind, contextStack.back().name));
                             parsingSucceeded = false;
