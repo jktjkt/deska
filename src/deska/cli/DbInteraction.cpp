@@ -262,12 +262,9 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack
 
 bool DbInteraction::objectExists(const ObjectDefinition &object)
 {
-    std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind);
-    if (std::find(instances.begin(), instances.end(), object.name) == instances.end()) {
-        return false;
-    } else {
-        return true;
-    }
+    std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind,
+        Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+    return (!instances.empty());
 }
 
 
