@@ -427,34 +427,39 @@ Db::RevisionId Diff::stringToRevision(const std::string &rev)
 
 
 
-Config::Config(UserInterface *userInterface): Command(userInterface)
+Configdiff::Configdiff(UserInterface *userInterface): Command(userInterface)
 {
-    cmdName = "config";
-    cmdUsage = "Command for operations with configuration generators. With parameter \"diff\" shows the difference in the generated configuration, as determined by changes in the current changeset.";
-    complPatterns.push_back("config diff");
+    cmdName = "configdiff";
+    cmdUsage = "Command for showing diff of current configuration and configuration generated with changes in current changeset using configuration generators. With parameter \"regenerate\" forces regeneration of the configuration.";
+    complPatterns.push_back("configdiff regenerate");
 }
 
 
 
-Config::~Config()
+Configdiff::~Configdiff()
 {
 }
 
 
 
-void Config::operator()(const std::string &params)
+void Configdiff::operator()(const std::string &params)
 {
-    if (params.empty()) {
-        ui->io->reportError("Error: You have to enter parameter for this command. Use \"help\" for more info.");
+    if (!ui->currentChangeset) {
+        ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff of configuration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return;
     }
 
-    if (params == "diff") {
-        if (!ui->currentChangeset) {
-            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
-            //return;
-        }
+    if (params.empty()) {
         std::string diff = ui->m_dbInteraction->configDiff();
+        if (diff.empty())
+            ui->io->printMessage("No difference.");
+        else
+            ui->io->printMessage(diff);
+        return;
+    }
+
+    if (params == "regenerate") {
+        std::string diff = ui->m_dbInteraction->configDiff(true);
         if (diff.empty())
             ui->io->printMessage("No difference.");
         else
@@ -729,7 +734,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["status"] = Ptr(new Status(this));
     commandsMap["log"] = Ptr(new Log(this));
     commandsMap["diff"] = Ptr(new Diff(this));
-    commandsMap["config"] = Ptr(new Config(this));
+    commandsMap["configdiff"] = Ptr(new Configdiff(this));
     commandsMap["exit"] = Ptr(new Exit(this));
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["context"] = Ptr(new Context(this));

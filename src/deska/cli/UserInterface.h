@@ -327,25 +327,24 @@ private:
 
 /** @short Cli command.
 *
-*   Command for operations with configuration generators.
+*   Command for showing diff of output from configuration generators.
 *
 *   @see Command
 */
-class Config: public Command
+class Configdiff: public Command
 {
 public:
     /** @short Constructor sets command name and completion pattern.
     *
     *   @param userInterface Pointer to the UserInterface
     */
-    Config(UserInterface *userInterface);
+    Configdiff(UserInterface *userInterface);
 
-    virtual ~Config();
+    virtual ~Configdiff();
 
-    /** @short Function for operations with configuration generators.
+    /** @short Function for showing diff of output from configuration generators.
     *
-    *   @param params With parameter "diff" shows the difference in the generated configuration, as determined
-    *   by changes in the current changeset.
+    *   @param params With parameter "regenerate" forces regeneration of the configuration.
     */
     virtual void operator()(const std::string &params);
 };
@@ -569,7 +568,7 @@ private:
     friend class Status;
     friend class Log;
     friend class Diff;
-    friend class Config;
+    friend class Configdiff;
     friend class Exit;
     friend class Context;
     friend class Dump;
