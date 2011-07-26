@@ -243,6 +243,8 @@ class Filter():
 		'''Return where part of sql statement'''
 		if self.data is None:
 			return '',[]
+		if self.where is None:
+			return '',[]
 		return "WHERE " + self.where, self.values
 
 	def getJoin(self,mykind):
@@ -268,10 +270,17 @@ class Filter():
 			return ''
 		if "operator" in data:
 			operator = data["operator"]
+			if "operands" not in data:
+				raise DutilException("FilterError","Missing operands.")
+
 			if operator == "and":
+				if data["operands"] == []:
+					return None
 				res = [self.parse(expresion) for expresion in data["operands"]]
 				return "(" + ") AND (".join(res) + ")"
 			elif operator == "or":
+				if data["operands"] == []:
+					return None
 				res = [self.parse(expresion) for expresion in data["operands"]]
 				return "(" + ") OR (".join(res) + ")"
 			else:
