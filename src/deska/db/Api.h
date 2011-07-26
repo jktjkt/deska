@@ -224,18 +224,6 @@ public:
      * */
     virtual RevisionId commitChangeset(const std::string &commitMessage) = 0;
 
-    /** @short Make current in-progress changeset appear as a child of a specified revision
-     *
-     * In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
-     * persistent, production revisions unless the latest persistent revision is the same as was at the time the user started
-     * working on her in-progress copy. For example, if there was a revision X and user A started working on a changeset J, and
-     * while the J still was not comitted, nother user went ahead and created revision X+1, user A won't be able to push her
-     * changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In order to be able to push J and
-     * turn it into a persistent revision, it has to be explicitly marked as derived from X+1, which is exactly what this
-     * function performs.
-     */
-    virtual void rebaseChangeset(const RevisionId parentRevision) = 0;
-
     /** @short Return a list of all pending revisions */
     virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>()) = 0;
 

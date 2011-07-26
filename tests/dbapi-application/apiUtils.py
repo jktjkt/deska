@@ -200,9 +200,6 @@ def startChangeset():
 def commitChangeset(message):
     return ApiMethod("commitChangeset", {"commitMessage": message})
 
-def rebaseChangeset(parentRevision):
-    return ApiMethod("rebaseChangeset", {"parentRevision": parentRevision})
-
 def pendingChangesets():
     # FIXME: filter
     return ApiMethod("pendingChangesets", None)
@@ -225,11 +222,11 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       objectName, "attributeName":
                                       attributeName,
                                       "attributeData": attributeData})
-                                      
+
 def deleteObject(kindName, objectName):
     return ApiMethod("deleteObject", {"kindName": kindName, "objectName":
                                       objectName})
-                                      
+
 def restoreDeletedObject(kindName, objectName):
     return ApiMethod("restoreDeletedObject", {"kindName": kindName, "objectName":
                                       objectName})

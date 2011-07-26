@@ -554,15 +554,6 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
     expectEmpty();
 }
 
-/** @short Basic test for reabseChangeset() */
-BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"rebaseChangeset\",\"tag\":\"T\",\"parentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\"}\n");
-    j->rebaseChangeset(RevisionId(666));
-    expectEmpty();
-}
-
 /** @short Basic test for pendingChangesets() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {

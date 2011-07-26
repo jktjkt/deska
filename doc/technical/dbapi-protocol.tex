@@ -470,10 +470,9 @@ this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see
 \ref{sec:api-revision-semantics} for details.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
-she attempted a commit.  In that case, the new commit won't be performed, and the user should verify that the changes are still
-valid via the diffing functions (see section \ref{sec:api-group-history}).  After the verification, the user shall use the
-\deskaFuncRef{rebaseChangeset} to inform the database that the changeset is now based on a new, updated permanent
-revision; this will allow a future \deskaFuncRef{commitChangeset} to succeed.
+she attempted a commit.  In that case, the new commit won't be performed.  The user should verify that the changes are
+still valid via the diffing functions (see section \ref{sec:api-group-history}) and apply them in a newly created
+changeset.
 
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
@@ -779,17 +778,6 @@ Querying History}, section \ref{sec:api-group-history}.
     {This operation will commit the temporary changeset (ie. everything since the corresponding
     \deskaFuncRef{startChangeset}/\deskaFuncRef{resumeChangeset} call) into the production DB.  A new persistent
     revision will be created.}
-
-\deskaFunc{rebaseChangeset}{, "parentRevision": "r666"}
-    {}
-    {Make current in-progress changeset appear as a child of a specified revision}
-    {In order to prevent a possible loss of information, Deska won't allow a commit of an in-progress changeset to the
-    persistent, production revisions unless the latest persistent revision is the same as was present at the time the
-    user started working on her in-progress copy. For example, if there was a revision X and user A started working on a
-    changeset J, and while the J still was not comitted, another user went ahead and created revision X+1, user A won't
-    be able to push her changes to the DB, as the J changeset is internally marked as "I'm based on revision X". In
-    order to be able to push J and turn it into a persistent revision, it has to be explicitly marked as derived from
-    X+1, which is exactly what this function performs.}
 
 \deskaFunc{pendingChangesets}{}
     {[
