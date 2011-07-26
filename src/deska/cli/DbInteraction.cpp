@@ -361,9 +361,67 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
     std::vector<ObjectDefinition> objects;
 
     try {
+        // If the context stack does not contain filters, we can extract the object directly
         objects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     } catch (std::runtime_error &e) {
-        // TODO
+        for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
+            if (objects.empty()) {
+                if (it->filter) {
+                    // If we have not any objects extracted yet, get some using filter when in context stack is filter
+                    std::vector<Db::Identifier> instances = m_api->kindInstances(it->kind, *(it->filter));
+                    if (instances.empty()) {
+                        // If the filter does not match any objects, return empty vector, because it does not make
+                        // a sense to extract objects using the rest of the context now.
+                        return std::vector<ObjectDefinition>();
+                    } else {
+                        // If we matched some objects, push them in the vector.
+                        for (std::vector<Db::Identifier>::iterator
+                             iti = instances.begin(); iti != instances.end(); ++iti) {
+                            objects.push_back(ObjectDefinition(it->kind, *iti));
+                        }
+                    }
+                } else {
+                    // If we have not any obects extracted yet and in the context is object, push it in the vector
+                    objects.push_back(ObjectDefinition(it->kind, it->name));
+                }
+            } else {
+                if (it->filter) {
+                    // If there is a filter, we have to construct filter for all extracted objects at first.
+                    std::vector<Db::Filter> currObjects;
+                    for (std::vector<ObjectDefinition>::iterator ito = objects.begin(); ito != objects.end(); ++ito) {
+                        currObjects.push_back(Db::AttributeExpression(
+                            Db::FILTER_COLUMN_EQ, ito->kind, "name", Db::Value(ito->name)));
+                    }
+                    Db::Filter currObjectsFilter = Db::OrFilter(currObjects);
+                    std::vector<Db::Filter> finalFilter;
+                    finalFilter.push_back(currObjectsFilter);
+                    finalFilter.push_back(*(it->filter));
+                    // Now when we have filter for all extracted objects, we can chain it with the filter in the context
+                    // using Db::AndFilter and get instances of all objects satisfying this filter.
+                    std::vector<Db::Identifier> instances = m_api->kindInstances(it->kind, Db::Filter(
+                        Db::AndFilter(finalFilter)));
+                    if (instances.empty()) {
+                        // If the filter does not match any objects, return empty vector, because it does not make
+                        // a sense to extract objects using the rest of the context now.
+                        return std::vector<ObjectDefinition>();
+                    } else {
+                        // When we matched some objects, we replace the content of the vector with new objects.
+                        objects.clear();
+                        for (std::vector<Db::Identifier>::iterator
+                             iti = instances.begin(); iti != instances.end(); ++iti) {
+                            objects.push_back(ObjectDefinition(it->kind, *iti));
+                        }
+                    }
+
+                } else {
+                    // If we have already some objects and in the context is object now, step in its context
+                    // for each extracted object.
+                    for (size_t i = 0; i < objects.size(); ++i) {
+                        objects[0] = stepInContext(objects[0], ObjectDefinition(it->kind, it->name));
+                    }
+                }
+            }
+        }
     }
 
     return objects;
