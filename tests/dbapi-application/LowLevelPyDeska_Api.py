@@ -32,9 +32,9 @@ def imperative(r):
         "hardware": "[refersTo(vendor), templatized(hardware_template)]",
         "host": "[refersTo(hardware)]",
         "vendor": "[]",
-        "hardware_template": "[isTemplate(hardware_template), templatized(hardware_template)]",
+        "hardware_template": "[templatized(hardware_template)]",
         # the embedInto is *not* present in this case, as templates cannot define this attribute
-        "interface_template": "[isTemplate(interface_template), templatized(interface_template)]",
+        "interface_template": "[templatized(interface_template)]",
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
