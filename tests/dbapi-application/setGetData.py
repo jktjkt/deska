@@ -52,6 +52,17 @@ def doStuff(r):
     r.assertEqual(hardwareData, expectedHardwareData)
     hardwareData = r.c(objectData("hardware", "hw1"))
     r.assertEqual(hardwareData, expectedHardwareData2)
+    
+    r.c(startChangeset())
+    r.cvoid(renameObject("hardware", "hw1", "hwNewName"))
+    hardwareData = r.c(objectData("hardware", "hwNewName"))
+    r.assertEqual(hardwareData, expectedHardwareData2)
+    r.c(commitChangeset("test"))
+    hardwareData = r.c(objectData("hardware", "hwNewName"))
+    r.assertEqual(hardwareData, expectedHardwareData2)
+    r.cfail(objectData("hardware", "hw1"), NotFoundError())
+
+
 
 def doStuff_embed(r):
     hostNames = set(["host1", "host2"])
@@ -93,4 +104,14 @@ def doStuff_embed(r):
     r.assertEqual(interfaceData, expectedInterfaceData)
     interfaceData = r.c(objectData("interface", "host1->eth0"))
     r.assertEqual(interfaceData, expectedInterfaceData2)
+    
+    r.c(startChangeset())
+    r.cvoid(renameObject("interface", "host1->eth0", "host2->eth1"))
+    interfaceData = r.c(objectData("interface", "host2->eth1"))
+    r.assertEqual(interfaceData, expectedInterfaceData2)
+    r.c(commitChangeset("test"))
+    
+    interfaceData = r.c(objectData("interface", "host2->eth1"))
+    r.assertEqual(interfaceData, expectedInterfaceData2)
+    r.cfail(objectData("interface", "host1->eth0"), NotFoundError())
 

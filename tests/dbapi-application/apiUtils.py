@@ -226,6 +226,11 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       attributeName,
                                       "attributeData": attributeData})
                                       
+def renameObject(kindName, oldObjectName, newObjectName):
+    return ApiMethod("renameObject", {"kindName": kindName,
+                                      "oldObjectName": oldObjectName, 
+                                      "newObjectName": newObjectName})
+                                      
 def deleteObject(kindName, objectName):
     return ApiMethod("deleteObject", {"kindName": kindName, "objectName":
                                       objectName})
