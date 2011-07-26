@@ -72,6 +72,18 @@ def mystr(s):
 	'''Like str but only not for all'''
 	if s is None:
 		return s
+	if type(s) == Postgres.types.int8:
+		return int(s)
+	if type(s) == Postgres.types.int4:
+		return int(s)
+	if type(s) == Postgres.types.int2:
+		return int(s)
+	if type(s) == Postgres.types.float4:
+		return float(s)
+	if type(s) == Postgres.types.float8:
+		return float(s)
+	if type(s) == Postgres.types.bool:
+		return bool(s)
 	return str(s)
 
 def fcall(fname,*args):
