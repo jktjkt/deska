@@ -296,6 +296,8 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & -- \\
     {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
     {\tt ConstraintError} & The executed action violates an integrity constraint & -- \\
+    {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
+    latest revision in the history & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
