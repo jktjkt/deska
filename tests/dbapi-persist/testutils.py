@@ -6,7 +6,7 @@ import unittest
 import sys
 import os
 
-class DeskaRunner():
+class DeskaRunner(object):
 	def __init__(self):
 		runstr = "python %s -d %s" % (sys.argv[1], os.environ["DESKA_DB"])
 		self.stdin, self.stdout = os.popen2(runstr)
@@ -17,7 +17,7 @@ class DeskaRunner():
 		self.stdin.flush()
 		return self.stdout.readline()
 
-class JsonBuilder():
+class JsonBuilder(object):
 	def __init__(self):
 		return
 
@@ -104,7 +104,7 @@ def deunicodeify(stuff):
 		return stuff
 
 
-class JsonParser():
+class JsonParser(object):
 	def __init__(self,jsn):
 		self.data = deunicodeify(json.loads(jsn))
 
