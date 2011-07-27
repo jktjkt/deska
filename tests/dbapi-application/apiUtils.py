@@ -118,7 +118,7 @@ class ServerError(RemoteDbException):
 
 
 def revisionIncrement(revision, change):
-    return "r{0}".format(int(revision[1:len(revision)]) + change)
+    return "r%d" % (int(revision[1:len(revision)]) + change)
 
 registeredVariables = {}
 '''Storage of assigned objects for later checks'''
