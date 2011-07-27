@@ -77,8 +77,8 @@ def imperative(r):
     f1 = _l.std_vector_Filter()
     of = _l.OrFilter(f1)
 
-    # this one doesn't work, redmine #254
-    #kindInstances.append(c.kindInstances("host",
-    #                                     _l.OptionalFilter(of)))
+    # try an empty OrFilter
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(of)))
     for res in kindInstances:
         r.assertEquals(sorted(res), sorted(["a", "b", "c"]))
