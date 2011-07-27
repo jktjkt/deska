@@ -35,9 +35,10 @@ declarative = [
             {'relation': 'EMBED_INTO', 'target': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
     ),
-    kindRelations("interface_template").returns(
-        AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
-                       'interface_template'}])),
+    # FIXME: Redmine #272
+    #kindRelations("interface_template").returns(
+    #    AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
+    #                   'interface_template'}])),
     kindRelations("host").returns(
         AnyOrderList([{'relation': 'REFERS_TO', 'target': 'hardware'}])
     ),
@@ -46,11 +47,12 @@ declarative = [
             {'relation': 'REFERS_TO', 'target': 'vendor'},
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
-    kindRelations("hardware_template").returns(
-        AnyOrderList([
-            {'relation': 'REFERS_TO', 'target': 'vendor'},
-            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'},
-        ])
-    ),
+    # FIXME: Redmine #272
+    #kindRelations("hardware_template").returns(
+    #    AnyOrderList([
+    #        {'relation': 'REFERS_TO', 'target': 'vendor'},
+    #        {'relation': 'TEMPLATIZED', 'target': 'hardware_template'},
+    #    ])
+    #),
     kindRelations("vendor").returns([]),
 ]
