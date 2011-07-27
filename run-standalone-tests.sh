@@ -14,7 +14,7 @@ sleep 1
 
 ./tests/sql/util-create-shared-roles.sh
 
-ctest --output-on-failure
+ctest --output-on-failure $@
 
 kill $PGPID
 rm -rf ${SHMDIR}
