@@ -105,8 +105,10 @@ CREATE FUNCTION commit_all(message text)
 
 		record = self.plpy.execute(self.templates_str)
 		self.templates = dict()
+		self.template_relations = dict()
 		for row in record:
 			self.templates[row[0]] = row[1]
+			self.template_relations[row[1]] = row[0]
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -138,7 +140,7 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
 		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
 		print self.py_fn_str % {'name': "embed", 'args': '', 'result': str(self.embed)}
-		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template)}
+		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
 		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
 		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
 		return
