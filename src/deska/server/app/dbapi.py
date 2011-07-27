@@ -99,7 +99,7 @@ class DB:
 			self.db.commit()
 
 	def run(self,name,args):
-		logging.debug("start run method({n}, {a})".format(n = name, a = args))
+		logging.debug("start run method(%s, %s)" % (name, args))
 
 		if "tag" not in args:
 			return self.errorJson(name, None, "Missing 'tag'!")
@@ -125,9 +125,9 @@ class DB:
 					args["filter"] = None
 				if "revision" in not_present:
 					args["revision"] = None
-				logging.debug("{0} was not present, pass None arguments".format(not_present))
+				logging.debug("%s was not present, pass None arguments" % not_present)
 			else:
-				return self.errorJson(name,tag,"Missing arguments: {0}".format(list(not_present)))
+				return self.errorJson(name,tag,"Missing arguments: %s" % list(not_present))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -141,11 +141,11 @@ class DB:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
-			logging.debug("Exception when call db function: {e})".format(e = e))
+			logging.debug("Exception when call db function: %s)" % str(e))
 			self.commit()
 			return self.errorJson(name,tag,e.message.split("\n")[0])
 
-		logging.debug("fetchall returning: {d})".format(d = data))
+		logging.debug("fetchall returning: %s)" % data)
 		self.commit()
 		return data
 

@@ -41,7 +41,7 @@ logging.debug("conected to database")
 
 while True:
 	line = sys.stdin.readline()
-	logging.debug("read data {d}".format(d = line))
+	logging.debug("read data %s" % line)
 	if not line:
 		break
 	jsn = CommandParser(line)

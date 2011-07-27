@@ -3,16 +3,16 @@ from randdom import Names, Dates, Numbers
 
 class ModulGenerator():
 
-	 create_template = "CREATE TABLE large_modul ( {columns} );"
-	 column_template = "{0} {1}"
-	 large_modul_add_template = "SELECT large_modul_add('{object}');"
-	 large_modul_set_template = "SELECT large_modul_set_{column}('{object}','{val}');";
+	 create_template = "CREATE TABLE large_modul ( %s );"
+	 column_template = "%s %s"
+	 large_modul_add_template = "SELECT large_modul_add('%s');"
+	 large_modul_set_template = "SELECT large_modul_set_%(column)s('%(object)s','%(val)s');";
 	 commit_template = '''
 SELECT commitChangeset('commit');
 SELECT startChangeset();
 '''
 
-	 
+
 	 def __init__(self, count = 10):
 		  self.count = count
 		  count = self.count
@@ -22,7 +22,7 @@ SELECT startChangeset();
 		  self.types_list = list()
 		  self.names_list = list()
 		  self.data = list()
-		  
+
 	 def gen_table(self, count = 0):
 		  if (count == 0):
 				count = self.count
@@ -34,8 +34,9 @@ SELECT startChangeset();
 		  self.names_list.append('uid')
 		  self.types_list.append('text')
 		  self.types_list.append('bigint')
-		  columns_list = map(self.column_template.format, self.names_list, self.types_list)
-		  return self.create_template.format(columns = (",\n\t".join(columns_list)))
+		  columns_list = [self.column_template % (myname, mytype) for
+					(myname, mytype) in zip(self.names_list, self.types_list)]
+		  return self.create_template % (",\n\t".join(columns_list))
 
 	 def gen_data(self, count = 10):
 		  random.seed()
@@ -44,7 +45,7 @@ SELECT startChangeset();
 		  if count > 1000:
 				object_names.extend(1000)
 				self.names.extend(1000)
-		  
+
 		  object_count = count / 10
 		  objects_list = object_names.rset(object_count)
 		  randdates = Dates()
@@ -70,11 +71,11 @@ SELECT startChangeset();
 								value = dates[count]
 					 else:
 						  value = ""
-					 str = self.large_modul_set_template.format(column = col, object = obj, val = value)
+						  str = self.large_modul_set_template % {'column': col, 'object': obj, 'val': value}
 				else:
 					 obj_name = objects_list[len(objects)]
 					 objects.append(obj_name)
-					 str = self.large_modul_add_template.format(object = obj_name)
+					 str = self.large_modul_add_template % obj_name
 				self.data.append(str)
 				count = count - 1
 		  index = Numbers(len(self.data)).rset(len(self.data)/5)
