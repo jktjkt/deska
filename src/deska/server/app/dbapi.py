@@ -2,7 +2,10 @@ import psycopg2
 import datetime
 import time
 import logging
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 class DB:
 	methods = dict({
