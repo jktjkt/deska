@@ -12,6 +12,7 @@ class DeskaException(Exception):
 		'70003': 'NoChangesetError',
 		'70010': 'ReCreateObjectError',
 		'70021': 'NotFoundError',
+		'70007': 'ObsoleteParentError',
 		'*': 'ServerError'
 	}
 

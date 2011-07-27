@@ -108,6 +108,10 @@ class ChangesetParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ChangesetParsingError")
 
+class ObsoleteParentError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ObsoleteParentError")
+
 class SqlError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "SqlError")
