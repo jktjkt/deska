@@ -5,9 +5,9 @@ import os
 
 class DeskaRunner():
 	def __init__(self):
-		runstr = "python {server} -d {db}".format(server=sys.argv[1], db=os.environ["DESKA_DB"])
+		runstr = "python %s -d %s" % (sys.argv[1], os.environ["DESKA_DB"])
 		self.stdin, self.stdout = os.popen2(runstr)
-	
+
 	def command(self,cmd):
 		self.stdin.write(cmd)
 		self.stdin.write("\n")
@@ -107,7 +107,7 @@ class JsonParser():
 
 	def __contains__(self,key):
 		return key in self.data
-	
+
 	def __getitem__(self,key):
 		return str(self.data[key])
 
@@ -143,7 +143,7 @@ class JsonParser():
 
 def updateRev(revision,update):
 	'''updates revisionID'''
-	return "r{0}".format(int(revision[1:len(revision)])+update)
+	return "r%d" % (int(revision[1:len(revision)])+update)
 
 tr = DeskaRunner()
 js = JsonBuilder()
