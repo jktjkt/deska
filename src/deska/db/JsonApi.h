@@ -120,7 +120,6 @@ public:
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
     virtual RevisionId commitChangeset(const std::string &commitMessage);
-    virtual void rebaseChangeset(const RevisionId parentRevision);
     virtual std::vector<PendingChangeset> pendingChangesets(const boost::optional<Filter> &filter=boost::optional<Filter>());
     virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);

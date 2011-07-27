@@ -169,10 +169,6 @@ RevisionId FakeApi::commitChangeset(const std::string &commitMessage)
 
 
 
-void FakeApi::rebaseChangeset(const RevisionId parentRevision)
-{
-}
-
 std::vector<PendingChangeset> FakeApi::pendingChangesets(const boost::optional<Filter> &filter)
 {
     return std::vector<PendingChangeset>();

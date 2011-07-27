@@ -1,0 +1,206 @@
+Schuze Deska, 2011-07-26 MFF
+----------------------------
+
+Pritomni: Martina, Lukas, Honza
+Pozde: Tomas
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Lukas:
+- schema FZU
+- behem prace na schematu narazil na nejake bugy, opraveno
+- blbne pridavani NULL do prepared statements
+
+Martina:
+- testy
+- komentare
+- bugfixy
+
+Honza:
+- Py modul "deska"
+    - high-level Python API
+    - read-only verze, IMHO dostatecne a kompletni pro generatory
+    - vcetne unit testu
+- dalsi prace na testech, opravy regresi,...
+- operatory pro filtry + uprava libLowLevelPyDeska
+- upravy PgPython implementace filtru
+- integrace
+- nove featury v DBAPI (pro detaily se podivejte do `git log`)
+- bug: SQL posila inty jako string
+- pruzkum, jak s gitem na spravu generatoru konfigurace
+- merge schematu FZU + opravy regresi
+
+Tomas:
+- batched operace
+
+Co zbyva do konce:
+------------------
+
+(copy-paste z minula)
+
+Honza:
+- dal s unit testy
+- generatory konfigurace
+- skripty kolem
+- dokumentace
+
+Lukas:
+- filtrovani, joinovani
+    - joiny funguji jenom jednostranne
+- performance testy s templaty
+- schema pro FZU
+    - chybi sluzby a umisteni HW (relativni pozicovani vs. vnorene krabice)
+- dokumentace pro DBA
+- zpristupnit nove funkce do DBAPI
+
+Martina:
+- dodelani templatu (embedding,...)
+- nove: ucesat chybove hlasky
+- nove: aby po JSONu odchazely i nove excdeptiony
+- testy
+- merge gen_templates
+
+Tomas:
+- filtry v CLI + batched operace
+    - nevi, jestli funguje, protoze Honza nedodal operator<<
+    - pracuje na rozsireni contextstacku pro filtry
+- rebase
+- historie (log) verzovani, diffy
+
+Schema FZU:
+-----------
+
+- porty na switchi resit regularnim vyrazem
+- interni cleneni hwboxu/boxmodelu/... na pozice, 3d cislovani
+- resi Lukas
+
+Filtry a name:
+--------------
+
+otazka, jestli ve filtrech interface.name je "golias123->eth0", nebo jenom
+"eth0"
+
+Zaver: CLI bude filtry interne expandovat, a tim padem je jedno, jestli
+embed.name je jenom lokalni kus, nebo cele, globalne platne jmeno. Zachovame
+tedy soucasny stav, kdy "name" znamena cele jmeno.
+
+Rebase:
+-------
+
+Otazka, jak spravne naimplementovat rebase.
+
+Navrhovany workflow:
+
+1) startChangeset -> znam novy parentRevision, fixuju ho
+2) diff mezi oldParent a pending
+3) diff mezi oldParent a newParent
+3) merge diffu (strojove, viz dal), uzivatel se na to podiva
+4) applyBatchedChanges na uzivatelem poskytnuty seznam zmen do changesetu new
+5) uzivatel je spokojen ? abort(old), resume(new) : abort(new), resume(old)
+6) pokus o commit
+
+merge:
+a) create:
+a.1): jenom v new: '# r123: create host XYZ'
+a.2): jenom v tmp: 'create host XYZ'
+a.3): v obou: '# both: create host XYZ'
+b) delete:
+b.1) jen new: '# deleted by up'
+b.2) jen tmp: 'delete ...'
+b.3) oba: '# also in up'
+c) rename:
+c.1) jen new: '# renamed by up' + upravit tmp diff
+c.2) jen tmp: 'rename ...', ale az nakonec!
+c.3) oba stejne: '# also renamed...'
+c.4) oba jine: FIXME?
+d) setattr:
+d.1) jen new: '# in up: ...'
+d.2) jen tmp: 'setattr ...'
+d.3) oba jine: napsat info o konfliktu, nechat oba pod sebou
+d.4) oba stejne: '# already in up: ...'
+
+sortovani:
+podle kind, pak podle name, pak podle (delete, create, rename, setattr)
+
+Mame problem s rename -- setattr muze odkazovat na blby objekt, navic neresime
+konflikt rename + {create,delete,rename}. FIXME: vyresit konflikty.
+
+Dalsi problem je s create/delete -- co kdyz to konflikti?
+
+Navrh potrebuje dalsi praci, pracuje Tomas a Honza.
+
+Relace a templaty:
+------------------
+
+Odstranime IS_TEMPLATE, zustane pouze TEMPLATIZED, ale budou pritomny i
+self-reference, tj. hw -> TEMPLATIZED hw_template, hw_template -> TEMPLATIZED
+hw_template.
+
+MERGE_WITH:
+-----------
+
+Pokud A -> B, tak musi byt i B -> A (DBA napise jenom v jednom smeru, protoze
+CREATE TABLE bezi postupne, relaci v opacnem smeru dogeneruje Deska). Zarizuje
+Martina.
+
+Pri explicitnim vytvoreni kindu, ktery je mergovany, DB sama nejakym triggerem
+slinkuje (CLI se misto "Hardware A doesn't exist. Create?" zepta "Hardware A
+doesn't exist. Create and link to host A and boxmodel A?")
+
+Implicitni vytvoreni (tj. jsem v "host A", napisu "cpu 666", "hardware A"
+neexistuje): CLI se zepta "This will create hardware A and link to it. Proceed?".
+
+Co chybi:
+---------
+
+(copy-paste)
+
+- instalator
+- rebase v CLI
+- reportovani vyjimek
+- dotazy na historii ze CLI
+
+Schuzka se Zavoralem:
+---------------------
+
+- schema jeste neni hotove
+- pokud stihneme mit schema ukazatelne do pristiho utery/stredy, meli bychom se
+  s nim sejit (ut/st zde bude)
+- v kazdem pripade poslat mail
+
+Ukoly:
+------
+
+- Honza: generatory konfigurace
+- Honza: test pro setAttribute(name, ...), protoze "name" nesmi jit takhle modifikovat
+- Honza: vice testu
+- Honza: portace Lukasovych testu
+
+- FIXME: testy pro merge
+- FIXME: validace uzivatelova navrhu DB
+- FIXME: jak rozlisit filtry koukajici na raw, nebo resolved hodnoty atributu?
+
+- Tomas: dokumentace CLI
+- Tomas: testy ke CLI
+- Tomas: pouziti filtru, mj. pro embedding
+- Tomas: manipulace pres vic objektu (filtry, parsovani pres CLI,...)
+- Tomas: boost::program_options
+- Tomas: Ctrl+d (EOF) == quit
+
+- Lukas: filtry
+- Lukas: templaty
+- Lukas: dokumentace (#168, 169,...)
+- Lukas: FZU schema
+
+- Martina: dokumentace (#168, 169,...)
+- Martina: templates
+- Martina: kontrola vyjimek RevisionRangeError atd
+
+Schuzovali jsme celkem zhruba tri hodiny.
+
+Pristi schuzka:
+---------------
+
+Podle prubehu prace, domluvime se o vikendu. Bud pondeli 1. srpna na FZU, nebo v
+utery 2. srpna ve 13.00 na MS s navazujici schuzi se Z.

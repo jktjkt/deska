@@ -17,7 +17,6 @@ class DB:
                 "setAttribute": ["tag", "kindName","objectName","attributeName","attributeData"],
                 "startChangeset": ["tag"],
                 "commitChangeset": ["tag", "commitMessage"],
-                "rebaseChangeset": ["tag", "parentRevision"],
                 "pendingChangesets": ["tag", "filter"],
                 "resumeChangeset": ["tag", "changeset"],
                 "detachFromCurrentChangeset": ["tag", "message"],

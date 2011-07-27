@@ -127,11 +127,6 @@ RevisionId Connection::commitChangeset(const std::string &commitMessage)
     return p->commitChangeset(commitMessage);
 }
 
-void Connection::rebaseChangeset(const RevisionId parentRevision)
-{
-    return p->rebaseChangeset(parentRevision);
-}
-
 std::vector<PendingChangeset> Connection::pendingChangesets(const boost::optional<Filter> &filter)
 {
     return p->pendingChangesets(filter);

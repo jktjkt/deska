@@ -324,15 +324,6 @@ RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
     return revision;
 }
 
-void JsonApiParser::rebaseChangeset(const RevisionId parentRevision)
-{
-    JsonCommandContext c1("rebaseChangeset");
-
-    JsonHandlerApiWrapper h(this, "rebaseChangeset");
-    h.argument("parentRevision", parentRevision);
-    h.work();
-}
-
 vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<Filter> &filter)
 {
     JsonCommandContext c1("pendingChangesets");

@@ -140,13 +140,11 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
             "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
             "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
             "{\"relation\": \"REFERS_TO\", \"target\": \"reference\"}, "
-            "{\"relation\": \"IS_TEMPLATE\", \"target\": \"target-kind\"}, "
             "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\",\"tag\":\"T\"}\n");
     vector<ObjectRelation> expected;
     expected.push_back(ObjectRelation::embedInto("hardware"));
     expected.push_back(ObjectRelation::mergeWith("second-kind"));
     expected.push_back(ObjectRelation::refersTo("reference"));
-    expected.push_back(ObjectRelation::isTemplate("target-kind"));
     expected.push_back(ObjectRelation::templatized("by-which-kind"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
@@ -554,15 +552,6 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
     expectEmpty();
 }
 
-/** @short Basic test for reabseChangeset() */
-BOOST_FIXTURE_TEST_CASE(json_rebaseChangeset, JsonApiTestFixtureFailOnStreamThrow)
-{
-    expectWrite("{\"command\":\"rebaseChangeset\",\"tag\":\"T\",\"parentRevision\":\"r666\"}\n");
-    expectRead("{\"response\": \"rebaseChangeset\", \"tag\":\"T\"}\n");
-    j->rebaseChangeset(RevisionId(666));
-    expectEmpty();
-}
-
 /** @short Basic test for pendingChangesets() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {
@@ -858,6 +847,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(RevisionRangeError);
     JSON_ERR_TEST(ChangesetParsingError);
     JSON_ERR_TEST(ConstraintError);
+    JSON_ERR_TEST(ObsoleteParentError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

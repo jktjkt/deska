@@ -35,6 +35,9 @@ declarative = [
             {'relation': 'EMBED_INTO', 'target': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
     ),
+    kindRelations("interface_template").returns(
+        AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
+                       'interface_template'}])),
     kindRelations("host").returns(
         AnyOrderList([{'relation': 'REFERS_TO', 'target': 'hardware'}])
     ),
@@ -42,6 +45,9 @@ declarative = [
         AnyOrderList([
             {'relation': 'REFERS_TO', 'target': 'vendor'},
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
+    ),
+    kindRelations("hardware_template").returns(
+        AnyOrderList([{'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
     kindRelations("vendor").returns([]),
 ]
