@@ -1,5 +1,6 @@
 class Merge:
     merge_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rmerge_%';"
+    kind_attributes_query_str = "SELECT attname FROM kindAttributes('{tbl}')"
     
     add_constraint_str = '''
 ALTER TABLE {tbl} ADD CONSTRAINT rmerge_{tbl}_{merge_tbl} FOREIGN KEY ({merge_tbl}) REFERENCES {merge_tbl}(uid) DEFERRABLE INITIALLY IMMEDIATE;
@@ -73,7 +74,7 @@ CREATE TRIGGER trg_after_{tbl}_{merge_tbl}_link AFTER INSERT ON {tbl}_history FO
             reftable = row[1]
             attnames = row[2]
             refattnames = row[3]
-            self.check_merge_definition(reftable, attnames, refattnames)
+            self.check_merge_definition(table, reftable, attnames, refattnames)
             #we needs the oposite direction than the one that alredy exists
             self.constrain_sql.write(self.gen_merge_reference(reftable, table))
             self.trigger_sql.write(self.gen_link_trigger(table, reftable))
@@ -88,7 +89,7 @@ CREATE TRIGGER trg_after_{tbl}_{merge_tbl}_link AFTER INSERT ON {tbl}_history FO
         return self.trigger_link_merged_objects.format(tbl = table, merge_tbl = reftable) + '\n' + self.trigger_link_merged_objects.format(tbl = reftable, merge_tbl = table)
         
  
-    def check_merge_definition(self, reftable, attname, refattname):
+    def check_merge_definition(self, table, reftable, attname, refattname):
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise 'merge relation is badly defined, too many columns in relation'
@@ -100,6 +101,19 @@ CREATE TRIGGER trg_after_{tbl}_{merge_tbl}_link AFTER INSERT ON {tbl}_history FO
         #refattname should be uid
         if refattname != 'uid':
             raise 'merge relation is badly defined, referenced column should be uid column'
+        
+        #sets with atributes of merged kinds should be disjoint
+        kindattributes1 = set()
+        record = self.plpy.execute(self.kind_attributes_query_str.format(tbl = table))
+        for row in record:
+            kindattributes1.add(row[0])
+
+        kindattributes2 = set()
+        for row in record:
+            kindattributes2.add(row[0])
+        
+        if not kindattributes1.isdisjoint(kindattributes2):
+            raise 'merge relation is badly defined, column sets of merged types should be disjoint'
         
         
         
