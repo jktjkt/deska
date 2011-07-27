@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
     case TYPE_IPV6_ADDRESS:
         return stream << "TYPE_IPV6_ADDRESS";
     case TYPE_MAC_ADDRESS:
-        return stream << "MAC_ADDRESS";
+        return stream << "TYPE_MAC_ADDRESS";
     case TYPE_DATE:
         return stream << "TYPE_DATE";
     case TYPE_TIMESTAMP:
