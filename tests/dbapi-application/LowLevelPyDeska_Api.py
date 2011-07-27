@@ -42,14 +42,16 @@ def imperative(r):
 
     # check kindAttributes
     expectedAttrs = {
-        "hardware": "[warranty: TYPE_DATE, purchase: TYPE_DATE, vendor: TYPE_IDENTIFIER, cpu_num: TYPE_INT, ram: TYPE_INT, note: TYPE_STRING, ]",
-        "host": "[hardware: TYPE_IDENTIFIER, note: TYPE_STRING, ]",
-        "interface": "[note: TYPE_STRING, host: TYPE_IDENTIFIER, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, ip4: TYPE_IPV4_ADDRESS, ]",
+        "hardware": "[cpu_num: TYPE_INT, note: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "hardware_template": "[cpu_num: TYPE_INT, note: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "host": "[hardware: TYPE_IDENTIFIER, note: TYPE_STRING]",
+        "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
+        "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
         "vendor": "[]"
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
-        r.assertEquals(repr(kindAttributes), expectedAttrs[kind])
+        r.assertEquals(repr(sorted(kindAttributes)), expectedAttrs[kind])
 
     print revision
 
