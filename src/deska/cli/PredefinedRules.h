@@ -21,17 +21,25 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_PARSERPRIVATE_PREDEFINEDRULES_H
-#define DESKA_CLI_PARSERPRIVATE_PREDEFINEDRULES_H
+#ifndef DESKA_CLI_PREDEFINEDRULES_H
+#define DESKA_CLI_PREDEFINEDRULES_H
 
-#include "Parser_p.h"
-#include "ParserErrors.h"
-#include "Exceptions.h"
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
+
+#include <deska/db/Objects.h>
 
 namespace Deska
 {
 namespace Cli
 {
+
+namespace ascii = boost::spirit::ascii;
+namespace qi = boost::spirit::qi;
+namespace phoenix = boost::phoenix;
 
 /** @short Predefined rules for parsing single attribute values and identifiers.
 *   
@@ -109,4 +117,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_PARSERPRIVATE_PREDEFINEDRULES_H
+#endif  // DESKA_CLI_PREDEFINEDRULES_H

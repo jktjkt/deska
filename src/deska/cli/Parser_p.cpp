@@ -28,7 +28,7 @@
 #include "Parser_p_AttributesParser.h"
 #include "Parser_p_FunctionWordsParser.h"
 #include "Parser_p_KindsOnlyParser.h"
-#include "Parser_p_PredefinedRules.h"
+#include "PredefinedRules.h"
 #include "Parser_p_FilterExpressionsParser.h"
 #include "Parser_p_FiltersParser.h"
 #include "Parser_p_KindsParser.h"
