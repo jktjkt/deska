@@ -33,6 +33,9 @@ class AnyOrderList(object):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
         return self.items == sorted(other)
 
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.items))
+
 class Any(object):
     """Compare against anything with True result"""
     def __eq__(self, other):
