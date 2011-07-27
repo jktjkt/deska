@@ -1,13 +1,13 @@
 class Merge:
     merge_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rmerge_%';"
-    kind_attributes_query_str = "SELECT attname FROM kindAttributes('{tbl}')"
+    kind_attributes_query_str = "SELECT attname FROM kindAttributes('%(tbl)s')"
     
     add_constraint_str = '''
-ALTER TABLE {tbl} ADD CONSTRAINT rmerge_{tbl}_{merge_tbl} FOREIGN KEY ({merge_tbl}) REFERENCES {merge_tbl}(uid) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE %(tbl)s ADD CONSTRAINT rmerge_%(tbl)s_%(merge_tbl)s FOREIGN KEY (%(merge_tbl)s) REFERENCES %(merge_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE;
 '''
 
     trigger_link_merged_objects = '''
-CREATE OR REPLACE FUNCTION {tbl}_{merge_tbl}_link_before()
+CREATE OR REPLACE FUNCTION %(tbl)s_%(merge_tbl)s_link_before()
 RETURNS trigger
 AS
 $$
@@ -15,22 +15,22 @@ DECLARE
     refuid bigint;
 BEGIN
     BEGIN
-        SELECT {merge_tbl}_get_uid(NEW.name) INTO refuid;
+        SELECT %(merge_tbl)s_get_uid(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
     END;
     
     IF refuid IS NOT NULL THEN
-        NEW.{merge_tbl} := refuid;
+        NEW.%(merge_tbl)s := refuid;
     END IF;
     RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_before_{tbl}_{merge_tbl}_link BEFORE INSERT ON {tbl}_history FOR EACH ROW EXECUTE PROCEDURE {tbl}_{merge_tbl}_link_before();
+CREATE TRIGGER trg_before_%(tbl)s_%(merge_tbl)s_link BEFORE INSERT ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(merge_tbl)s_link_before();
 
-CREATE OR REPLACE FUNCTION {tbl}_{merge_tbl}_link_after()
+CREATE OR REPLACE FUNCTION %(tbl)s_%(merge_tbl)s_link_after()
 RETURNS trigger
 AS
 $$
@@ -38,20 +38,20 @@ DECLARE
     refuid bigint;
 BEGIN
     BEGIN
-        SELECT {merge_tbl}_get_uid(NEW.name) INTO refuid;
+        SELECT %(merge_tbl)s_get_uid(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
     END;
     
     IF refuid IS NOT NULL THEN
-        PERFORM {merge_tbl}_set_{tbl}(NEW.name, NEW.name);
+        PERFORM %(merge_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
     END IF;
     RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_after_{tbl}_{merge_tbl}_link AFTER INSERT ON {tbl}_history FOR EACH ROW EXECUTE PROCEDURE {tbl}_{merge_tbl}_link_after();
+CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(merge_tbl)s_link_after();
 '''
 
     def __init__(self,db_connection):
@@ -83,10 +83,10 @@ CREATE TRIGGER trg_after_{tbl}_{merge_tbl}_link AFTER INSERT ON {tbl}_history FO
         self.trigger_sql.close()
     
     def gen_merge_reference(self, table, reftable):
-        return self.add_constraint_str.format(tbl = table, merge_tbl = reftable)
+        return self.add_constraint_str % {'tbl': table, 'merge_tbl': reftable}
     
     def gen_link_trigger(self, table, reftable):
-        return self.trigger_link_merged_objects.format(tbl = table, merge_tbl = reftable) + '\n' + self.trigger_link_merged_objects.format(tbl = reftable, merge_tbl = table)
+        return self.trigger_link_merged_objects % {'tbl': table, 'merge_tbl': reftable} + '\n' + self.trigger_link_merged_objects % {'tbl': reftable, 'merge_tbl': table}
         
  
     def check_merge_definition(self, table, reftable, attname, refattname):
