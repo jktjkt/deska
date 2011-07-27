@@ -3,7 +3,10 @@ import subprocess
 import os
 import select
 import unittest
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import apiUtils
 
 # enable "import libLowLevelPyDeska"
