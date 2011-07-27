@@ -19,7 +19,7 @@ CREATE TABLE host (
 	-- TODO-virtual host
 	-- TODO - better use uid
 	hardware bigint
-		CONSTRAINT host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
+		CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	note text
 );
 
