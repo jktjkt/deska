@@ -47,7 +47,10 @@ declarative = [
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
     kindRelations("hardware_template").returns(
-        AnyOrderList([{'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
+        AnyOrderList([
+            {'relation': 'REFERS_TO', 'target': 'vendor'},
+            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'},
+        ])
     ),
     kindRelations("vendor").returns([]),
 ]
