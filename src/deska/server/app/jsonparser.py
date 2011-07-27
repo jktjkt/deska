@@ -1,4 +1,7 @@
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 import logging
 
@@ -9,7 +12,7 @@ class CommandParser:
 	# dict of commands
 	# create json object from string in data
 	def __init__(self,data):
-		logging.debug("loading data {d}".format(d = data))
+		logging.debug("loading data %s" % data)
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
@@ -23,6 +26,6 @@ class CommandParser:
 	def getargs(self):
 		args = self.jsn.copy()
 		del args[CMD]
-		logging.debug("arguments are {a}".format(a = args))
+		logging.debug("arguments are %s" % args)
 		return args
 

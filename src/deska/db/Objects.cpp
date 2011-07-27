@@ -43,7 +43,7 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
     case TYPE_IPV6_ADDRESS:
         return stream << "TYPE_IPV6_ADDRESS";
     case TYPE_MAC_ADDRESS:
-        return stream << "MAC_ADDRESS";
+        return stream << "TYPE_MAC_ADDRESS";
     case TYPE_DATE:
         return stream << "TYPE_DATE";
     case TYPE_TIMESTAMP:
@@ -60,6 +60,15 @@ bool operator==(const KindAttributeDataType &a, const KindAttributeDataType &b)
 bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b)
 {
     return !(a == b);
+}
+
+bool operator<(const KindAttributeDataType &a, const KindAttributeDataType &b)
+{
+    if (a.name == b.name) {
+        return a.type < b.type;
+    } else {
+        return a.name < b.name;
+    }
 }
 
 std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k)
@@ -96,8 +105,6 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
         return stream << "embedInto(" << o.target << ")";
     case RELATION_REFERS_TO:
         return stream << "refersTo(" << o.target << ")";
-    case RELATION_IS_TEMPLATE:
-        return stream << "isTemplate(" << o.target << ")";
     case RELATION_TEMPLATIZED:
         return stream << "templatized(" << o.target << ")";
     case RELATION_INVALID:
@@ -124,11 +131,6 @@ ObjectRelation ObjectRelation::embedInto(const Identifier &target)
 ObjectRelation ObjectRelation::refersTo(const Identifier &target)
 {
     return ObjectRelation(RELATION_REFERS_TO, target);
-}
-
-ObjectRelation ObjectRelation::isTemplate(const Identifier &target)
-{
-    return ObjectRelation(RELATION_IS_TEMPLATE, target);
 }
 
 ObjectRelation ObjectRelation::templatized(const Identifier &target)

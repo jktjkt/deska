@@ -15,18 +15,18 @@ class Schema:
     Get, set, ... stored procedures are generated for all tables.
     """
 	py_fn_str = """
-def {name}({args}):
-	return {result}
+def %(name)s(%(args)s):
+	return %(result)s
 """
 	table_str = "SELECT DISTINCT relname from deska.table_info_view"
 	"""Query to get all tables in the schema production."""
-	column_str = "SELECT attname,typname from deska.table_info_view where relname='{0}'"
+	column_str = "SELECT attname,typname from deska.table_info_view where relname='%s'"
 	"""Query to get all the columns and their types in the table"""
-	att_type_str = "SELECT attname,typename from kindAttributes('{0}')"
+	att_type_str = "SELECT attname,typename from kindAttributes('%s')"
 	"""Query to get all the columns and their types in the table"""
-	pk_str = "SELECT conname,attname FROM key_constraints_on_table('{0}')"
+	pk_str = "SELECT conname,attname FROM key_constraints_on_table('%s')"
 	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
-	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('{0}')"
+	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('%s')"
 	"""Query to get for the table foreign key constraint, all the columns relate to this constraint and the name of referenced table."""
 	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
 	"""Query to get all tables that have attribute template.
@@ -34,9 +34,9 @@ def {name}({args}):
 	"""
 	templates_str = "SELECT * FROM get_templates_info();"
 	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
-	embed_into_str = "SELECT refkind FROM kindRelations_full_info('{0}') WHERE relation = 'EMBED';"
+	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED';"
 	"""Query to get the name of table which is this table embed into """
-	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('{0}');"
+	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('%s');"
 	"""Query to get all refuid references in the table.
 	Refuid reference is reference to some table's uid column.
 	Gets name of column from which is uid referenced and the name of the table table that is referenced,
@@ -56,7 +56,7 @@ CREATE FUNCTION commit_all(message text)
 			RAISE SQLSTATE '70007' USING MESSAGE = 'You must run rebase before commit.';
 		END IF;
 		SET CONSTRAINTS ALL DEFERRED;
-		{commit_tables}
+		%(commit_tables)s
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
 		SELECT create_version(message) INTO rev;
@@ -71,7 +71,7 @@ CREATE FUNCTION commit_all(message text)
 	Calls commit on all tables.
 	Creates new version.
 	"""
-	
+
 	def __init__(self,db_connection):
 		"""The constructor for the Schema class."""
 		self.plpy = db_connection;
@@ -105,18 +105,20 @@ CREATE FUNCTION commit_all(message text)
 
 		record = self.plpy.execute(self.templates_str)
 		self.templates = dict()
+		self.template_relations = dict()
 		for row in record:
 			self.templates[row[0]] = row[1]
+			self.template_relations[row[1]] = row[0]
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
 		"""Generates sql files for creating history tables and stored procedures.
-	    
+
 		For each table in variable table (tables in the schema production) is called function gen_for_table.
 		Stored procedures for this table are generated into fn_sql file and the history table into table_sql file.
 		After that is called function gen_commit that generates commit_all function for committing all modifications of all tables.
 		"""
-		
+
 		name_split = filename.rsplit('/', 1)
 		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
@@ -128,19 +130,19 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
-			
+
 		self.fn_sql.write(self.gen_commit())
 
 		self.fn_sql.close()
 		self.table_sql.close()
 
 		# create some python helper functions
-		print self.py_fn_str.format(name = "kinds", args = '', result = list(self.tables))
-		print self.py_fn_str.format(name = "atts", args = 'kind', result = str(self.atts) + "[kind]")
-		print self.py_fn_str.format(name = "embed", args = '', result = str(self.embed))
-		print self.py_fn_str.format(name = "template", args = '', result = str(self.template))
-		print self.py_fn_str.format(name = "merge", args = '', result = str(self.merge))
-		print self.py_fn_str.format(name = "refs", args = '', result = str(self.refs))
+		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
+		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
+		print self.py_fn_str % {'name': "embed", 'args': '', 'result': str(self.embed)}
+		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
+		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
+		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
 		return
 
 	# generate sql for one table
@@ -152,8 +154,8 @@ CREATE FUNCTION commit_all(message text)
 		For templated tables are generated stored functions to get resolved data or resolved data with its origin.
 		"""
 		# select col info
-		columns = self.plpy.execute(self.column_str.format(tbl))
-		att_types = self.plpy.execute(self.att_type_str.format(tbl))
+		columns = self.plpy.execute(self.column_str % tbl)
+		att_types = self.plpy.execute(self.att_type_str % tbl)
 		self.atts[tbl] = dict(att_types)
 		self.refs[tbl] = list()
 
@@ -165,12 +167,12 @@ CREATE FUNCTION commit_all(message text)
 			table.add_column(col[0],col[1])
 
 		# add pk constraints
-		constraints = self.plpy.execute(self.pk_str.format(tbl))
+		constraints = self.plpy.execute(self.pk_str % tbl)
 		for col in constraints[:]:
 			table.add_pk(col[0],col[1])
 
 		# add fk constraints
-		fkconstraints = self.plpy.execute(self.fk_str.format(tbl))
+		fkconstraints = self.plpy.execute(self.fk_str % tbl)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 			# if there is a reference, change int for identifier
@@ -186,23 +188,23 @@ CREATE FUNCTION commit_all(message text)
 			else:
 				self.refs[tbl].append(col[1])
 
-		embed_into_rec = self.plpy.execute(self.embed_into_str.format(tbl))
+		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
 		table.embed_into = ""
 		for row in embed_into_rec:
 			table.embed_into = row[0]
-			
-		refuid_rec = self.plpy.execute(self.refuid_columns_str.format(tbl))
+
+		refuid_rec = self.plpy.execute(self.refuid_columns_str % tbl)
 		table.refuid_columns = dict()
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
-		
+
 		if tbl in self.templates:
 			templated_table = self.templates[tbl]
-			refuid_rec = self.plpy.execute(self.refuid_columns_str.format(templated_table))
+			refuid_rec = self.plpy.execute(self.refuid_columns_str % templated_table)
 			for row in refuid_rec:
 				if row[0] not in table.refuid_columns:
 					table.refuid_columns[row[0]] = row[1]
-		
+
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 
@@ -226,7 +228,7 @@ CREATE FUNCTION commit_all(message text)
 				if v == table.embed_into:
 					embed_column = k
 					break
-			
+
 			#adding full quolified name with _ delimiter
 			self.fn_sql.write(table.gen_add_embed(embed_column,reftable))
 			#get uid from embed object, again name have to be full
@@ -240,7 +242,7 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set('name'))
-			
+
 #TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
 #we need to return name of corresponding instance
 		self.fn_sql.write(table.gen_del())
@@ -253,7 +255,7 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.write(table.gen_diff_terminate_function())
 		self.fn_sql.write(table.gen_data_version())
 		self.fn_sql.write(table.gen_data_changes())
-		
+
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
 			self.fn_sql.write(table.gen_resolved_data())
@@ -266,25 +268,25 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_commit_templated())
 		else:
 			self.fn_sql.write(table.gen_commit())
-			
+
 		return
 
 	def gen_commit(self):
 		"""Generates stored procedure that executes commit on all tables.
-		
+
 		Generates PERFORM commit on each table and include it into commit_all function.
 		"""
-		commit_table_template = '''PERFORM {tbl}_commit();
+		commit_table_template = '''PERFORM %(tbl)s_commit();
 		'''
 		commit_tables=""
 		for table in self.tables:
-			commit_tables = commit_tables + commit_table_template.format(tbl = table)
+			commit_tables = commit_tables + commit_table_template % {'tbl': table}
 
-		return self.commit_string.format(commit_tables = commit_tables)
+		return self.commit_string % {'commit_tables': commit_tables}
 
 	def pygen_commit(self):
 		commit_str = '''def commit():
 	return db.callproc("commit")
 	'''
 		return commit_str
-		
+

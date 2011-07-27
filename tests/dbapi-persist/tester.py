@@ -4,8 +4,8 @@ import os
 
 def getSuiteFromModule(module):
 	hack_code = '''
-import {0}
-suite = TestLoader().loadTestsFromModule({0})'''.format(module)
+import %s
+suite = TestLoader().loadTestsFromModule(%s)''' % (module, module)
 	exec(hack_code)
 	return suite
 

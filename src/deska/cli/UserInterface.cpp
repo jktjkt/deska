@@ -449,25 +449,22 @@ void Configdiff::operator()(const std::string &params)
         return;
     }
 
+    bool forceRegen = false;
     if (params.empty()) {
-        std::string diff = ui->m_dbInteraction->configDiff();
-        if (diff.empty())
-            ui->io->printMessage("No difference.");
-        else
-            ui->io->printMessage(diff);
+        // nothing special
+    } else if (params == "regenerate") {
+        forceRegen = true;
+    } else {
+        ui->io->reportError("Error: Invalid parameter entered. Use \"help\" for more info.");
         return;
     }
 
-    if (params == "regenerate") {
-        std::string diff = ui->m_dbInteraction->configDiff(true);
-        if (diff.empty())
-            ui->io->printMessage("No difference.");
-        else
-            ui->io->printMessage(diff);
-        return;
-    }
-
-    ui->io->reportError("Error: Invalid parameter entered. Use \"help\" for more info.");
+    std::string diff = ui->m_dbInteraction->configDiff(forceRegen);
+    if (diff.empty())
+        ui->io->printMessage("No difference.");
+    else
+        ui->io->printMessage(diff);
+    return;
 }
 
 

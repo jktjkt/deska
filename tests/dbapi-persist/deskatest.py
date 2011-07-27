@@ -1,4 +1,7 @@
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import unittest
 from testutils import JsonParser,tr
 
@@ -12,7 +15,7 @@ class DeskaTest(unittest.TestCase):
 		print res
 		self.assertEqual(jp["response"], cmd["command"])
 		return jp
-	
+
 	def commandList(self,cmdlist):
 		jp = ''
 		for cmd in cmdlist:

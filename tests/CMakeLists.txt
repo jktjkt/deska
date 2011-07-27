@@ -123,6 +123,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(setGetData)
     deska_dbapi_test(multipleObjectData)
     deska_dbapi_test(createDelRestore)
+    deska_dbapi_test(rebaseChangeset)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)

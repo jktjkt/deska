@@ -1,4 +1,5 @@
 import datetime
+import time
 import os
 
 class CurrentTimestamp(object):
@@ -8,7 +9,7 @@ class CurrentTimestamp(object):
     def __eq__(self, other):
         if not isinstance(other,str):
             raise TypeError, "Cannot compare CurrentTimestamp with anything but string"
-        otherDate = datetime.datetime.strptime(other[:19], "%Y-%m-%d %H:%M:%S")
+        otherDate = datetime.datetime(*(time.strptime(other[:19], "%Y-%m-%d %H:%M:%S")[0:6]))
         end = datetime.datetime.now() + datetime.timedelta(seconds=1)
         return self.start <= otherDate and otherDate <= end
 
@@ -32,6 +33,9 @@ class AnyOrderList(object):
         if not isinstance(other, list):
             raise TypeError, "Cannot compare AnyOrderList with anything but list"
         return self.items == sorted(other)
+
+    def __repr__(self):
+        return "<%s: %s>" % (type(self).__name__, repr(self.items))
 
 class Any(object):
     """Compare against anything with True result"""
@@ -105,6 +109,10 @@ class ChangesetParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ChangesetParsingError")
 
+class ObsoleteParentError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ObsoleteParentError")
+
 class SqlError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "SqlError")
@@ -115,7 +123,7 @@ class ServerError(RemoteDbException):
 
 
 def revisionIncrement(revision, change):
-    return "r{0}".format(int(revision[1:len(revision)]) + change)
+    return "r%d" % (int(revision[1:len(revision)]) + change)
 
 registeredVariables = {}
 '''Storage of assigned objects for later checks'''
@@ -200,9 +208,6 @@ def startChangeset():
 def commitChangeset(message):
     return ApiMethod("commitChangeset", {"commitMessage": message})
 
-def rebaseChangeset(parentRevision):
-    return ApiMethod("rebaseChangeset", {"parentRevision": parentRevision})
-
 def pendingChangesets():
     # FIXME: filter
     return ApiMethod("pendingChangesets", None)
@@ -225,16 +230,16 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       objectName, "attributeName":
                                       attributeName,
                                       "attributeData": attributeData})
-                                      
+
 def renameObject(kindName, oldObjectName, newObjectName):
     return ApiMethod("renameObject", {"kindName": kindName,
-                                      "oldObjectName": oldObjectName, 
+                                      "oldObjectName": oldObjectName,
                                       "newObjectName": newObjectName})
-                                      
+
 def deleteObject(kindName, objectName):
     return ApiMethod("deleteObject", {"kindName": kindName, "objectName":
                                       objectName})
-                                      
+
 def restoreDeletedObject(kindName, objectName):
     return ApiMethod("restoreDeletedObject", {"kindName": kindName, "objectName":
                                       objectName})

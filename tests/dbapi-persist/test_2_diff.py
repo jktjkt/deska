@@ -1,7 +1,10 @@
 from testutils import js
-import testutils 
+import testutils
 from deskatest import DeskaTest
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 class diffTest(DeskaTest):
 	'''test diffing'''

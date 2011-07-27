@@ -40,6 +40,16 @@ CREATE TABLE hardware (
 		CHECK (hdd_size > 0),
 	power int,
 	note text,
+
+	-- Serial number one, in vendor's preferred form
+	serial_1 text,
+	-- Serial number two, in vendor's preferred form
+	serial_2 text,
+	-- Warranty contract ID, in vendor's preferred form
+	warranty_no text,
+	-- Internal inventory number at FZU, format: dddddd-d
+	inventory_no text,
+
 	template bigint
 );
 

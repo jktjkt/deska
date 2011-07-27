@@ -256,7 +256,7 @@ BEGIN
 	RETURN QUERY SELECT 
 			CASE 
 				WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
-				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATE'
+				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATIZED'
 				WHEN conname LIKE 'rembed_%' THEN 'EMBED'
 				ELSE 'INVALID'
 			END,
@@ -291,7 +291,7 @@ RETURN QUERY SELECT  class2.relname, class1.relname
 		join pg_class AS class1 ON (constr.conrelid = class1.oid)	
 		--join with referenced TABLE
 		join pg_class AS class2 ON (constr.confrelid = class2.oid)
-	WHERE contype='f' AND conname LIKE 'rtempl_%' AND class1.relname <> class2.relname;
+	WHERE contype='f' AND conname LIKE 'rtempl_%';
 END;
 $$
 LANGUAGE plpgsql;

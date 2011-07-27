@@ -380,8 +380,6 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
     // Now process the actual data
     if (relationKind == "EMBED_INTO") {
         return ObjectRelation::embedInto(target);
-    } else if (relationKind == "IS_TEMPLATE") {
-        return ObjectRelation::isTemplate(target);
     } else if (relationKind == "MERGE_WITH") {
         return ObjectRelation::mergeWith(target);
     } else if (relationKind == "REFERS_TO") {
@@ -651,6 +649,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         else DESKA_CATCH_REMOTE_EXCEPTION(RevisionRangeError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetParsingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ConstraintError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(ObsoleteParentError)
         else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
         else {
