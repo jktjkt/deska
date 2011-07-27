@@ -6,7 +6,7 @@ import string
 class PkSet(dict):
 	def __init__(self):
 		dict.__init__(self)
-	
+
 	# own set item - can insert more items into one key
 	def __setitem__(self,name,att):
 		if self.has_key(name):
@@ -29,13 +29,13 @@ class Fks:
 		self.ratt = PkSet()
 		# dictionary of local table: referenced table
 		self.tbl = dict()
-	
+
 	# insert tuple of table, local attribute, referenced table, referenced attribute
 	def add(self,name,att,table,ratt):
 		self.att[name] = att
 		self.tbl[name] = table
 		self.ratt[name] = ratt
-	
+
 	# generate alter table for creating foreign key constraints
 	def gen_fkcon(self,con):
 		# add version column into key constraint
@@ -44,19 +44,19 @@ class Fks:
 		#self.att[con] = "version"
 		#self.ratt[con] = "version"
 
-		str = "CONSTRAINT history_{name} FOREIGN KEY ({att}) REFERENCES {rtbl}_history({ratt}) DEFERRABLE INITIALLY DEFERRED"
+		s = "CONSTRAINT history_%(name)s FOREIGN KEY (%(att)s) REFERENCES %(rtbl)s_history(%(ratt)s) DEFERRABLE INITIALLY DEFERRED"
 		atts = ",".join(self.att[con])
 		ratts = ",".join(self.ratt[con])
-		str = str.format(name = con,rtbl = self.tbl[con],att = atts, ratt = ratts)
-		return "ALTER TABLE {tbl}_history ADD " + str
-	
+		s = s % {'name': con, 'rtbl': self.tbl[con], 'att': atts, 'ratt': ratts}
+		return "ALTER TABLE %(tbl)s_history ADD " + s
+
 	# generate all constraints
 	def gen_fk_constraints(self):
 		constr = ""
 		for att in self.att:
-			constr = constr + self.gen_fkcon(att) + ";\n" 
+			constr = constr + self.gen_fkcon(att) + ";\n"
 		return constr
-			
+
 	#needed for set function
 	#returns dictionary of collname (column that references uid in some table) : tablename (table that is referenced)
 	def references_uid(self):
