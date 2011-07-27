@@ -62,6 +62,15 @@ bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b)
     return !(a == b);
 }
 
+bool operator<(const KindAttributeDataType &a, const KindAttributeDataType &b)
+{
+    if (a.name == b.name) {
+        return a.type < b.type;
+    } else {
+        return a.name < b.name;
+    }
+}
+
 std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k)
 {
     return stream << k.name << ": " << k.type;

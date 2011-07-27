@@ -94,7 +94,9 @@ void exportAttributeTypes()
     class_<KindAttributeDataType>("KindAttributeDataType", no_init)
             .def_readonly("name", &KindAttributeDataType::name)
             .def_readonly("type", &KindAttributeDataType::type)
-            .def(self_ns::str(self));
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self))
+            .def(self < other<KindAttributeDataType>());
 }
 
 void exportRevisions()

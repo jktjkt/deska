@@ -103,6 +103,7 @@ struct KindAttributeDataType
 
 bool operator==(const KindAttributeDataType &a, const KindAttributeDataType &b);
 bool operator!=(const KindAttributeDataType &a, const KindAttributeDataType &b);
+bool operator<(const KindAttributeDataType &a, const KindAttributeDataType &b);
 std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k);
 
 /** @short Table relations -- are these objects somehow related, and should their representation be merged in the CLI? */
