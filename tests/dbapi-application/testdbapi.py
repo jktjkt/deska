@@ -115,16 +115,16 @@ if __name__ == "__main__":
     if "declarative" in dir(module):
         declarative = module.declarative
         JsonApiTester.testCase = JsonApiTester.declarativeImplementation
-        JsonApiTester.testCase.__func__.__doc__ = TESTCASE
+        JsonApiTester.testCase.im_func.__doc__ = TESTCASE
     elif "imperative" in dir(module):
         imperative = module.imperative
         JsonApiTester.testCase = JsonApiTester.imperativeCommands
-        JsonApiTester.testCase.__func__.__doc__ = TESTCASE
+        JsonApiTester.testCase.im_func.__doc__ = TESTCASE
     else:
         print "ERROR: No tests in the testcase"
         sys.exit(6)
     if module.__doc__ is not None:
-        JsonApiTester.testCase.__func__.__doc__ = module.__doc__
+        JsonApiTester.testCase.im_func.__doc__ = module.__doc__
     suite = unittest.TestLoader().loadTestsFromTestCase(JsonApiTester)
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
