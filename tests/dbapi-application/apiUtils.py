@@ -1,4 +1,5 @@
 import datetime
+import time
 import os
 
 class CurrentTimestamp(object):
@@ -8,7 +9,7 @@ class CurrentTimestamp(object):
     def __eq__(self, other):
         if not isinstance(other,str):
             raise TypeError, "Cannot compare CurrentTimestamp with anything but string"
-        otherDate = datetime.datetime.strptime(other[:19], "%Y-%m-%d %H:%M:%S")
+        otherDate = datetime.datetime(*(time.strptime(other[:19], "%Y-%m-%d %H:%M:%S")[0:6]))
         end = datetime.datetime.now() + datetime.timedelta(seconds=1)
         return self.start <= otherDate and otherDate <= end
 
@@ -229,12 +230,12 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       objectName, "attributeName":
                                       attributeName,
                                       "attributeData": attributeData})
-                             
+
 def renameObject(kindName, oldObjectName, newObjectName):
     return ApiMethod("renameObject", {"kindName": kindName,
-                                      "oldObjectName": oldObjectName, 
+                                      "oldObjectName": oldObjectName,
                                       "newObjectName": newObjectName})
-                                      
+
 def deleteObject(kindName, objectName):
     return ApiMethod("deleteObject", {"kindName": kindName, "objectName":
                                       objectName})
