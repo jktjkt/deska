@@ -9,7 +9,7 @@ CREATE SEQUENCE production.%(tbl)s_template_uid;
 CREATE TABLE production.%(tbl)s_template (
 	LIKE production.%(tbl)s,
 	CONSTRAINT pk_%(tbl)s_template PRIMARY KEY (uid),
-	CONSTRAINT rtempl%(tbl)s_templ FOREIGN KEY ("template") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
+	CONSTRAINT rtempl_%(tbl)s_templ FOREIGN KEY ("template") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
 	CONSTRAINT "%(tbl)s_template with this name already exists" UNIQUE (name)
 );
 ALTER TABLE %(tbl)s_template ALTER COLUMN uid SET DEFAULT nextval('%(tbl)s_template_uid'::regclass);
