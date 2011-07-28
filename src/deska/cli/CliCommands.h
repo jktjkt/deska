@@ -28,6 +28,7 @@
 
 #include "CliObjects.h"
 #include "PredefinedRules.h"
+#include "ParserIterator.h"
 #include "deska/db/Revisions.h"
 #include "deska/db/Filter.h"
 
@@ -64,6 +65,8 @@ public:
 
 private:
 
+    /** Symbols table with comparison operators. */
+    qi::symbols<char, Db::ComparisonOperator> operators;
     /** Kind name - object name parser pairs for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > kinds;
     /** Metadata name - metadata value parser pairs for purposes of Nabialek trick. */
@@ -71,6 +74,8 @@ private:
 
     /** Main rule. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type> start;
+
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> expr;
 
     qi::rule<Iterator, Db::Filter(), ascii::space_type> andFilter;
     qi::rule<Iterator, Db::Filter(), ascii::space_type> orFilter;
@@ -80,12 +85,17 @@ private:
 
     /** Rule for parsing expressions for kinds. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type,
-             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type> > > kindDispatch;
+             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type>,
+                        Db::ComparisonOperator > > kindDispatch;
     /** Rule for parsing expressions for metadata. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type,
-             qi::locals<qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> > > metadataDispatch;
+             qi::locals<qi::rule<Iterator, Db::MetadataValue(), ascii::space_type>,
+                        Db::ComparisonOperator > > metadataDispatch;
 
     PredefinedRules<Iterator> *predefinedRules;
+
+    Db::Identifier currentKindName;
+    Db::Identifier currentMetadataName;
 };
 
 
@@ -328,6 +338,10 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
+
+private:
+    /** Parser of parameters */
+    LogFilterParser<iterator_type> *filterParser;
 };
 
 

@@ -31,6 +31,7 @@
 #include "DbInteraction.h"
 #include "Exceptions.h"
 #include "deska/db/JsonApi.h"
+#include "RangeToString.h"
 #include "Parser.h"
 
 
@@ -41,7 +42,71 @@ namespace Cli {
 template <typename Iterator>
 LogFilterParser<Iterator>::LogFilterParser(): LogFilterParser<Iterator>::base_type(start)
 {
+    using qi::_val;
+    using qi::_1;
+    using qi::_2;
+    using qi::_3;
+    using qi::_4;
+    using qi::_a;
+    using qi::_b;
+    using qi::eps;
+    using qi::raw;
+    using qi::eoi;
+    using qi::on_error;
+    using qi::fail;
+
     predefinedRules = new PredefinedRules<Iterator>();
+
+    phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
+
+    // Fill symbols table with conversions from string to Db::ComparisonOperator
+    operators.add("=", Db::FILTER_COLUMN_EQ);
+    operators.add("==", Db::FILTER_COLUMN_EQ);
+    operators.add("!=", Db::FILTER_COLUMN_NE);
+    operators.add("<>", Db::FILTER_COLUMN_NE);
+    operators.add(">", Db::FILTER_COLUMN_GT);
+    operators.add(">=", Db::FILTER_COLUMN_GE);
+    operators.add("<", Db::FILTER_COLUMN_LT);
+    operators.add("<=", Db::FILTER_COLUMN_LE);
+
+    // Fill symbols table with metadata names with their value types
+    metadatas.add("revision", predefinedRules->getMetadataRule(METADATATYPE_REVISION_ID));
+    metadatas.add("author", predefinedRules->getMetadataRule(METADATATYPE_AUTHOR));
+    metadatas.add("message", predefinedRules->getMetadataRule(METADATATYPE_MESSAGE));
+    metadatas.add("timestamp", predefinedRules->getMetadataRule(METADATATYPE_TIMESTAMP));
+
+    start %= ((qi::lit("(") >> andFilter >> qi::lit(")"))
+            | (qi::lit("(") >> orFilter >> qi::lit(")"))
+            | (qi::lit("(") >> expr >> qi::lit(")")));
+
+    andFilter = (start % qi::lit("&"))[_val = phoenix::construct<Db::AndFilter>(_1)];
+    orFilter = (start % qi::lit("|"))[_val = phoenix::construct<Db::OrFilter>(_1)];
+
+    expr %= kindExpr | metadataExpr;
+
+    // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
+    // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
+    // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
+    // require more input on the end of the line, which is side effect of eps usage in this way.
+    kindExpr %= (eps(!_a) > kindDispatch >> -eoi[_a = true]);
+    metadataExpr %= (eps(!_a) > metadataDispatch >> -eoi[_a = true]);
+
+    // Kind name recognized -> try to parse object name
+    kindDispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > operators[_b = _1]
+        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(currentKindName), 
+            "name", phoenix::construct<Db::Value>(_1))]);
+    // Metadata name recognized -> try to parse metadata value
+    metadataDispatch = (raw[metadatas[_a = _1]][rangeToString(_1, phoenix::ref(currentMetadataName))] > operators[_b = _1]
+        > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(_b, phoenix::ref(currentMetadataName), _1)]);
+
+
+    /*
+    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
+    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
+    on_error<fail>(kindExpr, attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds)));
+    on_error<fail>(kindDispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName)));
+    */
+
 }
 
 
@@ -57,6 +122,7 @@ LogFilterParser<Iterator>::~LogFilterParser()
 template <typename Iterator>
 void LogFilterParser<Iterator>::addKind(const Db::Identifier &kindName)
 {
+    kinds.add(kindName, predefinedRules->getObjectIdentifier());
 }
 
     
@@ -361,12 +427,19 @@ Log::Log(UserInterface *userInterface): Command(userInterface)
     cmdName = "log";
     cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions.";
     complPatterns.push_back("log");
+
+    filterParser = new LogFilterParser<iterator_type>();
+    std::vector<Db::Identifier> kinds = ui->m_dbInteraction->kindNames();
+    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        filterParser->addKind(*it);
+    }
 }
 
 
 
 Log::~Log()
 {
+    delete filterParser;
 }
 
 
@@ -378,6 +451,18 @@ void Log::operator()(const std::string &params)
         ui->io->printRevisions(revisions);
         return;
     }
+
+    std::string::const_iterator iter = params.begin();
+    std::string::const_iterator end = params.end();
+    Db::Filter filter;
+    bool r = boost::spirit::qi::phrase_parse(iter, end, *filterParser, boost::spirit::ascii::space, filter);
+    if (!r || (iter != end)) {
+        ui->io->reportError("Invalid revisions filter entered!");
+        return;
+    }
+
+    std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->filteredRevisions(filter);
+    ui->io->printRevisions(revisions);
 }
 
 

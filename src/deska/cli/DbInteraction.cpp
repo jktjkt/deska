@@ -331,6 +331,13 @@ std::vector<Db::RevisionMetadata> DbInteraction::allRevisions()
 
 
 
+std::vector<Db::RevisionMetadata> DbInteraction::filteredRevisions(const Db::Filter &filter)
+{
+    return m_api->listRevisions(filter);
+}
+
+
+
 std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
                                                                        const Db::RevisionId &revisionB)
 {
