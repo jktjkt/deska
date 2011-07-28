@@ -80,6 +80,11 @@ endif()
 
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 FIND_PACKAGE(Readline REQUIRED)
+if(EXTRA_READLINE_LIBRARY)
+    # support extra library to link with due to the RHEL5 borkage
+    # https://bugzilla.redhat.com/show_bug.cgi?id=499837
+    set(READLINE_LIBRARY ${READLINE_LIBRARY} ${EXTRA_READLINE_LIBRARY})
+endif()
 
 # We have to bring in Python explicitly
 find_package(PythonLibs REQUIRED)
