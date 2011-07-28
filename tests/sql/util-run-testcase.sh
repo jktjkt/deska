@@ -42,6 +42,9 @@ else
     echo "Skipping the DB init altogether"
 fi
 
+# This is just insane, but works
+echo CTEST_FULL_OUTPUT
+
 case "${TESTMODE}" in
     sql)
         if [[ ! -f $TESTCASE ]]; then
