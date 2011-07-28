@@ -896,8 +896,6 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
-
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 
 template ParserImpl<iterator_type>::~ParserImpl();
