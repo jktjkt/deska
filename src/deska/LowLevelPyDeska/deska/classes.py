@@ -165,8 +165,7 @@ if __name__ == "__main__":
     op3 = host.note != None
     print op1 & op2
     print op1 & op2 & op3
-    # Fails, redmine#265
-    #print host[_l.AndFilter(_l.std_vector_Filter())]
+    print host[_l.AndFilter(_l.std_vector_Filter())]
     # Fails, redmine#266
     #print host[host.hardware != None]
     # Fails (empty result), redmine#264
