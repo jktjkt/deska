@@ -41,6 +41,7 @@ def prepareObjects(r):
 def doTests(r):
     '''Test that we get reasonable data back'''
     import deska
+    deska.init()
 
     expectedNames = ["x%d" % x for x in range(10)]
     r.assertEqual(sorted(r.c(kindInstances("host"))), expectedNames)
