@@ -10,7 +10,9 @@ import libLowLevelPyDeska as _l
 from classes import _discoverScheme
 
 _kinds = {}
-_discoverScheme(_l.Connection(), _kinds)
+_conn = _l.Connection()
+_conn.freezeView()
+_discoverScheme(_conn, _kinds)
 for k, v in _kinds.iteritems():
     globals()[k] = v
 __all__ = _kinds.keys()
