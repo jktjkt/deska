@@ -24,7 +24,7 @@
 #define DESKA_USER_INTERFACE_IO_BASE_H
 
 #include <string>
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 
 #include <boost/noncopyable.hpp>

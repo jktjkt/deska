@@ -31,6 +31,8 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 
 #include <deska/db/Objects.h>
+#include <deska/db/Revisions.h>
+#include <deska/db/Filter.h>
 
 namespace Deska
 {
@@ -40,6 +42,22 @@ namespace Cli
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
 namespace phoenix = boost::phoenix;
+
+/** @short Type of a metadata values */
+typedef enum {
+    /** @short A revision ID */
+    METADATATYPE_REVISION_ID,
+    /** @short A temporary changeset ID */
+    METADATATYPE_TEMPORARY_CHANGESET_ID,
+    /** @short An attach status */
+    METADATATYPE_ATTACH_STATUS,
+    /** @short An author name */
+    METADATATYPE_AUTHOR,
+    /** @short A message */
+    METADATATYPE_MESSAGE,
+    /** @short A timestamp  */
+    METADATATYPE_TIMESTAMP,
+} MetadataType;
 
 /** @short Predefined rules for parsing single attribute values and identifiers.
 *   
@@ -65,6 +83,13 @@ public:
     *   @return Rule that parses specific type of attribute.
     */
     const qi::rule<Iterator, Db::Value(), ascii::space_type>& getRule(const Db::Type attrType);
+
+    /** @short Function for getting single rules, that can be used in metadata grammar.
+    *
+    *   @param metadataType Type of the metadata in question, @see MetadataType.
+    *   @return Rule that parses specific type of metadata.
+    */
+    const qi::rule<Iterator, Db::MetadataValue(), ascii::space_type>& getMetadataRule(const MetadataType metadataType);
 
     /** @short Function for getting rule used to parse identifier of top-level objects. */
     const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& getObjectIdentifier();
@@ -107,10 +132,20 @@ private:
     qi::rule<Iterator, std::string(), ascii::space_type> tTimeStamp;
     //@}
 
-    /** Map where all rules are stored, @see Type. */
+    /** Map where all rules for kind attributes are stored, @see Type. */
     std::map<Db::Type, qi::rule<Iterator, Db::Value(), ascii::space_type> > rulesMap;
     /** Rule for parsing identifiers of top-level objects. */
     qi::rule<Iterator, Db::Identifier(), ascii::space_type> objectIdentifier;
+
+    //@{
+    /** Extra rules used for definition of metadata values. */
+    qi::rule<Iterator, unsigned int(), ascii::space_type> tRevisionId;
+    qi::rule<Iterator, unsigned int(), ascii::space_type> tTemporaryChangesetId;
+    qi::rule<Iterator, Db::PendingChangeset::AttachStatus(), ascii::space_type> tAttachStatus;
+    //@}
+
+    /** Map where all rules for metadata are stored, @see MetadataType. */
+    std::map<MetadataType, qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> > metadataRulesMap;
 
 };
 
