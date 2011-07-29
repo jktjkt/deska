@@ -42,7 +42,8 @@ CREATE TABLE changeset(
 		-- check message not null when detached
 		CONSTRAINT changeset_message_not_null
 			CHECK ((length(message) > 0)
-				OR (status = 'INPROGRESS'))
+				OR (status = 'INPROGRESS')),
+	is_generated boolean DEFAULT false
 );
 
 -- create first empty initial revision 0

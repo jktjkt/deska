@@ -31,6 +31,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "deska/db/Objects.h"
+#include "RangeToString.h"
 #include "Parser.h"
 #include "ParserErrors.h"
 #include "Exceptions.h"
@@ -44,22 +45,6 @@ namespace spirit = boost::spirit;
 namespace phoenix = boost::phoenix;
 namespace ascii = boost::spirit::ascii;
 namespace qi = boost::spirit::qi;
-
-
-/** @short Convert boost::iterator_range<class> to std::string */
-template <typename Iterator>
-class RangeToString
-{
-public:
-    template <typename, typename>
-        struct result { typedef void type; };
-
-    void operator()(const boost::iterator_range<Iterator> &range, std::string &str) const
-    {
-        str.assign(range.begin(), range.end());
-    }
-};
-
 
 
 template <typename Iterator> class AttributeRemovalsParser;

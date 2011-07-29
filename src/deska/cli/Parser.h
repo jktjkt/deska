@@ -29,6 +29,7 @@
 #include "deska/db/Objects.h"
 #include "deska/db/Filter.h"
 #include "ContextStack.h"
+#include "ParserIterator.h"
 
 namespace Deska {
 namespace Db {
@@ -39,8 +40,6 @@ namespace Cli {
 
 class ParserException;
 
-/** @short INTERNAL; Iterator for parser input */
-typedef std::string::const_iterator iterator_type;
 template<typename Iterator> class ParserImpl;
 
 /** @short Modes of parsing.

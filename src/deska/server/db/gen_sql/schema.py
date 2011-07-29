@@ -136,6 +136,9 @@ CREATE FUNCTION commit_all(message text)
 		self.fn_sql.close()
 		self.table_sql.close()
 
+		for tbl in self.templates:
+			self.refs[tbl] = self.refs[self.templates[tbl]]
+
 		# create some python helper functions
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
 		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
@@ -204,7 +207,7 @@ CREATE FUNCTION commit_all(message text)
 			for row in refuid_rec:
 				if row[0] not in table.refuid_columns:
 					table.refuid_columns[row[0]] = row[1]
-
+					
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 

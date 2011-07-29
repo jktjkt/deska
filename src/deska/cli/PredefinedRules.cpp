@@ -24,14 +24,14 @@
 #include <boost/assert.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "Parser_p_PredefinedRules.h"
+#include "PredefinedRules.h"
 #include "deska/db/Api.h"
+#include "ParserIterator.h"
 
 namespace Deska
 {
 namespace Cli
 {
-
 
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
@@ -100,14 +100,43 @@ PredefinedRules<Iterator>::PredefinedRules()
 
     rulesMap[Db::TYPE_DATE] = tDate
         [qi::_val = phoenix::bind(&boost::gregorian::from_string, qi::_1)];
-    rulesMap[Db::TYPE_DATE].name("Date in YYYY-MM-DD format");
+    rulesMap[Db::TYPE_DATE].name("date in YYYY-MM-DD format");
 
     rulesMap[Db::TYPE_TIMESTAMP] = tTimeStamp
         [qi::_val = phoenix::bind(&boost::posix_time::from_iso_string, qi::_1)];
-    rulesMap[Db::TYPE_TIMESTAMP].name("Timestamp in YYY-MM-DD HH:MM:SS format");
+    rulesMap[Db::TYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();
     objectIdentifier.name("object identifier (alphanumerical letters and _)");
+
+    tRevisionId = qi::lexeme["r" >> qi::uint_[qi::_val = qi::_1]];
+    tTemporaryChangesetId = qi::lexeme["tmp" >> qi::uint_[qi::_val = qi::_1]];
+    tAttachStatus = qi::lit("IN_PROGRESS")[qi::_val = Db::PendingChangeset::ATTACH_IN_PROGRESS]
+                  | qi::lit("DETACHED")[qi::_val = Db::PendingChangeset::ATTACH_DETACHED];
+
+    metadataRulesMap[METADATATYPE_REVISION_ID] = tRevisionId
+        [qi::_val = phoenix::construct<Db::RevisionId>(qi::_1)];
+    metadataRulesMap[METADATATYPE_REVISION_ID].name("revision ID");
+
+    metadataRulesMap[METADATATYPE_TEMPORARY_CHANGESET_ID] = tTemporaryChangesetId
+        [qi::_val = phoenix::construct<Db::TemporaryChangesetId>(qi::_1)];
+    metadataRulesMap[METADATATYPE_TEMPORARY_CHANGESET_ID].name("temporary changeset ID");
+
+    metadataRulesMap[METADATATYPE_ATTACH_STATUS] = tAttachStatus
+        [qi::_val = phoenix::static_cast_<Db::PendingChangeset::AttachStatus>(qi::_1)];
+    metadataRulesMap[METADATATYPE_ATTACH_STATUS].name("attach status");
+
+    metadataRulesMap[METADATATYPE_AUTHOR] = rulesMap[Db::TYPE_IDENTIFIER]
+        [qi::_val = phoenix::static_cast_<Db::Value>(qi::_1)];
+    metadataRulesMap[METADATATYPE_AUTHOR].name("author name (alphanumerical letters and _)");
+
+    metadataRulesMap[METADATATYPE_MESSAGE] = rulesMap[Db::TYPE_STRING]
+        [qi::_val = phoenix::static_cast_<Db::Value>(qi::_1)];
+    metadataRulesMap[METADATATYPE_MESSAGE].name("string");
+
+    metadataRulesMap[METADATATYPE_TIMESTAMP] = rulesMap[Db::TYPE_TIMESTAMP]
+        [qi::_val = phoenix::static_cast_<Db::Value>(qi::_1)];
+    metadataRulesMap[METADATATYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 }
 
 
@@ -136,6 +165,18 @@ const qi::rule<Iterator, Db::Value(), ascii::space_type>& PredefinedRules<Iterat
 
 
 template <typename Iterator>
+const qi::rule<Iterator, Db::MetadataValue(), ascii::space_type>& PredefinedRules<Iterator>::getMetadataRule(
+    const MetadataType metadataType)
+{
+    typename std::map<MetadataType, qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> >::const_iterator
+        it = metadataRulesMap.find(metadataType);
+    BOOST_ASSERT(it != metadataRulesMap.end());
+    return it->second;
+}
+
+
+
+template <typename Iterator>
 const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<Iterator>::getObjectIdentifier()
 {
     return objectIdentifier;
@@ -148,6 +189,8 @@ const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<I
 template PredefinedRules<iterator_type>::PredefinedRules();
 
 template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& PredefinedRules<iterator_type>::getRule(const Db::Type attrType);
+
+template const qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type>& PredefinedRules<iterator_type>::getMetadataRule(const MetadataType metadataType);
 
 template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
 

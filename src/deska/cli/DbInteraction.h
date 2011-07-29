@@ -192,11 +192,19 @@ public:
     void detachFromChangeset(const std::string &message);
     /** @short Aborts current changeset. */
     void abortChangeset();
+
     /** Function for obtaining all revisions.
     *
     *   @return Vector of all revisions.
     */
     std::vector<Db::RevisionMetadata> allRevisions();
+
+    /** Function for obtaining revisions matching specified filter.
+    *
+    *   @param filter Filter specifying which revisions will be obtained.
+    *   @return Vector of revisions.
+    */
+    std::vector<Db::RevisionMetadata> filteredRevisions(const Db::Filter &filter);
 
     /** @short Returns differences between two revisions
     *

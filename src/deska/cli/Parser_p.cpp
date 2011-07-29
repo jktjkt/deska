@@ -28,7 +28,7 @@
 #include "Parser_p_AttributesParser.h"
 #include "Parser_p_FunctionWordsParser.h"
 #include "Parser_p_KindsOnlyParser.h"
-#include "Parser_p_PredefinedRules.h"
+#include "PredefinedRules.h"
 #include "Parser_p_FilterExpressionsParser.h"
 #include "Parser_p_FiltersParser.h"
 #include "Parser_p_KindsParser.h"
@@ -895,8 +895,6 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 
 
 /////////////////////////Template instances for linker//////////////////////////
-
-template void RangeToString<iterator_type>::operator()(const boost::iterator_range<iterator_type> &rng, std::string &str) const;
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
 

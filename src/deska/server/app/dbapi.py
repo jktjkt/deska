@@ -97,6 +97,18 @@ class DB:
 		else:
 				return self.errorJson(name,tag,"Only freeze or unFreeze")
 
+	def applyBatchedChanges(self,changelist,tag):
+		if type(changelist) != list:
+			return self.errorJson(name,tag,"Modifications parameter must be list.")
+		for command in changelist:
+			if "command" not in command:
+				return self.errorJson(name,tag,"Missing command.")
+			name = command["command"]
+			del command["command"]
+			self.run(name,command)
+
+		return self.responseJson("applyBatchedChanges",tag)
+
 	def commit(self):
 		if not self.freeze:
 			self.db.commit()
@@ -116,6 +128,12 @@ class DB:
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):
 			return self.freezeUnfreeze(name,tag)
+
+		# applyBatchedChanges
+		if name == "applyBatchedChanges":
+			if "modifications" not in args:
+				return self.errorJson(name, tag, "Missing 'modifications'!")
+			return self.applyBatchedChanges(args["modifications"],tag)
 
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]

@@ -9,8 +9,11 @@ module can only be used when the database is reachable and available.
 import libLowLevelPyDeska as _l
 from classes import _discoverScheme
 
-_kinds = {}
-_discoverScheme(_l.Connection(), _kinds)
-for k, v in _kinds.iteritems():
-    globals()[k] = v
-__all__ = _kinds.keys()
+def init(conn=None):
+    _kinds = {}
+    if conn is None:
+        conn = _l.Connection()
+        conn.freezeView()
+    _discoverScheme(conn, _kinds)
+    for k, v in _kinds.iteritems():
+        globals()[k] = v

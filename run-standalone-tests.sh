@@ -12,7 +12,9 @@ export PGHOST
 # wait for the server to start
 sleep 1
 
-./tests/sql/util-create-shared-roles.sh
+for role in deska_user deska_admin; do
+    psql -q -U postgres -c "CREATE ROLE ${role};"
+done
 
 ctest --output-on-failure $@
 
