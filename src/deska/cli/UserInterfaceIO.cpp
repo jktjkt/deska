@@ -369,9 +369,9 @@ int UserInterfaceIO::chooseChangeset(const std::vector<Db::PendingChangeset> &pe
 
 
 
-std::string UserInterfaceIO::readLine(const std::string &prompt)
+std::string UserInterfaceIO::readLine(const std::string &prompt, bool &end)
 {
-    return reader->getLine(prompt + promptEnd);
+    return reader->getLine(prompt + promptEnd, end);
 }
 
 

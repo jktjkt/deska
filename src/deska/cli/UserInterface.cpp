@@ -285,9 +285,12 @@ void UserInterface::run()
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::string line;
     exitLoop = false;
+    bool end = false;
     while (!exitLoop) {
         parsingFailed = false;
-        line = io->readLine(contextStackToString(m_parser->currentContextStack()));
+        line = io->readLine(contextStackToString(m_parser->currentContextStack()), end);
+        if (end)
+            (*(commandsMap["quit"]))("");
 
         // Split line to command and arguments
         std::string::iterator commandEnd = line.begin();

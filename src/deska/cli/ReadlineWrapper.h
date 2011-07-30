@@ -158,9 +158,10 @@ public:
     /** @short Prints prompt and gets a single line from a input
     *
     *   @param prompt Prompt string
+    *   @param end True if EOF read, else false
     *   @return Read line
     */
-    std::string getLine(const std::string &prompt);
+    std::string getLine(const std::string &prompt, bool &end);
 
     /** @short Saves the history to the given file
     *

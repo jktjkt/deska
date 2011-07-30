@@ -95,11 +95,13 @@ Readline::~Readline()
 
 
 
-std::string Readline::getLine(const std::string &prompt)
+std::string Readline::getLine(const std::string &prompt, bool &end)
 {
+    end = true;
     char* cline(readline(prompt.c_str()));
     if (cline == 0)
         return std::string();
+    end = false;
     std::string line(cline);
     free(cline);
     boost::algorithm::trim(line);

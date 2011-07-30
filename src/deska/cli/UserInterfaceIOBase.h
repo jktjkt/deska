@@ -145,9 +145,10 @@ public:
     /** @short Displays prompt and gets one line from the input.
     *
     *   @param prompt Prompt string.
+    *   @param end True if EOF read, else false.
     *   @return Read line
     */
-    virtual std::string readLine(const std::string &prompt) = 0;
+    virtual std::string readLine(const std::string &prompt, bool &end) = 0;
 
     /** @short Prints list of attribute definitions with indentation.
     *
