@@ -27,8 +27,8 @@ data = list([
 
 data = ['''
 	{"command": "applyBatchedChanges", "tag":"TAG", "modifications": [{"command": "startChangeset", "tag":"TAG"},
-	{"command": "creaeObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"},
-	{"command": "createObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}
+	{"command": "createObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"},
+	{"command": "creObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}
 	]}
 ''']
 

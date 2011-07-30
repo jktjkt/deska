@@ -100,6 +100,8 @@ class DB:
 	def applyBatchedChanges(self,changelist,tag):
 		if type(changelist) != list:
 			return self.errorJson(name,tag,"Modifications parameter must be list.")
+		# end possibly running transaction
+		self.endTransaction()
 		for command in changelist:
 			if "command" not in command:
 				return self.errorJson(name,tag,"Missing command.")
@@ -110,9 +112,10 @@ class DB:
 				self.runDBFunction(name,command,tag)
 			except Exception, e:
 				# abort if error here
-				self.endTransaction()
+				self.db.rollback()
 				return self.errorJson(name,tag,e.message)
 
+		self.endTransaction()
 		return self.responseJson("applyBatchedChanges",tag)
 
 	def endTransaction(self):
@@ -142,8 +145,11 @@ class DB:
 			return self.applyBatchedChanges(args["modifications"],tag)
 
 		try:
-			return self.runDBFunction(name,args,tag)
+			data = self.runDBFunction(name,args,tag)
+			self.endTransaction()
+			return data
 		except Exception, e:
+			self.endTransaction()
 			return self.errorJson(name,tag,e.message)
 
 	def runDBFunction(self,name,args,tag):
@@ -177,11 +183,9 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			self.endTransaction()
 			raise Exception("Missing arguments: %s" % e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: %s)" % data)
-		self.endTransaction()
 		return data
 
 
