@@ -105,11 +105,17 @@ class DB:
 				return self.errorJson(name,tag,"Missing command.")
 			name = command["command"]
 			del command["command"]
-			self.run(name,command)
+			try:
+				# just run, no responce
+				self.runDBFunction(name,args,tag)
+			except Exception, e:
+				# abort if error here
+				self.endTransaction()
+				return self.errorJson(name,tag,e.message)
 
 		return self.responseJson("applyBatchedChanges",tag)
 
-	def commit(self):
+	def endTransaction(self):
 		if not self.freeze:
 			self.db.commit()
 
@@ -135,7 +141,10 @@ class DB:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
-		return self.runDBFunction(name,args,tag)
+		try:
+			return self.runDBFunction(name,args,tag)
+		except Exception, e:
+			return self.errorJson(name,tag,e.message)
 
 	def runDBFunction(self,name,args,tag):
 		# copy needed args from command definition
@@ -151,7 +160,7 @@ class DB:
 					args["revision"] = None
 				logging.debug("%s was not present, pass None arguments" % not_present)
 			else:
-				return self.errorJson(name,tag,"Missing arguments: %s" % list(not_present))
+				raise Exception("Missing arguments: %s" % list(not_present))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -166,11 +175,11 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			self.commit()
-			return self.errorJson(name,tag,e.message.split("\n")[0])
+			self.endTransaction()
+			raise Exception("Missing arguments: %s" % e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: %s)" % data)
-		self.commit()
+		self.endTransaction()
 		return data
 
 
