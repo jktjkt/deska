@@ -80,5 +80,15 @@ def imperative(r):
     # try an empty OrFilter
     kindInstances.append(c.kindInstances("host",
                                          _l.OptionalFilter(of)))
+
+    # an empty OrFilter
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(_l.OrFilter(
+                                             _l.std_vector_Filter()))))
+    # an empty AndFilter
+    kindInstances.append(c.kindInstances("host",
+                                         _l.OptionalFilter(_l.AndFilter(
+                                             _l.std_vector_Filter()))))
+
     for res in kindInstances:
         r.assertEquals(sorted(res), sorted(["a", "b", "c"]))

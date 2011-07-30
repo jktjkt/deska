@@ -100,16 +100,25 @@ class DB:
 	def applyBatchedChanges(self,changelist,tag):
 		if type(changelist) != list:
 			return self.errorJson(name,tag,"Modifications parameter must be list.")
+		# end possibly running transaction
+		self.endTransaction()
 		for command in changelist:
 			if "command" not in command:
 				return self.errorJson(name,tag,"Missing command.")
 			name = command["command"]
 			del command["command"]
-			self.run(name,command)
+			try:
+				# just run, no responce
+				self.runDBFunction(name,command,tag)
+			except Exception, e:
+				# abort if error here
+				self.db.rollback()
+				return self.errorJson(name,tag,e.message)
 
+		self.endTransaction()
 		return self.responseJson("applyBatchedChanges",tag)
 
-	def commit(self):
+	def endTransaction(self):
 		if not self.freeze:
 			self.db.commit()
 
@@ -135,6 +144,17 @@ class DB:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		try:
+			data = self.runDBFunction(name,args,tag)
+			self.endTransaction()
+			return data
+		except Exception, e:
+			self.endTransaction()
+			return self.errorJson(name,tag,e.message)
+
+	def runDBFunction(self,name,args,tag):
+		if name not in self.methods:
+			raise Exception("%s is not a valid db function." % name)
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
@@ -148,7 +168,7 @@ class DB:
 					args["revision"] = None
 				logging.debug("%s was not present, pass None arguments" % not_present)
 			else:
-				return self.errorJson(name,tag,"Missing arguments: %s" % list(not_present))
+				raise Exception("Missing arguments: %s" % list(not_present))
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
@@ -163,11 +183,9 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			self.commit()
-			return self.errorJson(name,tag,e.message.split("\n")[0])
+			raise Exception("Missing arguments: %s" % e.message.split("\n")[0])
 
 		logging.debug("fetchall returning: %s)" % data)
-		self.commit()
 		return data
 
 

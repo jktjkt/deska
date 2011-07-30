@@ -48,6 +48,9 @@ class Templates:
 		--set new value in %(colname)s column
 		UPDATE %(tbl)s_history SET %(colname)s = CAST (value AS %(coltype)s), version = ver
 			WHERE uid = rowuid AND version = ver;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
@@ -88,6 +91,9 @@ class Templates:
 		--set column to refuid - uid of referenced object
 		UPDATE %(tbl)s_history SET %(colname)s = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
@@ -125,6 +131,9 @@ class Templates:
 		refuid = %(reftbl)s_get_uid(refname);
 		UPDATE %(tbl)s_history SET %(refcolumn)s = refuid, name = local_name, version = ver
 			WHERE uid = rowuid AND version = ver;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
@@ -420,6 +429,9 @@ class Templates:
 		END IF;
 		INSERT INTO %(tbl)s_history (name,version)
 			VALUES (name_,ver);
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
@@ -446,6 +458,9 @@ class Templates:
 			RAISE EXCEPTION 'object with name %% was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
 		INSERT INTO %(tbl)s_history(name, %(column)s, version) VALUES (%(tbl)s_name, %(reftbl)s_uid, ver);
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
@@ -468,6 +483,9 @@ class Templates:
 		IF NOT FOUND THEN
 			RAISE EXCEPTION 'to undel %% should be the object deleted in opened changeset', name_;
 		END IF;
+
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = current_changeset;
 		RETURN 1;
 	END;
 	$$
@@ -495,6 +513,9 @@ class Templates:
 			INSERT INTO %(tbl)s_history (%(columns)s, version, dest_bit)
 				SELECT %(columns)s, ver, '1' FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
 	END
 	$$
