@@ -735,6 +735,8 @@ void Restore::operator()(const std::string &params)
     }
     ui->nonInteractiveMode = true;
     std::string line;
+    ContextStack stackBackup = ui->m_parser->currentContextStack();
+    ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     while (!getline(ifs, line).eof()) {
         ++lineNumber;
@@ -752,6 +754,7 @@ void Restore::operator()(const std::string &params)
     } else {
         ui->io->printMessage("All commands successfully executed.");
     }
+    ui->m_parser->setContextStack(stackBackup);
 }
 
 
