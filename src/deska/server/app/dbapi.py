@@ -107,7 +107,7 @@ class DB:
 			del command["command"]
 			try:
 				# just run, no responce
-				self.runDBFunction(name,args,tag)
+				self.runDBFunction(name,command,tag)
 			except Exception, e:
 				# abort if error here
 				self.endTransaction()
