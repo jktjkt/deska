@@ -390,6 +390,40 @@ void Abort::operator()(const std::string &params)
 
 
 
+Rebase::Rebase(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "rebase";
+    cmdUsage = "Rebases current changeset.";
+    complPatterns.push_back("rebase");
+}
+
+
+
+Rebase::~Rebase()
+{
+}
+
+
+
+void Rebase::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (!(ui->currentChangeset)) {
+        ui->io->reportError("Error: You are not in any changeset!");
+        return;
+    }
+    std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
+    //if (revisions.back().revision == ) {
+    //    ui->io->printMessage("No rebase needed.");
+    //    return;
+    //  }
+}
+
+
+
 Status::Status(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "status";

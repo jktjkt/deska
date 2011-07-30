@@ -51,6 +51,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["commit"] = Ptr(new Commit(this));
     commandsMap["detach"] = Ptr(new Detach(this));
     commandsMap["abort"] = Ptr(new Abort(this));
+    commandsMap["rebase"] = Ptr(new Rebase(this));
     commandsMap["status"] = Ptr(new Status(this));
     commandsMap["log"] = Ptr(new Log(this));
     commandsMap["diff"] = Ptr(new Diff(this));

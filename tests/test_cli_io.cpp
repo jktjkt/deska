@@ -50,6 +50,7 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("help exit");
     expectAddCommandCompletion("help log");
     expectAddCommandCompletion("help quit");
+    expectAddCommandCompletion("help rebase");
     expectAddCommandCompletion("help restore");
     expectAddCommandCompletion("help resume");
     expectAddCommandCompletion("help start");
@@ -67,6 +68,7 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("log");
     expectAddCommandCompletion("exit");
     expectAddCommandCompletion("quit");
+    expectAddCommandCompletion("rebase");
     expectAddCommandCompletion("restore %file");
     expectAddCommandCompletion("resume");
     expectAddCommandCompletion("start");

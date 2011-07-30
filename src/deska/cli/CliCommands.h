@@ -292,6 +292,32 @@ public:
 
 /** @short Cli command.
 *
+*   Rebases current changeset.
+*
+*   @see Command
+*/
+class Rebase: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Rebase(UserInterface *userInterface);
+
+    virtual ~Rebase();
+
+    /** @short Rebases current changeset.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
 *   Shows if you are connected to any changeset or not.
 *
 *   @see Command
