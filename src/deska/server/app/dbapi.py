@@ -147,6 +147,8 @@ class DB:
 			return self.errorJson(name,tag,e.message)
 
 	def runDBFunction(self,name,args,tag):
+		if name not in self.methods:
+			raise Exception("%s is not a valid db function." % name)
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
