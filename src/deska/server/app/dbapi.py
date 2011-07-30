@@ -135,6 +135,9 @@ class DB:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		return self.runDBFunction(name,args,tag)
+
+	def runDBFunction(self,name,args,tag):
 		# copy needed args from command definition
 		needed_args = self.methods[name][:]
 		# have we the exact needed arguments
