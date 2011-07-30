@@ -66,13 +66,13 @@ set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/JsonApiTestFixture.cpp
 )
 
-set(CliTestHelpers_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/MockCliEvent.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
-)
+#set(CliTestHelpers_SRCS
+#    ${CMAKE_CURRENT_SOURCE_DIR}/MockCliEvent.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
+#)
 
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
-add_library(CliTestHelpers ${CliTestHelpers_SRCS})
+#add_library(CliTestHelpers ${CliTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
 
 deska_test(parser_mock_objects)
@@ -131,7 +131,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_persist_test(test_2_objectData)
 
     # Tests for interaction between the CLI and the DB parts
-    deska_cli_test(io)
+#    deska_cli_test(io)
 
     # Test the Python bindings. The connection to the DB is not really required
     # for the first one, but it isn't worth the effort to make an extra branch
