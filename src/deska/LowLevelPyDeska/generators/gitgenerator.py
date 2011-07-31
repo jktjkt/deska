@@ -47,6 +47,8 @@ class GitGenerator(object):
     def generate(self):
         '''Actually run the config generators'''
 
+        runAnything = False
+
         # enumerate all files in the target directory
         for script in sorted(os.listdir(self.scriptdir)):
             path = os.path.join(self.scriptdir, script)
@@ -61,7 +63,10 @@ class GitGenerator(object):
             # now just abuse all the infrastructure around the git wrapper to
             # execute the command
             git.Git(self.workdir).execute([path])
-        pass
+            runAnything = True
+
+        if not runAnything:
+            raise RuntimeError, "No executable scripts found in %s" % self.scriptdir
 
     def apiConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''
