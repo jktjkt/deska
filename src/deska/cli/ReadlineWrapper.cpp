@@ -95,13 +95,11 @@ Readline::~Readline()
 
 
 
-std::string Readline::getLine(const std::string &prompt, bool &end)
+std::pair<std::string, bool> Readline::getLine(const std::string &prompt)
 {
-    end = true;
     char* cline(readline(prompt.c_str()));
     if (cline == 0)
-        return std::string();
-    end = false;
+        return std::make_pair<std::string, bool>(std::string(), true);
     std::string line(cline);
     free(cline);
     boost::algorithm::trim(line);
@@ -111,7 +109,7 @@ std::string Readline::getLine(const std::string &prompt, bool &end)
             stifle_history(historyLimit);
         }
     }
-    return line;
+    return std::make_pair<std::string, bool>(line, false);
 }
 
 
