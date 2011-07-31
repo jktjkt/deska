@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE( start_quit, CliTestFixture )
     expectAddCommandCompletion("status");
     expectPrintMessage("Deska CLI started. For usage info try typing \"help\".");
     expectReadLine("");
-    returnReadLine("quit");
+    returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
     verifyEnd();
 }

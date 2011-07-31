@@ -284,25 +284,24 @@ void UserInterface::reportParseError(const ParserException &error)
 void UserInterface::run()
 {
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
-    std::string line;
+    std::pair<std::string, bool> line;
     exitLoop = false;
-    bool end = false;
     while (!exitLoop) {
         parsingFailed = false;
-        line = io->readLine(contextStackToString(m_parser->currentContextStack()), end);
-        if (end)
+        line = io->readLine(contextStackToString(m_parser->currentContextStack()));
+        if (line.second)
             (*(commandsMap["quit"]))("");
 
         // Split line to command and arguments
-        std::string::iterator commandEnd = line.begin();
-        while ((commandEnd != line.end()) && (*commandEnd != ' '))
+        std::string::iterator commandEnd = line.first.begin();
+        while ((commandEnd != line.first.end()) && (*commandEnd != ' '))
             ++commandEnd;
-        std::string parsedCommand(line.begin(), commandEnd);
-        std::string parsedArguments((commandEnd == line.end() ? commandEnd : (commandEnd +1)), line.end());
+        std::string parsedCommand(line.first.begin(), commandEnd);
+        std::string parsedArguments((commandEnd == line.first.end() ? commandEnd : (commandEnd +1)), line.first.end());
         
         if (commandsMap.find(parsedCommand) == commandsMap.end()) {
             // Command not found -> use CLI parser
-            m_parser->parseLine(line);
+            m_parser->parseLine(line.first);
         } else {
             // Command found -> run it
             (*(commandsMap[parsedCommand]))(parsedArguments);
