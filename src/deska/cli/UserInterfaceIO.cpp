@@ -510,7 +510,7 @@ unsigned int UserInterfaceIO::digits(unsigned int n)
 {
     if ((n == 0) || (n == 1))
         return 1;
-    return std::floor(std::log10(n)) + 1;
+    return static_cast<unsigned int>(std::floor(std::log10(n)) + 1);
 }
 
 
