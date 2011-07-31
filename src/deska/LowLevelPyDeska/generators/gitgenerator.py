@@ -32,7 +32,6 @@ class GitGenerator(object):
         '''Clean a pre-existing working directory'''
         self.git.reset("--hard", "HEAD")
         self.git.clean("-d", "-f")
-        pass
 
     def diff(self):
         '''Return a human-readable diff of the changes'''
@@ -44,7 +43,6 @@ class GitGenerator(object):
         self.git.add("-A")
         self.git.commit("-m", message)
         self.git.push()
-        pass
 
     def generate(self):
         '''Actually run the config generators'''
@@ -55,11 +53,11 @@ class GitGenerator(object):
             s = os.stat(path)
             if stat.S_ISDIR(s.st_mode):
                 # FIXME: error handling
-                pass
+                continue
             if not s.st_mode & stat.S_IXUSR:
                 # Ignore scripts without an exectuable bit. This is on purpose,
                 # so that we can safely ignore a README etc.
-                pass
+                continue
             # now just abuse all the infrastructure around the git wrapper to
             # execute the command
             git.Git(self.workdir).execute([path])
