@@ -85,7 +85,6 @@ class GitGenerator(object):
 if __name__ == "__main__":
     import sys
     g = GitGenerator(sys.argv[1], sys.argv[2], sys.argv[3])
-    print sys.argv
     offset = 4
     while offset < len(sys.argv):
         if sys.argv[offset] == "diff-fresh":
