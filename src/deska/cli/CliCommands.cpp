@@ -415,11 +415,12 @@ void Rebase::operator()(const std::string &params)
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
-    std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
-    //if (revisions.back().revision == ) {
-    //    ui->io->printMessage("No rebase needed.");
-    //    return;
-    //  }
+    Db::RevisionId parentRevision = ui->m_dbInteraction->changesetParent(*(ui->currentChangeset));
+    Db::RevisionId headRevision = ui->m_dbInteraction->allRevisions().back().revision;
+    if (headRevision == parentRevision) {
+        ui->io->printMessage("No rebase needed.");
+        return;
+    }
 }
 
 

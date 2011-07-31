@@ -221,6 +221,13 @@ public:
     */
     std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
 
+    /** @short Function for obtaining parent for given changeset ID
+    *
+    *   @param changeset TemporaryChangesetId for which the parent will be obtained.
+    *   @return parent RevisionId
+    */
+    Db::RevisionId changesetParent(const Db::TemporaryChangesetId &changeset);
+
     /** @short Obtains string containing the human readable difference in the generated configuration,
     *          as determined by changes in the current changeset
     *
