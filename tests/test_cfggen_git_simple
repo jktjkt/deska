@@ -1,0 +1,63 @@
+#!/bin/bash
+
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
+fi
+
+function die() {
+    echo "Die: $1" >&2
+    exit 1
+}
+
+# Get the $DESKA_SOURCES variable
+. ./sql/util-cmake-options.sh || die "There's no ./sql/util-cmake-options.sh"
+
+MY_REPO=${DESKA_GENERATED_FILES}/cfggen-repo
+MY_PRIMARY_CLONE=${DESKA_GENERATED_FILES}/cfggen-primary
+MY_WC=${DESKA_GENERATED_FILES}/cfggen-wc
+MY_SCRIPTS=${DESKA_GENERATED_FILES}/scripts
+MY_SECOND=${DESKA_GENERATED_FILES}/second-wd
+
+# Prepare a "script" which consults our env variable for the actual commands
+mkdir -p ${MY_SCRIPTS}
+cat > ${MY_SCRIPTS}/01-doit.sh <<EOF
+#!/bin/bash
+eval "\${MYCMD}"
+EOF
+chmod +x ${MY_SCRIPTS}/01-doit.sh
+
+function generate() {
+    GIT_PYTHON_TRACE=full python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${MY_PRIMARY_CLONE} ${MY_WC} ${MY_SCRIPTS} $* || die "Test failed"
+}
+
+function verify-same() {
+    rm -rf ${MY_SECOND}
+    git clone ${MY_REPO} ${MY_SECOND} || die "Cannot clone"
+    diff -Naurt -x .git ${MY_WC} ${MY_SECOND} || die "There are some differences"
+}
+
+# Initialize the master repository which simulates a remote repo
+git init --bare ${MY_REPO} || die "git init --bare my_repo failed"
+# Initialize the "primary clone"; that's the repository from which we create extra WCs
+git clone ${MY_REPO} ${MY_PRIMARY_CLONE} || die "git clone my_repo my_primary_clone failed"
+# Got to start the master branch now, or git-new-workdir will break
+pushd ${MY_PRIMARY_CLONE}
+echo "This is a repo of the resulting configuration" > README
+git add README || die "git add README failed"
+git commit -m "Initial commit" || die "git commit failed"
+git push origin master || die "git push origin master failed"
+popd
+
+export MYCMD="mkdir foo; echo ahoj > foo/bar"
+generate save-nonfresh
+verify-same
+
+export MYCMD="echo bleh > foo/bar"
+generate save-nonfresh
+verify-same
+
+export MYCMD="rm foo/bar"
+generate save-nonfresh
+verify-same
