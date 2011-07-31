@@ -81,3 +81,21 @@ class GitGenerator(object):
             self.openRepo()
             self.generate()
         self.save(message)
+
+if __name__ == "__main__":
+    import sys
+    g = GitGenerator(sys.argv[1], sys.argv[2], sys.argv[3])
+    print sys.argv
+    offset = 4
+    while offset < len(sys.argv):
+        if sys.argv[offset] == "diff-fresh":
+            print g.apiConfigDiff(True)
+        elif sys.argv[offset] == "diff-nonfresh":
+            print g.apiConfigDiff(False)
+        elif sys.argv[offset] == "save-fresh":
+            print g.apiSave(True, str(offset))
+        elif sys.argv[offset] == "save-nonfresh":
+            print g.apiSave(False, str(offset))
+        else:
+            raise ValueError, "Unsupported operator %s" % sys.argv[offset]
+        offset += 1
