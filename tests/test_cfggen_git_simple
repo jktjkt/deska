@@ -39,6 +39,26 @@ function verify-same() {
     diff -Naurt -x .git ${MY_WC} ${MY_SECOND} || die "There are some differences"
 }
 
+function verify-files() {
+    pushd "${MY_WC}"
+    CONTENTS=`find . -name .git -a -type d -prune -o -name README -a -type f -prune -o -type f -print`
+    if [[ x${CONTENTS} != x${1} ]]; then
+        echo "Found:"
+        echo "${CONTENTS}"
+        echo "Expected:"
+        echo "${1}"
+        die "Different files"
+    fi
+    popd
+}
+
+function check-line-count() {
+    COUNT=`wc -l "${MY_WC}/${1}" | cut -d ' ' -f 1`
+    if [[ "${COUNT}" -ne "${2}" ]]; then
+        die "Probably run the generators again (expected ${2} lines, got ${COUNT} lines instead)"
+    fi
+}
+
 # Initialize the master repository which simulates a remote repo
 git init --bare ${MY_REPO} || die "git init --bare my_repo failed"
 # Initialize the "primary clone"; that's the repository from which we create extra WCs
@@ -51,14 +71,49 @@ git commit -m "Initial commit" || die "git commit failed"
 git push origin master || die "git push origin master failed"
 popd
 
+# Try to create a file and commit that change
 export MYCMD="mkdir foo; echo ahoj > foo/bar"
 generate save-nonfresh
 verify-same
+verify-files "./foo/bar"
 
+# Rewrite its contents and commit
 export MYCMD="echo bleh > foo/bar"
 generate save-nonfresh
 verify-same
+verify-files "./foo/bar"
 
+# Remove that file and commit
 export MYCMD="rm foo/bar"
 generate save-nonfresh
 verify-same
+verify-files ""
+
+# Create brand new file, execute a diff, don't save
+export MYCMD="echo blabla >> blabla"
+generate diff-nonfresh
+verify-files "./blabla"
+
+# Execute the diff once more, don't regenerate
+generate diff-fresh
+verify-files "./blabla"
+check-line-count blabla 1
+
+# Save the cached diff, don't regenerate
+generate save-fresh
+verify-same
+verify-files "./blabla"
+check-line-count blabla 1
+
+# diff, force generators re-run
+generate diff-nonfresh
+verify-files "./blabla"
+# the saved version has one line, we're told not to re-use it -> one more line
+check-line-count blabla 2
+
+# save, force generators re-run
+generate save-nonfresh
+verify-files "./blabla"
+# The WC has two lines, but we're asked to clean the WC, so it has just one line.
+# Then the generators run again, and now we have two lines again.
+check-line-count blabla 2
