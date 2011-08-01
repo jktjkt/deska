@@ -29,7 +29,8 @@ EOF
 chmod +x ${MY_SCRIPTS}/01-doit.sh
 
 function generate() {
-    GIT_PYTHON_TRACE=full python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${MY_PRIMARY_CLONE} ${MY_WC} ${MY_SCRIPTS} $* || die "Test failed"
+    #GIT_PYTHON_TRACE=full
+    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${MY_PRIMARY_CLONE} ${MY_WC} ${MY_SCRIPTS} $* || die "Test failed"
 }
 
 function verify-same() {
