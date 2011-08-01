@@ -6,7 +6,7 @@ import os
 import stat
 import git
 
-GIT_NEW_WORKDIR="/usr/share/git/contrib/workdir/git-new-workdir"
+GIT_NEW_WORKDIR=os.path.join(os.path.dirname(__file__), "git-new-workdir")
 
 class GitGenerator(object):
     '''Encapsulate access to the git repository'''
