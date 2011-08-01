@@ -71,47 +71,47 @@ git commit -m "Initial commit" || die "git commit failed"
 git push origin master || die "git push origin master failed"
 popd
 
-# Try to create a file and commit that change
+echo "Try to create a file and commit that change"
 export MYCMD="mkdir foo; echo ahoj > foo/bar"
 generate save-nonfresh
 verify-same
 verify-files "./foo/bar"
 
-# Rewrite its contents and commit
+echo "Rewrite its contents and commit"
 export MYCMD="echo bleh > foo/bar"
 generate save-nonfresh
 verify-same
 verify-files "./foo/bar"
 
-# Remove that file and commit
+echo "Remove that file and commit"
 export MYCMD="rm foo/bar"
 generate save-nonfresh
 verify-same
 verify-files ""
 
-# Create brand new file, execute a diff, don't save
+echo "Create brand new file, execute a diff, don't save"
 export MYCMD="echo blabla >> blabla"
 generate diff-nonfresh
 verify-files "./blabla"
 
-# Execute the diff once more, don't regenerate
+echo "Execute the diff once more, don't regenerate"
 generate diff-fresh
 verify-files "./blabla"
 check-line-count blabla 1
 
-# Save the cached diff, don't regenerate
+echo "Save the cached diff, don't regenerate"
 generate save-fresh
 verify-same
 verify-files "./blabla"
 check-line-count blabla 1
 
-# diff, force generators re-run
+echo "diff, force generators re-run"
 generate diff-nonfresh
 verify-files "./blabla"
 # the saved version has one line, we're told not to re-use it -> one more line
 check-line-count blabla 2
 
-# save, force generators re-run
+echo "save, force generators re-run"
 generate save-nonfresh
 verify-files "./blabla"
 # The WC has two lines, but we're asked to clean the WC, so it has just one line.
