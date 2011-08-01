@@ -145,9 +145,9 @@ public:
     /** @short Displays prompt and gets one line from the input.
     *
     *   @param prompt Prompt string.
-    *   @return Read line
+     *   @return Pair of read line and bool indicating if EOF was read
     */
-    virtual std::string readLine(const std::string &prompt) = 0;
+    virtual std::pair<std::string, bool> readLine(const std::string &prompt) = 0;
 
     /** @short Prints list of attribute definitions with indentation.
     *

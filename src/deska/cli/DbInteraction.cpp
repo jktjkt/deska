@@ -22,6 +22,7 @@
 * */
 
 #include <boost/foreach.hpp>
+#include <sstream>
 #include "DbInteraction.h"
 #include "deska/db/Api.h"
 
@@ -349,6 +350,21 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
 {
     return m_api->dataDifferenceInTemporaryChangeset(changeset);
+}
+
+
+
+Db::RevisionId DbInteraction::changesetParent(const Db::TemporaryChangesetId &changeset)
+{
+    std::vector<Db::PendingChangeset> changesets = m_api->pendingChangesets(
+        Db::Filter(Db::MetadataExpression(Db::FILTER_COLUMN_EQ, "revision", changeset)));
+    if (changesets.empty()) {
+        std::ostringstream ostr;
+        ostr << "Deska::Cli::DbInteraction::changesetParent: No parent revision found for " << changeset;
+        throw std::out_of_range(ostr.str());
+    }   
+    BOOST_ASSERT(changesets.size() == 1);
+    return changesets.back().parentRevision;
 }
 
 

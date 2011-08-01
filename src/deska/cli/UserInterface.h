@@ -125,6 +125,7 @@ private:
     friend class Commit;
     friend class Detach;
     friend class Abort;
+    friend class Rebase;
     friend class Status;
     friend class Log;
     friend class Diff;
