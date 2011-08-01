@@ -54,7 +54,7 @@ CREATE TABLE hardware (
 );
 
 -- function for trigger, checking position number
-CREATE FUNCTION hwbox_check()
+CREATE FUNCTION hardware_check()
 RETURNS TRIGGER
 AS
 $$
@@ -67,6 +67,6 @@ END
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER hwbox_position_check BEFORE INSERT OR UPDATE ON hardware FOR EACH ROW
-        EXECUTE PROCEDURE hwbox_check()
+CREATE TRIGGER hardware_trigger BEFORE INSERT OR UPDATE ON hardware FOR EACH ROW
+        EXECUTE PROCEDURE hardware_check()
 
