@@ -27,6 +27,8 @@ cat > ${MY_SCRIPTS}/01-doit.sh <<EOF
 eval "\${MYCMD}"
 EOF
 chmod +x ${MY_SCRIPTS}/01-doit.sh
+cp -a ${MY_SCRIPTS}/0{1,2}-doit.sh
+sed -i 's:MYCMD:MYCMD2:' ${MY_SCRIPTS}/02-doit.sh
 
 function generate() {
     #GIT_PYTHON_TRACE=full
@@ -70,6 +72,9 @@ git add README || die "git add README failed"
 git commit -m "Initial commit" || die "git commit failed"
 git push origin master || die "git push origin master failed"
 popd
+
+# The second script should do nothing; this will be used later
+export MYCMD2=""
 
 echo "Try to create a file and commit that change"
 export MYCMD="mkdir foo; echo ahoj > foo/bar"
@@ -117,3 +122,19 @@ verify-files "./blabla"
 # The WC has two lines, but we're asked to clean the WC, so it has just one line.
 # Then the generators run again, and now we have two lines again.
 check-line-count blabla 2
+
+echo "Clean the repo again"
+export MYCMD="rm blabla"
+generate save-nonfresh
+verify-same
+verify-files ""
+
+echo "Check that the scripts are executed in order"
+# the first one should create that file
+export MYCMD="echo blabla >> blabla"
+# The second script should remove the first one's result and fail if it is not present
+# We have to include something in the repo, otherwise the commit would fail with no changes to save
+export MYCMD2="rm blabla; touch foo"
+generate save-nonfresh
+verify-same
+verify-files "./foo"
