@@ -7,7 +7,7 @@ SET search_path TO production,deska;
 
 CREATE SEQUENCE switch_uid START 1;
 
--- vendors of hw
+-- Ethernet switches
 CREATE TABLE switch (
 	-- nextval can be used - will aplly to history table
 	uid bigint DEFAULT nextval('switch_uid')
