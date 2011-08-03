@@ -17,6 +17,18 @@
    obj:/usr/bin/psql
 }
 {
+   pythonMemLeak1
+   Memcheck:Leak
+   fun:*
+   obj:/home/kundratj/pg/bin/python2.4
+}
+{
+   pythonMemLeak2
+   Memcheck:Leak
+   fun:*
+   obj:/home/kundratj/pg/lib/libpython2.4.so.1.0
+}
+{
    boost_utf_dtor_1
    Memcheck:Addr8
    fun:_ZN5boost9unit_test14framework_implD1Ev
