@@ -1,0 +1,7 @@
+{
+   bashMemLeak1
+   Memcheck:Leak
+   fun:*
+   ...
+   obj:/bin/bash
+}
