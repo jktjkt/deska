@@ -275,7 +275,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"int\", "
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"identifier\", "
                "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
@@ -351,7 +351,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
@@ -409,7 +409,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, "
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
@@ -443,7 +443,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, "
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
