@@ -92,16 +92,16 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
     def check_merge_definition(self, table, reftable, attname, refattname):
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
-            raise 'merge relation is badly defined, too many columns in relation'
-        
+            raise ValueError, 'merge relation is badly defined, too many columns in relation'
+
         #attname is the same as reftable
         if attname != reftable:
-            raise 'merge relation is badly defined, name of referencing column should be the same as reftable'
-        
+            raise ValueError, 'merge relation is badly defined, name of referencing column should be the same as reftable'
+
         #refattname should be uid
         if refattname != 'uid':
-            raise 'merge relation is badly defined, referenced column should be uid column'
-        
+            raise ValueError, 'merge relation is badly defined, referenced column should be uid column'
+
         #sets with atributes of merged kinds should be disjoint
         kindattributes1 = set()
         record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': table})
@@ -111,9 +111,9 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
         kindattributes2 = set()
         for row in record:
             kindattributes2.add(row[0])
-        
+
         if not kindattributes1.isdisjoint(kindattributes2):
-            raise 'merge relation is badly defined, column sets of merged types should be disjoint'
-        
-        
-        
+            raise ValueError, 'merge relation is badly defined, column sets of merged types should be disjoint'
+
+
+
