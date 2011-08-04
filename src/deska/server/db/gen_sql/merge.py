@@ -7,7 +7,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rmerge_%(tbl)s_%(merge_tbl)s FOREIGN KEY (%(m
 '''
 
     trigger_link_merged_objects = '''
-CREATE OR REPLACE FUNCTION %(tbl)s_%(merge_tbl)s_link_before()
+CREATE OR REPLACE FUNCTION history.%(tbl)s_%(merge_tbl)s_link_before()
 RETURNS trigger
 AS
 $$
@@ -30,7 +30,7 @@ $$
 LANGUAGE plpgsql;
 CREATE TRIGGER trg_before_%(tbl)s_%(merge_tbl)s_link BEFORE INSERT ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(merge_tbl)s_link_before();
 
-CREATE OR REPLACE FUNCTION %(tbl)s_%(merge_tbl)s_link_after()
+CREATE OR REPLACE FUNCTION history.%(tbl)s_%(merge_tbl)s_link_after()
 RETURNS trigger
 AS
 $$
