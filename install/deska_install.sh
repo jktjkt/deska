@@ -226,6 +226,5 @@ then
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
-	generate_merge || die "Error running generate add merge relations"
 	add_merge_link_triggers || die "Error running add merge link triggers"
 fi
