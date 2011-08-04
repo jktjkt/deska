@@ -14,23 +14,8 @@ CREATE TABLE virtual_hardware (
 	name identifier
 		CONSTRAINT "virtual_hardware with this name already exists" UNIQUE NOT NULL,
 	-- TODO - make this sense?
-	vendor bigint 
-		CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
-	-- GB of RAM
-	ram int
-		CONSTRAINT "virtual_hardware ram should be positive number"
-		CHECK (ram > 0),
-	-- number of CPU's
-	cpu_num int
-		CONSTRAINT "virtual_hardware cpu_num should be positive number"
-		CHECK (cpu_num > 0),
-	-- cpu type TODO make this sense?
-	cpu_type bigint
-		CONSTRAINT virtual_hardware_fk_cpu_type REFERENCES cpu_type(uid) DEFERRABLE,
-	-- hdd size
-	hdd_size int
-		CONSTRAINT "virtual_hardware hdd_size should be positive number"
-		CHECK (hdd_size > 0),
+	hardwaremodel bigint 
+		CONSTRAINT virtual_hardware_fk_hardwaremodel REFERENCES hardwaremodel(uid) DEFERRABLE,
 	note text,
 	template bigint
 );

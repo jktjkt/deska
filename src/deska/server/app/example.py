@@ -25,13 +25,6 @@ data = list([
 	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2", "tag":"TAG"}'
 ])
 
-data = ['''
-	{"command": "applyBatchedChanges", "tag":"TAG", "modifications": [{"command": "startChangeset", "tag":"TAG"},
-	{"command": "createObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"},
-	{"command": "creObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}
-	]}
-''']
-
 dbargs = {"database": "deska_dev"}
 db = DB(**dbargs)
 

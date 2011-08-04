@@ -21,14 +21,17 @@ CREATE TABLE service (
 CREATE SEQUENCE hostservice_uid START 1;
 CREATE TABLE hostservice (
 	-- this column is required in all plugins
-	uid bigint DEFAULT nextval('host_service_uid')
+	uid bigint DEFAULT nextval('hostservice_uid')
 		CONSTRAINT hostservice_pk PRIMARY KEY,
 	-- this table is not pluging and has no name
+	-- FIXME: remove it
+	name identifier
+		CONSTRAINT "servicehost of this name already exists" UNIQUE NOT NULL,
 
 	host bigint
 		CONSTRAINT hostservice_fk_host REFERENCES host(uid) DEFERRABLE,
 	service bigint
-		CONSTRAINT hostservice_fk_host REFERENCES service(uid) DEFERRABLE,
+		CONSTRAINT hostservice_fk_service REFERENCES service(uid) DEFERRABLE
 
 );
 

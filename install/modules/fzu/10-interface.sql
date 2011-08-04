@@ -52,7 +52,7 @@ BEGIN
 
 	SELECT ports INTO ports_regexp FROM switch WHERE uid = NEW.switch;
 	IF NEW.switch_pos !~ ports_regexp THEN
-		RAISE EXCEPTION 'Switch_pos % does not match port regexp \'%\'!', NEW.switch_pos, ports_regexp;
+		RAISE EXCEPTION 'Switch_pos % does not match port regexp "%"!', NEW.switch_pos, ports_regexp;
 	END IF;
 	RETURN NEW;
 END
