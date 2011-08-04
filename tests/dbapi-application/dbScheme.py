@@ -10,6 +10,10 @@ helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier",
     "template": "identifier", "cpu_num": "int", "ram": "int", "hardware_note": "string", "host" : "identifier"
 }
+helper_hardware_template_attrs = {
+    "warranty": "date", "purchase": "date", "vendor": "identifier",
+    "template": "identifier", "cpu_num": "int", "ram": "int", "hardware_note": "string"
+}
 
 declarative = [
     kindNames().returns(
@@ -25,7 +29,7 @@ declarative = [
             "host_note": "string"}
     ),
     kindAttributes("hardware").returns(helper_hardware_attrs),
-    kindAttributes("hardware_template").returns(helper_hardware_attrs),
+    kindAttributes("hardware_template").returns(helper_hardware_template_attrs),
 
     # try to ask for a non-existing object
     kindAttributes("pwnpwn").throws(InvalidKindError()),
