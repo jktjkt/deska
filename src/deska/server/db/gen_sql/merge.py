@@ -113,7 +113,5 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
             kindattributes2.add(row[0])
 
         if not kindattributes1.isdisjoint(kindattributes2):
-            raise ValueError, 'merge relation is badly defined, column sets of merged types should be disjoint'
-
-
-
+            raise ValueError, ('Merge relation between "%s" and "%s" is badly defined, column sets of merged types should '
+                               'be disjoint (got %s and %s)') % (table, reftable, repr(kindattributes1), repr(kindattributes2))
