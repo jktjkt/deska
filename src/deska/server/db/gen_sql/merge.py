@@ -104,7 +104,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
         
         #sets with atributes of merged kinds should be disjoint
         kindattributes1 = set()
-        record = self.plpy.execute(self.kind_attributes_query_str.format(tbl = table))
+        record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': table})
         for row in record:
             kindattributes1.add(row[0])
 
