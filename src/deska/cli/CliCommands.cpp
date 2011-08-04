@@ -390,6 +390,41 @@ void Abort::operator()(const std::string &params)
 
 
 
+Rebase::Rebase(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "rebase";
+    cmdUsage = "Rebases current changeset.";
+    complPatterns.push_back("rebase");
+}
+
+
+
+Rebase::~Rebase()
+{
+}
+
+
+
+void Rebase::operator()(const std::string &params)
+{
+    if (!params.empty()) {
+        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
+        return;
+    }
+    if (!(ui->currentChangeset)) {
+        ui->io->reportError("Error: You are not in any changeset!");
+        return;
+    }
+    Db::RevisionId parentRevision = ui->m_dbInteraction->changesetParent(*(ui->currentChangeset));
+    Db::RevisionId headRevision = ui->m_dbInteraction->allRevisions().back().revision;
+    if (headRevision == parentRevision) {
+        ui->io->printMessage("No rebase needed.");
+        return;
+    }
+}
+
+
+
 Status::Status(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "status";
@@ -735,6 +770,8 @@ void Restore::operator()(const std::string &params)
     }
     ui->nonInteractiveMode = true;
     std::string line;
+    ContextStack stackBackup = ui->m_parser->currentContextStack();
+    ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     while (!getline(ifs, line).eof()) {
         ++lineNumber;
@@ -752,6 +789,7 @@ void Restore::operator()(const std::string &params)
     } else {
         ui->io->printMessage("All commands successfully executed.");
     }
+    ui->m_parser->setContextStack(stackBackup);
 }
 
 

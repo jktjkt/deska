@@ -140,6 +140,7 @@ struct MockCliEvent
     Deska::Db::Identifier ident;
     int integer;
     bool boolean;
+    std::pair<std::string, bool> strbool;
     boost::optional<Deska::Cli::ObjectDefinition> object;
     boost::optional<Deska::Cli::AttributeDefinition> attr;
     std::map<std::string, std::string> map1;

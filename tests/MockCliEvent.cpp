@@ -209,10 +209,10 @@ MockCliEvent MockCliEvent::readLine(const std::string &prompt)
 
 
 
-MockCliEvent MockCliEvent::returnReadLine(const std::string &line)
+MockCliEvent MockCliEvent::returnReadLine(const std::pair<std::string, bool> &line)
 {
     MockCliEvent res(RETURN_READ_LINE);
-    res.str1 = line;
+    res.strbool = line;
     return res;
 }
 
@@ -376,6 +376,7 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
 {
     return eventKind == other.eventKind && str1 == other.str1 && str2 == other.str2 && integer == other.integer &&
            boolean == other.boolean && object == other.object && attr == other.attr && ident == other.ident &&
+           strbool == other.strbool &&
            std::equal(map1.begin(), map1.end(), other.map1.begin()) &&
            std::equal(map2.begin(), map2.end(), other.map2.begin()) &&
            std::equal(vectpair.begin(), vectpair.end(), other.vectpair.begin()) &&
@@ -533,7 +534,7 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "readLine( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::RETURN_READ_LINE:
-        out << "returnReadLine( \"" << m.str1 << "\" )";
+        out << "returnReadLine( \"" << m.strbool.first << "\", " <<  m.strbool.second << " )";
         break;
     case MockCliEvent::EVENT_PRINT_ATTRIBUTES:
         out << "printAttributes( " << m.attrs << ", " << m.integer << " )";

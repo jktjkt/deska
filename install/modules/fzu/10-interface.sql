@@ -29,9 +29,9 @@ CREATE TABLE interface (
 	mac macaddr,
 	switch bigint
 		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
-	switch_pos int
-		CONSTRAINT "interface switch_pos should be positive number"
-		CHECK (switch_pos > 0),
+	switch_pos text
+		CONSTRAINT "interface switch_pos cannot be empty string"
+		CHECK (char_length(switch_pos) > 0),
 	note text,
 	template bigint,
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
@@ -43,13 +43,16 @@ RETURNS TRIGGER
 AS
 $$
 DECLARE net ipv4;
+	ports_regexp text;
 BEGIN
 	SELECT ip4 INTO net FROM network WHERE uid = NEW.network;
 	IF NEW.ip4 << net THEN
 		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
 	END IF;
-	IF NEW.switch_pos > (SELECT ports FROM switch WHERE uid = NEW.switch) THEN
-		RAISE EXCEPTION 'Switch does not have % ports!', NEW.switch_pos;
+
+	SELECT ports INTO ports_regexp FROM switch WHERE uid = NEW.switch;
+	IF NEW.switch_pos !~ ports_regexp THEN
+		RAISE EXCEPTION 'Switch_pos % does not match port regexp \'%\'!', NEW.switch_pos, ports_regexp;
 	END IF;
 	RETURN NEW;
 END

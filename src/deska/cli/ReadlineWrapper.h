@@ -157,10 +157,13 @@ public:
 
     /** @short Prints prompt and gets a single line from a input
     *
+    * In a perfect world, this function would simply return a string or throw an exception upon EOF. In reality, doing that
+    * would complicate the unit tests even more, and that's why this function returns a pair of <string, bool>.
+    *
     *   @param prompt Prompt string
-    *   @return Read line
+    *   @return Pair of read line and bool indicating if EOF was read
     */
-    std::string getLine(const std::string &prompt);
+    std::pair<std::string, bool> getLine(const std::string &prompt);
 
     /** @short Saves the history to the given file
     *

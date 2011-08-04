@@ -28,6 +28,7 @@
 typedef std::map<std::string, std::string> map_string_string;
 typedef std::vector<std::pair<std::string, std::string> > vect_pair_str_str;
 typedef std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > vect_pair_attrdef_ident;
+typedef std::pair<std::string, bool> pair_string_bool;
 
 FORWARD_1(reportError, ReportError, std::string);
 FORWARD_1(printMessage, PrintMessage, std::string);
@@ -39,7 +40,7 @@ FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Cli::Ob
 FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Cli::ObjectDefinition);
 FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Cli::ObjectDefinition);
 FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
-FORWARD_1_RETURN(readLine, ReadLine, std::string, str1, std::string);
+FORWARD_1_RETURN(readLine, ReadLine, pair_string_bool, strbool, std::string);
 FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
 FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
 FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
