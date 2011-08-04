@@ -109,6 +109,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
             kindattributes1.add(row[0])
 
         kindattributes2 = set()
+        record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': reftable})
         for row in record:
             kindattributes2.add(row[0])
 
