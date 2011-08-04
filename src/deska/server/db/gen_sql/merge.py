@@ -1,7 +1,7 @@
 class Merge:
     merge_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rmerge_%';"
     kind_attributes_query_str = "SELECT attname FROM kindAttributes('%(tbl)s')"
-    
+
     add_constraint_str = '''
 ALTER TABLE %(tbl)s ADD CONSTRAINT rmerge_%(tbl)s_%(merge_tbl)s FOREIGN KEY (%(merge_tbl)s) REFERENCES %(merge_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE;
 '''
@@ -20,7 +20,7 @@ BEGIN
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
     END;
-    
+
     IF refuid IS NOT NULL THEN
         NEW.%(merge_tbl)s := refuid;
     END IF;
@@ -43,7 +43,7 @@ BEGIN
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
     END;
-    
+
     IF refuid IS NOT NULL THEN
         PERFORM %(merge_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
     END IF;
@@ -56,7 +56,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
 
     def __init__(self,db_connection):
         self.plpy = db_connection;
-        self.plpy.execute("SET search_path TO deska, production, api")                    
+        self.plpy.execute("SET search_path TO deska, production, api")
 
     # generate sql for all tables
     def gen_merge(self,filename):
@@ -67,7 +67,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
         # print this to add proc into genproc schema
         self.constrain_sql.write("SET search_path TO production;\n")
         self.trigger_sql.write("SET search_path TO production, history, genproc;\n")
-        
+
         record = self.plpy.execute(self.merge_pairs_query_str)
         for row in record:
             table = row[0]
@@ -78,17 +78,17 @@ CREATE TRIGGER trg_after_%(tbl)s_%(merge_tbl)s_link AFTER INSERT ON %(tbl)s_hist
             #we needs the oposite direction than the one that alredy exists
             self.constrain_sql.write(self.gen_merge_reference(reftable, table))
             self.trigger_sql.write(self.gen_link_trigger(table, reftable))
-        
+
         self.constrain_sql.close()
         self.trigger_sql.close()
-    
+
     def gen_merge_reference(self, table, reftable):
         return self.add_constraint_str % {'tbl': table, 'merge_tbl': reftable}
-    
+
     def gen_link_trigger(self, table, reftable):
         return self.trigger_link_merged_objects % {'tbl': table, 'merge_tbl': reftable} + '\n' + self.trigger_link_merged_objects % {'tbl': reftable, 'merge_tbl': table}
-        
- 
+
+
     def check_merge_definition(self, table, reftable, attname, refattname):
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
