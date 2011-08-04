@@ -275,7 +275,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"int\", "
+               "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"identifier\", "
                "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
@@ -288,7 +288,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
             "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\","
-            "\"template\": \"bleh\"}, \"response\": \"objectData\"}\n");
+            "\"template\": \"bleh\", \"anotherKind\": \"foo_ref\"}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -302,6 +302,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["date"] = boost::gregorian::date(2011, 6, 20);
     expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
     expected["template"] = "bleh";
+    expected["anotherKind"] = "foo_ref";
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -351,7 +352,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
@@ -361,18 +362,20 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
 
     expectWrite("{\"command\":\"multipleObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
     expectRead("{\"multipleObjectData\": {"
-               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10, \"template\": null}, "
-               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": null} "
+               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10, \"template\": null, \"anotherKind\": \"a\"}, "
+               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": null, \"anotherKind\": \"b\"} "
                "}, \"tag\":\"T\", \"response\": \"multipleObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
     expected["a"]["foo"] = "barA";
     expected["a"]["int"] = 10;
     expected["a"]["baz"] = "idA";
     expected["a"]["template"] = Value();
+    expected["a"]["anotherKind"] = "a";
     expected["b"]["foo"] = "barB";
     expected["b"]["int"] = 20;
     expected["b"]["baz"] = "idB";
     expected["b"]["template"] = Value();
+    expected["b"]["anotherKind"] = "b";
     // Check just the interesting items
     map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind", "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -409,7 +412,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, "
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
@@ -420,18 +423,20 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
 
     expectWrite("{\"command\":\"multipleResolvedObjectDataWithOrigin\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
     expectRead("{\"multipleResolvedObjectDataWithOrigin\": {"
-               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10], \"template\": [\"a\", null]}, "
-               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20], \"template\": [\"b\", \"22\"]} "
+               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10], \"template\": [\"a\", null], \"anotherKind\": [\"a\", \"a\"]}, "
+               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20], \"template\": [\"b\", \"22\"], \"anotherKind\": [\"b\", \"b\"]} "
                "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectDataWithOrigin\"}\n");
     map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
     expected["a"]["foo"] = std::make_pair("1", "barA");
     expected["a"]["baz"] = std::make_pair("1", "idA");
     expected["a"]["int"] = std::make_pair("11", 10);
     expected["a"]["template"] = std::make_pair("a", Value());
+    expected["a"]["anotherKind"] = std::make_pair("a", "a");
     expected["b"]["foo"] = std::make_pair("1", "barB");
     expected["b"]["baz"] = std::make_pair("2", "idB");
     expected["b"]["int"] = std::make_pair("22", 20);
     expected["b"]["template"] = std::make_pair("b", "22");
+    expected["b"]["anotherKind"] = std::make_pair("b", "b");
     map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
@@ -443,7 +448,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"int\"}, "
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
@@ -454,18 +459,20 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
 
     expectWrite("{\"command\":\"multipleResolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
     expectRead("{\"multipleResolvedObjectData\": {"
-               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10, \"template\": null}, "
-               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": \"22\"} "
+               "\"a\": {\"foo\": \"barA\", \"baz\": \"idA\", \"int\": 10, \"template\": null, \"anotherKind\": \"a\"}, "
+               "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": \"22\", \"anotherKind\": \"b\"} "
                "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
     expected["a"]["foo"] = "barA";
     expected["a"]["baz"] = "idA";
     expected["a"]["int"] = 10;
     expected["a"]["template"] = Value();
+    expected["a"]["anotherKind"] = "a";
     expected["b"]["foo"] = "barB";
     expected["b"]["baz"] = "idB";
     expected["b"]["int"] = 20;
     expected["b"]["template"] = "22";
+    expected["b"]["anotherKind"] = "b";
     map<Identifier, map<Identifier, Value> > res = j->multipleResolvedObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666)));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();

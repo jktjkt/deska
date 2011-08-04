@@ -8,8 +8,9 @@ helper_interface_attrs = {
 }
 helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier",
-    "template": "identifier", "cpu_num": "int", "ram": "int", "note": "string"
+    "template": "identifier", "cpu_num": "int", "ram": "int", "hardware_note": "string", "host" : "identifier"
 }
+helper_hardware_template_attrs = dict((k,v) for (k, v) in helper_hardware_attrs.iteritems() if k != "host")
 
 declarative = [
     kindNames().returns(
@@ -22,10 +23,10 @@ declarative = [
     kindAttributes("host").returns(
         {
             "hardware": "identifier",
-            "note": "string"}
+            "host_note": "string"}
     ),
     kindAttributes("hardware").returns(helper_hardware_attrs),
-    kindAttributes("hardware_template").returns(helper_hardware_attrs),
+    kindAttributes("hardware_template").returns(helper_hardware_template_attrs),
 
     # try to ask for a non-existing object
     kindAttributes("pwnpwn").throws(InvalidKindError()),
@@ -39,11 +40,12 @@ declarative = [
        AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
                       'interface_template'}])),
     kindRelations("host").returns(
-        AnyOrderList([{'relation': 'REFERS_TO', 'target': 'hardware'}])
+        AnyOrderList([{'relation': 'MERGE_WITH', 'target': 'hardware'}])
     ),
     kindRelations("hardware").returns(
         AnyOrderList([
             {'relation': 'REFERS_TO', 'target': 'vendor'},
+            {'relation': 'MERGE_WITH', 'target': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
     ),
     kindRelations("hardware_template").returns(

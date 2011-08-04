@@ -37,11 +37,11 @@ BEGIN
 	DEALLOCATE expnames;	
 
 	PERFORM startchangeset();
-	PERFORM host_set_note('hpv1', 'host hpv1');
+	PERFORM host_set_host_note('hpv1', 'host hpv1');
 	PERFORM host_add('hpv2');
-	PERFORM host_set_note('hpv2', 'host hpv2');
+	PERFORM host_set_host_note('hpv2', 'host hpv2');
 
-	PREPARE retnames AS SELECT note FROM host_get_data('hpv1');
+	PREPARE retnames AS SELECT host_note FROM host_get_data('hpv1');
 	PREPARE expnames AS SELECT note FROM set_atts_host WHERE name = 'hpv1' AND version = 2;
 	RETURN NEXT set_eq( 'retnames', 'expnames', 'vendor_list is same' );	
 
@@ -58,7 +58,7 @@ BEGIN
 	DEALLOCATE retnames;
 	DEALLOCATE expnames;	
 	
-	PREPARE retnotes AS SELECT note FROM host_get_data('hpv1');
+	PREPARE retnotes AS SELECT host_note FROM host_get_data('hpv1');
 	PREPARE expnotes AS SELECT note FROM set_atts_host WHERE name = 'hpv1' AND version = 2;
 	RETURN NEXT set_eq( 'retnotes', 'expnotes', 'lists of hosts after commit are same' );	
 

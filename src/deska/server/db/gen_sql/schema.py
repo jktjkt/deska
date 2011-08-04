@@ -41,6 +41,8 @@ def %(name)s(%(args)s):
 	Refuid reference is reference to some table's uid column.
 	Gets name of column from which is uid referenced and the name of the table table that is referenced,
 	"""
+	merge_with_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'MERGE';"
+	"""Query to get names of tables which are merged with this table."""
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -200,6 +202,11 @@ CREATE FUNCTION commit_all(message text)
 		table.refuid_columns = dict()
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
+
+		record = self.plpy.execute(self.merge_with_str % tbl)
+		table.merge_with = list()
+		for row in record:
+			table.merge_with.append(row[0])
 
 		if tbl in self.templates:
 			templated_table = self.templates[tbl]

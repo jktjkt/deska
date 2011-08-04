@@ -257,8 +257,8 @@ class Table(constants.Templates):
 		rddvcols = collist.keys()
 		rddv_list = list()
 		for col in rddvcols:
-			if col == self.embed_into:
-				rddv_list.append( "rd." + self.embed_into)
+			if (col == self.embed_into) or (col in self.merge_with):
+				rddv_list.append( "rd." + col)
 			else:
 				rddv_list.append(("COALESCE(rd.%s, dv.%s) AS %s" % (col, col, col)))
 
@@ -351,24 +351,25 @@ class Table(constants.Templates):
 		#in case of multiple data we would like to select all columns in table
 		multiple_columns = ",".join(collist)
 		#table which is thatone embed into
-		if self.embed_into <> "":
+		if self.embed_into <> "" or len(self.merge_with) > 0:
 			resolved_object_data_string = self.resolved_object_data_embed_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
-				if col == self.embed_into:
+				if col == self.embed_into or col in self.merge_with:
 					multiple_rd_dv_coalesce_list.append("rd.%s AS %s" % (col, col))
 				else:
 					multiple_rd_dv_coalesce_list.append(
 						"COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))
-			collist.remove(self.embed_into)
-			del cols_ex_template_dict[self.embed_into]
+			if self.embed_into <> "":
+				collist.remove(self.embed_into)
+				del cols_ex_template_dict[self.embed_into]
 		else:
 			resolved_object_data_string = self.resolved_object_data_string
 			resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
 			multiple_rd_dv_coalesce_list = ["COALESCE(rd.%s,dv.%s) AS %s" % (x,x,x) for x in collist]
 
-		multiple_rd_dv_coalesce = ",".join(multiple_rd_dv_coalesce_list)
+		multiple_rd_dv_coalesce = ",\n".join(multiple_rd_dv_coalesce_list)
 		cols = ','.join(collist)
 		columns_ex_template = list(collist)
 
@@ -377,8 +378,14 @@ class Table(constants.Templates):
 		dcols = ','.join(data_attributes) + ', data.template'
 
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
-		if len(collist) > 0:
-			rddvcoal = ',\n'.join(["COALESCE(rd.%s,dv.%s) AS %s" % (x,x,x) for x in collist])
+		templated_rddv_collist = list()
+		for col in collist:
+			if col in self.merge_with:
+				templated_rddv_collist.append("rd." + col)
+			else:
+				templated_rddv_collist.append("COALESCE(rd.%s,dv.%s) AS %s" % (col,col,col))
+		if len(templated_rddv_collist) > 0:
+			rddvcoal = ',\n'.join(templated_rddv_collist)
 
 		# replace uid of referenced object its name
 		for col in self.refuid_columns:
@@ -404,7 +411,7 @@ class Table(constants.Templates):
 		END AS %s_templ'''
 		templ_case_list = list()
 		for col in cols_ex_template_dict.keys():
-			if col == self.embed_into:
+			if col == self.embed_into or col in self.merge_with:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
 			else:
 				templ_case_list.append(templ_case_cols_str % (col, col, col, col, col))
@@ -444,10 +451,11 @@ class Table(constants.Templates):
 		collist.remove('uid')
 		collist.remove('name')
 
-		if self.embed_into <> "":
+		if self.embed_into <> "" or len(self.merge_with) > 0:
 			rd_dv_list = list()
 			for col in collist:
-				if col == self.embed_into:
+				#column that refers to embed into parent and merge with columns are not present in template
+				if (col == self.embed_into) or (col in self.merge_with):
 					rd_dv_list.append("rd." + col)
 				else:
 					rd_dv_list.append("COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))

@@ -36,12 +36,12 @@ std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Iden
     BOOST_FOREACH(const ObjectRelation &relation, kindRelations(kindName)) {
         using namespace boost::phoenix;
         switch (relation.kind) {
-        case RELATION_MERGE_WITH:
         case RELATION_EMBED_INTO:
             end = std::remove_if(begin, end, bind(&KindAttributeDataType::name, arg_names::_1) == relation.target);
             break;
         case RELATION_REFERS_TO:
         case RELATION_TEMPLATIZED:
+        case RELATION_MERGE_WITH:
             // no special cases
             break;
         case RELATION_INVALID:
