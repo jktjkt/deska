@@ -357,7 +357,7 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(
 Db::RevisionId DbInteraction::changesetParent(const Db::TemporaryChangesetId &changeset)
 {
     std::vector<Db::PendingChangeset> changesets = m_api->pendingChangesets(
-        Db::Filter(Db::MetadataExpression(Db::FILTER_COLUMN_EQ, "revision", changeset)));
+        Db::Filter(Db::MetadataExpression(Db::FILTER_COLUMN_EQ, "changeset", changeset)));
     if (changesets.empty()) {
         std::ostringstream ostr;
         ostr << "Deska::Cli::DbInteraction::changesetParent: No parent revision found for " << changeset;
