@@ -21,9 +21,11 @@
 * */
 
 #include <fstream>
+#include <cstdlib>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "CliCommands.h"
 #include "UserInterface.h"
@@ -123,6 +125,129 @@ template <typename Iterator>
 void LogFilterParser<Iterator>::addKind(const Db::Identifier &kindName)
 {
     kinds.add(kindName, predefinedRules->getObjectIdentifier());
+}
+
+
+
+std::string OurModificationConverter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "create " << modification.kindName << " " << modification.objectName;
+    return ostr.str();
+}
+
+
+
+std::string OurModificationConverter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "delete " << modification.kindName << " " << modification.objectName;
+    return ostr.str();
+}
+
+
+
+std::string OurModificationConverter::operator()(const Db::RenameObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " to "
+         << modification.newObjectName;
+    return ostr.str();
+}
+
+
+
+std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "set attribute " << modification.kindName << " " << modification.objectName << " "
+         << modification.attributeName << " from "
+         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
+         << (modification.attributeData ? *(modification.attributeData) : "null");
+    return ostr.str();
+}
+
+
+
+std::string ExternModificationConverter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# created " << modification.kindName << " " << modification.objectName << " in newer revision";
+    return ostr.str();
+}
+
+
+
+std::string ExternModificationConverter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# deleted " << modification.kindName << " " << modification.objectName << " in newer revision";
+    return ostr.str();
+}
+
+
+
+std::string ExternModificationConverter::operator()(const Db::RenameObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# renamed " << modification.kindName << " " << modification.oldObjectName << " to "
+         << modification.newObjectName << " in newer revision";
+    return ostr.str();
+}
+
+
+
+std::string ExternModificationConverter::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# attribute " << modification.kindName << " " << modification.objectName << " "
+         << modification.attributeName << "set from "
+         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
+         << (modification.attributeData ? *(modification.attributeData) : "null") << " in newer revision";
+    return ostr.str();
+}
+
+
+
+std::string BothModificationConverter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# created " << modification.kindName << " " << modification.objectName
+         << " in both newer revision and our changeset";
+    return ostr.str();
+}
+
+
+
+std::string BothModificationConverter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# deleted " << modification.kindName << " " << modification.objectName
+         << " in both newer revision and our changeset";
+    return ostr.str();
+}
+
+
+
+std::string BothModificationConverter::operator()(const Db::RenameObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "# renamed " << modification.kindName << " " << modification.oldObjectName << " to "
+         << modification.newObjectName << " in both newer revision and our changeset";
+    return ostr.str();
+}
+
+
+
+std::string BothModificationConverter::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "attribute " << modification.kindName << " " << modification.objectName << " "
+         << modification.attributeName << "set from "
+         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
+         << (modification.attributeData ? *(modification.attributeData) : "null")
+         << " in both newer revision and our changeset";
+    return ostr.str();
 }
 
     
@@ -415,12 +540,137 @@ void Rebase::operator()(const std::string &params)
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
-    Db::RevisionId parentRevision = ui->m_dbInteraction->changesetParent(*(ui->currentChangeset));
+    Db::RevisionId oldParentRevision = ui->m_dbInteraction->changesetParent(*(ui->currentChangeset));
     Db::RevisionId headRevision = ui->m_dbInteraction->allRevisions().back().revision;
-    if (headRevision == parentRevision) {
+    if (headRevision == oldParentRevision) {
         ui->io->printMessage("No rebase needed.");
         return;
     }
+
+    // Start new changeset for rebase
+    Db::TemporaryChangesetId oldChangeset = *(ui->currentChangeset);
+    ui->m_dbInteraction->detachFromChangeset("Rebase in progress");
+    Db::TemporaryChangesetId newChangeset = ui->m_dbInteraction->createNewChangeset();
+    Db::RevisionId newParentRevision = ui->m_dbInteraction->changesetParent(newChangeset);
+
+    // Obtain modifications lists for three-way diff
+    std::vector<Db::ObjectModification> externModifications = ui->m_dbInteraction->revisionsDifference(
+        oldParentRevision, newParentRevision);
+    std::vector<Db::ObjectModification> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+        oldChangeset);
+
+    // Sort modifications for to merge the lists
+    using namespace boost::phoenix::arg_names;
+    std::sort(externModifications.begin(), externModifications.end(),
+        boost::phoenix::bind(&Rebase::objectModificationLess, this, arg1, arg2));
+    std::sort(ourModifications.begin(), ourModifications.end(),
+        boost::phoenix::bind(&Rebase::objectModificationLess, this, arg1, arg2));
+
+    // Merge the lists in the temporary file in user readable and edittable format
+    std::vector<Db::ObjectModification>::iterator ite = externModifications.begin();
+    std::vector<Db::ObjectModification>::iterator ito = ourModifications.begin();
+    char tempFile[] = "/tmp/DeskaRebaseXXXXXXXX";
+    if (mkstemp(tempFile) == -1) {
+        ui->io->reportError("Error while creating rebase temp file \"" + std::string(tempFile) + "\".");
+        ui->m_dbInteraction->abortChangeset();
+        ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        return;
+    }
+    std::ofstream ofs(tempFile);
+    if (!ofs) {
+        ui->io->reportError("Error while opening rebase temp file \"" + std::string(tempFile) + "\".");
+        remove(tempFile);
+        ui->m_dbInteraction->abortChangeset();
+        ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        return;
+    }
+    while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
+        if (objectModificationLess(*ite, *ito)) {
+            ofs << boost::apply_visitor(ExternModificationConverter(), *ite) << std::endl;
+            ++ite;
+        } else if (*ite == *ito) {
+            ofs << boost::apply_visitor(BothModificationConverter(), *ite) << std::endl;
+            ++ite;
+            ++ito;
+        } else {
+            ofs << boost::apply_visitor(OurModificationConverter(), *ito) << std::endl;
+            ++ito;
+        }
+    }
+    while (ite != externModifications.end()) {
+        ofs << boost::apply_visitor(ExternModificationConverter(), *ite) << std::endl;
+        ++ite;
+    }
+    while (ito != ourModifications.end()) {
+        ofs << boost::apply_visitor(OurModificationConverter(), *ito) << std::endl;
+        ++ito;
+    }
+
+    ofs.close();
+
+    // TODO: Editting of the file here.
+
+    // Open the file after the user actions and apply changes
+    std::ifstream ifs(tempFile);
+    if (!ifs) {
+        ui->io->reportError("Error while opening resolved conflicts file \"" + std::string(tempFile) + "\".");
+        remove(tempFile);
+        ui->m_dbInteraction->abortChangeset();
+        ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        return;
+    }
+
+    ui->nonInteractiveMode = true;
+    std::string line;
+    std::string parserLine;
+    ui->m_parser->clearContextStack();
+    unsigned int lineNumber = 0;
+    while (!getline(ifs, line).eof()) {
+        ++lineNumber;
+        parserLine = toParserReadable(line);
+        if (!parserLine.empty() && parserLine[0] == '#')
+            continue;
+        ui->m_parser->parseLine(parserLine);
+        ui->m_parser->clearContextStack();
+        if (ui->parsingFailed)
+            break;
+    }
+    ui->nonInteractiveMode = false;
+    if (ui->parsingFailed) {
+        std::ostringstream ostr;
+        ostr << "Parsing of resolved conflicts file failed on line " << lineNumber << ".";
+        ui->io->reportError(ostr.str());
+        ifs.close();
+        remove(tempFile);
+        ui->m_dbInteraction->abortChangeset();
+        ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        return;
+    }
+    ifs.close();
+    remove(tempFile);
+
+    // Delete old obsolete changeset and connect to the new one
+    ui->m_dbInteraction->detachFromChangeset("Rebase in progress");
+    ui->m_dbInteraction->resumeChangeset(oldChangeset);
+    ui->m_dbInteraction->abortChangeset();
+    ui->m_dbInteraction->resumeChangeset(newChangeset);
+    ui->io->printMessage("Rebase successful.");
+}
+
+
+
+bool Rebase::objectModificationLess(const Db::ObjectModification &a, const Db::ObjectModification &b)
+{
+    // TODO
+    return true;
+}
+
+
+
+std::string Rebase::toParserReadable(const std::string &line)
+{
+    // TODO
+    return line;
 }
 
 
@@ -676,8 +926,9 @@ void Dump::operator()(const std::string &params)
                 dumpObjectRecursive(object, 1, ofs);
             }
         }
+        ofs.close();
         ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
-    }  
+    }
 }
 
 
@@ -789,6 +1040,7 @@ void Restore::operator()(const std::string &params)
     } else {
         ui->io->printMessage("All commands successfully executed.");
     }
+    ifs.close();
     ui->m_parser->setContextStack(stackBackup);
 }
 

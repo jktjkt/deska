@@ -38,7 +38,7 @@
 #include "deska/db/Api.h"
 #include "deska/db/Filter.h"
 
-//#define PARSER_DEBUG
+#define PARSER_DEBUG
 
 namespace Deska
 {
@@ -55,10 +55,24 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     topLevelParser = new TopLevelParser<Iterator>(topLevelKindsParser, topLevelKindsFiltersParser, this);
     functionWordsParser = new FunctionWordsParser<Iterator>(this);
 
-    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
+    allKinds = m_parser->m_dbApi->kindNames();
+    bool isEmbedded = false;
+    for (std::vector<Db::Identifier>::iterator itk = allKinds.begin(); itk != allKinds.end(); ++itk) {
+        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*itk);
+        isEmbedded = false;
+        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
+            if (itr->kind == Db::RELATION_EMBED_INTO) {
+                isEmbedded = true;
+                embeds[itr->target].push_back(*itk);
+                embeddedInto[*itk] = itr->target;
+            }
+        }
+        if (!isEmbedded)
+            topLevelKindsIds.push_back(*itk);
+    }
 
     // Create attributes parser and filters expressions parser for each kind
-    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+    for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
         attributesSettingParsers[*it] = new AttributesSettingParser<Iterator>(*it, this);
         attributeRemovalsParsers[*it] = new AttributeRemovalsParser<Iterator>(*it, this);
         filterExpressionsParsers[*it] = new FilterExpressionsParser<Iterator>(*it, this);
@@ -69,21 +83,17 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     }
 
     // Create filters parser for each kind
-    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+    for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
         filtersParsers[*it] = new FiltersParser<Iterator>(*it, filterExpressionsParsers[*it], this);
         addNestedKinds(*it, filtersParsers[*it]);
     }
 
-    for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
-        // Add new kind to the top-level parser if it is not embedded anywhere
-        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*it);
-        std::vector<Db::ObjectRelation>::iterator itr = std::find_if(relations.begin(), relations.end(),
-            phoenix::bind(&Db::ObjectRelation::kind, phoenix::arg_names::_1) == Db::RELATION_EMBED_INTO);
-        if (itr == relations.end()) {
-            topLevelKindsParser->addKind(*it, predefinedRules->getObjectIdentifier());
-            topLevelKindsIds.push_back(*it);
-        }
+    // Add new kind to the top-level parser if it is not embedded anywhere
+    for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
+        topLevelKindsParser->addKind(*it, predefinedRules->getObjectIdentifier());
+    }
 
+    for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
         // Add filters parser
         topLevelKindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
 
@@ -165,17 +175,12 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
 template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbeds(const Db::Identifier &kindName)
 {
-    std::vector<Db::Identifier> embeds;
-    std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
-    for (std::vector<Db::Identifier>::iterator itk = kinds.begin(); itk != kinds.end(); ++itk) {
-        std::vector<Db::ObjectRelation> relations = m_parser->m_dbApi->kindRelations(*itk);
-        for (std::vector<Db::ObjectRelation>::iterator itr = relations.begin(); itr != relations.end(); ++itr) {
-            if ((itr->kind == Db::RELATION_EMBED_INTO) && (itr->target == kindName)) {
-                embeds.push_back(*itk);
-            }
-        }
+    std::map<Db::Identifier, std::vector<Db::Identifier> >::const_iterator it = embeds.find(kindName);
+    if (it == embeds.end()) {
+        return std::vector<Db::Identifier>();
+    } else {
+        return it->second;
     }
-    return embeds;
 }
 
 
@@ -260,12 +265,24 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
 template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
-    contextStack.push_back(ContextStackItem(kind, name));
-    if (!dryRun)
-        m_parser->categoryEntered(kind, name);
+    std::vector<Db::Identifier> objectNames = pathToVector(name);
+    std::vector<std::pair<Db::Identifier, Db::Identifier> > objects;
+    std::vector<Db::Identifier>::reverse_iterator it = objectNames.rbegin();
+    objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(kind, *it));
+    ++it;
+    for (; it != objectNames.rend(); ++it) {
+        objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(embeddedInto[objects.back().first], *it));
+    }
+    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito = objects.rbegin();
+         ito != objects.rend(); ++ito)
+    {
+        contextStack.push_back(ContextStackItem(ito->first, ito->second));
+        if (!dryRun)
+            m_parser->categoryEntered(ito->first, ito->second);
 #ifdef PARSER_DEBUG
-    std::cout << "Category entered: " << kind << ": " << name << std::endl;
+        std::cout << "Category entered: " << ito->first << ": " << ito->second << std::endl;
 #endif
+    }
 }
 
 
@@ -358,7 +375,7 @@ ParsingMode ParserImpl<Iterator>::getParsingMode()
 template <typename Iterator>
 std::vector<Db::Identifier> ParserImpl<Iterator>::getKindNames()
 {
-    return m_parser->m_dbApi->kindNames();
+    return allKinds;
 }
 
 
@@ -399,7 +416,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *kindsOnlyParser,
                                           KindsFiltersParser<Iterator> *kindsFiltersParser)
 {
-    std::vector<Db::Identifier> nestedKinds = parserKindsEmbeds(kindName);
+    std::vector<Db::Identifier> nestedKinds = parserKindsEmbedsRecursively(kindName);
     for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
         kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
         kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
@@ -460,11 +477,11 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             case PARSING_MODE_RENAME:
                 // Function delete and rename require parameter -> report error
                 if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
                     parsingSucceeded = false;
                 } else {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter,
-                                  contextStack.back().kind, parserKindsEmbeds(contextStack.back().kind)));
+                                  contextStack.back().kind, parserKindsEmbedsRecursively(contextStack.back().kind)));
                     parsingSucceeded = false;
                 }
                 break;
@@ -556,7 +573,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             } else if (contextStack.empty()) {
                 // Missing object to rename
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", topLevelKindsIds));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
             } else {
                 // We are ready to parse new name
                 parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
@@ -763,11 +780,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         possibilities.push_back("show");
     if (contextStack.empty()) {
         // No context -> add names of kinds
-        std::vector<Db::Identifier> kinds = m_parser->m_dbApi->kindNames();
-        for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
+        for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
             possibilities.push_back(line + *it);
         }
-        if ((!kinds.empty()) && (line.empty())) {
+        if ((!allKinds.empty()) && (line.empty())) {
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
         }
@@ -784,7 +800,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             possibilities.push_back(line + "end");
         }
         // Add names of nested kinds of current kind
-        std::vector<Db::Identifier> embededKinds = parserKindsEmbeds(contextStack.back().kind);
+        std::vector<Db::Identifier> embededKinds = parserKindsEmbedsRecursively(contextStack.back().kind);
         for (std::vector<Db::Identifier>::iterator it = embededKinds.begin(); it != embededKinds.end(); ++it) {
             possibilities.push_back(line + *it);
         }
@@ -821,6 +837,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             return;
         std::vector<std::string> expectations = it->expectedTypes();
         // Check if the user is supposed to enter some objects name, that we can complete
+        // FIXME: Allow completiong names with -> and jumps
         if (expectations.front() == "object identifier (alphanumerical letters and _)") {
             if (!(it->context().empty())) {
                 std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
@@ -894,6 +911,21 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 
 
 
+template <typename Iterator>
+std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(const Db::Identifier &kindName)
+{
+    std::vector<Db::Identifier> embedsRecursivelyTotal = parserKindsEmbeds(kindName);
+    for (std::vector<Db::Identifier>::iterator it = embedsRecursivelyTotal.begin();
+         it != embedsRecursivelyTotal.end(); ++it) {
+        std::vector<Db::Identifier> embedsRecursively = parserKindsEmbedsRecursively(*it);
+        embedsRecursivelyTotal.insert(embedsRecursivelyTotal.end(), embedsRecursively.begin(), embedsRecursively.end());
+    }
+
+    return embedsRecursivelyTotal;
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
@@ -951,6 +983,8 @@ template void ParserImpl<iterator_type>::reportParseError(const std::string& lin
 template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(const std::string &line, std::vector<std::string> &possibilities);
 
 template void ParserImpl<iterator_type>::insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
+
+template std::vector<Db::Identifier> ParserImpl<iterator_type>::parserKindsEmbedsRecursively(const Db::Identifier &kindName);
 
 }
 }
