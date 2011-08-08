@@ -38,7 +38,7 @@
 #include "deska/db/Api.h"
 #include "deska/db/Filter.h"
 
-#define PARSER_DEBUG
+//#define PARSER_DEBUG
 
 namespace Deska
 {
