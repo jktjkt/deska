@@ -1,0 +1,195 @@
+Schuze Deska, 2011-08-08 FZU
+----------------------------
+
+Pritomni: Honza, Martina, Tomas
+Omluveni: Lukas (dovolena)
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- generator konfigurace
+    - spravuje git repozitar s vygenerovanou konfiguraci
+    - umi inicializovat repository, spoustet skripty, diffovat, ulozit zmeny,
+    pushnout,...
+    - vcetne unit testu
+- build fixy na RHEL5 -- byla to dost otrava
+    - python2.4
+    - readline
+    - simplejson
+    - ...
+- DBAPI: nove vyjimky
+- DBAPI: odstraneni rebaseChangeset
+- DBAPI: odstraneni IS_TEMPLATE
+- merge merge_relations, opravy souvisejicich bugu
+- ucesani modulu deska do well-Pythonic stavu
+- unit testy
+- CDash na deska-dev.farm.particle.cz
+- automaticke spousteni unit testu kazdy den
+- neuspesne zapaseni s valgrindem
+
+Martina:
+- IS_TEMPLATIZED
+- MERGE_WITH
+- flag is_generated
+- testy
+
+Tomas:
+- filtry pro log
+- refactoring parseru, nutno kvuli viz vyse
+- resolving filtru (prevod na seznam identifikatoru)
+- bugfixy
+- zprovozneni "interface foo->bar"
+- cache v parseru
+- Cli::Command jsou v extra souboru
+- rebase: chybi tomu razeni, spousteni procesu,...; neprodukuje to data vhodna
+  pro parser, otestovano to neni vubec
+
+Probrat:
+--------
+
+Jak do schematu propasovat multi-value hodnoty pro "tagovani" (a la role/services)
+----------------------------------------------------------------------------------
+
+- spravce si zadefinuje zvlastni kind pro kazdy logicky typ, ktery chce
+pouzivat (tedy pro terminologii tagovani: pro kazdou
+domenu/universum/... tagu, napr. "lide", nebo "role", nebo "barva")
+
+- uzivatele budou vytvaret instance tohoto kindu pro kazdou jednotlivou
+hodnotu, jez ma byt povolena (napr. "www", "ftp",... pro role, nebo
+"red", "green", "blue" pro barvu)
+
+- DBAPI to zohledni tak, ze atribut "role" u "host" nebude typu
+"identifier", ale "identifier_set", bude existovat relace (host
+REFERS_TO role)
+
+- navratova hodnota v JSONu je neserazeny list stringu, cili napr. misto
+{"role": "www"} se objevi {"role": ["www", "ftp"]}
+
+- setAttribute: zere pouze set<Identifier>, v JSONu list stringu
+
+- dve nove operace, setAttributeInsert(...), setAttributeRemove(...), ktere
+  budou pridavat/odebirat jednu konkretni hodnotu; budou se dat pouzit i v
+  ApplyBatchedChanges
+
+- diff vraci pouze absolutni rozdil, tj. setAttribute(..., [stary seznam], [novy
+  seznam]), nikoli male modifikace
+
+- CLI umi zpracovat jak vstup cele mnoziny, tak i pres pridavani/odebirani
+  jednotlivych prvku ("add <kind> ...", "remove <kind> ...")
+
+- filtry: dotazovat se da bud pres EQ/NE a cely list, a nebo jako
+  CONTAINS/NOT_CONTAINS a jeden Identifier
+
+
+Jak by mely vypadat zaznamy/kindy pro historii poruch
+-----------------------------------------------------
+
+- jeden kind pro kazdy "druh poruch" (cili hw_failure, switch_failure,...)
+- createObject() vzdy vraci string s jmenem, CLI *vzdy* pouziva vracenou hodnotu
+- DB vrati jine nez uzivatelem zadane jmeno prave tehdy, pokud to je embedovany
+  objekt a zaroven je lokalni cast jmena prazdna (napr. interface "hpv2->")
+- CLI ma prikaz "new <kind>", ktery udela prave tohle
+- CLI ma prikaz "last <kind>", ktery vrati posledne vlozeny <kind>
+- rozsireni filtru, aby podporovaly "last kind":
+
+kindInstances("failure", AndFilter( {kind: "failure", attribute: "hw", value:
+"...", operator: EQ}, {special: "last"} ) )
+
+
+Jak spravne udelat host/hw/model-hw/box/model-box, zda pres MERGE_WITH, nebo pres TEMPLATE, nebo jinak
+------------------------------------------------------------------------------------------------------
+
+hardware: kus HW v serverovne
+host: logicky stroj
+box: kus plechu/mista v serverovne (rack, blade chassis)
+
+model-hw: typ HW
+model-box: typ boxu
+vendor: vendor :)
+
+relace:
+- (hardware MERGE host)
+- (host MERGE box)
+
+- (hardware REFERS_TO model-hw)
+- (box REFERS_TO model-box)
+- (model-hw REFERS_TO vendor)
+
+- (hardware REFERS_TO box), krome atributu "box" ma i neco jako "cislo
+pozice", ktere se spolu s vnejsimi rozmery ziskanymi z hardware.model-hw
+pouzije pro kontrolu umisteni uvnitr daneho boxu
+- (box REFERS_TO box), mechanismus shodny s vyse uvedenou relaci
+
+Jak resit mergovaci algoritmus
+------------------------------
+
+format pro cloveka:
+
+# setting attributes (foo, price) of host bar
+host bar
+    foo blabla
+    price 666
+end
+
+# created by you
+create host foo
+
+FIXME: vyresi jeden clovek
+
+
+DB podpora pro zamykani changesetu:
+-----------------------------------
+
+Martina: resit pres advisory locking, asi nejlepsi moznost
+
+
+Blabla:
+-------
+
+FIXME: cache mezi parserem a DBAPI
+
+Spousteni procesu:
+- ma bezet v aktualnim terminalu
+- oblibeny editor je v promenne $EDITOR, pokud neni nastavena, tak tam musi byt
+  nejaky fallback (navrhuju vim :) )
+
+Ruzne:
+-----
+
+Martina: pochvala za napsane hodnoty (+ opravit za srpen)
+
+
+Prace na priste:
+----------------
+
+Tomas: createObject vraci hodnotu
+Tomas: sety v CLI
+Tomas: spousteni `less` pro diff ($PAGER tusim) (inspirace viz
+src/deska/db/ProcessIO.cpp, pozor na terminal,...)
+Tomas: spousteni $EDITOR pro merge
+Tomas: boost::program_options
+Tomas: testy pro *vsechno*, co umi CLI
+Martina: createObject generovani jmena
+Martina: lock pro changesety
+Martina: generovani kodu pro sety
+Martina: schema FZU
+Honza: createObject v DBAPI
+Honza: sety v DBAPI (spec + C++)
+Honza: specifikace merge (behem rebase)
+Honza: DBAPI: filtr pro "posledni pridany..."
+Honza: integrace generovatek do serveru (az bude zamykani)
+
+
+Dostupnost:
+
+- Honza pryc 15. - 18. srpna
+- Tomas pryc 27. - 28.
+- vikendy jsou vikendy.
+
+Pristi schuzka:
+---------------
+
+- patek 19. srpna? Martina nemuze odpoledne, Tomas nemuze dopoledne,...
+
+Schuzka trvala 4 hodiny, johoho.
