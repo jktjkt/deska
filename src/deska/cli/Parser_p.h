@@ -266,6 +266,16 @@ private:
     */
     void insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
 
+    /** @short Obtains list of recursively embedded kinds for given kind name.
+    *
+    *   If kind A embeds kind B and kind B embeds kind C, then this function will return vector containing
+    *   B and C for kind A.
+    *   
+    *   @param kindName Kind name for which the embedded kinds will be obtained
+    *   @return Vector of recursively embedded kinds
+    */
+    std::vector<Db::Identifier> parserKindsEmbedsRecursively(const Db::Identifier &kindName);
+
     //@{
     /** All rules and grammars, that is the whole parser build of are stored there.
     *   Only pointers are used in the main parser.
@@ -288,6 +298,12 @@ private:
 
     /** Vector of top level objects for tab completion purposes. */
     std::vector<Db::Identifier> topLevelKindsIds;
+    /** Identifiers of all kinds. */
+    std::vector<Db::Identifier> allKinds;
+    /** Map of kind names and kinds, where is the kind embedded. */
+    std::map<Db::Identifier, Db::Identifier> embeddedInto;
+    /** Map of kinds and vector of kinds, that are embedded in the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
 
     /** The parser context is held there. */
     ContextStack contextStack;
