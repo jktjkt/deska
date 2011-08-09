@@ -459,7 +459,8 @@ boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract
 template<>
 json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const boost::posix_time::ptime &value)
 {
-    return boost::posix_time::to_simple_string(value);
+    // This is just faster to debug than having to deal with the IO manipulators, thank you very much.
+    return boost::gregorian::to_iso_extended_string(value.date()) + std::string(" ") + boost::posix_time::to_simple_string(value.time_of_day());
 }
 
 /** @short Convert boolean to JSON */
