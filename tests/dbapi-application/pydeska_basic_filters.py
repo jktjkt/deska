@@ -17,10 +17,10 @@ def prepareObjects(r):
     r.c(startChangeset())
     for x in range(10):
         objname = "x%d" % x
-        r.cvoid(createObject("host", objname))
+        r.assertEqual(r.c(createObject("host", objname)), objname)
         r.cvoid(setAttribute("host", objname, "host_note", "ahoj"))
     for vendor in realVendors:
-        r.cvoid(createObject("vendor", vendor))
+        r.assertEqual(r.c(createObject("vendor", vendor)), vendor)
     for x in range(5):
         objname = "hw_%d" % x
         myDate = x+1
@@ -30,7 +30,7 @@ def prepareObjects(r):
         myRAM = str((x / 2) + 2)
         myHw[objname] = {"date": myDate, "vendor": myVendor, "cpu": myCPUs,
                          "ram": myRAM}
-        r.cvoid(createObject("hardware", objname))
+        r.assertEqual(r.c(createObject("hardware", objname)), objname)
         r.cvoid(setAttribute("hardware", objname, "warranty", myDateStr))
         r.cvoid(setAttribute("hardware", objname, "purchase", myDateStr))
         r.cvoid(setAttribute("hardware", objname, "vendor", myVendor))

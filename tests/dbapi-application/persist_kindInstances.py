@@ -9,7 +9,7 @@ def imperative(r):
 
     r.c(startChangeset())
     for obj in objectNames:
-        r.cvoid(createObject("vendor", obj))
+        r.assertEqual(r.c(createObject("vendor", obj)), obj)
 
     changesetKI = set(r.c(kindInstances("vendor")))
     # changesetKI should containt whole objectNames

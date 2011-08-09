@@ -11,7 +11,7 @@ def imperative(r):
     objectNames = ["a", "b", "c"]
     r.c(startChangeset())
     for obj in objectNames:
-        r.cvoid(createObject("host", obj))
+        r.assertEquals(r.c(createObject("host", obj)), obj)
         r.cvoid(setAttribute("host", obj, "host_note", "This is host %s" % obj))
     revision = r.c(commitChangeset("Added three objects"))
 

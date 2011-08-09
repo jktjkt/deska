@@ -18,14 +18,14 @@ def doStuff(r):
 
     r.c(startChangeset())
     for obj in vendorNames:
-        r.cvoid(createObject("vendor", obj))
+        r.assertEqual(r.c(createObject("vendor", obj)), obj)
 
     hardwareNames = set(["hw1"])
     presentHW = set(r.c(kindInstances("hardware")))
     hardwareNames = hardwareNames - presentHW
 
     for obj in hardwareNames:
-        r.cvoid(createObject("hardware", obj))
+        r.assertEqual(r.c(createObject("hardware", obj)), obj)
 
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "vendor1"))
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2008-10-10"))
@@ -52,7 +52,7 @@ def doStuff(r):
     r.assertEqual(hardwareData, expectedHardwareData)
     hardwareData = r.c(objectData("hardware", "hw1"))
     r.assertEqual(hardwareData, expectedHardwareData2)
-    
+
     r.c(startChangeset())
     r.cvoid(renameObject("hardware", "hw1", "hwNewName"))
     hardwareData = r.c(objectData("hardware", "hwNewName"))
@@ -71,14 +71,14 @@ def doStuff_embed(r):
 
     r.c(startChangeset())
     for obj in hostNames:
-        r.cvoid(createObject("host", obj))
+        r.assertEqual(r.c(createObject("host", obj)), obj)
 
     interfaceNames = set(["host1->eth0"])
     presentInterfaces = set(r.c(kindInstances("interface")))
     interfaceNames = interfaceNames - presentInterfaces
 
     for obj in interfaceNames:
-        r.cvoid(createObject("interface", obj))
+        r.assertEqual(r.c(createObject("interface", obj)), obj)
 
     r.cvoid(setAttribute("interface", "host1->eth0", "note", "host1->eth0 note"))
     r.cvoid(setAttribute("interface", "host1->eth0", "mac", "01:23:45:67:89:ab"))
@@ -104,13 +104,13 @@ def doStuff_embed(r):
     r.assertEqual(interfaceData, expectedInterfaceData)
     interfaceData = r.c(objectData("interface", "host1->eth0"))
     r.assertEqual(interfaceData, expectedInterfaceData2)
-    
+
     r.c(startChangeset())
     r.cvoid(renameObject("interface", "host1->eth0", "host2->eth1"))
     interfaceData = r.c(objectData("interface", "host2->eth1"))
     r.assertEqual(interfaceData, expectedInterfaceData2)
     r.c(commitChangeset("test"))
-    
+
     interfaceData = r.c(objectData("interface", "host2->eth1"))
     r.assertEqual(interfaceData, expectedInterfaceData2)
     r.cfail(objectData("interface", "host1->eth0"), NotFoundError())

@@ -22,9 +22,9 @@ declarative = [
     # open another changeset
     startChangeset().register("tmp2"),
 
-    createObject("vendor", "a"),
-    createObject("vendor", "aa"),
-    createObject("vendor", "blabla"),
+    createObject("vendor", "a").returns("a"),
+    createObject("vendor", "aa").returns("aa"),
+    createObject("vendor", "blabla").returns("blabla"),
 
     kindInstances("vendor").returns(AnyOrderList(("a", "aa", "blabla"))),
 
@@ -35,9 +35,9 @@ declarative = [
     # do it one more time
     startChangeset().register("tmp3"),
 
-    createObject("vendor", "a"),
-    createObject("vendor", "aa"),
-    createObject("vendor", "blabla"),
+    createObject("vendor", "a").returns("a"),
+    createObject("vendor", "aa").returns("aa"),
+    createObject("vendor", "blabla").returns("blabla"),
 
     kindInstances("vendor").returns(AnyOrderList(("a", "aa", "blabla"))),
 

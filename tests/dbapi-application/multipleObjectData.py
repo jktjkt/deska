@@ -35,14 +35,14 @@ def doStuff(r):
 
     r.c(startChangeset())
     for obj in vendorNames:
-        r.cvoid(createObject("vendor", obj))
+        r.assertEqual(r.c(createObject("vendor", obj)), obj)
 
     hardwareNames = set(["hw1", "hw2"])
     presentHW = set(r.c(kindInstances("hardware")))
     hardwareNames = hardwareNames - presentHW
 
     for obj in hardwareNames:
-        r.cvoid(createObject("hardware", obj))
+        r.assertEqual(r.c(createObject("hardware", obj)), obj)
 
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "vendor1"))
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2008-10-10"))
@@ -67,7 +67,7 @@ def doStuff(r):
     r.c(startChangeset())
 
     for obj in hardwareNames:
-        r.cvoid(createObject("hardware", obj))
+        r.assertEqual(r.c(createObject("hardware", obj)), obj)
 
     r.cvoid(setAttribute("hardware", "hw3", "vendor", "vendor2"))
     r.cvoid(setAttribute("hardware", "hw3", "purchase", "2010-10-10"))
@@ -84,15 +84,15 @@ def doStuff_embed(r):
 
     r.c(startChangeset())
     for obj in hostNames:
-        r.cvoid(createObject("host", obj))    
-    
+        r.assertEqual(r.c(createObject("host", obj)), obj)
+
     interfaceNames = set(["host1->eth0", "host2->eth0"])
     presentInterfaces = set(r.c(kindInstances("interface")))
     interfaceNames = interfaceNames - presentInterfaces
 
     for obj in interfaceNames:
-        r.cvoid(createObject("interface", obj))
-        
+        r.assertEqual(r.c(createObject("interface", obj)), obj)
+
     r.cvoid(setAttribute("interface", "host1->eth0", "mac", "01:23:45:67:89:aa"))
     r.cvoid(setAttribute("interface", "host1->eth0", "ip4", "192.168.0.1"))
     r.cvoid(setAttribute("interface", "host1->eth0", "note", "some note"))
@@ -103,27 +103,27 @@ def doStuff_embed(r):
     for key in interfaceData:
         r.assertEqual(interfaceData[key], expectedInterfaceData[key])
     revision = r.c(commitChangeset("test"))
-    
+
     interfaceData = r.c(multipleObjectData("interface", revision))
     for key in interfaceData:
         r.assertEqual(interfaceData[key], expectedInterfaceData[key])
-    
+
     interfaceNames = set(["host1->eth1"])
     presentInterfaces = set(r.c(kindInstances("interface")))
     interfaceNames = interfaceNames - presentInterfaces
 
     r.c(startChangeset())
     for obj in interfaceNames:
-        r.cvoid(createObject("interface", obj))
-        
+        r.assertEqual(r.c(createObject("interface", obj)), obj)
+
     r.cvoid(setAttribute("interface", "host1->eth0", "mac", "01:23:45:67:89:ab"))
     r.cvoid(setAttribute("interface", "host1->eth1", "mac", "01:23:45:67:89:ba"))
     interfaceData = r.c(multipleObjectData("interface"))
     for key in interfaceData:
         r.assertEqual(interfaceData[key], expectedInterfaceData2[key])
     r.c(commitChangeset("test"))
-    
+
     interfaceData = r.c(multipleObjectData("interface", revision))
     for key in interfaceData:
         r.assertEqual(interfaceData[key], expectedInterfaceData[key])
-    
+
