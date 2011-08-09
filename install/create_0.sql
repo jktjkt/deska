@@ -5,6 +5,9 @@ BEGIN;
 -- create version table and function
 \i fn-api-changeset.sql
 
+-- create functions for locking changeset during generating configuration
+\i changeset_conf_gen.sql
+
 -- create functions
 \i fn-api-schema.sql
 
