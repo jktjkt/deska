@@ -482,8 +482,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
 BOOST_FIXTURE_TEST_CASE(json_createObject, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"createObject\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\"}\n");
-    expectRead("{\"response\": \"createObject\",\"tag\":\"T\"}\n");
-    j->createObject("k", "o");
+    expectRead("{\"response\": \"createObject\",\"tag\":\"T\",\"createObject\":\"blah\"}\n");
+    BOOST_CHECK_EQUAL(j->createObject("k", "o"), "blah");
     expectEmpty();
 }
 
