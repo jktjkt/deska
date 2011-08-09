@@ -45,6 +45,7 @@ void verifyFilterObject(const std::string &str, const T &value)
 /** @short Test stream dumping of the filters */
 BOOST_AUTO_TEST_CASE(filter_dumping)
 {
+    // We don't put these items into a liast because we really want to test without casting to a wrapping filter
     MetadataExpression e1(FILTER_COLUMN_EQ, "revision", RevisionId(123));
     string s1 = "MetadataExpression(revision == MetadataValue<RevisionId>(r123))";
     MetadataExpression e2(FILTER_COLUMN_NE, "changeset", TemporaryChangesetId(666));
