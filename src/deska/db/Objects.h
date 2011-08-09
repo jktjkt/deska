@@ -38,7 +38,10 @@ namespace Db {
 /** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
 typedef std::string Identifier;
 
-/** @short INTERNAL: variant forming the core of the Deska::Db::Value */
+/** @short INTERNAL: variant forming the core of the Deska::Db::Value
+
+You're supposed to use the Value typedef in your code.
+*/
 typedef boost::variant<
     // Primitive types
     std::string, double, int,
