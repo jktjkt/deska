@@ -3,8 +3,7 @@
 
 #include <boost/python/class.hpp>
 #include <boost/python/tuple.hpp>
-#include <scitbx/boost_python/container_conversions.h>
-#include <scitbx/boost_python/utils.h>
+#include "3rd-party/scitbx/container_conversions.h"
 #include <set>
 
 namespace scitbx { namespace stl { namespace boost_python {
@@ -33,7 +32,10 @@ namespace scitbx { namespace stl { namespace boost_python {
     static e_t
     getitem(w_t const& self, std::size_t i)
     {
-      if (i >= self.size()) scitbx::boost_python::raise_index_error();
+      if (i >= self.size()) {
+          PyErr_SetString(PyExc_IndexError, "Index out of range.");
+          boost::python::throw_error_already_set();
+      }
       typename w_t::const_iterator p = self.begin();
       while (i > 0) { p++; i--; }
       return *p;
