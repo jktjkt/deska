@@ -82,6 +82,7 @@ void exportAttributeTypes()
             .def("__repr__", repr_vect<KindAttributeDataType>);
     enum_<Type>("AttributeType")
             .value("IDENTIFIER", TYPE_IDENTIFIER)
+            .value("IDENTIFIER_SET", TYPE_IDENTIFIER_SET)
             .value("STRING", TYPE_STRING)
             .value("INT", TYPE_INT)
             .value("DOUBLE", TYPE_DOUBLE)

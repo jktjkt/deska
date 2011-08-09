@@ -74,9 +74,9 @@ std::ostream& operator<<(std::ostream &stream, const MacAddress addr)
     char fill = stream.fill();
     stream.fill('0');
     std::streamsize width = stream.width();
-    stream.width(2);
-    stream << std::hex << ((addr.m_data >> 40) & 0xff) << ':' << ((addr.m_data >> 32) & 0xff) << ':' << ((addr.m_data >> 24) & 0xff) <<
-              ':' << ((addr.m_data >> 16) & 0xff) << ':' << ((addr.m_data >> 8) & 0xff) << ':' << (addr.m_data & 0xff);
+    stream << std::hex << std::setw(2) << ((addr.m_data >> 40) & 0xff) << ':' << std::setw(2) << ((addr.m_data >> 32) & 0xff) << ':'
+           << std::setw(2) << ((addr.m_data >> 24) & 0xff) << ':' << std::setw(2) << ((addr.m_data >> 16) & 0xff) << ':' << std::setw(2)
+           << ((addr.m_data >> 8) & 0xff) << ':' << std::setw(2) << (addr.m_data & 0xff);
     stream.width(width);
     stream.fill(fill);
     stream.flags(flags);

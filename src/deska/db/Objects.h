@@ -23,6 +23,7 @@
 #define DESKA_DB_OBJECTS_H
 
 #include <iosfwd>
+#include <set>
 #include <string>
 #include <boost/asio/ip/address_v4.hpp>
 #include <boost/asio/ip/address_v6.hpp>
@@ -35,14 +36,22 @@
 namespace Deska {
 namespace Db {
 
-/** @short INTERNAL: variant forming the core of the Deska::Db::Value */
+/** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
+typedef std::string Identifier;
+
+/** @short INTERNAL: variant forming the core of the Deska::Db::Value
+
+You're supposed to use the Value typedef in your code.
+*/
 typedef boost::variant<
     // Primitive types
     std::string, double, int,
     // Network addresses
     boost::asio::ip::address_v4, boost::asio::ip::address_v6, MacAddress,
     // Date and time
-    boost::posix_time::ptime, boost::gregorian::date
+    boost::posix_time::ptime, boost::gregorian::date,
+    // identifier_set
+    std::set<Identifier>
 > NonOptionalValue;
 
 /** @short Value of an object's attribute
@@ -61,6 +70,8 @@ std::string str_Value(const Deska::Db::Value &v);
 typedef enum {
     /** @short An identifier */
     TYPE_IDENTIFIER,
+    /** @short A set of identifiers */
+    TYPE_IDENTIFIER_SET,
     /** @short A string of any form */
     TYPE_STRING,
     /** @short Integer */
@@ -80,9 +91,6 @@ typedef enum {
 } Type;
 
 std::ostream& operator<<(std::ostream &stream, const Type t);
-
-/** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
-typedef std::string Identifier;
 
 /** @short Description of an attribute of a Kind object 
  *

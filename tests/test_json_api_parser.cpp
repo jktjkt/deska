@@ -276,7 +276,8 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
                "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"identifier\", "
-               "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\"}, "
+               "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\", "
+               "\"role\": \"identifier_set\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
@@ -288,7 +289,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
             "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\","
-            "\"template\": \"bleh\", \"anotherKind\": \"foo_ref\"}, \"response\": \"objectData\"}\n");
+            "\"template\": \"bleh\", \"anotherKind\": \"foo_ref\", \"role\": [\"a\", \"b\", \"cc\"]}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -303,6 +304,11 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
     expected["template"] = "bleh";
     expected["anotherKind"] = "foo_ref";
+    std::set<Identifier> role;
+    role.insert("a");
+    role.insert("b");
+    role.insert("cc");
+    expected["role"] = role;
     map<Identifier,Value> res = j->objectData("kk", "oo", RevisionId(3));
     // This won't work on floats...
     //BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -530,9 +536,35 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     vector<SetAttrTestData> data;
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutput = "{\"response\": \"setAttribute\", \"tag\":\"T\"}\n";
+    // string or identifier
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutput, Deska::Db::Value("some string")));
+    // set of identifiers
+    std::set<std::string> stringset;
+    stringset.insert("first");
+    stringset.insert("second");
+    data.push_back(SetAttrTestData(jsonInputPrefix + "[\"first\",\"second\"]}\n", jsonOutput, Deska::Db::Value(stringset)));
+    // int
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutput, Deska::Db::Value(123)));
+    // double
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutput, Deska::Db::Value(333.666)));
+    // null
+    data.push_back(SetAttrTestData(jsonInputPrefix + "null}\n", jsonOutput, Deska::Db::Value()));
+    // IPv4 address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"203.0.113.66\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::asio::ip::address_v4::from_string("203.0.113.66"))));
+    // IPv6 address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2001:db8:666:333::\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::asio::ip::address_v6::from_string("2001:DB8:666:333::"))));
+    // Ethernet MAC address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"06:00:00:00:00:0a\"}\n", jsonOutput,
+                                   Deska::Db::Value(MacAddress(6, 0, 0, 0, 0, 0x0a))));
+    // date
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2011-08-09\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::gregorian::date(2011, 8, 9))));
+    // timestamp
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2011-04-07 17:22:33\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)))));
+
     BOOST_FOREACH(const SetAttrTestData &value, data) {
         expectWrite(value.jsonIn);
         expectRead(value.jsonOut);

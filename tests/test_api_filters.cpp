@@ -45,6 +45,7 @@ void verifyFilterObject(const std::string &str, const T &value)
 /** @short Test stream dumping of the filters */
 BOOST_AUTO_TEST_CASE(filter_dumping)
 {
+    // We don't put these items into a liast because we really want to test without casting to a wrapping filter
     MetadataExpression e1(FILTER_COLUMN_EQ, "revision", RevisionId(123));
     string s1 = "MetadataExpression(revision == MetadataValue<RevisionId>(r123))";
     MetadataExpression e2(FILTER_COLUMN_NE, "changeset", TemporaryChangesetId(666));
@@ -71,6 +72,13 @@ BOOST_AUTO_TEST_CASE(filter_dumping)
     v3.push_back(e7);
     AndFilter e8(v3);
     string s8 = "AndFilter([" + s5 + ", " + s6 + ", " + s7 + ", ])";
+    AttributeExpression e9(FILTER_COLUMN_CONTAINS, "kind", "attr", Value("key"));
+    string s9 = "AttributeExpression(kind.attr contains Value<string>(key))";
+    std::set<Identifier> roles;
+    roles.insert("foo");
+    roles.insert("bar");
+    AttributeExpression e10(FILTER_COLUMN_NOT_CONTAINS, "host", "role", Value(roles));
+    string s10 = "AttributeExpression(host.role not contains Value<identifier_set>([bar, foo]))";
 
     verifyFilterObject(s1, e1);
     verifyFilterObject(s2, e2);
@@ -80,4 +88,6 @@ BOOST_AUTO_TEST_CASE(filter_dumping)
     verifyFilterObject(s6, e6);
     verifyFilterObject(s7, e7);
     verifyFilterObject(s8, e8);
+    verifyFilterObject(s9, e9);
+    verifyFilterObject(s10, e10);
 }
