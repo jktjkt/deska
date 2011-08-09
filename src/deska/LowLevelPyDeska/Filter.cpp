@@ -106,7 +106,9 @@ void exportDeskaFilter()
             .value("COLUMN_GT", FILTER_COLUMN_GT)
             .value("COLUMN_GE", FILTER_COLUMN_GE)
             .value("COLUMN_LT", FILTER_COLUMN_LT)
-            .value("COLUMN_LE", FILTER_COLUMN_LE);
+            .value("COLUMN_LE", FILTER_COLUMN_LE)
+            .value("COLUMN_CONTAINS", FILTER_COLUMN_CONTAINS)
+            .value("COLUMN_NOT_CONTAINS", FILTER_COLUMN_NOT_CONTAINS);
 
     enum_<PendingChangeset::AttachStatus>("PendingChangesetAttachStatus")
             .value("DETACHED", PendingChangeset::ATTACH_DETACHED)
