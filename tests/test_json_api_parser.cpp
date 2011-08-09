@@ -545,8 +545,8 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"2001:db8:666:333::\"}\n", jsonOutput,
                                    Deska::Db::Value(boost::asio::ip::address_v6::from_string("2001:DB8:666:333::"))));
     // Ethernet MAC address
-    data.push_back(SetAttrTestData(jsonInputPrefix + "\"06:00:00:00:00:00\"}\n", jsonOutput,
-                                   Deska::Db::Value(MacAddress(6, 0, 0, 0, 0, 0))));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"06:00:00:00:00:0a\"}\n", jsonOutput,
+                                   Deska::Db::Value(MacAddress(6, 0, 0, 0, 0, 0x0a))));
     // date
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"2011-08-09\"}\n", jsonOutput,
                                    Deska::Db::Value(boost::gregorian::date(2011, 8, 9))));
