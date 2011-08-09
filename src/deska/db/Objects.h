@@ -35,6 +35,9 @@
 namespace Deska {
 namespace Db {
 
+/** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
+typedef std::string Identifier;
+
 /** @short INTERNAL: variant forming the core of the Deska::Db::Value */
 typedef boost::variant<
     // Primitive types
@@ -80,9 +83,6 @@ typedef enum {
 } Type;
 
 std::ostream& operator<<(std::ostream &stream, const Type t);
-
-/** @short Convenience typedef for Identifier, ie. something that refers to anything in the DB */
-typedef std::string Identifier;
 
 /** @short Description of an attribute of a Kind object 
  *
