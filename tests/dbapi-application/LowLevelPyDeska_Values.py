@@ -65,3 +65,13 @@ def imperative(r):
         "AttributeExpression(hardware.vendor == Value<string>(hp)), " +
         "])")
 
+    fe3 = _l.AttributeExpression(_l.ComparisonOperator.COLUMN_CONTAINS, "hardware", "vendor",
+        _l.Py_2_DeskaDbValue("hp"))
+    r.assertEqual(repr(_l.Expression(fe3)),
+        "Expression(AttributeExpression(hardware.vendor contains Value<string>(hp)))")
+
+    fe4 = _l.AttributeExpression(_l.ComparisonOperator.COLUMN_NOT_CONTAINS, "hardware", "vendor",
+        _l.Py_2_DeskaDbValue(_l.std_set_std_string(("hp", "compaq"))))
+    r.assertEqual(repr(_l.Expression(fe4)),
+        "Expression(AttributeExpression(hardware.vendor not contains Value<identifier_set>([compaq, hp])))")
+
