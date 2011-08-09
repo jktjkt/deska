@@ -40,6 +40,10 @@ std::ostream& operator<<(std::ostream &stream, ComparisonOperator o)
         return stream << "<";
     case FILTER_COLUMN_LE:
         return stream << "<=";
+    case FILTER_COLUMN_CONTAINS:
+        return stream << "contains";
+    case FILTER_COLUMN_NOT_CONTAINS:
+        return stream << "not contains";
     }
     return stream << "[Invalid operator:" << static_cast<int>(o) << "]";
 }

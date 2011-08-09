@@ -271,6 +271,10 @@ template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
             return std::string("columnLt");
         case FILTER_COLUMN_LE:
             return std::string("columnLe");
+        case FILTER_COLUMN_CONTAINS:
+            return std::string("columnContains");
+        case FILTER_COLUMN_NOT_CONTAINS:
+            return std::string("columnNotContains");
         }
         throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
     }
