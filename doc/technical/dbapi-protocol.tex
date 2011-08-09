@@ -707,14 +707,22 @@ Any function which modifies objects stored in the Deska database belongs to this
     {This function deletes a particular instance of an object of a given type from the database.}
 
 \deskaFunc{createObject}{, "kindName": "something", "objectName": "name"}
-    {}
+    {"assigned-name"}
     {Create a new instance of an object}
     {This function creates a new instance of a given object.  All attributes are initially unset, which means that you
     might have to call \deskaFuncRef{setAttribute} before you will be allowed to commit your changes if some attributes
     have a constraint not to be NULL.
 
     It is an error to attempt to create an object which has been deleted in the current changeset; see
-    \deskaFuncRef{restoreDeletedObject} for details.  Doing so will return the {\tt ReCreateObjectError} exception.}
+    \deskaFuncRef{restoreDeletedObject} for details.  Doing so will return the {\tt ReCreateObjectError} exception.
+
+    A special case exists for kinds with the {\tt EMBED\_INTO} relation. Such objects can be created with only a
+    ``half-provided'' name, ie. name which fully specifies the name of the parent object, but leaves the local part of
+    the name empty (an example of such a name is {\tt foo->}).  In such a situation, the Deska server will assign a
+    unique local name, concatenate it to the parent part of the identifier, and use the result as a fully qualified
+    name.
+
+    In all cases when the object was actually created, this function returns the name of the created object.}
 
 \deskaFunc{restoreDeletedObject}{, "kindName": "something", "objectName": "name"}
     {}
