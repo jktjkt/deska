@@ -223,7 +223,7 @@ template<> struct JsonConversionTraits<boost::gregorian::date> {
     }
 
     static json_spirit::Value toJson(const boost::gregorian::date &value) {
-        return boost::gregorian::to_simple_string(value);
+        return boost::gregorian::to_iso_extended_string(value);
     }
 };
 
