@@ -333,7 +333,7 @@ The following table provides a quick and compact overview of the officially supp
 JSON serialization.  The first column, the name, is also used as the type identification in the {\tt kindAttributes()}
 API function.
 
-\begin{longtable}{ p{20mm} | p{29mm} p{47mm} p{30mm} }
+\begin{longtable}{ p{24mm} | p{25mm} p{47mm} p{30mm} }
     \caption{JSON serialization of data types for attribute values} \\
     Name & SQL Data Type & C++ Data Type & JSON Serialization \\
     \hline
@@ -341,6 +341,7 @@ API function.
     {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
     {\tt int} & INT & {\tt int} & {\tt 123} \\
     {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
+    {\tt identifier\_set} & (extra table) & {\tt std::set<std::string>} & {\tt ["id1", "id2"]} \\
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
     {\tt date} & date & {\tt boost::gregorian::date} & {\tt "2011-04-20"} \\
     {\tt timestamp} & timestamp & {\tt boost::posix\_time::ptime} & {\tt "2011-04-20 14:28:33"} \\
@@ -373,7 +374,8 @@ relation information etc.  The following types are defined:
         PendingChangeset::AttachStatus{\tt, "timestamp": }timestamp{\tt, "parentRevision": }RevisionId{\tt, "message": }
         string {\tt, "activeConnectionInfo": }string/{\tt null\}} \\
     {\tt Deska::Db::KindAttributeDataType} &
-        One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "double"}, {\tt "date"}, {\tt "timestamp"} or a user-defined type \\
+        One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "identifier\_set"}, {\tt "double"}, {\tt "date"},
+        {\tt "timestamp"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
         One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}}, \newline
