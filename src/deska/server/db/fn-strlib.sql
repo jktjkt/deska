@@ -29,3 +29,25 @@ return str1 || delimiter || str2;
 END
 $$
 LANGUAGE plpgsql;
+
+CREATE TYPE int_name_type AS (
+	name text,
+	num int
+);
+
+CREATE OR REPLACE FUNCTION num_decorated_name(base_name text, count bigint)
+RETURNS SETOF int_name_type
+AS
+$$
+DECLARE
+	i int;
+	res int_name_type;
+BEGIN
+	FOR i IN 1..count LOOP
+		res.name = base_name || '_' || i;
+		res.num = i;
+		RETURN NEXT res;
+	END LOOP;
+END;
+$$
+LANGUAGE plpgsql;

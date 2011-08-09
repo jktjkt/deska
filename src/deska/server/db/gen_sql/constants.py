@@ -416,7 +416,7 @@ class Templates:
 	# template string for add function
 	add_string = '''CREATE FUNCTION
 	%(tbl)s_add(IN name_ text)
-	RETURNS integer
+	RETURNS deska.identifier
 	AS
 	$$
 	DECLARE	ver bigint;
@@ -432,7 +432,7 @@ class Templates:
 		
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
-		RETURN 1;
+		RETURN name_;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -441,7 +441,7 @@ class Templates:
 	# template string for add function
 	add_embed_string = '''CREATE FUNCTION
 	%(tbl)s_add(IN full_name text)
-	RETURNS integer
+	RETURNS text
 	AS
 	$$
 	DECLARE	ver bigint;
@@ -449,11 +449,29 @@ class Templates:
 		rest_of_name text;
 		%(tbl)s_name text;
 		tmp bigint;
+		name_count bigint;
+		new_name_num bigint;
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
 		SELECT %(reftbl)s_get_uid(rest_of_name) INTO %(reftbl)s_uid;
+		
+		--if name is not given then it would be generated
+		--this works only for embed objects
+		IF %(tbl)s_name = '' THEN
+			SELECT COUNT(*) + 1 INTO name_count FROM %(tbl)s_data_version() WHERE %(reftbl)s = %(reftbl)s_uid;
+			SELECT MIN(generated.num) INTO new_name_num
+			FROM
+				(SELECT name, num FROM deska.num_decorated_name('%(tbl)s',name_count)) generated
+				LEFT OUTER JOIN
+				(SELECT name FROM %(tbl)s_data_version() WHERE %(reftbl)s = %(reftbl)s_uid) tab_name
+				ON (generated.name = tab_name.name)
+			WHERE tab_name.name IS NULL;
+			%(tbl)s_name = '%(tbl)s_' || new_name_num;
+			full_name = full_name || '%(tbl)s_' || new_name_num;
+		END IF;
+		
 		SELECT get_current_changeset() INTO ver;
-		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND uid = %(reftbl)s_uid AND dest_bit = '1';
+		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND %(reftbl)s = %(reftbl)s_uid AND name = %(tbl)s_name AND dest_bit = '1';
 		IF FOUND THEN
 			RAISE EXCEPTION 'object with name %% was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
@@ -461,7 +479,7 @@ class Templates:
 		
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
-		RETURN 1;
+		RETURN full_name;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
