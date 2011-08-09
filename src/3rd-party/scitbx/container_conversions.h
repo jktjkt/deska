@@ -175,7 +175,7 @@ namespace scitbx { namespace boost_python { namespace container_conversions {
         if (!ConversionPolicy::check_size(
           boost::type<ContainerType>(), obj_size)) return 0;
         bool is_range = PyRange_Check(obj_ptr);
-        std::size_t i=0;
+        ssize_t i=0;
         if (!all_elements_convertible(obj_iter, is_range, i)) return 0;
         if (!is_range) assert(i == obj_size);
       }
@@ -188,7 +188,7 @@ namespace scitbx { namespace boost_python { namespace container_conversions {
     all_elements_convertible(
       boost::python::handle<>& obj_iter,
       bool is_range,
-      std::size_t& i)
+      ssize_t& i)
     {
       for(;;i++) {
         boost::python::handle<> py_elem_hdl(
