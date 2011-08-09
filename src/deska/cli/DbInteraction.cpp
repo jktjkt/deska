@@ -60,6 +60,7 @@ void DbInteraction::createObject(const ContextStack &context)
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
     // FIXME: Wait for implementation of batched changes on server side.
+    // FIXME: got to solve that issue with a return value from createObject when using batched changes...
     //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
