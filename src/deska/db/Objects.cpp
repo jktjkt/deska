@@ -32,6 +32,8 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
     switch (t) {
     case TYPE_IDENTIFIER:
         return stream << "TYPE_IDENTIFIER";
+    case TYPE_IDENTIFIER_SET:
+        return stream << "TYPE_IDENTIFIER_SET";
     case TYPE_STRING:
         return stream << "TYPE_STRING";
     case TYPE_INT:
@@ -172,6 +174,10 @@ struct DeskaValueTypeName: public boost::static_visitor<std::string>
     result_type operator()(const boost::gregorian::date &v) const
     {
         return "date";
+    }
+    result_type operator()(const std::set<Identifier> &v) const
+    {
+        return "identifier_set";
     }
 };
 

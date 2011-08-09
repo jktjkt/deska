@@ -23,6 +23,7 @@
 #define DESKA_DB_OBJECTS_H
 
 #include <iosfwd>
+#include <set>
 #include <string>
 #include <boost/asio/ip/address_v4.hpp>
 #include <boost/asio/ip/address_v6.hpp>
@@ -48,7 +49,9 @@ typedef boost::variant<
     // Network addresses
     boost::asio::ip::address_v4, boost::asio::ip::address_v6, MacAddress,
     // Date and time
-    boost::posix_time::ptime, boost::gregorian::date
+    boost::posix_time::ptime, boost::gregorian::date,
+    // identifier_set
+    std::set<Identifier>
 > NonOptionalValue;
 
 /** @short Value of an object's attribute
@@ -67,6 +70,8 @@ std::string str_Value(const Deska::Db::Value &v);
 typedef enum {
     /** @short An identifier */
     TYPE_IDENTIFIER,
+    /** @short A set of identifiers */
+    TYPE_IDENTIFIER_SET,
     /** @short A string of any form */
     TYPE_STRING,
     /** @short Integer */

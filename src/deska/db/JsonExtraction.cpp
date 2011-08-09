@@ -495,6 +495,29 @@ template<typename T> struct JsonConversionTraits<std::vector<T> > {
     }
 };
 
+/** @short Helper for extracting/converting a set of identifiers */
+template<> struct JsonConversionTraits<std::set<Identifier> > {
+    static std::set<Identifier> extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting std::set<Identifier>");
+        std::set<Identifier> res;
+        int i = 0;
+        checkJsonValueType(v, json_spirit::array_type);
+        BOOST_FOREACH(const json_spirit::Value &item, v.get_array()) {
+            JsonContext c2("When processing field #" + libebt::stringify(i));
+            res.insert(JsonConversionTraits<Identifier>::extract(item));
+        }
+        return res;
+    }
+
+    static json_spirit::Value toJson(const std::set<Identifier> &value) {
+        json_spirit::Array a;
+        BOOST_FOREACH(const Identifier &item, value) {
+            a.push_back(item);
+        }
+        return a;
+    }
+};
+
 /** @short Convert JSON into a vector of attribute data types
 
 This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
@@ -514,6 +537,8 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_INT));
             } else if (datatype == "identifier") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
+            } else if (datatype == "identifier_set") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER_SET));
             } else if (datatype == "double") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
             } else if (datatype == "macaddress") {
@@ -694,6 +719,13 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         JsonContext c2("When extracting TYPE_STRING or TYPE_IDENTIFIER");
         checkJsonValueType(value, json_spirit::str_type);
         target->value = value.get_str();
+        return;
+    }
+    case TYPE_IDENTIFIER_SET:
+    {
+        JsonContext c2("When extracting TYPE_IDENTIFIER_SET");
+        checkJsonValueType(value, json_spirit::array_type);
+        target->value = JsonConversionTraits<std::set<Identifier> >::extract(value);
         return;
     }
     case TYPE_INT:
@@ -940,6 +972,7 @@ template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOriginList*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
+template JsonField& JsonField::extract(std::set<Identifier>*);
 
 }
 }
