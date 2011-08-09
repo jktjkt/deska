@@ -77,6 +77,8 @@ def main(tag,kindName,objectName):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
+	# FIXME: this should read the result of the query instead of the original value
+	jsn[name] = objectName
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
