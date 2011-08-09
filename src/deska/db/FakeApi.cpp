@@ -134,8 +134,9 @@ void FakeApi::restoreDeletedObject(const Identifier &kindName, const Identifier 
 }
 
 
-void FakeApi::createObject(const Identifier &kindName, const Identifier &objectName)
+Identifier FakeApi::createObject(const Identifier &kindName, const Identifier &objectName)
 {
+    return objectName;
 }
 
 

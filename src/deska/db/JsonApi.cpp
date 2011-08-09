@@ -258,14 +258,17 @@ void JsonApiParser::restoreDeletedObject(const Identifier &kindName, const Ident
     h.work();
 }
 
-void JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
+Identifier JsonApiParser::createObject( const Identifier &kindName, const Identifier &objectName )
 {
     JsonCommandContext c1("createObject");
 
+    Identifier result;
     JsonHandlerApiWrapper h(this, "createObject");
     h.argument(j_kindName, kindName);
     h.argument(j_objName, objectName);
+    h.read("createObject").extract(&result);
     h.work();
+    return result;
 }
 
 void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName )

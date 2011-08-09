@@ -188,7 +188,7 @@ public:
     virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
     /** @short Create new object */
-    virtual void createObject(const Identifier &kindName, const Identifier &objectName) = 0;
+    virtual Identifier createObject(const Identifier &kindName, const Identifier &objectName) = 0;
 
     /** @short Change object's name */
     virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName) = 0;

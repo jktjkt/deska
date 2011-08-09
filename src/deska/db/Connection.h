@@ -60,7 +60,7 @@ public:
     // Manipulating objects
     virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
     virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName);
-    virtual void createObject(const Identifier &kindName, const Identifier &objectName);
+    virtual Identifier createObject(const Identifier &kindName, const Identifier &objectName);
     virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);

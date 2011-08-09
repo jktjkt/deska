@@ -97,9 +97,9 @@ void Connection::restoreDeletedObject(const Identifier &kindName, const Identifi
     p->restoreDeletedObject(kindName, objectName);
 }
 
-void Connection::createObject(const Identifier &kindName, const Identifier &objectName)
+Identifier Connection::createObject(const Identifier &kindName, const Identifier &objectName)
 {
-    p->createObject(kindName, objectName);
+    return p->createObject(kindName, objectName);
 }
 
 void Connection::renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName)
