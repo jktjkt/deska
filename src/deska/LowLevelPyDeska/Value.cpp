@@ -79,6 +79,11 @@ Value Py_2_DeskaDbValue(const api::object &o)
     if (get_str.check())
         return NonOptionalValue(get_str());
 
+    // set<string>
+    extract<std::set<std::string> > get_str_set(o);
+    if (get_str_set.check())
+        return NonOptionalValue(get_str_set());
+
     // int
     extract<int> get_int(o);
     if (get_int.check())
