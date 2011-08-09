@@ -530,9 +530,30 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     vector<SetAttrTestData> data;
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutput = "{\"response\": \"setAttribute\", \"tag\":\"T\"}\n";
+    // string or identifier
     data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutput, Deska::Db::Value("some string")));
+    // int
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutput, Deska::Db::Value(123)));
+    // double
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutput, Deska::Db::Value(333.666)));
+    // null
+    data.push_back(SetAttrTestData(jsonInputPrefix + "null}\n", jsonOutput, Deska::Db::Value()));
+    // IPv4 address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"203.0.113.66\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::asio::ip::address_v4::from_string("203.0.113.66"))));
+    // IPv6 address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2001:db8:666:333::\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::asio::ip::address_v6::from_string("2001:DB8:666:333::"))));
+    // Ethernet MAC address
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"06:00:00:00:00:00\"}\n", jsonOutput,
+                                   Deska::Db::Value(MacAddress(6, 0, 0, 0, 0, 0))));
+    // date
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2011-08-09\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::gregorian::date(2011, 8, 9))));
+    // timestamp
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"2011-04-07 17:22:33\"}\n", jsonOutput,
+                                   Deska::Db::Value(boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33)))));
+
     BOOST_FOREACH(const SetAttrTestData &value, data) {
         expectWrite(value.jsonIn);
         expectRead(value.jsonOut);
