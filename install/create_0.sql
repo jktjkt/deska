@@ -6,7 +6,7 @@ BEGIN;
 \i fn-api-changeset.sql
 
 -- create functions for locking changeset during generating configuration
-\i changeset_conf_gen.sql
+\i fn-changeset_locks.sql
 
 -- create functions
 \i fn-api-schema.sql
