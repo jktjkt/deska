@@ -158,11 +158,19 @@ RETURNS integer
 AS
 $$
 DECLARE chid bigint;
+	lock_is_available boolean;
 BEGIN
 	IF get_current_changeset_or_null() IS NOT NULL THEN
 		RAISE SQLSTATE '70002' USING MESSAGE = 'You have already one changeset assigned - detach/commit first.';
 	END IF;
 	chid = changeset2id(id_);
+	
+	SELECT pg_try_advisory_lock(id) INTO lock_is_available FROM changeset;
+	IF NOT lock_is_available THEN
+		--TODO needs right sqlstate
+		RAISE SQLSTATE '70077' USING MESSAGE = 'This changeset is locked, you can not resume it.';
+	END IF;
+
 	UPDATE changeset SET status = 'INPROGRESS',
 		pid = pg_backend_pid(), author = session_user
 		WHERE id = chid; 
@@ -170,6 +178,8 @@ BEGIN
 		-- no changeset of this name
 		RAISE SQLSTATE '70006' USING MESSAGE = 'No changeset of this name.';
 	END IF;
+
+	PERFORM pg_advisory_unlock(id) FROM changeset WHERE id = chid FOR UPDATE;
 	RETURN 1;
 EXCEPTION
         WHEN unique_violation THEN
