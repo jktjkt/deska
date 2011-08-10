@@ -39,6 +39,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
     tSimpleString %= qi::lexeme[+(ascii::char_ - ('"' | ascii::space))];
     tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> +(ascii::alnum | '_' | "->")]];
+    tIdentifierSet %= qi::lit("[") > (tIdentifier % ",") > qi::lit("]");
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
     tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];
     tMACHexPair %= qi::raw[qi::lexeme[qi::repeat(2)[ascii::xdigit]]];
@@ -73,7 +74,9 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IDENTIFIER].name("identifier (alphanumerical letters and _)");
 
-    // FIXME: add Db::TYPE_IDENTIFIER_SET
+    rulesMap[Db::TYPE_IDENTIFIER_SET] = tIdentifierSet
+        [qi::_val = phoenix::bind(&PredefinedRules::vectorToSet, this, qi::_1)];
+    rulesMap[Db::TYPE_IDENTIFIER_SET].name("identifiers set (identifiers in [ ] separated by ,");
 
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
@@ -186,6 +189,18 @@ const qi::rule<Iterator, Db::Identifier(), ascii::space_type>& PredefinedRules<I
 
 
 
+template <typename Iterator>
+std::set<Db::Identifier> PredefinedRules<Iterator>::vectorToSet(const std::vector<std::string> &identifiersVector)
+{
+    std::set<Db::Identifier> identifiersSet;
+    for (std::vector<std::string>::const_iterator it = identifiersVector.begin(); it != identifiersVector.end(); ++it) {
+        identifiersSet.insert(*it);
+    }
+    return identifiersSet;
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template PredefinedRules<iterator_type>::PredefinedRules();
@@ -195,6 +210,8 @@ template const qi::rule<iterator_type, Db::Value(), ascii::space_type>& Predefin
 template const qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type>& PredefinedRules<iterator_type>::getMetadataRule(const MetadataType metadataType);
 
 template const qi::rule<iterator_type, Db::Identifier(), ascii::space_type>& PredefinedRules<iterator_type>::getObjectIdentifier();
+
+template std::set<Db::Identifier> PredefinedRules<iterator_type>::vectorToSet(const std::vector<std::string> &identifiersVector);
 
 }
 }

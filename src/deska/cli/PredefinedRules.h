@@ -96,12 +96,22 @@ public:
 
 private:
 
+    /** @short Function used for converting vector to set.
+    *
+    *   @param identifiersVector Vector of Db::Identifiers
+    *   @return Set of Db::Identifiers
+    */
+    std::set<Db::Identifier> vectorToSet(const std::vector<std::string> &identifiersVector);
+
     //@{
     /** Extra rules used for definition of string types. */
     qi::rule<Iterator, std::string(), ascii::space_type> tQuotedString;
     qi::rule<Iterator, std::string(), ascii::space_type> tSimpleString;
     qi::rule<Iterator, std::string(), ascii::space_type> tIdentifier;
     //@}
+
+    /** Extra rule used for definition of identifier set. */
+    qi::rule<Iterator, std::vector<std::string>(), ascii::space_type> tIdentifierSet;
 
     //@{
     /** Extra rules used for definition of IPv4 addresses. */
