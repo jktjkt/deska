@@ -81,6 +81,11 @@ function generate_templates(){
 	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"
 }
 
+function generate_multiRef(){
+    echo "Generating multi references ..."
+    python "${DB_SOURCES}/gen_sql/multiRef_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/multiref.sql"
+}
+
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
 
@@ -182,6 +187,7 @@ then
 	fi
 	stage 1 || die "Error running stage 1"
 	generate_merge || die "Error running generate merge relations"
+    generate_multiRef || die "Error running generate templates"
 	add_merge_relations || die "Error running add merge relations"
 	generate_templates || die "Error running generate templates"
 	create_templates || die "Error running creating templates"

@@ -196,8 +196,8 @@ BEGIN
 		base_table := tabname;
 	END IF;
 	RETURN QUERY 
-	SELECT attname, CASE 
-						WHEN attname IN (SELECT attname FROM cols_ref_uid(base_table)) THEN 'identifier'
+	SELECT attname, CASE
+						WHEN typname <> 'identifier_set' AND attname IN (SELECT attname FROM cols_ref_uid(base_table)) THEN 'identifier'
 						ELSE typname
 					END
 		FROM pg_class AS cl
