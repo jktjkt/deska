@@ -49,6 +49,7 @@ namespace qi = boost::spirit::qi;
 
 template <typename Iterator> class AttributeRemovalsParser;
 template <typename Iterator> class AttributesSettingParser;
+template <typename Iterator> class IdentifiersSetsParser;
 template <typename Iterator> class AttributesParser;
 template <typename Iterator> class FunctionWordsParser;
 template <typename Iterator> class KindsOnlyParser;
@@ -168,6 +169,8 @@ public:
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);
+    void attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value);
+    void attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value);
     void attributeRemove(const Db::Identifier &name);
     void objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     //@}
@@ -229,6 +232,7 @@ private:
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
     void addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<Iterator> *attributesSettingParser,
                            AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                           IdentifiersSetsParser<Iterator> *identifiersSetsParser,
                            FilterExpressionsParser<Iterator> *filterExpressionsParser);
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
     void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *kindsOnlyParser,
@@ -276,12 +280,20 @@ private:
     */
     std::vector<Db::Identifier> parserKindsEmbedsRecursively(const Db::Identifier &kindName);
 
+    /** @short Checks if the kind contains some attribute of type TYPE_IDENTIFIER_SET
+    *
+    *   @param kindName Name of the kind
+    *   @return True if the kind contains some set
+    */
+    bool containsIdentifiersSet(const Db::Identifier &kindName);
+
     //@{
     /** All rules and grammars, that is the whole parser build of are stored there.
     *   Only pointers are used in the main parser.
     */
     std::map<std::string, AttributesSettingParser<Iterator>* > attributesSettingParsers;
     std::map<std::string, AttributeRemovalsParser<Iterator>* > attributeRemovalsParsers;
+    std::map<std::string, IdentifiersSetsParser<Iterator>* > identifiersSetsParsers;
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
     std::map<std::string, FilterExpressionsParser<Iterator>* > filterExpressionsParsers;

@@ -23,6 +23,7 @@
 #include <boost/assert.hpp>
 #include "Parser_p_AttributeRemovalsParser.h"
 #include "Parser_p_AttributesSettingParser.h"
+#include "Parser_p_IdentifiersSetsParser.h"
 #include "Parser_p_AttributesParser.h"
 #include "deska/db/Api.h"
 
@@ -36,6 +37,7 @@ template <typename Iterator>
 AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName,
                                              AttributesSettingParser<Iterator> *attributesSettingParser,
                                              AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                                             IdentifiersSetsParser<Iterator> *identifiersSetsParser,
                                              ParserImpl<Iterator> *parent):
     AttributesParser<Iterator>::base_type(start), m_parent(parent)
 {
@@ -43,14 +45,14 @@ AttributesParser<Iterator>::AttributesParser(const Db::Identifier &kindName,
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
-    start = (+((*attributesSettingParser) | (*attributeRemovalsParser)));
+    start = (+((*attributesSettingParser) | (*attributeRemovalsParser) | (*identifiersSetsParser)));
 }
 
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template AttributesParser<iterator_type>::AttributesParser(const std::string &kindName, AttributesSettingParser<iterator_type> *attributesSettingParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, ParserImpl<iterator_type> *parent);
+template AttributesParser<iterator_type>::AttributesParser(const std::string &kindName, AttributesSettingParser<iterator_type> *attributesSettingParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, IdentifiersSetsParser<iterator_type> *identifiersSetsParser, ParserImpl<iterator_type> *parent);
 
 }
 }
