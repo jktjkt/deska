@@ -73,12 +73,11 @@ def main(tag,kindName,objectName):
 
 	fname = kindName+"_add(text)"
 	try:
-		dutil.fcall(fname,objectName)
+		assignedName = dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
-	# FIXME: this should read the result of the query instead of the original value
-	jsn[name] = objectName
+	jsn[name] = dutil.mystr(assignedName)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;

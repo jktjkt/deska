@@ -73,6 +73,8 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_IDENTIFIER].name("identifier (alphanumerical letters and _)");
 
+    // FIXME: add Db::TYPE_IDENTIFIER_SET
+
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
     rulesMap[Db::TYPE_STRING].name("string");

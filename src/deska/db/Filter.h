@@ -43,7 +43,11 @@ typedef enum {
     /** @short Compare column's value for being less than a constant */
     FILTER_COLUMN_LT,
     /** @short Compare column's value for being less-or-equal than a constant */
-    FILTER_COLUMN_LE
+    FILTER_COLUMN_LE,
+    /** @short See if a column's value (which must be a set of identifiers) contains the specified item */
+    FILTER_COLUMN_CONTAINS,
+    /** @short See whether a column's value (a set of identifiers) does not contain the specified item */
+    FILTER_COLUMN_NOT_CONTAINS
 } ComparisonOperator;
 
 std::ostream& operator<<(std::ostream &stream, const ComparisonOperator o);

@@ -223,7 +223,7 @@ template<> struct JsonConversionTraits<boost::gregorian::date> {
     }
 
     static json_spirit::Value toJson(const boost::gregorian::date &value) {
-        return boost::gregorian::to_simple_string(value);
+        return boost::gregorian::to_iso_extended_string(value);
     }
 };
 
@@ -271,6 +271,10 @@ template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
             return std::string("columnLt");
         case FILTER_COLUMN_LE:
             return std::string("columnLe");
+        case FILTER_COLUMN_CONTAINS:
+            return std::string("columnContains");
+        case FILTER_COLUMN_NOT_CONTAINS:
+            return std::string("columnNotContains");
         }
         throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
     }
@@ -459,7 +463,8 @@ boost::posix_time::ptime JsonConversionTraits<boost::posix_time::ptime>::extract
 template<>
 json_spirit::Value JsonConversionTraits<boost::posix_time::ptime>::toJson(const boost::posix_time::ptime &value)
 {
-    return boost::posix_time::to_simple_string(value);
+    // This is just faster to debug than having to deal with the IO manipulators, thank you very much.
+    return boost::gregorian::to_iso_extended_string(value.date()) + std::string(" ") + boost::posix_time::to_simple_string(value.time_of_day());
 }
 
 /** @short Convert boolean to JSON */
@@ -495,6 +500,29 @@ template<typename T> struct JsonConversionTraits<std::vector<T> > {
     }
 };
 
+/** @short Helper for extracting/converting a set of identifiers */
+template<> struct JsonConversionTraits<std::set<Identifier> > {
+    static std::set<Identifier> extract(const json_spirit::Value &v) {
+        JsonContext c1("When extracting std::set<Identifier>");
+        std::set<Identifier> res;
+        int i = 0;
+        checkJsonValueType(v, json_spirit::array_type);
+        BOOST_FOREACH(const json_spirit::Value &item, v.get_array()) {
+            JsonContext c2("When processing field #" + libebt::stringify(i));
+            res.insert(JsonConversionTraits<Identifier>::extract(item));
+        }
+        return res;
+    }
+
+    static json_spirit::Value toJson(const std::set<Identifier> &value) {
+        json_spirit::Array a;
+        BOOST_FOREACH(const Identifier &item, value) {
+            a.push_back(item);
+        }
+        return a;
+    }
+};
+
 /** @short Convert JSON into a vector of attribute data types
 
 This one is special, as it arrives as a JSON object and not as a JSON list, hence we have to specialize and not use the generic vector extractor
@@ -514,6 +542,8 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_INT));
             } else if (datatype == "identifier") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER));
+            } else if (datatype == "identifier_set") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER_SET));
             } else if (datatype == "double") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
             } else if (datatype == "macaddress") {
@@ -694,6 +724,13 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         JsonContext c2("When extracting TYPE_STRING or TYPE_IDENTIFIER");
         checkJsonValueType(value, json_spirit::str_type);
         target->value = value.get_str();
+        return;
+    }
+    case TYPE_IDENTIFIER_SET:
+    {
+        JsonContext c2("When extracting TYPE_IDENTIFIER_SET");
+        checkJsonValueType(value, json_spirit::array_type);
+        target->value = JsonConversionTraits<std::set<Identifier> >::extract(value);
         return;
     }
     case TYPE_INT:
@@ -940,6 +977,7 @@ template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOriginList*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
 template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
+template JsonField& JsonField::extract(std::set<Identifier>*);
 
 }
 }

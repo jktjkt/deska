@@ -22,6 +22,7 @@
 #ifndef DESKA_DB_ADDITIONAL_VALUE_STREAM_OPERATORS_H
 #define DESKA_DB_ADDITIONAL_VALUE_STREAM_OPERATORS_H
 
+#include <set>
 #include <boost/date_time/posix_time/time_formatters.hpp>
 
 namespace boost {
@@ -44,6 +45,21 @@ inline std::ostream &operator<<(std::ostream &s, const boost::posix_time::ptime 
     return s << boost::posix_time::to_simple_string(t);
 }
 
+}
+
+}
+
+namespace std {
+inline std::ostream &operator<<(std::ostream &stream, const std::set<std::string> &set)
+{
+    stream << "[";
+    for (std::set<std::string>::const_iterator it = set.begin(); it != set.end(); ++it) {
+        if (it != set.begin()) {
+            stream << ", ";
+        }
+        stream << *it;
+    }
+    return stream << "]";
 }
 
 }

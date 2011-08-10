@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SHMDIR=/dev/shm/deska-${USER}
+SHMDIR=/dev/shm/deska-${USER}-$$
 mkdir ${SHMDIR}
 initdb -U postgres -A trust ${SHMDIR}
 echo "listen_addresses = ''" >> ${SHMDIR}/postgresql.conf

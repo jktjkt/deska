@@ -22,6 +22,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "deska/LowLevelPyDeska/Filter.h"
 #include "deska/LowLevelPyDeska/Value.h"
+#include "3rd-party/scitbx/set_wrapper.h"
 
 using namespace boost::python;
 using namespace Deska::Db;
@@ -106,7 +107,9 @@ void exportDeskaFilter()
             .value("COLUMN_GT", FILTER_COLUMN_GT)
             .value("COLUMN_GE", FILTER_COLUMN_GE)
             .value("COLUMN_LT", FILTER_COLUMN_LT)
-            .value("COLUMN_LE", FILTER_COLUMN_LE);
+            .value("COLUMN_LE", FILTER_COLUMN_LE)
+            .value("COLUMN_CONTAINS", FILTER_COLUMN_CONTAINS)
+            .value("COLUMN_NOT_CONTAINS", FILTER_COLUMN_NOT_CONTAINS);
 
     enum_<PendingChangeset::AttachStatus>("PendingChangesetAttachStatus")
             .value("DETACHED", PendingChangeset::ATTACH_DETACHED)
@@ -175,4 +178,6 @@ void exportDeskaFilter()
     class_<boost::optional<RevisionId> >("OptionalRevisionId")
             .def(init<const RevisionId>())
             .def("__repr__", repr_optionalRevisionId);
+
+    scitbx::stl::boost_python::set_wrapper<std::string>::wrap("std_set_std_string");
 }
