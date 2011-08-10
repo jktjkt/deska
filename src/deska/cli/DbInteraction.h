@@ -57,8 +57,9 @@ public:
     /** @short Creates new object.
     *
     *   @param context Path and object definition to create
+    *   @return ContextStackItem identifying really created object or set of objects
     */
-    void createObject(const ContextStack &context);
+    ContextStackItem createObject(const ContextStack &context);
     /** @short Restores deleted object.
     *
     *   @param context Path and object definition to restore

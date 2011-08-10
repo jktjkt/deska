@@ -82,18 +82,22 @@ UserInterface::~UserInterface()
 
 
 bool UserInterface::applyCategoryEntered(const ContextStack &context,
-                                         const Db::Identifier &kind, const Db::Identifier &object)
+                                         const Db::Identifier &kind, const Db::Identifier &object,
+                                         ContextStackItem &newItem)
 {
-    if (m_dbInteraction->objectExists(context))
+    if (m_dbInteraction->objectExists(context)) {
+        newItem = ContextStackItem(kind, object);
         return true;
+    }
 
     // Object does not exist -> try to create it
     try {
-        m_dbInteraction->createObject(context);
+        newItem = m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
         if (io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
+            newItem = ContextStackItem(kind, object);
             return true;
         } else {
             return false;

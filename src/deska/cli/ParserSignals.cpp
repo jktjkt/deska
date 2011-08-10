@@ -46,8 +46,9 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &con
 
 bool ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
-    if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName)) {
-        signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectName));
+    ContextStackItem newItem;
+    if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName, newItem)) {
+        signalsHandler->contextStack.push_back(newItem);
         return true;
     } else {
         return false;

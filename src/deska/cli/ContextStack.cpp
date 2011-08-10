@@ -31,6 +31,12 @@ namespace Deska {
 namespace Cli {
 
 
+ContextStackItem::ContextStackItem()
+{
+}
+
+
+
 ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName):
     kind(kindName), name(objectName), filter(boost::optional<Db::Filter>())
 {

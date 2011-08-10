@@ -81,7 +81,7 @@ public:
     *   @see Parser
     */
     bool applyCategoryEntered(const ContextStack &context,
-                              const Db::Identifier &kind, const Db::Identifier &object);
+                              const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
     bool applySetAttribute(const ContextStack &context,
                            const Db::Identifier &attribute, const Db::Value &value);
     bool applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute);

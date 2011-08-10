@@ -55,16 +55,31 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-void DbInteraction::createObject(const ContextStack &context)
+ContextStackItem DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+
+    BOOST_ASSERT(!objects.empty());
+
+    if (objects.size() == 1) {
+        BOOST_ASSERT(!objectExists(objects.front()));
+        Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
+        return ContextStackItem(objects.front().kind, pathToVector(newObjectName).back());
+    }
+
     // FIXME: got to solve that issue with a return value from createObject when using batched changes...
     std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
             modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
     }
+    m_api->applyBatchedChanges(modifications);
+    if (context.back().name.empty())
+        // FIXME: Return correct filter for "last" objects
+        return ContextStackItem(context.back().kind, Db::Filter());
+    else
+        return ContextStackItem(context.back().kind, context.back().name);
 }
 
 
