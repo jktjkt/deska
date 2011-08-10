@@ -120,7 +120,7 @@ std::string dumpContextStack(const ContextStack &contextStack)
 
 
 
-std::vector<Db::Identifier> pathToVector(const std::string &path)
+std::vector<Db::Identifier> pathToVector(const Db::Identifier &path)
 {
     std::string::const_iterator first = path.begin();
     std::string::const_iterator last = path.end();
