@@ -111,6 +111,9 @@ void exportDeskaFilter()
             .value("COLUMN_CONTAINS", FILTER_COLUMN_CONTAINS)
             .value("COLUMN_NOT_CONTAINS", FILTER_COLUMN_NOT_CONTAINS);
 
+    enum_<SpecialFilterType>("SpecialFilterType")
+            .value("SPECIAL_EMBEDDED_LAST_ONE", FILTER_SPECIAL_EMBEDDED_LAST_ONE);
+
     enum_<PendingChangeset::AttachStatus>("PendingChangesetAttachStatus")
             .value("DETACHED", PendingChangeset::ATTACH_DETACHED)
             .value("IN_PROGRESS", PendingChangeset::ATTACH_IN_PROGRESS);
@@ -138,9 +141,16 @@ void exportDeskaFilter()
             .def(self_ns::str(self))
             .def(self_ns::repr(self));
 
+    class_<SpecialExpression>("SpecialExpression", init<SpecialFilterType, Identifier>())
+            .def_readonly("type", &SpecialExpression::type)
+            .def_readonly("kind", &SpecialExpression::kind)
+            .def(self_ns::str(self))
+            .def(self_ns::repr(self));
+
     class_<Expression>("Expression", no_init)
             .def(init<const MetadataExpression&>())
             .def(init<const AttributeExpression&>())
+            .def(init<const SpecialExpression&>())
             .def(self_ns::str(self))
             .def("__repr__", Deska::Db::repr_Expression);
 
