@@ -197,6 +197,14 @@ public:
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData) = 0;
 
+    /** @short Insert an identifier to a set (attribute of type TYPE_IDENTIFIER_SET) that belongs to some object */
+    virtual void setAttributeInsert(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data) = 0;
+
+    /** @short Removes an identifier from a set (attribute of type TYPE_IDENTIFIER_SET) that belongs to some object */
+    virtual void setAttributeRemove(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data) = 0;
+
     /** @short Apply a list of modifications */
     virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications) = 0;
 

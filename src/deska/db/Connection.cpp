@@ -112,6 +112,16 @@ void Connection::setAttribute(const Identifier &kindName, const Identifier &obje
     p->setAttribute(kindName, objectName, attributeName, attributeData);
 }
 
+void Connection::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+{
+    p->setAttributeInsert(kindName, objectName, setName, data);
+}
+
+void Connection::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+{
+    p->setAttributeRemove(kindName, objectName, setName, data);
+}
+
 void Connection::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
 {
     p->applyBatchedChanges(modifications);

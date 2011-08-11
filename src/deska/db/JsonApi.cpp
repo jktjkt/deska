@@ -282,8 +282,7 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
-void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
-                           const Value &attributeData)
+void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData)
 {
     JsonCommandContext c1("setAttribute");
 
@@ -293,6 +292,16 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.argument(j_attrName, attributeName);
     h.argument("attributeData", attributeData);
     h.work();
+}
+
+void JsonApiParser::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+{
+    // FIXME: Implement function setAttributeInsert in JsonApiParser
+}
+
+void JsonApiParser::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+{
+    // FIXME: Implement function setAttributeRemove in JsonApiParser
 }
 
 void JsonApiParser::applyBatchedChanges(const std::vector<ObjectModification> &modifications)

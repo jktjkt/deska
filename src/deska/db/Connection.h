@@ -64,6 +64,10 @@ public:
     virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);
+    virtual void setAttributeInsert(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data);
+    virtual void setAttributeRemove(
+        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data);
     virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
 
     // SCM-like operation and transaction control
