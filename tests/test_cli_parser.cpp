@@ -563,7 +563,7 @@ BOOST_FIXTURE_TEST_CASE(invalid_kind_name_of_embed_object, ParserTestFixture)
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("host", "123");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"name\" \"roles\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1509,7 +1509,7 @@ BOOST_FIXTURE_TEST_CASE(invalid_attr_removal, ParserTestFixture)
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("host", "123");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for host. Expected one of [ \"hardware_id\" \"name\" \"roles\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1650,6 +1650,30 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_more_data, ParserTestFixture)
     expectCategoryEntered("host", "456");
     expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object host 456 does not exist.", line, it));
     //expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object identifier. Correct identifier not found or too much data entered.", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
+/** @short Jumping from top level directly in the interface */
+BOOST_FIXTURE_TEST_CASE(jump_in_context, ParserTestFixture)
+{
+    parser->parseLine("interface hpv2->eth0");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectCategoryEntered("interface", "eth0");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("host", "hpv2", "interface", "eth0");
+}
+
+/** @short Setting identifiers set */
+BOOST_FIXTURE_TEST_CASE(jump_in_context_error, ParserTestFixture)
+{
+    const std::string line = "hardware hpv2->eth0\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);   
+    expectParsingStarted();
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing object name for hardware hpv2->eth0. Can't find nesting parents.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
