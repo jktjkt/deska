@@ -280,13 +280,13 @@ template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
     }
 };
 
-template<> struct JsonConversionTraits<Deska::Db::SpecialFilterKind> {
-    static json_spirit::Value toJson(const Deska::Db::SpecialFilterKind &value) {
+template<> struct JsonConversionTraits<Deska::Db::SpecialFilterType> {
+    static json_spirit::Value toJson(const Deska::Db::SpecialFilterType &value) {
         switch (value) {
-        case FILTER_SPECIAL_LAST:
-            return std::string("last");
+        case FILTER_SPECIAL_EMBEDDED_LAST_ONE:
+            return std::string("embeddedLastOne");
         }
-        throw std::domain_error("Value of Deska::Db::SpecialFilterKind is out of bounds");
+        throw std::domain_error("Value of Deska::Db::SpecialFilterType is out of bounds");
     }
 };
 
@@ -314,7 +314,7 @@ struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spiri
     result_type operator()(const Deska::Db::SpecialExpression &expression) const
     {
         json_spirit::Object o;
-        o.push_back(json_spirit::Pair("specialCondition", JsonConversionTraits<SpecialFilterKind>::toJson(expression.filter)));
+        o.push_back(json_spirit::Pair("specialCondition", JsonConversionTraits<SpecialFilterType>::toJson(expression.type)));
         o.push_back(json_spirit::Pair("kind", expression.kind));
         return o;
     }

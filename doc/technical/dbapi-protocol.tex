@@ -406,8 +406,8 @@ relation information etc.  The following types are defined:
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
         {\tt "columnLe"}
         \\
-    {\tt Deska::Db::SpecialFilterKind} &
-        {\tt "last"}
+    {\tt Deska::Db::SpecialFilterType} &
+        {\tt "embeddedLastOne"}
         \\
     {\tt Deska::Db::Expression} &
         One of \newline
@@ -416,7 +416,7 @@ relation information etc.  The following types are defined:
         or \newline
         {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}, \newline
         or \newline
-        {\tt \{"specialCondition": }SpecialFilterKind{\tt, "kind": }Identifier{\tt \}}
+        {\tt \{"specialCondition": }SpecialFilterType{\tt, "kind": }Identifier{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline

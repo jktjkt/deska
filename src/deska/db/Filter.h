@@ -100,18 +100,18 @@ std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a);
 
 /** @short What kind of a special filter expression is it */
 typedef enum {
-    FILTER_SPECIAL_LAST /**< @short The last-inserted item */
-} SpecialFilterKind;
+    FILTER_SPECIAL_EMBEDDED_LAST_ONE /**< @short The last-inserted item */
+} SpecialFilterType;
 
-std::ostream& operator<<(std::ostream &stream, const SpecialFilterKind f);
+std::ostream& operator<<(std::ostream &stream, const SpecialFilterType f);
 
 /** @short Special filter expression: match on magic properties */
 struct SpecialExpression
 {
+    SpecialFilterType type;
     Identifier kind;
-    SpecialFilterKind filter;
 
-    SpecialExpression(const Identifier &kind, const SpecialFilterKind filter);
+    SpecialExpression(const SpecialFilterType type, const Identifier &kind);
 
     // FIXME: default constructor for the CLI parser
     SpecialExpression() {}

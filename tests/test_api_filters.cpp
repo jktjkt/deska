@@ -79,8 +79,8 @@ BOOST_AUTO_TEST_CASE(filter_dumping)
     roles.insert("bar");
     AttributeExpression e10(FILTER_COLUMN_NOT_CONTAINS, "host", "role", Value(roles));
     string s10 = "AttributeExpression(host.role not contains Value<identifier_set>([bar, foo]))";
-    SpecialExpression e11("interface", FILTER_SPECIAL_LAST);
-    string s11 = "SpecialExpression(interface last)";
+    SpecialExpression e11(FILTER_SPECIAL_EMBEDDED_LAST_ONE, "interface");
+    string s11 = "SpecialExpression(interface embeddedLastOne)";
 
     verifyFilterObject(s1, e1);
     verifyFilterObject(s2, e2);
