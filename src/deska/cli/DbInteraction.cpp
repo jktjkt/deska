@@ -148,6 +148,40 @@ void DbInteraction::setAttribute(const ContextStack &context,
 
 
 
+void DbInteraction::setAttributeInsert(const ContextStack &context, const Db::Identifier &set,
+                                       const Db::Identifier &identifier)
+{
+    BOOST_ASSERT(!context.empty());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeInsertModification(it->kind, it->name, set,
+        //                                                           identifier));
+        m_api->setAttributeInsert(it->kind, it->name, set, identifier);
+    }
+    //m_api->applyBatchedChanges(modifications);
+}
+
+
+
+void DbInteraction::setAttributeRemove(const ContextStack &context, const Db::Identifier &set,
+                                       const Db::Identifier &identifier)
+{
+    BOOST_ASSERT(!context.empty());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeRemoveModification(it->kind, it->name, set,
+        //                                                           identifier));
+        m_api->setAttributeRemove(it->kind, it->name, set, identifier);
+    }
+    //m_api->applyBatchedChanges(modifications);
+}
+
+
+
 void DbInteraction::removeAttribute(const ContextStack &context,
                                     const Db::Identifier &attribute)
 {

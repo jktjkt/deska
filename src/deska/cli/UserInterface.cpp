@@ -122,6 +122,36 @@ bool UserInterface::applySetAttribute(const ContextStack &context,
 
 
 
+bool UserInterface::applySetAttributeInsert(const ContextStack &context,
+                                            const Db::Identifier &attribute, const Db::Identifier &value)
+{
+    try {
+        m_dbInteraction->setAttributeInsert(context, attribute, value);
+        return true;
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: potemkin's fix for the demo
+        io->reportError(e.what());
+        return false;
+    }
+}
+
+
+
+bool UserInterface::applySetAttributeRemove(const ContextStack &context,
+                                            const Db::Identifier &attribute, const Db::Identifier &value)
+{
+    try {
+        m_dbInteraction->setAttributeRemove(context, attribute, value);
+        return true;
+    } catch (Deska::Db::RemoteDbError &e) {
+        // FIXME: potemkin's fix for the demo
+        io->reportError(e.what());
+        return false;
+    }
+}
+
+
+
 bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
 {
     m_dbInteraction->removeAttribute(context, attribute);
@@ -204,7 +234,31 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     if (!currentChangeset) {
-        io->reportError("Error: You have to be connected to a changeset to sat an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        io->reportError("Error: You have to be connected to a changeset to set an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+    return true;
+}
+
+
+
+bool UserInterface::confirmSetAttributeInsert(const ContextStack &context,
+                                              const Db::Identifier &attribute, const Db::Identifier &value)
+{
+    if (!currentChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to insert an identifier to a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+    return true;
+}
+
+
+
+bool UserInterface::confirmSetAttributeRemove(const ContextStack &context,
+                                              const Db::Identifier &attribute, const Db::Identifier &value)
+{
+    if (!currentChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to remove an identifier from a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
     return true;

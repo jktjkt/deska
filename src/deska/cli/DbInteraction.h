@@ -82,6 +82,22 @@ public:
     *   @param attribute Attribute and value to set
     */
     void setAttribute(const ContextStack &context, const AttributeDefinition &attribute);
+    /** @short Inserts an identifier to a set.
+    *
+    *   @param context Path to the object which attribute will be changed
+    *   @param set Set name
+    *   @param identifier Identifier to insert
+    */
+    void setAttributeInsert(const ContextStack &context, const Db::Identifier &set,
+                            const Db::Identifier &identifier);
+    /** @short Removes an identifier from a set.
+    *
+    *   @param context Path to the object which attribute will be changed
+    *   @param set Set name
+    *   @param identifier Identifier to remove
+    */
+    void setAttributeRemove(const ContextStack &context, const Db::Identifier &set,
+                            const Db::Identifier &identifier);
     /** @short Removes attribute value in the object.
     *
     *   @param context Path to the object which attribute value will be removed
