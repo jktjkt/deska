@@ -43,6 +43,8 @@ def %(name)s(%(args)s):
 	"""
 	merge_with_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'MERGE';"
 	"""Query to get names of tables which are merged with this table."""
+	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
+	"""Query to get info about all relations refers_to_set."""
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -92,7 +94,8 @@ CREATE FUNCTION commit_all(message text)
 		self.template = dict()
 		# dict of refs
 		self.refs = dict()
-
+		# dict of tables that refers to some sets of uids
+		self.refers_to_set = dict()
 		# select all tables
 		record = self.plpy.execute(self.table_str)
 		for tbl in record[:]:
@@ -111,6 +114,7 @@ CREATE FUNCTION commit_all(message text)
 		for row in record:
 			self.templates[row[0]] = row[1]
 			self.template_relations[row[1]] = row[0]
+		
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -132,6 +136,10 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
+
+#TODO: multiref tables -history, special set, special get, fix normal get_object data
+		#for tbl in self.inner_multiref_tables:
+            #self.gen_for_inner_table(tbl)
 
 		self.fn_sql.write(self.gen_commit())
 
@@ -175,6 +183,12 @@ CREATE FUNCTION commit_all(message text)
 		constraints = self.plpy.execute(self.pk_str % tbl)
 		for col in constraints[:]:
 			table.add_pk(col[0],col[1])
+			
+		record = self.plpy.execute(self.refers_to_set_info_str % {'tbl': tbl})
+		if len(record) > 0:
+			self.refers_to_set[tbl] = list()
+			for row in record:
+				self.refers_to_set[tbl].append(row[0])
 
 		# add fk constraints
 		fkconstraints = self.plpy.execute(self.fk_str % tbl)
@@ -223,9 +237,12 @@ CREATE FUNCTION commit_all(message text)
 		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
 			if (col[0] in table.refuid_columns):
-				reftable = table.refuid_columns[col[0]]
-				#column that references uid has another set function(with finding corresponding uid)
-				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
+				if col[0] in self.refers_to_set:
+					self.fn_sql.write(table.gen_set_refuid_set(col[0]))
+				else:
+					reftable = table.refuid_columns[col[0]]
+					#column that references uid has another set function(with finding corresponding uid)
+					self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
 				self.fn_sql.write(table.gen_set(col[0]))
 
@@ -253,8 +270,7 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set('name'))
 
-#TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
-#we need to return name of corresponding instance
+
 		self.fn_sql.write(table.gen_del())
 		self.fn_sql.write(table.gen_undel())
 		self.fn_sql.write(table.gen_get_object_data())
@@ -291,6 +307,12 @@ CREATE FUNCTION commit_all(message text)
 		commit_tables=""
 		for table in self.tables:
 			commit_tables = commit_tables + commit_table_template % {'tbl': table}
+		
+		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
+		for table in self.refers_to_set:
+			for reftable in self.refers_to_set[table]:
+				table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
+				commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
 
 		return self.commit_string % {'commit_tables': commit_tables}
 

@@ -63,8 +63,10 @@ class Table(constants.Templates):
 	def gen_drop_notnull(self):
 		"""Generates dropping of not null constraints. Attributes in row of history tables are filled one by one and rows could be leaky."""
 		nncol = self.col.copy()
-		del nncol['uid']
-		del nncol['name']
+		if 'uid' in nncol:
+			del nncol['uid']
+		if 'name' in nncol:
+			del nncol['name']
 		drop = ""
 		for col in nncol:
 			drop = drop + "ALTER TABLE %(name)s_history ALTER %(colname)s DROP NOT NULL;\n" % {'name': self.name, 'colname': col}
@@ -113,6 +115,10 @@ class Table(constants.Templates):
 	def gen_set_ref_uid(self,col_name, reftable):
 		"""Generates the set_attribute stored procedure for those columns in table that references some uid column of some table."""
 		return self.set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
+		
+	def gen_set_refuid_set(self, reftable):
+		"""Generates set function for columns that contains set of identifiers that references."""
+		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': reftable}
 
 	def gen_get_object_data(self):
 		"""Generates get_object_data stored function that returns data stored in this table"""

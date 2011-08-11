@@ -101,6 +101,25 @@ class Templates:
 
 '''
 
+	# template string for set functions for columns that reference set of identifiers
+	set_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(colname)s(IN name_ text,IN value text[])
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+	
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN genproc.inner_%(tbl)s_set_%(colname)s(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
 	RETURNS integer
