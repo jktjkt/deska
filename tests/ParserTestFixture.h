@@ -51,6 +51,12 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     /** @short Handler for Parser's setAttr() signal */
     void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+
+    /** @short Handler for Parser's setAttrInsert() signal */
+    void slotParserSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+
+    /** @short Handler for Parser's setAttrRemove() signal */
+    void slotParserSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short Handler for Parser's removeAttr() signal */
     void slotParserRemoveAttr(const Deska::Db::Identifier &name);
@@ -90,6 +96,18 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered();
     */
     void expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+
+    /** @short Check that the first signal which was not checked yet was the setAttrInsert()
+
+    @see expectCategoryEntered();
+    */
+    void expectSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+
+    /** @short Check that the first signal which was not checked yet was the setAttrRemove()
+
+    @see expectCategoryEntered();
+    */
+    void expectSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short Check that the first signal which was not checked yet was the removeAttr()
 
@@ -145,6 +163,10 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     void slotParserSetAttrCheckContext();
 
+    void slotParserSetAttrInsertCheckContext();
+
+    void slotParserSetAttrRemoveCheckContext();
+
     void slotParserRemoveAttrCheckContext();
 
     void slotParserDeleteCheckContext();
@@ -154,7 +176,9 @@ struct ParserTestFixture: public boost::signals2::trackable
     Deska::Db::Api *db;
     Deska::Cli::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
-    boost::signals2::connection attrCheckContextConnection;
+    boost::signals2::connection attrSetCheckContextConnection;
+    boost::signals2::connection attrSetInsertCheckContextConnection;
+    boost::signals2::connection attrSetRemoveCheckContextConnection;
     boost::signals2::connection attrRemoveCheckContextConnection;
     boost::signals2::connection deleteCheckContextConnection;
     boost::signals2::connection renameCheckContextConnection;

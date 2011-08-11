@@ -42,6 +42,7 @@ ParserTestFixture::ParserTestFixture()
     fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "roles", TYPE_IDENTIFIER_SET ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
     db = fake;
@@ -51,7 +52,11 @@ ParserTestFixture::ParserTestFixture()
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
     parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
-    attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    attrSetCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->attributeSetInsert.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrInsert, this, _1, _2));
+    attrSetInsertCheckContextConnection = parser->attributeSetInsert.connect(bind(&ParserTestFixture::slotParserSetAttrInsertCheckContext, this));
+    parser->attributeSetRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrRemove, this, _1, _2));
+    attrSetRemoveCheckContextConnection = parser->attributeSetRemove.connect(bind(&ParserTestFixture::slotParserSetAttrRemoveCheckContext, this));
     parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
     attrRemoveCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
@@ -83,6 +88,16 @@ void ParserTestFixture::slotParserCategoryLeft()
 void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::slotParserSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    parserEvents.push(MockParserEvent::setAttrInsert(name, val));
+}
+
+void ParserTestFixture::slotParserSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    parserEvents.push(MockParserEvent::setAttrRemove(name, val));
 }
 
 void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &name)
@@ -142,6 +157,16 @@ void ParserTestFixture::expectCategoryLeft()
 void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::expectSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    expectHelper(MockParserEvent::setAttrInsert(name, val));
+}
+
+void ParserTestFixture::expectSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    expectHelper(MockParserEvent::setAttrRemove(name, val));
 }
 
 void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &name)
@@ -218,6 +243,16 @@ void ParserTestFixture::verifyEmptyStack()
 void ParserTestFixture::slotParserSetAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+}
+
+void ParserTestFixture::slotParserSetAttrInsertCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to insert identifier in a set");
+}
+
+void ParserTestFixture::slotParserSetAttrRemoveCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to remove identifier form a set");
 }
 
 void ParserTestFixture::slotParserRemoveAttrCheckContext()
