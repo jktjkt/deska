@@ -48,6 +48,15 @@ std::ostream& operator<<(std::ostream &stream, ComparisonOperator o)
     return stream << "[Invalid operator:" << static_cast<int>(o) << "]";
 }
 
+std::ostream& operator<<(std::ostream &stream, const SpecialFilterKind f)
+{
+    switch (f) {
+    case FILTER_SPECIAL_LAST:
+        return stream << "last";
+    }
+    return stream << "[Invalid operator:" << static_cast<int>(f) << "]";
+}
+
 MetadataExpression::MetadataExpression(const ComparisonOperator comparison_, const Identifier &metadata_, const MetadataValue &constantValue_):
     comparison(comparison_), metadata(metadata_), constantValue(constantValue_)
 {
@@ -61,6 +70,26 @@ bool operator==(const MetadataExpression &a, const MetadataExpression &b)
 bool operator!=(const MetadataExpression &a, const MetadataExpression &b)
 {
     return !(a==b);
+}
+
+SpecialExpression::SpecialExpression(const Identifier &kind_, const SpecialFilterKind filter_):
+    kind(kind_), filter(filter_)
+{
+}
+
+bool operator==(const SpecialExpression &a, const SpecialExpression &b)
+{
+    return a.filter == b.filter && a.kind == b.kind;
+}
+
+bool operator!=(const SpecialExpression &a, const SpecialExpression &b)
+{
+    return !(a==b);
+}
+
+std::ostream& operator<<(std::ostream &stream, const SpecialExpression &e)
+{
+    return stream << "SpecialExpression(" << e.kind << " " << e.filter << ")";
 }
 
 /** @short Variant visitor that returns the type name of a Deska::Db::MetadataValue */

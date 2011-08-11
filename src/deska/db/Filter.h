@@ -98,8 +98,31 @@ bool operator==(const AttributeExpression &a, const AttributeExpression &b);
 bool operator!=(const AttributeExpression &a, const AttributeExpression &b);
 std::ostream& operator<<(std::ostream &stream, const AttributeExpression &a);
 
+/** @short What kind of a special filter expression is it */
+typedef enum {
+    FILTER_SPECIAL_LAST /**< @short The last-inserted item */
+} SpecialFilterKind;
+
+std::ostream& operator<<(std::ostream &stream, const SpecialFilterKind f);
+
+/** @short Special filter expression: match on magic properties */
+struct SpecialExpression
+{
+    Identifier kind;
+    SpecialFilterKind filter;
+
+    SpecialExpression(const Identifier &kind, const SpecialFilterKind filter);
+
+    // FIXME: default constructor for the CLI parser
+    SpecialExpression() {}
+};
+
+bool operator==(const SpecialExpression &a, const SpecialExpression &b);
+bool operator!=(const SpecialExpression &a, const SpecialExpression &b);
+std::ostream& operator<<(std::ostream &stream, const SpecialExpression &s);
+
 /** @short A generic expression */
-typedef boost::variant<MetadataExpression, AttributeExpression> Expression;
+typedef boost::variant<MetadataExpression, AttributeExpression, SpecialExpression> Expression;
 
 bool operator!=(const Expression &a, const Expression &b);
 
