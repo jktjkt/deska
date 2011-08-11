@@ -78,8 +78,8 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     //m_api->applyBatchedChanges(modifications);
 
     if (context.back().name.empty())
-        // FIXME: Return correct filter for "last" objects
-        return ContextStackItem(context.back().kind, Db::Filter());
+        return ContextStackItem(context.back().kind, Db::Filter(
+        Db::SpecialExpression(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, context.back().kind)));
     else
         return ContextStackItem(context.back().kind, context.back().name);
 }
