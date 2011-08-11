@@ -87,6 +87,8 @@ REMOTEDBEXCEPTION(ChangesetParsingError)
 REMOTEDBEXCEPTION(ConstraintError)
 /** @short Attempted to commit a changeset whose parent is too old */
 REMOTEDBEXCEPTION(ObsoleteParentError)
+/** @short The attribute type is not an identifier_set */
+REMOTEDBEXCEPTION(NotASetError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
