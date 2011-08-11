@@ -406,12 +406,17 @@ relation information etc.  The following types are defined:
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
         {\tt "columnLe"}
         \\
+    {\tt Deska::Db::SpecialFilterKind} &
+        {\tt "last"}
+        \\
     {\tt Deska::Db::Expression} &
         One of \newline
         {\tt \{"condition": }ComparisonOperator{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
         }Value{\tt \}}, \newline
         or \newline
-        {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
+        {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}, \newline
+        or \newline
+        {\tt \{"specialCondition": }SpecialFilterKind{\tt, "kind": }Identifier{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
@@ -545,6 +550,10 @@ corresponding tables to each other via correct relation.  Using these
 such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
+
+Finally, there is also the ``spcial'' kind of filters that do not limit the amount of data based on the attribute values
+or revision metadata, but on some external metainformation.  Currently, only on of these filters is defined, the {\tt
+last} one, which causes the Deska server to consider just the lastly inserted embedded item of a given kind.
 
 \subsubsection{Output Ordering}
 
