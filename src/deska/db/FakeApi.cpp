@@ -152,6 +152,14 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 {
 }
 
+void FakeApi::setInsertValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
+{
+}
+
+void FakeApi::setRemoveValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
+{
+}
+
 void FakeApi::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
 {
 }

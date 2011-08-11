@@ -573,6 +573,24 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     }
 }
 
+/** @short Basic test for the setInsertValue() */
+BOOST_FIXTURE_TEST_CASE(json_setInsertValue, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"setInsertValue\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":\"123\"}\n");
+    expectRead("{\"response\": \"setInsertValue\", \"tag\":\"T\"}\n");
+    j->setInsertValue("k", "o", "a", "123");
+    expectEmpty();
+}
+
+/** @short Basic test for the setRemoveValue() */
+BOOST_FIXTURE_TEST_CASE(json_setRemoveValue, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"setRemoveValue\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":\"123\"}\n");
+    expectRead("{\"response\": \"setRemoveValue\", \"tag\":\"T\"}\n");
+    j->setRemoveValue("k", "o", "a", "123");
+    expectEmpty();
+}
+
 /** @short Basic test for startChangeset() */
 BOOST_FIXTURE_TEST_CASE(json_startChangeset, JsonApiTestFixtureFailOnStreamThrow)
 {
