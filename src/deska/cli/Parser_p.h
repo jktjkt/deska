@@ -328,8 +328,8 @@ private:
     bool dryRun;
     /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
     bool singleKind;
-    /** True when some filter was entered. */
-    bool inFilter;
+    /** True when parsing of current line succeeded, alse false. */
+    bool parsingSucceededActions;
     /** Current parsing mode. @see ParsingMode */
     ParsingMode parsingMode;
 };

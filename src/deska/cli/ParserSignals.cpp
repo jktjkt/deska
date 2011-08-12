@@ -114,6 +114,51 @@ bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 
+ParserSignalSetAttributeInsert::ParserSignalSetAttributeInsert(const ContextStack &context, 
+                                                               const Db::Identifier &attribute,
+                                                               const Db::Identifier &value):
+    signalsContext(context), setName(attribute), identifier(value)
+{
+}
+
+
+
+bool ParserSignalSetAttributeInsert::apply(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->applySetAttributeInsert(signalsContext, setName, identifier);
+}
+
+
+
+bool ParserSignalSetAttributeInsert::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmSetAttributeInsert(signalsContext, setName, identifier);
+}
+
+
+ParserSignalSetAttributeRemove::ParserSignalSetAttributeRemove(const ContextStack &context, 
+                                                               const Db::Identifier &attribute,
+                                                               const Db::Identifier &value):
+    signalsContext(context), setName(attribute), identifier(value)
+{
+}
+
+
+
+bool ParserSignalSetAttributeRemove::apply(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->applySetAttributeRemove(signalsContext, setName, identifier);
+}
+
+
+
+bool ParserSignalSetAttributeRemove::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmSetAttributeRemove(signalsContext, setName, identifier);
+}
+
+
+
 ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &context, 
                                                          const Db::Identifier &attribute):
     signalsContext(context), attributeName(attribute)

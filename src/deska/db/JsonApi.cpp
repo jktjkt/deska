@@ -282,8 +282,7 @@ void JsonApiParser::renameObject( const Identifier &kindName, const Identifier &
     h.work();
 }
 
-void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName,
-                           const Value &attributeData)
+void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData)
 {
     JsonCommandContext c1("setAttribute");
 
@@ -295,11 +294,11 @@ void JsonApiParser::setAttribute(const Identifier &kindName, const Identifier &o
     h.work();
 }
 
-void JsonApiParser::setInsertValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
+void JsonApiParser::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
-    JsonCommandContext c1("setInsertValue");
+    JsonCommandContext c1("setAttributeInsert");
 
-    JsonHandlerApiWrapper h(this, "setInsertValue");
+    JsonHandlerApiWrapper h(this, "setAttributeInsert");
     h.argument(j_kindName, kindName);
     h.argument(j_objName, objectName);
     h.argument(j_attrName, attributeName);
@@ -307,11 +306,11 @@ void JsonApiParser::setInsertValue(const Identifier &kindName, const Identifier 
     h.work();
 }
 
-void JsonApiParser::setRemoveValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
+void JsonApiParser::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
-    JsonCommandContext c1("setRemoveValue");
+    JsonCommandContext c1("setAttributeRemove");
 
-    JsonHandlerApiWrapper h(this, "setRemoveValue");
+    JsonHandlerApiWrapper h(this, "setAttributeRemove");
     h.argument(j_kindName, kindName);
     h.argument(j_objName, objectName);
     h.argument(j_attrName, attributeName);

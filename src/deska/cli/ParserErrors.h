@@ -47,6 +47,8 @@ namespace qi = boost::spirit::qi;
 typedef enum {
     /** @short Error in a kinds's name */
     PARSE_ERROR_TYPE_KIND,
+    /** @short Error in a kinds's name when jumping in context*/
+    PARSE_ERROR_TYPE_KIND_NESTING,
     /** @short Error in a kinds's name in a filter */
     PARSE_ERROR_TYPE_KIND_FILTER,
     /** @short Error in nesting */
@@ -401,6 +403,13 @@ public:
     *   @param errorPos Position where the error occures
     */
     ParseError(Iterator start, Iterator end, Iterator errorPos);
+
+    /** @short Creates error when bad object name was entered when jumping in context.
+    *   
+    *   @param kindName Name of parsed kind
+    *   @param objectName Name of parsed object
+    */
+    ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
 
     /** @short Function for obtaining type of the error.

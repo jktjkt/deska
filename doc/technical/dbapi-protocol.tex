@@ -405,11 +405,11 @@ relation information etc.  The following types are defined:
         used.  The longer form is accepted in order to enable simply feeding a result of a diff back into the Deska
         server for further application.}, \newline
         or \newline
-        {\tt \{"command": "setInsertValue", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        {\tt \{"command": "setAttributeInsert", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Identifier{\tt \}}, \newline
         or \newline
-        {\tt \{"command": "setRemoveValue", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
-        }Identifier{\tt, "attributeData": }Identifier{\tt \}}\footnote{The {\tt setInsertValue} and {\tt setRemoveValue}
+        {\tt \{"command": "setAttributeRemove", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, "attributeData": }Identifier{\tt \}}\footnote{The {\tt setAttributeInsert} and {\tt setAttributeRemove}
         operations can be used in the context of \deskaFuncRef{applyBatchedChanges}, but will not be returned in a diff
         record.  No matter how a change is initiated, ie. be it over the regular \deskaFuncRef{setAttribute}, or this
         pair of functions, the diff always includes the {\tt setAttribute} record for simplicity.}
@@ -493,7 +493,7 @@ Objects can be created via the \deskaFuncRef{createObject} function, deleted thr
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
 \deskaFuncRef{setAttribute}.  Certain attributes accept a set of identifiers; for an effective way of modifying these
-items, see \deskaFuncRef{setInsertValue} and \deskaFuncRef{setRemoveValue}.
+items, see \deskaFuncRef{setAttributeInsert} and \deskaFuncRef{setAttributeRemove}.
 In case an object gets deleted by accident in a pending changeset, it can be restored to
 its previous state via the \deskaFuncRef{restoreDeletedObject}.  It is an error to attempt to delete and create an
 object with the same name in one changeset.  Users can perform several actions in one DBAPI command by calling the
@@ -768,14 +768,14 @@ Any function which modifies objects stored in the Deska database belongs to this
     {This function will update the value of a particular object's attribute.  To ``remove'' an object's attribute, set its
     value to {\tt null}.}
 
-\deskaFunc{setInsertValue}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
+\deskaFunc{setAttributeInsert}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
     {}
     {Insert an identifier into an object's attribute value}
     {This function will update the value of a particular object's attribute, making sure that the indicated new value is
     definitely present among the list of values in the attribute.  It is an error to use this function on attributes of
     a different type than {\tt identifier\_set}; the {\tt NotASetError} exception is thrown in such cases.}
 
-\deskaFunc{setRemoveValue}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
+\deskaFunc{setAttributeRemove}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
     {}
     {Remove an identifier from an object's attribute value}
     {This function will update the value of a particular object's attribute, making sure that the indicated new value is
@@ -788,9 +788,9 @@ Any function which modifies objects stored in the Deska database belongs to this
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
     \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", \\
     "attributeName": "a5", "attributeData": "new"\}, \\
-    \{"command": "setInsertValue", "kindName": "k6", "objectName": "o6", \\
+    \{"command": "setAttributeInsert", "kindName": "k6", "objectName": "o6", \\
     "attributeName": "a6", "attributeData": "one-id"\}, \\
-    \{"command": "setRemoveValue", "kindName": "k7", "objectName": "o7", \\
+    \{"command": "setAttributeRemove", "kindName": "k7", "objectName": "o7", \\
     "attributeName": "a7", "attributeData": "one-id"\} \\
     ]}
     {}

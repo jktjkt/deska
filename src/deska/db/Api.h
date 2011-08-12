@@ -200,10 +200,10 @@ public:
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData) = 0;
 
     /** @short Insert an identifier into the set stored in the specified attribute */
-    virtual void setInsertValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData) = 0;
+    virtual void setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData) = 0;
 
     /** @short Remove an identifier from the set stored in the specified attribute */
-    virtual void setRemoveValue(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData) = 0;
+    virtual void setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData) = 0;
 
     /** @short Apply a list of modifications */
     virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications) = 0;

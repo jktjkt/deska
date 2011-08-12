@@ -157,6 +157,8 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
     switch (errorType) {
         case PARSE_ERROR_TYPE_KIND:
             return "kind name";
+        case PARSE_ERROR_TYPE_KIND_NESTING:
+            return "object name";
         case PARSE_ERROR_TYPE_KIND_FILTER:
             return "kind name in a filter";
         case PARSE_ERROR_TYPE_NESTING:
@@ -285,6 +287,17 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 
 template <typename Iterator>
+ParseError<Iterator>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName):
+    m_errorType(PARSE_ERROR_TYPE_KIND_NESTING)
+{
+    std::ostringstream sout;
+    sout << kindName << " " << objectName;
+    m_context = sout.str();
+}
+
+
+
+template <typename Iterator>
 ParseErrorType ParseError<Iterator>::errorType() const
 {
     return m_errorType;
@@ -335,6 +348,9 @@ std::string ParseError<Iterator>::toString() const
                 sout << ". Unknown top-level kind";
             else
                 sout << " of nested object in " << m_context;
+            break;
+        case PARSE_ERROR_TYPE_KIND_NESTING:
+            sout << " for " << m_context << ". Can't find nesting parents";
             break;
         case PARSE_ERROR_TYPE_KIND_FILTER:
             if (m_context.empty())
@@ -474,6 +490,8 @@ template ParseError<iterator_type>::ParseError(iterator_type start, iterator_typ
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const Db::Identifier &objectName);
+
+template ParseError<iterator_type>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName);
 
 template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos);
 

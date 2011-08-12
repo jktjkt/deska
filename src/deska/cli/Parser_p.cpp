@@ -278,7 +278,13 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
     objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(kind, *it));
     ++it;
     for (; it != objectNames.rend(); ++it) {
-        objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(embeddedInto[objects.back().first], *it));
+        std::map<Db::Identifier, Db::Identifier>::const_iterator emb = embeddedInto.find(objects.back().first);
+        if (emb == embeddedInto.end()) {
+            addParseError(ParseError<Iterator>(kind, name));
+            parsingSucceededActions = false;
+            return;
+        }
+        objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(emb->second, *it));
     }
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito = objects.rbegin();
          ito != objects.rend(); ++ito)
@@ -485,6 +491,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     parsingMode = PARSING_MODE_STANDARD;
     bool parsingSucceeded = true;
+    parsingSucceededActions = true;
     singleKind = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
@@ -553,7 +560,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }
 
         // Check for existence of parsed kind instance and add parse error based on parsing mode.
-        if (!contextStack.empty() && parsingSucceeded) {
+        if (!contextStack.empty() && parsingSucceeded && parsingSucceededActions) {
             std::vector<Db::Identifier> instances;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
@@ -579,7 +586,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             }
         }
 
-        if (!parsingSucceeded) {
+        if (!(parsingSucceeded && parsingSucceededActions)) {
             // Some bad input
             break;
         } else {
@@ -597,7 +604,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     // Handle parsing of new name here
     // Parsing mode is rename and some object to be renamed was parsed
-    if ((parsingMode == PARSING_MODE_RENAME) && (contextStack.size() > previousContextStackSize)) {
+    if ((parsingMode == PARSING_MODE_RENAME) && (contextStack.size() > previousContextStackSize) &&
+        parsingSucceededActions) {
         if ((parsingIterations > 0) && (!nonexistantObject)) {
             // Function word not parsed alone -> error was not reported yet
             if (iter == end) {
@@ -620,7 +628,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }
     }
 
-    if ((!dryRun) && (parsingSucceeded)) {
+    if ((!dryRun) && (parsingSucceeded && parsingSucceededActions)) {
         // Emit signals, when there is some function word used.
         switch (parsingMode) {
             case PARSING_MODE_STANDARD:
@@ -649,7 +657,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         } 
     }
 
-    if (!parsingSucceeded) {
+    if (!(parsingSucceeded && parsingSucceededActions)) {
          // Some bad input
         if (!dryRun)
             reportParseError(line);
@@ -673,7 +681,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 #ifdef PARSER_DEBUG
     std::cout << "End context stack: " << contextStackToString(contextStack) << std::endl;
 #endif
-    return parsingSucceeded;
+    return (parsingSucceeded && parsingSucceededActions);
 }
 
 
@@ -746,6 +754,9 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         case PARSE_ERROR_TYPE_KIND:
             m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
             break;
+        case PARSE_ERROR_TYPE_KIND_NESTING:
+            m_parser->parseError(InvalidObjectKind(err.toString(), line, line.begin()));
+            break;
         case PARSE_ERROR_TYPE_KIND_FILTER:
             m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
             break;
@@ -767,11 +778,14 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
     if (parseErrors.size() >= 2) {
         typename std::vector<ParseError<Iterator> >::iterator ita;
         typename std::vector<ParseError<Iterator> >::iterator itk;
+        typename std::vector<ParseError<Iterator> >::iterator itn;
         typename std::vector<ParseError<Iterator> >::iterator itf;
         ita = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                            phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
         itk = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                            phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
+        itn = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_NESTING);
         itf = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                            phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
 
@@ -780,6 +794,14 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
             std::cout << ita->toCombinedString(*itk) << std::endl;
 #endif
             m_parser->parseError(UndefinedAttributeError(ita->toCombinedString(*itk), line, ita->errorPosition()));
+            return;
+        }
+
+        if (itn != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+            std::cout << itk->toString() << std::endl;
+#endif
+            m_parser->parseError(InvalidObjectKind(itk->toString(), line, line.begin()));
             return;
         }
 
