@@ -215,7 +215,7 @@ public:
     *
     *   @param modifications Vector of modifications representing the diff.
     */
-    virtual void printDiff(const std::vector<Db::ObjectModification> &modifications) = 0;
+    virtual void printDiff(const std::vector<Db::ObjectModificationResult> &modifications) = 0;
 
     /** @short Adds completion string to the completions vector in the CliCompleter.
     *

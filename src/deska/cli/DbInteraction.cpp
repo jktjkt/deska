@@ -388,7 +388,7 @@ std::vector<Db::RevisionMetadata> DbInteraction::filteredRevisions(const Db::Fil
 
 
 
-std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
+std::vector<Db::ObjectModificationResult> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
                                                                        const Db::RevisionId &revisionB)
 {
     return m_api->dataDifference(revisionA, revisionB);
@@ -396,7 +396,7 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 
 
 
-std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
+std::vector<Db::ObjectModificationResult> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
 {
     return m_api->dataDifferenceInTemporaryChangeset(changeset);
 }

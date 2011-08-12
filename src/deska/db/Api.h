@@ -206,7 +206,7 @@ public:
     virtual void setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData) = 0;
 
     /** @short Apply a list of modifications */
-    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications) = 0;
+    virtual void applyBatchedChanges(const std::vector<ObjectModificationCommand> &modifications) = 0;
 
 
 
@@ -280,16 +280,16 @@ public:
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     /** @short Return differences between the database state in the specified versions */
-    virtual std::vector<ObjectModification> dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+    virtual std::vector<ObjectModificationResult> dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     /** @short Return differences between the resolved data in the database between the specified versions */
-    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+    virtual std::vector<ObjectModificationResult> resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     /** @short Return differences created in a temporary changeset */
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+    virtual std::vector<ObjectModificationResult> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     /** @short Return differences in resolved data created in a temporary changeset */
-    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
+    virtual std::vector<ObjectModificationResult> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const = 0;
 
     // Output generators
 

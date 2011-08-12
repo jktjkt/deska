@@ -381,7 +381,7 @@ private:
     *   @param b Second object modification
     *   @return True if b is greater than a, else false
     */
-    bool objectModificationLess(const Db::ObjectModification &a, const Db::ObjectModification &b);
+    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 
     /** @short Converts lines from file editted by a user while resolving conflicts to Parser readable format
     *

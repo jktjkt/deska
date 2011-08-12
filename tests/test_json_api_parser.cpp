@@ -755,9 +755,9 @@ std::string exampleJsonDiff =
     "{\"command\":\"renameObject\",\"kindName\":\"k3\",\"oldObjectName\":\"ooooold\",\"newObjectName\":\"new\"},"
     "{\"command\":\"setAttribute\",\"kindName\":\"k5\",\"objectName\":\"o5\",\"attributeName\":\"a5\",\"attributeData\":\"new\",\"oldAttributeData\":\"old\"}";
 
-std::vector<ObjectModification> diffObjects()
+std::vector<ObjectModificationResult> diffObjects()
 {
-    std::vector<ObjectModification> res;
+    std::vector<ObjectModificationResult> res;
     res.push_back(CreateObjectModification("k1", "o1"));
     res.push_back(DeleteObjectModification("k2", "o2"));
     res.push_back(RenameObjectModification("k3", "ooooold", "new"));
@@ -792,8 +792,8 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifference, JsonApiTestFixtureFailOnStreamThrow
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     expectRead("{\"response\": \"dataDifference\", \"tag\":\"T\", \"dataDifference\": ["
                + exampleJsonDiff + "]}\n");
-    std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->dataDifference(RevisionId(1), RevisionId(2),
+    std::vector<ObjectModificationResult> expected = diffObjects();
+    std::vector<ObjectModificationResult> res = j->dataDifference(RevisionId(1), RevisionId(2),
                                                             Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -807,8 +807,8 @@ BOOST_FIXTURE_TEST_CASE(json_dataDifferenceInTemporaryChangeset, JsonApiTestFixt
     expectRead("{\"response\": \"dataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"dataDifferenceInTemporaryChangeset\": ["
                + exampleJsonDiff +
                "]}\n");
-    std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->dataDifferenceInTemporaryChangeset(TemporaryChangesetId(666));
+    std::vector<ObjectModificationResult> expected = diffObjects();
+    std::vector<ObjectModificationResult> res = j->dataDifferenceInTemporaryChangeset(TemporaryChangesetId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -821,8 +821,8 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifference, JsonApiTestFixtureFailOnStr
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     expectRead("{\"response\": \"resolvedDataDifference\", \"tag\":\"T\", \"resolvedDataDifference\": ["
                + exampleJsonDiff + "]}\n");
-    std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->resolvedDataDifference(RevisionId(1), RevisionId(2),
+    std::vector<ObjectModificationResult> expected = diffObjects();
+    std::vector<ObjectModificationResult> res = j->resolvedDataDifference(RevisionId(1), RevisionId(2),
                                                                     Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -836,8 +836,8 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedDataDifferenceInTemporaryChangeset, JsonApi
                 "\"filter\":{\"condition\":\"columnEq\",\"kind\":\"kind1\",\"attribute\":\"attr1\",\"value\":null}}\n");
     expectRead("{\"response\": \"resolvedDataDifferenceInTemporaryChangeset\", \"tag\":\"T\", \"resolvedDataDifferenceInTemporaryChangeset\": ["
                + exampleJsonDiff + "]}\n");
-    std::vector<ObjectModification> expected = diffObjects();
-    std::vector<ObjectModification> res = j->resolvedDataDifferenceInTemporaryChangeset(
+    std::vector<ObjectModificationResult> expected = diffObjects();
+    std::vector<ObjectModificationResult> res = j->resolvedDataDifferenceInTemporaryChangeset(
                 TemporaryChangesetId(1), Filter(AttributeExpression(FILTER_COLUMN_EQ, "kind1", "attr1", Value())));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -854,7 +854,8 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
                 ",{\"command\":\"setAttribute\",\"kindName\":\"k7\",\"objectName\":\"o7\",\"attributeName\":\"a7\",\"attributeData\":\"new7\"}" +
                 "]}\n");
     expectRead("{\"response\": \"applyBatchedChanges\", \"tag\":\"T\"}\n");
-    std::vector<ObjectModification> modifications = diffObjects();
+    std::vector<ObjectModificationResult> diff = diffObjects();
+    std::vector<ObjectModificationCommand> modifications(diff.begin(), diff.end());
     modifications.push_back(SetAttributeModification("k6", "o6", "a6", Deska::Db::Value("new6")));
     modifications.push_back(SetAttributeModification("k7", "o7", "a7", Deska::Db::Value("new7"), Deska::Db::Value()));
     j->applyBatchedChanges(modifications);

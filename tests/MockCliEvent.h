@@ -149,7 +149,7 @@ struct MockCliEvent
     std::vector<std::string> vect;
     std::vector<Deska::Db::PendingChangeset> changesets;
     std::vector<Deska::Db::RevisionMetadata> revisions;
-    std::vector<Deska::Db::ObjectModification> modifications;
+    std::vector<Deska::Db::ObjectModificationResult> diff;
     std::vector<Deska::Cli::AttributeDefinition> attrs;
     std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
     std::vector<Deska::Cli::ObjectDefinition> objects;
