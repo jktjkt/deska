@@ -28,7 +28,6 @@
 #include <boost/optional.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
-#include "JsonApi.h"
 
 using namespace std;
 using json_spirit::Object;
