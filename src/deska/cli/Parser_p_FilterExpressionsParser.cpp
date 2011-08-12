@@ -22,7 +22,6 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_FilterExpressionsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {

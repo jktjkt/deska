@@ -23,7 +23,6 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_AttributesSettingParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
