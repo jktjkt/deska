@@ -25,7 +25,6 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "PredefinedRules.h"
-#include "deska/db/Api.h"
 #include "ParserIterator.h"
 
 namespace Deska
