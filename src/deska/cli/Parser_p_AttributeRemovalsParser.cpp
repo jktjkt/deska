@@ -23,6 +23,7 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_AttributeRemovalsParser.h"
+#include "Parser_p.h"
 
 namespace Deska
 {
@@ -48,6 +49,7 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
+    namespace phoenix = boost::phoenix;
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
     start = (qi::lit("no") > dispatch);
