@@ -239,6 +239,7 @@ CREATE FUNCTION commit_all(message text)
 			if (col[0] in table.refuid_columns):
 				if tbl in self.refers_to_set and col[0] in self.refers_to_set[tbl]:
 					self.fn_sql.write(table.gen_set_refuid_set(col[0]))
+					self.fn_sql.write(table.gen_refuid_set_insert(col[0]))
 				else:
 					reftable = table.refuid_columns[col[0]]
 					#column that references uid has another set function(with finding corresponding uid)

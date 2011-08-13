@@ -114,12 +114,32 @@ class Templates:
 	
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
-		RETURN genproc.inner_%(tbl)s_set_%(colname)s(name_, value);
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	#template for generating function to add one item to set of identifiers
+	refuid_set_insert_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(ref_tbl)s_insert(IN name_ identifier,IN value identifier)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+	
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_insert(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
 	RETURNS integer

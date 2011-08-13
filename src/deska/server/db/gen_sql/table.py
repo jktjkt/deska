@@ -119,6 +119,11 @@ class Table(constants.Templates):
 	def gen_set_refuid_set(self, reftable):
 		"""Generates set function for columns that contains set of identifiers that references."""
 		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': reftable}
+		
+	def gen_refuid_set_insert(self, reftable):
+		"""Generates function to insert one item to set of identifiers."""
+		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable}
+
 
 	def gen_get_object_data(self):
 		"""Generates get_object_data stored function that returns data stored in this table"""
