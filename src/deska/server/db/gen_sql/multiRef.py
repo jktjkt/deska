@@ -1,5 +1,3 @@
-from table import Table
-
 class MultiRef:
     multiRef_tables_str = "SELECT relname FROM get_table_info() WHERE typname = 'identifier_set';"
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
@@ -13,6 +11,15 @@ class MultiRef:
 CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_pk PRIMARY KEY (%(tbl)s,%(ref_tbl)s)
 );
 
+'''
+
+    hist_string = '''CREATE TABLE history.%(tbl)s_history (
+    LIKE %(tbl)s
+    -- include default values
+    INCLUDING DEFAULTS,
+    version int NOT NULL,
+    CONSTRAINT %(tbl)s_pk PRIMARY KEY (%(tbl_name)s, %(ref_tbl_name)s, version)
+);
 '''
 
     add_item_str = '''  CREATE FUNCTION
@@ -83,17 +90,15 @@ RETURNS integer
 AS
 $$
 DECLARE ver bigint;
+    %(tbl_name)s_uid bigint;
 BEGIN
---    SELECT get_current_changeset() INTO ver;
---    UPDATE %(tbl)s_%(ref_tbl)s_multiRef as tbl SET tbl.%(tbl)s = new.%(tbl)s, tbl.%(ref_tbl)s = new.%(ref_tbl)s
---        FROM inner_%(tbl)s_%(ref_tbl)s_multiRef_history as new
---            WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0';
---    INSERT INTO %(tbl)s (%(tbl)s)
---        SELECT (columns)s FROM %(tbl)s_history
---            WHERE version = ver AND uid NOT IN ( SELECT uid FROM %(tbl)s ) AND dest_bit = '0';
---  DELETE FROM %(tbl)s
---        WHERE uid IN (SELECT uid FROM %(tbl)s_history
---            WHERE version = ver AND dest_bit = '1');
+    SELECT get_current_changeset() INTO ver;
+    
+    FOR %(tbl_name)s_uid IN SELECT DISTINCT %(tbl_name)s FROM %(tbl)s_history WHERE version = ver LOOP
+        DELETE FROM %(tbl)s WHERE %(tbl_name)s = %(tbl_name)s_uid;
+        INSERT INTO %(tbl)s (%(tbl_name)s, %(ref_tbl_name)s) SELECT %(tbl_name)s, %(ref_tbl_name)s FROM %(tbl)s_history WHERE version = ver AND %(tbl_name)s = %(tbl_name)s_uid;
+    END LOOP;
+    
     RETURN 1;
 END
 $$
@@ -123,15 +128,8 @@ LANGUAGE plpgsql SECURITY DEFINER;
             refattnames = tab_relation_rec[0][2]
             self.check_multiRef_definition(table, reftable, attnames, refattnames)
             #we needs the oposite direction than the one that alredy exists
-            self.tab_sql.write(self.gen_inner_table_references(table, reftable))
-            join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
-            
-            table_class = Table(join_tab)
-            table_class.add_column(table,'bigint')
-            table_class.add_column(reftable,'bigint')
-            
-            self.tab_sql.write(self.gen_inner_table_history(table_class))
-            self.gen_functions(table_class, table, reftable, attnames, refattnames)
+            self.gen_tables(table, reftable)
+            self.gen_functions(table, reftable, attnames, refattnames)
 
         self.tab_sql.close()
         self.fn_sql.close()
@@ -159,10 +157,16 @@ LANGUAGE plpgsql SECURITY DEFINER;
     def gen_inner_table_history(self, table):
         return table.gen_hist()
 
-    def gen_functions(self,table_class, table, reftable, attname, refattname):
+    def gen_tables(self, table, reftable):
+        self.tab_sql.write(self.gen_inner_table_references(table, reftable))
+        join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl': table, 'ref_tbl': reftable}
+        self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
+
+
+    def gen_functions(self, table, reftable, attname, refattname):
         self.fn_sql.write(self.set_string % {'tbl': table, 'ref_tbl': reftable, 'colname': reftable})
         self.fn_sql.write(self.add_item_str % {'tbl': table, 'ref_tbl': reftable})
         join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
-        self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'ref_tbl': reftable})
+        self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         
         

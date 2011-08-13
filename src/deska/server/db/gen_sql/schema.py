@@ -237,7 +237,7 @@ CREATE FUNCTION commit_all(message text)
 		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
 			if (col[0] in table.refuid_columns):
-				if col[0] in self.refers_to_set:
+				if tbl in self.refers_to_set and col[0] in self.refers_to_set[tbl]:
 					self.fn_sql.write(table.gen_set_refuid_set(col[0]))
 				else:
 					reftable = table.refuid_columns[col[0]]
