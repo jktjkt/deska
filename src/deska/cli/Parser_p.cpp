@@ -286,10 +286,24 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
         }
         objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(emb->second, *it));
     }
-    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito = objects.rbegin();
-         ito != objects.rend(); ++ito)
+    std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito;
+    for (ito = objects.rbegin(); ito != objects.rend() - 1; ++ito)
     {
         contextStack.push_back(ContextStackItem(ito->first, ito->second));
+        if (!dryRun)
+            m_parser->categoryEntered(ito->first, ito->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Category entered: " << ito->first << ": " << ito->second << std::endl;
+#endif
+    }
+    contextStack.push_back(ContextStackItem(ito->first, ito->second));
+    if (parsingMode == PARSING_MODE_CREATE) {
+        if (!dryRun)
+            m_parser->createObject(ito->first, ito->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Create object: " << ito->first << ": " << ito->second << std::endl;
+#endif
+    } else {
         if (!dryRun)
             m_parser->categoryEntered(ito->first, ito->second);
 #ifdef PARSER_DEBUG
@@ -514,6 +528,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     m_parser->functionShow();
                 return true;
                 break;
+            case PARSING_MODE_CREATE:
             case PARSING_MODE_DELETE:
             case PARSING_MODE_RENAME:
                 // Function delete and rename require parameter -> report error
@@ -548,6 +563,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
                                                     ascii::space);
                     break;
+                case PARSING_MODE_CREATE:
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
                 case PARSING_MODE_RENAME:
@@ -632,6 +648,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         // Emit signals, when there is some function word used.
         switch (parsingMode) {
             case PARSING_MODE_STANDARD:
+                // No special signal to be triggered inthis case.
+                break;
+            case PARSING_MODE_CREATE:
                 // No special signal to be triggered inthis case.
                 break;
             case PARSING_MODE_DELETE:

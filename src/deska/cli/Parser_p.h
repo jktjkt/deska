@@ -166,6 +166,7 @@ public:
 
     //@{
     /** @short Functions that only invokes signals of main parser. */
+    void createObject(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);

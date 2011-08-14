@@ -80,6 +80,8 @@ public:
     *   @see ParserSignals
     *   @see Parser
     */
+    bool applyCreateObject(const ContextStack &context,
+                           const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
     bool applyCategoryEntered(const ContextStack &context,
                               const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
     bool applySetAttribute(const ContextStack &context,
@@ -94,6 +96,8 @@ public:
     bool applyFunctionDelete(const ContextStack &context);
     bool applyFunctionRename(const ContextStack &context, const Db::Identifier &newName);
 
+    bool confirmCreateObject(const ContextStack &context,
+                             const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmCategoryEntered(const ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmSetAttribute(const ContextStack &context,

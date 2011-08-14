@@ -45,6 +45,48 @@ class SignalsHandler;
 class UserInterface;
 
 
+/** @short Represents signal createObject() from the parser. */
+class ParserSignalCreateObject
+{
+public:
+
+    /** @short Constructor for storing signal createObject().
+    *
+    *   @param context Current parser context
+    *   @param kind Kind name of object to create
+    *   @param object Kind instance of object to create
+    */
+    ParserSignalCreateObject(const ContextStack &context,
+                             const Db::Identifier &kind, const Db::Identifier &object);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the database
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
+    Db::Identifier objectName;
+    //@}
+};
+
+
+
 /** @short Represents signal categoryEntered() from the parser. */
 class ParserSignalCategoryEntered
 {
@@ -427,8 +469,8 @@ private:
 
 
 /** @short Represents one signal from the Parser. */
-typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
-                       ParserSignalSetAttributeInsert, ParserSignalSetAttributeRemove,
+typedef boost::variant<ParserSignalCretaeObject, ParserSignalCategoryEntered, ParserSignalCategoryLeft,
+                       ParserSignalSetAttribute, ParserSignalSetAttributeInsert, ParserSignalSetAttributeRemove,
                        ParserSignalRemoveAttribute, ParserSignalObjectsFilter, ParserSignalFunctionShow,
                        ParserSignalFunctionDelete, ParserSignalFunctionRename> ParserSignal;
 
@@ -517,6 +559,7 @@ private:
 
     //@{
     /** @short Slots for signals from the parser. */
+    void slotCreateObject(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
@@ -532,6 +575,7 @@ private:
     void slotParsingStarted();
     //@}
 
+    friend class ParserSignalCreateObject;
     friend class ParserSignalCategoryEntered;
     friend class ParserSignalCategoryLeft;
     friend class ParserSignalSetAttribute;

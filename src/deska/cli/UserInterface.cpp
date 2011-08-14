@@ -81,6 +81,26 @@ UserInterface::~UserInterface()
 
 
 
+bool UserInterface::applyCreateObject(const ContextStack &context,
+                                      const Db::Identifier &kind, const Db::Identifier &object,
+                                      ContextStackItem &newItem)
+{
+    try {
+        newItem = m_dbInteraction->createObject(context);
+        return true;
+    } catch (Deska::Db::ReCreateObjectError &e) {
+        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
+            m_dbInteraction->restoreDeletedObject(context);
+            newItem = ContextStackItem(kind, object);
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+
+
 bool UserInterface::applyCategoryEntered(const ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object,
                                          ContextStackItem &newItem)
@@ -203,6 +223,26 @@ bool UserInterface::applyFunctionDelete(const ContextStack &context)
 bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
     m_dbInteraction->renameObject(context, newName);
+    return true;
+}
+
+
+
+bool UserInterface::confirmCreateObject(const ContextStack &context,
+                                        const Db::Identifier &kind, const Db::Identifier &object)
+{
+    if (!currentChangeset) {
+        io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+
+    if (m_dbInteraction->objectExists(context)) {
+        std::ostringstream ostr;
+        ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
+        io->reportError(ostr.str());
+        return false;
+    }
+
     return true;
 }
 

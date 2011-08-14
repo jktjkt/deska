@@ -36,6 +36,34 @@ namespace Cli
 {
 
 
+ParserSignalCreateObject::ParserSignalCreateObject(const ContextStack &context,
+                                                   const Db::Identifier &kind, const Db::Identifier &object):
+    signalsContext(context), kindName(kind), objectName(object)
+{
+}
+
+
+
+bool ParserSignalCreateObject::apply(SignalsHandler *signalsHandler) const
+{
+    ContextStackItem newItem;
+    if (signalsHandler->userInterface->applyCreateObject(signalsContext, kindName, objectName, newItem)) {
+        signalsHandler->contextStack.push_back(newItem);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+
+bool ParserSignalCreateObject::confirm(SignalsHandler *signalsHandler) const
+{
+    return signalsHandler->userInterface->confirmCreateObject(signalsContext, kindName, objectName);
+}
+
+
+
 ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &context,
                                                          const Db::Identifier &kind, const Db::Identifier &object):
     signalsContext(context), kindName(kind), objectName(object)
