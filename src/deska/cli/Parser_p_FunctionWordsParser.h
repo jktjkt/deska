@@ -49,6 +49,9 @@ public:
 
 private:
 
+    /** @short Function used as semantic action for parsed "create" function word. */
+    void actionCreate();
+
     /** @short Function used as semantic action for parsed "delete" function word. */
     void actionDelete();
 
