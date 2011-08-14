@@ -229,14 +229,14 @@ public:
     *   @param revisionA Second revision.
     *   @return Vector of modifications how to get from first revision to second revision.
     */
-    std::vector<Db::ObjectModification> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
+    std::vector<Db::ObjectModificationResult> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
 
     /** @short Returns differences between temporary changeset and its parent
     *
     *   @param changeset Temporary changeset.
     *   @return Vector of modifications how to get from first revision to second revision.
     */
-    std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
+    std::vector<Db::ObjectModificationResult> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
 
     /** @short Function for obtaining parent for given changeset ID
     *

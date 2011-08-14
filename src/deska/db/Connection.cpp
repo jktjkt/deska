@@ -112,17 +112,17 @@ void Connection::setAttribute(const Identifier &kindName, const Identifier &obje
     p->setAttribute(kindName, objectName, attributeName, attributeData);
 }
 
-void Connection::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+void Connection::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
-    p->setAttributeInsert(kindName, objectName, setName, data);
+    p->setAttributeInsert(kindName, objectName, attributeName, attributeData);
 }
 
-void Connection::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data)
+void Connection::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
-    p->setAttributeRemove(kindName, objectName, setName, data);
+    p->setAttributeRemove(kindName, objectName, attributeName, attributeData);
 }
 
-void Connection::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
+void Connection::applyBatchedChanges(const std::vector<ObjectModificationCommand> &modifications)
 {
     p->applyBatchedChanges(modifications);
 }
@@ -172,22 +172,22 @@ std::vector<RevisionMetadata> Connection::listRevisions(const boost::optional<Fi
     return p->listRevisions(filter);
 }
 
-std::vector<ObjectModification> Connection::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> Connection::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return p->dataDifference(revisionA, revisionB, filter);
 }
 
-std::vector<ObjectModification> Connection::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> Connection::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
     return p->resolvedDataDifference(revisionA, revisionB, filter);
 }
 
-std::vector<ObjectModification> Connection::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> Connection::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
     return p->dataDifferenceInTemporaryChangeset(changeset, filter);
 }
 
-std::vector<ObjectModification> Connection::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> Connection::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
     return p->resolvedDataDifferenceInTemporaryChangeset(changeset, filter);
 }

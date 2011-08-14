@@ -115,11 +115,9 @@ public:
     virtual void renameObject( const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName );
     virtual void setAttribute(
         const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData );
-    virtual void setAttributeInsert(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data);
-    virtual void setAttributeRemove(
-        const Identifier &kindName, const Identifier &objectName, const Identifier &setName, const Identifier &data);
-    virtual void applyBatchedChanges(const std::vector<ObjectModification> &modifications);
+    virtual void setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+    virtual void setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+    virtual void applyBatchedChanges(const std::vector<ObjectModificationCommand> &modifications);
 
     // SCM-like operation and transaction control
     virtual TemporaryChangesetId startChangeset();
@@ -133,10 +131,10 @@ public:
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
-    virtual std::vector<ObjectModification> dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
-    virtual std::vector<ObjectModification> resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
-    virtual std::vector<ObjectModification> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
-    virtual std::vector<ObjectModification> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModificationResult> dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModificationResult> resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModificationResult> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
+    virtual std::vector<ObjectModificationResult> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
 
     // Configuration output generators
     virtual std::string showConfigDiff(bool forceRegenerate=false);

@@ -24,12 +24,17 @@
 #ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
 #define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
 
-#include "Parser_p.h"
+#include <boost/spirit/include/qi.hpp>
+#include "deska/db/Objects.h"
 
 namespace Deska
 {
 namespace Cli
 {
+
+namespace qi = boost::spirit::qi;
+namespace ascii = boost::spirit::ascii;
+template <typename Iterator> class ParserImpl;
 
 /** @short Parser for set of attribute removals of specific top-level grammar.
 *

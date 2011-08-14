@@ -34,7 +34,7 @@ namespace Deska {
 namespace Db {
 
 /** @short Variant visitor for converting from Deska::Db::ObjectModification to json_spirit::Value */
-struct ObjectModificationToJsonValue: public boost::static_visitor<json_spirit::Value>
+struct ObjectModificationCommandToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
     template <typename T>
     result_type operator()(const T&) const;

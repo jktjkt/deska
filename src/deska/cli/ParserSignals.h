@@ -30,7 +30,6 @@
 #include <boost/noncopyable.hpp>
 #include <boost/signals2/trackable.hpp>
 #include "deska/db/Objects.h"
-#include "deska/db/Api.h"
 #include "ContextStack.h"
 
 

@@ -472,12 +472,12 @@ void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &re
 
 
 
-void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModification> &modifications)
+void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> &modifications)
 {
     if (modifications.empty()) {
         std::cout << "No difference." << std::endl;
     } else {
-        for (std::vector<Db::ObjectModification>::const_iterator it = modifications.begin();
+        for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
              it != modifications.end(); ++it) {
             boost::apply_visitor(ModificationPrinter(), *it);
         }

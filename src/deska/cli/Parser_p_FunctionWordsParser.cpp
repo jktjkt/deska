@@ -23,7 +23,6 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_FunctionWordsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {

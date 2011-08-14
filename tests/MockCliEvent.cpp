@@ -305,10 +305,10 @@ MockCliEvent MockCliEvent::printRevisions(const std::vector<Deska::Db::RevisionM
 
 
 
-MockCliEvent MockCliEvent::printDiff(const std::vector<Deska::Db::ObjectModification> &objectsModifiactions)
+MockCliEvent MockCliEvent::printDiff(const std::vector<Deska::Db::ObjectModificationResult> &objectsModifiactions)
 {
     MockCliEvent res(EVENT_PRINT_DIFF);
-    res.modifications = objectsModifiactions;
+    res.diff = objectsModifiactions;
     return res;
 }
 
@@ -383,7 +383,7 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
            std::equal(vect.begin(), vect.end(), other.vect.begin()) &&
            std::equal(changesets.begin(), changesets.end(), other.changesets.begin()) &&
            std::equal(revisions.begin(), revisions.end(), other.revisions.begin()) &&
-           std::equal(modifications.begin(), modifications.end(), other.modifications.begin()) &&
+           std::equal(diff.begin(), diff.end(), other.diff.begin()) &&
            std::equal(attrs.begin(), attrs.end(), other.attrs.begin()) &&
            std::equal(attrsorig.begin(), attrsorig.end(), other.attrsorig.begin()) &&
            std::equal(objects.begin(), objects.end(), other.objects.begin());
@@ -561,7 +561,7 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "printRevisions( " << m.revisions << " )";
         break;
     case MockCliEvent::EVENT_PRINT_DIFF:
-        out << "printDiff( " << m.modifications << " )";
+        out << "printDiff( " << m.diff << " )";
         break;
     case MockCliEvent::EVENT_ADD_COMMAND_COMPLETION:
         out << "addCommandCompletion( \"" << m.str1 << "\" )";

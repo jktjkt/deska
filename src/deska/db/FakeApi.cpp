@@ -152,17 +152,15 @@ void FakeApi::setAttribute(const Identifier &kindName, const Identifier &objectN
 {
 }
 
-void FakeApi::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &setName,
-                                 const Identifier &data)
+void FakeApi::setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
 }
 
-void FakeApi::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &setName,
-                                 const Identifier &data)
+void FakeApi::setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData)
 {
 }
 
-void FakeApi::applyBatchedChanges(const std::vector<ObjectModification> &modifications)
+void FakeApi::applyBatchedChanges(const std::vector<ObjectModificationCommand> &modifications)
 {
 }
 
@@ -210,24 +208,24 @@ std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filte
     return std::vector<RevisionMetadata>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> FakeApi::dataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
-    return std::vector<ObjectModification>();
+    return std::vector<ObjectModificationResult>();
 }
 
-std::vector<ObjectModification> FakeApi::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> FakeApi::resolvedDataDifference(const RevisionId revisionA, const RevisionId revisionB, const boost::optional<Filter> &filter) const
 {
-    return std::vector<ObjectModification>();
+    return std::vector<ObjectModificationResult>();
 }
 
-std::vector<ObjectModification> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> FakeApi::dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
-    return std::vector<ObjectModification>();
+    return std::vector<ObjectModificationResult>();
 }
 
-std::vector<ObjectModification> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
+std::vector<ObjectModificationResult> FakeApi::resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter) const
 {
-    return std::vector<ObjectModification>();
+    return std::vector<ObjectModificationResult>();
 }
 
 std::string FakeApi::showConfigDiff(bool forceRegenerate)

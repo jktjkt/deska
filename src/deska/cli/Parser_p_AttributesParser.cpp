@@ -25,7 +25,6 @@
 #include "Parser_p_AttributesSettingParser.h"
 #include "Parser_p_IdentifiersSetsParser.h"
 #include "Parser_p_AttributesParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
