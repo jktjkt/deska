@@ -170,10 +170,13 @@ template <typename Iterator>
 std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
 {
     std::map<std::string, std::string> usages;
+    usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
     usages["show"] = "Shows attributes and nested kinds of the object. Parameter is here optional and works in the same way as for delete. When executed without parameter at top-level, it shows all object kinds and names.";
     usages["end"] = "Leaves one level of current context.";
     usages["no"] = "When entered in front of an attribute name, it removes it's value.";
+    usages["add"] = "Inserts an identifier into an identifier set (e.g. insert role www).";
+    usages["remove"] = "Removes an identifier from an identifier set (e.g. remove role www).";
     return usages;
 }
 
