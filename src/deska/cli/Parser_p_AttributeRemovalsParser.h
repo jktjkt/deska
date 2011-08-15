@@ -79,7 +79,7 @@ private:
     */
     void parsedAttributeRemoval(const Db::Identifier &attribute);
 
-    /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
+    /** Attribute name definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, ascii::space_type> > attributes;
 
     /** Rule for parsing "no" keyword. */
