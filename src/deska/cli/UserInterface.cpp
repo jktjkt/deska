@@ -183,7 +183,12 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
                                        const Db::Filter &filter)
 {
-    return true;
+    if (m_dbInteraction->expandContextStack(context).empty()) {
+        io->printMessage("Entered filter does not match any object.");
+        return false;
+    } else {
+        return true;
+    }
 }
 
 
@@ -320,12 +325,7 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
                                          const Db::Filter &filter)
 {
-    if (m_dbInteraction->expandContextStack(context).empty()) {
-        io->printMessage("Entered filter does not match any object.");
-        return false;
-    } else {
-        return true;
-    }
+    return true;
 }
 
 

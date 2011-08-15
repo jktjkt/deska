@@ -47,7 +47,9 @@ ParserSignalCreateObject::ParserSignalCreateObject(const ContextStack &context,
 bool ParserSignalCreateObject::apply(SignalsHandler *signalsHandler) const
 {
     ContextStackItem newItem;
-    if (signalsHandler->userInterface->applyCreateObject(signalsContext, kindName, objectName, newItem)) {
+    ContextStack handlersContext = signalsHandler->contextStack;
+    handlersContext.push_back(ContextStackItem(kindName, objectName));
+    if (signalsHandler->userInterface->applyCreateObject(handlersContext, kindName, objectName, newItem)) {
         signalsHandler->contextStack.push_back(newItem);
         return true;
     } else {
@@ -75,7 +77,9 @@ ParserSignalCategoryEntered::ParserSignalCategoryEntered(const ContextStack &con
 bool ParserSignalCategoryEntered::apply(SignalsHandler *signalsHandler) const
 {
     ContextStackItem newItem;
-    if (signalsHandler->userInterface->applyCategoryEntered(signalsContext, kindName, objectName, newItem)) {
+    ContextStack handlersContext = signalsHandler->contextStack;
+    handlersContext.push_back(ContextStackItem(kindName, objectName));
+    if (signalsHandler->userInterface->applyCategoryEntered(handlersContext, kindName, objectName, newItem)) {
         signalsHandler->contextStack.push_back(newItem);
         return true;
     } else {
@@ -90,7 +94,6 @@ bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
     if (signalsHandler->autoCreate) {
         return true;
     } else {
-        // Careful here -- we have to work with *our* instance of the contextStack, not the signalsHandler's one
         signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(signalsContext, kindName, objectName);
     }
     return signalsHandler->autoCreate;
@@ -130,7 +133,7 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const ContextStack &context,
 
 bool ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttribute(signalsContext, attributeName, setValue);
+    return signalsHandler->userInterface->applySetAttribute(signalsHandler->contextStack, attributeName, setValue);
 }
 
 
@@ -153,7 +156,7 @@ ParserSignalSetAttributeInsert::ParserSignalSetAttributeInsert(const ContextStac
 
 bool ParserSignalSetAttributeInsert::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttributeInsert(signalsContext, setName, identifier);
+    return signalsHandler->userInterface->applySetAttributeInsert(signalsHandler->contextStack, setName, identifier);
 }
 
 
@@ -175,7 +178,7 @@ ParserSignalSetAttributeRemove::ParserSignalSetAttributeRemove(const ContextStac
 
 bool ParserSignalSetAttributeRemove::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttributeRemove(signalsContext, setName, identifier);
+    return signalsHandler->userInterface->applySetAttributeRemove(signalsHandler->contextStack, setName, identifier);
 }
 
 
@@ -197,7 +200,7 @@ ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &con
 
 bool ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyRemoveAttribute(signalsContext, attributeName);
+    return signalsHandler->userInterface->applyRemoveAttribute(signalsHandler->contextStack, attributeName);
 }
 
 
@@ -219,7 +222,9 @@ ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context
 
 bool ParserSignalObjectsFilter::apply(SignalsHandler *signalsHandler) const
 {
-    if (signalsHandler->userInterface->applyObjectsFilter(signalsContext, kindName, objectsFilter)) {
+    ContextStack handlersContext = signalsHandler->contextStack;
+    handlersContext.push_back(ContextStackItem(kindName, objectsFilter));
+    if (signalsHandler->userInterface->applyObjectsFilter(handlersContext, kindName, objectsFilter)) {
         signalsHandler->contextStack.push_back(ContextStackItem(kindName, objectsFilter));
         return true;
     } else {
@@ -245,7 +250,7 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const ContextStack &context):
 
 bool ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyFunctionShow(signalsContext);
+    return signalsHandler->userInterface->applyFunctionShow(signalsHandler->contextStack);
 }
 
 
@@ -266,7 +271,7 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const ContextStack &conte
 
 bool ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyFunctionDelete(signalsContext);
+    return signalsHandler->userInterface->applyFunctionDelete(signalsHandler->contextStack);
 }
 
 
@@ -287,7 +292,7 @@ ParserSignalFunctionRename::ParserSignalFunctionRename(const ContextStack &conte
 
 bool ParserSignalFunctionRename::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyFunctionRename(signalsContext, name);
+    return signalsHandler->userInterface->applyFunctionRename(signalsHandler->contextStack, name);
 }
 
 
@@ -332,6 +337,7 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
 {   
     using boost::phoenix::arg_names::_1;
     using boost::phoenix::arg_names::_2;
+    m_parser->createObject.connect(boost::phoenix::bind(&SignalsHandler::slotCreateObject, this, _1, _2));
     m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
     m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
@@ -343,6 +349,13 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
     m_parser->parseError.connect(boost::phoenix::bind(&SignalsHandler::slotParserError, this, _1));
     m_parser->parsingFinished.connect(boost::phoenix::bind(&SignalsHandler::slotParsingFinished, this));
     m_parser->parsingStarted.connect(boost::phoenix::bind(&SignalsHandler::slotParsingStarted, this));
+}
+
+
+
+void SignalsHandler::slotCreateObject(const Db::Identifier &kind, const Db::Identifier &name)
+{
+    signalsStack.push_back(ParserSignalCreateObject(m_parser->currentContextStack(), kind, name));
 }
 
 

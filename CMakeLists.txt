@@ -125,6 +125,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FunctionWordsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsOnlyParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsConstructParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FilterExpressionsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FiltersParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsFiltersParser.cpp

@@ -468,7 +468,7 @@ private:
 
 
 /** @short Represents one signal from the Parser. */
-typedef boost::variant<ParserSignalCretaeObject, ParserSignalCategoryEntered, ParserSignalCategoryLeft,
+typedef boost::variant<ParserSignalCreateObject, ParserSignalCategoryEntered, ParserSignalCategoryLeft,
                        ParserSignalSetAttribute, ParserSignalSetAttributeInsert, ParserSignalSetAttributeRemove,
                        ParserSignalRemoveAttribute, ParserSignalObjectsFilter, ParserSignalFunctionShow,
                        ParserSignalFunctionDelete, ParserSignalFunctionRename> ParserSignal;
