@@ -48,6 +48,7 @@ ParserTestFixture::ParserTestFixture()
     db = fake;
 
     parser = new Deska::Cli::Parser(db);
+    parser->createObject.connect(bind(&ParserTestFixture::slotParserCreateObject, this, _1, _2));
     parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
@@ -73,6 +74,11 @@ ParserTestFixture::~ParserTestFixture()
 {
     delete parser;
     delete db;
+}
+
+void ParserTestFixture::slotParserCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
+{
+    parserEvents.push(MockParserEvent::createObject(kind, name));
 }
 
 void ParserTestFixture::slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
@@ -142,6 +148,11 @@ void ParserTestFixture::expectNothingElse()
         // show the first queued event here
         BOOST_CHECK_EQUAL(MockParserEvent::invalid(), parserEvents.front());
     }
+}
+
+void ParserTestFixture::expectCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
+{
+    expectHelper(MockParserEvent::createObject(kind, name));
 }
 
 void ParserTestFixture::expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)

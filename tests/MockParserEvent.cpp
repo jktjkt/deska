@@ -22,6 +22,14 @@
 #include <iostream>
 #include "MockParserEvent.h"
 
+MockParserEvent MockParserEvent::createObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
+{
+    MockParserEvent res(EVENT_CREATE_OBJECT);
+    res.i1 = kind;
+    res.i2 = name;
+    return res;
+}
+
 MockParserEvent MockParserEvent::categoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     MockParserEvent res(EVENT_ENTER_CONTEXT);
@@ -118,6 +126,9 @@ MockParserEvent::MockParserEvent(Event e): eventKind(e)
 std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
 {
     switch (m.eventKind) {
+    case MockParserEvent::EVENT_CREATE_OBJECT:
+        out << "createObject( " << m.i1 << ", " << m.i2 << " )";
+        break;
     case MockParserEvent::EVENT_ENTER_CONTEXT:
         out << "categoryEntered( " << m.i1 << ", " << m.i2 << " )";
         break;

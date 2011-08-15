@@ -43,10 +43,13 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     ~ParserTestFixture();
 
-    /** @short Handler for Parser's categoryEntered signal */
+    /** @short Handler for Parser's createObject() signal */
+    void slotParserCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
+
+    /** @short Handler for Parser's categoryEntered() signal */
     void slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
-    /** @short Handler for Parser's categoryLeft() */
+    /** @short Handler for Parser's categoryLeft() signal*/
     void slotParserCategoryLeft();
 
     /** @short Handler for Parser's setAttr() signal */
@@ -81,6 +84,9 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
+
+    /** @short Verify that the first signal which wasn't checked yet was the createObject and that its argument match */
+    void expectCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short Verify that the first signal which wasn't checked yet was the categoryEntered and that its argument match */
     void expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);

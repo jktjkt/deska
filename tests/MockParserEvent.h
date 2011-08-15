@@ -30,6 +30,9 @@
 class MockParserEvent
 {
 public:
+    /** @short The createObject() signal */
+    static MockParserEvent createObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
+
     /** @short The categoryEntered() signal */
     static MockParserEvent categoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
@@ -75,7 +78,9 @@ public:
 
 private:
     typedef enum {
-        /** @short Handler for the categoryEntered() signal */
+        /** @short Handler for the createObject() signal */
+        EVENT_CREATE_OBJECT,
+        /** @short Handler for categoryEntered() */
         EVENT_ENTER_CONTEXT,
         /** @short Handler for categoryLeft() */
         EVENT_LEAVE_CONTEXT,
