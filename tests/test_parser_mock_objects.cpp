@@ -42,8 +42,8 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     slotParserCategoryEntered("a", "b");
     slotParserSetAttr("foo", Deska::Db::Value("bar"));
     slotParserRemoveAttr("rab");
-    slotParserSetAttrInsert("seta", Deska::Db::Value("xx"));
-    slotParserSetAttrRemove("setb", Deska::Db::Value("yy"));
+    slotParserSetAttrInsert("seta", "xx");
+    slotParserSetAttrRemove("setb", "yy");
     slotParserCategoryLeft();
     slotParserParsingFinished();
 
@@ -52,8 +52,8 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     expectCategoryEntered("a", "b");
     expectSetAttr("foo", Deska::Db::Value("bar"));
     expectRemoveAttr("rab");
-    expectSetAttrInsert("seta", Deska::Db::Value("xx"));
-    expectSetAttrRemove("setb", Deska::Db::Value("yy"));
+    expectSetAttrInsert("seta", "xx");
+    expectSetAttrRemove("setb", "yy");
     expectCategoryLeft();
     expectParsingFinished();
 
