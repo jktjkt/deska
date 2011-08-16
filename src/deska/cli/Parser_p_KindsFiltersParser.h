@@ -84,11 +84,14 @@ private:
 
     /** Kind name - identifier type pairs definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > filters;
+    /** Kind name definitions for purposes of Nabialek trick. */
+    qi::symbols<char, qi::rule<Iterator, ascii::space_type> > kinds;
 
     /** Rule for parsing kind names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
     /** Rule for parsing filters. */
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Filter(), ascii::space_type> > > dispatch;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > lastKind;
 
     /** Name of kind which identifier is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentKindName;

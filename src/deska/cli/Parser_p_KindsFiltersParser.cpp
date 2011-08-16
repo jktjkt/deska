@@ -57,12 +57,18 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = (eps(!_a) > dispatch >> -eoi[_a = true]);
+    start = (qi::lit("last") > lastKind)
+          | (eps(!_a) > dispatch >> -eoi[_a = true]);
 
-    // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
+    // Kind name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
     dispatch = (raw[filters[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > qi::lit("where")
         > lazy(_a)[phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName), _1)]);
+
+    lastKind = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+        [phoenix::bind(&KindsFiltersParser::parsedFilter, this, phoenix::ref(currentKindName),
+            phoenix::construct<Db::SpecialExpression>(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE,
+                                                      phoenix::ref(currentKindName)))];
 
     phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
@@ -82,6 +88,7 @@ void KindsFiltersParser<Iterator>::addKindFilter(const Db::Identifier &kindName,
     // This creates rule reference to our grammar so we can store it in symbols table.
     qi::rule<Iterator, Db::Filter(), ascii::space_type> filterRuleRef = (*filtersParser);
     filters.add(kindName, filterRuleRef);
+    kinds.add(kindName, qi::eps);
 }
 
 
