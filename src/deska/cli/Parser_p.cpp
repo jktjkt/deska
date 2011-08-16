@@ -484,8 +484,10 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
         attributesSettingParser->addAtrribute(it->name, predefinedRules->getRule(it->type));
         attributeRemovalsParser->addAtrribute(it->name);
         filterExpressionsParser->addAtrributeToFilter(it->name, predefinedRules->getRule(it->type));
-        if (it->type == Db::TYPE_IDENTIFIER_SET)
+        if (it->type == Db::TYPE_IDENTIFIER_SET) {
             identifiersSetsParser->addIdentifiersSet(it->name, predefinedRules->getObjectIdentifier());
+            filterExpressionsParser->addIdentifiersSetToFilter(it->name, predefinedRules->getObjectIdentifier());
+        }
     }
 }
 
