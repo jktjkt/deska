@@ -124,6 +124,10 @@ class Table(constants.Templates):
 		"""Generates function to insert one item to set of identifiers."""
 		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable}
 
+	def gen_refuid_set_remove(self, reftable):
+		"""Generates function to insert one item to set of identifiers."""
+		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable}
+
 
 	def gen_get_object_data(self):
 		"""Generates get_object_data stored function that returns data stored in this table"""
@@ -221,7 +225,16 @@ class Table(constants.Templates):
 		select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
-		return self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes} + \
+		
+		inner_init_diff_str = "PERFORM %(tbl)s_%(ref_tbl)s_init_diff(from_version, to_version);"
+		inner_init_diff = ""
+		inner_init_diff_functions = ""
+		for reftbl in self.refers_to_set:
+			inner_init_diff_functions = inner_init_diff_functions + self.diff_init_refuid_set_string % {'tbl': self.name,'ref_tbl': reftbl}
+			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
+		
+		return  inner_init_diff_functions + \
+				self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
 				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes}
 
 	#generates function terminate_diff which is oposite of init_diff
@@ -229,7 +242,15 @@ class Table(constants.Templates):
 	def gen_diff_terminate_function(self):
 		"""Generates function terminate_diff.
 		Terminate_diff is oposite of init_diff."""
-		return self.diff_terminate_function_string % {'tbl': self.name}
+		
+		inner_terminate_diff = ""
+		inner_terminate_diff_str = "PERFORM %(tbl)s_%(ref_tbl)s_terminate_diff();"
+		inner_diff_terminate_fn = ""
+		for reftbl in self.refers_to_set:
+			inner_diff_terminate_fn = inner_diff_terminate_fn + self.diff_terminate_refuid_set_function_string % {'tbl': self.name, 'ref_tbl': reftbl}
+			inner_terminate_diff = inner_terminate_diff + inner_terminate_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
+		
+		return inner_diff_terminate_fn + self.diff_terminate_function_string % {'tbl': self.name, 'inner_temrinate_diff': inner_terminate_diff}
 
 	def gen_get_name(self):
 		"""Generates stored function that returns the name of the object with the given uid."""

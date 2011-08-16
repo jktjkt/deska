@@ -43,12 +43,43 @@ BEGIN
     END IF;
     
     BEGIN
-        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version();
+        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid;
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version)
             VALUES (%(tbl_name)s_uid, %(ref_tbl_name)s_uid, ver);
     EXCEPTION WHEN unique_violation THEN
         -- do nothing
     END;
+    --flag is_generated set to false
+    UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+    RETURN 1;
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+    del_item_str = '''  CREATE FUNCTION
+genproc.inner_%(tbl_name)s_set_%(ref_tbl_name)s_remove(IN %(tbl_name)s_name text, IN %(ref_tbl_name)s_name text)
+RETURNS integer
+AS
+$$
+DECLARE ver bigint;
+    %(tbl_name)s_uid bigint;
+    %(ref_tbl_name)s_uid bigint;
+BEGIN
+    SELECT get_current_changeset() INTO ver;
+    %(tbl_name)s_uid = %(tbl_name)s_get_uid(%(tbl_name)s_name);
+    IF NOT FOUND THEN
+        RAISE 'No %(tbl_name)s with name %% exist in this version', %(tbl_name)s USING ERRCODE = '70021';
+    END IF;
+    
+    %(ref_tbl_name)s_uid = %(ref_tbl_name)s_get_uid(%(ref_tbl_name)s_name);
+    IF NOT FOUND THEN
+        RAISE 'No %(ref_tbl_name)s with name %% exist in this version', %(ref_tbl_name)s_name USING ERRCODE = '70021';
+    END IF;
+    
+    INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid AND %(ref_tbl_name)s <> %(ref_tbl_name)s_uid;
+
     --flag is_generated set to false
     UPDATE changeset SET is_generated = FALSE WHERE id = ver;
     RETURN 1;
@@ -155,6 +186,34 @@ $$
 LANGUAGE plpgsql SECURITY DEFINER;
 '''
 
+    diff_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff(from_version bigint, to_version bigint)
+RETURNS void
+AS
+$$
+BEGIN
+    --full outer join of data in from_version and list of changes made between from_version and to_version
+    CREATE TEMP TABLE %(tbl)s_diff_data
+    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s
+    FROM %(tbl)s_data_version(from_version) inner1
+    FULL OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+    diff_terminate_function_str = '''CREATE FUNCTION %(tbl)s_terminate_diff()
+RETURNS void
+AS
+$$
+BEGIN
+    DROP TABLE %(tbl)s_diff_data;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
     def __init__(self,db_connection):
         self.plpy = db_connection;
         self.plpy.execute("SET search_path TO deska, production, api")
@@ -217,7 +276,10 @@ LANGUAGE plpgsql SECURITY DEFINER;
         join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
         self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
+        self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         
         

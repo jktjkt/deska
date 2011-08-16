@@ -200,7 +200,7 @@ then
 	fi
 	stage 1 || die "Error running stage 1"
 	generate_merge || die "Error running generate merge relations"
-    generate_multiRefs || die "Error running generate multi references"
+	generate_multiRefs || die "Error running generate multi references"
 	add_multiRefs || die "Error running add multi references"
 	add_merge_relations || die "Error running add merge relations"
 	generate_templates || die "Error running generate templates"
@@ -241,11 +241,14 @@ then
 	fi
 	stage 1 || die "Error running stage 1"
 	generate_merge || die "Error running generate merge relations"
+	generate_multiRefs || die "Error running generate multi references"
+	add_multiRefs || die "Error running add multi references"
 	add_merge_relations || die "Error running add merge relations"
 	generate_templates || die "Error running generate templates"
 	create_templates || die "Error running creating templates"
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
+	add_multiRefs_functions || die "Error running add multi references functions"
 	add_merge_link_triggers || die "Error running add merge link triggers"
 fi

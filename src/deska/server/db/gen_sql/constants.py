@@ -139,6 +139,25 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+	#template for generating function to remove one item from set of identifiers
+	refuid_set_remove_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(ref_tbl)s_remove(IN name_ identifier,IN value identifier)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+    
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_remove(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
 
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
@@ -900,6 +919,18 @@ LANGUAGE plpgsql;
 
 '''
 
+#template for if constructs in diff_set_attribute, this version is for refuid columns
+	one_column_change_ref_set_string = '''
+	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
+		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
+	 THEN
+		  result.attribute = '%(column)s';
+		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
+		  result.newdata = %(reftbl)s_get_name(new_data.%(column)s, to_version);
+		  RETURN NEXT result;
+	 END IF;
+
+'''
 
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
@@ -1074,9 +1105,27 @@ BEGIN
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
 		FROM %(tbl)s_data_version(from_version) dv FULL OUTER JOIN %(tbl)s_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+	
+	%(inner_tables_diff)s
 END
 $$
 LANGUAGE plpgsql;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_init_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_%(ref_tbl)s_init_diff(from_version bigint, to_version bigint)
+	RETURNS void
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 
@@ -1172,6 +1221,20 @@ AS
 $$
 BEGIN
 	DROP TABLE %(tbl)s_diff_data;
+	%(inner_temrinate_diff)s
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	diff_terminate_refuid_set_function_string = '''CREATE FUNCTION
+%(tbl)s_%(ref_tbl)s_terminate_diff()
+RETURNS void
+AS
+$$
+BEGIN
+	PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_terminate_diff();
 END;
 $$
 LANGUAGE plpgsql;
