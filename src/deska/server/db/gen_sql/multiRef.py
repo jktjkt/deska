@@ -214,6 +214,88 @@ LANGUAGE plpgsql;
 
 '''
 
+    sets_equal_str = '''CREATE FUNCTION %(tbl)s_sets_equal(obj_uid bigint)
+RETURNS boolean
+AS
+$$
+DECLARE
+    cnt int;
+BEGIN
+    SELECT COUNT(*) INTO cnt
+    FROM %(tbl)s_diff_data
+    WHERE (new_%(tbl_name)s = obj_uid OR old_%(tbl_name)s = obj_uid) AND (old_%(ref_tbl_name)s IS NULL OR new_%(ref_tbl_name)s IS NULL);
+    IF cnt > 0 THEN
+        RETURN false;
+    ELSE
+        RETURN true;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+    get_identifier_set = '''CREATE FUNCTION %(tbl)s_get_set(obj_uid bigint, from_version bigint = 0)
+RETURNS text[]
+AS
+$$
+DECLARE
+    changeset_id bigint;
+BEGIN
+    IF from_version = 0 THEN
+        --we need current data
+        changeset_id = get_current_changeset_or_null();
+        IF changeset_id IS NULL THEN
+            RETURN ARRAY(SELECT %(ref_tbl_name)s FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
+        ELSE
+            from_version = id2num(parent(changeset_id));
+        END IF;
+    END IF;
+    
+    RETURN ARRAY(
+        SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history h1
+            JOIN version v1 ON (v1.id = h1.version)
+            JOIN (  SELECT max(num) AS maxnum
+                FROM %(tbl)s_history h JOIN version v ON (v.id = h.version)
+                WHERE v.num <= data_version AND %(tbl_name)s = obj_uid
+            ) vmax1
+            ON (v1.num = vmax1.maxnum)
+        WHERE %(tbl_name)s = obj_uid
+    );
+END
+$$
+LANGUAGE plpgsql;
+'''
+
+    diff_get_old_set = '''CREATE FUNCTION %(tbl)s_get_old_set(obj_uid bigint)
+RETURNS text[]
+AS
+$$
+DECLARE
+    changeset_id bigint;
+BEGIN
+    RETURN ARRAY(SELECT old_%(ref_tbl_name)s FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid);
+END
+$$
+LANGUAGE plpgsql;
+
+'''    
+
+    diff_get_new_set = '''CREATE FUNCTION %(tbl)s_get_new_set(obj_uid bigint)
+RETURNS text[]
+AS
+$$
+DECLARE
+    changeset_id bigint;
+BEGIN
+    RETURN ARRAY(SELECT new_%(ref_tbl_name)s FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid);
+END
+$$
+LANGUAGE plpgsql;
+
+'''    
+    
+
     def __init__(self,db_connection):
         self.plpy = db_connection;
         self.plpy.execute("SET search_path TO deska, production, api")
@@ -281,5 +363,9 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.sets_equal_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.get_identifier_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.diff_get_old_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.diff_get_new_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         
         

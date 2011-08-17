@@ -118,15 +118,15 @@ class Table(constants.Templates):
 		
 	def gen_set_refuid_set(self, reftable):
 		"""Generates set function for columns that contains set of identifiers that references."""
-		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': reftable}
+		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': reftable, 'columns': self.get_columns()}
 		
 	def gen_refuid_set_insert(self, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable}
+		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable, 'columns': self.get_columns()}
 
 	def gen_refuid_set_remove(self, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable}
+		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable, 'columns': self.get_columns()}
 
 
 	def gen_get_object_data(self):
@@ -171,7 +171,6 @@ class Table(constants.Templates):
 		"""Generates function that returns all changes of all columns in this table between two versions."""
 		#collist is list of columns
 		collist = self.col.copy()
-		del collist['uid']
 		#in addition to columns in production table we need although dest_bit column
 		collist['dest_bit'] = 'bit(1)'
 
@@ -188,6 +187,7 @@ class Table(constants.Templates):
 		select_old_new_attributes_string = ",".join(select_old_new_attributes)
 
 		#we dont want to check changes of name and dest_bit attributes
+		del collist['uid']
 		del collist['name']
 		del collist['dest_bit']
 
@@ -206,7 +206,11 @@ class Table(constants.Templates):
 					if col in collist:
 						del collist[col]
 						#columns that references uid
-						cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': tbl, 'column': col}
+						if col in self.refers_to_set:
+							#if refers to set - sets should be compared
+							cols_changes = cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'reftbl': tbl, 'column': col}
+						else:
+							cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': tbl, 'column': col}
 
 		#for all remaining columns we generate if clause to find possible changes
 		for col in collist:

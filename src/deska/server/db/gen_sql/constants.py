@@ -114,6 +114,14 @@ class Templates:
 	
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION WHEN unique_violation THEN
+			-- do nothing
+		END;
 		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
 	END
 	$$
@@ -133,6 +141,14 @@ class Templates:
 	
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION WHEN unique_violation THEN
+			-- do nothing
+		END;
 		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_insert(name_, value);
 	END
 	$$
@@ -152,6 +168,14 @@ class Templates:
     
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION WHEN unique_violation THEN
+			-- do nothing
+		END;
 		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_remove(name_, value);
 	END
 	$$
@@ -921,14 +945,14 @@ LANGUAGE plpgsql;
 
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
-	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
-		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
-	 THEN
-		  result.attribute = '%(column)s';
-		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
-		  result.newdata = %(reftbl)s_get_name(new_data.%(column)s, to_version);
-		  RETURN NEXT result;
-	 END IF;
+	new_data.uid = COALESCE(new_data.uid, old_data.uid);
+	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
+	THEN
+		result.attribute = '%(column)s';
+		result.olddata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid),',');
+		result.newdata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid),',');
+		RETURN NEXT result;
+	END IF;
 
 '''
 
