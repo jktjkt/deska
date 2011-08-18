@@ -58,7 +58,7 @@ class Table(constants.Templates):
 		self.pkset[con] = "version"
 		str = "CONSTRAINT \"%(name)s\" UNIQUE(" % {'name': con}
 		str = str + ",".join(self.pkset[con])
-		return str + ") DEFERRABLE INITIALLY DEFERRED"
+		return str + ") DEFERRABLE INITIALLY IMMEDIATE"
 
 	def gen_drop_notnull(self):
 		"""Generates dropping of not null constraints. Attributes in row of history tables are filled one by one and rows could be leaky."""

@@ -114,13 +114,16 @@ class Templates:
 	
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		
 		BEGIN
 			--row is inserted because of diff and changes between versions
 			--this means object was modified
 			INSERT INTO %(tbl)s_history (%(columns)s,version)
 				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
-		EXCEPTION WHEN unique_violation THEN
+		EXCEPTION 
+			WHEN unique_violation THEN
 			-- do nothing
+				RAISE NOTICE 'unique_violation';
 		END;
 		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
 	END

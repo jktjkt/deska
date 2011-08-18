@@ -64,6 +64,9 @@ CREATE FUNCTION commit_all(message text)
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
 		SELECT create_version(message) INTO rev;
+		
+		SET CONSTRAINTS ALL IMMEDIATE;
+		
 		RETURN rev;
 	END
 	$$
