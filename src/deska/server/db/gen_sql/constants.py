@@ -123,7 +123,6 @@ class Templates:
 		EXCEPTION 
 			WHEN unique_violation THEN
 			-- do nothing
-				RAISE NOTICE 'unique_violation';
 		END;
 		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
 	END

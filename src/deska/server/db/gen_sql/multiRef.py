@@ -274,7 +274,7 @@ $$
 DECLARE
     changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT old_%(ref_tbl_name)s FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid);
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(old_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid);
 END
 $$
 LANGUAGE plpgsql;
@@ -288,7 +288,7 @@ $$
 DECLARE
     changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT new_%(ref_tbl_name)s FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid);
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(new_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid);
 END
 $$
 LANGUAGE plpgsql;
