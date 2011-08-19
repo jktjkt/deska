@@ -42,7 +42,7 @@ ParserTestFixture::ParserTestFixture()
     fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "roles", TYPE_IDENTIFIER_SET ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "role", TYPE_IDENTIFIER_SET ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
     db = fake;
