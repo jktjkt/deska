@@ -613,7 +613,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTe
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <object identifier (alphanumerical letters and _)> ].", line, it));
+    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware. Expected one of [ <object identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }

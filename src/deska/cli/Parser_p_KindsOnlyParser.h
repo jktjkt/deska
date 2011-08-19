@@ -41,10 +41,10 @@ namespace Cli
 *   "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic action parsedKind().
 *
 *   This parser is connected to two error handlers. KindErrorHandler for reporting an error while parsing a kind name
-*   and ValueErrorHandler for reporting an error while parsing an object name.
+*   and ObjectNameErrorHandler for reporting an error while parsing an object name.
 *
 *   @see KindErrorHandler
-*   @see ValueErrorHandler
+*   @see ObjectNameErrorHandler
 */
 template <typename Iterator>
 class KindsOnlyParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >

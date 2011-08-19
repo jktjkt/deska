@@ -61,8 +61,10 @@ typedef enum {
     PARSE_ERROR_TYPE_IDENTIFIERS_SET,
     /** @short Error in an attribute's name  when removing attributes value */
     PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL,
-    /** @short Error in an attribute's value or kind's identifier */
+    /** @short Error in an attribute's value */
     PARSE_ERROR_TYPE_VALUE_TYPE,
+    /** @short Error in a kind's identifier */
+    PARSE_ERROR_TYPE_OBJECT_NAME,
     /** @short Error when object definition expected, but not found */
     PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND,
     /** @short Error when object being used in some function does not exist */
@@ -318,6 +320,32 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                     const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
+/** @short Handles errors while parsing a kind's name. */
+template <typename Iterator>
+class ObjectNameErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short An error has occured while parsing a kind's name.
+    *
+    *   Function invoked when bad value type of the attribute was parsed.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kindName Name of kind which name is currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+                    const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 
 

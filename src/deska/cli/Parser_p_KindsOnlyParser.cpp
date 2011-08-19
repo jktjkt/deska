@@ -65,13 +65,13 @@ KindsOnlyParser<Iterator>::KindsOnlyParser(const Db::Identifier &kindName, Parse
 
     phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
-    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
+    phoenix::function<ObjectNameErrorHandler<Iterator> > objectNameErrorHandler = ObjectNameErrorHandler<Iterator>();
     on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
     // In case of enabling error handler for nesting, on_error<fail> for kindErrorHandler have to be changed
     // to on_error<rethrow>.
     //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
     //                                          phoenix::ref(m_name), m_parent));
-    on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
+    on_error<fail>(dispatch, objectNameErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
 }
 
 

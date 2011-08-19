@@ -873,6 +873,17 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
+    // Error in object name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
     // Error in kind name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
