@@ -39,10 +39,10 @@ namespace Cli
 *   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
 *   action parsedAdd() for adding item into the set or parsedRemove() for item removal.
 *
-*   This parser is connected to two error handlers. AttributeErrorHandler for reporting an error while parsing
+*   This parser is connected to two error handlers. IdentifiersSetsErrorHandler for reporting an error while parsing
 *   a set name and ValueErrorHandler for reporting an error while parsing a value on an attribute.
 *
-*   @see AttributeErrorHandler
+*   @see IdentifiersSetsErrorHandler
 *   @see ValueErrorHandler
 */
 template <typename Iterator>

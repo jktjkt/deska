@@ -57,13 +57,11 @@ KindsConstructParser<Iterator>::KindsConstructParser(const Db::Identifier &kindN
     dispatch = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
         [phoenix::bind(&KindsConstructParser::parsedObjectCreation, this, phoenix::ref(currentKindName))];
 
-    /* FIXME
-    phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
-        AttributeRemovalErrorHandler<Iterator>();
+    phoenix::function<KindConstructErrorHandler<Iterator> > kindConstructErrorHandler =
+        KindConstructErrorHandler<Iterator>();
 
-    on_error<fail>(start, attributeRemovalErrorHandler(_1, _2, _3, _4,
-                                                       phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
-    */
+    on_error<fail>(start, kindConstructErrorHandler(_1, _2, _3, _4,
+                                                    phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
 }
 
 

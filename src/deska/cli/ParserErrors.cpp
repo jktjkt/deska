@@ -35,11 +35,26 @@ namespace Cli
 
 
 template <typename Iterator>
+void KindConstructErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos,
+                              const spirit::info& what,
+                              const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &kinds,
+                              const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
+{
+    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName, PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case.
+    if (error.valid())
+        parser->addParseError(error);
+}
+
+
+
+template <typename Iterator>
 void KindErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
                               const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
                               const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName);
+    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName, PARSE_ERROR_TYPE_KIND);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case. In case of function words "show" or "delete" for kind with no nested kinds,
     // empty expected tokens are allowed.
@@ -55,7 +70,7 @@ void KindFiltersErrorHandler<Iterator>::operator()(Iterator start, Iterator end,
                               const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
                               const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName);
+    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName, PARSE_ERROR_TYPE_KIND_FILTER);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case. In case of function words "show" or "delete" for kind with no nested kinds,
     // empty expected tokens are allowed.
@@ -73,7 +88,7 @@ void NestingErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Ite
     std::vector<Db::Identifier> definedKinds = parser->getKindNames();
     typename std::vector<Db::Identifier>::iterator it = std::find(definedKinds.begin(), definedKinds.end(), failingToken);
     if (it != definedKinds.end()) {
-        ParseError<Iterator> error(start, end, errorPos, what, failingToken, kindName);
+        ParseError<Iterator> error(start, end, errorPos, what, failingToken, kindName, PARSE_ERROR_TYPE_NESTING);
         //parser->addParseError(error);
         // FIXME: Implement support in the rest of error handler
     }
@@ -87,7 +102,22 @@ void AttributeErrorHandler<Iterator>::operator()(Iterator start, Iterator end, I
                               const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
                               const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName);
+    ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName, PARSE_ERROR_TYPE_ATTRIBUTE);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case.
+    if (error.valid())
+        parser->addParseError(error);
+}
+
+
+
+template <typename Iterator>
+void IdentifiersSetsErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos,
+                              const spirit::info& what,
+                              const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &sets,
+                              const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
+{
+    ParseError<Iterator> error(start, end, errorPos, what, sets, kindName, PARSE_ERROR_TYPE_IDENTIFIERS_SET);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case.
     if (error.valid())
@@ -102,7 +132,7 @@ void AttributeRemovalErrorHandler<Iterator>::operator()(Iterator start, Iterator
                               const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
                               const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName);
+    ParseError<Iterator> error(start, end, errorPos, what, attributes, kindName, PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case.
     if (error.valid())
@@ -126,7 +156,7 @@ template <typename Iterator>
 void ValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info& what,
                                              const Db::Identifier &attributeName, ParserImpl<Iterator> *parser) const
 {
-    ParseError<Iterator> error(start, end, errorPos, what, attributeName);
+    ParseError<Iterator> error(start, end, errorPos, what, attributeName, PARSE_ERROR_TYPE_VALUE_TYPE);
     // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
     // We have to check this case.
     if (error.valid())
@@ -155,6 +185,8 @@ void InfoExtractor::element(spirit::utf8_string const& tag, spirit::utf8_string 
 std::string parseErrorTypeToString(const ParseErrorType errorType)
 {
     switch (errorType) {
+        case PARSE_ERROR_TYPE_KINDS_CONSTRUCT:
+            return "kind name";
         case PARSE_ERROR_TYPE_KIND:
             return "kind name";
         case PARSE_ERROR_TYPE_KIND_NESTING:
@@ -165,6 +197,8 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
             return "kind name";
         case PARSE_ERROR_TYPE_ATTRIBUTE:
             return "attribute name";
+        case PARSE_ERROR_TYPE_IDENTIFIERS_SET:
+            return "identifiers set name";
         case PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL:
             return "attribute name";
         case PARSE_ERROR_TYPE_VALUE_TYPE:
@@ -185,8 +219,8 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                               const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
-                              const Db::Identifier &kindName):
-    m_errorType(PARSE_ERROR_TYPE_KIND), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
+                              const Db::Identifier &kindName, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
     using namespace boost::phoenix::arg_names;
     kinds.for_each(boost::phoenix::bind(&ParseError<Iterator>::extractKindName, this, arg1, arg2));
@@ -197,8 +231,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                               const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
-                              const Db::Identifier &kindName):
-    m_errorType(PARSE_ERROR_TYPE_KIND_FILTER), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
+                              const Db::Identifier &kindName, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
     using namespace boost::phoenix::arg_names;
     kinds.for_each(boost::phoenix::bind(&ParseError<Iterator>::extractKindFilterName, this, arg1, arg2));
@@ -208,8 +242,9 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
-                                 const std::string &failingToken, const Db::Identifier &kindName):
-    m_errorType(PARSE_ERROR_TYPE_NESTING), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
+                                 const std::string &failingToken, const Db::Identifier &kindName,
+                                 ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
 }
 
@@ -218,8 +253,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                                  const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
-                                 const Db::Identifier &kindName):
-    m_errorType(PARSE_ERROR_TYPE_ATTRIBUTE), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
+                                 const Db::Identifier &kindName, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
     using namespace boost::phoenix::arg_names;
     attributes.for_each(boost::phoenix::bind(&ParseError<Iterator>::extractAttributeName, this, arg1, arg2));
@@ -230,8 +265,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                                  const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &attributes,
-                                 const Db::Identifier &kindName):
-    m_errorType(PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
+                                 const Db::Identifier &kindName, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(kindName)
 {
     using namespace boost::phoenix::arg_names;
     attributes.for_each(boost::phoenix::bind(&ParseError<Iterator>::extractRemovedAttributeName, this, arg1, arg2));
@@ -241,8 +276,9 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos,
-                                 const spirit::info &what, const Db::Identifier &attributeName):
-    m_errorType(PARSE_ERROR_TYPE_VALUE_TYPE), m_start(start), m_end(end), m_errorPos(errorPos),
+                                 const spirit::info &what, const Db::Identifier &attributeName,
+                                 ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos),
     m_context(attributeName)
 {
     InfoExtractor extractor(&m_expectedKeywords, &m_expectedTypes);
@@ -254,8 +290,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
-                                 const std::vector<Db::Identifier> &expectedKinds):
-    m_errorType(PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos),
+                                 const std::vector<Db::Identifier> &expectedKinds, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos),
     m_context(kindName)
 {
     for (std::vector<Db::Identifier>::const_iterator it = expectedKinds.begin(); it != expectedKinds.end(); ++it) {
@@ -267,8 +303,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 template <typename Iterator>
 ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, const Db::Identifier &kindName,
-                                 const Db::Identifier &objectName):
-    m_errorType(PARSE_ERROR_TYPE_OBJECT_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos)
+                                 const Db::Identifier &objectName, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos)
 {
     std::ostringstream sout;
     sout << kindName << " " << objectName;
@@ -278,8 +314,8 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 
 template <typename Iterator>
-ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos):
-    m_errorType(PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND), m_start(start), m_end(end), m_errorPos(errorPos)
+ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos, ParseErrorType parseErrorType):
+    m_errorType(parseErrorType), m_start(start), m_end(end), m_errorPos(errorPos)
 {
     m_context = "";
 }
@@ -287,8 +323,9 @@ ParseError<Iterator>::ParseError(Iterator start, Iterator end, Iterator errorPos
 
 
 template <typename Iterator>
-ParseError<Iterator>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName):
-    m_errorType(PARSE_ERROR_TYPE_KIND_NESTING)
+ParseError<Iterator>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName,
+                                 ParseErrorType parseErrorType):
+    m_errorType(parseErrorType)
 {
     std::ostringstream sout;
     sout << kindName << " " << objectName;
@@ -344,6 +381,7 @@ std::string ParseError<Iterator>::toString() const
     sout << "Error while parsing " << parseErrorTypeToString(m_errorType);
     switch (m_errorType) {
         case PARSE_ERROR_TYPE_KIND:
+        case PARSE_ERROR_TYPE_KINDS_CONSTRUCT:
             if (m_context.empty())
                 sout << ". Unknown top-level kind";
             else
@@ -362,6 +400,7 @@ std::string ParseError<Iterator>::toString() const
             sout << " of nested object in " << m_context << ". Bad nesting";
             break;
         case PARSE_ERROR_TYPE_ATTRIBUTE:
+        case PARSE_ERROR_TYPE_IDENTIFIERS_SET:
         case PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL:
         case PARSE_ERROR_TYPE_VALUE_TYPE:
             sout << " for " << m_context;
@@ -425,7 +464,7 @@ bool ParseError<Iterator>::valid() const
 
 template <typename Iterator>
 void ParseError<Iterator>::extractKindName(const Db::Identifier &name,
-                                           const qi::rule<Iterator, std::string(), ascii::space_type> &rule)
+                                           const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule)
 {
     m_expectedKeywords.push_back(name);
 }
@@ -461,6 +500,8 @@ void ParseError<Iterator>::extractRemovedAttributeName(const Db::Identifier &nam
 
 /////////////////////////Template instances for linker//////////////////////////
 
+template void KindConstructErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+
 template void KindErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void KindFiltersErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Filter(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
@@ -469,31 +510,33 @@ template void NestingErrorHandler<iterator_type>::operator()(iterator_type start
 
 template void AttributeErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
+template void IdentifiersSetsErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &sets, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+
 template void AttributeRemovalErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void IdentifierErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &kindName, const std::vector<Db::Identifier> &objectNames, ParserImpl<iterator_type>* parser) const;
 
 template void ValueErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, ParserImpl<iterator_type>* parser) const;
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Filter(), ascii::space_type> > &kinds, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Filter(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &failingToken, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &failingToken, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Value(), ascii::space_type> > &attributes, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &attributes, const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const Db::Identifier &attributeName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const std::vector<Db::Identifier> &expectedKinds, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const Db::Identifier &objectName);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, const Db::Identifier &kindName, const Db::Identifier &objectName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName);
+template ParseError<iterator_type>::ParseError(const Db::Identifier &kindName, const Db::Identifier &objectName, ParseErrorType parseErrorType);
 
-template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos);
+template ParseError<iterator_type>::ParseError(iterator_type start, iterator_type end, iterator_type errorPos, ParseErrorType parseErrorType);
 
 template ParseErrorType ParseError<iterator_type>::errorType() const;
 

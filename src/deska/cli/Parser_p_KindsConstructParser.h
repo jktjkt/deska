@@ -44,13 +44,10 @@ template <typename Iterator> class ParserImpl;
 *   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
 *   action parsedObjectCreation().
 *
-
-// TODO: Error handling
-
-*   This parser is connected to one error handler AttributeRemovalErrorHandler for reporting an error
-*   while parsing an attribute name.
+*   This parser is connected to one error handler KindConstructErrorHandler for reporting an error
+*   while parsing a kind name.
 *
-*   @see AttributeRemovalErrorHandler
+*   @see KindConstructErrorHandler
 */
 template <typename Iterator>
 class KindsConstructParser: public qi::grammar<Iterator, ascii::space_type>

@@ -305,7 +305,7 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
     for (; it != objectNames.rend(); ++it) {
         std::map<Db::Identifier, Db::Identifier>::const_iterator emb = embeddedInto.find(objects.back().first);
         if (emb == embeddedInto.end()) {
-            addParseError(ParseError<Iterator>(kind, name));
+            addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
             parsingSucceededActions = false;
             return;
         }
@@ -562,11 +562,13 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             case PARSING_MODE_RENAME:
                 // Function delete and rename require parameter -> report error
                 if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds,
+                                  PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
                     parsingSucceeded = false;
                 } else {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter,
-                                  contextStack.back().kind, parserKindsEmbedsRecursively(contextStack.back().kind)));
+                                  contextStack.back().kind, parserKindsEmbedsRecursively(contextStack.back().kind),
+                                  PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
                     parsingSucceeded = false;
                 }
                 break;
@@ -621,7 +623,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                                 "name", Db::Value(contextStackToPath(contextStack)))));
                         if (instances.empty()) {
                             addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
-                                                               contextStack.back().kind, contextStack.back().name));
+                                                               contextStack.back().kind, contextStack.back().name,
+                                                               PARSE_ERROR_TYPE_OBJECT_NOT_FOUND));
                             parsingSucceeded = false;
                             nonexistantObject = true;
                         }
@@ -657,11 +660,12 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             if (iter == end) {
                 // Missing new name
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND));
             } else if (contextStack.empty()) {
                 // Missing object to rename
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds,
+                              PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
             } else {
                 // We are ready to parse new name
                 parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
@@ -669,7 +673,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 if (iter != end)
                     parsingSucceeded = false;
                 if (!parsingSucceeded)
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND));
             }
         }
     }

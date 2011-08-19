@@ -64,10 +64,11 @@ IdentifiersSetsParser<Iterator>::IdentifiersSetsParser(const Db::Identifier &kin
     dispatchRemove = ((raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentSetName))]
         > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedRemove, this, phoenix::ref(currentSetName), _1)]));
 
-    phoenix::function<KindErrorHandler<Iterator> > kindErrorHandler = KindErrorHandler<Iterator>();
+    phoenix::function<IdentifiersSetsErrorHandler<Iterator> > identifiersSetsErrorHandler =
+        IdentifiersSetsErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, kindErrorHandler(_1, _2, _3, _4,
-                                           phoenix::ref(sets), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, identifiersSetsErrorHandler(_1, _2, _3, _4,
+                                                      phoenix::ref(sets), phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatchAdd, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName), m_parent));
     on_error<fail>(dispatchRemove, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentSetName), m_parent));
 }
