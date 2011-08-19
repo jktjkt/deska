@@ -406,7 +406,7 @@ std::string ParseError<Iterator>::toString() const
             sout << " for " << m_context;
             break;
         case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
-            sout << ". No definition found";
+            sout << ". No object definition found";
             break;
         case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
             sout << ". Object " << m_context << " does not exist";

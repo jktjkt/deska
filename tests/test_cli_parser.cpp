@@ -767,7 +767,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_no_context, ParserTestFixture)
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No object definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -787,7 +787,7 @@ BOOST_FIXTURE_TEST_CASE(function_delete_in_context, ParserTestFixture)
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No object definition found. Expected one of [ \"interface\" ].", line, it));
     expectNothingElse();
     verifyStackOneLevel("host", "123");
 }
@@ -1521,7 +1521,7 @@ BOOST_FIXTURE_TEST_CASE(error_function_rename_no_context, ParserTestFixture)
     const std::string::const_iterator it = line.end();
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::ObjectDefinitionNotFound("Error while parsing kind name. No object definition found. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -1673,7 +1673,7 @@ BOOST_FIXTURE_TEST_CASE(jump_in_context_error, ParserTestFixture)
     const std::string::const_iterator it = line.begin();
     parser->parseLine(line);   
     expectParsingStarted();
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing object name for hardware hpv2->eth0. Can't find nesting parents.", line, it));
+    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware hpv2->eth0. Can't find nesting parents.", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }

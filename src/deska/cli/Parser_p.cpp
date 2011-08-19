@@ -742,9 +742,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
-    // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
-    BOOST_ASSERT(parseErrors.size() <= 4);
-
     // If there is no error, it means, that we entered some bad input fot the kind, that has no attributes and no
     // nested kinds, so there was no grammar to generate the error.
     if (parseErrors.empty()) {
@@ -755,13 +752,10 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
     typename std::vector<ParseError<Iterator> >::iterator it;
 
-    // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
-    // by an error in the attribute value
+    // Error in the attribute value
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
-        // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
-        // which could be reported by spirit as a result of the error propagation.
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
@@ -769,23 +763,21 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
-    // Find out, if the error occured when parsing attribute name for value removal
+    // Pair kind name - object name expected, but not found
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
     if (it != parseErrors.end()) {
-        // Yes, error occured when parsing attribute name for value removal
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(ObjectDefinitionNotFound(it->toString(), line, it->errorPosition()));
         return;
     }
 
-    // Find out, if the error occured when parsing identifier
+    // Error in object name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND);
     if (it != parseErrors.end()) {
-        // Yes, error occured when parsing identifier
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
@@ -793,89 +785,116 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
-    // There's no trace of an error in the attribute data anywhere
-    if (parseErrors.size() == 1) {
-        // whatever it is, let's just store it
-        const ParseError<Iterator> &err = parseErrors.front();
+    // Existing object required, but entered object does not exist
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NOT_FOUND);
+    if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << err.toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-        switch (err.errorType()) {
-        case PARSE_ERROR_TYPE_ATTRIBUTE:
-            m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_KIND:
-            m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_KIND_NESTING:
-            m_parser->parseError(InvalidObjectKind(err.toString(), line, line.begin()));
-            break;
-        case PARSE_ERROR_TYPE_KIND_FILTER:
-            m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
-            m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
-            m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
-            break;
-        default:
-            throw std::domain_error("Invalid value of ParseErrorType");
-        }
+        m_parser->parseError(ObjectNotFound(it->toString(), line, it->errorPosition()));
         return;
-    } 
-    
-    // Two and more errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
-    // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND and
-    // PARSE_ERROR_TYPE_KIND_FILTER.
-    if (parseErrors.size() >= 2) {
-        typename std::vector<ParseError<Iterator> >::iterator ita;
-        typename std::vector<ParseError<Iterator> >::iterator itk;
-        typename std::vector<ParseError<Iterator> >::iterator itn;
-        typename std::vector<ParseError<Iterator> >::iterator itf;
-        ita = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
-        itk = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
-        itn = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_NESTING);
-        itf = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    }
 
-        if ((ita != parseErrors.end()) && (itk != parseErrors.end())) {
+    // Error in identifier (bad number of "->")
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_NESTING);
+    if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << ita->toCombinedString(*itk) << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(UndefinedAttributeError(ita->toCombinedString(*itk), line, ita->errorPosition()));
-            return;
-        }
+        m_parser->parseError(MalformedIdentifier(it->toString(), line, line.begin()));
+        return;
+    }
 
-        if (itn != parseErrors.end()) {
+    // Error in kind name when creating a new object using "new"
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
+    if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << itk->toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(InvalidObjectKind(itk->toString(), line, line.begin()));
-            return;
-        }
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
 
+    // Error in identifiers set name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIERS_SET);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in attribute name in removal
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
+    if (it != parseErrors.end()) {
+        // Error in attribute name or nested kind name -> report them together
+        typename std::vector<ParseError<Iterator> >::iterator itk =
+            std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                         phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
         if (itk != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << itk->toString() << std::endl;
+            std::cout << it->toCombinedString(*itk) << std::endl;
 #endif
-            m_parser->parseError(InvalidObjectKind(itk->toString(), line, itk->errorPosition()));
+            m_parser->parseError(UndefinedAttributeError(it->toCombinedString(*itk), line, it->errorPosition()));
             return;
         }
-
-        if (itf != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << itf->toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(InvalidObjectKind(itf->toString(), line, itf->errorPosition()));
-            return;
-        }
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
 
-    } 
-    
+    // Error in kind nesting
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_NESTING);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in kind name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in kind name in filter
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
     throw std::out_of_range("Parse error reporting: No error reported.");
 }
 
