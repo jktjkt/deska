@@ -30,6 +30,7 @@
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
+#include "boost/process.hpp"
 
 #include "CliObjects.h"
 #include "deska/db/Revisions.h"
@@ -82,6 +83,43 @@ private:
 
 
 
+class Editor
+{
+public:
+    Editor(const std::string &fileName);
+    ~Editor();
+
+private:
+    /** @short Identification of the launched child process
+
+    We've got to use boost::optional here because the boost::process::child has no default constructor,
+    see http://lists.boost.org/boost-users/2011/03/67265.php for details
+    */
+    boost::optional<boost::process::child> childProcess;
+};
+
+
+
+class Pager
+{
+public:
+    Pager();
+    ~Pager();
+
+    /** @short Obtains a stream for writing */
+    std::ostream *writeStream();
+
+private:
+    /** @short Identification of the launched child process
+
+    We've got to use boost::optional here because the boost::process::child has no default constructor,
+    see http://lists.boost.org/boost-users/2011/03/67265.php for details
+    */
+    boost::optional<boost::process::child> childProcess;
+};
+
+
+
 /** @short Visitor for printing oject modifications. */
 struct ModificationPrinter: public boost::static_visitor<void> {
     //@{
@@ -127,6 +165,18 @@ public:
     *   @param message Message to print
     */
     virtual void printMessage(const std::string &message);
+
+    /** @short Displays some message in pager like less.
+    *
+    *   @param message Message to display
+    */
+    virtual void displayInPager(const std::string &message);
+
+    /** @short Runs an editor and opens file for editting
+    *
+    *   @param editFile File to edit
+    */
+    virtual void editFile(const std::string &fileName);
 
     /** @short Displays confirmation message for deletion of a object and returns users choice.
     *

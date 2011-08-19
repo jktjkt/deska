@@ -63,6 +63,18 @@ public:
     */
     virtual void printMessage(const std::string &message) = 0;
 
+    /** @short Displays some message in pager like less.
+    *
+    *   @param message Message to display
+    */
+    virtual void displayInPager(const std::string &message) = 0;
+
+    /** @short Runs an editor and opens file for editting
+    *
+    *   @param editFile File to edit
+    */
+    virtual void editFile(const std::string &fileName) = 0;
+
     /** @short Displays confirmation message for deletion of a object and returns users choice.
     *
     *   @param object Object to be deleted

@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
@@ -80,6 +81,77 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
 void CliCompleter::addCommandCompletion(const std::string &completion)
 {
     commandCompletions.push_back(completion);
+}
+
+
+
+Editor::Editor(const std::string &fileName)
+{
+    namespace bp = boost::process;
+    BOOST_ASSERT(!fileName.empty());
+    bp::context ctx;
+    ctx.environment = bp::self::get_environment();
+    ctx.stdout_behavior = bp::inherit_stream();
+    ctx.stdin_behavior = bp::inherit_stream();
+    ctx.stderr_behavior = bp::inherit_stream();
+    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
+
+    char *defaultEditor = getenv("EDITOR");
+    std::string exe;
+    if (!defaultEditor)
+        exe = std::string("vim");
+    else
+        exe = std::string(defaultEditor);
+
+    std::vector<std::string> arguments;
+    arguments.push_back(exe);
+    arguments.push_back(fileName);
+    childProcess = bp::launch(exe, arguments, ctx);
+}
+
+
+
+Editor::~Editor()
+{
+    childProcess->terminate();
+}
+
+
+
+Pager::Pager()
+{
+    namespace bp = boost::process;
+    bp::context ctx;
+    ctx.environment = bp::self::get_environment();
+    ctx.stdout_behavior = bp::inherit_stream();
+    ctx.stdin_behavior = bp::capture_stream();
+    ctx.stderr_behavior = bp::inherit_stream();
+    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
+
+    char *defaultPager = getenv("PAGER");
+    std::string exe;
+    if (!defaultPager)
+        exe = std::string("less");
+    else
+        exe = std::string(defaultPager);
+
+    std::vector<std::string> arguments;
+    arguments.push_back(exe);
+    childProcess = bp::launch(exe, arguments, ctx);
+}
+
+
+
+Pager::~Pager()
+{
+    childProcess->terminate();
+}
+
+
+
+std::ostream *Pager::writeStream()
+{
+    return &childProcess->get_stdin();
 }
 
 
@@ -151,6 +223,22 @@ void UserInterfaceIO::reportError(const std::string &errorMessage)
 void UserInterfaceIO::printMessage(const std::string &message)
 {
     std::cout << message << std::endl;
+}
+
+
+
+void UserInterfaceIO::displayInPager(const std::string &message)
+{
+    Pager pager;
+    std::ostream *opg = pager.writeStream();
+    *opg << message;
+}
+
+
+
+void UserInterfaceIO::editFile(const std::string &fileName)
+{
+    Editor editor(fileName);
 }
 
 

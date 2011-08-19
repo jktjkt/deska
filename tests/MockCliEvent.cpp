@@ -43,6 +43,24 @@ MockCliEvent MockCliEvent::printMessage(const std::string &message)
 
 
 
+MockCliEvent MockCliEvent::displayInPager(const std::string &message)
+{
+    MockCliEvent res(EVENT_DISPALY_IN_PAGER);
+    res.str1 = message;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::editFile(const std::string &fileName)
+{
+    MockCliEvent res(EVENT_EDIT_FILE);
+    res.str1 = fileName;
+    return res;
+}
+
+
+
 MockCliEvent MockCliEvent::confirmDeletion(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_DELETION);
@@ -478,6 +496,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         break;
     case MockCliEvent::EVENT_PRINT_MESSAGE:
         out << "printMessage( \"" << m.str1 << "\" )";
+        break;
+    case MockCliEvent::EVENT_DISPALY_IN_PAGER:
+        out << "displayInPager( \"" << m.str1 << "\" )";
+        break;
+    case MockCliEvent::EVENT_EDIT_FILE:
+        out << "editFile( \"" << m.str1 << "\" )";
         break;
     case MockCliEvent::EVENT_CONFIRM_DELETION:
         out << "confirmDeletion( " << *(m.object) << " )";
