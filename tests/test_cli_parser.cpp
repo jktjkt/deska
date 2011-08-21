@@ -1711,4 +1711,78 @@ BOOST_FIXTURE_TEST_CASE(attrs_sets_remove, ParserTestFixture)
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
 }
+
+/** @short Insertion into an ordinary attribute error */
+BOOST_FIXTURE_TEST_CASE(error_attrs_sets_insert, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+    const std::string line = "add note www\n";
+    const std::string::const_iterator it = line.begin() + line.find(" note");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing identifiers set name for host. Expected one of [ \"role\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+}
+
+/** @short Removal from an ordinary attribute error */
+BOOST_FIXTURE_TEST_CASE(error_attrs_sets_remove, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+    const std::string line = "remove note www\n";
+    const std::string::const_iterator it = line.begin() + line.find(" note");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing identifiers set name for host. Expected one of [ \"role\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+}
+
+/** @short Insertion into an identifiers set */
+BOOST_FIXTURE_TEST_CASE(error_attrs_sets_insert_2, ParserTestFixture)
+{
+    parser->parseLine("hardware hp123\n");   
+    expectParsingStarted();
+    expectCategoryEntered("hardware", "hp123");
+    expectParsingFinished();
+    verifyStackOneLevel("hardware", Deska::Db::Identifier("hp123"));
+
+    const std::string line = "add role www\n";
+    const std::string::const_iterator it = line.begin() + line.find("add");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("hardware", Deska::Db::Identifier("hp123"));
+}
+
+/** @short Removal from an identifiers set */
+BOOST_FIXTURE_TEST_CASE(eror_attrs_sets_remove_2, ParserTestFixture)
+{
+    parser->parseLine("hardware hp123\n");   
+    expectParsingStarted();
+    expectCategoryEntered("hardware", "hp123");
+    expectParsingFinished();
+    verifyStackOneLevel("hardware", Deska::Db::Identifier("hp123"));
+
+    const std::string line = "remove role www\n";
+    const std::string::const_iterator it = line.begin() + line.find("remove");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"id\" \"name\" \"price\" ].", line, it));
+    expectNothingElse();
+    verifyStackOneLevel("hardware", Deska::Db::Identifier("hp123"));
+}
 }
