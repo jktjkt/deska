@@ -29,76 +29,51 @@ namespace Deska
 namespace Cli
 {
 
-
 Editor::Editor(const std::string &fileName)
 {
+    std::string exe = getenv("EDITOR");
+    if (exe.empty()) {
+        exe = "vim";
+    }
+
+    std::vector<std::string> args;
+    args.push_back(exe);
+    args.push_back(fileName);
+
     namespace bp = boost::process;
-    BOOST_ASSERT(!fileName.empty());
     bp::context ctx;
     ctx.environment = bp::self::get_environment();
     ctx.stdout_behavior = bp::inherit_stream();
     ctx.stdin_behavior = bp::inherit_stream();
     ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
 
-    char *defaultEditor = getenv("EDITOR");
-    std::string exe;
-    if (!defaultEditor)
-        exe = std::string("vim");
-    else
-        exe = std::string(defaultEditor);
-
-    std::vector<std::string> arguments;
-    arguments.push_back(exe);
-    arguments.push_back(fileName);
-    childProcess = bp::launch(exe, arguments, ctx);
+    bp::child proc = bp::launch(args.front(), args, ctx);
+    proc.wait();
 }
 
 
-
-Editor::~Editor()
+Pager::Pager(const std::string &message)
 {
-    childProcess->terminate();
-}
+    std::string exe = getenv("PAGER");
+    if (exe.empty()) {
+        exe = "less";
+    }
 
+    std::vector<std::string> args;
+    args.push_back(exe);
 
-
-Pager::Pager()
-{
     namespace bp = boost::process;
     bp::context ctx;
     ctx.environment = bp::self::get_environment();
     ctx.stdout_behavior = bp::inherit_stream();
     ctx.stdin_behavior = bp::capture_stream();
     ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
 
-    char *defaultPager = getenv("PAGER");
-    std::string exe;
-    if (!defaultPager)
-        exe = std::string("less");
-    else
-        exe = std::string(defaultPager);
-
-    std::vector<std::string> arguments;
-    arguments.push_back(exe);
-    childProcess = bp::launch(exe, arguments, ctx);
+    bp::child proc = bp::launch(args.front(), args, ctx);
+    proc.get_stdin() << message;
+    proc.get_stdin().close();
+    proc.wait();
 }
-
-
-
-Pager::~Pager()
-{
-    childProcess->terminate();
-}
-
-
-
-std::ostream *Pager::writeStream()
-{
-    return &childProcess->get_stdin();
-}
-
 
 }
 }

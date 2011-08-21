@@ -158,9 +158,7 @@ void UserInterfaceIO::printMessage(const std::string &message)
 
 void UserInterfaceIO::displayInPager(const std::string &message)
 {
-    Pager pager;
-    std::ostream *opg = pager.writeStream();
-    *opg << message;
+    Pager pager(message);
 }
 
 

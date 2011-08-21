@@ -36,35 +36,13 @@ class Editor
 {
 public:
     Editor(const std::string &fileName);
-    ~Editor();
-
-private:
-    /** @short Identification of the launched child process
-
-    We've got to use boost::optional here because the boost::process::child has no default constructor,
-    see http://lists.boost.org/boost-users/2011/03/67265.php for details
-    */
-    boost::optional<boost::process::child> childProcess;
 };
-
 
 
 class Pager
 {
 public:
-    Pager();
-    ~Pager();
-
-    /** @short Obtains a stream for writing */
-    std::ostream *writeStream();
-
-private:
-    /** @short Identification of the launched child process
-
-    We've got to use boost::optional here because the boost::process::child has no default constructor,
-    see http://lists.boost.org/boost-users/2011/03/67265.php for details
-    */
-    boost::optional<boost::process::child> childProcess;
+    Pager(const std::string &message);
 };
 
 }
