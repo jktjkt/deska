@@ -1785,4 +1785,64 @@ BOOST_FIXTURE_TEST_CASE(eror_attrs_sets_remove_2, ParserTestFixture)
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("hp123"));
 }
+
+/** @short Construction of new interface */
+BOOST_FIXTURE_TEST_CASE(new_interface, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    parser->parseLine("new interface\n");
+    expectParsingStarted();
+    expectCreateObject("interface", "");
+    expectParsingFinished();
+    verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", Deska::Db::Identifier(""));
+
+    parser->parseLine("mac aa:bb:cc:dd:ee:11\n");
+    expectParsingStarted();
+    expectSetAttr("mac", Deska::Db::Value(Deska::Db::MacAddress("aa:bb:cc:dd:ee:11")));
+    expectParsingFinished();
+    verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", Deska::Db::Identifier(""));
+    expectNothingElse();
+}
+
+/** @short Construction of new interface inline */
+BOOST_FIXTURE_TEST_CASE(new_interface_inline, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    parser->parseLine("new interface mac aa:bb:cc:dd:ee:11\n");
+    expectParsingStarted();
+    expectCreateObject("interface", "");
+    expectSetAttr("mac", Deska::Db::Value(Deska::Db::MacAddress("aa:bb:cc:dd:ee:11")));
+    expectCategoryLeft();
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+    expectNothingElse();
+}
+
+/** @short Construction of new object with bad kind name */
+BOOST_FIXTURE_TEST_CASE(error_new_object, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    const std::string line = "new lol\n";
+    const std::string::const_iterator it = line.begin() + line.find(" lol");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in host. Expected one of [ \"interface\" ].", line, it));
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+    expectNothingElse();
+}
 }
