@@ -1845,4 +1845,23 @@ BOOST_FIXTURE_TEST_CASE(error_new_object, ParserTestFixture)
     verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
     expectNothingElse();
 }
+
+/** @short Simple filter */
+BOOST_FIXTURE_TEST_CASE(simple_filter, ParserTestFixture)
+{
+    parser->parseLine("host where (name == \"cervena karkulka\")\n");   
+    expectParsingStarted();
+    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "name", Deska::Db::Value("cervena karkulka")));
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "name", Deska::Db::Value("cervena karkulka")));
+}
+
+/** @short Joining filter */
+BOOST_FIXTURE_TEST_CASE(joining_filter, ParserTestFixture)
+{
+    parser->parseLine("host where (interface.ip == 192.168.15.32)\n");   
+    expectParsingStarted();
+    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
 }
