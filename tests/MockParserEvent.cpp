@@ -91,6 +91,14 @@ MockParserEvent MockParserEvent::functionRename(const Deska::Db::Identifier &new
     return res;
 }
 
+MockParserEvent MockParserEvent::objectsFilter(const Deska::Db::Identifier &name, const Deska::Db::Filter &filter)
+{
+    MockParserEvent res(EVENT_OBJECTS_FILTER);
+    res.i1 = name;
+    res.f1 = filter;
+    return res;
+}
+
 MockParserEvent MockParserEvent::parserError(const Deska::Cli::ParserException &err)
 {
     MockParserEvent res(EVENT_PARSE_ERROR);
@@ -115,7 +123,15 @@ MockParserEvent MockParserEvent::invalid()
 
 bool MockParserEvent::operator==(const MockParserEvent &other) const
 {
-    return eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1 && message == other.message;
+    if (!(eventKind == other.eventKind && i1 == other.i1 && i2 == other.i2 && v1 == other.v1 && message == other.message))
+        return false;
+
+    if ((f1) && (other.f1))
+        return *(f1) == *(other.f1);
+    else if (!(f1) && !(other.f1))
+        return true;
+    else
+        return false;
 }
 
 
@@ -136,7 +152,7 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         out << "categoryLeft()";
         break;
     case MockParserEvent::EVENT_SET_ATTR:
-        out << "setAttr( " << m.i1 << ", " << m.v1 << " )";
+        out << "setAttr( " << m.i1 << ", " << *(m.v1) << " )";
         break;
     case MockParserEvent::EVENT_SET_ATTR_INSERT:
         out << "setAttrInsert( " << m.i1 << ", " << m.i2 << " )";
@@ -155,6 +171,9 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         break;
     case MockParserEvent::EVENT_FUNCTION_RENAME:
         out << "functionRename( " << m.i1 << " )";
+        break;
+    case MockParserEvent::EVENT_OBJECTS_FILTER:
+        out << "objectsFilter( " << m.i1 << ", " << *(m.f1) << " )";
         break;
     case MockParserEvent::EVENT_PARSE_ERROR:
         out << "parseError(" << m.message << ")";
