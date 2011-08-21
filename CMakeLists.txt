@@ -140,6 +140,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterfaceIO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ReadlineWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ChildProcess.cpp
 )
 
 set(deskaCli_SRCS

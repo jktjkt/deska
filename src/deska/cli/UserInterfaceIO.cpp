@@ -31,6 +31,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "ContextStack.h"
+#include "ChildProcess.h"
 #include "UserInterfaceIO.h"
 
 
@@ -82,78 +83,6 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 {
     commandCompletions.push_back(completion);
 }
-
-
-
-Editor::Editor(const std::string &fileName)
-{
-    namespace bp = boost::process;
-    BOOST_ASSERT(!fileName.empty());
-    bp::context ctx;
-    ctx.environment = bp::self::get_environment();
-    ctx.stdout_behavior = bp::inherit_stream();
-    ctx.stdin_behavior = bp::inherit_stream();
-    ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
-
-    char *defaultEditor = getenv("EDITOR");
-    std::string exe;
-    if (!defaultEditor)
-        exe = std::string("vim");
-    else
-        exe = std::string(defaultEditor);
-
-    std::vector<std::string> arguments;
-    arguments.push_back(exe);
-    arguments.push_back(fileName);
-    childProcess = bp::launch(exe, arguments, ctx);
-}
-
-
-
-Editor::~Editor()
-{
-    childProcess->terminate();
-}
-
-
-
-Pager::Pager()
-{
-    namespace bp = boost::process;
-    bp::context ctx;
-    ctx.environment = bp::self::get_environment();
-    ctx.stdout_behavior = bp::inherit_stream();
-    ctx.stdin_behavior = bp::capture_stream();
-    ctx.stderr_behavior = bp::inherit_stream();
-    // FIXME: change this to react to stderr traffic by throwing an exception, but only when there's any other traffic going on
-
-    char *defaultPager = getenv("PAGER");
-    std::string exe;
-    if (!defaultPager)
-        exe = std::string("less");
-    else
-        exe = std::string(defaultPager);
-
-    std::vector<std::string> arguments;
-    arguments.push_back(exe);
-    childProcess = bp::launch(exe, arguments, ctx);
-}
-
-
-
-Pager::~Pager()
-{
-    childProcess->terminate();
-}
-
-
-
-std::ostream *Pager::writeStream()
-{
-    return &childProcess->get_stdin();
-}
-
 
 
 void ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
