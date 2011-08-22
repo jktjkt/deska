@@ -246,7 +246,7 @@ BEGIN
         --we need current data
         changeset_id = get_current_changeset_or_null();
         IF changeset_id IS NULL THEN
-            RETURN ARRAY(SELECT %(ref_tbl_name)s FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
+            RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
         ELSE
             from_version = id2num(parent(changeset_id));
         END IF;
@@ -266,6 +266,7 @@ END
 $$
 LANGUAGE plpgsql;
 '''
+
 
     diff_get_old_set = '''CREATE FUNCTION %(tbl)s_get_old_set(obj_uid bigint)
 RETURNS text[]

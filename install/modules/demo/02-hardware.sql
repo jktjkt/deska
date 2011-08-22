@@ -28,7 +28,6 @@ CREATE TABLE hardware (
 		CHECK (cpu_num > 0),
 	-- add cpu type, when we have cpu type table
 	host bigint,
-	hardware_note text,
-	template bigint
+	hardware_note text
 );
 

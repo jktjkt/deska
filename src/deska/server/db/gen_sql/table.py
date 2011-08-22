@@ -146,7 +146,10 @@ class Table(constants.Templates):
 		#replace uid of referenced table object by its name
 		for col in self.refuid_columns:
 			if col in collist:
-				collist[col] = 'text'
+				if col in self.refers_to_set:
+					collist[col] = 'text[]'
+				else:
+					collist[col] = 'text'
 
 		attributes = collist.keys()
 		atttypes = collist.values()
@@ -155,16 +158,25 @@ class Table(constants.Templates):
 
 		dcols = ",".join(["data.%s" % attr for attr in attributes])
 
+		get_identifier_set_fns = ""
+		for col in self.refers_to_set:
+			get_identifier_set_fns = get_identifier_set_fns + self.get_refuid_set_string % {'tbl': self.name, 'colname': col, 'ref_tbl': col}
+
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = attributes.index(col)
-				attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
+				if col in self.refers_to_set:
+					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid) AS %(col)s" % \
+						{'tbl': self.name, 'col': col, 'refuid': self.refuid_columns[col]}
+				else:
+					attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
 						{'col': col, 'refuid': self.refuid_columns[col]}
 
 		cols = ",".join(attributes)
 		type_def = self.get_data_type_string % {'tbl': self.name, 'columns': coltypes}
 		cols_def = get_data_string % {'tbl': self.name, 'columns': cols, 'data_columns': dcols, 'embedtbl': self.embed_into}
-		return type_def + "\n" + cols_def
+		
+		return get_identifier_set_fns + "\n" + type_def + "\n" + cols_def
 
 	#generates function that returns all changes of columns between two versions
 	def gen_diff_set_attribute(self):

@@ -325,6 +325,22 @@ class Templates:
 
 '''
 
+	# template string for set functions for columns that reference set of identifiers
+	get_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_get_%(colname)s(IN obj_uid bigint)
+	RETURNS text[]
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	#template string for get_uid functions (for name finds corresponding uid)
 	#not for kind that are embed into another
 	get_uid_string = '''CREATE FUNCTION
