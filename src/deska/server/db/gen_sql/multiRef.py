@@ -315,13 +315,14 @@ LANGUAGE plpgsql;
         for row in record:
             table = row[0]
             tab_relation_rec = self.plpy.execute(self.multiRef_info_str % {'tbl': table})
-            reftable = tab_relation_rec[0][1]
-            attnames = tab_relation_rec[0][0]
-            refattnames = tab_relation_rec[0][2]
-            self.check_multiRef_definition(table, reftable, attnames, refattnames)
-            #we needs the oposite direction than the one that alredy exists
-            self.gen_tables(table, reftable)
-            self.gen_functions(table, reftable, attnames, refattnames)
+            if len(tab_relation_rec):
+				reftable = tab_relation_rec[0][1]
+				attnames = tab_relation_rec[0][0]
+				refattnames = tab_relation_rec[0][2]
+				self.check_multiRef_definition(table, reftable, attnames, refattnames)
+				#we needs the oposite direction than the one that alredy exists
+				self.gen_tables(table, reftable)
+				self.gen_functions(table, reftable, attnames, refattnames)
 
         self.tab_sql.close()
         self.fn_sql.close()
