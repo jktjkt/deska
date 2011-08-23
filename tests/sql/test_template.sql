@@ -92,7 +92,7 @@ BEGIN
 	
 	PERFORM startChangeset();
 	PERFORM hardware_template_add('template_all');
-	PERFORM hardware_template_set_hardware_note('template_all','blabla note');
+	PERFORM hardware_template_set_note_hardware('template_all','blabla note');
 	PERFORM hardware_template_set_template('template_all','ram_cpu_purchase_warranty_template');
 	PERFORM commitChangeset('3');
 
@@ -113,7 +113,7 @@ BEGIN
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware_template WHERE name = 'template_all' AND version = 4;
-	PREPARE retresolved_data AS SELECT purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_template_resolved_object_data('template_all');
+	PREPARE retresolved_data AS SELECT purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_template_resolved_object_data('template_all');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data are ok - overwritten attribute in 3rd level' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
@@ -132,64 +132,64 @@ BEGIN
 	PERFORM commitChangeset('1');
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware WHERE name = 'templated_hardware_1' AND version = 5;
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_resolved_object_data('templated_hardware_1');
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_resolved_object_data('templated_hardware_1');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of templated hardware are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware WHERE name = 'templated_hardware_2' AND version = 5;
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_resolved_object_data('templated_hardware_2');
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_resolved_object_data('templated_hardware_2');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of templated hardware are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PERFORM startChangeset();
-	PERFORM hardware_template_set_hardware_note('purchase_template','note2');
+	PERFORM hardware_template_set_note_hardware('purchase_template','note2');
 	old_version = revision2num(commitChangeset('1'));
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware WHERE name = 'templated_hardware_2' AND version = 6;
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_resolved_object_data('templated_hardware_2');
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_resolved_object_data('templated_hardware_2');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of templated hardware after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT purchase,note FROM pgtap.test_hardware_template WHERE name = 'purchase_template' AND version = 6;
-	PREPARE retresolved_data AS SELECT purchase,hardware_note FROM hardware_template WHERE name = 'purchase_template';
+	PREPARE retresolved_data AS SELECT purchase,note_hardware FROM hardware_template WHERE name = 'purchase_template';
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of hardware_template after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT purchase,warranty, note, template FROM pgtap.test_hardware_template WHERE name = 'purchase_warranty_template' AND version = 6;
-	PREPARE retresolved_data AS SELECT purchase,warranty, hardware_note, template FROM hardware_template_resolved_object_data('purchase_warranty_template');
+	PREPARE retresolved_data AS SELECT purchase,warranty, note_hardware, template FROM hardware_template_resolved_object_data('purchase_warranty_template');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of hardware_template after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware_template WHERE name = 'ram_cpu_purchase_warranty_template' AND version = 6;
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_template_resolved_object_data('ram_cpu_purchase_warranty_template');
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_template_resolved_object_data('ram_cpu_purchase_warranty_template');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of hardware_template after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware_template WHERE name = 'template_all' AND version = 6;
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM hardware_template_resolved_object_data('template_all');
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM hardware_template_resolved_object_data('template_all');
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved template data of hardware_template after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PERFORM startChangeset();
-	PERFORM hardware_template_set_hardware_note('purchase_template','note3');
+	PERFORM hardware_template_set_note_hardware('purchase_template','note3');
 	PERFORM commitChangeset('1');
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware WHERE name = 'templated_hardware_2' AND version = 7;
-	PREPARE retresolved_data AS SELECT vendor_get_name(vendor), purchase,warranty, ram, cpu_num, hardware_note, hardware_template_get_name(template) FROM production.hardware WHERE name = 'templated_hardware_2';
+	PREPARE retresolved_data AS SELECT vendor_get_name(vendor), purchase,warranty, ram, cpu_num, note_hardware, hardware_template_get_name(template) FROM production.hardware WHERE name = 'templated_hardware_2';
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved templated data of hardware in production after change in template are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;
 
 	PREPARE expresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note, template FROM pgtap.test_hardware WHERE name = 'templated_hardware_2' AND version = 6;
 	CREATE TEMPORARY TABLE old_version_resolved_data AS SELECT * FROM hardware_resolved_object_data('templated_hardware_2',old_version);
-	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, hardware_note, template FROM old_version_resolved_data;
+	PREPARE retresolved_data AS SELECT vendor, purchase,warranty, ram, cpu_num, note_hardware, template FROM old_version_resolved_data;
 	RETURN NEXT results_eq( 'expresolved_data', 'retresolved_data', 'resolved templated data of hardware in different versions are ok' );
 	DEALLOCATE expresolved_data;
 	DEALLOCATE retresolved_data;

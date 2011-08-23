@@ -18,7 +18,7 @@ def prepareObjects(r):
     for x in range(10):
         objname = "x%d" % x
         r.assertEqual(r.c(createObject("host", objname)), objname)
-        r.cvoid(setAttribute("host", objname, "host_note", "ahoj"))
+        r.cvoid(setAttribute("host", objname, "note_host", "ahoj"))
     for vendor in realVendors:
         r.assertEqual(r.c(createObject("vendor", vendor)), vendor)
     for x in range(5):
@@ -46,16 +46,16 @@ def doTests(r):
     expectedNames = ["x%d" % x for x in range(10)]
     r.assertEqual(sorted(r.c(kindInstances("host"))), expectedNames)
     # the following should match all objects in the DB
-    matching = deska.host[deska.host.host_note == "ahoj"]
+    matching = deska.host[deska.host.note_host == "ahoj"]
     r.assertEqual(sorted(matching.keys()), expectedNames)
     # check the actual object data
     for x in matching.itervalues():
         r.assertEqual(x.hardware, None)
-        r.assertEqual(x.host_note, "ahoj")
+        r.assertEqual(x.note_host, "ahoj")
 
     # make sure that the following returns no results
-    r.assertEqual(deska.host[deska.host.host_note != "ahoj"].keys(), [])
-    r.assertEqual(deska.host[deska.host.host_note == "bla"].keys(), [])
+    r.assertEqual(deska.host[deska.host.note_host != "ahoj"].keys(), [])
+    r.assertEqual(deska.host[deska.host.note_host == "bla"].keys(), [])
 
     # filter by date and CMP_GE; the date is specified as string
     matching = deska.hardware[deska.hardware.warranty >= '2011-04-03']

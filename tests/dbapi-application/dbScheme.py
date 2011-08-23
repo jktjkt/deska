@@ -8,7 +8,7 @@ helper_interface_attrs = {
 }
 helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier",
-    "template": "identifier", "cpu_num": "int", "ram": "int", "hardware_note": "string", "host" : "identifier"
+    "template": "identifier", "cpu_num": "int", "ram": "int", "note_hardware": "string", "host" : "identifier"
 }
 helper_hardware_template_attrs = dict((k,v) for (k, v) in helper_hardware_attrs.iteritems() if k != "host")
 
@@ -23,7 +23,7 @@ declarative = [
     kindAttributes("host").returns(
         {
             "hardware": "identifier",
-            "host_note": "string"}
+            "note_host": "string"}
     ),
     kindAttributes("hardware").returns(helper_hardware_attrs),
     kindAttributes("hardware_template").returns(helper_hardware_template_attrs),
