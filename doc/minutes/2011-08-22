@@ -1,0 +1,102 @@
+Schuze Deska, 2011-08-22 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+------
+- rozsireni createObject (vraci prirazene jmeno)
+- podpora pro identifier_set (specifikace, JSON, C++ DBAPI, unit testy, Python)
+- filtr "last inserted"
+- oprava serializaci zajimavych datovych typu
+- unit testy
+- zprovozneni child procesu a terminalu
+- procisteni headeru
+
+Tomas:
+------
+- identifier_set v CLI, vcetne testu
+- prepsani error handlingu parseru (ne DB)
+- createObject
+- filtry
+- testy parseru
+- child procesy
+
+Lukas:
+------
+- nepritomen
+
+Martina:
+--------
+- zamykani
+- generovani jmen pro createObject
+- podpora pro tagy (identifier_set), zatim bez testu
+
+
+Diskuse:
+--------
+
+Templaty a identifier_set: pri prvnim nastaveni atributu u child objektu se
+zkopiruje aktualni hodnota od parenta a tim padem se "ztrati vazba".
+
+Zamykani:
+nelze ukrast changeset
+
+Nutne prejmenovat atributy relaci, misto "hardware_note" "note_hardware", misto
+"template" "hardware_template".
+
+Commit a zamykani:
+------------------
+
+Stav podle mailu v threadu "changeset locks". Honza doda honza_pregeneruje() a
+honza_udela_diff(), Lukas naimplementuje DBAPI funkce podle specifikace a mailu.
+
+Dve funkce, lock_current_changeset() a unlock_current_changeset(). Changet se
+zamyka pouze explicitne, odemyka se tez explicitne nebo koncem session nebo pres
+abortCurrentChangeset() a nebo na konci uspesneho commitChangeset(). Detach
+neodemyka.
+
+Zamykani je potreba i na rebase, proto Honza obe dve funkce zpristupni pres
+DBAPI. Zamknuty changeset muze pripojit pouze aktivni session.
+
+Pripomenuti MERGE_WITH:
+-----------------------
+
+Viz zapis 2011-07-26.
+
+Prace na priste:
+----------------
+
+Tomas: kontrola, ze createObject vraci ocekavanou hodnotu
+Tomas: spousteni $EDITOR/$PAGER dodelat
+Tomas: boost::program_options
+Tomas: testy pro *vsechno*, co umi CLI
+Tomas: aby CLI umelo relace (treba merge_with,...)
+Martina: generovani kodu pro sety
+Martina: zmena jmen atributu relaci v DB tabulkach v extra branchi
+Martina: createObject pro non-embedded prvky ma okamzite vratit chybu, pokud se
+    pusti na prazdne jmeno
+Honza: zmena jmen atributu relaci v unit testech v extra branchi
+Honza: createObject v DBAPI: unit testy
+Honza: sety v DBAPI: unit testy, high-level Python
+Honza: specifikace merge (behem rebase)
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+        honza_udela_diff())
+Honza: zpristupneni lock/unlock pres DBAPI
+Honza: forced odpojovani pgsql klientu (kvuli zamknutym changesetum)
+Lukas: identifier_set v DBAPI na strane serveru
+Lukas: implementace DBAPI funkci pro diff a pro generovani, viz vys + lock,
+    unlock
+Lukas: schema FZU
+Lukas: jak ma DB sortovat diff (pozor na reference na vytvarene objekty,...)
+
+
+Pristi schuzka:
+---------------
+
+Pondeli 29. srpna, 17.00 FZU
+
+Schuzka trvala dve a pul hodiny.
