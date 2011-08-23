@@ -257,7 +257,7 @@ BEGIN
             JOIN version v1 ON (v1.id = h1.version)
             JOIN (  SELECT max(num) AS maxnum
                 FROM %(tbl)s_history h JOIN version v ON (v.id = h.version)
-                WHERE v.num <= data_version AND %(tbl_name)s = obj_uid
+                WHERE v.num <= from_version AND %(tbl_name)s = obj_uid
             ) vmax1
             ON (v1.num = vmax1.maxnum)
         WHERE %(tbl_name)s = obj_uid
