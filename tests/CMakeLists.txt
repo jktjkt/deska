@@ -118,6 +118,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
     deska_dbapi_test(createObjects)
+    deska_dbapi_test(createObjects_autoname)
 
     # unit tests which work on any reasonable state of the DB, no matter what
     # changesets are already present, etc
