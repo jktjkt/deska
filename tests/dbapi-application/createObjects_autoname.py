@@ -37,5 +37,4 @@ def imperative(r):
     r.assertEqual(r.c(createObject("interface", "foo->")), "foo->interface_2")
 
     # creating non-embedded objects with an empty name should fail
-    # FAILS, Redmine#274
-    #r.cfail(createObject("host", ""))
+    r.cfail(createObject("host", ""), ConstraintError())

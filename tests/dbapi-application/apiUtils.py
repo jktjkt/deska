@@ -121,6 +121,10 @@ class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
 
+class ConstraintError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ConstraintError")
+
 
 def revisionIncrement(revision, change):
     return "r%d" % (int(revision[1:len(revision)]) + change)
