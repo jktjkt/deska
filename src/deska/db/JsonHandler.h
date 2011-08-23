@@ -90,7 +90,7 @@ struct JsonWrappedObjectModification
     const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
 
     // No default constructor, so we have to make it optional
-    boost::optional<ObjectModification> diff;
+    boost::optional<ObjectModificationResult> diff;
 
     JsonWrappedObjectModification(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
 
@@ -98,11 +98,11 @@ struct JsonWrappedObjectModification
 };
 
 /** @short Helper class adding attribute type information to the list of object modifications */
-struct JsonWrappedObjectModificationSequence
+struct JsonWrappedObjectModificationResultSequence
 {
     const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything;
-    std::vector<ObjectModification> diff;
-    JsonWrappedObjectModificationSequence(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
+    std::vector<ObjectModificationResult> diff;
+    JsonWrappedObjectModificationResultSequence(const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_);
 };
 
 /** @short Expecting/requiring/checking/sending one JSON record */

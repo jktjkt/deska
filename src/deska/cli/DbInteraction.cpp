@@ -55,12 +55,20 @@ DbInteraction::DbInteraction(Db::Api *api):
 
 
 
-void DbInteraction::createObject(const ContextStack &context)
+ContextStackItem DbInteraction::createObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+
+    BOOST_ASSERT(!objects.empty());
+
+    if (objects.size() == 1) {
+        BOOST_ASSERT(!objectExists(objects.front()));
+        Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
+        return ContextStackItem(objects.front().kind, pathToVector(newObjectName).back());
+    }
+
     // FIXME: Wait for implementation of batched changes on server side.
-    // FIXME: got to solve that issue with a return value from createObject when using batched changes...
     //std::vector<Db::ObjectModification> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
@@ -68,6 +76,12 @@ void DbInteraction::createObject(const ContextStack &context)
             m_api->createObject(it->kind, it->name);
     }
     //m_api->applyBatchedChanges(modifications);
+
+    if (context.back().name.empty())
+        return ContextStackItem(context.back().kind, Db::Filter(
+        Db::SpecialExpression(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, context.back().kind)));
+    else
+        return ContextStackItem(context.back().kind, context.back().name);
 }
 
 
@@ -128,6 +142,40 @@ void DbInteraction::setAttribute(const ContextStack &context,
         //modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute.attribute,
         //                                                     attribute.value));
         m_api->setAttribute(it->kind, it->name, attribute.attribute, attribute.value);
+    }
+    //m_api->applyBatchedChanges(modifications);
+}
+
+
+
+void DbInteraction::setAttributeInsert(const ContextStack &context, const Db::Identifier &set,
+                                       const Db::Identifier &identifier)
+{
+    BOOST_ASSERT(!context.empty());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeInsertModification(it->kind, it->name, set,
+        //                                                           identifier));
+        m_api->setAttributeInsert(it->kind, it->name, set, identifier);
+    }
+    //m_api->applyBatchedChanges(modifications);
+}
+
+
+
+void DbInteraction::setAttributeRemove(const ContextStack &context, const Db::Identifier &set,
+                                       const Db::Identifier &identifier)
+{
+    BOOST_ASSERT(!context.empty());
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    // FIXME: Wait for implementation of batched changes on server side.
+    //std::vector<Db::ObjectModification> modifications;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        //modifications.push_back(Db::SetAttributeRemoveModification(it->kind, it->name, set,
+        //                                                           identifier));
+        m_api->setAttributeRemove(it->kind, it->name, set, identifier);
     }
     //m_api->applyBatchedChanges(modifications);
 }
@@ -264,6 +312,9 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack
 
 bool DbInteraction::objectExists(const ObjectDefinition &object)
 {
+    if (object.name.empty())
+        return false;
+
     std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind,
         Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
     return (!instances.empty());
@@ -274,6 +325,10 @@ bool DbInteraction::objectExists(const ObjectDefinition &object)
 bool DbInteraction::objectExists(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
+    for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
+        if (!it->filter && it->name.empty())
+            return false;
+    }
     std::vector<ObjectDefinition> objects = expandContextStack(context);
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (!objectExists(*it))
@@ -340,7 +395,7 @@ std::vector<Db::RevisionMetadata> DbInteraction::filteredRevisions(const Db::Fil
 
 
 
-std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
+std::vector<Db::ObjectModificationResult> DbInteraction::revisionsDifference(const Db::RevisionId &revisionA,
                                                                        const Db::RevisionId &revisionB)
 {
     return m_api->dataDifference(revisionA, revisionB);
@@ -348,7 +403,7 @@ std::vector<Db::ObjectModification> DbInteraction::revisionsDifference(const Db:
 
 
 
-std::vector<Db::ObjectModification> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
+std::vector<Db::ObjectModificationResult> DbInteraction::revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset)
 {
     return m_api->dataDifferenceInTemporaryChangeset(changeset);
 }

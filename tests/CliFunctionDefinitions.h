@@ -32,6 +32,8 @@ typedef std::pair<std::string, bool> pair_string_bool;
 
 FORWARD_1(reportError, ReportError, std::string);
 FORWARD_1(printMessage, PrintMessage, std::string);
+FORWARD_1(displayInPager, DisplayInPager, std::string);
+FORWARD_1(editFile, EditFile, std::string);
 FORWARD_2(printHelp, PrintHelp, map_string_string, map_string_string);
 FORWARD_2(printHelpCommand, PrintHelpCommand, std::string, std::string);
 FORWARD_2(printHelpKeyword, PrintHelpKeyword, std::string, std::string);
@@ -52,7 +54,7 @@ FORWARD_4_OSTREAM(printAttributeWithOrigin, PrintAttributeWithOrigin, Deska::Cli
 FORWARD_4_OSTREAM(printObject, PrintObject, Deska::Cli::ObjectDefinition, int, bool);
 FORWARD_2_RAW_ARGS(printEnd, PrintEnd, int, std::ostream &);
 FORWARD_1(printRevisions, PrintRevisions, std::vector<Deska::Db::RevisionMetadata>);
-FORWARD_1(printDiff, PrintDiff, std::vector<Deska::Db::ObjectModification>);
+FORWARD_1(printDiff, PrintDiff, std::vector<Deska::Db::ObjectModificationResult>);
 FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
 
 #undef FORWARD_0_RETURN

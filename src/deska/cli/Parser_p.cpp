@@ -25,9 +25,11 @@
 #include "Parser_p.h"
 #include "Parser_p_AttributeRemovalsParser.h"
 #include "Parser_p_AttributesSettingParser.h"
+#include "Parser_p_IdentifiersSetsParser.h"
 #include "Parser_p_AttributesParser.h"
 #include "Parser_p_FunctionWordsParser.h"
 #include "Parser_p_KindsOnlyParser.h"
+#include "Parser_p_KindsConstructParser.h"
 #include "PredefinedRules.h"
 #include "Parser_p_FilterExpressionsParser.h"
 #include "Parser_p_FiltersParser.h"
@@ -75,11 +77,13 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
     for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
         attributesSettingParsers[*it] = new AttributesSettingParser<Iterator>(*it, this);
         attributeRemovalsParsers[*it] = new AttributeRemovalsParser<Iterator>(*it, this);
+        identifiersSetsParsers[*it] = new IdentifiersSetsParser<Iterator>(*it, this);
         filterExpressionsParsers[*it] = new FilterExpressionsParser<Iterator>(*it, this);
         addKindAttributes(*it, attributesSettingParsers[*it], attributeRemovalsParsers[*it],
-                          filterExpressionsParsers[*it]);
+                          identifiersSetsParsers[*it], filterExpressionsParsers[*it]);
         attributesParsers[*it] = new AttributesParser<Iterator>(*it, attributesSettingParsers[*it],
-                                                                attributeRemovalsParsers[*it], this);
+                                                                attributeRemovalsParsers[*it], 
+                                                                identifiersSetsParsers[*it], this);
     }
 
     // Create filters parser for each kind
@@ -100,8 +104,10 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
         // Create nested kinds parser and nested kinds filters parser for the new kind
         kindsOnlyParsers[*it] = new KindsOnlyParser<Iterator>(*it, this);
         kindsFiltersParsers[*it] = new KindsFiltersParser<Iterator>(*it, this);
-        addNestedKinds(*it, kindsOnlyParsers[*it], kindsFiltersParsers[*it]);
-        kindsParsers[*it] = new KindsParser<Iterator>(*it, kindsOnlyParsers[*it], kindsFiltersParsers[*it], this);
+        kindsConstructParsers[*it] = new KindsConstructParser<Iterator>(*it, this);
+        addNestedKinds(*it, kindsOnlyParsers[*it], kindsFiltersParsers[*it], kindsConstructParsers[*it]);
+        kindsParsers[*it] = new KindsParser<Iterator>(*it, kindsOnlyParsers[*it], kindsFiltersParsers[*it],
+                                                      kindsConstructParsers[*it], this);
 
         // And combine them in the parser for the whole kind
         wholeKindParsers[*it] = new WholeKindParser<Iterator>(*it, attributesParsers[*it], kindsParsers[*it], this);
@@ -119,6 +125,10 @@ ParserImpl<Iterator>::~ParserImpl()
     }
     for (typename std::map<std::string, AttributeRemovalsParser<Iterator>* >::iterator it = attributeRemovalsParsers.begin();
         it != attributeRemovalsParsers.end(); ++it) {
+        delete it->second;
+    }
+    for (typename std::map<std::string, IdentifiersSetsParser<Iterator>* >::iterator it = identifiersSetsParsers.begin();
+        it != identifiersSetsParsers.end(); ++it) {
         delete it->second;
     }
     for (typename std::map<std::string, AttributesParser<Iterator>* >::iterator it = attributesParsers.begin();
@@ -145,6 +155,10 @@ ParserImpl<Iterator>::~ParserImpl()
         it != kindsOnlyParsers.end(); ++it) {
         delete it->second;
     }
+    for (typename std::map<std::string, KindsConstructParser<Iterator>* >::iterator it = kindsConstructParsers.begin();
+        it != kindsConstructParsers.end(); ++it) {
+        delete it->second;
+    }
     for (typename std::map<std::string, KindsParser<Iterator>* >::iterator it = kindsParsers.begin();
         it != kindsParsers.end(); ++it) {
         delete it->second;
@@ -163,10 +177,15 @@ template <typename Iterator>
 std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
 {
     std::map<std::string, std::string> usages;
+    usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
+    usages["new"] = "Creates a new object of kind given as parameter. Name will be generated (e.g. new failure).";
+    usages["last"] = "Selects an object of given kind with the highest numerical name (e.g. last failure).";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
     usages["show"] = "Shows attributes and nested kinds of the object. Parameter is here optional and works in the same way as for delete. When executed without parameter at top-level, it shows all object kinds and names.";
     usages["end"] = "Leaves one level of current context.";
     usages["no"] = "When entered in front of an attribute name, it removes it's value.";
+    usages["add"] = "Inserts an identifier into an identifier set (e.g. insert role www).";
+    usages["remove"] = "Removes an identifier from an identifier set (e.g. remove role www).";
     return usages;
 }
 
@@ -263,6 +282,19 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
 
 
 template <typename Iterator>
+void ParserImpl<Iterator>::newObject(const Db::Identifier &kind)
+{
+    contextStack.push_back(ContextStackItem(kind, Db::Identifier()));
+    if (!dryRun)
+        m_parser->createObject(kind, "");
+#ifdef PARSER_DEBUG
+    std::cout << "New object: " << kind << std::endl;
+#endif
+}
+
+
+
+template <typename Iterator>
 void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name)
 {
     std::vector<Db::Identifier> objectNames = pathToVector(name);
@@ -271,12 +303,32 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
     objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(kind, *it));
     ++it;
     for (; it != objectNames.rend(); ++it) {
-        objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(embeddedInto[objects.back().first], *it));
+        std::map<Db::Identifier, Db::Identifier>::const_iterator emb = embeddedInto.find(objects.back().first);
+        if (emb == embeddedInto.end()) {
+            addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+            parsingSucceededActions = false;
+            return;
+        }
+        objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(emb->second, *it));
     }
-    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito = objects.rbegin();
-         ito != objects.rend(); ++ito)
+    std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito;
+    for (ito = objects.rbegin(); ito != objects.rend() - 1; ++ito)
     {
         contextStack.push_back(ContextStackItem(ito->first, ito->second));
+        if (!dryRun)
+            m_parser->categoryEntered(ito->first, ito->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Category entered: " << ito->first << ": " << ito->second << std::endl;
+#endif
+    }
+    contextStack.push_back(ContextStackItem(ito->first, ito->second));
+    if (parsingMode == PARSING_MODE_CREATE) {
+        if (!dryRun)
+            m_parser->createObject(ito->first, ito->second);
+#ifdef PARSER_DEBUG
+        std::cout << "Create object: " << ito->first << ": " << ito->second << std::endl;
+#endif
+    } else {
         if (!dryRun)
             m_parser->categoryEntered(ito->first, ito->second);
 #ifdef PARSER_DEBUG
@@ -307,6 +359,30 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Va
         m_parser->attributeSet(name, value);
 #ifdef PARSER_DEBUG
     std::cout << "Set attribute: " << name << "=" << *value << std::endl;
+#endif
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value)
+{
+    if (!dryRun)
+        m_parser->attributeSetInsert(name, value);
+#ifdef PARSER_DEBUG
+    std::cout << "Inserting into set: " << name << ": " << value << std::endl;
+#endif
+}
+
+
+
+template <typename Iterator>
+void ParserImpl<Iterator>::attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value)
+{
+    if (!dryRun)
+        m_parser->attributeSetRemove(name, value);
+#ifdef PARSER_DEBUG
+    std::cout << "Removing from set: " << name << ": " << value << std::endl;
 #endif
 }
 
@@ -400,6 +476,7 @@ template <typename Iterator>
 void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
                                              AttributesSettingParser<Iterator> *attributesSettingParser,
                                              AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                                             IdentifiersSetsParser<Iterator> *identifiersSetsParser,
                                              FilterExpressionsParser<Iterator> *filterExpressionsParser)
 {
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
@@ -407,6 +484,10 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
         attributesSettingParser->addAtrribute(it->name, predefinedRules->getRule(it->type));
         attributeRemovalsParser->addAtrribute(it->name);
         filterExpressionsParser->addAtrributeToFilter(it->name, predefinedRules->getRule(it->type));
+        if (it->type == Db::TYPE_IDENTIFIER_SET) {
+            identifiersSetsParser->addIdentifiersSet(it->name, predefinedRules->getObjectIdentifier());
+            filterExpressionsParser->addIdentifiersSetToFilter(it->name, predefinedRules->getObjectIdentifier());
+        }
     }
 }
 
@@ -414,12 +495,14 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
 
 template <typename Iterator>
 void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *kindsOnlyParser,
-                                          KindsFiltersParser<Iterator> *kindsFiltersParser)
+                                          KindsFiltersParser<Iterator> *kindsFiltersParser,
+                                          KindsConstructParser<Iterator> *kindsConstructParser)
 {
     std::vector<Db::Identifier> nestedKinds = parserKindsEmbedsRecursively(kindName);
     for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
         kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
         kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
+        kindsConstructParser->addKind(*it);
     }
 }
 
@@ -451,6 +534,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     parsingMode = PARSING_MODE_STANDARD;
     bool parsingSucceeded = true;
+    parsingSucceededActions = true;
     singleKind = false;
     int parsingIterations = 0;
     bool functionWordParsed = false;
@@ -473,15 +557,18 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     m_parser->functionShow();
                 return true;
                 break;
+            case PARSING_MODE_CREATE:
             case PARSING_MODE_DELETE:
             case PARSING_MODE_RENAME:
                 // Function delete and rename require parameter -> report error
                 if (contextStack.empty()) {
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds,
+                                  PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
                     parsingSucceeded = false;
                 } else {
                     addParseError(ParseError<Iterator>(line.begin(), end, iter,
-                                  contextStack.back().kind, parserKindsEmbedsRecursively(contextStack.back().kind)));
+                                  contextStack.back().kind, parserKindsEmbedsRecursively(contextStack.back().kind),
+                                  PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
                     parsingSucceeded = false;
                 }
                 break;
@@ -507,10 +594,11 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                     parsingSucceeded = phrase_parse(iter, end, *(wholeKindParsers[contextStack.back().kind]),
                                                     ascii::space);
                     break;
+                case PARSING_MODE_CREATE:
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
                 case PARSING_MODE_RENAME:
-                    parsingSucceeded = phrase_parse(iter, end, *(kindsOnlyParsers[contextStack.back().kind]),
+                    parsingSucceeded = phrase_parse(iter, end, *(kindsParsers[contextStack.back().kind]),
                                                     ascii::space);
                     break;
                 default:
@@ -519,10 +607,11 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         }
 
         // Check for existence of parsed kind instance and add parse error based on parsing mode.
-        if (!contextStack.empty() && parsingSucceeded) {
+        if (!contextStack.empty() && parsingSucceeded && parsingSucceededActions) {
             std::vector<Db::Identifier> instances;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
+                case PARSING_MODE_CREATE:
                     break;
                 case PARSING_MODE_DELETE:
                 case PARSING_MODE_SHOW:
@@ -534,7 +623,8 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                                 "name", Db::Value(contextStackToPath(contextStack)))));
                         if (instances.empty()) {
                             addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
-                                                               contextStack.back().kind, contextStack.back().name));
+                                                               contextStack.back().kind, contextStack.back().name,
+                                                               PARSE_ERROR_TYPE_OBJECT_NOT_FOUND));
                             parsingSucceeded = false;
                             nonexistantObject = true;
                         }
@@ -545,7 +635,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
             }
         }
 
-        if (!parsingSucceeded) {
+        if (!(parsingSucceeded && parsingSucceededActions)) {
             // Some bad input
             break;
         } else {
@@ -563,17 +653,19 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
     // Handle parsing of new name here
     // Parsing mode is rename and some object to be renamed was parsed
-    if ((parsingMode == PARSING_MODE_RENAME) && (contextStack.size() > previousContextStackSize)) {
+    if ((parsingMode == PARSING_MODE_RENAME) && (contextStack.size() > previousContextStackSize) &&
+        parsingSucceededActions) {
         if ((parsingIterations > 0) && (!nonexistantObject)) {
             // Function word not parsed alone -> error was not reported yet
             if (iter == end) {
                 // Missing new name
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND));
             } else if (contextStack.empty()) {
                 // Missing object to rename
                 parsingSucceeded = false;
-                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds));
+                addParseError(ParseError<Iterator>(line.begin(), end, iter, "", allKinds,
+                              PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND));
             } else {
                 // We are ready to parse new name
                 parsingSucceeded = phrase_parse(iter, end, predefinedRules->getObjectIdentifier(),
@@ -581,15 +673,18 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 if (iter != end)
                     parsingSucceeded = false;
                 if (!parsingSucceeded)
-                    addParseError(ParseError<Iterator>(line.begin(), end, iter));
+                    addParseError(ParseError<Iterator>(line.begin(), end, iter, PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND));
             }
         }
     }
 
-    if ((!dryRun) && (parsingSucceeded)) {
+    if ((!dryRun) && (parsingSucceeded && parsingSucceededActions)) {
         // Emit signals, when there is some function word used.
         switch (parsingMode) {
             case PARSING_MODE_STANDARD:
+                // No special signal to be triggered inthis case.
+                break;
+            case PARSING_MODE_CREATE:
                 // No special signal to be triggered inthis case.
                 break;
             case PARSING_MODE_DELETE:
@@ -615,7 +710,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
         } 
     }
 
-    if (!parsingSucceeded) {
+    if (!(parsingSucceeded && parsingSucceededActions)) {
          // Some bad input
         if (!dryRun)
             reportParseError(line);
@@ -639,7 +734,7 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 #ifdef PARSER_DEBUG
     std::cout << "End context stack: " << contextStackToString(contextStack) << std::endl;
 #endif
-    return parsingSucceeded;
+    return (parsingSucceeded && parsingSucceededActions);
 }
 
 
@@ -647,9 +742,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 template <typename Iterator>
 void ParserImpl<Iterator>::reportParseError(const std::string& line)
 {
-    // No more than three errors should occur. Three errors occur only when bad identifier of embedded object is set.
-    BOOST_ASSERT(parseErrors.size() <= 4);
-
     // If there is no error, it means, that we entered some bad input fot the kind, that has no attributes and no
     // nested kinds, so there was no grammar to generate the error.
     if (parseErrors.empty()) {
@@ -660,13 +752,10 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
 
     typename std::vector<ParseError<Iterator> >::iterator it;
 
-    // At first, find out if it's caused by a non-conforming data type. That would mean that it's caused
-    // by an error in the attribute value
+    // Error in the attribute value
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
-        // Yes, error in an attribute's value. That's all what's interesting for us, so let's ignore any other errors
-        // which could be reported by spirit as a result of the error propagation.
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
@@ -674,23 +763,21 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
-    // Find out, if the error occured when parsing attribute name for value removal
+    // Pair kind name - object name expected, but not found
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
     if (it != parseErrors.end()) {
-        // Yes, error occured when parsing attribute name for value removal
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
-        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        m_parser->parseError(ObjectDefinitionNotFound(it->toString(), line, it->errorPosition()));
         return;
     }
 
-    // Find out, if the error occured when parsing identifier
+    // Error in object name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND);
     if (it != parseErrors.end()) {
-        // Yes, error occured when parsing identifier
 #ifdef PARSER_DEBUG
         std::cout << it->toString() << std::endl;
 #endif
@@ -698,75 +785,127 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
-    // There's no trace of an error in the attribute data anywhere
-    if (parseErrors.size() == 1) {
-        // whatever it is, let's just store it
-        const ParseError<Iterator> &err = parseErrors.front();
+    // Existing object required, but entered object does not exist
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NOT_FOUND);
+    if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << err.toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-        switch (err.errorType()) {
-        case PARSE_ERROR_TYPE_ATTRIBUTE:
-            m_parser->parseError(UndefinedAttributeError(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_KIND:
-            m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_KIND_FILTER:
-            m_parser->parseError(InvalidObjectKind(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND:
-            m_parser->parseError(ObjectDefinitionNotFound(err.toString(), line, err.errorPosition()));
-            break;
-        case PARSE_ERROR_TYPE_OBJECT_NOT_FOUND:
-            m_parser->parseError(ObjectNotFound(err.toString(), line, err.errorPosition()));
-            break;
-        default:
-            throw std::domain_error("Invalid value of ParseErrorType");
-        }
+        m_parser->parseError(ObjectNotFound(it->toString(), line, it->errorPosition()));
         return;
-    } 
-    
-    // Two and more errors can occur only when bad identifier of attribute or nested kind for some kind with embedded
-    // kinds is set. These errors are PARSE_ERROR_TYPE_ATTRIBUTE and PARSE_ERROR_TYPE_KIND and
-    // PARSE_ERROR_TYPE_KIND_FILTER.
-    if (parseErrors.size() >= 2) {
-        typename std::vector<ParseError<Iterator> >::iterator ita;
-        typename std::vector<ParseError<Iterator> >::iterator itk;
-        typename std::vector<ParseError<Iterator> >::iterator itf;
-        ita = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
-        itk = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
-        itf = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                           phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    }
 
-        if ((ita != parseErrors.end()) && (itk != parseErrors.end())) {
+    // Error in identifier (bad number of "->")
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_NESTING);
+    if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << ita->toCombinedString(*itk) << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(UndefinedAttributeError(ita->toCombinedString(*itk), line, ita->errorPosition()));
-            return;
-        }
+        m_parser->parseError(MalformedIdentifier(it->toString(), line, line.begin()));
+        return;
+    }
 
+    // Error in kind name when creating a new object using "new"
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in identifiers set name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIERS_SET);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in attribute name in removal
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
+    if (it != parseErrors.end()) {
+        // Error in attribute name or nested kind name -> report them together
+        typename std::vector<ParseError<Iterator> >::iterator itk =
+            std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                         phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
         if (itk != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << itk->toString() << std::endl;
+            std::cout << it->toCombinedString(*itk) << std::endl;
 #endif
-            m_parser->parseError(InvalidObjectKind(itk->toString(), line, itk->errorPosition()));
+            m_parser->parseError(UndefinedAttributeError(it->toCombinedString(*itk), line, it->errorPosition()));
             return;
         }
-
-        if (itf != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-            std::cout << itf->toString() << std::endl;
+        std::cout << it->toString() << std::endl;
 #endif
-            m_parser->parseError(InvalidObjectKind(itf->toString(), line, itf->errorPosition()));
-            return;
-        }
+        m_parser->parseError(UndefinedAttributeError(it->toString(), line, it->errorPosition()));
+        return;
+    }
 
-    } 
-    
+    // Error in kind nesting
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_NESTING);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in object name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(MalformedIdentifier(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in kind name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
+    // Error in kind name in filter
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
     throw std::out_of_range("Parse error reporting: No error reported.");
 }
 
@@ -795,8 +934,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
                 possibilities.push_back(line + it->name);
             }
-            if (!attributes.empty())
+            if (!attributes.empty()) {
                 possibilities.push_back(line + "no");
+                if (containsIdentifiersSet(contextStack.back().kind)) {
+                    possibilities.push_back(line + "add");
+                    possibilities.push_back(line + "remove");
+                }
+            }
             possibilities.push_back(line + "end");
         }
         // Add names of nested kinds of current kind
@@ -804,9 +948,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         for (std::vector<Db::Identifier>::iterator it = embededKinds.begin(); it != embededKinds.end(); ++it) {
             possibilities.push_back(line + *it);
         }
-        if ((!embededKinds.empty()) && (line.empty())) {
-            possibilities.push_back(line + "delete");
-            possibilities.push_back(line + "rename");
+        if (!embededKinds.empty()) {
+            possibilities.push_back(line + "new");
+            possibilities.push_back(line + "last");
+            if (line.empty()) {
+                possibilities.push_back(line + "delete");
+                possibilities.push_back(line + "rename");
+            }
         }
     }
 }
@@ -926,6 +1074,19 @@ std::vector<Db::Identifier> ParserImpl<Iterator>::parserKindsEmbedsRecursively(c
 
 
 
+template <typename Iterator>
+bool ParserImpl<Iterator>::containsIdentifiersSet(const Db::Identifier &kindName)
+{
+    std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
+    for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+        if (it->type == Db::TYPE_IDENTIFIER_SET)
+            return true;
+    }
+    return false;
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template ParserImpl<iterator_type>::ParserImpl(Parser *parent);
@@ -946,11 +1107,17 @@ template ContextStack ParserImpl<iterator_type>::currentContextStack() const;
 
 template std::vector<std::string> ParserImpl<iterator_type>::tabCompletionPossibilities(const std::string &line);
 
+template void ParserImpl<iterator_type>::newObject(const Db::Identifier &kind);
+
 template void ParserImpl<iterator_type>::categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
 
 template void ParserImpl<iterator_type>::categoryLeft();
 
 template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
+
+template void ParserImpl<iterator_type>::attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value);
+
+template void ParserImpl<iterator_type>::attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value);
 
 template void ParserImpl<iterator_type>::attributeRemove(const Db::Identifier &name);
 
@@ -970,9 +1137,9 @@ template void ParserImpl<iterator_type>::setContextStack(const ContextStack &sta
 
 template void ParserImpl<iterator_type>::clearContextStack();
 
-template void ParserImpl<iterator_type>::addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<iterator_type> *attributesSettingParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, FilterExpressionsParser<iterator_type> *filtersParser);
+template void ParserImpl<iterator_type>::addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<iterator_type> *attributesSettingParser, AttributeRemovalsParser<iterator_type> *attributeRemovalsParser, IdentifiersSetsParser<iterator_type> *identifiersSetsParser, FilterExpressionsParser<iterator_type> *filtersParser);
 
-template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<iterator_type> *kindsOnlyParser, KindsFiltersParser<iterator_type> *kindsFiltersParser);
+template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<iterator_type> *kindsOnlyParser, KindsFiltersParser<iterator_type> *kindsFiltersParser, KindsConstructParser<iterator_type> *kindsConstructParser);
 
 template void ParserImpl<iterator_type>::addNestedKinds(const Db::Identifier &kindName, FiltersParser<iterator_type> *filtersParser);
 
@@ -985,6 +1152,8 @@ template void ParserImpl<iterator_type>::insertTabPossibilitiesOfCurrentContext(
 template void ParserImpl<iterator_type>::insertTabPossibilitiesFromErrors(const std::string &line, std::vector<std::string> &possibilities);
 
 template std::vector<Db::Identifier> ParserImpl<iterator_type>::parserKindsEmbedsRecursively(const Db::Identifier &kindName);
+
+template bool ParserImpl<iterator_type>::containsIdentifiersSet(const Db::Identifier &kindName);
 
 }
 }

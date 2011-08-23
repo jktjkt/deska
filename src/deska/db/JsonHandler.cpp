@@ -28,7 +28,6 @@
 #include <boost/optional.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
-#include "JsonApi.h"
 
 using namespace std;
 using json_spirit::Object;
@@ -221,12 +220,12 @@ JsonField &JsonHandler::write(const std::string &name, const T &value)
 }
 
 template<>
-JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::Db::ObjectModification> &value)
+JsonField &JsonHandler::write(const std::string &name, const std::vector<Deska::Db::ObjectModificationCommand> &value)
 {
     JsonField f(name);
     json_spirit::Array jsonArray;
-    BOOST_FOREACH(const Deska::Db::ObjectModification &item, value) {
-        jsonArray.push_back(boost::apply_visitor(ObjectModificationToJsonValue(), item));
+    BOOST_FOREACH(const Deska::Db::ObjectModificationCommand &item, value) {
+        jsonArray.push_back(boost::apply_visitor(ObjectModificationCommandToJsonValue(), item));
     }
     f.jsonValue = jsonArray;
     f.isForSending = true;
@@ -316,7 +315,7 @@ JsonWrappedAttribute JsonWrappedObjectModification::wrappedAttribute(const Ident
     return JsonWrappedAttribute(it2->type, attributeName);
 }
 
-JsonWrappedObjectModificationSequence::JsonWrappedObjectModificationSequence(
+JsonWrappedObjectModificationResultSequence::JsonWrappedObjectModificationResultSequence(
     const std::map<Identifier, std::vector<KindAttributeDataType> > *dataTypesOfEverything_):
     dataTypesOfEverything(dataTypesOfEverything_)
 {
@@ -328,7 +327,7 @@ template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const V
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const RevisionId &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const TemporaryChangesetId &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const Filter &);
-template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const std::vector<ObjectModification> &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const std::vector<ObjectModificationCommand> &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const bool &);
 
 }

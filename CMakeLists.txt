@@ -121,9 +121,11 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributeRemovalsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesSettingParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_IdentifiersSetsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributesParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FunctionWordsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsOnlyParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsConstructParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FilterExpressionsParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_FiltersParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_KindsFiltersParser.cpp
@@ -138,6 +140,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterfaceIO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ReadlineWrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ChildProcess.cpp
 )
 
 set(deskaCli_SRCS

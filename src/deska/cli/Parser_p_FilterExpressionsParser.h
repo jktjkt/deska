@@ -54,7 +54,7 @@ public:
     */
     FilterExpressionsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
-    /** @short Function used for filling of symbols table of the parser.
+    /** @short Function used for filling of symbols table for all attributes of the parser.
     *
     *   @param attributeName Name of the attribute.
     *   @param attributeParser Attribute parser obtained from PredefinedRules class.
@@ -63,19 +63,36 @@ public:
     void addAtrributeToFilter(const Db::Identifier &attributeName,
                               qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
+    /** @short Function used for filling of symbols table for sets of the parser.
+    *
+    *   @param setName Name of the set.
+    *   @param identifierParser Identifier parser obtained from PredefinedRules class.
+    *   @see PredefinedRules
+    */
+    void addIdentifiersSetToFilter(const Db::Identifier &setName,
+                                   qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
+
 private:
 
     /** Symbols table with comparison operators. */
     qi::symbols<char, Db::ComparisonOperator> operators;
+    qi::symbols<char, Db::ComparisonOperator> setsOperators;
 
     /** Attribute name - attribute value type pairs definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > attributes;
+    qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > sets;
 
     /** Rule for parsing attribute names. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type, qi::locals<bool> > start;
+
+    qi::rule<Iterator, Db::Filter(), ascii::space_type> dispatch;
+
     /** Rule for parsing attribute values. */
     qi::rule<Iterator, Db::Filter(), ascii::space_type,
-             qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type>, Db::ComparisonOperator> > dispatch;
+             qi::locals<qi::rule<Iterator, Db::Value(), ascii::space_type>, Db::ComparisonOperator> > dispatchAll;
+    /** Rule for parsing sets. */
+    qi::rule<Iterator, Db::Filter(), ascii::space_type,
+             qi::locals<qi::rule<Iterator, Db::Identifier(), ascii::space_type>, Db::ComparisonOperator> > dispatchSets;
 
     /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentAttributeName;

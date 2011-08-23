@@ -50,10 +50,12 @@ public:
     *   @param kindName Name of top-level object type, to which the parser belongs.
     *   @param nestedKinds Grammar used for parsing nested kinds definitions of the kind.
     *   @param nestedKindsFilters Grammar used for parsing filters for nested kinds of the kind.
+    *   @param nestedKindsConstructors Grammar used for creating new kinds with generated name.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     KindsParser(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *nestedKinds,
-                KindsFiltersParser<Iterator> *nestedKindsFilters, ParserImpl<Iterator> *parent);
+                KindsFiltersParser<Iterator> *nestedKindsFilters,
+                KindsConstructParser<Iterator> *nestedKindsConstructors, ParserImpl<Iterator> *parent);
 
 private:
 

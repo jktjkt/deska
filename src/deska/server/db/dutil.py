@@ -13,6 +13,7 @@ class DeskaException(Exception):
 		'70010': 'ReCreateObjectError',
 		'70021': 'NotFoundError',
 		'70007': 'ObsoleteParentError',
+		'70004': 'ConstraintError',
 		'*': 'ServerError'
 	}
 

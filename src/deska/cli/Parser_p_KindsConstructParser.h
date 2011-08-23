@@ -1,5 +1,4 @@
 /*
-* Copyright (C) 2011 Jan Kundrát <kundratj@fzu.cz>
 * Copyright (C) 2011 Tomáš Hubík <hubik.tomas@gmail.com>
 *
 * This file is part of the Deska, a tool for central administration of a grid site
@@ -21,8 +20,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
-#define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
+#ifndef DESKA_CLI_PARSERPRIVATE_KINDSCONSTRUCTPARSER_H
+#define DESKA_CLI_PARSERPRIVATE_KINDSCONSTRUCTPARSER_H
 
 #include <boost/spirit/include/qi.hpp>
 #include "deska/db/Objects.h"
@@ -36,22 +35,22 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 template <typename Iterator> class ParserImpl;
 
-/** @short Parser for set of attribute removals of specific top-level grammar.
+/** @short Parser for set of object constructors for each kind.
 *
-*   This grammar parses only one pair <"no" attribute_name>.
+*   This grammar parses only one pair <"new" kind_name>.
 *   For parsing set of thees pairs, use some boost::spirit operator like kleene star.
 *
 *   The grammar is based on a symbols table with lazy lookup function. This method could be found
 *   under name "Nabialek trick". Each parsed pair is sent to the main parser (parent) using semantic
-*   action parsedAttributeRemoval().
+*   action parsedObjectCreation().
 *
-*   This parser is connected to one error handler AttributeRemovalErrorHandler for reporting an error
-*   while parsing an attribute name.
+*   This parser is connected to one error handler KindConstructErrorHandler for reporting an error
+*   while parsing a kind name.
 *
-*   @see AttributeRemovalErrorHandler
+*   @see KindConstructErrorHandler
 */
 template <typename Iterator>
-class AttributeRemovalsParser: public qi::grammar<Iterator, ascii::space_type>
+class KindsConstructParser: public qi::grammar<Iterator, ascii::space_type>
 {
 
 public:
@@ -61,35 +60,35 @@ public:
     *   @param kindName Name of top-level object type, to which the attributes belong.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
-    AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
+    KindsConstructParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent);
 
     /** @short Function used for filling of symbols table of the parser.
     *
-    *   @param attributeName Name of the attribute.
+    *   @param kindName Name of the kind.
     */
-    void addAtrribute(const Db::Identifier &attributeName);
+    void addKind(const Db::Identifier &kindName);
 
 private:
 
-    /** @short Function used as semantic action for each parsed attribute removal.
+    /** @short Function used as semantic action for each parsed object creation.
     *
     *   Calls appropriate method in main parser.
     *
-    *   @param attribute Name of the attribute.
+    *   @param kind Name of the kind.
     */
-    void parsedAttributeRemoval(const Db::Identifier &attribute);
+    void parsedObjectCreation(const Db::Identifier &kind);
 
-    /** Attribute name definitions for purposes of Nabialek trick. */
-    qi::symbols<char, qi::rule<Iterator, ascii::space_type> > attributes;
+    /** Kind name definitions for purposes of Nabialek trick. */
+    qi::symbols<char, qi::rule<Iterator, ascii::space_type> > kinds;
 
-    /** Rule for parsing "no" keyword. */
+    /** Rule for parsing "new" keyword. */
     qi::rule<Iterator, ascii::space_type> start;
-    /** Rule for parsing attribute names. */
+    /** Rule for parsing kind names. */
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > dispatch;
 
-    /** Name of attribute which value is being currently parsed. This variable is used for error handling. */
-    Db::Identifier currentAttributeName;
-    /** Name of the top-level object, whose attributes are parsed by this grammar.
+    /** Name of kind which creation is being currently parsed. This variable is used for error handling. */
+    Db::Identifier currentKindName;
+    /** Name of the top-level object, whose nested kinds are parsed by this grammar.
     *   This variable is used for error handling.
     */
     Db::Identifier m_name;
@@ -101,4 +100,4 @@ private:
 }
 }
 
-#endif  // DESKA_CLI_PARSERPRIVATE_ATTRIBUTESREMOVALPARSER_H
+#endif  // DESKA_CLI_PARSERPRIVATE_KINDSCONSTRUCTPARSER_H

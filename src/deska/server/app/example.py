@@ -13,6 +13,7 @@ data = list([
 	'{"command": "kindRelations", "kindName": "interface" , "tag":"TAG"}',
 	'{"command": "kindRelations", "kindName": "vendor" , "tag":"TAG"}',
 	'{"command": "startChangeset", "tag":"TAG"}',
+	'{"command": "createObject", "kindName": "vendor", "objectName": "" , "tag":"TAG"}',
 	'{"command": "createObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"}',
 	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
 	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP", "tag":"TAG"}',

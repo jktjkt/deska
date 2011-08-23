@@ -23,12 +23,20 @@
 #ifndef DESKA_CLI_PARSERPRIVATE_ATTRIBUTESPARSER_H
 #define DESKA_CLI_PARSERPRIVATE_ATTRIBUTESPARSER_H
 
-#include "Parser_p.h"
+#include <boost/spirit/include/qi.hpp>
+#include "deska/db/Objects.h"
 
 namespace Deska
 {
 namespace Cli
 {
+
+namespace qi = boost::spirit::qi;
+namespace ascii = boost::spirit::ascii;
+template <typename Iterator> class ParserImpl;
+template <typename Iterator> class AttributesSettingParser;
+template <typename Iterator> class AttributeRemovalsParser;
+template <typename Iterator> class IdentifiersSetsParser;
 
 /** @short Parser for set of attributes specific top-level grammar.
 *
@@ -49,14 +57,16 @@ public:
     *   @param kindName Name of top-level object type, to which the parser belongs.
     *   @param attributesSettingParser Grammar used for parsing of attributes of the kind.
     *   @param attributesRemovalParser Grammar used for parsing of attributes removals of the kind.
+    *   @param identifiersSetsParser Grammar used for parsing of identifiers sets manipulations.
     *   @param parent Pointer to main parser for calling its functions as semantic actions.
     */
     AttributesParser(const Db::Identifier &kindName, AttributesSettingParser<Iterator> *attributesSettingParser,
-                     AttributeRemovalsParser<Iterator> *attributeRemovalsParser, ParserImpl<Iterator> *parent);
+                     AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                     IdentifiersSetsParser<Iterator> *identifiersSetsParser, ParserImpl<Iterator> *parent);
 
 private:
 
-    qi::rule<Iterator, ascii::space_type > start;
+    qi::rule<Iterator, ascii::space_type> start;
 
     /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;

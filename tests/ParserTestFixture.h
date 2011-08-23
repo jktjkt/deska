@@ -43,14 +43,23 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     ~ParserTestFixture();
 
-    /** @short Handler for Parser's categoryEntered signal */
+    /** @short Handler for Parser's createObject() signal */
+    void slotParserCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
+
+    /** @short Handler for Parser's categoryEntered() signal */
     void slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
-    /** @short Handler for Parser's categoryLeft() */
+    /** @short Handler for Parser's categoryLeft() signal*/
     void slotParserCategoryLeft();
 
     /** @short Handler for Parser's setAttr() signal */
     void slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+
+    /** @short Handler for Parser's setAttrInsert() signal */
+    void slotParserSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+
+    /** @short Handler for Parser's setAttrRemove() signal */
+    void slotParserSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short Handler for Parser's removeAttr() signal */
     void slotParserRemoveAttr(const Deska::Db::Identifier &name);
@@ -64,6 +73,9 @@ struct ParserTestFixture: public boost::signals2::trackable
     /** @short Handler for Parser's functionRename() */
     void slotParserFunctionRename(const Deska::Db::Identifier &newName);
 
+    /** @short Handler for Parser's objectsFilter() */
+    void slotParserObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
+
     /** @short Handler for Parser's parserError() signal */
     void slotParserParseError(const Deska::Cli::ParserException &exception);
     
@@ -75,6 +87,9 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     /** @short Call this function to verify that no more events were logged */
     void expectNothingElse();
+
+    /** @short Verify that the first signal which wasn't checked yet was the createObject and that its argument match */
+    void expectCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short Verify that the first signal which wasn't checked yet was the categoryEntered and that its argument match */
     void expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
@@ -90,6 +105,18 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered();
     */
     void expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+
+    /** @short Check that the first signal which was not checked yet was the setAttrInsert()
+
+    @see expectCategoryEntered();
+    */
+    void expectSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+
+    /** @short Check that the first signal which was not checked yet was the setAttrRemove()
+
+    @see expectCategoryEntered();
+    */
+    void expectSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short Check that the first signal which was not checked yet was the removeAttr()
 
@@ -114,6 +141,12 @@ struct ParserTestFixture: public boost::signals2::trackable
     @see expectCategoryEntered()
     */
     void expectFunctionRename(const Deska::Db::Identifier &newName);
+
+    /** @short Check for objectsFilter
+
+    @see expectCategoryEntered()
+    */
+    void expectObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
     
     /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
 
@@ -138,12 +171,27 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     void verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
+    void verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
+
     void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
                               const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2);
+
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
+                              const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2);
+
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
+                              const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2);
+
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
+                              const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2);
 
     void verifyEmptyStack();
 
     void slotParserSetAttrCheckContext();
+
+    void slotParserSetAttrInsertCheckContext();
+
+    void slotParserSetAttrRemoveCheckContext();
 
     void slotParserRemoveAttrCheckContext();
 
@@ -154,7 +202,9 @@ struct ParserTestFixture: public boost::signals2::trackable
     Deska::Db::Api *db;
     Deska::Cli::Parser *parser; // we have to use a pointer because it has to be initialized at construction time :(
     std::queue<MockParserEvent> parserEvents;
-    boost::signals2::connection attrCheckContextConnection;
+    boost::signals2::connection attrSetCheckContextConnection;
+    boost::signals2::connection attrSetInsertCheckContextConnection;
+    boost::signals2::connection attrSetRemoveCheckContextConnection;
     boost::signals2::connection attrRemoveCheckContextConnection;
     boost::signals2::connection deleteCheckContextConnection;
     boost::signals2::connection renameCheckContextConnection;

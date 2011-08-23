@@ -523,12 +523,17 @@ class Templates:
 		tmp bigint;
 	BEGIN
 		SELECT get_current_changeset() INTO ver;
-		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND name = name_ AND dest_bit = '1';
-		IF FOUND THEN
-			RAISE 'Object with name %% was deleted, ...', name_ USING ERRCODE = '70010';
-		END IF;
-		INSERT INTO %(tbl)s_history (name,version)
-			VALUES (name_,ver);
+		BEGIN
+			SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND name = name_ AND dest_bit = '1';
+			IF FOUND THEN
+				RAISE 'Object with name %% was deleted, ...', name_ USING ERRCODE = '70010';
+			END IF;
+			INSERT INTO %(tbl)s_history (name,version)
+				VALUES (name_,ver);
+		EXCEPTION
+			WHEN check_violation THEN
+				RAISE 'Object %% violates check constraint.', name_ USING ERRCODE = '70004';
+		END;
 		
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;

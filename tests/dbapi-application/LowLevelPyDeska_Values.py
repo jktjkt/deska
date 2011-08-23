@@ -75,3 +75,7 @@ def imperative(r):
     r.assertEqual(repr(_l.Expression(fe4)),
         "Expression(AttributeExpression(hardware.vendor not contains Value<identifier_set>([compaq, hp])))")
 
+    fe5 = _l.SpecialExpression(_l.SpecialFilterType.SPECIAL_EMBEDDED_LAST_ONE,
+                               "interface")
+    r.assertEqual(repr(_l.Expression(fe5)),
+                  "Expression(SpecialExpression(interface embeddedLastOne))")

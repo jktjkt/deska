@@ -109,7 +109,7 @@ void checkJsonValueType(const json_spirit::Value &v, const json_spirit::Value_ty
 }
 
 template <>
-ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
     const Deska::Db::CreateObjectModification &value) const
 {
     json_spirit::Object o;
@@ -120,7 +120,7 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
 }
 
 template <>
-ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
     const Deska::Db::DeleteObjectModification &value) const
 {
     json_spirit::Object o;
@@ -131,7 +131,7 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
 }
 
 template <>
-ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
     const Deska::Db::RenameObjectModification &value) const
 {
     json_spirit::Object o;
@@ -143,7 +143,7 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
 }
 
 template <>
-ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operator()(
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
     const Deska::Db::SetAttributeModification &value) const
 {
     json_spirit::Object o;
@@ -157,6 +157,33 @@ ObjectModificationToJsonValue::result_type ObjectModificationToJsonValue::operat
     }
     return o;
 }
+
+template <>
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
+    const Deska::Db::SetAttributeInsertModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "setAttributeInsert"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    o.push_back(json_spirit::Pair("attributeName", value.attributeName));
+    o.push_back(json_spirit::Pair("attributeData", value.attributeData));
+    return o;
+}
+
+template <>
+ObjectModificationCommandToJsonValue::result_type ObjectModificationCommandToJsonValue::operator()(
+    const Deska::Db::SetAttributeRemoveModification &value) const
+{
+    json_spirit::Object o;
+    o.push_back(json_spirit::Pair("command", "setAttributeRemove"));
+    o.push_back(json_spirit::Pair("kindName", value.kindName));
+    o.push_back(json_spirit::Pair("objectName", value.objectName));
+    o.push_back(json_spirit::Pair("attributeName", value.attributeName));
+    o.push_back(json_spirit::Pair("attributeData", value.attributeData));
+    return o;
+}
+
 
 /** @short Extract PendingChangeset::AttachStatus from JSON */
 template<> struct JsonConversionTraits<PendingChangeset::AttachStatus> {
@@ -276,7 +303,17 @@ template<> struct JsonConversionTraits<Deska::Db::ComparisonOperator> {
         case FILTER_COLUMN_NOT_CONTAINS:
             return std::string("columnNotContains");
         }
-        throw std::domain_error("Value of Deska::Db::ExpressionKind is out of bounds");
+        throw std::domain_error("Value of Deska::Db::ComparisonOperator is out of bounds");
+    }
+};
+
+template<> struct JsonConversionTraits<Deska::Db::SpecialFilterType> {
+    static json_spirit::Value toJson(const Deska::Db::SpecialFilterType &value) {
+        switch (value) {
+        case FILTER_SPECIAL_EMBEDDED_LAST_ONE:
+            return std::string("embeddedLastOne");
+        }
+        throw std::domain_error("Value of Deska::Db::SpecialFilterType is out of bounds");
     }
 };
 
@@ -298,6 +335,14 @@ struct DeskaFilterExpressionToJsonValue: public boost::static_visitor<json_spiri
         o.push_back(json_spirit::Pair("kind", expression.kind));
         o.push_back(json_spirit::Pair("attribute", expression.attribute));
         o.push_back(json_spirit::Pair("value", JsonConversionTraits<Value>::toJson(expression.constantValue)));
+        return o;
+    }
+
+    result_type operator()(const Deska::Db::SpecialExpression &expression) const
+    {
+        json_spirit::Object o;
+        o.push_back(json_spirit::Pair("specialCondition", JsonConversionTraits<SpecialFilterType>::toJson(expression.type)));
+        o.push_back(json_spirit::Pair("kind", expression.kind));
         return o;
     }
 };
@@ -680,6 +725,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetParsingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ConstraintError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ObsoleteParentError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(NotASetError)
         else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
         else {
@@ -932,7 +978,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOriginList>::extract(const 
 
 
 template<>
-void SpecializedExtractor<JsonWrappedObjectModificationSequence>::extract(const json_spirit::Value &value)
+void SpecializedExtractor<JsonWrappedObjectModificationResultSequence>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
     JsonContext c1("When extracting a list of differences");
@@ -976,7 +1022,7 @@ template JsonField& JsonField::extract(JsonWrappedAttributeMapList*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOriginList*);
 template JsonField& JsonField::extract(std::vector<RevisionMetadata>*);
-template JsonField& JsonField::extract(JsonWrappedObjectModificationSequence*);
+template JsonField& JsonField::extract(JsonWrappedObjectModificationResultSequence*);
 template JsonField& JsonField::extract(std::set<Identifier>*);
 
 }

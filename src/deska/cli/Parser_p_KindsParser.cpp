@@ -23,8 +23,8 @@
 #include <boost/assert.hpp>
 #include "Parser_p_KindsOnlyParser.h"
 #include "Parser_p_KindsFiltersParser.h"
+#include "Parser_p_KindsConstructParser.h"
 #include "Parser_p_KindsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -36,6 +36,7 @@ template <typename Iterator>
 KindsParser<Iterator>::KindsParser(const Db::Identifier &kindName,
                                    KindsOnlyParser<Iterator> *nestedKinds,
                                    KindsFiltersParser<Iterator> *nestedKindsFilters,
+                                   KindsConstructParser<Iterator> *nestedKindsConstructors,
                                    ParserImpl<Iterator> *parent):
     KindsParser<Iterator>::base_type(start), m_parent(parent)
 {
@@ -43,13 +44,13 @@ KindsParser<Iterator>::KindsParser(const Db::Identifier &kindName,
     // The API is not sane, and therefore we have the following crap here.
     this->name(kindName);
 
-    start = ((*nestedKinds) | (*nestedKindsFilters));
+    start = ((*nestedKinds) | (*nestedKindsFilters) | (*nestedKindsConstructors));
 }
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template KindsParser<iterator_type>::KindsParser(const std::string &kindName, KindsOnlyParser<iterator_type> *nestedKinds, KindsFiltersParser<iterator_type> *nestedKindsFilters, ParserImpl<iterator_type> *parent);
+template KindsParser<iterator_type>::KindsParser(const std::string &kindName, KindsOnlyParser<iterator_type> *nestedKinds, KindsFiltersParser<iterator_type> *nestedKindsFilters, KindsConstructParser<iterator_type> *nestedKindsConstructors, ParserImpl<iterator_type> *parent);
 
 }
 }

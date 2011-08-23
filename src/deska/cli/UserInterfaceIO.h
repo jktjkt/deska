@@ -30,6 +30,7 @@
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/noncopyable.hpp>
+#include "boost/process.hpp"
 
 #include "CliObjects.h"
 #include "deska/db/Revisions.h"
@@ -81,7 +82,6 @@ private:
 };
 
 
-
 /** @short Visitor for printing oject modifications. */
 struct ModificationPrinter: public boost::static_visitor<void> {
     //@{
@@ -127,6 +127,18 @@ public:
     *   @param message Message to print
     */
     virtual void printMessage(const std::string &message);
+
+    /** @short Displays some message in pager like less.
+    *
+    *   @param message Message to display
+    */
+    virtual void displayInPager(const std::string &message);
+
+    /** @short Runs an editor and opens file for editting
+    *
+    *   @param editFile File to edit
+    */
+    virtual void editFile(const std::string &fileName);
 
     /** @short Displays confirmation message for deletion of a object and returns users choice.
     *
@@ -280,7 +292,7 @@ public:
     *
     *   @param modifications Vector of modifications representing the diff.
     */
-    virtual void printDiff(const std::vector<Db::ObjectModification> &modifications);
+    virtual void printDiff(const std::vector<Db::ObjectModificationResult> &modifications);
 
     /** @short Adds completion string to the completions vector in the CliCompleter.
     *

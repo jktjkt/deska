@@ -70,6 +70,10 @@ struct MockCliEvent
         EVENT_REPORT_ERROR,
         /** @short The printMessage() event */
         EVENT_PRINT_MESSAGE,
+        /** @short The displayInPager() event */
+        EVENT_DISPALY_IN_PAGER,
+        /** @short The editFile() event */
+        EVENT_EDIT_FILE,
         /** @short The confirmDeletion() event */
         EVENT_CONFIRM_DELETION,
         /** @short The confirmDeletion() return */
@@ -149,7 +153,7 @@ struct MockCliEvent
     std::vector<std::string> vect;
     std::vector<Deska::Db::PendingChangeset> changesets;
     std::vector<Deska::Db::RevisionMetadata> revisions;
-    std::vector<Deska::Db::ObjectModification> modifications;
+    std::vector<Deska::Db::ObjectModificationResult> diff;
     std::vector<Deska::Cli::AttributeDefinition> attrs;
     std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrsorig;
     std::vector<Deska::Cli::ObjectDefinition> objects;

@@ -80,20 +80,32 @@ public:
     *   @see ParserSignals
     *   @see Parser
     */
+    bool applyCreateObject(const ContextStack &context,
+                           const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
     bool applyCategoryEntered(const ContextStack &context,
-                              const Db::Identifier &kind, const Db::Identifier &object);
+                              const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
     bool applySetAttribute(const ContextStack &context,
                            const Db::Identifier &attribute, const Db::Value &value);
+    bool applySetAttributeInsert(const ContextStack &context,
+                           const Db::Identifier &attribute, const Db::Identifier &value);
+    bool applySetAttributeRemove(const ContextStack &context,
+                           const Db::Identifier &attribute, const Db::Identifier &value);
     bool applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute);
     bool applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
     bool applyFunctionShow(const ContextStack &context);
     bool applyFunctionDelete(const ContextStack &context);
     bool applyFunctionRename(const ContextStack &context, const Db::Identifier &newName);
 
+    bool confirmCreateObject(const ContextStack &context,
+                             const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmCategoryEntered(const ContextStack &context,
                                 const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmSetAttribute(const ContextStack &context,
                              const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmSetAttributeInsert(const ContextStack &context,
+                             const Db::Identifier &attribute, const Db::Identifier &value);
+    bool confirmSetAttributeRemove(const ContextStack &context,
+                             const Db::Identifier &attribute, const Db::Identifier &value);
     bool confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute);
     bool confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
     bool confirmFunctionShow(const ContextStack &context);

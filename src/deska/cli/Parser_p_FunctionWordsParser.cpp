@@ -23,7 +23,6 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_FunctionWordsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -36,9 +35,18 @@ template <typename Iterator>
 FunctionWordsParser<Iterator>::FunctionWordsParser(ParserImpl<Iterator> *parent):
     FunctionWordsParser<Iterator>::base_type(start), m_parent(parent)
 {
-    start = ((qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
+    start = ((qi::lit("create")[phoenix::bind(&FunctionWordsParser::actionCreate, this)])
+           | (qi::lit("delete")[phoenix::bind(&FunctionWordsParser::actionDelete, this)])
            | (qi::lit("show")[phoenix::bind(&FunctionWordsParser::actionShow, this)])
            | (qi::lit("rename")[phoenix::bind(&FunctionWordsParser::actionRename, this)]));
+}
+
+
+
+template <typename Iterator>
+void FunctionWordsParser<Iterator>::actionCreate()
+{
+    m_parent->setParsingMode(PARSING_MODE_CREATE);
 }
 
 
@@ -71,9 +79,13 @@ void FunctionWordsParser<Iterator>::actionRename()
 
 template FunctionWordsParser<iterator_type>::FunctionWordsParser(ParserImpl<iterator_type> *parent);
 
+template void FunctionWordsParser<iterator_type>::actionCreate();
+
 template void FunctionWordsParser<iterator_type>::actionDelete();
 
 template void FunctionWordsParser<iterator_type>::actionShow();
+
+template void FunctionWordsParser<iterator_type>::actionRename();
 
 }
 }

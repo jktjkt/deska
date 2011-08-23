@@ -30,7 +30,6 @@
 #include <boost/noncopyable.hpp>
 #include <boost/signals2/trackable.hpp>
 #include "deska/db/Objects.h"
-#include "deska/db/Api.h"
 #include "ContextStack.h"
 
 
@@ -43,6 +42,48 @@ class Parser;
 class ParserException;
 class SignalsHandler;
 class UserInterface;
+
+
+/** @short Represents signal createObject() from the parser. */
+class ParserSignalCreateObject
+{
+public:
+
+    /** @short Constructor for storing signal createObject().
+    *
+    *   @param context Current parser context
+    *   @param kind Kind name of object to create
+    *   @param object Kind instance of object to create
+    */
+    ParserSignalCreateObject(const ContextStack &context,
+                             const Db::Identifier &kind, const Db::Identifier &object);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the database
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
+    Db::Identifier objectName;
+    //@}
+};
+
 
 
 /** @short Represents signal categoryEntered() from the parser. */
@@ -152,6 +193,90 @@ private:
     /** Additional information needed to be stored for particular signals. */
     Db::Identifier attributeName;
     Db::Value setValue;
+    //@}
+};
+
+
+
+/** @short Represents signal setAttributeInsert() from the parser. */
+class ParserSignalSetAttributeInsert
+{
+public:
+
+    /** @short Constructor for storing signal setAttributeInsert().
+    *
+    *   @param context Current parser context
+    *   @param attribute Name of set being changed
+    *   @param value Identifier to be added in the set
+    */
+    ParserSignalSetAttributeInsert(const ContextStack &context,
+                                   const Db::Identifier &attribute, const Db::Identifier &value);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier setName;
+    Db::Identifier identifier;
+    //@}
+};
+
+
+
+/** @short Represents signal setAttributeRemove() from the parser. */
+class ParserSignalSetAttributeRemove
+{
+public:
+
+    /** @short Constructor for storing signal setAttributeRemove().
+    *
+    *   @param context Current parser context
+    *   @param attribute Name of set being changed
+    *   @param value Identifier to be removed from the set
+    */
+    ParserSignalSetAttributeRemove(const ContextStack &context,
+                                   const Db::Identifier &attribute, const Db::Identifier &value);
+
+    /** @short Performs action, that is the signal connected with.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if successful, else false
+    */
+    bool apply(SignalsHandler *signalsHandler) const;
+
+    /** @short Shows confirmation message for performin actions connected with the signal, when necessary.
+    *
+    *   @param signalsHandler Pointer to the signals handler for calling actions
+    *   @return True if confirmed, else false
+    */
+    bool confirm(SignalsHandler *signalsHandler) const;
+
+private:
+
+    /** Context stack, that was actual when signal was triggered. */
+    ContextStack signalsContext;
+
+    //@{
+    /** Additional information needed to be stored for particular signals. */
+    Db::Identifier setName;
+    Db::Identifier identifier;
     //@}
 };
 
@@ -343,7 +468,8 @@ private:
 
 
 /** @short Represents one signal from the Parser. */
-typedef boost::variant<ParserSignalCategoryEntered, ParserSignalCategoryLeft, ParserSignalSetAttribute,
+typedef boost::variant<ParserSignalCreateObject, ParserSignalCategoryEntered, ParserSignalCategoryLeft,
+                       ParserSignalSetAttribute, ParserSignalSetAttributeInsert, ParserSignalSetAttributeRemove,
                        ParserSignalRemoveAttribute, ParserSignalObjectsFilter, ParserSignalFunctionShow,
                        ParserSignalFunctionDelete, ParserSignalFunctionRename> ParserSignal;
 
@@ -432,9 +558,12 @@ private:
 
     //@{
     /** @short Slots for signals from the parser. */
+    void slotCreateObject(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
     void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
+    void slotSetAttributeInsert(const Db::Identifier &attribute, const Db::Identifier &value);
+    void slotSetAttributeRemove(const Db::Identifier &attribute, const Db::Identifier &value);
     void slotRemoveAttribute(const Db::Identifier &attribute);
     void slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     void slotFunctionShow();
@@ -445,9 +574,12 @@ private:
     void slotParsingStarted();
     //@}
 
+    friend class ParserSignalCreateObject;
     friend class ParserSignalCategoryEntered;
     friend class ParserSignalCategoryLeft;
     friend class ParserSignalSetAttribute;
+    friend class ParserSignalSetAttributeInsert;
+    friend class ParserSignalSetAttributeRemove;
     friend class ParserSignalRemoveAttribute;
     friend class ParserSignalObjectsFilter;
     friend class ParserSignalFunctionShow;

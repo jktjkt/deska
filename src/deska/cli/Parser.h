@@ -49,6 +49,8 @@ template<typename Iterator> class ParserImpl;
 typedef enum {
     /** @short Standard mode expects kinds including their attributes. */
     PARSING_MODE_STANDARD,
+    /** @short Create mode expects kinds with nested kinds with no attributes. */
+    PARSING_MODE_CREATE,
     /** @short Delete mode expects kinds with nested kinds with no attributes. */
     PARSING_MODE_DELETE,
     /** @short Show mode expects kinds with nested kinds with no attributes. */
@@ -154,6 +156,12 @@ public:
     */
     std::vector<std::string> tabCompletionPossibilities(const std::string &line);
 
+    /** @short Creates an object
+    *
+    *   This signal is emitted whenever the user would like to create a new object without entering its context.
+    */
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name)> createObject;
+
     /** @short The input indicates that the following signals will be related to a particular object
     *
     *   This signal is emitted whenever the parsed text indicates that we should enter a "context", like when it
@@ -175,6 +183,21 @@ public:
     *   of the attribute and the second one the attribute value.
     */
     boost::signals2::signal<void (const Db::Identifier &name, const Db::Value &value)> attributeSet;
+
+    /** @short Insert an identifier into a set
+    *
+    *   This signal is triggered whenever an identifier insertion into a set is encountered.
+    *   The first argument is the name of the set (attribute of type TYPE_IDENTIFIER_SET) and the second one
+    *   the identifier.
+    */
+    boost::signals2::signal<void (const Db::Identifier &name, const Db::Identifier &value)> attributeSetInsert;
+
+    /** @short Remove an identifier from a set
+    *
+    *   This signal is triggered whenever an identifier removal from a set is encountered.
+    *   The first argument is the name of the set (attribute of type TYPE_IDENTIFIER_SET) and the second one 
+    */
+    boost::signals2::signal<void (const Db::Identifier &name, const Db::Identifier &value)> attributeSetRemove;
 
     /** @short Remove an object's attribute
     *

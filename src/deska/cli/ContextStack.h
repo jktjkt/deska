@@ -38,6 +38,9 @@ namespace Cli {
 /** @short Structure for pairs kind name - object name of filter. */
 struct ContextStackItem
 {
+    /** @short Constructor for creating an empty object. */
+    ContextStackItem();
+
     /** @short Constructor only assignes the data members.
     *
     *   @param kindName Name of the kind (eg. host)

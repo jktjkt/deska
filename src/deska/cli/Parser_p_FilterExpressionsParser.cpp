@@ -22,7 +22,6 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_FilterExpressionsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -63,17 +62,25 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
     operators.add("<", Db::FILTER_COLUMN_LT);
     operators.add("<=", Db::FILTER_COLUMN_LE);
 
+    setsOperators.add("contains", Db::FILTER_COLUMN_CONTAINS);
+    setsOperators.add("not_contains", Db::FILTER_COLUMN_NOT_CONTAINS);
+
     // When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
     start %= (eps(!_a) > dispatch >> -eoi[_a = true]);
 
+    dispatch %= dispatchAll | dispatchSets;
+
     // Attribute name recognized -> try to parse filter value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatch = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
+    dispatchAll = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
                                                                       phoenix::ref(currentAttributeName), _1)]);
+    dispatchSets = (raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > setsOperators[_b = _1]
+        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
+            phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
 
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
@@ -93,11 +100,22 @@ void FilterExpressionsParser<Iterator>::addAtrributeToFilter(const Db::Identifie
 
 
 
+template <typename Iterator>
+void FilterExpressionsParser<Iterator>::addIdentifiersSetToFilter(const Db::Identifier &setName,
+                                         qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser)
+{
+    sets.add(setName, identifierParser);
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template FilterExpressionsParser<iterator_type>::FilterExpressionsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
 template void FilterExpressionsParser<iterator_type>::addAtrributeToFilter(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+
+template void FilterExpressionsParser<iterator_type>::addIdentifiersSetToFilter(const Db::Identifier &setName, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
 
 }
 }

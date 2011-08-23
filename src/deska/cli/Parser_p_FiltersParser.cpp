@@ -23,7 +23,6 @@
 #include <boost/assert.hpp>
 #include "Parser_p_FiltersParser.h"
 #include "Parser_p_FilterExpressionsParser.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -75,9 +74,9 @@ FiltersParser<Iterator>::FiltersParser(const Db::Identifier &kindName,
     dispatch = (raw[nestedAttributes[_a = _1]][rangeToString(_1, phoenix::ref(nestedKindName))] >
                qi::lit(".") > lazy(_a))[_val = _2];
 
-    phoenix::function<KindFiltersErrorHandler<Iterator> > kindErrorHandler = KindFiltersErrorHandler<Iterator>();
-    on_error<fail>(nestedAttrExpr, kindErrorHandler(_1, _2, _3, _4,
-                                                    phoenix::ref(nestedAttributes), phoenix::ref(m_name), m_parent));
+    phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();
+    on_error<fail>(nestedAttrExpr, kindFiltersErrorHandler(_1, _2, _3, _4, phoenix::ref(nestedAttributes),
+                                                           phoenix::ref(m_name), m_parent));
 }
 
 

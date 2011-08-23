@@ -75,11 +75,40 @@ struct SetAttributeModification {
 bool operator==(const SetAttributeModification &a, const SetAttributeModification &b);
 std::ostream& operator<<(std::ostream &stream, const SetAttributeModification &mod);
 
+struct SetAttributeInsertModification {
+    Identifier kindName;
+    Identifier objectName;
+    Identifier attributeName;
+    Identifier attributeData;
+
+    SetAttributeInsertModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+};
+bool operator==(const SetAttributeInsertModification &a, const SetAttributeInsertModification &b);
+bool operator<<(std::ostream &stream, const SetAttributeInsertModification &mod);
+
+struct SetAttributeRemoveModification {
+    Identifier kindName;
+    Identifier objectName;
+    Identifier attributeName;
+    Identifier attributeData;
+
+    SetAttributeRemoveModification(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+};
+bool operator==(const SetAttributeRemoveModification &a, const SetAttributeRemoveModification &b);
+bool operator<<(std::ostream &stream, const SetAttributeRemoveModification &mod);
+
+
+/** @short Variant of all possible object modifications which can be encountered in the context of a diff */
 typedef boost::variant<CreateObjectModification, DeleteObjectModification, RenameObjectModification,
-    SetAttributeModification> ObjectModification;
+    SetAttributeModification> ObjectModificationResult;
+
+/** @short Variant of all possible object modifications which are usable as a part of a batched command */
+typedef boost::variant<CreateObjectModification, DeleteObjectModification, RenameObjectModification,
+SetAttributeModification, SetAttributeInsertModification, SetAttributeRemoveModification> ObjectModificationCommand;
 
 /** @short operator!= is not provided by boost::variant */
-bool operator!=(const ObjectModification& a, const ObjectModification& b);
+bool operator!=(const ObjectModificationResult& a, const ObjectModificationResult& b);
+bool operator!=(const ObjectModificationCommand& a, const ObjectModificationCommand& b);
 
 }
 }

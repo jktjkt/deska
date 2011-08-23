@@ -23,13 +23,19 @@
 #define DESKA_TEST_MOCKPARSEREVENT_H
 
 #include <iosfwd>
+#include <boost/optional.hpp>
+
 #include "deska/cli/Exceptions.h"
 #include "deska/db/Objects.h"
+#include "deska/db/Filter.h"
 
 /** @short Helper class representing a signal emitted by the Parser being tested */
 class MockParserEvent
 {
 public:
+    /** @short The createObject() signal */
+    static MockParserEvent createObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
+
     /** @short The categoryEntered() signal */
     static MockParserEvent categoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
@@ -38,6 +44,12 @@ public:
 
     /** @short The setAttr() signal */
     static MockParserEvent setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+
+    /** @short The setAttrInsert() signal */
+    static MockParserEvent setAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+
+    /** @short The setAttrRemove() signal */
+    static MockParserEvent setAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short The removeAttr() signal */
     static MockParserEvent removeAttr(const Deska::Db::Identifier &name);
@@ -50,6 +62,9 @@ public:
 
     /** @short The functionRename() signal */
     static MockParserEvent functionRename(const Deska::Db::Identifier &newName);
+
+    /** @short The objectsFilter() signal */
+    static MockParserEvent objectsFilter(const Deska::Db::Identifier &name, const Deska::Db::Filter &filter);
 
     /** @short Parser error */
     static MockParserEvent parserError(const Deska::Cli::ParserException &err);
@@ -69,12 +84,18 @@ public:
 
 private:
     typedef enum {
-        /** @short Handler for the categoryEntered() signal */
+        /** @short Handler for the createObject() signal */
+        EVENT_CREATE_OBJECT,
+        /** @short Handler for categoryEntered() */
         EVENT_ENTER_CONTEXT,
         /** @short Handler for categoryLeft() */
         EVENT_LEAVE_CONTEXT,
         /** @short Handler for setAttribute() */
         EVENT_SET_ATTR,
+        /** @short Handler for setAttributeInsert() */
+        EVENT_SET_ATTR_INSERT,
+        /** @short Handler for setAttributeRemove() */
+        EVENT_SET_ATTR_REMOVE,
         /** @short Handler for removeAttribute() */
         EVENT_REMOVE_ATTR,
         /** @short Handler for functionShow() */
@@ -83,6 +104,8 @@ private:
         EVENT_FUNCTION_DELETE,
         /** @short Handler for functionRename() */
         EVENT_FUNCTION_RENAME,
+        /** @short Handler for objectsFilter() */
+        EVENT_OBJECTS_FILTER,
         /** @short Handler for parseError() */
         EVENT_PARSE_ERROR,
         /** @short Handler for parsingFinished() */
@@ -98,6 +121,7 @@ private:
     Event eventKind;
     Deska::Db::Identifier i1, i2;
     Deska::Db::Value v1;
+    boost::optional<Deska::Db::Filter> f1;
     std::string message;
 };
 

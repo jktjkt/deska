@@ -96,11 +96,52 @@ std::ostream& operator<<(std::ostream &stream, const SetAttributeModification &m
         ", "  << mod.attributeData << ", "  << mod.oldAttributeData << ")";
 }
 
-bool operator!=(const ObjectModification& a, const ObjectModification& b)
+bool operator!=(const ObjectModificationResult& a, const ObjectModificationResult& b)
 {
     // boost::variant provides operator==(), but not operator!=()
     return !(a==b);
 }
+
+bool operator!=(const ObjectModificationCommand& a, const ObjectModificationCommand& b)
+{
+    // boost::variant provides operator==(), but not operator!=()
+    return !(a==b);
+}
+
+SetAttributeInsertModification::SetAttributeInsertModification(const Identifier &kindName_, const Identifier &objectName_,
+                                                               const Identifier &attributeName_, const Identifier &attributeData_):
+    kindName(kindName_), objectName(objectName_), attributeName(attributeName_), attributeData(attributeData_)
+{
+}
+
+bool operator==(const SetAttributeInsertModification &a, const SetAttributeInsertModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName && a.attributeName == b.attributeName && a.attributeData == b.attributeData;
+}
+
+bool operator<<(std::ostream &stream, const SetAttributeInsertModification &mod)
+{
+    return stream << "SetAttributeInsertModification(" << mod.kindName << ", " << mod.objectName << ", " << mod.attributeName <<
+        ", "  << mod.attributeData << ")";
+}
+
+SetAttributeRemoveModification::SetAttributeRemoveModification(const Identifier &kindName_, const Identifier &objectName_,
+                                                               const Identifier &attributeName_, const Identifier &attributeData_):
+    kindName(kindName_), objectName(objectName_), attributeName(attributeName_), attributeData(attributeData_)
+{
+}
+
+bool operator==(const SetAttributeRemoveModification &a, const SetAttributeRemoveModification &b)
+{
+    return a.kindName == b.kindName && a.objectName == b.objectName && a.attributeName == b.attributeName && a.attributeData == b.attributeData;
+}
+
+bool operator<<(std::ostream &stream, const SetAttributeRemoveModification &mod)
+{
+    return stream << "SetAttributeRemoveModification(" << mod.kindName << ", " << mod.objectName << ", " << mod.attributeName <<
+        ", "  << mod.attributeData << ")";
+}
+
 
 }
 }

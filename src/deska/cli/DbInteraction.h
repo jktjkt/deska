@@ -57,8 +57,9 @@ public:
     /** @short Creates new object.
     *
     *   @param context Path and object definition to create
+    *   @return ContextStackItem identifying really created object or set of objects
     */
-    void createObject(const ContextStack &context);
+    ContextStackItem createObject(const ContextStack &context);
     /** @short Restores deleted object.
     *
     *   @param context Path and object definition to restore
@@ -81,6 +82,22 @@ public:
     *   @param attribute Attribute and value to set
     */
     void setAttribute(const ContextStack &context, const AttributeDefinition &attribute);
+    /** @short Inserts an identifier to a set.
+    *
+    *   @param context Path to the object which attribute will be changed
+    *   @param set Set name
+    *   @param identifier Identifier to insert
+    */
+    void setAttributeInsert(const ContextStack &context, const Db::Identifier &set,
+                            const Db::Identifier &identifier);
+    /** @short Removes an identifier from a set.
+    *
+    *   @param context Path to the object which attribute will be changed
+    *   @param set Set name
+    *   @param identifier Identifier to remove
+    */
+    void setAttributeRemove(const ContextStack &context, const Db::Identifier &set,
+                            const Db::Identifier &identifier);
     /** @short Removes attribute value in the object.
     *
     *   @param context Path to the object which attribute value will be removed
@@ -212,14 +229,14 @@ public:
     *   @param revisionA Second revision.
     *   @return Vector of modifications how to get from first revision to second revision.
     */
-    std::vector<Db::ObjectModification> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
+    std::vector<Db::ObjectModificationResult> revisionsDifference(const Db::RevisionId &revisionA, const Db::RevisionId &revisionB);
 
     /** @short Returns differences between temporary changeset and its parent
     *
     *   @param changeset Temporary changeset.
     *   @return Vector of modifications how to get from first revision to second revision.
     */
-    std::vector<Db::ObjectModification> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
+    std::vector<Db::ObjectModificationResult> revisionsDifferenceChangeset(const Db::TemporaryChangesetId &changeset);
 
     /** @short Function for obtaining parent for given changeset ID
     *

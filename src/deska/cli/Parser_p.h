@@ -49,9 +49,11 @@ namespace qi = boost::spirit::qi;
 
 template <typename Iterator> class AttributeRemovalsParser;
 template <typename Iterator> class AttributesSettingParser;
+template <typename Iterator> class IdentifiersSetsParser;
 template <typename Iterator> class AttributesParser;
 template <typename Iterator> class FunctionWordsParser;
 template <typename Iterator> class KindsOnlyParser;
+template <typename Iterator> class KindsConstructParser;
 template <typename Iterator> class PredefinedRules;
 template <typename Iterator> class FilterExpressionsParser;
 template <typename Iterator> class FiltersParser;
@@ -165,9 +167,12 @@ public:
 
     //@{
     /** @short Functions that only invokes signals of main parser. */
+    void newObject(const Db::Identifier &kind);
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
     void attributeSet(const Db::Identifier &name, const Db::Value &value);
+    void attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value);
+    void attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value);
     void attributeRemove(const Db::Identifier &name);
     void objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     //@}
@@ -229,10 +234,12 @@ private:
     /** @short Fills symbols table of specific attribute parser with all attributes of given kind. */
     void addKindAttributes(const Db::Identifier &kindName, AttributesSettingParser<Iterator> *attributesSettingParser,
                            AttributeRemovalsParser<Iterator> *attributeRemovalsParser,
+                           IdentifiersSetsParser<Iterator> *identifiersSetsParser,
                            FilterExpressionsParser<Iterator> *filterExpressionsParser);
     /** @short Fills symbols table of specific kinds parser with all nested kinds of given kind. */
     void addNestedKinds(const Db::Identifier &kindName, KindsOnlyParser<Iterator> *kindsOnlyParser,
-                        KindsFiltersParser<Iterator> *kindsFiltersParser);
+                        KindsFiltersParser<Iterator> *kindsFiltersParser,
+                        KindsConstructParser<Iterator> *kindsConstructParser);
     void addNestedKinds(const Db::Identifier &kindName, FiltersParser<Iterator> *filtersParser);
 
     /** @short Parses the whole line and invokes appropriate signals.
@@ -276,14 +283,23 @@ private:
     */
     std::vector<Db::Identifier> parserKindsEmbedsRecursively(const Db::Identifier &kindName);
 
+    /** @short Checks if the kind contains some attribute of type TYPE_IDENTIFIER_SET
+    *
+    *   @param kindName Name of the kind
+    *   @return True if the kind contains some set
+    */
+    bool containsIdentifiersSet(const Db::Identifier &kindName);
+
     //@{
     /** All rules and grammars, that is the whole parser build of are stored there.
     *   Only pointers are used in the main parser.
     */
     std::map<std::string, AttributesSettingParser<Iterator>* > attributesSettingParsers;
     std::map<std::string, AttributeRemovalsParser<Iterator>* > attributeRemovalsParsers;
+    std::map<std::string, IdentifiersSetsParser<Iterator>* > identifiersSetsParsers;
     std::map<std::string, AttributesParser<Iterator>* > attributesParsers;
     std::map<std::string, KindsOnlyParser<Iterator>* > kindsOnlyParsers;
+    std::map<std::string, KindsConstructParser<Iterator>* > kindsConstructParsers;
     std::map<std::string, FilterExpressionsParser<Iterator>* > filterExpressionsParsers;
     std::map<std::string, FiltersParser<Iterator>* > filtersParsers;
     std::map<std::string, KindsFiltersParser<Iterator>* > kindsFiltersParsers;
@@ -316,8 +332,8 @@ private:
     bool dryRun;
     /** True when single kind without any attributes was parsed. Means, that nesting will be permanent. */
     bool singleKind;
-    /** True when some filter was entered. */
-    bool inFilter;
+    /** True when parsing of current line succeeded, alse false. */
+    bool parsingSucceededActions;
     /** Current parsing mode. @see ParsingMode */
     ParsingMode parsingMode;
 };

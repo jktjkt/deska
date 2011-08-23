@@ -554,21 +554,21 @@ void Rebase::operator()(const std::string &params)
     Db::RevisionId newParentRevision = ui->m_dbInteraction->changesetParent(newChangeset);
 
     // Obtain modifications lists for three-way diff
-    std::vector<Db::ObjectModification> externModifications = ui->m_dbInteraction->revisionsDifference(
+    std::vector<Db::ObjectModificationResult> externModifications = ui->m_dbInteraction->revisionsDifference(
         oldParentRevision, newParentRevision);
-    std::vector<Db::ObjectModification> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+    std::vector<Db::ObjectModificationResult> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
         oldChangeset);
 
     // Sort modifications for to merge the lists
     using namespace boost::phoenix::arg_names;
     std::sort(externModifications.begin(), externModifications.end(),
-        boost::phoenix::bind(&Rebase::objectModificationLess, this, arg1, arg2));
+        boost::phoenix::bind(&Rebase::objectModificationResultLess, this, arg1, arg2));
     std::sort(ourModifications.begin(), ourModifications.end(),
-        boost::phoenix::bind(&Rebase::objectModificationLess, this, arg1, arg2));
+        boost::phoenix::bind(&Rebase::objectModificationResultLess, this, arg1, arg2));
 
     // Merge the lists in the temporary file in user readable and edittable format
-    std::vector<Db::ObjectModification>::iterator ite = externModifications.begin();
-    std::vector<Db::ObjectModification>::iterator ito = ourModifications.begin();
+    std::vector<Db::ObjectModificationResult>::iterator ite = externModifications.begin();
+    std::vector<Db::ObjectModificationResult>::iterator ito = ourModifications.begin();
     char tempFile[] = "/tmp/DeskaRebaseXXXXXXXX";
     if (mkstemp(tempFile) == -1) {
         ui->io->reportError("Error while creating rebase temp file \"" + std::string(tempFile) + "\".");
@@ -585,7 +585,7 @@ void Rebase::operator()(const std::string &params)
         return;
     }
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
-        if (objectModificationLess(*ite, *ito)) {
+        if (objectModificationResultLess(*ite, *ito)) {
             ofs << boost::apply_visitor(ExternModificationConverter(), *ite) << std::endl;
             ++ite;
         } else if (*ite == *ito) {
@@ -659,7 +659,7 @@ void Rebase::operator()(const std::string &params)
 
 
 
-bool Rebase::objectModificationLess(const Db::ObjectModification &a, const Db::ObjectModification &b)
+bool Rebase::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
 {
     // TODO
     return true;
@@ -774,7 +774,7 @@ void Diff::operator()(const std::string &params)
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
             return;
         }
-        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
         ui->io->printDiff(modifications);
         return;
@@ -789,7 +789,7 @@ void Diff::operator()(const std::string &params)
     try {
         Db::RevisionId revA = stringToRevision(paramsList[0]);
         Db::RevisionId revB = stringToRevision(paramsList[1]);
-        std::vector<Db::ObjectModification> modifications = ui->m_dbInteraction->revisionsDifference(
+        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference(
             stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
         ui->io->printDiff(modifications);
     } catch (std::invalid_argument &e) {

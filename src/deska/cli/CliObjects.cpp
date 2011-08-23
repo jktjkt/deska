@@ -37,7 +37,10 @@ ObjectDefinition::ObjectDefinition(const Db::Identifier &kindName, const Db::Ide
 
 std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o)
 {
-    return stream << o.kind << " " << o.name;
+    if (o.name.empty())
+        return stream << "new " << o.kind;
+    else
+        return stream << o.kind << " " << o.name;
 }
 
 

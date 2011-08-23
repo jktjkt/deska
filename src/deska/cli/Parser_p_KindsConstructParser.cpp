@@ -22,7 +22,7 @@
 * */
 
 #include <boost/assert.hpp>
-#include "Parser_p_AttributeRemovalsParser.h"
+#include "Parser_p_KindsConstructParser.h"
 #include "Parser_p.h"
 
 namespace Deska
@@ -32,8 +32,8 @@ namespace Cli
 
 
 template <typename Iterator>
-AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
-    AttributeRemovalsParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
+KindsConstructParser<Iterator>::KindsConstructParser(const Db::Identifier &kindName, ParserImpl<Iterator> *parent):
+    KindsConstructParser<Iterator>::base_type(start), m_name(kindName), m_parent(parent)
 {
     using qi::_1;
     using qi::_2;
@@ -52,43 +52,43 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     namespace phoenix = boost::phoenix;
     phoenix::function<RangeToString<Iterator> > rangeToString = RangeToString<Iterator>();
 
-    start = (qi::lit("no") > dispatch);
+    start = (qi::lit("new") > dispatch);
 
-    dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
-        [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this, phoenix::ref(currentAttributeName))];
+    dispatch = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+        [phoenix::bind(&KindsConstructParser::parsedObjectCreation, this, phoenix::ref(currentKindName))];
 
-    phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
-        AttributeRemovalErrorHandler<Iterator>();
+    phoenix::function<KindConstructErrorHandler<Iterator> > kindConstructErrorHandler =
+        KindConstructErrorHandler<Iterator>();
 
-    on_error<fail>(start, attributeRemovalErrorHandler(_1, _2, _3, _4,
-                                                       phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, kindConstructErrorHandler(_1, _2, _3, _4,
+                                                    phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
 }
 
 
 
 template <typename Iterator>
-void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attributeName)
+void KindsConstructParser<Iterator>::addKind(const Db::Identifier &kindName)
 {
-    attributes.add(attributeName, qi::eps);
+    kinds.add(kindName, qi::eps);
 }
 
 
 
 template <typename Iterator>
-void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identifier &attribute)
+void KindsConstructParser<Iterator>::parsedObjectCreation(const Db::Identifier &kind)
 {
-    m_parent->attributeRemove(attribute);
+    m_parent->newObject(kind);
 }
 
 
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template AttributeRemovalsParser<iterator_type>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
+template KindsConstructParser<iterator_type>::KindsConstructParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName);
+template void KindsConstructParser<iterator_type>::addKind(const Db::Identifier &kindName);
 
-template void AttributeRemovalsParser<iterator_type>::parsedAttributeRemoval(const Db::Identifier &parameter);
+template void KindsConstructParser<iterator_type>::parsedObjectCreation(const Db::Identifier &kind);
 
 
 }

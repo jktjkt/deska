@@ -31,6 +31,12 @@ namespace Deska {
 namespace Cli {
 
 
+ContextStackItem::ContextStackItem()
+{
+}
+
+
+
 ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName):
     kind(kindName), name(objectName), filter(boost::optional<Db::Filter>())
 {
@@ -120,7 +126,7 @@ std::string dumpContextStack(const ContextStack &contextStack)
 
 
 
-std::vector<Db::Identifier> pathToVector(const std::string &path)
+std::vector<Db::Identifier> pathToVector(const Db::Identifier &path)
 {
     std::string::const_iterator first = path.begin();
     std::string::const_iterator last = path.end();

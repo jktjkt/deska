@@ -298,6 +298,8 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt ConstraintError} & The executed action violates an integrity constraint & -- \\
     {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
     latest revision in the history & -- \\
+    {\tt NotASetError} & The attribute data type is not an {\tt identifier\_set}, and hence the operation does not make
+    sense & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -401,17 +403,32 @@ relation information etc.  The following types are defined:
         }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}}\footnote{Both forms of the
         {\tt setAttribute} are acceptable.  During regular use, the form without the {\tt oldAttributeData} shall be
         used.  The longer form is accepted in order to enable simply feeding a result of a diff back into the Deska
-        server for further application.} \\
+        server for further application.}, \newline
+        or \newline
+        {\tt \{"command": "setAttributeInsert", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, "attributeData": }Identifier{\tt \}}, \newline
+        or \newline
+        {\tt \{"command": "setAttributeRemove", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
+        }Identifier{\tt, "attributeData": }Identifier{\tt \}}\footnote{The {\tt setAttributeInsert} and {\tt setAttributeRemove}
+        operations can be used in the context of \deskaFuncRef{applyBatchedChanges}, but will not be returned in a diff
+        record.  No matter how a change is initiated, ie. be it over the regular \deskaFuncRef{setAttribute}, or this
+        pair of functions, the diff always includes the {\tt setAttribute} record for simplicity.}
+        \\
     {\tt Deska::Db::ComparisonOperator} &
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
         {\tt "columnLe"}
+        \\
+    {\tt Deska::Db::SpecialFilterType} &
+        {\tt "embeddedLastOne"}
         \\
     {\tt Deska::Db::Expression} &
         One of \newline
         {\tt \{"condition": }ComparisonOperator{\tt, "kind": }Identifier{\tt, "attribute": }Identifier{\tt, "value":
         }Value{\tt \}}, \newline
         or \newline
-        {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}
+        {\tt \{"condition": }ComparisonOperator{\tt, "metadata": }Identifier{\tt, "value": }Value{\tt \}}, \newline
+        or \newline
+        {\tt \{"specialCondition": }SpecialFilterType{\tt, "kind": }Identifier{\tt \}}
         \\
     {\tt Deska::Db::Filter} &
         One of \newline
@@ -475,7 +492,9 @@ changeset.
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
-\deskaFuncRef{setAttribute}.  In case an object gets deleted by accident in a pending changeset, it can be restored to
+\deskaFuncRef{setAttribute}.  Certain attributes accept a set of identifiers; for an effective way of modifying these
+items, see \deskaFuncRef{setAttributeInsert} and \deskaFuncRef{setAttributeRemove}.
+In case an object gets deleted by accident in a pending changeset, it can be restored to
 its previous state via the \deskaFuncRef{restoreDeletedObject}.  It is an error to attempt to delete and create an
 object with the same name in one changeset.  Users can perform several actions in one DBAPI command by calling the
 \deskaFuncRef{applyBatchedChanges} function.
@@ -545,6 +564,10 @@ corresponding tables to each other via correct relation.  Using these
 such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
+
+Finally, there is also the ``special'' kind of filters that do not limit the amount of data based on the attribute values
+or revision metadata, but on some external metainformation.  Currently, only on of these filters is defined, the {\tt
+last} one, which causes the Deska server to consider just the lastly inserted embedded item of a given kind.
 
 \subsubsection{Output Ordering}
 
@@ -745,12 +768,30 @@ Any function which modifies objects stored in the Deska database belongs to this
     {This function will update the value of a particular object's attribute.  To ``remove'' an object's attribute, set its
     value to {\tt null}.}
 
+\deskaFunc{setAttributeInsert}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
+    {}
+    {Insert an identifier into an object's attribute value}
+    {This function will update the value of a particular object's attribute, making sure that the indicated new value is
+    definitely present among the list of values in the attribute.  It is an error to use this function on attributes of
+    a different type than {\tt identifier\_set}; the {\tt NotASetError} exception is thrown in such cases.}
+
+\deskaFunc{setAttributeRemove}{, "kindName": "something", "objectName": "name", "attributeName": "name", "attributeData": "id"}
+    {}
+    {Remove an identifier from an object's attribute value}
+    {This function will update the value of a particular object's attribute, making sure that the indicated new value is
+    definitely not present among the list of values in the attribute.  It is an error to use this function on attributes
+    of a different type than {\tt identifier\_set}; the {\tt NotASetError} exception is thrown in such cases.}
+
 \deskaFunc{applyBatchedChanges}{, "modifications": [ \\
     \{"command": "createObject", "kindName": "k1", "objectName": "o1"\}, \\
     \{"command": "deleteObject", "kindName": "k2", "objectName": "o2"\}, \\
     \{"command": "renameObject", "kindName": "k3", "oldObjectName": "ooooold", "newObjectName": "new"\}, \\
-    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", "attributeName": "a5", \\
-    "attributeData": "new"\} \\
+    \{"command": "setAttribute", "kindName": "k5", "objectName": "o5", \\
+    "attributeName": "a5", "attributeData": "new"\}, \\
+    \{"command": "setAttributeInsert", "kindName": "k6", "objectName": "o6", \\
+    "attributeName": "a6", "attributeData": "one-id"\}, \\
+    \{"command": "setAttributeRemove", "kindName": "k7", "objectName": "o7", \\
+    "attributeName": "a7", "attributeData": "one-id"\} \\
     ]}
     {}
     {Apply a list of batched modifications at once}

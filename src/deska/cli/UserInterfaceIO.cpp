@@ -24,12 +24,14 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "ContextStack.h"
+#include "ChildProcess.h"
 #include "UserInterfaceIO.h"
 
 
@@ -81,7 +83,6 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 {
     commandCompletions.push_back(completion);
 }
-
 
 
 void ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
@@ -151,6 +152,20 @@ void UserInterfaceIO::reportError(const std::string &errorMessage)
 void UserInterfaceIO::printMessage(const std::string &message)
 {
     std::cout << message << std::endl;
+}
+
+
+
+void UserInterfaceIO::displayInPager(const std::string &message)
+{
+    Pager pager(message);
+}
+
+
+
+void UserInterfaceIO::editFile(const std::string &fileName)
+{
+    Editor editor(fileName);
 }
 
 
@@ -472,12 +487,12 @@ void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &re
 
 
 
-void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModification> &modifications)
+void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> &modifications)
 {
     if (modifications.empty()) {
         std::cout << "No difference." << std::endl;
     } else {
-        for (std::vector<Db::ObjectModification>::const_iterator it = modifications.begin();
+        for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
              it != modifications.end(); ++it) {
             boost::apply_visitor(ModificationPrinter(), *it);
         }

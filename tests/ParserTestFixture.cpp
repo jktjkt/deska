@@ -38,20 +38,26 @@ ParserTestFixture::ParserTestFixture()
     fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
-    fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_STRING ) );
-    fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_STRING ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_IPV4_ADDRESS ) );
+    fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_MAC_ADDRESS ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "role", TYPE_IDENTIFIER_SET ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
     db = fake;
 
     parser = new Deska::Cli::Parser(db);
+    parser->createObject.connect(bind(&ParserTestFixture::slotParserCreateObject, this, _1, _2));
     parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
     parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
-    attrCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    attrSetCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
+    parser->attributeSetInsert.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrInsert, this, _1, _2));
+    attrSetInsertCheckContextConnection = parser->attributeSetInsert.connect(bind(&ParserTestFixture::slotParserSetAttrInsertCheckContext, this));
+    parser->attributeSetRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrRemove, this, _1, _2));
+    attrSetRemoveCheckContextConnection = parser->attributeSetRemove.connect(bind(&ParserTestFixture::slotParserSetAttrRemoveCheckContext, this));
     parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
     attrRemoveCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
@@ -59,6 +65,7 @@ ParserTestFixture::ParserTestFixture()
     deleteCheckContextConnection = parser->functionDelete.connect(bind(&ParserTestFixture::slotParserDeleteCheckContext, this));
     parser->functionRename.connect(boost::phoenix::bind(&ParserTestFixture::slotParserFunctionRename, this, _1));
     renameCheckContextConnection = parser->functionRename.connect(bind(&ParserTestFixture::slotParserRenameCheckContext, this));
+    parser->objectsFilter.connect(boost::phoenix::bind(&ParserTestFixture::slotParserObjectsFilter, this, _1, _2));
     parser->parseError.connect(bind(&ParserTestFixture::slotParserParseError, this, _1));
     parser->parsingFinished.connect(bind(&ParserTestFixture::slotParserParsingFinished, this));
     parser->parsingStarted.connect(bind(&ParserTestFixture::slotParserParsingStarted, this));
@@ -68,6 +75,11 @@ ParserTestFixture::~ParserTestFixture()
 {
     delete parser;
     delete db;
+}
+
+void ParserTestFixture::slotParserCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
+{
+    parserEvents.push(MockParserEvent::createObject(kind, name));
 }
 
 void ParserTestFixture::slotParserCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
@@ -83,6 +95,16 @@ void ParserTestFixture::slotParserCategoryLeft()
 void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     parserEvents.push(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::slotParserSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    parserEvents.push(MockParserEvent::setAttrInsert(name, val));
+}
+
+void ParserTestFixture::slotParserSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    parserEvents.push(MockParserEvent::setAttrRemove(name, val));
 }
 
 void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &name)
@@ -103,6 +125,11 @@ void ParserTestFixture::slotParserFunctionDelete()
 void ParserTestFixture::slotParserFunctionRename(const Deska::Db::Identifier &newName)
 {
     parserEvents.push(MockParserEvent::functionRename(newName));
+}
+
+void ParserTestFixture::slotParserObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter)
+{
+    parserEvents.push(MockParserEvent::objectsFilter(kind, filter));
 }
 
 void ParserTestFixture::slotParserParseError(const Deska::Cli::ParserException &exception)
@@ -129,6 +156,11 @@ void ParserTestFixture::expectNothingElse()
     }
 }
 
+void ParserTestFixture::expectCreateObject(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
+{
+    expectHelper(MockParserEvent::createObject(kind, name));
+}
+
 void ParserTestFixture::expectCategoryEntered(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     expectHelper(MockParserEvent::categoryEntered(kind, name));
@@ -142,6 +174,16 @@ void ParserTestFixture::expectCategoryLeft()
 void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     expectHelper(MockParserEvent::setAttr(name, val));
+}
+
+void ParserTestFixture::expectSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    expectHelper(MockParserEvent::setAttrInsert(name, val));
+}
+
+void ParserTestFixture::expectSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+{
+    expectHelper(MockParserEvent::setAttrRemove(name, val));
 }
 
 void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &name)
@@ -162,6 +204,11 @@ void ParserTestFixture::expectFunctionDelete()
 void ParserTestFixture::expectFunctionRename(const Deska::Db::Identifier &newName)
 {
     expectHelper(MockParserEvent::functionRename(newName));
+}
+
+void ParserTestFixture::expectObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter)
+{
+    expectHelper(MockParserEvent::objectsFilter(kind, filter));
 }
 
 void ParserTestFixture::expectParseError(const Deska::Cli::ParserException &exception)
@@ -198,6 +245,15 @@ void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, c
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
 
+void ParserTestFixture::verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter)
+{
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind, filter));
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
 void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
                              const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2)
 {
@@ -205,6 +261,39 @@ void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1,
     std::vector<Deska::Cli::ContextStackItem> specimen;
     specimen.push_back(Deska::Cli::ContextStackItem(kind1, name1));
     specimen.push_back(Deska::Cli::ContextStackItem(kind2, name2));
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
+void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
+                             const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2)
+{
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind1, filter1));
+    specimen.push_back(Deska::Cli::ContextStackItem(kind2, name2));
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
+void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
+                             const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2)
+{
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind1, name1));
+    specimen.push_back(Deska::Cli::ContextStackItem(kind2, filter2));
+    BOOST_CHECK(parser->isNestedInContext());
+    BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
+}
+
+void ParserTestFixture::verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
+                             const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2)
+{
+    const std::vector<Deska::Cli::ContextStackItem> &stack = parser->currentContextStack();
+    std::vector<Deska::Cli::ContextStackItem> specimen;
+    specimen.push_back(Deska::Cli::ContextStackItem(kind1, filter1));
+    specimen.push_back(Deska::Cli::ContextStackItem(kind2, filter2));
     BOOST_CHECK(parser->isNestedInContext());
     BOOST_CHECK_EQUAL_COLLECTIONS(stack.begin(), stack.end(), specimen.begin(), specimen.end());
 }
@@ -218,6 +307,16 @@ void ParserTestFixture::verifyEmptyStack()
 void ParserTestFixture::slotParserSetAttrCheckContext()
 {
     BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to set attributes");
+}
+
+void ParserTestFixture::slotParserSetAttrInsertCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to insert identifier in a set");
+}
+
+void ParserTestFixture::slotParserSetAttrRemoveCheckContext()
+{
+    BOOST_CHECK_MESSAGE(parser->isNestedInContext(), "Parser has to be nested in a context in order to remove identifier form a set");
 }
 
 void ParserTestFixture::slotParserRemoveAttrCheckContext()

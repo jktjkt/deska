@@ -113,7 +113,7 @@ class DB:
 			except Exception, e:
 				# abort if error here
 				self.db.rollback()
-				return self.errorJson(name,tag,e.message)
+				return self.errorJson(name, tag, str(e))
 
 		self.endTransaction()
 		return self.responseJson("applyBatchedChanges",tag)
@@ -150,7 +150,7 @@ class DB:
 			return data
 		except Exception, e:
 			self.endTransaction()
-			return self.errorJson(name,tag,e.message)
+			return self.errorJson(name, tag, str(e))
 
 	def runDBFunction(self,name,args,tag):
 		if name not in self.methods:
@@ -183,7 +183,7 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			raise Exception("Missing arguments: %s" % e.message.split("\n")[0])
+			raise Exception("Missing arguments: %s" % str(e).split("\n")[0])
 
 		logging.debug("fetchall returning: %s)" % data)
 		return data
