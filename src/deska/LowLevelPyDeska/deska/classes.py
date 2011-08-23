@@ -158,11 +158,11 @@ if __name__ == "__main__":
     #print vendor
 
     print hardware.vendor == "ahoj"
-    #print host.note == "bleh"
+    #print host.host_note == "bleh"
     #print host.pwn == "bleh"
     op1 = hardware.vendor == "ahoj"
-    op2 = host.note == "foo"
-    op3 = host.note != None
+    op2 = host.host_note == "foo"
+    op3 = host.host_note != None
     print op1 & op2
     print op1 & op2 & op3
     print host[_l.AndFilter(_l.std_vector_Filter())]
@@ -172,6 +172,6 @@ if __name__ == "__main__":
     print host[host.name != None]
     print host[host.name == "a"]
     print host[host.name == "b"]
-    print host[host.note == "foo"]
+    print host[host.host_note == "foo"]
     print hardware[op1]
     #print hardware[op1 & op2 & op3]

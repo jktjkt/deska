@@ -9,7 +9,7 @@ SELECT createObject('hardware','hwDELL');
 SELECT setAttribute('hardware','hwDELL','vendor','DELL');
 SELECT setAttribute('hardware','hwDELL','purchase','10.1.2010');
 SELECT setAttribute('hardware','hwDELL','warranty','10.1.2013');
-SELECT setAttribute('hardware','hwDELL','note','cesky text v repozitari');
+SELECT setAttribute('hardware','hwDELL','hardware_note','cesky text v repozitari');
 
 -- commit
 -- end session, part of vendor commit? of vendor commit part of this?
@@ -23,7 +23,7 @@ SELECT startChangeset();
 --SELECT deleteObject('vendor','DELL');
 SELECT createObject('vendor','HP');
 SELECT createObject('vendor','IBM');
-SELECT setAttribute('hardware','hwDELL','note','test');
+SELECT setAttribute('hardware','hwDELL','hardware_note','test');
 SELECT setAttribute('hardware','hwDELL','vendor','IBM');
 SELECT commitChangeset('c2');
 
