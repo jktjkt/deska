@@ -2,7 +2,7 @@
 
 from apiUtils import *
 
-expectedHardwareData = {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "hardware_note": None, "template": None, "host": None}
+expectedHardwareData = {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host": None}
 expectedInterfaceData = {"ip4": None, "ip6": None, "mac": "01:23:45:67:89:ab", "note": "host1->eth0 note", "template": None}
 
 def imperative(r):
