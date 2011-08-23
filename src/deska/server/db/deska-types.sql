@@ -4,7 +4,9 @@ CREATE DOMAIN identifier AS text
 	CONSTRAINT digit_on_first_place
 		CHECK ( VALUE !~ '^[[:digit:]]' )
 	CONSTRAINT not_alfanumeric_in_name
-		CHECK ( VALUE !~ '[^[:alnum:]_]' );
+		CHECK ( VALUE !~ '[^[:alnum:]_]' )
+	CONSTRAINT length_gt_zero
+		CHECK ( char_length(VALUE) > 0 );
 
 CREATE DOMAIN ipv6 AS inet
 	CONSTRAINT is_ipv6
