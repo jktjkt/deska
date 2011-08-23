@@ -1,4 +1,4 @@
 from deska import *
 
 for (name, x) in host[host.name == 'a'].iteritems():
-    print name, x.hardware, x.host_note
+    print name, x.hardware, x.note_host

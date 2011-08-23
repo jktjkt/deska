@@ -12,7 +12,7 @@ def imperative(r):
     r.c(startChangeset())
     for obj in objectNames:
         r.assertEquals(r.c(createObject("host", obj)), obj)
-        r.cvoid(setAttribute("host", obj, "host_note", "This is host %s" % obj))
+        r.cvoid(setAttribute("host", obj, "note_host", "This is host %s" % obj))
     revision = r.c(commitChangeset("Added three objects"))
 
     r.assertTrue(revision.startswith("r"))
@@ -44,9 +44,9 @@ def imperative(r):
 
     # check kindAttributes
     expectedAttrs = {
-        "hardware": "[cpu_num: TYPE_INT, hardware_note: TYPE_STRING, host: TYPE_IDENTIFIER, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "hardware_template": "[cpu_num: TYPE_INT, hardware_note: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "host": "[hardware: TYPE_IDENTIFIER, host_note: TYPE_STRING]",
+        "hardware": "[cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "hardware_template": "[cpu_num: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING]",
         "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
         "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
         "vendor": "[]"
