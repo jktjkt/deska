@@ -22,7 +22,7 @@ CREATE TABLE host (
 		CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	service identifier_set
 		CONSTRAINT rset_host_fk_service REFERENCES service(uid),
-	template bigint
+	template_host bigint,
 	note_host text
 );
 

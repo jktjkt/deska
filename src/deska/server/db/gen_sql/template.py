@@ -1,6 +1,6 @@
 
 class Template:
-	table_query_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	table_query_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	not_null_query_str = "SELECT n_constraints_on_table('%(tbl)s');"
 	embed_into_str = "SELECT attname FROM kindRelations_full_info('%s') WHERE relation = 'EMBED';"
 	relations_str = "SELECT relation, refkind FROM api.kindRelations('%s');"
@@ -12,11 +12,11 @@ CREATE SEQUENCE production.%(tbl)s_template_uid;
 CREATE TABLE production.%(tbl)s_template (
 	LIKE production.%(tbl)s,
 	CONSTRAINT pk_%(tbl)s_template PRIMARY KEY (uid),
-	CONSTRAINT rtempl_%(tbl)s_templ FOREIGN KEY ("template") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
+	CONSTRAINT rtempl_%(tbl)s_templ FOREIGN KEY ("template_%(tbl)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
 	CONSTRAINT "%(tbl)s_template with this name already exists" UNIQUE (name)
 );
 ALTER TABLE %(tbl)s_template ALTER COLUMN uid SET DEFAULT nextval('%(tbl)s_template_uid'::regclass);
-ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE;
 
 '''
 
