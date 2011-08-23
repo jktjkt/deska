@@ -28,7 +28,7 @@ def %(name)s(%(args)s):
 	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('%s')"
 	"""Query to get for the table foreign key constraint, all the columns relate to this constraint and the name of referenced table."""
-	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	"""Query to get all tables that have attribute template.
 	For these tables would be generated template table.
 	"""
@@ -290,13 +290,13 @@ CREATE FUNCTION commit_all(message text)
 
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
-			self.fn_sql.write(table.gen_resolved_data())
-			self.fn_sql.write(table.gen_resolved_data_diff())
 			if tbl in self.templates:
 			#tbl is template
 				table.templates = self.templates[tbl]
 			else:
-				table.templates = ""
+				table.templates = ""			
+			self.fn_sql.write(table.gen_resolved_data())
+			self.fn_sql.write(table.gen_resolved_data_diff())
 			self.fn_sql.write(table.gen_commit_templated())
 		else:
 			self.fn_sql.write(table.gen_commit())
