@@ -3,25 +3,25 @@
 from apiUtils import *
 
 expectedHardwareData = {
-    "hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None},
-    "hw2": {"vendor": "vendor1", "warranty": "2010-06-06", "purchase": "2006-06-06", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None}
+    "hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None},
+    "hw2": {"vendor": "vendor1", "warranty": "2010-06-06", "purchase": "2006-06-06", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None}
 }
 expectedHardwareData2 = {
-    "hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None},
-    "hw2": {"vendor": "vendor1", "warranty": "2006-06-06", "purchase": "2010-06-06", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None},
-    "hw3": {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2012-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None},
-    "hw4": {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2012-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template": None, "host" : None}
+    "hw1": {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None},
+    "hw2": {"vendor": "vendor1", "warranty": "2006-06-06", "purchase": "2010-06-06", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None},
+    "hw3": {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2012-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None},
+    "hw4": {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2012-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host" : None}
 }
 
 expectedInterfaceData = {
-    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:aa", "ip6": None, "ip4": "192.168.0.1", "template": None},
-    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template": None}
+    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:aa", "ip6": None, "ip4": "192.168.0.1", "template_interface": None},
+    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None}
 }
 
 expectedInterfaceData2 = {
-    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:ab", "ip6": None, "ip4": "192.168.0.1", "template": None},
-    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template": None},
-    "host1->eth1": {"note": None, "mac": "01:23:45:67:89:ba", "ip6": None, "ip4": None, "template": None}
+    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:ab", "ip6": None, "ip4": "192.168.0.1", "template_interface": None},
+    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None},
+    "host1->eth1": {"note": None, "mac": "01:23:45:67:89:ba", "ip6": None, "ip4": None, "template_interface": None}
 }
 
 def imperative(r):

@@ -34,7 +34,7 @@ def %(name)s(%(args)s):
 	"""
 	templates_str = "SELECT * FROM get_templates_info();"
 	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
-	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED';"
+	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED_INTO';"
 	"""Query to get the name of table which is this table embed into """
 	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('%s');"
 	"""Query to get all refuid references in the table.
