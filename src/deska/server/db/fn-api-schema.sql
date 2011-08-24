@@ -257,7 +257,7 @@ BEGIN
             CASE 
                 WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
                 WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATIZED'
-                WHEN conname LIKE 'rembed_%' THEN 'EMBED'
+                WHEN conname LIKE 'rembed_%' THEN 'EMBED_INTO'
                 WHEN ((SELECT typ.typname FROM pg_attribute AS att 
                     JOIN pg_type AS typ ON (typ.oid = att.atttypid)
                     WHERE att.attrelid = class1.oid AND class2.relname = att.attname) = 'identifier_set') THEN

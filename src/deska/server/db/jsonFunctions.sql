@@ -29,7 +29,8 @@ type_dict = ({
 	"int4": "int",
 	"float4": "double",
 	"text": "string",
-	"identifier": "identifier",
+	"identifier": "identifier",\
+	"identifier_set": "identifier_set",
 	"bpchar": "string",
 	"date": "date",
 	"timestamp": "timestamp",
@@ -93,6 +94,7 @@ def main(tag,kindName):
 	revtemplates = {v:k for k, v in templates.items()}
 	res.addRelation("TEMPLATIZED",kindName,templates)
 	res.addRelation("REFERS_TO",kindName,dutil.generated.refs())
+	res.addRelation("REFERS_TO_SET",kindName,dutil.generated.refs_set())
 	
 	jsn[name] = res
 	return json.dumps(jsn)
