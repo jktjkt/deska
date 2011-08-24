@@ -89,6 +89,8 @@ REMOTEDBEXCEPTION(ConstraintError)
 REMOTEDBEXCEPTION(ObsoleteParentError)
 /** @short The attribute type is not an identifier_set */
 REMOTEDBEXCEPTION(NotASetError)
+/** @short Attempted to access a locked changeset or execute an invalid operation related to changeset locking */
+REMOTEDBEXCEPTION(ChangesetLockingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
