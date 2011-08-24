@@ -73,6 +73,8 @@ public:
     virtual void resumeChangeset(const TemporaryChangesetId changeset);
     virtual void detachFromCurrentChangeset(const std::string &message);
     virtual void abortCurrentChangeset();
+    virtual void lockCurrentChangeset();
+    virtual void unlockCurrentChangeset();
     virtual void freezeView();
     virtual void unFreezeView();
 

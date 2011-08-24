@@ -269,6 +269,11 @@ public:
     /** @short Abort an in-progress changeset */
     virtual void abortCurrentChangeset() = 0;
 
+    /** @short Lock the current changeset */
+    virtual void lockCurrentChangeset() = 0;
+    /** @short Unlock current changeset */
+    virtual void unlockCurrentChangeset() = 0;
+
     /** @short Freeze the view of the revisions */
     virtual void freezeView() = 0;
     /** @short Unfreeze the client's view on the persistent revisions */

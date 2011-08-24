@@ -195,6 +195,14 @@ void FakeApi::abortCurrentChangeset()
 {
 }
 
+void FakeApi::lockCurrentChangeset()
+{
+}
+
+void FakeApi::unlockCurrentChangeset()
+{
+}
+
 void FakeApi::freezeView()
 {
 }
