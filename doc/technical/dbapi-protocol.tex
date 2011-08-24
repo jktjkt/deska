@@ -300,6 +300,8 @@ This is the list of currently defined exceptions, along with their other argumen
     latest revision in the history & -- \\
     {\tt NotASetError} & The attribute data type is not an {\tt identifier\_set}, and hence the operation does not make
     sense & -- \\
+    {\tt ChangesetLockingError} & Attempted to access a locked changeset or execute an invalid operation related to
+    changeset locking & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -477,7 +479,9 @@ the already-created changesets (listed by \deskaFuncRef{pendingChangesets}) thro
 Should the user decide not to need the pending changeset anymore, she can call the \deskaFuncRef{abortCurrentChangeset}
 to permanently throw away any changes, or use \deskaFuncRef{detachFromCurrentChangeset} to ``detach'' from the
 changeset, preserving the modifications for a later commit.  When all changes have been performed and the user decides to
-make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.
+make them permanent, she shall use the \deskaFuncRef{commitChangeset} to commit them into a persistent revision.  The
+changesets can be also explicitly locked and unlocked through the \deskaFuncRef{lockCurrentChangeset} and
+\deskaFuncRef{unlockCurrentChangeset} methods.
 
 Certain applications, like dumping the database contents, require to temporarily ``freeze'' the state of the database to
 guarantee that the result accurately represents the real database state.  The DBAPI provides a pair of functions for
@@ -845,7 +849,12 @@ Querying History}, section \ref{sec:api-group-history}.
     {This function will attach current session to a pre-existing changeset which hasn't been committed yet. An example
     where doing that would be handy is upon the initial connect to the DB, where the client would typically call
     \deskaFuncRef{pendingChangesets}, and ask the real person whether she wants to resume working on her changes,
-    perhaps because the original session has died.}
+    perhaps because the original session has died.
+
+    A changeset can be attached to at most one session.  It is impossible to attach a locked changeset.  On the other
+    hand, attaching to an already existing changeset is possible, and will result in the changeset being attached to the
+    second session, and the former session which had it attached will lose access.
+    }
 
 \deskaFunc{detachFromCurrentChangeset}{"message": "clarify why"}
     {}
@@ -867,6 +876,23 @@ Querying History}, section \ref{sec:api-group-history}.
     {Abort an in-progress changeset}
     {This function will throw away any changes made so far in the current active changeset and remove that changeset
     from the list of pending changestes.}
+
+\deskaFunc{lockCurrentChangeset}{}{}
+    {Lock the current changeset}
+    {This function will lock the current changeset.  A locked changeset can only be manipulated by a session which
+    created the lock.  Other sessions can not perform any modifications of that particular changeset, including attching
+    a locked changeset.  The lock remains in effect until either the session terminates, or
+    \deskaFuncRef{unlockCurrentChangeset} on the same changeset is called, or the changeset ceases to exist (via either
+    \deskaFuncRef{abortCurrentChangeset} or a successful call to \deskaFuncRef{commitChangeset}).
+
+    The lock operation can fail if the changeset is already locked by current session, or if another session has
+    attached the ``current'' changeset, effectively detaching this session.
+    }
+
+\deskaFunc{unlockCurrentChangeset}{}{}
+    {Unlock current changeset}
+    {This function marks the current changeset as unlocked.  It is an error to attempt to unlock a changeset which has
+    not been locked.}
 
 \deskaFunc{freezeView}{}{}
     {Freeze the view of the revisions}
