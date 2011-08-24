@@ -272,10 +272,16 @@ class Filter():
 			else:
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
-				if kind not in generated.refs() or mykind not in generated.refs()[kind]:
+
+				if kind in generated.refs() and mykind in generated.refs()[kind]:
+					joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				elif kind in generated.refs()[mykind]:
+					joincond = "{0}.{1} = {1}.uid".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				else:
 					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
-				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
-				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				#TODO: merge, embed template relations
 		return ret
 
 	def parse(self,data):
