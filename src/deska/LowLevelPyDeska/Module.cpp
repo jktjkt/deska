@@ -183,6 +183,8 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def("multipleResolvedObjectDataWithOrigin", &Connection::multipleResolvedObjectDataWithOrigin, Connection_multipleResolvedObjectDataWithOrigin())
             .def("resumeChangeset", &Connection::resumeChangeset)
             .def("detachFromCurrentChangeset", &Connection::detachFromCurrentChangeset)
+            .def("lockCurrentChangeset", &Connection::lockCurrentChangeset)
+            .def("unlockCurrentChangeset", &Connection::unlockCurrentChangeset)
             .def("freezeView", &Connection::freezeView)
             .def("unFreezeView", &Connection::unFreezeView);
 }
