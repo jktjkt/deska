@@ -2,55 +2,61 @@
 
 from apiUtils import *
 
-declarative = [
+def imperative(r):
     # start with an empty state
-    pendingChangesets().returns([]),
+    r.assertEqual(r.c(pendingChangesets()), [])
     # create new changeset
-    startChangeset().register("tmp1"),
+    tmp1 = r.c(startChangeset())
+    r.assertEqual(tmp1, "tmp1")
     # verify that it is indeed present
-    pendingChangesets().returns([
-        {'status': 'INPROGRESS', 'changeset': Variable("tmp1"),
+    r.assertEqual(r.c(pendingChangesets()),
+    [
+        {'status': 'INPROGRESS', 'changeset': tmp1,
          'author': DeskaDbUser(),
          'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': ''}
-    ]),
+    ])
     # abort this changeset
-    abortCurrentChangeset(),
+    r.cvoid(abortCurrentChangeset())
     # try to create an object -- this should fail
-    createObject("vendor", "a").throws(NoChangesetError()),
-
+    r.cfail(createObject("vendor", "a"), NoChangesetError())
     # open another changeset
-    startChangeset().register("tmp2"),
+    tmp2 = r.c(startChangeset())
+    r.assertEqual(tmp2, "tmp2")
 
-    createObject("vendor", "a").returns("a"),
-    createObject("vendor", "aa").returns("aa"),
-    createObject("vendor", "blabla").returns("blabla"),
+    r.assertEqual(r.c(createObject("vendor", "a")), "a")
+    r.assertEqual(r.c(createObject("vendor", "aa")), "aa")
+    r.assertEqual(r.c(createObject("vendor", "blabla")), "blabla")
 
-    kindInstances("vendor").returns(AnyOrderList(("a", "aa", "blabla"))),
+    r.assertEqual(r.c(kindInstances("vendor")),
+                  AnyOrderList(("a", "aa", "blabla")))
 
     # close it again; this should make current state empty
-    abortCurrentChangeset(),
-    kindInstances("vendor").returns([]),
+    r.cvoid(abortCurrentChangeset())
+    r.assertEqual(r.c(kindInstances("vendor")), [])
 
     # do it one more time
-    startChangeset().register("tmp3"),
+    tmp3 = r.c(startChangeset())
+    r.assertEqual(tmp3, "tmp3")
 
-    createObject("vendor", "a").returns("a"),
-    createObject("vendor", "aa").returns("aa"),
-    createObject("vendor", "blabla").returns("blabla"),
+    r.assertEqual(r.c(createObject("vendor", "a")), "a")
+    r.assertEqual(r.c(createObject("vendor", "aa")), "aa")
+    r.assertEqual(r.c(createObject("vendor", "blabla")), "blabla")
 
-    kindInstances("vendor").returns(AnyOrderList(("a", "aa", "blabla"))),
+    r.assertEqual(r.c(kindInstances("vendor")),
+                  AnyOrderList(("a", "aa", "blabla")))
 
     # save the result
-    commitChangeset("Saving three new vendors").register("r2"),
+    r2 = r.c(commitChangeset("Saving three new vendors"))
+    r.assertEqual(r2, "r2")
 
     # the data should be still there
-    kindInstances("vendor").returns(AnyOrderList(("a", "aa", "blabla"))),
+    r.assertEqual(r.c(kindInstances("vendor")),
+                  AnyOrderList(("a", "aa", "blabla")))
 
     # ...but not in the previous version...
-    kindInstances("vendor", revision="r1").returns([]),
+    r.assertEqual(r.c(kindInstances("vendor", revision="r1")), [])
 
     # ...but indeed present when we ask specifically for the current one
-    kindInstances("vendor", revision=Variable("r2")).returns(
-        AnyOrderList(("a", "aa", "blabla"))),
-]
+    r.assertEqual(r.c(kindInstances("vendor", revision=r2)),
+                  AnyOrderList(("a", "aa", "blabla")))
