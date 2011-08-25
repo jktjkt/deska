@@ -350,42 +350,6 @@ public:
 
 
 
-/** @short Extracts keywords from boost::spirit::info into a vector of strings
-*
-*   This class is used as a visitor of boost::spirit::info to extract keywords from it to a std::vector passed
-*   to the constructor.
-*/
-class InfoExtractor
-{
-
-public:
-
-    /** @short Constructor only saves pointer to lists, where the data will be extracted.
-    *   
-    *   @param keywordsList Pointer to list, where keywords will be extracted
-    *   @param typesList Pointer to list, where names of value types will be extracted
-    */
-    InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<std::string> *typesList);
-
-    /** @short Function used for extractin the keywords from boost::spirit::info.
-    *
-    *   Extracts info into lists given in constructor.
-    *
-    *   @param tag Tag, that is the name of value type, when keyword is empty
-    *   @param value Keyword or empty string
-    */
-    void element(spirit::utf8_string const& tag, spirit::utf8_string const& value, int) const;
-
-private:
-
-    /** List for extracted keywords. */
-    std::vector<Db::Identifier> *kList;
-    /** List for extracted names of value types. */
-    std::vector<std::string> *tList;
-};
-
-
-
 /** @short Representation of input parsing errors */
 template <typename Iterator>
 class ParseError
