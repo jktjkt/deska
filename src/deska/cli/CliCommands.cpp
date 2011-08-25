@@ -852,7 +852,7 @@ void Configdiff::operator()(const std::string &params)
     if (diff.empty())
         ui->io->printMessage("No difference.");
     else
-        ui->io->printMessage(diff);
+        ui->io->displayInPager(diff);
     return;
 }
 
