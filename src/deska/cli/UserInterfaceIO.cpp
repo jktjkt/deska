@@ -462,7 +462,7 @@ void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &re
 {
     std::cout << "Revisions:" << std::endl << std::endl;
     if (revisions.empty()) {
-        std::cout << "No revisions in history." << std::endl;
+        std::cout << "No revisions." << std::endl;
     } else {
         unsigned int maxRevWidth = 8;
         std::string::size_type maxUserWidth = 6;
