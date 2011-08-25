@@ -608,7 +608,8 @@ void Rebase::operator()(const std::string &params)
 
     ofs.close();
 
-    // TODO: Editting of the file here.
+    // User resolves conflicts using text editor
+    ui->io->editFile(tempFile);
 
     // Open the file after the user actions and apply changes
     std::ifstream ifs(tempFile);
