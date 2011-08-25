@@ -29,7 +29,7 @@ type_dict = ({
 	"int4": "int",
 	"float4": "double",
 	"text": "string",
-	"identifier": "identifier",\
+	"identifier": "identifier",
 	"identifier_set": "identifier_set",
 	"bpchar": "string",
 	"date": "date",
@@ -37,7 +37,8 @@ type_dict = ({
 	"macaddr": "macaddress",
 	"ipv4": "ipv4address",
 	"ipv6": "ipv6address",
-	"inet": "string"
+	"inet": "string",
+    "bool": "boolean"
 })
 
 @pytypes
