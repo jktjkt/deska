@@ -31,7 +31,7 @@ def imperative(r):
     v1 = r.c(commitChangeset("commit-resumed"))
 
     # try to commit a fresh one
-    v2 = r.c(startChangeset())
+    r.c(startChangeset())
     v2 = r.c(commitChangeset("commit-fresh"))
     vlist = [
         {"timestamp": CurrentTimestamp(), "commitMessage": "commit-resumed",
