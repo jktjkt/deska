@@ -26,17 +26,6 @@ def deunicodeify(stuff):
     else:
         return stuff
 
-def resolvePlaceholders(stuff):
-    '''Replace placeholder values with real data valid at this point'''
-    if isinstance(stuff, dict):
-        return dict(map(resolvePlaceholders, stuff.iteritems()))
-    elif isinstance(stuff, (list, tuple)):
-        return type(stuff)(map(resolvePlaceholders, stuff))
-    elif isinstance(stuff, apiUtils.Variable):
-        return resolvePlaceholders(stuff.get())
-    else:
-        return stuff
-
 class JsonApiTester(unittest.TestCase):
     """Verify that the interaction with the Deska server over JSON works as expected"""
 
@@ -46,18 +35,9 @@ class JsonApiTester(unittest.TestCase):
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    def declarativeImplementation(self):
-        """Iterate over the recorded communication and verify that we get the same results back"""
-        for items in declarative:
-            self.runAndCheckCommand(items.command, items.response)
-
     def imperativeCommands(self):
         """Run the test function which gets access to the whole environment"""
         imperative(self)
-
-    def runAndCheckCommand(self, command, response):
-        """Execute a command and check its expected response"""
-        self.assertEqual(self.runJSON(resolvePlaceholders(command)), response)
 
     def runJSON(self, cmd):
         """Send a JSON string and return the parsed result"""
@@ -112,11 +92,7 @@ if __name__ == "__main__":
     DBUSER = os.environ["DESKA_USER"]
     TESTCASE = sys.argv[2]
     module = __import__(TESTCASE)
-    if "declarative" in dir(module):
-        declarative = module.declarative
-        JsonApiTester.testCase = JsonApiTester.declarativeImplementation
-        JsonApiTester.testCase.im_func.__doc__ = TESTCASE
-    elif "imperative" in dir(module):
+    if "imperative" in dir(module):
         imperative = module.imperative
         JsonApiTester.testCase = JsonApiTester.imperativeCommands
         JsonApiTester.testCase.im_func.__doc__ = TESTCASE
