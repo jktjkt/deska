@@ -27,6 +27,7 @@
 #include <boost/foreach.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 
+#include "InfoExtractor.h"
 #include "CliCommands.h"
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
@@ -41,8 +42,129 @@ namespace Deska {
 namespace Cli {
 
 
+
 template <typename Iterator>
-LogFilterParser<Iterator>::LogFilterParser(): LogFilterParser<Iterator>::base_type(start)
+void LogAttributeErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
+                    const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
+                    const qi::symbols<char, qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> > &metadatas,
+                    Log *parent) const
+{
+    parent->reportParseError(
+        LogFilterParseError<Iterator>(start, end, errorPos, what, kinds, metadatas, LOG_FILTER_PARSE_ERROR_TYPE_ATTRIBUTE));
+}
+
+
+
+template <typename Iterator>
+void LogValueErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
+                                                const Db::Identifier &metadataName, Log *parent) const
+{
+    parent->reportParseError(
+        LogFilterParseError<Iterator>(start, end, errorPos, what, metadataName, LOG_FILTER_PARSE_ERROR_TYPE_VALUE_TYPE));
+}
+
+
+
+template <typename Iterator>
+void LogIdentifierErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
+                                                const Db::Identifier &kindName, Log *parent) const
+{
+    parent->reportParseError(
+        LogFilterParseError<Iterator>(start, end, errorPos, what, kindName, LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER));
+}
+
+
+
+template <typename Iterator>
+LogFilterParseError<Iterator>::LogFilterParseError(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
+                        const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &kinds,
+                        const qi::symbols<char, qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> > &metadatas,
+                        LogFilterParseErrorType logFilterParseErrorType):
+    m_errorType(logFilterParseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context("")
+{
+    using namespace boost::phoenix::arg_names;
+    kinds.for_each(boost::phoenix::bind(
+        &LogFilterParseError<Iterator>::extractKindNames, this, arg1, arg2));
+    metadatas.for_each(boost::phoenix::bind(
+        &LogFilterParseError<Iterator>::extractMetadataNames, this, arg1, arg2));
+}
+
+
+
+template <typename Iterator>
+LogFilterParseError<Iterator>::LogFilterParseError(Iterator start, Iterator end, Iterator errorPos, const boost::spirit::info &what,
+                        const Db::Identifier &attributeName, LogFilterParseErrorType logFilterParseErrorType):
+    m_errorType(logFilterParseErrorType), m_start(start), m_end(end), m_errorPos(errorPos), m_context(attributeName)
+{
+    InfoExtractor extractor(&m_expectedKeywords, &m_expectedTypes);
+    boost::spirit::basic_info_walker<InfoExtractor> walker(extractor, what.tag, 0);
+    boost::apply_visitor(walker, what.value);
+}
+
+
+
+template <typename Iterator>
+void LogFilterParseError<Iterator>::extractKindNames(const Db::Identifier &name,
+                                                  const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule)
+{
+    m_expectedKeywords.push_back(name);
+}
+
+
+
+template <typename Iterator>
+void LogFilterParseError<Iterator>::extractMetadataNames(const Db::Identifier &name,
+                                                  const qi::rule<Iterator, Db::MetadataValue(), ascii::space_type> &rule)
+{
+    m_expectedKeywords.push_back(name);
+}
+
+
+
+template <typename Iterator>
+LogFilterParseErrorType LogFilterParseError<Iterator>::errorType() const
+{
+    return m_errorType;
+}
+
+
+
+template <typename Iterator>
+std::string LogFilterParseError<Iterator>::toString() const
+{
+    std::ostringstream ostr;
+    ostr << "Error while parsing ";
+    switch (m_errorType) {
+        case LOG_FILTER_PARSE_ERROR_TYPE_ATTRIBUTE:
+            ostr << "metadata name or kind name.";
+            break;
+        case LOG_FILTER_PARSE_ERROR_TYPE_VALUE_TYPE:
+            ostr << "metadata value for " << m_context << ".";
+            break;
+        case LOG_FILTER_PARSE_ERROR_TYPE_IDENTIFIER:
+            ostr << "object name for " << m_context << ".";
+            break;
+        default:
+            throw std::domain_error("LogFilterParseErrorType out of range");
+    }
+    if (!(m_expectedKeywords.empty()) || !(m_expectedTypes.empty())) {
+        ostr << " Expected one of [ ";
+        for (std::vector<std::string>::const_iterator
+            it = m_expectedKeywords.begin(); it != m_expectedKeywords.end(); ++it)
+            ostr << "\"" << *it << "\" ";
+        for (std::vector<std::string>::const_iterator
+            it = m_expectedTypes.begin(); it != m_expectedTypes.end(); ++it)
+            ostr << "<" << *it << "> ";
+        ostr << "].";
+    }
+    ostr << " At offset " << static_cast<int>(m_errorPos - m_start) << " in the parameter.";
+    return ostr.str();
+}
+
+
+
+template <typename Iterator>
+LogFilterParser<Iterator>::LogFilterParser(Log *parent): LogFilterParser<Iterator>::base_type(start), m_parent(parent)
 {
     using qi::_val;
     using qi::_1;
@@ -100,15 +222,18 @@ LogFilterParser<Iterator>::LogFilterParser(): LogFilterParser<Iterator>::base_ty
     // Metadata name recognized -> try to parse metadata value
     metadataDispatch = (raw[metadatas[_a = _1]][rangeToString(_1, phoenix::ref(currentMetadataName))] > operators[_b = _1]
         > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(_b, phoenix::ref(currentMetadataName), _1)]);
-
-
-    /*
-    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
-    phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(kindExpr, attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds)));
-    on_error<fail>(kindDispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName)));
-    */
-
+    
+    phoenix::function<LogAttributeErrorHandler<Iterator> > attributeErrorHandler = LogAttributeErrorHandler<Iterator>();
+    phoenix::function<LogValueErrorHandler<Iterator> > valueErrorHandler = LogValueErrorHandler<Iterator>();
+    phoenix::function<LogIdentifierErrorHandler<Iterator> > identifierErrorHandler = LogIdentifierErrorHandler<Iterator>();
+    on_error<fail>(kindExpr,
+        attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(metadatas), m_parent));
+    on_error<fail>(metadataExpr,
+        attributeErrorHandler(_1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(metadatas), m_parent));
+    on_error<fail>(kindDispatch,
+        identifierErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName), m_parent));
+    on_error<fail>(metadataDispatch,
+        valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentMetadataName), m_parent)); 
 }
 
 
@@ -714,7 +839,7 @@ Log::Log(UserInterface *userInterface): Command(userInterface)
     cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions.";
     complPatterns.push_back("log");
 
-    filterParser = new LogFilterParser<iterator_type>();
+    filterParser = new LogFilterParser<iterator_type>(this);
     std::vector<Db::Identifier> kinds = ui->m_dbInteraction->kindNames();
     for (std::vector<Db::Identifier>::iterator it = kinds.begin(); it != kinds.end(); ++it) {
         filterParser->addKind(*it);
@@ -741,14 +866,40 @@ void Log::operator()(const std::string &params)
     std::string::const_iterator iter = params.begin();
     std::string::const_iterator end = params.end();
     Db::Filter filter;
+    parseErrors.clear();
     bool r = boost::spirit::qi::phrase_parse(iter, end, *filterParser, boost::spirit::ascii::space, filter);
     if (!r || (iter != end)) {
-        ui->io->reportError("Invalid revisions filter entered!");
+        std::vector<LogFilterParseError<iterator_type> >::iterator it;
+
+        // Error in the attribute value
+        it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
+                          phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_VALUE_TYPE);
+        if (it != parseErrors.end()) {
+            ui->io->reportError(it->toString());
+            return;
+        }
+        // Error in attribute name in removal
+        it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
+                          phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_ATTRIBUTE);
+        if (it != parseErrors.end()) {
+            ui->io->reportError(it->toString());
+            return;
+        }
+
+        // Other error
+        ui->io->reportError("Error while parsing filter for revisions. Check matching braces and operators.");
         return;
     }
 
     std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->filteredRevisions(filter);
     ui->io->printRevisions(revisions);
+}
+
+
+
+void Log::reportParseError(const LogFilterParseError<iterator_type> &error)
+{
+    parseErrors.push_back(error);
 }
 
 
@@ -1114,7 +1265,25 @@ void Help::operator()(const std::string &params)
 
 /////////////////////////Template instances for linker//////////////////////////
 
-template LogFilterParser<iterator_type>::LogFilterParser();
+template void LogAttributeErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const qi::symbols<char, qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type> > &metadatas, Log *parent) const;
+
+template void LogValueErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const Db::Identifier &metadataName, Log *parent) const;
+
+template void LogIdentifierErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const Db::Identifier &kindName, Log *parent) const;
+
+template LogFilterParseError<iterator_type>::LogFilterParseError(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const qi::symbols<char, qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type> > &metadatas, LogFilterParseErrorType logFilterParseErrorType);
+
+template LogFilterParseError<iterator_type>::LogFilterParseError(iterator_type start, iterator_type end, iterator_type errorPos, const boost::spirit::info &what, const Db::Identifier &attributeName, LogFilterParseErrorType logFilterParseErrorType);
+
+template void LogFilterParseError<iterator_type>::extractKindNames(const Db::Identifier &name, const qi::rule<iterator_type, Db::Identifier(), ascii::space_type> &rule);
+
+template void LogFilterParseError<iterator_type>::extractMetadataNames(const Db::Identifier &name, const qi::rule<iterator_type, Db::MetadataValue(), ascii::space_type> &rule);
+
+template LogFilterParseErrorType LogFilterParseError<iterator_type>::errorType() const;
+
+template std::string LogFilterParseError<iterator_type>::toString() const;
+
+template LogFilterParser<iterator_type>::LogFilterParser(Log *parent);
 
 template LogFilterParser<iterator_type>::~LogFilterParser();
 
