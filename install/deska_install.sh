@@ -81,6 +81,24 @@ function generate_templates(){
 	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"
 }
 
+function generate_multiRefs(){
+	echo "Generating multi references ..."
+	python "${DB_SOURCES}/gen_sql/multiRef_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/multiref.sql"
+}
+
+function add_multiRefs(){
+	echo "Creating multi references ..."
+	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f "tab_multiref.sql" -v dbname="$DATABASE" 2>&1 > /dev/null \
+		|| return $? \
+		| grep -v NOTICE | grep -v "current transaction is aborted"
+}
+
+function add_multiRefs_functions(){
+	echo "Adding multi references functions..."
+	psql -d "$DATABASE" -U "$USER" -v ON_ERROR_STOP=1 -f "fn_multiref.sql" -v dbname="$DATABASE" 2>&1 > /dev/null \
+		|| return $? \
+		| grep -v NOTICE | grep -v "current transaction is aborted"
+}
 
 eval set -- getopt -o hma -l help modules all -n "deska_install.sh" -- "$@"
 
@@ -185,9 +203,12 @@ then
 	add_merge_relations || die "Error running add merge relations"
 	generate_templates || die "Error running generate templates"
 	create_templates || die "Error running creating templates"
+	generate_multiRefs || die "Error running generate multi references"
+	add_multiRefs || die "Error running add multi references"
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
+	add_multiRefs_functions || die "Error running add multi references functions"
 	add_merge_link_triggers || die "Error running add merge link triggers"
 fi
 
@@ -223,8 +244,11 @@ then
 	add_merge_relations || die "Error running add merge relations"
 	generate_templates || die "Error running generate templates"
 	create_templates || die "Error running creating templates"
+	generate_multiRefs || die "Error running generate multi references"
+	add_multiRefs || die "Error running add multi references"
 	generate || die "Failed to generate stuff"
 	stage "tables2" || die "Error running stage tables2"
 	stage 2 || die "Error running stage 2"
+	add_multiRefs_functions || die "Error running add multi references functions"
 	add_merge_link_triggers || die "Error running add merge link triggers"
 fi

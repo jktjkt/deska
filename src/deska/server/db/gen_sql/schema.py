@@ -28,13 +28,13 @@ def %(name)s(%(args)s):
 	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('%s')"
 	"""Query to get for the table foreign key constraint, all the columns relate to this constraint and the name of referenced table."""
-	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname = 'template';"
+	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	"""Query to get all tables that have attribute template.
 	For these tables would be generated template table.
 	"""
 	templates_str = "SELECT * FROM get_templates_info();"
 	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
-	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED';"
+	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED_INTO';"
 	"""Query to get the name of table which is this table embed into """
 	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('%s');"
 	"""Query to get all refuid references in the table.
@@ -43,6 +43,8 @@ def %(name)s(%(args)s):
 	"""
 	merge_with_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'MERGE';"
 	"""Query to get names of tables which are merged with this table."""
+	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
+	"""Query to get info about all relations refers_to_set."""
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -62,6 +64,9 @@ CREATE FUNCTION commit_all(message text)
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
 		SELECT create_version(message) INTO rev;
+		
+		SET CONSTRAINTS ALL IMMEDIATE;
+		
 		RETURN rev;
 	END
 	$$
@@ -92,7 +97,8 @@ CREATE FUNCTION commit_all(message text)
 		self.template = dict()
 		# dict of refs
 		self.refs = dict()
-
+		# dict of tables that refers to some sets of uids
+		self.refers_to_set = dict()
 		# select all tables
 		record = self.plpy.execute(self.table_str)
 		for tbl in record[:]:
@@ -111,6 +117,7 @@ CREATE FUNCTION commit_all(message text)
 		for row in record:
 			self.templates[row[0]] = row[1]
 			self.template_relations[row[1]] = row[0]
+		
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -133,6 +140,10 @@ CREATE FUNCTION commit_all(message text)
 		for tbl in self.tables:
 			self.gen_for_table(tbl)
 
+#TODO: multiref tables -history, special set, special get, fix normal get_object data
+		#for tbl in self.inner_multiref_tables:
+            #self.gen_for_inner_table(tbl)
+
 		self.fn_sql.write(self.gen_commit())
 
 		self.fn_sql.close()
@@ -148,6 +159,7 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
 		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
 		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
+		print self.py_fn_str % {'name': "refs_set", 'args': '', 'result': str(self.refers_to_set)}
 		return
 
 	# generate sql for one table
@@ -175,13 +187,21 @@ CREATE FUNCTION commit_all(message text)
 		constraints = self.plpy.execute(self.pk_str % tbl)
 		for col in constraints[:]:
 			table.add_pk(col[0],col[1])
+			
+		record = self.plpy.execute(self.refers_to_set_info_str % {'tbl': tbl})
+		table.refers_to_set = list()
+		if len(record) > 0:
+			for row in record:
+				table.refers_to_set.append(row[0])
+			self.refers_to_set[tbl] = table.refers_to_set
 
 		# add fk constraints
 		fkconstraints = self.plpy.execute(self.fk_str % tbl)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
-			# if there is a reference, change int for identifier
-			self.atts[tbl][col[1]] = 'identifier'
+			# if there is a reference, change int for identifier'
+			if col[1] not in table.refers_to_set:
+				self.atts[tbl][col[1]] = 'identifier'
 			prefix = col[0][0:7]
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
@@ -191,7 +211,8 @@ CREATE FUNCTION commit_all(message text)
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 			else:
-				self.refs[tbl].append(col[1])
+				if col[1] not in table.refers_to_set:
+					self.refs[tbl].append(col[1])
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
 		table.embed_into = ""
@@ -223,9 +244,14 @@ CREATE FUNCTION commit_all(message text)
 		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
 			if (col[0] in table.refuid_columns):
-				reftable = table.refuid_columns[col[0]]
-				#column that references uid has another set function(with finding corresponding uid)
-				self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
+				if tbl in self.refers_to_set and col[0] in self.refers_to_set[tbl]:
+					self.fn_sql.write(table.gen_set_refuid_set(col[0]))
+					self.fn_sql.write(table.gen_refuid_set_insert(col[0]))
+					self.fn_sql.write(table.gen_refuid_set_remove(col[0]))
+				else:
+					reftable = table.refuid_columns[col[0]]
+					#column that references uid has another set function(with finding corresponding uid)
+					self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
 			elif (col[0] != 'name' and col[0]!='uid'):
 				self.fn_sql.write(table.gen_set(col[0]))
 
@@ -253,8 +279,7 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set('name'))
 
-#TODO repair this part with, generating procedure for getting object data, in columns that referes to another kind is uid
-#we need to return name of corresponding instance
+
 		self.fn_sql.write(table.gen_del())
 		self.fn_sql.write(table.gen_undel())
 		self.fn_sql.write(table.gen_get_object_data())
@@ -268,13 +293,13 @@ CREATE FUNCTION commit_all(message text)
 
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
-			self.fn_sql.write(table.gen_resolved_data())
-			self.fn_sql.write(table.gen_resolved_data_diff())
 			if tbl in self.templates:
 			#tbl is template
 				table.templates = self.templates[tbl]
 			else:
-				table.templates = ""
+				table.templates = ""			
+			self.fn_sql.write(table.gen_resolved_data())
+			self.fn_sql.write(table.gen_resolved_data_diff())
 			self.fn_sql.write(table.gen_commit_templated())
 		else:
 			self.fn_sql.write(table.gen_commit())
@@ -291,6 +316,12 @@ CREATE FUNCTION commit_all(message text)
 		commit_tables=""
 		for table in self.tables:
 			commit_tables = commit_tables + commit_table_template % {'tbl': table}
+		
+		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
+		for table in self.refers_to_set:
+			for reftable in self.refers_to_set[table]:
+				table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
+				commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
 
 		return self.commit_string % {'commit_tables': commit_tables}
 
