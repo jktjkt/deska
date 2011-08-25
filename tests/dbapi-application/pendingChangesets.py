@@ -2,57 +2,55 @@
 
 from apiUtils import *
 
-declarative = [
+def imperative(r):
     # start with an empty state
-    pendingChangesets().returns([]),
+    r.assertEqual(r.c(pendingChangesets()), [])
     # create new changeset
-    startChangeset().returns("tmp1"),
+    r.assertEqual(r.c(startChangeset()), "tmp1")
     # verify that it is indeed present
-    pendingChangesets().returns([
+    r.assertEqual(r.c(pendingChangesets()), [
         {'status': 'INPROGRESS', 'changeset': 'tmp1',
          'author': DeskaDbUser(),
          'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': ''}
-    ]),
+    ])
     # abort this changeset
-    abortCurrentChangeset(),
+    r.cvoid(abortCurrentChangeset())
     # there should be no pending changesets at this time
-    pendingChangesets().returns([]),
+    r.assertEqual(r.c(pendingChangesets()), [])
     # abort once again, this will fail
-    abortCurrentChangeset().throws(NoChangesetError()),
+    r.cfail(abortCurrentChangeset(), NoChangesetError())
     # detach once again, this will fail
-    detachFromCurrentChangeset("xyz").throws(NoChangesetError()),
+    r.cfail(detachFromCurrentChangeset("xyz"), NoChangesetError())
     # try to commit a non-existent changeset
-    commitChangeset("xyz").throws(NoChangesetError()),
+    r.cfail(commitChangeset("xyz"), NoChangesetError())
     # create new changeset once again
-    startChangeset().returns("tmp2"),
+    r.assertEqual(r.c(startChangeset()), "tmp2")
     # and detach from it
-    detachFromCurrentChangeset("xyz"),
+    r.cvoid(detachFromCurrentChangeset("xyz"))
     # verify that it's listed in a correct state
-    pendingChangesets().returns([
+    r.assertEqual(r.c(pendingChangesets()), [
         {'status': 'DETACHED', 'changeset': 'tmp2',
          'author': DeskaDbUser(),
          'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': 'xyz'}
-    ]),
+    ])
     # attach to tmp2 again
-    resumeChangeset("tmp2"),
+    r.cvoid(resumeChangeset("tmp2"))
     # it should be pending again
-    pendingChangesets().returns([
+    r.assertEqual(r.c(pendingChangesets()), [
         {'status': 'INPROGRESS', 'changeset': 'tmp2',
          'author': DeskaDbUser(),
          'timestamp': CurrentTimestamp(), 'parentRevision': 'r1',
          'message': 'xyz'}
-    ]),
+    ])
     # create third changeset; this should fail, as we're already in one
-    startChangeset().throws(ChangesetAlreadyOpenError()),
+    r.cfail(startChangeset(), ChangesetAlreadyOpenError())
     # try attaching once again; this should again fail
-    resumeChangeset("tmp2").throws(ChangesetAlreadyOpenError()),
+    r.cfail(resumeChangeset("tmp2"), ChangesetAlreadyOpenError())
     # clean the state
-    detachFromCurrentChangeset("foo"),
+    r.cvoid(detachFromCurrentChangeset("foo"))
     # try attaching a persistent revision; this should fail
-    resumeChangeset("r0").throws(ServerError()),
+    r.cfail(resumeChangeset("r0"), ServerError())
     # try the same with a non-existing permanent changeset
-    resumeChangeset("r123").throws(ServerError()),
-
-]
+    r.cfail(resumeChangeset("r123"), ServerError())
