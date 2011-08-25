@@ -198,15 +198,22 @@ class Condition():
 			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
 		self.op = self.opMap[self.op]
 
+		# FZU: This is special fzu db logic, drop it if you use standart SQL logic
+		# if you don't want it, just delete use of this variable
+		self.nullCompensation = ""
+		if self.op == '!=':
+			self.nullCompensation = " OR {0}.{1} IS NULL"
+
 		# propper work with nulls
 		if self.val is None:
+			self.null = True
 			if self.op == '=':
 				self.op = 'IS NULL'
 			elif self.op == '!=':
 				self.op = 'IS NOT NULL'
+				self.nullCompensation = ""
 			else:
 				raise DutilException("FilterError","Operator '{0}' is not supported for NULL values.".format(self.op))
-			# and drop the values
 
 	def get(self):
 		'''Return deska SQL condition'''
@@ -215,18 +222,18 @@ class Condition():
 				'''do not return none'''
 				return "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id), []
 			else:
-				return "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id), [self.val]
+				return ("{0}.{1} {2} {3}"+self.nullCompensation).format(self.kind,self.col,self.op,self.id), [self.val]
 		else:
 			'''We need to add one condition'''
 			if self.val is None:
 				'''do not return none'''
 				cond1 = "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id)
 				cond2, val2 = self.newcond.get()
-				return "( {0} AND {1} )".format(cond1,cond2), [self.val]
+				return "( ({0}) AND ({1}) )".format(cond1,cond2), [self.val]
 			else:
-				cond1 = "{0}.{1} {2} {3}".format(self.kind,self.col,self.op,self.id)
+				cond1 = ("{0}.{1} {2} {3}"+self.nullCompensation).format(self.kind,self.col,self.op,self.id)
 				cond2, val2 = self.newcond.get()
-				return "( {0} AND {1} )".format(cond1,cond2), [self.val]+val2
+				return "( ({0}) AND ({1}) )".format(cond1,cond2), [self.val]+val2
 
 	def getAffectedKind(self):
 		'''Return kind in condition'''
@@ -272,10 +279,24 @@ class Filter():
 			else:
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
-				if kind not in generated.refs() or mykind not in generated.refs()[kind]:
+
+				# check for refs
+				if kind in generated.refs() and mykind in generated.refs()[kind]:
+					joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				elif kind in generated.refs()[mykind]:
+					joincond = "{0}.{1} = {1}.uid".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				# check for embed
+				elif kind in generated.embed() and mykind == generated.embed()[kind]:
+					joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				elif kind == generated.embed()[mykind]:
+					joincond = "{0}.{1} = {1}.uid".format(mykind,kind)
+					ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				else:
 					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
-				joincond = "{0}.uid = {1}.{0}".format(mykind,kind)
-				ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				#TODO: merge, template relations
 		return ret
 
 	def parse(self,data):

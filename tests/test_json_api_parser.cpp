@@ -701,6 +701,24 @@ BOOST_FIXTURE_TEST_CASE(json_abortCurrentChangeset, JsonApiTestFixtureFailOnStre
     expectEmpty();
 }
 
+/** @short Basic test for lockCurrentChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_lockCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"lockCurrentChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"lockCurrentChangeset\",\"tag\":\"T\"}\n");
+    j->lockCurrentChangeset();
+    expectEmpty();
+}
+
+/** @short Basic test for unlockCurrentChangeset() */
+BOOST_FIXTURE_TEST_CASE(json_unlockCurrentChangeset, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"unlockCurrentChangeset\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"unlockCurrentChangeset\",\"tag\":\"T\"}\n");
+    j->unlockCurrentChangeset();
+    expectEmpty();
+}
+
 /** @short Basic test for freezeView() */
 BOOST_FIXTURE_TEST_CASE(json_freezeView, JsonApiTestFixtureFailOnStreamThrow)
 {
@@ -911,6 +929,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(ConstraintError);
     JSON_ERR_TEST(ObsoleteParentError);
     JSON_ERR_TEST(NotASetError);
+    JSON_ERR_TEST(ChangesetLockingError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

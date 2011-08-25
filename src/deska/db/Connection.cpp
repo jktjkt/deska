@@ -157,6 +157,16 @@ void Connection::abortCurrentChangeset()
     p->abortCurrentChangeset();
 }
 
+void Connection::lockCurrentChangeset()
+{
+    p->lockCurrentChangeset();
+}
+
+void Connection::unlockCurrentChangeset()
+{
+    p->unlockCurrentChangeset();
+}
+
 void Connection::freezeView()
 {
     p->freezeView();

@@ -389,6 +389,22 @@ void JsonApiParser::abortCurrentChangeset()
     h.work();
 }
 
+void JsonApiParser::lockCurrentChangeset()
+{
+    JsonCommandContext c1("lockCurrentChangeset");
+
+    JsonHandlerApiWrapper h(this, "lockCurrentChangeset");
+    h.work();
+}
+
+void JsonApiParser::unlockCurrentChangeset()
+{
+    JsonCommandContext c1("unlockCurrentChangeset");
+
+    JsonHandlerApiWrapper h(this, "unlockCurrentChangeset");
+    h.work();
+}
+
 void JsonApiParser::freezeView()
 {
     JsonCommandContext c1("freezeView");
