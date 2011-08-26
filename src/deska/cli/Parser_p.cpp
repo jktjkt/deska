@@ -1003,7 +1003,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 
     // At first, find out if the user wants to enter some value
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
-                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) != 0)
@@ -1011,15 +1011,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         std::vector<std::string> expectations = it->expectedTypes();
         // Check if the user is supposed to enter some objects name, that we can complete
         // FIXME: Allow completiong names with -> and jumps
-        if (expectations.front() == "object identifier (alphanumerical letters and _)") {
-            if (!(it->context().empty())) {
-                std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
-                for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                    possibilities.push_back(line + pathToVector(*iti).back());
-                }
+        if (!(it->context().empty())) {
+            std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+            for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                possibilities.push_back(line + pathToVector(*iti).back());
             }
-            possibilities.push_back(line + "where");
         }
+        possibilities.push_back(line + "where");
         return;
     }
 
