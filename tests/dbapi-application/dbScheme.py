@@ -14,18 +14,18 @@ helper_hardware_template_attrs = dict((k,v) for (k, v) in helper_hardware_attrs.
 
 
 def imperative(r):
-    r.assertEqual(r.c(kindNames()), AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware')))
+    r.assertEqual(r.c(kindNames()), AnyOrderList(
+        ('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware', 'service', 'host_template')))
+
     r.assertEqual(r.c(kindAttributes("interface")), helper_interface_attrs)
     r.assertEqual(r.c(kindAttributes("interface_template")),
         dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host"))
     r.assertEqual(r.c(kindAttributes("vendor")), {})
     r.assertEqual(r.c(kindAttributes("host")),
         {
-            "hardware": "identifier",
-            "note_host": "string"
+            "hardware": "identifier", "note_host": "string",
+            "service": "identifier_set", "template_host": "identifier"
         })
-    r.assertEqual(r.c(kindAttributes("hardware")), helper_hardware_attrs)
-    r.assertEqual(r.c(kindAttributes("hardware_template")), helper_hardware_template_attrs)
 
     # try to ask for a non-existing object
     r.cfail(kindAttributes("pwnpwn"), InvalidKindError())
@@ -39,7 +39,11 @@ def imperative(r):
        AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
                       'interface_template'}])),
     r.assertEqual(r.c(kindRelations("host")),
-        AnyOrderList([{'relation': 'MERGE_WITH', 'target': 'hardware'}])
+        AnyOrderList([
+            {'relation': 'MERGE_WITH', 'target': 'hardware'},
+            {'relation': 'TEMPLATIZED', 'target': 'host_template'},
+            {'relation': 'REFERS_TO_SET', 'target': 'service'}
+        ])
     )
     r.assertEqual(r.c(kindRelations("hardware")),
         AnyOrderList([
