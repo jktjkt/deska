@@ -68,6 +68,9 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = itr->target;
             }
+            if (itr->kind == Db::RELATION_MERGE_WITH) {
+                mergeWith[*itk].push_back(itr->target);
+            }
         }
         if (!isEmbedded)
             topLevelKindsIds.push_back(*itk);
@@ -353,48 +356,48 @@ void ParserImpl<Iterator>::categoryLeft()
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::attributeSet(const Db::Identifier &name, const Db::Value &value)
+void ParserImpl<Iterator>::attributeSet(const Db::Identifier &kind, const Db::Identifier &name, const Db::Value &value)
 {
     if (!dryRun)
-        m_parser->attributeSet(name, value);
+        m_parser->attributeSet(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << name << "=" << *value << std::endl;
+    std::cout << "Set attribute: " << kind << " - " << name << "=" << *value << std::endl;
 #endif
 }
 
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value)
+void ParserImpl<Iterator>::attributeSetInsert(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value)
 {
     if (!dryRun)
-        m_parser->attributeSetInsert(name, value);
+        m_parser->attributeSetInsert(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Inserting into set: " << name << ": " << value << std::endl;
+    std::cout << "Inserting into set: " << kind << " - " << name << ": " << value << std::endl;
 #endif
 }
 
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value)
+void ParserImpl<Iterator>::attributeSetRemove(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value)
 {
     if (!dryRun)
-        m_parser->attributeSetRemove(name, value);
+        m_parser->attributeSetRemove(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Removing from set: " << name << ": " << value << std::endl;
+    std::cout << "Removing from set: " << kind << " - " << name << ": " << value << std::endl;
 #endif
 }
 
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &name)
+void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &kind, const Db::Identifier &name)
 {
     if (!dryRun)
-        m_parser->attributeRemove(name);
+        m_parser->attributeRemove(kind, name);
 #ifdef PARSER_DEBUG
-    std::cout << "Remove attribute: " << name << std::endl;
+    std::cout << "Remove attribute: " << kind << " - " << name << std::endl;
 #endif
 }
 
@@ -479,14 +482,28 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
                                              IdentifiersSetsParser<Iterator> *identifiersSetsParser,
                                              FilterExpressionsParser<Iterator> *filterExpressionsParser)
 {
+    // Adding own attributes
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        attributesSettingParser->addAtrribute(it->name, predefinedRules->getRule(it->type));
-        attributeRemovalsParser->addAtrribute(it->name);
-        filterExpressionsParser->addAtrributeToFilter(it->name, predefinedRules->getRule(it->type));
+        attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
+        attributeRemovalsParser->addAtrribute(kindName, it->name);
+        filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         if (it->type == Db::TYPE_IDENTIFIER_SET) {
-            identifiersSetsParser->addIdentifiersSet(it->name, predefinedRules->getObjectIdentifier());
-            filterExpressionsParser->addIdentifiersSetToFilter(it->name, predefinedRules->getObjectIdentifier());
+            identifiersSetsParser->addIdentifiersSet(kindName, it->name, predefinedRules->getObjectIdentifier());
+            filterExpressionsParser->addIdentifiersSetToFilter(kindName, it->name, predefinedRules->getObjectIdentifier());
+        }
+    }
+    // Adding attributes from merged kinds
+    for (std::vector<Db::Identifier>::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
+        std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*itm);
+        for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+            attributesSettingParser->addAtrribute(*itm, it->name, predefinedRules->getRule(it->type));
+            attributeRemovalsParser->addAtrribute(*itm, it->name);
+            filterExpressionsParser->addAtrributeToFilter(*itm, it->name, predefinedRules->getRule(it->type));
+            if (it->type == Db::TYPE_IDENTIFIER_SET) {
+                identifiersSetsParser->addIdentifiersSet(*itm, it->name, predefinedRules->getObjectIdentifier());
+                filterExpressionsParser->addIdentifiersSetToFilter(*itm, it->name, predefinedRules->getObjectIdentifier());
+            }
         }
     }
 }
@@ -934,6 +951,14 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
                 possibilities.push_back(line + it->name);
             }
+            for (std::vector<Db::Identifier>::iterator itm = 
+                mergeWith[contextStack.back().kind].begin(); itm != mergeWith[contextStack.back().kind].end(); ++itm) {
+                std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*itm);
+                for (std::vector<Db::KindAttributeDataType>::iterator it = 
+                    attributes.begin(); it != attributes.end(); ++it) {
+                    possibilities.push_back(line + it->name);
+                }
+            }
             if (!attributes.empty()) {
                 possibilities.push_back(line + "no");
                 if (containsIdentifiersSet(contextStack.back().kind)) {
@@ -1082,6 +1107,13 @@ bool ParserImpl<Iterator>::containsIdentifiersSet(const Db::Identifier &kindName
         if (it->type == Db::TYPE_IDENTIFIER_SET)
             return true;
     }
+    for (std::vector<Db::Identifier>::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
+        std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*itm);
+        for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
+            if (it->type == Db::TYPE_IDENTIFIER_SET)
+                return true;
+        }
+    }
     return false;
 }
 
@@ -1113,13 +1145,13 @@ template void ParserImpl<iterator_type>::categoryEntered(const Db::Identifier &k
 
 template void ParserImpl<iterator_type>::categoryLeft();
 
-template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &name, const Db::Value &value);
+template void ParserImpl<iterator_type>::attributeSet(const Db::Identifier &kindName, const Db::Identifier &name, const Db::Value &value);
 
-template void ParserImpl<iterator_type>::attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value);
+template void ParserImpl<iterator_type>::attributeSetInsert(const Db::Identifier &kindName, const Db::Identifier &name, const Db::Identifier &value);
 
-template void ParserImpl<iterator_type>::attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value);
+template void ParserImpl<iterator_type>::attributeSetRemove(const Db::Identifier &kindName, const Db::Identifier &name, const Db::Identifier &value);
 
-template void ParserImpl<iterator_type>::attributeRemove(const Db::Identifier &name);
+template void ParserImpl<iterator_type>::attributeRemove(const Db::Identifier &kindName, const Db::Identifier &name);
 
 template void ParserImpl<iterator_type>::objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
 

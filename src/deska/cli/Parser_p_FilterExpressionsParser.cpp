@@ -76,11 +76,11 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
     // Attribute name recognized -> try to parse filter value. The raw function is here to get the name of the
     // attribute being parsed.
     dispatchAll = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
-        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
-                                                                      phoenix::ref(currentAttributeName), _1)]);
+        > lazy(_a)[_val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this,
+            _b, phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
     dispatchSets = (raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > setsOperators[_b = _1]
-        > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(_b, phoenix::ref(m_name), 
-            phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
+        > lazy(_a)[_val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this,
+            _b, phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
 
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
@@ -92,19 +92,30 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
 
 
 template <typename Iterator>
-void FilterExpressionsParser<Iterator>::addAtrributeToFilter(const Db::Identifier &attributeName,
+void FilterExpressionsParser<Iterator>::addAtrributeToFilter(const Db::Identifier &kindName, const Db::Identifier &attributeName,
                                                    qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
 {
     attributes.add(attributeName, attributeParser);
+    attrKind[attributeName] = kindName;
 }
 
 
 
 template <typename Iterator>
-void FilterExpressionsParser<Iterator>::addIdentifiersSetToFilter(const Db::Identifier &setName,
+void FilterExpressionsParser<Iterator>::addIdentifiersSetToFilter(const Db::Identifier &kindName, const Db::Identifier &setName,
                                          qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser)
 {
     sets.add(setName, identifierParser);
+    attrKind[setName] = kindName;
+}
+
+
+
+template <typename Iterator>
+Db::Filter FilterExpressionsParser<Iterator>::constructFilter(Db::ComparisonOperator op, const Db::Identifier &attribute,
+                                                              const Db::Value &value)
+{
+    return Db::AttributeExpression(op, attrKind[attribute], attribute, value);
 }
 
 
@@ -113,9 +124,11 @@ void FilterExpressionsParser<Iterator>::addIdentifiersSetToFilter(const Db::Iden
 
 template FilterExpressionsParser<iterator_type>::FilterExpressionsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void FilterExpressionsParser<iterator_type>::addAtrributeToFilter(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+template void FilterExpressionsParser<iterator_type>::addAtrributeToFilter(const Db::Identifier &kindName, const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
 
-template void FilterExpressionsParser<iterator_type>::addIdentifiersSetToFilter(const Db::Identifier &setName, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
+template void FilterExpressionsParser<iterator_type>::addIdentifiersSetToFilter(const Db::Identifier &kindName, const Db::Identifier &setName, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
+
+template Db::Filter FilterExpressionsParser<iterator_type>::constructFilter(Db::ComparisonOperator op, const Db::Identifier &attribute, const Db::Value &value);
 
 }
 }

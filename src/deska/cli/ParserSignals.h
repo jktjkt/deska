@@ -164,10 +164,11 @@ public:
     /** @short Constructor for storing signal setAttribute().
     *
     *   @param context Current parser context
+    *   @param kind Kind to which the attribute belongs
     *   @param attribute Name of attribute being changed
     *   @param value Value to be set
     */
-    ParserSignalSetAttribute(const ContextStack &context,
+    ParserSignalSetAttribute(const ContextStack &context, const Db::Identifier &kind,
                              const Db::Identifier &attribute, const Db::Value &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -191,6 +192,7 @@ private:
 
     //@{
     /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
     Db::Identifier attributeName;
     Db::Value setValue;
     //@}
@@ -206,10 +208,11 @@ public:
     /** @short Constructor for storing signal setAttributeInsert().
     *
     *   @param context Current parser context
+    *   @param kind Kind to which the set belongs
     *   @param attribute Name of set being changed
     *   @param value Identifier to be added in the set
     */
-    ParserSignalSetAttributeInsert(const ContextStack &context,
+    ParserSignalSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
                                    const Db::Identifier &attribute, const Db::Identifier &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -233,6 +236,7 @@ private:
 
     //@{
     /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
     Db::Identifier setName;
     Db::Identifier identifier;
     //@}
@@ -248,10 +252,11 @@ public:
     /** @short Constructor for storing signal setAttributeRemove().
     *
     *   @param context Current parser context
+    *   @param kind Kind to which the set belongs
     *   @param attribute Name of set being changed
     *   @param value Identifier to be removed from the set
     */
-    ParserSignalSetAttributeRemove(const ContextStack &context,
+    ParserSignalSetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                                    const Db::Identifier &attribute, const Db::Identifier &value);
 
     /** @short Performs action, that is the signal connected with.
@@ -275,6 +280,7 @@ private:
 
     //@{
     /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
     Db::Identifier setName;
     Db::Identifier identifier;
     //@}
@@ -290,9 +296,10 @@ public:
     /** @short Constructor for storing signal setAttribute().
     *
     *   @param context Current parser context
+    *   @param kind Kind to which the attribute belongs
     *   @param attribute Name of attribute being changed
     */
-    ParserSignalRemoveAttribute(const ContextStack &context,
+    ParserSignalRemoveAttribute(const ContextStack &context, const Db::Identifier &kind,
                                 const Db::Identifier &attribute);
 
     /** @short Performs action, that is the signal connected with.
@@ -316,6 +323,7 @@ private:
 
     //@{
     /** Additional information needed to be stored for particular signals. */
+    Db::Identifier kindName;
     Db::Identifier attributeName;
     //@}
 };
@@ -561,10 +569,10 @@ private:
     void slotCreateObject(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void slotCategoryLeft();
-    void slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value);
-    void slotSetAttributeInsert(const Db::Identifier &attribute, const Db::Identifier &value);
-    void slotSetAttributeRemove(const Db::Identifier &attribute, const Db::Identifier &value);
-    void slotRemoveAttribute(const Db::Identifier &attribute);
+    void slotSetAttribute(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Value &value);
+    void slotSetAttributeInsert(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value);
+    void slotSetAttributeRemove(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value);
+    void slotRemoveAttribute(const Db::Identifier &kind, const Db::Identifier &attribute);
     void slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     void slotFunctionShow();
     void slotFunctionDelete();

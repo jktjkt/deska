@@ -182,7 +182,7 @@ public:
     *   This signal is triggered whenever an attribute definition is encountered. The first argument is the name
     *   of the attribute and the second one the attribute value.
     */
-    boost::signals2::signal<void (const Db::Identifier &name, const Db::Value &value)> attributeSet;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name, const Db::Value &value)> attributeSet;
 
     /** @short Insert an identifier into a set
     *
@@ -190,21 +190,21 @@ public:
     *   The first argument is the name of the set (attribute of type TYPE_IDENTIFIER_SET) and the second one
     *   the identifier.
     */
-    boost::signals2::signal<void (const Db::Identifier &name, const Db::Identifier &value)> attributeSetInsert;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value)> attributeSetInsert;
 
     /** @short Remove an identifier from a set
     *
     *   This signal is triggered whenever an identifier removal from a set is encountered.
     *   The first argument is the name of the set (attribute of type TYPE_IDENTIFIER_SET) and the second one 
     */
-    boost::signals2::signal<void (const Db::Identifier &name, const Db::Identifier &value)> attributeSetRemove;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value)> attributeSetRemove;
 
     /** @short Remove an object's attribute
     *
     *   This signal is triggered whenever an attribute removal is encountered. The argument is the name
     *   of the attribute
     */
-    boost::signals2::signal<void (const Db::Identifier &name)> attributeRemove;
+    boost::signals2::signal<void (const Db::Identifier &kind, const Db::Identifier &name)> attributeRemove;
 
     /** @short Filter objects.
     *

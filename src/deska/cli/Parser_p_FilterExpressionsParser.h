@@ -56,23 +56,33 @@ public:
 
     /** @short Function used for filling of symbols table for all attributes of the parser.
     *
+    *   @param kindName Name of kind to which the attribute belongs.
     *   @param attributeName Name of the attribute.
     *   @param attributeParser Attribute parser obtained from PredefinedRules class.
     *   @see PredefinedRules
     */
-    void addAtrributeToFilter(const Db::Identifier &attributeName,
+    void addAtrributeToFilter(const Db::Identifier &kindName, const Db::Identifier &attributeName,
                               qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
     /** @short Function used for filling of symbols table for sets of the parser.
     *
+    *   @param kindName Name of kind to which the set belongs.
     *   @param setName Name of the set.
     *   @param identifierParser Identifier parser obtained from PredefinedRules class.
     *   @see PredefinedRules
     */
-    void addIdentifiersSetToFilter(const Db::Identifier &setName,
+    void addIdentifiersSetToFilter(const Db::Identifier &kindName, const Db::Identifier &setName,
                                    qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
 
 private:
+
+    /** @short Constructs Db::AttributeExpression from parsed elements.
+    *
+    *   @param op Comparison operator
+    *   @param attribute Attribute
+    *   @param value Attribute value
+    */
+    Db::Filter constructFilter(Db::ComparisonOperator op, const Db::Identifier &attribute, const Db::Value &value);
 
     /** Symbols table with comparison operators. */
     qi::symbols<char, Db::ComparisonOperator> operators;
@@ -100,6 +110,9 @@ private:
     Db::Identifier m_name;
     /** Pointer to main parser for error reporting. */
     ParserImpl<Iterator> *m_parent;
+
+    /** Map for each attribute identifying, to which kind each attribute belongs. */
+    std::map<Db::Identifier, Db::Identifier> attrKind;
 };
 
 }
