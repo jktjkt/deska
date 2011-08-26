@@ -151,6 +151,7 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.templates:
 			self.refs[tbl] = self.refs[self.templates[tbl]]
+			
 
 		# create some python helper functions
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
