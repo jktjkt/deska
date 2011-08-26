@@ -29,6 +29,6 @@ CREATE TABLE hardware (
 	-- add cpu type, when we have cpu type table
 	host bigint,
 	note_hardware text,
-	template bigint
+	template_hardware bigint
 );
 

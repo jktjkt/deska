@@ -15,3 +15,5 @@ CREATE DOMAIN ipv6 AS inet
 CREATE DOMAIN ipv4 AS inet
 	CONSTRAINT is_ipv4
 		CHECK ( family(VALUE) = 4 );
+
+CREATE DOMAIN identifier_set AS bigint;

@@ -20,6 +20,9 @@ CREATE TABLE host (
 	-- TODO - better use uid
 	hardware bigint
 		CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
+	service identifier_set
+		CONSTRAINT rset_host_fk_service REFERENCES service(uid),
+	template_host bigint,
 	note_host text
 );
 

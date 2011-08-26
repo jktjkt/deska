@@ -160,6 +160,7 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
 		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
 		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
+		print self.py_fn_str % {'name': "refs_set", 'args': '', 'result': str(self.refers_to_set)}
 		return
 
 	# generate sql for one table
@@ -211,7 +212,8 @@ CREATE FUNCTION commit_all(message text)
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 			else:
-				self.refs[tbl].append(col[1])
+				if col[1] not in table.refers_to_set:
+					self.refs[tbl].append(col[1])
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
 		table.embed_into = ""

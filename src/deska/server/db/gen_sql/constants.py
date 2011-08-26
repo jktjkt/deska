@@ -101,6 +101,90 @@ class Templates:
 
 '''
 
+	# template string for set functions for columns that reference set of identifiers
+	set_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(colname)s(IN name_ text,IN value text[])
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+	
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION 
+			WHEN unique_violation THEN
+			-- do nothing
+		END;
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for generating function to add one item to set of identifiers
+	refuid_set_insert_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(ref_tbl)s_insert(IN name_ identifier,IN value identifier)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+	
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION WHEN unique_violation THEN
+			-- do nothing
+		END;
+		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_insert(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+	#template for generating function to remove one item from set of identifiers
+	refuid_set_remove_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(ref_tbl)s_remove(IN name_ identifier,IN value identifier)
+	RETURNS integer
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		ver = get_current_changeset();
+    
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		BEGIN
+			--row is inserted because of diff and changes between versions
+			--this means object was modified
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
+		EXCEPTION WHEN unique_violation THEN
+			-- do nothing
+		END;
+		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_remove(name_, value);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
 	RETURNS integer
@@ -235,6 +319,22 @@ class Templates:
 		END IF;
 
 		RETURN data;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for set functions for columns that reference set of identifiers
+	get_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_get_%(colname)s(IN obj_uid bigint)
+	RETURNS text[]
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -581,25 +681,25 @@ class Templates:
 	BEGIN
 		CREATE TEMP TABLE temp_%(tbl)s_current_changeset AS
 			WITH RECURSIVE resolved_data AS (
-			SELECT %(columns)s, template,name,uid,version,dest_bit,template as orig_template
+			SELECT %(columns)s, %(template_column)s,name,uid,version,dest_bit,%(template_column)s as orig_template
 			FROM %(tbl)s_history
 			WHERE version = get_current_changeset()
 			UNION ALL
 			SELECT
 				%(rd_dv_coalesce)s
-				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM %(template_tbl)s_data_version() dv, resolved_data rd
-			WHERE dv.uid = rd.template
+			WHERE dv.uid = rd.%(template_column)s
 			)
-			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS template
-			FROM resolved_data WHERE template IS NULL;
+			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS %(template_column)s
+			FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		SELECT get_current_changeset() INTO ver;
 		UPDATE %(tbl)s AS tbl SET %(assign)s
 			FROM temp_%(tbl)s_current_changeset as new
 				WHERE tbl.uid = new.uid AND dest_bit = '0';
-		INSERT INTO %(tbl)s (%(columns)s,name,uid,template)
-			SELECT %(columns)s,name,uid,template FROM temp_%(tbl)s_current_changeset
+		INSERT INTO %(tbl)s (%(columns)s,name,uid,%(template_column)s)
+			SELECT %(columns)s,name,uid,%(template_column)s FROM temp_%(tbl)s_current_changeset
 				WHERE uid NOT IN ( SELECT uid FROM %(tbl)s ) AND dest_bit = '0';
 		DELETE FROM %(tbl)s
 			WHERE uid IN (SELECT uid FROM temp_%(tbl)s_current_changeset
@@ -629,24 +729,24 @@ class Templates:
 		--resolved data that are new in current changeset
 		CREATE TEMP TABLE temp_%(tbl)s_template_current_changeset AS
 			WITH RECURSIVE resolved_data AS (
-			SELECT %(columns)s, template,name,uid,version,dest_bit,template as orig_template
+			SELECT %(columns)s, %(template_column)s,name,uid,version,dest_bit,%(template_column)s as orig_template
 			FROM %(tbl)s_template_history
 			WHERE version = ver
 			UNION ALL
 			SELECT
 				%(rd_dv_coalesce)s
-				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
-			WHERE dv.uid = rd.template
+			WHERE dv.uid = rd.%(template_column)s
 			)
-			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS template
-			FROM resolved_data WHERE template IS NULL;
+			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS %(template_column)s
+			FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		UPDATE %(tbl)s_template AS tbl SET %(assign)s
 			FROM temp_%(tbl)s_template_current_changeset as new
 				WHERE tbl.uid = new.uid AND dest_bit = '0';
-		INSERT INTO %(tbl)s_template (%(columns)s,name,uid,template)
-			SELECT %(columns)s,name,uid,template FROM temp_%(tbl)s_template_current_changeset
+		INSERT INTO %(tbl)s_template (%(columns)s,name,uid,%(template_column)s)
+			SELECT %(columns)s,name,uid,%(template_column)s FROM temp_%(tbl)s_template_current_changeset
 				WHERE uid NOT IN ( SELECT uid FROM %(tbl)s_template ) AND dest_bit = '0';
 		DELETE FROM %(tbl)s_template
 			WHERE uid IN (SELECT uid FROM temp_%(tbl)s_template_current_changeset
@@ -658,7 +758,7 @@ class Templates:
 			WITH RECURSIVE resolved_data AS (
 				SELECT uid FROM %(tbl)s_template_history WHERE version = ver
 				UNION ALL
-				SELECT dv.uid FROM temp_%(tbl)s_template_data dv, resolved_data rd WHERE dv.template = rd.uid
+				SELECT dv.uid FROM temp_%(tbl)s_template_data dv, resolved_data rd WHERE dv.%(template_column)s = rd.uid
 			)
 			SELECT uid
 			FROM resolved_data
@@ -668,19 +768,19 @@ class Templates:
 		--templates changed in current changeset was already updated
 		CREATE TEMP TABLE temp_affected_%(tbl)s_template_data AS
 			WITH RECURSIVE resolved_data AS (
-			SELECT %(columns)s, template,name,uid,version,dest_bit,template as orig_template
+			SELECT %(columns)s, %(template_column)s,name,uid,version,dest_bit,%(template_column)s as orig_template
 			FROM temp_%(tbl)s_template_data
 			WHERE  version <> ver
-				AND template IN (SELECT uid FROM affected_templates)
+				AND %(template_column)s IN (SELECT uid FROM affected_templates)
 			UNION ALL
 			SELECT
 				%(rd_dv_coalesce)s
-				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
-			WHERE dv.uid = rd.template
+			WHERE dv.uid = rd.%(template_column)s
 			)
-			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS template
-			FROM resolved_data WHERE template IS NULL;
+			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS %(template_column)s
+			FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		--object which is not modified in currentchangeset (is not updated by tbl_commit) and is templated by modified template, should be updated now
 		--update production.tbl_template
@@ -692,18 +792,18 @@ class Templates:
 		CREATE TEMP TABLE temp_%(tbl)s_data AS SELECT * FROM %(tbl)s_data_version();
 		CREATE TEMP TABLE temp_affected_%(tbl)s_data AS
 			WITH RECURSIVE resolved_data AS (
-			SELECT %(columns)s, template,name,uid,version,dest_bit,template as orig_template
+			SELECT %(columns)s, %(template_column)s,name,uid,version,dest_bit,%(template_column)s as orig_template
 			FROM temp_%(tbl)s_data
-			WHERE template IN (SELECT uid FROM affected_templates)
+			WHERE %(template_column)s IN (SELECT uid FROM affected_templates)
 			UNION ALL
 			SELECT
 				%(rd_dv_coalesce)s
-				dv.template AS template, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
+				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
-			WHERE dv.uid = rd.template
+			WHERE dv.uid = rd.%(template_column)s
 			)
-			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS template
-			FROM resolved_data WHERE template IS NULL;
+			SELECT %(columns_except_template)s, version,dest_bit, orig_template AS %(template_column)s
+			FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		UPDATE %(tbl)s AS tbl SET %(assign)s
 			FROM temp_affected_%(tbl)s_data as new
@@ -866,6 +966,18 @@ LANGUAGE plpgsql;
 
 '''
 
+#template for if constructs in diff_set_attribute, this version is for refuid columns
+	one_column_change_ref_set_string = '''
+	new_data.uid = COALESCE(new_data.uid, old_data.uid);
+	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
+	THEN
+		result.attribute = '%(column)s';
+		result.olddata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid),',');
+		result.newdata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid),',');
+		RETURN NEXT result;
+	END IF;
+
+'''
 
 #template for getting created objects between two versions
 #return type is defined in file diff.sql and created in create script
@@ -985,7 +1097,7 @@ LANGUAGE plpgsql;
 	uid bigint,
 	name identifier,
 	%(col_types)s,
-	template bigint,
+--	template bigint,
 	dest_bit bit(1)
 );
 '''
@@ -1008,19 +1120,19 @@ BEGIN
 	--joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
 	RETURN QUERY
 	WITH RECURSIVE resolved_data AS (
-		SELECT uid,name,%(columns_ex_templ)s, template, template as orig_template,dest_bit
+		SELECT uid,name,%(columns_ex_templ)s, %(template_column)s, %(template_column)s as orig_template,dest_bit
 		FROM %(tbl)s_changes_between_versions(from_version, to_version)
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name,
 			%(rd_dv_coalesce)s,
-			dv.template AS template, rd.orig_template AS orig_template,
+			dv.%(template_column)s AS %(template_column)s, rd.orig_template AS orig_template,
 			rd.dest_bit AS dest_bit
 		FROM template_data_version dv, resolved_data rd
-		WHERE dv.uid = rd.template
+		WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT uid, name, %(columns_ex_templ)s,orig_template AS template, dest_bit
-	FROM resolved_data WHERE template IS NULL;
+	SELECT uid, name, %(columns_ex_templ)s,orig_template AS %(template_column)s, dest_bit
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	DROP TABLE template_data_version;
 END;
@@ -1040,9 +1152,27 @@ BEGIN
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
 		FROM %(tbl)s_data_version(from_version) dv FULL OUTER JOIN %(tbl)s_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+	
+	%(inner_tables_diff)s
 END
 $$
 LANGUAGE plpgsql;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_init_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_%(ref_tbl)s_init_diff(from_version bigint, to_version bigint)
+	RETURNS void
+	AS
+	$$
+	DECLARE
+		ver bigint;
+	BEGIN
+		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
 
@@ -1102,18 +1232,18 @@ BEGIN
 	CREATE TEMP TABLE local_template_data_version AS (SELECT * FROM %(templ_tbl)s_data_version(0));
 	CREATE TEMP TABLE current_changest_resolved_data AS (
 		WITH RECURSIVE resolved_data AS(
-		SELECT uid, name, %(columns_ex_templ)s, template, template AS orig_template, dest_bit FROM %(tbl)s_history WHERE version = changeset_var
+		SELECT uid, name, %(columns_ex_templ)s, %(template_column)s, %(template_column)s AS orig_template, dest_bit FROM %(tbl)s_history WHERE version = changeset_var
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name,
 			%(rd_dv_coalesce)s,
-			dv.template AS template, rd.orig_template AS orig_template,
+			dv.%(template_column)s AS %(template_column)s, rd.orig_template AS orig_template,
 			rd.dest_bit AS dest_bit
 		FROM local_template_data_version dv, resolved_data rd
-		WHERE dv.uid = rd.template
+		WHERE dv.uid = rd.%(template_column)s
 		)
-		SELECT uid, name, %(columns_ex_templ)s,orig_template AS template, dest_bit
-		FROM resolved_data WHERE template IS NULL
+		SELECT uid, name, %(columns_ex_templ)s,orig_template AS %(template_column)s, dest_bit
+		FROM resolved_data WHERE %(template_column)s IS NULL
 	);
 	--full outer join of data in parent revision and changes made in opened changeset
 	CREATE TEMP TABLE %(tbl)s_diff_data
@@ -1138,6 +1268,20 @@ AS
 $$
 BEGIN
 	DROP TABLE %(tbl)s_diff_data;
+	%(inner_temrinate_diff)s
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+	diff_terminate_refuid_set_function_string = '''CREATE FUNCTION
+%(tbl)s_%(ref_tbl)s_terminate_diff()
+RETURNS void
+AS
+$$
+BEGIN
+	PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_terminate_diff();
 END;
 $$
 LANGUAGE plpgsql;
@@ -1157,7 +1301,7 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(template) INTO %(data_columns)s
+			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE name = name_;
 			IF NOT FOUND THEN
 				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
@@ -1169,18 +1313,18 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, template, template as orig_template
+        SELECT %(columns)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE name = name_
         UNION ALL
         SELECT
 			%(rd_dv_coalesce)s,
-			dv.template, rd.orig_template
+			dv.%(template_column)s, rd.orig_template
         FROM template_data_version dv, resolved_data rd
-        WHERE dv.uid = rd.template
+        WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS template INTO %(data_columns)s
-	FROM resolved_data WHERE template IS NULL;
+	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	IF NOT FOUND THEN
 		RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
@@ -1209,7 +1353,7 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(template) INTO %(data_columns)s
+			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE uid = obj_uid;
 			IF NOT FOUND THEN
 				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
@@ -1221,18 +1365,18 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, template, template as orig_template
+        SELECT %(columns)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE uid = obj_uid
         UNION ALL
         SELECT
 			%(rd_dv_coalesce)s,
-			dv.template, rd.orig_template
+			dv.%(template_column)s, rd.orig_template
         FROM template_data_version dv, resolved_data rd
-        WHERE dv.uid = rd.template
+        WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS template INTO %(data_columns)s
-	FROM resolved_data WHERE template IS NULL;
+	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	IF NOT FOUND THEN
 		RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
@@ -1250,7 +1394,7 @@ LANGUAGE plpgsql;
 	resolved_data_template_info_type_string = '''CREATE TYPE %(tbl)s_data_template_info_type AS(
 	%(columns)s,
 	%(templ_columns)s,
-	template text
+	%(template_column)s text
 );
 '''
 
@@ -1264,19 +1408,19 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, %(case_columns)s, template, template as orig_template
+        SELECT %(columns)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE name = name_
         UNION ALL
         SELECT
 			%(rd_dv_coalesce)s,
 			%(templ_case_columns)s,
-			dv.template, rd.orig_template
+			dv.%(template_column)s, rd.orig_template
         FROM template_data_version dv, resolved_data rd
-        WHERE dv.uid = rd.template
+        WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT %(columns_ex_templ)s, %(columns_templ)s, %(templ_tbl)s_get_name(orig_template) AS template INTO %(data_columns)s
-	FROM resolved_data WHERE template IS NULL;
+	SELECT %(columns_ex_templ)s, %(columns_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	IF NOT FOUND THEN
 		RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
@@ -1303,19 +1447,19 @@ BEGIN
 
 	obj_uid = %(tbl)s_get_uid(name_, from_version);
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, %(case_columns)s, template, template as orig_template
+        SELECT %(columns)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE uid = obj_uid
         UNION ALL
         SELECT
 			%(rd_dv_coalesce)s,
 			%(templ_case_columns)s,
-			dv.template, rd.orig_template
+			dv.%(template_column)s, rd.orig_template
         FROM template_data_version dv, resolved_data rd
-        WHERE dv.uid = rd.template
+        WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT %(columns_ex_templ)s, %(columns_templ)s, %(templ_tbl)s_get_name(orig_template) AS template INTO %(data_columns)s
-	FROM resolved_data WHERE template IS NULL;
+	SELECT %(columns_ex_templ)s, %(columns_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	IF NOT FOUND THEN
 		RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
@@ -1335,7 +1479,7 @@ LANGUAGE plpgsql;
 	uid bigint,
 	%(columns)s,
 	%(templ_columns)s,
-	template bigint
+	%(template_column)s bigint
 );
 '''
 
@@ -1343,7 +1487,7 @@ LANGUAGE plpgsql;
 	name identifier,
 	uid bigint,
 	%(columns)s,
-	template bigint
+	%(template_column)s bigint
 );
 '''
 
@@ -1355,19 +1499,19 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	RETURN QUERY WITH recursive resolved_data AS (
-        SELECT uid,name,%(columns)s, %(case_columns)s, template, template as orig_template
+        SELECT uid,name,%(columns)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         UNION ALL
         SELECT
 			rd.uid AS uid, rd.name AS name,
 			%(rd_dv_coalesce)s,
 			%(templ_case_columns)s,
-			dv.template, rd.orig_template
+			dv.%(template_column)s, rd.orig_template
         FROM template_data_version dv, resolved_data rd
-        WHERE dv.uid = rd.template
+        WHERE dv.uid = rd.%(template_column)s
 	)
 	SELECT name, uid, %(columns_ex_templ)s, %(columns_templ)s, orig_template AS template
-	FROM resolved_data WHERE template IS NULL;
+	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	DROP TABLE template_data_version;
 END
@@ -1385,23 +1529,23 @@ DECLARE
 BEGIN
 	changeset_id = get_current_changeset_or_null();
 	IF from_version = 0 AND changeset_id IS NULL  THEN
-		RETURN QUERY SELECT name, uid, %(columns_ex_templ)s, template AS template FROM production.%(tbl)s;
+		RETURN QUERY SELECT name, uid, %(columns_ex_templ)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
 	ELSE
 		CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 		RETURN QUERY WITH recursive resolved_data AS (
-			SELECT uid,name,version,%(columns)s, template, template as orig_template
+			SELECT uid,name,version,%(columns)s, %(template_column)s, %(template_column)s as orig_template
 			FROM %(tbl)s_data_version(from_version)
 			UNION ALL
 			SELECT
 				rd.uid AS uid, rd.name AS name, rd.version AS version,
 				%(rd_dv_coalesce)s,
-				dv.template, rd.orig_template
+				dv.%(template_column)s, rd.orig_template
 			FROM template_data_version dv, resolved_data rd
-			WHERE dv.uid = rd.template
+			WHERE dv.uid = rd.%(template_column)s
 		)
-		SELECT name, uid, %(columns_ex_templ)s, orig_template AS template
-		FROM resolved_data WHERE template IS NULL;
+		SELECT name, uid, %(columns_ex_templ)s, orig_template AS %(template_column)s
+		FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		DROP TABLE template_data_version;
 	END IF;

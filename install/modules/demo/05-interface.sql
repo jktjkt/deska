@@ -24,6 +24,6 @@ CREATE TABLE interface (
 	-- TODO unique constraint
 	mac macaddr,
 	note text,
-	template bigint,
+	template_interface bigint,
 	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
 );
