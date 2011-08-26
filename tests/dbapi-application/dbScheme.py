@@ -12,51 +12,45 @@ helper_hardware_attrs = {
 }
 helper_hardware_template_attrs = dict((k,v) for (k, v) in helper_hardware_attrs.iteritems() if k != "host")
 
-declarative = [
-    kindNames().returns(
-        AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware', 'service', 'host_template'))),
 
-    kindAttributes("interface").returns(helper_interface_attrs),
-    kindAttributes("interface_template").returns(
-        dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host")),
-    kindAttributes("vendor").returns({}),
-    kindAttributes("host").returns(
+def imperative(r):
+    r.assertEqual(r.c(kindNames()), AnyOrderList(('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware')))
+    r.assertEqual(r.c(kindAttributes("interface")), helper_interface_attrs)
+    r.assertEqual(r.c(kindAttributes("interface_template")),
+        dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host"))
+    r.assertEqual(r.c(kindAttributes("vendor")), {})
+    r.assertEqual(r.c(kindAttributes("host")),
         {
-            "hardware": "identifier", "note_host": "string",
-            "service": "identifier_set", "template_host": "identifier"}
-    ),
-    kindAttributes("hardware").returns(helper_hardware_attrs),
-    kindAttributes("hardware_template").returns(helper_hardware_template_attrs),
+            "hardware": "identifier",
+            "note_host": "string"
+        })
+    r.assertEqual(r.c(kindAttributes("hardware")), helper_hardware_attrs)
+    r.assertEqual(r.c(kindAttributes("hardware_template")), helper_hardware_template_attrs)
 
     # try to ask for a non-existing object
-    kindAttributes("pwnpwn").throws(InvalidKindError()),
+    r.cfail(kindAttributes("pwnpwn"), InvalidKindError())
 
-    kindRelations("interface").returns(
+    r.assertEqual(r.c(kindRelations("interface")),
         AnyOrderList([
             {'relation': 'EMBED_INTO', 'target': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
-    ),
-    kindRelations("interface_template").returns(
+    )
+    r.assertEqual(r.c(kindRelations("interface_template")),
        AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
                       'interface_template'}])),
-    kindRelations("host").returns(
-        AnyOrderList([
-            {'relation': 'MERGE_WITH', 'target': 'hardware'},
-            {'relation': 'TEMPLATIZED', 'target': 'host_template'},
-            {'relation': 'REFERS_TO_SET', 'target': 'service'}
-        ])
-    ),
-    kindRelations("hardware").returns(
+    r.assertEqual(r.c(kindRelations("host")),
+        AnyOrderList([{'relation': 'MERGE_WITH', 'target': 'hardware'}])
+    )
+    r.assertEqual(r.c(kindRelations("hardware")),
         AnyOrderList([
             {'relation': 'REFERS_TO', 'target': 'vendor'},
             {'relation': 'MERGE_WITH', 'target': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
-    ),
-    kindRelations("hardware_template").returns(
+    )
+    r.assertEqual(r.c(kindRelations("hardware_template")),
        AnyOrderList([
            {'relation': 'REFERS_TO', 'target': 'vendor'},
            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'},
        ])
-    ),
-    kindRelations("vendor").returns([]),
-]
+    )
+    r.assertEqual(r.c(kindRelations("vendor")), [])

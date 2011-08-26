@@ -24,6 +24,7 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "ParserErrors.h"
+#include "InfoExtractor.h"
 #include "Parser_p.h"
 
 
