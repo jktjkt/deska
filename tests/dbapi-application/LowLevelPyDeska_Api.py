@@ -22,16 +22,17 @@ def imperative(r):
     c = _l.Connection()
     # start with kindNames
     kindNames = c.kindNames()
-    r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "vendor",
-                                              "interface", "interface_template",
+    r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "host_template", "vendor",
+                                              "interface", "interface_template", "service",
                                               "hardware_template"]))
 
     # continue with kindRelations
     expectedRelations = {
         "interface": "[embedInto(host), templatized(interface_template)]",
         "hardware": "[mergeWith(host), refersTo(vendor), templatized(hardware_template)]",
-        "host": "[mergeWith(hardware)]",
+        "host": "[mergeWith(hardware), refersTo(service), templatized(host_template)]",
         "vendor": "[]",
+        "service": "[]",
         "hardware_template": "[templatized(hardware_template)]",
         # the embedInto is *not* present in this case, as templates cannot define this attribute
         "interface_template": "[templatized(interface_template)]",
@@ -44,12 +45,14 @@ def imperative(r):
 
     # check kindAttributes
     expectedAttrs = {
-        "hardware": "[cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "hardware_template": "[cpu_num: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING]",
-        "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
-        "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template: TYPE_IDENTIFIER]",
-        "vendor": "[]"
+        "hardware": "[cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "hardware_template": "[cpu_num: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
+        "host_template": "[note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
+        "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
+        "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
+        "vendor": "[]",
+        "service": "[isvm: TYPE_INT, note: TYPE_STRING]"
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
