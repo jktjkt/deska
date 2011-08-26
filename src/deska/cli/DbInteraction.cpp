@@ -47,6 +47,9 @@ DbInteraction::DbInteraction(Db::Api *api):
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = itr->target;
             }
+            if (itr->kind == Db::RELATION_MERGE_WITH) {
+                mergeWith[*itk].push_back(itr->target);
+            }
         }
         if (!isEmbedded)
             pureTopLevelKinds.push_back(*itk);
@@ -338,6 +341,41 @@ bool DbInteraction::objectExists(const ContextStack &context)
             return false;
     }
     return true;
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinition &object)
+{
+    if (object.name.empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+
+    std::vector<ObjectDefinition> mergedObjects;
+    for (std::vector<Db::Identifier>::iterator it =
+        mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
+            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        BOOST_ASSERT(instances.size() <= 1);
+        if (!instances.empty()) {
+            BOOST_ASSERT(instances.front() == object.name);
+            mergedObjects.push_back(ObjectDefinition(*it, object.name));
+        }
+    }
+   
+    return mergedObjects;
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ContextStack &context)
+{
+    BOOST_ASSERT(!context.empty());
+    for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
+        if (it->filter || it->name.empty())
+            throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+    }
+
+    return mergedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
 }
 
 

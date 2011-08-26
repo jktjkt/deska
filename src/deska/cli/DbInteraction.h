@@ -182,6 +182,20 @@ public:
     */
     bool objectExists(const ContextStack &context);
 
+    /** @short Gets all objects, that are merged with this one
+    *
+    *   @param object The object which merged objects to find
+    *   @return Vector of all objects merged with one given as parameter
+    */
+    std::vector<ObjectDefinition> mergedObjects(const ObjectDefinition &object);
+
+    /** @short Gets all objects, that are merged with this one
+    *
+    *   @param context Path to the object which merged objects to find
+    *   @return Vector of all objects merged with one given as parameter
+    */
+    std::vector<ObjectDefinition> mergedObjects(const ContextStack &context);
+
     /** @short Function for obtaining all pending chandesets.
     *
     *   @return Vector of all pending changesets
@@ -272,6 +286,8 @@ private:
     std::map<Db::Identifier, Db::Identifier> embeddedInto;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
+    /** Map of kinds and vector of kinds, that are merged with the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;
