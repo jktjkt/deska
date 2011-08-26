@@ -42,7 +42,7 @@ def imperative(r):
         AnyOrderList([
             {'relation': 'MERGE_WITH', 'target': 'hardware'},
             {'relation': 'TEMPLATIZED', 'target': 'host_template'},
-            {'relation': 'REFERS_TO_SET', 'target': 'service'}
+            {'relation': 'REFERS_TO', 'target': 'service'}
         ])
     )
     r.assertEqual(r.c(kindRelations("hardware")),
