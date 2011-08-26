@@ -53,6 +53,7 @@ class Parser;
 #define FORWARD_1(FUNC, EFUNC, TYPE_1) virtual void FUNC(boost::call_traits<TYPE_1>::param_type);
 #define FORWARD_1_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1) RET_TYPE FUNC(boost::call_traits<TYPE_1>::param_type);
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1, TYPE_2) RET_TYPE FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
 #define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(TYPE_1, TYPE_2);
 #define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
 #define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
@@ -87,6 +88,9 @@ private:
     void expect##EFUNC(boost::call_traits<TYPE_1>::param_type); \
     void return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1, TYPE_2) \
+    void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type); \
+    void return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
 #define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(TYPE_1, TYPE_2);
 #define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
 #define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) void expect##EFUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);

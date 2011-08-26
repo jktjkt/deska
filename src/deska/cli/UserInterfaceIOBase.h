@@ -89,6 +89,24 @@ public:
     */
     virtual bool confirmCreation(const ObjectDefinition &object) = 0;
 
+    /** @short Displays confirmation message for creation of a object when the object will be merged with another
+    *          and returns users choice.
+    *
+    *   @param object Object to be created
+    *   @return True if the creation was confirmed, else false
+    */
+    virtual bool confirmCreationConnection(const ObjectDefinition &object) = 0;
+
+    /** @short Displays confirmation message for creation of a object when the object will be merged with another
+    *          and returns users choice.
+    *
+    *   @param object Object to be created
+    *   @param mergedObjects Objects, that will be merged with one being created
+    *   @return True if the creation was confirmed, else false
+    */
+    virtual bool confirmCreationConnection(const ObjectDefinition &object,
+                                           const std::vector<ObjectDefinition> &mergedObjects) = 0;
+
     /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
     *
     *   @param object Object to be restored
