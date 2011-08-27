@@ -115,7 +115,7 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         newItem = m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
+        if (nonInteractiveMode || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             newItem = ContextStackItem(kind, object);
             return true;
@@ -311,7 +311,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
@@ -337,7 +337,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
