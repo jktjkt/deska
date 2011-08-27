@@ -505,6 +505,10 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     objects.push_back(ObjectDefinition(it->kind, it->name));
                 }
             } else {
+                for (std::vector<ObjectDefinition>::iterator itoe = objects.begin(); itoe != objects.end(); ++itoe) {
+                    if (pathToVector(itoe->name).back().empty())
+                        throw std::logic_error("Deska::Cli::DbInteraction::expandContextStack: Can not expand context stack with objects with empty names.");
+                }
                 if (it->filter) {
                     // If there is a filter, we have to construct filter for all extracted objects at first.
                     std::vector<Db::Filter> currObjects;
@@ -537,7 +541,7 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     // If we have already some objects and in the context is object now, step in its context
                     // for each extracted object.
                     for (size_t i = 0; i < objects.size(); ++i) {
-                        objects[0] = stepInContext(objects[0], ObjectDefinition(it->kind, it->name));
+                        objects[i] = stepInContext(objects[i], ObjectDefinition(it->kind, it->name));
                     }
                 }
             }
