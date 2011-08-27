@@ -280,6 +280,10 @@ public:
     void lockCurrentChangeset();
     /** @short Unlocks current changeset */
     void unlockCurrentChangeset();
+    /** @short Freeze the view of the revisions */
+    void freezeView();
+    /** @short Unfreeze the client's view on the persistent revisions */
+    void unFreezeView();
 
 private:
 

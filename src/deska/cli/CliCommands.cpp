@@ -1054,7 +1054,7 @@ Dump::~Dump()
 
 void Dump::operator()(const std::string &params)
 {
-    ui->m_dbInteraction->lockCurrentChangeset();
+    ui->m_dbInteraction->freezeView();
     if (params.empty()) {
         // FIXME: Dump recursively
         //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
@@ -1069,7 +1069,7 @@ void Dump::operator()(const std::string &params)
         std::ofstream ofs(params.c_str());
         if (!ofs) {
             ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
-            ui->m_dbInteraction->unlockCurrentChangeset();
+            ui->m_dbInteraction->unFreezeView();
             return;
         }
         // FIXME: Dump recursively
@@ -1082,7 +1082,7 @@ void Dump::operator()(const std::string &params)
             }
         }
         ofs.close();
-        ui->m_dbInteraction->unlockCurrentChangeset();
+        ui->m_dbInteraction->unFreezeView();
         ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
     }
 }

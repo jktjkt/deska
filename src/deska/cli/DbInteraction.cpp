@@ -567,5 +567,19 @@ void DbInteraction::unlockCurrentChangeset()
 
 
 
+void DbInteraction::freezeView()
+{
+    m_api->freezeView();
+}
+
+
+
+void DbInteraction::unFreezeView()
+{
+    m_api->unFreezeView();
+}
+
+
+
 }
 }
