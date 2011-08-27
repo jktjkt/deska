@@ -674,10 +674,13 @@ void Rebase::operator()(const std::string &params)
         return;
     }
 
+    ui->m_dbInteraction->lockCurrentChangeset();
+
     // Start new changeset for rebase
     Db::TemporaryChangesetId oldChangeset = *(ui->currentChangeset);
     ui->m_dbInteraction->detachFromChangeset("Rebase in progress");
     Db::TemporaryChangesetId newChangeset = ui->m_dbInteraction->createNewChangeset();
+    ui->m_dbInteraction->lockCurrentChangeset();
     Db::RevisionId newParentRevision = ui->m_dbInteraction->changesetParent(newChangeset);
 
     // Obtain modifications lists for three-way diff
@@ -701,6 +704,7 @@ void Rebase::operator()(const std::string &params)
         ui->io->reportError("Error while creating rebase temp file \"" + std::string(tempFile) + "\".");
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        ui->m_dbInteraction->unlockCurrentChangeset();
         return;
     }
     std::ofstream ofs(tempFile);
@@ -709,6 +713,7 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        ui->m_dbInteraction->unlockCurrentChangeset();
         return;
     }
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
@@ -745,6 +750,7 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        ui->m_dbInteraction->unlockCurrentChangeset();
         return;
     }
 
@@ -771,6 +777,7 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        ui->m_dbInteraction->unlockCurrentChangeset();
         return;
     }
     ifs.close();
@@ -781,6 +788,7 @@ void Rebase::operator()(const std::string &params)
     ui->m_dbInteraction->resumeChangeset(oldChangeset);
     ui->m_dbInteraction->abortChangeset();
     ui->m_dbInteraction->resumeChangeset(newChangeset);
+    ui->m_dbInteraction->unlockCurrentChangeset();
     ui->io->printMessage("Rebase successful.");
 }
 
@@ -1046,6 +1054,7 @@ Dump::~Dump()
 
 void Dump::operator()(const std::string &params)
 {
+    ui->m_dbInteraction->lockCurrentChangeset();
     if (params.empty()) {
         // FIXME: Dump recursively
         //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
@@ -1060,6 +1069,7 @@ void Dump::operator()(const std::string &params)
         std::ofstream ofs(params.c_str());
         if (!ofs) {
             ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
+            ui->m_dbInteraction->unlockCurrentChangeset();
             return;
         }
         // FIXME: Dump recursively
@@ -1072,6 +1082,7 @@ void Dump::operator()(const std::string &params)
             }
         }
         ofs.close();
+        ui->m_dbInteraction->unlockCurrentChangeset();
         ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
     }
 }
@@ -1169,6 +1180,7 @@ void Restore::operator()(const std::string &params)
     ContextStack stackBackup = ui->m_parser->currentContextStack();
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
+    ui->m_dbInteraction->lockCurrentChangeset();
     while (!getline(ifs, line).eof()) {
         ++lineNumber;
         if (!line.empty() && line[0] == '#')
@@ -1178,6 +1190,7 @@ void Restore::operator()(const std::string &params)
             break;
     }
     ui->nonInteractiveMode = false;
+    ui->m_dbInteraction->unlockCurrentChangeset();
     if (ui->parsingFailed) {
         std::ostringstream ostr;
         ostr << "Parsing of commands file failed on line " << lineNumber << ".";

@@ -276,6 +276,11 @@ public:
     */
     std::vector<ObjectDefinition> expandContextStack(const ContextStack &context);
 
+    /** @short Locks the current changeset */
+    void lockCurrentChangeset();
+    /** @short Unlocks current changeset */
+    void unlockCurrentChangeset();
+
 private:
 
     /** Identifiers of top level kinds. */

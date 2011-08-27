@@ -548,5 +548,20 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
 }
 
 
+
+void DbInteraction::lockCurrentChangeset()
+{
+    m_api->lockCurrentChangeset();
+}
+
+
+
+void DbInteraction::unlockCurrentChangeset()
+{
+    m_api->unlockCurrentChangeset();
+}
+
+
+
 }
 }
