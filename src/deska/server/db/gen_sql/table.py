@@ -218,17 +218,23 @@ class Table(constants.Templates):
 					if col in collist:
 						del collist[col]
 						#columns that references uid
-						if col in self.refers_to_set:
-							#if refers to set - sets should be compared
-							cols_changes = cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'reftbl': tbl, 'column': col}
-						else:
+						if col not in self.refers_to_set:
+							#set comparison is in another function
 							cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': tbl, 'column': col}
+
+		refers_set_set_fn = ""
+		if len(self.refers_to_set) > 0:
+			refs_set_cols_changes = ""
+			for col in self.refers_to_set:
+				refs_set_cols_changes = refs_set_cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'reftbl': tbl, 'column': col}
+			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string}            
 
 		#for all remaining columns we generate if clause to find possible changes
 		for col in collist:
 			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
 
-		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string}
+		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
+            refers_set_set_fn
 
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions

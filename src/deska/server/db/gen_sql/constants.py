@@ -972,8 +972,8 @@ LANGUAGE plpgsql;
 	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid),',');
-		result.newdata = array_to_string(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid),',');
+		result.olddata = inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid);
+		result.newdata = inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid);
 		RETURN NEXT result;
 	END IF;
 
@@ -1025,6 +1025,43 @@ LANGUAGE plpgsql;
 	 LANGUAGE plpgsql;
 
 '''
+
+#diff set_attribute for attributes that refers to set o identifiers
+	diff_refs_set_set_attribute_string = '''CREATE FUNCTION
+	%(tbl)s_diff_refs_set_set_attributes(from_version bigint = 0, to_version bigint = 0)
+	 RETURNS SETOF diff_refs_set_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		old_data %(tbl)s_history%%rowtype;
+		new_data %(tbl)s_history%%rowtype;
+		result diff_refs_set_set_attribute_type;
+		current_changeset bigint;
+	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF from_version = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset
+			current_changeset = get_current_changeset();
+			from_version = id2num(parent(current_changeset));
+		END IF;
+
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
+		FOR %(old_new_obj_list)s IN
+			SELECT %(select_old_new_list)s
+			FROM %(tbl)s_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
+		LOOP
+			--all other changes are mentioned with new name
+			result.objname = new_data.name;
+			--check if the column was changed
+			%(columns_changes)s
+		END LOOP;
+	 END
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
 
 #template for function, which selects all data from kind table taht are present in version data_version
 #is used in diff functions
