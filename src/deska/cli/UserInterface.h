@@ -99,7 +99,7 @@ public:
     bool confirmCreateObject(const ContextStack &context,
                              const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmCategoryEntered(const ContextStack &context,
-                                const Db::Identifier &kind, const Db::Identifier &object);
+                                const Db::Identifier &kind, const Db::Identifier &object, bool &autoCreate);
     bool confirmSetAttribute(const ContextStack &context, const Db::Identifier &kind,
                              const Db::Identifier &attribute, const Db::Value &value);
     bool confirmSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,

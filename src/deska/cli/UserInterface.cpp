@@ -278,7 +278,7 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
 
 
 bool UserInterface::confirmCategoryEntered(const ContextStack &context,
-                                           const Db::Identifier &kind, const Db::Identifier &object)
+                                           const Db::Identifier &kind, const Db::Identifier &object, bool &autoCreate)
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
@@ -294,7 +294,8 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return true;
 
     // Object does not exist -> ask the user here
-    return io->confirmCreation(ObjectDefinition(kind,object));
+    autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
+    return autoCreate;
 }
 
 
