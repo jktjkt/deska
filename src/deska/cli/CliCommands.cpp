@@ -275,8 +275,7 @@ std::string OurModificationConverter::operator()(const Db::DeleteObjectModificat
 std::string OurModificationConverter::operator()(const Db::RenameObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " to "
-         << modification.newObjectName;
+    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " " << modification.newObjectName;
     return ostr.str();
 }
 
@@ -285,10 +284,13 @@ std::string OurModificationConverter::operator()(const Db::RenameObjectModificat
 std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "set attribute " << modification.kindName << " " << modification.objectName << " "
-         << modification.attributeName << " from "
-         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
-         << (modification.attributeData ? *(modification.attributeData) : "null");
+    ostr << "#set attribute " << modification.attributeName << " from "
+         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << std::endl;
+    ostr << modification.kindName << " " << modification.objectName << " ";
+    if (modification.attributeData)
+        ostr << modification.attributeName << *(modification.attributeData);
+    else
+        ostr << "no " << modification.attributeName;
     return ostr.str();
 }
 
@@ -753,7 +755,6 @@ void Rebase::operator()(const std::string &params)
     unsigned int lineNumber = 0;
     while (!getline(ifs, line).eof()) {
         ++lineNumber;
-        parserLine = toParserReadable(line);
         if (!parserLine.empty() && parserLine[0] == '#')
             continue;
         ui->m_parser->parseLine(parserLine);
@@ -789,14 +790,6 @@ bool Rebase::objectModificationResultLess(const Db::ObjectModificationResult &a,
 {
     // TODO
     return true;
-}
-
-
-
-std::string Rebase::toParserReadable(const std::string &line)
-{
-    // TODO
-    return line;
 }
 
 

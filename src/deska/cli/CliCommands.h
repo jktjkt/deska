@@ -565,13 +565,6 @@ private:
     *   @return True if b is greater than a, else false
     */
     bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
-
-    /** @short Converts lines from file editted by a user while resolving conflicts to Parser readable format
-    *
-    *   @param line Line from file showing conflicts
-    *   @return Parser command represenation of the line
-    */
-    std::string toParserReadable(const std::string &line);
 };
 
 
