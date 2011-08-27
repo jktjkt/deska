@@ -13,7 +13,6 @@ CREATE TABLE service (
 	-- this column is required in all plugins
 	name identifier
 		CONSTRAINT "service of this name already exists" UNIQUE NOT NULL,
-	isVM integer NOT NULL DEFAULT 0,
 	note text
 );
  

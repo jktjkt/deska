@@ -52,7 +52,7 @@ def imperative(r):
         "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "vendor": "[]",
-        "service": "[isvm: TYPE_INT, note: TYPE_STRING]"
+        "service": "[note: TYPE_STRING]"
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)

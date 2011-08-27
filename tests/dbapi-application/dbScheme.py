@@ -21,7 +21,7 @@ def imperative(r):
     r.assertEqual(r.c(kindAttributes("interface_template")),
         dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host"))
     r.assertEqual(r.c(kindAttributes("vendor")), {})
-    r.assertEqual(r.c(kindAttributes("service")), {"note": "string", "isvm": "int"})
+    r.assertEqual(r.c(kindAttributes("service")), {"note": "string"})
     r.assertEqual(r.c(kindAttributes("host")),
         {
             "hardware": "identifier", "note_host": "string",
