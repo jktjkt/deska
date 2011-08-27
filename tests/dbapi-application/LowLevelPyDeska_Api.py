@@ -31,17 +31,16 @@ def imperative(r):
         "interface": "[embedInto(host), templatized(interface_template)]",
         "hardware": "[mergeWith(host), refersTo(vendor), templatized(hardware_template)]",
         "host": "[mergeWith(hardware), refersTo(service), templatized(host_template)]",
+        "host_template": "[refersTo(service), templatized(host_template)]",
         "vendor": "[]",
         "service": "[]",
-        "hardware_template": "[templatized(hardware_template)]",
+        "hardware_template": "[refersTo(vendor), templatized(hardware_template)]",
         # the embedInto is *not* present in this case, as templates cannot define this attribute
         "interface_template": "[templatized(interface_template)]",
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
-        # FIXME: Redmine #272
-        if not kind.endswith("_template"):
-            r.assertEquals(repr(sorted(kindRelations)), expectedRelations[kind])
+        r.assertEquals(repr(sorted(kindRelations)), expectedRelations[kind])
 
     # check kindAttributes
     expectedAttrs = {
