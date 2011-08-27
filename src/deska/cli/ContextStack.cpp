@@ -136,8 +136,16 @@ std::vector<Db::Identifier> pathToVector(const Db::Identifier &path)
     bool r = boost::spirit::qi::phrase_parse(first,last,
                                              +(boost::spirit::ascii::alnum | '_') % "->",
                                              boost::spirit::ascii::space, identifiers);
-    if (!r || first != last)
+    if (!r)
         throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
+
+    if (first != last) {
+        bool r2 = boost::spirit::qi::phrase_parse(first, last, boost::spirit::qi::lit("->"), boost::spirit::ascii::space);
+        if (!r2 || (first != last))
+            throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
+        else
+            identifiers.push_back(Db::Identifier());
+    }
     
     return identifiers;
 }

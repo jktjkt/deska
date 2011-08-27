@@ -988,7 +988,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
 
 template <typename Iterator>
 void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &line,
-                                                                  std::vector<std::string> &possibilities)
+                                                            std::vector<std::string> &possibilities)
 {
     std::string::const_iterator realEnd = line.end() - 1;
     while (*realEnd != ' ') {
@@ -1010,11 +1010,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             return;
         std::vector<std::string> expectations = it->expectedTypes();
         // Check if the user is supposed to enter some objects name, that we can complete
-        // FIXME: Allow completiong names with -> and jumps
         if (!(it->context().empty())) {
             std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
             for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                possibilities.push_back(line + pathToVector(*iti).back());
+                std::vector<Db::Identifier> path = pathToVector(*iti);
+                BOOST_ASSERT(path.size() > contextStack.size());
+                possibilities.push_back(line + vectorToPath(std::vector<Db::Identifier>(
+                    path.begin() + contextStack.size(), path.end())));
             }
         }
         possibilities.push_back(line + "where");
