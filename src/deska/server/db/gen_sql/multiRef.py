@@ -8,7 +8,7 @@ class MultiRef:
     CONSTRAINT inner_%(tbl)s_fk_%(ref_tbl)s REFERENCES %(tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
     CONSTRAINT inner_%(ref_tbl)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
-CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_pk PRIMARY KEY (%(tbl)s,%(ref_tbl)s)
+CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
 );
 
 '''
@@ -18,7 +18,7 @@ CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_pk PRIMARY KEY (%(tbl)s,%(ref_tbl)
     -- include default values
     INCLUDING DEFAULTS,
     version int NOT NULL,
-    CONSTRAINT %(tbl)s_pk PRIMARY KEY (%(tbl_name)s, %(ref_tbl_name)s, version)
+    CONSTRAINT %(tbl)s_unique UNIQUE (%(tbl_name)s, %(ref_tbl_name)s, version)
 );
 '''
 
@@ -43,7 +43,13 @@ BEGIN
     END IF;
     
     BEGIN
-        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid;
+        --if this set was modified in this changeset exception is thrown (all rows are already present)
+        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid AND %(ref_tbl_name)s IS NOT NULL;
+    EXCEPTION WHEN unique_violation THEN
+        -- do nothing
+    END;
+    
+    BEGIN
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version)
             VALUES (%(tbl_name)s_uid, %(ref_tbl_name)s_uid, ver);
     EXCEPTION WHEN unique_violation THEN
@@ -78,7 +84,17 @@ BEGIN
         RAISE 'No %(ref_tbl_name)s with name %% exist in this version', %(ref_tbl_name)s_name USING ERRCODE = '70021';
     END IF;
     
-    INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid AND %(ref_tbl_name)s <> %(ref_tbl_name)s_uid;
+    BEGIN
+        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) SELECT %(tbl_name)s, %(ref_tbl_name)s, ver FROM %(tbl)s_data_version() WHERE %(tbl_name)s = %(tbl_name)s_uid;
+    EXCEPTION WHEN unique_violation THEN
+        -- do nothing
+    END;
+        
+    DELETE FROM %(tbl)s_history WHERE %(ref_tbl_name)s = %(ref_tbl_name)s_uid;
+
+    IF NOT exists(SELECT * FROM %(tbl)s_history WHERE %(tbl_name)s = %(tbl_name)s_uid AND version = ver) THEN
+        INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) VALUES (%(tbl_name)s_uid, NULL, ver);
+    END IF;
 
     --flag is_generated set to false
     UPDATE changeset SET is_generated = FALSE WHERE id = ver;
@@ -109,6 +125,19 @@ BEGIN
     END IF;
     
     DELETE FROM %(tbl)s_history WHERE version = ver AND %(tbl_name)s = rowuid;
+
+    --empty set of tuples (rowuid, refuid) represents null value, it is done by delete from ..
+    IF value IS NULL THEN
+        RETURN 1;
+    END IF;
+    
+    --set {(rowuid, NULL)} represents empty set for object rowuid
+    IF array_upper(value,1) IS NULL THEN
+        raise notice 'empty set';
+        INSERT INTO %(tbl)s_history (%(tbl_name)s,%(ref_tbl_name)s,version) VALUES (rowuid, NULL, ver);
+        RETURN 1;
+    END IF;
+
     FOR pos IN 1..array_upper(value,1) LOOP
         refuid = %(ref_tbl_name)s_get_uid(value[pos]);
         IF refuid IS NULL THEN
@@ -241,28 +270,37 @@ AS
 $$
 DECLARE
     changeset_id bigint;
+    result text[];
 BEGIN
     IF from_version = 0 THEN
         --we need current data
         changeset_id = get_current_changeset_or_null();
         IF changeset_id IS NULL THEN
-            RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
+            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
+            RETURN deska.ret_id_set(result);
         ELSE
+            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id);
+            
+            IF array_upper(result,1) >= 1 THEN
+                RETURN deska.ret_id_set(result);
+            END IF;
             from_version = id2num(parent(changeset_id));
         END IF;
     END IF;
-    
-    RETURN ARRAY(
-        SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history h1
-            JOIN version v1 ON (v1.id = h1.version)
-            JOIN (  SELECT max(num) AS maxnum
-                FROM %(tbl)s_history h JOIN version v ON (v.id = h.version)
-                WHERE v.num <= from_version AND %(tbl_name)s = obj_uid
-            ) vmax1
-            ON (v1.num = vmax1.maxnum)
-        WHERE %(tbl_name)s = obj_uid
+
+    result = ARRAY(
+    SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history h1
+        JOIN version v1 ON (v1.id = h1.version)
+        JOIN (  SELECT max(num) AS maxnum
+            FROM %(tbl)s_history h JOIN version v ON (v.id = h.version)
+            WHERE v.num <= from_version AND %(tbl_name)s = obj_uid
+        ) vmax1
+        ON (v1.num = vmax1.maxnum)
+    WHERE %(tbl_name)s = obj_uid
     );
-END
+    
+    RETURN deska.ret_id_set(result);
+END;
 $$
 LANGUAGE plpgsql;
 '''
