@@ -95,7 +95,7 @@ class DB:
 			self.freeze = False
 			return self.responseJson(name,tag)
 		else:
-				return self.errorJson(name,tag,"Only freeze or unFreeze")
+			return self.errorJson(name,tag,"Only freeze or unFreeze")
 
 	def applyBatchedChanges(self,changelist,tag):
 		if type(changelist) != list:
