@@ -24,7 +24,6 @@
 #include <boost/foreach.hpp>
 #include <sstream>
 #include "DbInteraction.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -466,7 +465,7 @@ Db::RevisionId DbInteraction::changesetParent(const Db::TemporaryChangesetId &ch
 
 
 
-std::string DbInteraction::configDiff(bool forceRegenerate)
+std::string DbInteraction::configDiff(const Db::Api::ConfigGeneratingMode forceRegenerate)
 {
     return m_api->showConfigDiff(forceRegenerate);
 }

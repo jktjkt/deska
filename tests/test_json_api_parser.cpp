@@ -901,7 +901,7 @@ BOOST_FIXTURE_TEST_CASE(json_showConfigDiff_regen, JsonApiTestFixtureFailOnStrea
     expectWrite("{\"command\":\"showConfigDiff\",\"tag\":\"T\",\"forceRegenerate\":true}\n");
     expectRead("{\"showConfigDiff\": \"foo bar\", \"tag\":\"T\", \"response\": \"showConfigDiff\"}\n");
     std::string expected = "foo bar";
-    std::string res = j->showConfigDiff(true);
+    std::string res = j->showConfigDiff(Deska::Db::Api::FORCE_REGENERATE);
     BOOST_CHECK_EQUAL(res, expected);
     expectEmpty();
 }

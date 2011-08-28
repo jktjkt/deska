@@ -485,12 +485,16 @@ std::vector<ObjectModificationResult> JsonApiParser::resolvedDataDifferenceInTem
     return diffHelper(this, "resolvedDataDifferenceInTemporaryChangeset", filter, changeset, boost::optional<RevisionId>(), boost::optional<RevisionId>());
 }
 
-std::string JsonApiParser::showConfigDiff(bool forceRegenerate)
+std::string JsonApiParser::showConfigDiff(const ConfigGeneratingMode forceRegenerate)
 {
     JsonCommandContext c1("showConfigDiff");
     JsonHandlerApiWrapper h(this, "showConfigDiff");
-    if (forceRegenerate)
-        h.argument("forceRegenerate", forceRegenerate);
+    switch (forceRegenerate) {
+    case MAYBE_REGENERATE:
+        break;
+    case FORCE_REGENERATE:
+        h.argument("forceRegenerate", true);
+    }
     std::string res;
     h.read("showConfigDiff").extract(&res);
     h.work();

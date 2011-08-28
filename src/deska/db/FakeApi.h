@@ -85,7 +85,7 @@ public:
     virtual std::vector<ObjectModificationResult> dataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
     virtual std::vector<ObjectModificationResult> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
 
-    virtual std::string showConfigDiff(bool forceRegenerate=false);
+    virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE);
 
     // These members should be accessible for modifications from the test suite
 

@@ -990,11 +990,11 @@ void Configdiff::operator()(const std::string &params)
         return;
     }
 
-    bool forceRegen = false;
+    Db::Api::ConfigGeneratingMode forceRegen = Db::Api::MAYBE_REGENERATE;
     if (params.empty()) {
         // nothing special
     } else if (params == "regenerate") {
-        forceRegen = true;
+        forceRegen = Db::Api::FORCE_REGENERATE;
     } else {
         ui->io->reportError("Error: Invalid parameter entered. Use \"help\" for more info.");
         return;

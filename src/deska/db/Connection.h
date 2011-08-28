@@ -88,7 +88,7 @@ public:
     virtual std::vector<ObjectModificationResult> resolvedDataDifferenceInTemporaryChangeset(const TemporaryChangesetId changeset, const boost::optional<Filter> &filter=boost::optional<Filter>()) const;
 
     // Output config runners
-    virtual std::string showConfigDiff(bool forceRegenerate=false);
+    virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE);
 private:
     Connection_p *p;
 };
