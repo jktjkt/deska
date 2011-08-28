@@ -91,6 +91,8 @@ REMOTEDBEXCEPTION(ObsoleteParentError)
 REMOTEDBEXCEPTION(NotASetError)
 /** @short Attempted to access a locked changeset or execute an invalid operation related to changeset locking */
 REMOTEDBEXCEPTION(ChangesetLockingError)
+/** @short An error has occurred when generating configuration files */
+REMOTEDBEXCEPTION(CfgGeneratingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */

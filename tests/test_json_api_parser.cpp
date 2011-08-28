@@ -930,6 +930,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(ObsoleteParentError);
     JSON_ERR_TEST(NotASetError);
     JSON_ERR_TEST(ChangesetLockingError);
+    JSON_ERR_TEST(CfgGeneratingError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST
