@@ -43,34 +43,38 @@ MockParserEvent MockParserEvent::categoryLeft()
     return MockParserEvent(EVENT_LEAVE_CONTEXT);
 }
 
-MockParserEvent MockParserEvent::setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
+MockParserEvent MockParserEvent::setAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
     MockParserEvent res(EVENT_SET_ATTR);
-    res.i1 = name;
+    res.i1 = kind;
+    res.i2 = name;
     res.v1 = val;
     return res;
 }
 
-MockParserEvent MockParserEvent::setAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+MockParserEvent MockParserEvent::setAttrInsert(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
     MockParserEvent res(EVENT_SET_ATTR_INSERT);
-    res.i1 = name;
+    res.i1 = kind;
+    res.i2 = name;
     res.i2 = val;
     return res;
 }
 
-MockParserEvent MockParserEvent::setAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+MockParserEvent MockParserEvent::setAttrRemove(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
     MockParserEvent res(EVENT_SET_ATTR_REMOVE);
-    res.i1 = name;
+    res.i1 = kind;
+    res.i2 = name;
     res.i2 = val;
     return res;
 }
 
-MockParserEvent MockParserEvent::removeAttr(const Deska::Db::Identifier &name)
+MockParserEvent MockParserEvent::removeAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
     MockParserEvent res(EVENT_REMOVE_ATTR);
-    res.i1 = name;
+    res.i1 = kind;
+    res.i2 = name;
     return res;
 }
 
@@ -152,16 +156,16 @@ std::ostream& operator<<(std::ostream &out, const MockParserEvent &m)
         out << "categoryLeft()";
         break;
     case MockParserEvent::EVENT_SET_ATTR:
-        out << "setAttr( " << m.i1 << ", " << *(m.v1) << " )";
+        out << "setAttr( " << m.i1 << ", " << m.i2 << ", " << *(m.v1) << " )";
         break;
     case MockParserEvent::EVENT_SET_ATTR_INSERT:
-        out << "setAttrInsert( " << m.i1 << ", " << m.i2 << " )";
+        out << "setAttrInsert( " << m.i1 << ", " << m.i2 << ", " << m.i2 << " )";
         break;
     case MockParserEvent::EVENT_SET_ATTR_REMOVE:
-        out << "setAttrRemove( " << m.i1 << ", " << m.i2 << " )";
+        out << "setAttrRemove( " << m.i1 << ", " << m.i2 << ", " << m.i2 << " )";
         break;
     case MockParserEvent::EVENT_REMOVE_ATTR:
-        out << "removeAttr( " << m.i1 << " )";
+        out << "removeAttr( " << m.i1 << ", " << m.i2 << " )";
         break;
     case MockParserEvent::EVENT_FUNCTION_SHOW:
         out << "functionShow()";

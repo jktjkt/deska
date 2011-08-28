@@ -40,6 +40,8 @@ FORWARD_2(printHelpKeyword, PrintHelpKeyword, std::string, std::string);
 FORWARD_1(printHelpShowKinds, PrintHelpShowKinds, std::vector<std::string>);
 FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Cli::ObjectDefinition);
 FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Cli::ObjectDefinition);
+FORWARD_1_RETURN(confirmCreationConnection, ConfirmCreationConnection1, bool, boolean, Deska::Cli::ObjectDefinition);
+FORWARD_2_RETURN(confirmCreationConnection, ConfirmCreationConnection2, bool, boolean, Deska::Cli::ObjectDefinition, std::vector<Deska::Cli::ObjectDefinition>);
 FORWARD_1_RETURN(confirmRestoration, ConfirmRestoration, bool, boolean, Deska::Cli::ObjectDefinition);
 FORWARD_1_RETURN(chooseChangeset, ChooseChangeset, int, integer, std::vector<Deska::Db::PendingChangeset>);
 FORWARD_1_RETURN(readLine, ReadLine, pair_string_bool, strbool, std::string);
@@ -61,6 +63,7 @@ FORWARD_1(addCommandCompletion, AddCommandCompletion, std::string);
 #undef FORWARD_1
 #undef FORWARD_1_RETURN
 #undef FORWARD_2
+#undef FORWARD_2_RETURN
 #undef FORWARD_2_RAW_ARGS
 #undef FORWARD_3
 #undef FORWARD_3_OSTREAM

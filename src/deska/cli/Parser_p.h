@@ -170,10 +170,10 @@ public:
     void newObject(const Db::Identifier &kind);
     void categoryEntered(const Db::Identifier &kind, const Db::Identifier &name);
     void categoryLeft();
-    void attributeSet(const Db::Identifier &name, const Db::Value &value);
-    void attributeSetInsert(const Db::Identifier &name, const Db::Identifier &value);
-    void attributeSetRemove(const Db::Identifier &name, const Db::Identifier &value);
-    void attributeRemove(const Db::Identifier &name);
+    void attributeSet(const Db::Identifier &kind, const Db::Identifier &name, const Db::Value &value);
+    void attributeSetInsert(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value);
+    void attributeSetRemove(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value);
+    void attributeRemove(const Db::Identifier &kind, const Db::Identifier &name);
     void objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
     //@}
 
@@ -320,6 +320,8 @@ private:
     std::map<Db::Identifier, Db::Identifier> embeddedInto;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
+    /** Map of kinds and vector of kinds, that are merged with the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
 
     /** The parser context is held there. */
     ContextStack contextStack;

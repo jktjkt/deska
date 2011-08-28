@@ -10,8 +10,11 @@ class CurrentTimestamp(object):
         if not isinstance(other,str):
             raise TypeError, "Cannot compare CurrentTimestamp with anything but string"
         otherDate = datetime.datetime(*(time.strptime(other[:19], "%Y-%m-%d %H:%M:%S")[0:6]))
+        # The start time, as reported by the remote server, uses one second
+        # granularity, so better allow for one second earlier
+        start = self.start - datetime.timedelta(seconds=1)
         end = datetime.datetime.now() + datetime.timedelta(seconds=1)
-        return self.start <= otherDate and otherDate <= end
+        return start <= otherDate and otherDate <= end
 
 class DeskaDbUser(object):
     def __init__(self):

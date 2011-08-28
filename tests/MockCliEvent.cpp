@@ -97,6 +97,43 @@ MockCliEvent MockCliEvent::returnConfirmCreation(bool confirm)
 
 
 
+MockCliEvent MockCliEvent::confirmCreationConnection(const Deska::Cli::ObjectDefinition &object)
+{
+    MockCliEvent res(EVENT_CONFIRM_CREATION_CONNECTION_1);
+    res.object = object;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::returnConfirmCreationConnection1(bool confirm)
+{
+    MockCliEvent res(RETURN_CONFIRM_CREATION_CONNECTION_1);
+    res.boolean = confirm;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::confirmCreationConnection(const Deska::Cli::ObjectDefinition &object, const std::vector<Deska::Cli::ObjectDefinition> &mergedObjects)
+{
+    MockCliEvent res(EVENT_CONFIRM_CREATION_CONNECTION_2);
+    res.objects = mergedObjects;
+    res.object = object;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::returnConfirmCreationConnection2(bool confirm)
+{
+    MockCliEvent res(RETURN_CONFIRM_CREATION_CONNECTION_2);
+    res.boolean = confirm;
+    return res;
+}
+
+
+
 MockCliEvent MockCliEvent::confirmRestoration(const Deska::Cli::ObjectDefinition &object)
 {
     MockCliEvent res(EVENT_CONFIRM_RESTORATION);
@@ -351,6 +388,7 @@ MockCliEvent MockCliEvent::invalid()
 bool MockCliEvent::inputEvent(const MockCliEvent &m) const
 {
     return ((m.eventKind == RETURN_CONFIRM_DELETION) || (m.eventKind == RETURN_CONFIRM_CREATION) ||
+            (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_1) || (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2) ||
             (m.eventKind == RETURN_CONFIRM_RESTORATION) || (m.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE) ||
             (m.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE) || (m.eventKind == RETURN_CHOOSE_CHANGESET) ||
             (m.eventKind == RETURN_READ_LINE));
@@ -373,6 +411,10 @@ bool MockCliEvent::myReturn(const MockCliEvent &other) const
         return other.eventKind == RETURN_CONFIRM_DELETION;
     case EVENT_CONFIRM_CREATION:
         return other.eventKind == RETURN_CONFIRM_CREATION;
+    case EVENT_CONFIRM_CREATION_CONNECTION_1:
+        return other.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_1;
+    case EVENT_CONFIRM_CREATION_CONNECTION_2:
+        return other.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2;
     case EVENT_CONFIRM_RESTORATION:
         return other.eventKind == RETURN_CONFIRM_RESTORATION;
     case EVENT_ASK_FOR_COMMIT_MESSAGE:
@@ -513,6 +555,18 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         out << "confirmCreation( " << *(m.object) << " )";
         break;
     case MockCliEvent::RETURN_CONFIRM_CREATION:
+        out << "returnConfirmCreation( " << m.boolean << " )";
+        break;
+    case MockCliEvent::EVENT_CONFIRM_CREATION_CONNECTION_1:
+        out << "confirmCreationConnection( " << *(m.object) << " )";
+        break;
+    case MockCliEvent::RETURN_CONFIRM_CREATION_CONNECTION_1:
+        out << "returnConfirmCreation( " << m.boolean << " )";
+        break;
+    case MockCliEvent::EVENT_CONFIRM_CREATION_CONNECTION_2:
+        out << "confirmCreationConnection( " << *(m.object) << ", " << m.objects << " )";
+        break;
+    case MockCliEvent::RETURN_CONFIRM_CREATION_CONNECTION_2:
         out << "returnConfirmCreation( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_CONFIRM_RESTORATION:

@@ -41,6 +41,9 @@
     static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type); \
     static MockCliEvent return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
 #define FORWARD_2(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type);
+#define FORWARD_2_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1, TYPE_2) \
+    static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type); \
+    static MockCliEvent return##EFUNC(boost::call_traits<RET_TYPE>::param_type);
 #define FORWARD_2_RAW_ARGS(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(TYPE_1, TYPE_2);
 #define FORWARD_3(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type);
 #define FORWARD_3_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2) static MockCliEvent FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, std::ostream&);
@@ -82,6 +85,14 @@ struct MockCliEvent
         EVENT_CONFIRM_CREATION,
         /** @short The confirmCreation() return */
         RETURN_CONFIRM_CREATION,
+        /** @short The confirmCreationConnection(x) event */
+        EVENT_CONFIRM_CREATION_CONNECTION_1,
+        /** @short The confirmCreationConnection(x) return */
+        RETURN_CONFIRM_CREATION_CONNECTION_1,
+        /** @short The confirmCreationConnection(x, y) event */
+        EVENT_CONFIRM_CREATION_CONNECTION_2,
+        /** @short The confirmCreationConnection(x, y) return */
+        RETURN_CONFIRM_CREATION_CONNECTION_2,
         /** @short The confirmRestoration() event */
         EVENT_CONFIRM_RESTORATION,
         /** @short The confirmRestoration() return */

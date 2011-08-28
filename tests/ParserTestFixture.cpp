@@ -33,18 +33,21 @@ ParserTestFixture::ParserTestFixture()
     using boost::phoenix::bind;
     using boost::phoenix::arg_names::_1;
     using boost::phoenix::arg_names::_2;
+    using boost::phoenix::arg_names::_3;
 
     FakeApi *fake = new FakeApi();
     fake->attrs["hardware"].push_back( KindAttributeDataType( "id", TYPE_INT ) );
-    fake->attrs["hardware"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["hardware"].push_back( KindAttributeDataType( "hardware_name", TYPE_STRING ) );
     fake->attrs["hardware"].push_back( KindAttributeDataType( "price", TYPE_DOUBLE ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "ip", TYPE_IPV4_ADDRESS ) );
     fake->attrs["interface"].push_back( KindAttributeDataType( "mac", TYPE_MAC_ADDRESS ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "hardware_id", TYPE_IDENTIFIER ) );
-    fake->attrs["host"].push_back( KindAttributeDataType( "name", TYPE_STRING ) );
+    fake->attrs["host"].push_back( KindAttributeDataType( "host_name", TYPE_STRING ) );
     fake->attrs["host"].push_back( KindAttributeDataType( "role", TYPE_IDENTIFIER_SET ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host") );
+    fake->relations["hardware"].push_back( ObjectRelation::mergeWith("host") );
+    fake->relations["host"].push_back( ObjectRelation::mergeWith("hardware") );
     db = fake;
 
     parser = new Deska::Cli::Parser(db);
@@ -52,13 +55,13 @@ ParserTestFixture::ParserTestFixture()
     parser->categoryEntered.connect(bind(&ParserTestFixture::slotParserCategoryEntered, this, _1, _2));
     parser->categoryLeft.connect(bind(&ParserTestFixture::slotParserCategoryLeft, this));
     // this one has to be fully qualified to prevent ambiguity...
-    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2));  
+    parser->attributeSet.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttr, this, _1, _2, _3));  
     attrSetCheckContextConnection = parser->attributeSet.connect(bind(&ParserTestFixture::slotParserSetAttrCheckContext, this));
-    parser->attributeSetInsert.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrInsert, this, _1, _2));
+    parser->attributeSetInsert.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrInsert, this, _1, _2, _3));
     attrSetInsertCheckContextConnection = parser->attributeSetInsert.connect(bind(&ParserTestFixture::slotParserSetAttrInsertCheckContext, this));
-    parser->attributeSetRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrRemove, this, _1, _2));
+    parser->attributeSetRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserSetAttrRemove, this, _1, _2, _3));
     attrSetRemoveCheckContextConnection = parser->attributeSetRemove.connect(bind(&ParserTestFixture::slotParserSetAttrRemoveCheckContext, this));
-    parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1));
+    parser->attributeRemove.connect(boost::phoenix::bind(&ParserTestFixture::slotParserRemoveAttr, this, _1, _2));
     attrRemoveCheckContextConnection = parser->attributeRemove.connect(bind(&ParserTestFixture::slotParserRemoveAttrCheckContext, this));
     parser->functionShow.connect(bind(&ParserTestFixture::slotParserFunctionShow, this));
     parser->functionDelete.connect(bind(&ParserTestFixture::slotParserFunctionDelete, this));
@@ -92,24 +95,24 @@ void ParserTestFixture::slotParserCategoryLeft()
     parserEvents.push(MockParserEvent::categoryLeft());
 }
 
-void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
+void ParserTestFixture::slotParserSetAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
-    parserEvents.push(MockParserEvent::setAttr(name, val));
+    parserEvents.push(MockParserEvent::setAttr(kind, name, val));
 }
 
-void ParserTestFixture::slotParserSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+void ParserTestFixture::slotParserSetAttrInsert(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
-    parserEvents.push(MockParserEvent::setAttrInsert(name, val));
+    parserEvents.push(MockParserEvent::setAttrInsert(kind, name, val));
 }
 
-void ParserTestFixture::slotParserSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+void ParserTestFixture::slotParserSetAttrRemove(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
-    parserEvents.push(MockParserEvent::setAttrRemove(name, val));
+    parserEvents.push(MockParserEvent::setAttrRemove(kind, name, val));
 }
 
-void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &name)
+void ParserTestFixture::slotParserRemoveAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
-    parserEvents.push(MockParserEvent::removeAttr(name));
+    parserEvents.push(MockParserEvent::removeAttr(kind, name));
 }
 
 void ParserTestFixture::slotParserFunctionShow()
@@ -171,24 +174,24 @@ void ParserTestFixture::expectCategoryLeft()
     expectHelper(MockParserEvent::categoryLeft());
 }
 
-void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val)
+void ParserTestFixture::expectSetAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Value &val)
 {
-    expectHelper(MockParserEvent::setAttr(name, val));
+    expectHelper(MockParserEvent::setAttr(kind, name, val));
 }
 
-void ParserTestFixture::expectSetAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+void ParserTestFixture::expectSetAttrInsert(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
-    expectHelper(MockParserEvent::setAttrInsert(name, val));
+    expectHelper(MockParserEvent::setAttrInsert(kind, name, val));
 }
 
-void ParserTestFixture::expectSetAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
+void ParserTestFixture::expectSetAttrRemove(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val)
 {
-    expectHelper(MockParserEvent::setAttrRemove(name, val));
+    expectHelper(MockParserEvent::setAttrRemove(kind, name, val));
 }
 
-void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &name)
+void ParserTestFixture::expectRemoveAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name)
 {
-    expectHelper(MockParserEvent::removeAttr(name));
+    expectHelper(MockParserEvent::removeAttr(kind, name));
 }
 
 void ParserTestFixture::expectFunctionShow()

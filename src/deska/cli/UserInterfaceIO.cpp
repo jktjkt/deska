@@ -188,6 +188,31 @@ bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 
 
 
+bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object)
+{
+    std::ostringstream ss;
+    ss << "Object(s) " << object << " do(es) not exist. Create and link?";
+    return askForConfirmation(ss.str());
+}
+
+
+
+bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object,
+                                                const std::vector<ObjectDefinition> &mergedObjects)
+{
+    std::ostringstream ss;
+    ss << "Object(s) " << object << " do(es) not exist. Create and link to ";
+        for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+            if (it != mergedObjects.begin())
+                ss << ", ";
+            ss << *it;
+        }
+    ss << "?";
+    return askForConfirmation(ss.str());
+}
+
+
+
 bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;

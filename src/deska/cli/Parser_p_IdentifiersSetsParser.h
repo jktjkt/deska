@@ -60,11 +60,12 @@ public:
 
     /** @short Function used for filling of symbols table of the parser.
     *
+    *   @param kindName Name of kind to which the set belongs.
     *   @param attributeName Name of the set.
     *   @param identifierParser Identifier parser obtained from PredefinedRules class.
     *   @see PredefinedRules
     */
-    void addIdentifiersSet(const Db::Identifier &setName,
+    void addIdentifiersSet(const Db::Identifier &kindName, const Db::Identifier &setName,
                            qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser);
 
 private:
@@ -107,6 +108,9 @@ private:
 
     /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;
+
+    /** Map for each attribute identifying, to which kind each attribute belongs. */
+    std::map<Db::Identifier, Db::Identifier> attrKind;
 };
 
 }

@@ -127,11 +127,17 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 
 
 
-bool UserInterface::applySetAttribute(const ContextStack &context,
+bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Identifier &kind,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
     try {
-        m_dbInteraction->setAttribute(context, AttributeDefinition(attribute, value));
+        ContextStack adjustedContext = context;
+        if (context.back().kind != kind) {
+            adjustedContext.back().kind = kind;
+            if (!m_dbInteraction->objectExists(adjustedContext))
+                m_dbInteraction->createObject(adjustedContext);
+        }
+        m_dbInteraction->setAttribute(adjustedContext, AttributeDefinition(attribute, value));
         return true;
     } catch (Deska::Db::RemoteDbError &e) {
         // FIXME: potemkin's fix for the demo
@@ -142,11 +148,17 @@ bool UserInterface::applySetAttribute(const ContextStack &context,
 
 
 
-bool UserInterface::applySetAttributeInsert(const ContextStack &context,
+bool UserInterface::applySetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
     try {
-        m_dbInteraction->setAttributeInsert(context, attribute, value);
+        ContextStack adjustedContext = context;
+        if (context.back().kind != kind) {
+            adjustedContext.back().kind = kind;
+            if (!m_dbInteraction->objectExists(adjustedContext))
+                m_dbInteraction->createObject(adjustedContext);
+        }
+        m_dbInteraction->setAttributeInsert(adjustedContext, attribute, value);
         return true;
     } catch (Deska::Db::RemoteDbError &e) {
         // FIXME: potemkin's fix for the demo
@@ -157,11 +169,17 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context,
 
 
 
-bool UserInterface::applySetAttributeRemove(const ContextStack &context,
+bool UserInterface::applySetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
     try {
-        m_dbInteraction->setAttributeRemove(context, attribute, value);
+        ContextStack adjustedContext = context;
+        if (context.back().kind != kind) {
+            adjustedContext.back().kind = kind;
+            if (!m_dbInteraction->objectExists(adjustedContext))
+                return false;
+        }
+        m_dbInteraction->setAttributeRemove(adjustedContext, attribute, value);
         return true;
     } catch (Deska::Db::RemoteDbError &e) {
         // FIXME: potemkin's fix for the demo
@@ -172,9 +190,15 @@ bool UserInterface::applySetAttributeRemove(const ContextStack &context,
 
 
 
-bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute)
 {
-    m_dbInteraction->removeAttribute(context, attribute);
+    ContextStack adjustedContext = context;
+    if (context.back().kind != kind) {
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext))
+            return false;
+    }
+    m_dbInteraction->removeAttribute(adjustedContext, attribute);
     return true;
 }
 
@@ -275,35 +299,71 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 
 
 
-bool UserInterface::confirmSetAttribute(const ContextStack &context,
+bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::Identifier &kind,
                                         const Db::Identifier &attribute, const Db::Value &value)
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to set an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+    if (context.back().kind == kind)
+        return true;
+    ContextStack adjustedContext = context;
+    adjustedContext.back().kind = kind;
+    if (!m_dbInteraction->objectExists(adjustedContext)) {
+        try {
+            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+            if (mergedObjects.empty())
+                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+        } catch (std::logic_error &e) {
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+        }
+    }
     return true;
 }
 
 
 
-bool UserInterface::confirmSetAttributeInsert(const ContextStack &context,
+bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
                                               const Db::Identifier &attribute, const Db::Identifier &value)
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to insert an identifier to a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+    if (context.back().kind == kind)
+        return true;
+    ContextStack adjustedContext = context;
+    adjustedContext.back().kind = kind;
+    if (!m_dbInteraction->objectExists(adjustedContext)) {
+        try {
+            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+            if (mergedObjects.empty())
+                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+        } catch (std::logic_error &e) {
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+        }
+    }
     return true;
 }
 
 
 
-bool UserInterface::confirmSetAttributeRemove(const ContextStack &context,
+bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                                               const Db::Identifier &attribute, const Db::Identifier &value)
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an identifier from a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+    if (context.back().kind == kind)
+        return true;
+    ContextStack adjustedContext = context;
+    adjustedContext.back().kind = kind;
+    if (!m_dbInteraction->objectExists(adjustedContext)) {
+        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove identifiers from its sets.");
         return false;
     }
     return true;
@@ -311,10 +371,18 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context,
 
 
 
-bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &attribute)
+bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute)
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        return false;
+    }
+    if (context.back().kind == kind)
+        return true;
+    ContextStack adjustedContext = context;
+    adjustedContext.back().kind = kind;
+    if (!m_dbInteraction->objectExists(adjustedContext)) {
+        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove its attributes.");
         return false;
     }
     return true;

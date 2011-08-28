@@ -123,9 +123,9 @@ bool ParserSignalCategoryLeft::confirm(SignalsHandler *signalsHandler) const
 
 
 
-ParserSignalSetAttribute::ParserSignalSetAttribute(const ContextStack &context, 
+ParserSignalSetAttribute::ParserSignalSetAttribute(const ContextStack &context, const Db::Identifier &kind, 
                                                    const Db::Identifier &attribute, const Db::Value &value):
-    signalsContext(context), attributeName(attribute), setValue(value)
+    signalsContext(context), kindName(kind), attributeName(attribute), setValue(value)
 {
 }
 
@@ -133,22 +133,22 @@ ParserSignalSetAttribute::ParserSignalSetAttribute(const ContextStack &context,
 
 bool ParserSignalSetAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttribute(signalsHandler->contextStack, attributeName, setValue);
+    return signalsHandler->userInterface->applySetAttribute(signalsHandler->contextStack, kindName, attributeName, setValue);
 }
 
 
 
 bool ParserSignalSetAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmSetAttribute(signalsContext, attributeName, setValue);
+    return signalsHandler->userInterface->confirmSetAttribute(signalsContext, kindName, attributeName, setValue);
 }
 
 
 
-ParserSignalSetAttributeInsert::ParserSignalSetAttributeInsert(const ContextStack &context, 
+ParserSignalSetAttributeInsert::ParserSignalSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind, 
                                                                const Db::Identifier &attribute,
                                                                const Db::Identifier &value):
-    signalsContext(context), setName(attribute), identifier(value)
+    signalsContext(context), kindName(kind), setName(attribute), identifier(value)
 {
 }
 
@@ -156,21 +156,21 @@ ParserSignalSetAttributeInsert::ParserSignalSetAttributeInsert(const ContextStac
 
 bool ParserSignalSetAttributeInsert::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttributeInsert(signalsHandler->contextStack, setName, identifier);
+    return signalsHandler->userInterface->applySetAttributeInsert(signalsHandler->contextStack, kindName, setName, identifier);
 }
 
 
 
 bool ParserSignalSetAttributeInsert::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmSetAttributeInsert(signalsContext, setName, identifier);
+    return signalsHandler->userInterface->confirmSetAttributeInsert(signalsContext, kindName, setName, identifier);
 }
 
 
-ParserSignalSetAttributeRemove::ParserSignalSetAttributeRemove(const ContextStack &context, 
+ParserSignalSetAttributeRemove::ParserSignalSetAttributeRemove(const ContextStack &context, const Db::Identifier &kind, 
                                                                const Db::Identifier &attribute,
                                                                const Db::Identifier &value):
-    signalsContext(context), setName(attribute), identifier(value)
+    signalsContext(context), kindName(kind), setName(attribute), identifier(value)
 {
 }
 
@@ -178,21 +178,21 @@ ParserSignalSetAttributeRemove::ParserSignalSetAttributeRemove(const ContextStac
 
 bool ParserSignalSetAttributeRemove::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applySetAttributeRemove(signalsHandler->contextStack, setName, identifier);
+    return signalsHandler->userInterface->applySetAttributeRemove(signalsHandler->contextStack, kindName, setName, identifier);
 }
 
 
 
 bool ParserSignalSetAttributeRemove::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmSetAttributeRemove(signalsContext, setName, identifier);
+    return signalsHandler->userInterface->confirmSetAttributeRemove(signalsContext, kindName, setName, identifier);
 }
 
 
 
-ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &context, 
+ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, 
                                                          const Db::Identifier &attribute):
-    signalsContext(context), attributeName(attribute)
+    signalsContext(context), kindName(kind), attributeName(attribute)
 {
 }
 
@@ -200,14 +200,14 @@ ParserSignalRemoveAttribute::ParserSignalRemoveAttribute(const ContextStack &con
 
 bool ParserSignalRemoveAttribute::apply(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->applyRemoveAttribute(signalsHandler->contextStack, attributeName);
+    return signalsHandler->userInterface->applyRemoveAttribute(signalsHandler->contextStack, kindName, attributeName);
 }
 
 
 
 bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
 {
-    return signalsHandler->userInterface->confirmRemoveAttribute(signalsContext, attributeName);
+    return signalsHandler->userInterface->confirmRemoveAttribute(signalsContext, kindName, attributeName);
 }
 
 
@@ -337,11 +337,14 @@ SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
 {   
     using boost::phoenix::arg_names::_1;
     using boost::phoenix::arg_names::_2;
+    using boost::phoenix::arg_names::_3;
     m_parser->createObject.connect(boost::phoenix::bind(&SignalsHandler::slotCreateObject, this, _1, _2));
     m_parser->categoryEntered.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryEntered, this, _1, _2));
     m_parser->categoryLeft.connect(boost::phoenix::bind(&SignalsHandler::slotCategoryLeft, this));
-    m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2));
-    m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1));
+    m_parser->attributeSet.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttribute, this, _1, _2, _3));
+    m_parser->attributeSetInsert.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttributeInsert, this, _1, _2, _3));
+    m_parser->attributeSetRemove.connect(boost::phoenix::bind(&SignalsHandler::slotSetAttributeRemove, this, _1, _2, _3));
+    m_parser->attributeRemove.connect(boost::phoenix::bind(&SignalsHandler::slotRemoveAttribute, this, _1, _2));
     m_parser->objectsFilter.connect(boost::phoenix::bind(&SignalsHandler::slotObjectsFilter, this, _1, _2));
     m_parser->functionShow.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionShow, this));
     m_parser->functionDelete.connect(boost::phoenix::bind(&SignalsHandler::slotFunctionDelete, this));
@@ -374,16 +377,30 @@ void SignalsHandler::slotCategoryLeft()
 
 
 
-void SignalsHandler::slotSetAttribute(const Db::Identifier &attribute, const Db::Value &value)
+void SignalsHandler::slotSetAttribute(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Value &value)
 {
-    signalsStack.push_back(ParserSignalSetAttribute(m_parser->currentContextStack(), attribute, value));
+    signalsStack.push_back(ParserSignalSetAttribute(m_parser->currentContextStack(), kind, attribute, value));
 }
 
 
 
-void SignalsHandler::slotRemoveAttribute(const Db::Identifier &attribute)
+void SignalsHandler::slotSetAttributeInsert(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value)
 {
-    signalsStack.push_back(ParserSignalRemoveAttribute(m_parser->currentContextStack(), attribute));
+    signalsStack.push_back(ParserSignalSetAttributeInsert(m_parser->currentContextStack(), kind, attribute, value));
+}
+
+
+
+void SignalsHandler::slotSetAttributeRemove(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value)
+{
+    signalsStack.push_back(ParserSignalSetAttributeRemove(m_parser->currentContextStack(), kind, attribute, value));
+}
+
+
+
+void SignalsHandler::slotRemoveAttribute(const Db::Identifier &kind, const Db::Identifier &attribute)
+{
+    signalsStack.push_back(ParserSignalRemoveAttribute(m_parser->currentContextStack(), kind, attribute));
 }
 
 

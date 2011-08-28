@@ -55,7 +55,8 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
     start = (qi::lit("no") > dispatch);
 
     dispatch = raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > lazy(_a)
-        [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this, phoenix::ref(currentAttributeName))];
+        [phoenix::bind(&AttributeRemovalsParser::parsedAttributeRemoval, this,
+            phoenix::ref(currentAttributeName))];
 
     phoenix::function<AttributeRemovalErrorHandler<Iterator> > attributeRemovalErrorHandler =
         AttributeRemovalErrorHandler<Iterator>();
@@ -67,9 +68,10 @@ AttributeRemovalsParser<Iterator>::AttributeRemovalsParser(const Db::Identifier 
 
 
 template <typename Iterator>
-void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attributeName)
+void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &kindName, const Db::Identifier &attributeName)
 {
     attributes.add(attributeName, qi::eps);
+    attrKind[attributeName] = kindName;
 }
 
 
@@ -77,7 +79,7 @@ void AttributeRemovalsParser<Iterator>::addAtrribute(const Db::Identifier &attri
 template <typename Iterator>
 void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identifier &attribute)
 {
-    m_parent->attributeRemove(attribute);
+    m_parent->attributeRemove(attrKind[attribute], attribute);
 }
 
 
@@ -86,7 +88,7 @@ void AttributeRemovalsParser<Iterator>::parsedAttributeRemoval(const Db::Identif
 
 template AttributeRemovalsParser<iterator_type>::AttributeRemovalsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName);
+template void AttributeRemovalsParser<iterator_type>::addAtrribute(const Db::Identifier &kindName, const Db::Identifier &attributeName);
 
 template void AttributeRemovalsParser<iterator_type>::parsedAttributeRemoval(const Db::Identifier &parameter);
 

@@ -61,11 +61,12 @@ public:
 
     /** @short Function used for filling of symbols table of the parser.
     *
+    *   @param kindName Name of kind to which the attribute belongs.
     *   @param attributeName Name of the attribute.
     *   @param attributeParser Attribute parser obtained from PredefinedRules class.
     *   @see PredefinedRules
     */
-    void addAtrribute(const Db::Identifier &attributeName,
+    void addAtrribute(const Db::Identifier &kindName, const Db::Identifier &attributeName,
                       qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser);
 
 private:
@@ -97,6 +98,9 @@ private:
 
     /** Pointer to main parser for calling its functions as semantic actions. */
     ParserImpl<Iterator> *m_parent;
+
+    /** Map for each attribute identifying, to which kind each attribute belongs. */
+    std::map<Db::Identifier, Db::Identifier> attrKind;
 };
 
 }

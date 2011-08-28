@@ -23,7 +23,7 @@
 
 #include <boost/assert.hpp>
 #include "Parser_p_AttributesSettingParser.h"
-
+#include <iostream>
 namespace Deska
 {
 namespace Cli
@@ -61,7 +61,8 @@ AttributesSettingParser<Iterator>::AttributesSettingParser(const Db::Identifier 
     // Attribute name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
     dispatch = ((raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))]
-        > lazy(_a)[phoenix::bind(&AttributesSettingParser::parsedAttribute, this, phoenix::ref(currentAttributeName), _1)]));
+        > lazy(_a)[phoenix::bind(&AttributesSettingParser::parsedAttribute, this,
+            phoenix::ref(currentAttributeName), _1)]));
 
     phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
@@ -78,10 +79,11 @@ AttributesSettingParser<Iterator>::AttributesSettingParser(const Db::Identifier 
 
 
 template <typename Iterator>
-void AttributesSettingParser<Iterator>::addAtrribute(const Db::Identifier &attributeName,
+void AttributesSettingParser<Iterator>::addAtrribute(const Db::Identifier &kindName, const Db::Identifier &attributeName,
                                               qi::rule<Iterator, Db::Value(), ascii::space_type> attributeParser)
 {
     attributes.add(attributeName, attributeParser);
+    attrKind[attributeName] = kindName;
 }
 
 
@@ -89,7 +91,7 @@ void AttributesSettingParser<Iterator>::addAtrribute(const Db::Identifier &attri
 template <typename Iterator>
 void AttributesSettingParser<Iterator>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value)
 {
-    m_parent->attributeSet(parameter, value);
+    m_parent->attributeSet(attrKind[parameter], parameter, value);
 }
 
 
@@ -98,7 +100,7 @@ void AttributesSettingParser<Iterator>::parsedAttribute(const Db::Identifier &pa
 
 template AttributesSettingParser<iterator_type>::AttributesSettingParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void AttributesSettingParser<iterator_type>::addAtrribute(const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
+template void AttributesSettingParser<iterator_type>::addAtrribute(const Db::Identifier &kindName, const Db::Identifier &attributeName, qi::rule<iterator_type, Db::Value(), ascii::space_type> attributeParser);
 
 template void AttributesSettingParser<iterator_type>::parsedAttribute(const Db::Identifier &parameter, Db::Value &value);
 

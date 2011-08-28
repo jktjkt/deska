@@ -43,16 +43,16 @@ public:
     static MockParserEvent categoryLeft();
 
     /** @short The setAttr() signal */
-    static MockParserEvent setAttr(const Deska::Db::Identifier &name, const Deska::Db::Value &val);
+    static MockParserEvent setAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Value &val);
 
     /** @short The setAttrInsert() signal */
-    static MockParserEvent setAttrInsert(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+    static MockParserEvent setAttrInsert(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
 
     /** @short The setAttrRemove() signal */
-    static MockParserEvent setAttrRemove(const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
+    static MockParserEvent setAttrRemove(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name, const Deska::Db::Identifier &val);
     
     /** @short The removeAttr() signal */
-    static MockParserEvent removeAttr(const Deska::Db::Identifier &name);
+    static MockParserEvent removeAttr(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
     /** @short The functionShow() signal */
     static MockParserEvent functionShow();

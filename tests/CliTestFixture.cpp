@@ -68,6 +68,16 @@ RET_TYPE TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1) 
 void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1) { cliEvents.push(MockCliEvent::FUNC(arg1)); } \
 void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
 
+#define FORWARD_2_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR, TYPE_1, TYPE_2) \
+RET_TYPE TestUserInterfaceIO::FUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { \
+    MockCliEvent event = MockCliEvent::FUNC(arg1, arg2); \
+    tester->expectHelper(event); \
+    MockCliEvent ret = tester->returnHelper(event); \
+    return ret.RET_VAR; \
+    } \
+void CliTestFixture::expect##EFUNC(boost::call_traits<TYPE_1>::param_type arg1, boost::call_traits<TYPE_2>::param_type arg2) { cliEvents.push(MockCliEvent::FUNC(arg1, arg2)); } \
+void CliTestFixture::return##EFUNC(boost::call_traits<RET_TYPE>::param_type res) { cliEvents.push(MockCliEvent::return##EFUNC(res)); }
+
 #define FORWARD_0_RETURN(FUNC, EFUNC, RET_TYPE, RET_VAR) \
 RET_TYPE TestUserInterfaceIO::FUNC() { \
     MockCliEvent event = MockCliEvent::FUNC(); \

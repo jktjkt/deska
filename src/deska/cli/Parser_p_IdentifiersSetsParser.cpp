@@ -60,9 +60,11 @@ IdentifiersSetsParser<Iterator>::IdentifiersSetsParser(const Db::Identifier &kin
     // Set name recognized -> try to parse identifier. The raw function is here to get the name of the
     // set which maniulations are being parsed.
     dispatchAdd = ((raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentSetName))]
-        > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedAdd, this, phoenix::ref(currentSetName), _1)]));
+        > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedAdd, this,
+            phoenix::ref(currentSetName), _1)]));
     dispatchRemove = ((raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentSetName))]
-        > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedRemove, this, phoenix::ref(currentSetName), _1)]));
+        > lazy(_a)[phoenix::bind(&IdentifiersSetsParser::parsedRemove, this,
+            phoenix::ref(currentSetName), _1)]));
 
     phoenix::function<IdentifiersSetsErrorHandler<Iterator> > identifiersSetsErrorHandler =
         IdentifiersSetsErrorHandler<Iterator>();
@@ -76,10 +78,11 @@ IdentifiersSetsParser<Iterator>::IdentifiersSetsParser(const Db::Identifier &kin
 
 
 template <typename Iterator>
-void IdentifiersSetsParser<Iterator>::addIdentifiersSet(const Db::Identifier &setName,
+void IdentifiersSetsParser<Iterator>::addIdentifiersSet(const Db::Identifier &kindName, const Db::Identifier &setName,
                                         qi::rule<Iterator, Db::Identifier(), ascii::space_type> identifierParser)
 {
     sets.add(setName, identifierParser);
+    attrKind[setName] = kindName;
 }
 
 
@@ -87,7 +90,7 @@ void IdentifiersSetsParser<Iterator>::addIdentifiersSet(const Db::Identifier &se
 template <typename Iterator>
 void IdentifiersSetsParser<Iterator>::parsedAdd(const Db::Identifier &parameter, Db::Identifier &value)
 {
-    m_parent->attributeSetInsert(parameter, value);
+    m_parent->attributeSetInsert(attrKind[parameter], parameter, value);
 }
 
 
@@ -95,7 +98,7 @@ void IdentifiersSetsParser<Iterator>::parsedAdd(const Db::Identifier &parameter,
 template <typename Iterator>
 void IdentifiersSetsParser<Iterator>::parsedRemove(const Db::Identifier &parameter, Db::Identifier &value)
 {
-    m_parent->attributeSetRemove(parameter, value);
+    m_parent->attributeSetRemove(attrKind[parameter], parameter, value);
 }
 
 
@@ -104,7 +107,7 @@ void IdentifiersSetsParser<Iterator>::parsedRemove(const Db::Identifier &paramet
 
 template IdentifiersSetsParser<iterator_type>::IdentifiersSetsParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
 
-template void IdentifiersSetsParser<iterator_type>::addIdentifiersSet(const Db::Identifier &setName, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
+template void IdentifiersSetsParser<iterator_type>::addIdentifiersSet(const Db::Identifier &kindName, const Db::Identifier &setName, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> identifierParser);
 
 template void IdentifiersSetsParser<iterator_type>::parsedAdd(const Db::Identifier &parameter, Db::Identifier &value);
 
