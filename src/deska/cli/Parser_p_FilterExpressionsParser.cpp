@@ -75,10 +75,10 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
 
     // Attribute name recognized -> try to parse filter value. The raw function is here to get the name of the
     // attribute being parsed.
-    dispatchAll = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > operators[_b = _1]
+    dispatchAll = (raw[attributes[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] >> operators[_b = _1]
         > lazy(_a)[_val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this,
             _b, phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
-    dispatchSets = (raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] > setsOperators[_b = _1]
+    dispatchSets = (raw[sets[_a = _1]][rangeToString(_1, phoenix::ref(currentAttributeName))] >> setsOperators[_b = _1]
         > lazy(_a)[_val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this,
             _b, phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
 
