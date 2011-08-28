@@ -33,6 +33,8 @@ BEGIN;
 \i jsonFunctions.sql
 \i jsonData.sql
 
+\i fn-refs-set.sql
+
 
 -- user can use api fucntions
 GRANT USAGE ON SCHEMA jsn TO deska_user;
