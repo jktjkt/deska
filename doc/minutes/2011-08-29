@@ -1,0 +1,154 @@
+Schuze Deska, 2011-08-29 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Martina:
+- uprava template -> template_kind,...
+- refers_to_set -> refers_to
+- templatovani setu
+- prazdna mnozina vs. null
+- pracuje na resolvovani templatovanych dat pro identifier_set
+
+Lukas:
+- dalsi veci na filtrech
+- uprava deska serveru pro mnoziny identifikatoru (v gitu neni)
+- premyslel nad sortovanim diffu
+
+Tomas:
+- testy pro CLI parser filtru
+- bugy v CLI-local error reportingu
+- zamykani
+- createObject kontroluje, jestli ma DB stejnou predstavu o jmenu jako CLI
+- merge_with
+- error handler pro operaci log, bylo to komplikovane
+- podpora identifier_set v CLI filtrech
+
+Honza:
+- prevod deklarativnich unit testu
+- dohodnute zmeny v DBAPI
+- unit testy
+- identifier_set
+- merging
+
+Ukoly z minula:
+---------------
+
+Martina: zmena jmen atributu relaci v DB tabulkach v extra branchi
+    - hotovo
+Martina: generovani kodu pro sety
+    - rozpracovano
+Martina: createObject pro non-embedded prvky ma okamzite vratit chybu, pokud se
+    pusti na prazdne jmeno
+Honza: zmena jmen atributu relaci v unit testech v extra branchi
+    - hotovo
+Honza: createObject v DBAPI: unit testy
+    - hotovo
+Honza: sety v DBAPI: unit testy, high-level Python
+    - neni, protoze to DB neumi
+Honza: specifikace merge (behem rebase)
+    - neni
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+        honza_udela_diff())
+Honza: zpristupneni lock/unlock pres DBAPI
+    - hotovo
+Honza: forced odpojovani pgsql klientu (kvuli zamknutym changesetum)
+    - viz diskuse
+Tomas: kontrola, ze createObject vraci ocekavanou hodnotu
+    - hotovo
+Tomas: spousteni $EDITOR/$PAGER dodelat
+    - hotovo
+Tomas: boost::program_options
+    - neni
+Tomas: testy pro *vsechno*, co umi CLI
+    - neni
+Tomas: aby CLI umelo relace (treba merge_with,...)
+    - merge_with umi, neumi to zatim tab completion
+Lukas: identifier_set v DBAPI na strane serveru
+    - neni
+Lukas: implementace DBAPI funkci pro diff a pro generovani, viz vys + lock,
+    unlock
+    - neni
+Lukas: schema FZU
+    - neni
+Lukas: jak ma DB sortovat diff (pozor na reference na vytvarene objekty,...)
+    - rozpracovano
+
+Diskuse:
+--------
+
+Lukasovi neprochazeji testy, nefunguje kompilator a divne pracuje git. Vasniva
+diskuse.
+
+
+CLI by melo mit tab completion pro jmena atributu.
+
+- testy pro CLI (nejen parser)
+
+Forced odpojovani klientu: zpristupnit PID procesu jako komentar changesetu,
+zabijeni pres kill, prip. DB umi.
+
+Lukas tu nebude od 3. do 24. zari. Mene vasniva diskuse. Lukas s prioritou
+rozchodi podporu typu identifier_set v DBAPI. Az bude fungovat, doplni do
+deska_serveru zbytek potrebnych funkci. Pokud zbyde cas, bude pracovat na
+schematu pro FZU.
+
+Plan do budoucna:
+-----------------
+
+Veci potrebne k odevzdani, mimo dokumentace:
+
+Tomas:
+- konfigurace CLI
+- error handling od DB
+- rebase
+- drobnosti
+- testy
+
+Honza:
+- instalator
+- integrace generovatek
+- rebase
+- kreslitka racku,...
+- ukazkova aplikace: generatory,...
+- testy
+
+Lukas:
+- FZU schema
+- filtry
+- dodelat deska_server
+
+Martina:
+- sety
+- testy
+
+Prace na priste:
+----------------
+
+Martina: generovani kodu pro sety
+Martina: testy
+Lukas: identifier_set v DBAPI na strane serveru
+Lukas: implementace funkci pro diff a pro generovani, lock, unlock
+Lukas: schema FZU
+Lukas: jak ma DB sortovat diff (pozor na reference na vytvarene objekty,...)
+Tomas: boost::program_options
+Tomas: testy pro *vsechno*, co umi CLI
+Tomas: tab completion pro relace
+Honza: git troubleshooting pro Lukase
+Honza: review Lukasova schematu (zamereni na strukturu DB)
+Honza: prevod Lukasovych testu
+Honza: sety v DBAPI: unit testy, high-level Python
+Honza: specifikace merge (behem rebase)
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+        honza_udela_diff())
+Honza: forced odpojovani pgsql klientu (kvuli zamknutym changesetum)
+
+Pristi schuzka:
+---------------
+
+Tomas mailem upresni, kdy pristi tyden muze.
+
+Schuzka trvala cca. hodinu a tri ctvrte.
