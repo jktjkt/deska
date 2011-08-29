@@ -1515,6 +1515,7 @@ LANGUAGE plpgsql;
 	name identifier,
 	uid bigint,
 	%(columns)s,
+	--columns for origin of data, templates' names
 	%(templ_columns)s,
 	%(template_column)s bigint
 );
@@ -1557,6 +1558,24 @@ LANGUAGE plpgsql;
 
 '''
 
+	ref_set_coal_string = '''--id is id of base table which is templated and refers to the set
+CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint)
+RETURNS text[]
+AS
+$$
+BEGIN
+--new_obj_id is always template
+	IF old_array IS NOT NULL THEN
+		RETURN old_array;
+	END IF;
+
+	RETURN deska.ret_id_set(%(tbl)s_template_get_%(reftbl)s(new_obj_id));
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
 	resolved_data_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_resolved_data(from_version bigint = 0)
 RETURNS SETOF multiple_%(tbl)s_data_type
 AS
@@ -1566,12 +1585,13 @@ DECLARE
 BEGIN
 	changeset_id = get_current_changeset_or_null();
 	IF from_version = 0 AND changeset_id IS NULL  THEN
-		RETURN QUERY SELECT name, uid, %(columns_ex_templ)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
+		RETURN QUERY SELECT name, uid, %(columns_ex_templ_id_set)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
 	ELSE
 		CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 		RETURN QUERY WITH recursive resolved_data AS (
-			SELECT uid,name,version,%(columns)s, %(template_column)s, %(template_column)s as orig_template
+		--id_set in is get 
+			SELECT uid,name,version,%(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template
 			FROM %(tbl)s_data_version(from_version)
 			UNION ALL
 			SELECT
