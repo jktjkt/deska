@@ -901,7 +901,7 @@ BOOST_FIXTURE_TEST_CASE(json_showConfigDiff_regen, JsonApiTestFixtureFailOnStrea
     expectWrite("{\"command\":\"showConfigDiff\",\"tag\":\"T\",\"forceRegenerate\":true}\n");
     expectRead("{\"showConfigDiff\": \"foo bar\", \"tag\":\"T\", \"response\": \"showConfigDiff\"}\n");
     std::string expected = "foo bar";
-    std::string res = j->showConfigDiff(true);
+    std::string res = j->showConfigDiff(Deska::Db::Api::FORCE_REGENERATE);
     BOOST_CHECK_EQUAL(res, expected);
     expectEmpty();
 }
@@ -930,6 +930,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(ObsoleteParentError);
     JSON_ERR_TEST(NotASetError);
     JSON_ERR_TEST(ChangesetLockingError);
+    JSON_ERR_TEST(CfgGeneratingError);
     JSON_ERR_TEST(SqlError);
     JSON_ERR_TEST(ServerError);
 #undef JSON_ERR_TEST

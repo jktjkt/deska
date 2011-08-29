@@ -236,7 +236,7 @@ std::vector<ObjectModificationResult> FakeApi::resolvedDataDifferenceInTemporary
     return std::vector<ObjectModificationResult>();
 }
 
-std::string FakeApi::showConfigDiff(bool forceRegenerate)
+std::string FakeApi::showConfigDiff(const ConfigGeneratingMode forceRegenerate)
 {
     return std::string();
 }

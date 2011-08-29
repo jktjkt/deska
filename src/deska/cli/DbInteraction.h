@@ -27,15 +27,10 @@
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include "CliObjects.h"
-#include "deska/db/Revisions.h"
-#include "deska/db/ObjectModification.h"
 #include "ContextStack.h"
+#include "deska/db/Api.h"
 
 namespace Deska {
-
-namespace Db {
-class Api;
-}
 
 namespace Cli {
 
@@ -264,7 +259,7 @@ public:
     *
     *   @param forceRegenerate Forces regeneration of the configurtation
     */
-    std::string configDiff(bool forceRegenerate = false);
+    std::string configDiff(const Db::Api::ConfigGeneratingMode forceRegenerate=Db::Api::MAYBE_REGENERATE);
 
     /** @short Expands context stack into a vector of objects
     *

@@ -202,7 +202,7 @@ std::vector<ObjectModificationResult> Connection::resolvedDataDifferenceInTempor
     return p->resolvedDataDifferenceInTemporaryChangeset(changeset, filter);
 }
 
-std::string Connection::showConfigDiff(bool forceRegenerate)
+std::string Connection::showConfigDiff(const ConfigGeneratingMode forceRegenerate)
 {
     return p->showConfigDiff(forceRegenerate);
 }

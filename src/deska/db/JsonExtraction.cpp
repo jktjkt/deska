@@ -727,6 +727,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         else DESKA_CATCH_REMOTE_EXCEPTION(ObsoleteParentError)
         else DESKA_CATCH_REMOTE_EXCEPTION(NotASetError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetLockingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(CfgGeneratingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
         else {

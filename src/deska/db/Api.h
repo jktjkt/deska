@@ -91,6 +91,8 @@ REMOTEDBEXCEPTION(ObsoleteParentError)
 REMOTEDBEXCEPTION(NotASetError)
 /** @short Attempted to access a locked changeset or execute an invalid operation related to changeset locking */
 REMOTEDBEXCEPTION(ChangesetLockingError)
+/** @short An error has occurred when generating configuration files */
+REMOTEDBEXCEPTION(CfgGeneratingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
@@ -300,8 +302,14 @@ public:
 
     // Output generators
 
+    /** @short Do we have to regenerate the configuration? */
+    typedef enum {
+        MAYBE_REGENERATE, /**< @short Regenerate only if the server deems that it's required */
+        FORCE_REGENERATE /**< @short Force regenerating of the output */
+    } ConfigGeneratingMode;
+
     /** @short Show the human readable difference in the generated configuration, as determined by changes in the current changeset */
-    virtual std::string showConfigDiff(bool forceRegenerate=false) = 0;
+    virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE) = 0;
 };
 
 }
