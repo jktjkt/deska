@@ -1678,6 +1678,27 @@ BOOST_FIXTURE_TEST_CASE(jump_in_context_error, ParserTestFixture)
     verifyEmptyStack();
 }
 
+/** @short Setting an identifiers set as whole value */
+BOOST_FIXTURE_TEST_CASE(attrs_sets_set, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    parser->parseLine("role [www, ftp, dns]\n");
+    expectParsingStarted();
+    std::set<Deska::Db::Identifier> roles;
+    roles.insert("www");
+    roles.insert("ftp");
+    roles.insert("dns");
+    expectSetAttr("host", "role", Deska::Db::Value(roles));
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+}
+
 /** @short Insertion into an identifiers set */
 BOOST_FIXTURE_TEST_CASE(attrs_sets_insert, ParserTestFixture)
 {
