@@ -68,14 +68,14 @@ class GitGenerator(object):
         if not runAnything:
             raise RuntimeError, "No executable scripts found in %s" % self.scriptdir
 
-    def apiConfigDiff(self, changesetIsFresh):
+    def completeConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''
         if not changesetIsFresh:
             self.openRepo()
             self.generate()
         return self.diff()
 
-    def apiSave(self, changesetIsFresh, message):
+    def completeSave(self, changesetIsFresh, message):
         '''Push the new output to the repository, regenerating stuff if needed'''
         if not changesetIsFresh:
             self.openRepo()
@@ -88,13 +88,13 @@ if __name__ == "__main__":
     offset = 4
     while offset < len(sys.argv):
         if sys.argv[offset] == "diff-fresh":
-            print g.apiConfigDiff(True)
+            print g.completeConfigDiff(True)
         elif sys.argv[offset] == "diff-nonfresh":
-            print g.apiConfigDiff(False)
+            print g.completeConfigDiff(False)
         elif sys.argv[offset] == "save-fresh":
-            print g.apiSave(True, str(offset))
+            print g.completeSave(True, str(offset))
         elif sys.argv[offset] == "save-nonfresh":
-            print g.apiSave(False, str(offset))
+            print g.completeSave(False, str(offset))
         else:
             raise ValueError, "Unsupported operator %s" % sys.argv[offset]
         offset += 1
