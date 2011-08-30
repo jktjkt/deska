@@ -1,6 +1,7 @@
 class MultiRef:
     multiRef_tables_str = "SELECT relname FROM get_table_info() WHERE typname = 'identifier_set';"
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
+    tbl_name_template_str = "SELECT kind FROM get_templates_info('%(tbl)s') WHERE template = '%(tbl)s';"
     coltype = "SELECT typename FROM kindAttributes('%(tbl)s') WHERE attname = '%(ref_tbl)s'"
     
     add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_tbl)s_multiRef(
