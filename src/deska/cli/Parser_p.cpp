@@ -318,6 +318,12 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
         }
         objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(emb->second, *it));
     }
+    std::map<Db::Identifier, Db::Identifier>::const_iterator emb = embeddedInto.find(objects.back().first);
+    if (emb != embeddedInto.end() && ((contextStack.empty()) || (contextStack.back().kind != emb->second))) {
+        addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+        parsingSucceededActions = false;
+        return;
+    }
     std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito;
     for (ito = objects.rbegin(); ito != objects.rend() - 1; ++ito)
     {

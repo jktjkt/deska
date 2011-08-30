@@ -1678,6 +1678,18 @@ BOOST_FIXTURE_TEST_CASE(jump_in_context_error, ParserTestFixture)
     verifyEmptyStack();
 }
 
+/** @short Another jumping error */
+BOOST_FIXTURE_TEST_CASE(jump_in_context_error_2, ParserTestFixture)
+{
+    const std::string line = "interface eth0\n";
+    const std::string::const_iterator it = line.begin();
+    parser->parseLine(line);   
+    expectParsingStarted();
+    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for interface eth0. Can't find nesting parents.", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+}
+
 /** @short Setting an identifiers set as whole value */
 BOOST_FIXTURE_TEST_CASE(attrs_sets_set, ParserTestFixture)
 {
