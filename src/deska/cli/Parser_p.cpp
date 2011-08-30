@@ -67,9 +67,13 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
                 isEmbedded = true;
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = itr->target;
+                refersTo[*itk].push_back(itr->target);
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
+            }
+            if (itr->kind == Db::RELATION_REFERS_TO) {
+                refersTo[*itk].push_back(itr->target);
             }
         }
         if (!isEmbedded)

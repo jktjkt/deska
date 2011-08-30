@@ -111,7 +111,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();
-    objectIdentifier.name("object identifier (alphanumerical letters and _)");
+    objectIdentifier.name("identifier (alphanumerical letters and _)");
 
     tRevisionId = qi::lexeme["r" >> qi::uint_[qi::_val = qi::_1]];
     tTemporaryChangesetId = qi::lexeme["tmp" >> qi::uint_[qi::_val = qi::_1]];
