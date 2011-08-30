@@ -1016,21 +1016,20 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
-        if ((realEnd - it->errorPosition()) != 0)
-            return;
-        std::vector<std::string> expectations = it->expectedTypes();
-        // Check if the user is supposed to enter some objects name, that we can complete
-        if (!(it->context().empty())) {
-            std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
-            for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
-                std::vector<Db::Identifier> path = pathToVector(*iti);
-                BOOST_ASSERT(path.size() > contextStack.size());
-                possibilities.push_back(line + vectorToPath(std::vector<Db::Identifier>(
-                    path.begin() + contextStack.size(), path.end())));
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedTypes();
+            // Check if the user is supposed to enter some objects name, that we can complete
+            if (!(it->context().empty())) {
+                std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+                for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                    std::vector<Db::Identifier> path = pathToVector(*iti);
+                    BOOST_ASSERT(path.size() > contextStack.size());
+                    possibilities.push_back(line + vectorToPath(std::vector<Db::Identifier>(
+                        path.begin() + contextStack.size(), path.end())));
+                }
             }
+            possibilities.push_back(line + "where");
         }
-        possibilities.push_back(line + "where");
-        return;
     }
 
     // Find out, if the user wants to enter attribute name for value removal
@@ -1040,13 +1039,12 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         // Error have to occur at the end of the line
         // Because of parsing the pair no <attribute name> using sequence parser with space skipper error occures
         // right after no keyword. That means it is one character before end of the line.
-        if ((realEnd - it->errorPosition() - 1) != 0)
-            return;
-        std::vector<std::string> expectations = it->expectedKeywords();
-        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
-            possibilities.push_back(line + *iti);
+        if ((realEnd - it->errorPosition() - 1) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
         }
-        return;
     }
 
     // Find out, if the user wants to enter kind name and object name for renaming or deleting
@@ -1054,13 +1052,12 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
-        if ((realEnd - it->errorPosition()) != 0)
-            return;
-        std::vector<std::string> expectations = it->expectedKeywords();
-        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
-            possibilities.push_back(line + *iti);
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
         }
-        return;
     }
 
     // Find out, if the user wants to enter kind name
@@ -1068,13 +1065,12 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
-        if ((realEnd - it->errorPosition()) != 0)
-            return;
-        std::vector<std::string> expectations = it->expectedKeywords();
-        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
-            possibilities.push_back(line + *iti);
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
         }
-        return;
     }
 
     // Find out, if the user wants to enter attribute name
@@ -1082,13 +1078,46 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
-        if ((realEnd - it->errorPosition()) != 0)
-            return;
-        std::vector<std::string> expectations = it->expectedKeywords();
-        for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
-            possibilities.push_back(line + *iti);
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
         }
-        return;
+    }
+
+    // Find out, if the user wants to enter attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIERS_SET);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition() - 1) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
+        }
+    }
+
+    // Find out, if the user wants to enter object name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
+    if (it != parseErrors.end()) {
+        std::vector<std::string> expectedTypes = it->expectedTypes();
+        if ((expectedTypes.size() == 1) && (expectedTypes.front() == "identifier (alphanumerical letters and _)")) {
+            // Error have to occur at the end of the line
+            if ((realEnd - it->errorPosition()) == 0) {
+                //Check whether the attribute reffers to some kind
+                std::vector<Db::Identifier>::iterator itr = std::find(refersTo[contextStack.back().kind].begin(),
+                    refersTo[contextStack.back().kind].end(), it->context());
+                if (itr != refersTo[contextStack.back().kind].end()) {
+                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+                    for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
+                        possibilities.push_back(line + *iti);
+                    }
+                }
+            }
+        }
     }
 }
 
