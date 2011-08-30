@@ -132,7 +132,7 @@ class Templates:
 '''
 	#template for generating function to add one item to set of identifiers
 	refuid_set_insert_string = '''CREATE FUNCTION
-	%(tbl)s_set_%(ref_tbl)s_insert(IN name_ identifier,IN value identifier)
+	%(tbl)s_set_%(ref_tbl)s_insert(IN name_ text,IN value text)
 	RETURNS integer
 	AS
 	$$
@@ -159,7 +159,7 @@ class Templates:
 '''
 	#template for generating function to remove one item from set of identifiers
 	refuid_set_remove_string = '''CREATE FUNCTION
-	%(tbl)s_set_%(ref_tbl)s_remove(IN name_ identifier,IN value identifier)
+	%(tbl)s_set_%(ref_tbl)s_remove(IN name_ text,IN value text)
 	RETURNS integer
 	AS
 	$$
