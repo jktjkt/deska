@@ -31,7 +31,8 @@ class JsonApiTester(unittest.TestCase):
 
     def setUp(self):
         """Start the process"""
-        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER]
+        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER, "--cfggen-backend",
+                   CFGGEN_METHOD] + CFGGEN_EXTRA_OPTIONS
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -91,6 +92,15 @@ if __name__ == "__main__":
     DBNAME = os.environ["DESKA_DB"]
     DBUSER = os.environ["DESKA_USER"]
     TESTCASE = sys.argv[2]
+    CFGGEN_EXTRA_OPTIONS = []
+    try:
+        CFGGEN_METHOD = os.environ["DESKA_CFGGEN_METHOD"]
+    except KeyError:
+        CFGGEN_METHOD = "fake"
+    if CFGGEN_METHOD == "git":
+        CFGGEN_EXTRA_OPTIONS = ["--cfggen-script-path", os.environ["DESKA_CFGGEN_SCRIPT_PATH"],
+                                "--cfggen-git-repository", os.environ["DESKA_CFGGEN_GIT_REPO"],
+                                "--cfggen-git-workdir", os.environ["DESKA_CFGGEN_GIT_WORKDIR"]]
     module = __import__(TESTCASE)
     if "imperative" in dir(module):
         imperative = module.imperative

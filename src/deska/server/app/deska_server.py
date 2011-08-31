@@ -16,10 +16,29 @@ parser.add_option("--logfile", dest="logfile", default="deska_server.log",
 parser.add_option("--log-stderr", dest="log_stderr", action="store_true",
                   default=False, help="Log to standard error")
 
+parser.add_option("--cfggen-backend", dest="cfggenBackend", metavar="METHOD",
+                  default="error", help=
+                      "Configuration method to use: error (throw errors upon "
+                      "using the configuration generators), fake (just do "
+                      "nothing, but do not throw errors) or git (work with a "
+                      "git repository)")
+parser.add_option("--cfggen-script-path", dest="cfggenScriptPath", default=None,
+                  metavar="PATH", help="Path to use when looking for the actual "
+                      "executables used for generating configuration")
+parser.add_option("--cfggen-git-repository", dest="cfggenGitRepo", default=None,
+                  metavar="PATH", help="Path of a git repository to use. Git "
+                      "will call `git push` from this repository, so this cannot "
+                      "be the master repo.")
+parser.add_option("--cfggen-git-workdir", dest="cfggenGitWorkdir", default=None,
+                  metavar="PATH", help="Path to use for storing git working "
+                    "directories for each changeset")
+
 (options, args) = parser.parse_args()
 if (options.log_stderr and options.logfile):
     # basicConfig() won't add duplicate loggers
     parser.error("Cannot log to both file and stderr -- too lazy")
+if options.cfggenBackend not in ("error", "fake", "git"):
+    parser.error("Unsupported backend for configuration generators")
 
 if options.logfile:
     logging.basicConfig(filename = options.logfile, level=logging.DEBUG)
@@ -36,7 +55,12 @@ if options.database:
 if options.username:
     dbargs["user"] = options.username
 
-db = DB(**dbargs)
+cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
+                 "cfggenGitRepo": options.cfggenGitRepo,
+                 "cfggenGitWorkdir": options.cfggenGitWorkdir
+                }
+
+db = DB(dbOptions=dbargs, cfggenBackend=options.cfggenBackend, cfggenOptions=cfggenOptions)
 logging.debug("conected to database")
 
 while True:

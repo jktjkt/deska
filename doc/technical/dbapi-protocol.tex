@@ -643,7 +643,7 @@ and the defined object relations.
 
 Functions from this group are used for fetching actual data from the database.
 
-\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123"}
+\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123", "filter": \ldots}
     { ["a", "b", "c"] }
     {Returns identifiers of all objects of a given kind}
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
@@ -830,7 +830,7 @@ Querying History}, section \ref{sec:api-group-history}.
     \deskaFuncRef{startChangeset}/\deskaFuncRef{resumeChangeset} call) into the production DB.  A new persistent
     revision will be created.}
 
-\deskaFunc{pendingChangesets}{}
+\deskaFunc{pendingChangesets}{, "filter": \ldots}
     {[
      \{"changeset": "tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
      "parentRevision": "r666", "message": "message", \\ "activeConnectionInfo": null\}
@@ -913,7 +913,7 @@ Querying History}, section \ref{sec:api-group-history}.
 
 Functions for browsing history of individual objects, retrieving lists of differences, etc.
 
-\deskaFunc{listRevisions}{}
+\deskaFunc{listRevisions}{, "filter": \ldots}
     {[
     \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
     ]}
