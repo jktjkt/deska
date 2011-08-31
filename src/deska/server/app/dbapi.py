@@ -181,30 +181,33 @@ class DB:
 		return self.cfgGenerator.diff()
 
 	def showConfigDiff(self, name, tag, forceRegen):
-		response = {"response": name, "tag": tag}
-		self.lockChangeset()
-		self.initCfgGenerator()
-		if forceRegen or not self.changesetHasFreshConfig():
-			self.cfgRegenerate()
-			self.markChangesetFresh()
-		response[name] = self.cfgGetDiff()
-		self.unlockChangeset()
-		return json.dumps(response)
+		try:
+			response = {"response": name, "tag": tag}
+			self.lockChangeset()
+			self.initCfgGenerator()
+			if forceRegen or not self.changesetHasFreshConfig():
+				self.cfgRegenerate()
+				self.markChangesetFresh()
+			response[name] = self.cfgGetDiff()
+			self.unlockChangeset()
+			return json.dumps(response)
+		except Exception, e:
+			return self.errorJson(name, tag, str(e))
 
 	def commitConfig(self, name, args, tag):
 		try:
 			self.checkFunctionArguments(name, args, tag)
+			self.lockChangeset()
+			self.initCfgGenerator()
+			if not self.changesetHasFreshConfig():
+				self.cfgRegenerate()
+				self.markChangesetFresh()
+			self.cfgPushToScm(args["commitMessage"])
+			res = self.standaloneRunDbFunction(name, args, tag)
+			self.unlockChangeset()
+			return res
 		except Exception, e:
 			return self.errorJson(name, tag, str(e))
-		self.lockChangeset()
-		self.initCfgGenerator()
-		if not self.changesetHasFreshConfig():
-			self.cfgRegenerate()
-			self.markChangesetFresh()
-		self.cfgPushToScm(args["commitMessage"])
-		res = self.standaloneRunDbFunction(name, args, tag)
-		self.unlockChangeset()
-		return res
 
 	def run(self,name,args):
 		logging.debug("start run method(%s, %s)" % (name, args))
