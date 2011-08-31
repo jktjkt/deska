@@ -159,8 +159,7 @@ class DB:
 	def runDBFunction(self,name,args,tag):
 		if name not in self.methods:
 			raise Exception("%s is not a valid db function." % name)
-		# copy needed args from command definition
-		needed_args = self.methods[name][:]
+		needed_args = self.methods[name]
 		# have we the exact needed arguments
 		if set(needed_args) != set(args.keys()):
 			not_present = set(needed_args) - set(args.keys())
