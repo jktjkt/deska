@@ -149,18 +149,25 @@ class DB:
 	def initCfgGenerator(self):
 		# We really do want to re-init the config generator each and every time
 		# FIXME: make it configurable
-		import sys
-		import os
-		import shutil
-		sys.path.append("/home/jkt/work/fzu/deska/src/deska/LowLevelPyDeska/generators")
-		from gitgenerator import GitGenerator
-		repodir = "/tmp/sample-config-repo"
-		workdir = "/tmp/sample-config-working/" + self.currentChangeset()
-		if os.path.exists(workdir):
-			# got to clean it up
-			shutil.rmtree(workdir)
-		scriptdir = repodir + "/scripts"
-		self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
+		if False:
+			import sys
+			import os
+			import shutil
+			sys.path.append("/home/jkt/work/fzu/deska/src/deska/LowLevelPyDeska/generators")
+			from gitgenerator import GitGenerator
+			repodir = "/tmp/sample-config-repo"
+			workdir = "/tmp/sample-config-working/" + self.currentChangeset()
+			if os.path.exists(workdir):
+				# got to clean it up
+				shutil.rmtree(workdir)
+			scriptdir = repodir + "/scripts"
+			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
+		else:
+			# no configuration generator has been configured
+			import sys
+			sys.path.append("/home/jkt/work/fzu/deska/src/deska/LowLevelPyDeska/generators")
+			from nullgenerator import NullGenerator
+			self.cfgGenerator = NullGenerator()
 
 	def cfgRegenerate(self):
 		self.cfgGenerator.openRepo()
