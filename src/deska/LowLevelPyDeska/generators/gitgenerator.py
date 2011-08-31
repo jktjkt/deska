@@ -38,7 +38,7 @@ class GitGenerator(object):
         self.git.add("-A")
         return self.git.diff("--color", "--staged")
 
-    def save(self, message):
+    def apiSave(self, message):
         '''Commit and push the changes into a persistent location'''
         self.git.add("-A")
         self.git.commit("-m", message)
@@ -80,7 +80,7 @@ class GitGenerator(object):
         if not changesetIsFresh:
             self.openRepo()
             self.generate()
-        self.save(message)
+        self.apiSave(message)
 
 if __name__ == "__main__":
     import sys
