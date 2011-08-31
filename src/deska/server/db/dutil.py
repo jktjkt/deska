@@ -28,8 +28,8 @@ class DeskaException(Exception):
 		self.type = self.getType(self.code)
 		if self.code == '42601':
 			self.message = "Syntax error, something strange happend."
-		if self.code == '42883':
-			self.message = "Either kindName or attribute does not exists."
+		#if self.code == '42883':
+		#	self.message = "Either kindName or attribute does not exists."
 
 	def getType(self,errcode):
 		'''Return DeskaExceptionType for given error code'''
@@ -86,6 +86,8 @@ def mystr(s):
 		return float(s)
 	if type(s) == Postgres.types.bool:
 		return bool(s)
+	if type(s) == Postgres.types.text.Array:
+		return [str(x) for x in list(s)]
 	return str(s)
 
 def fcall(fname,*args):

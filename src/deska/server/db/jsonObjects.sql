@@ -29,6 +29,93 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.setAttribute(tag text, kindName text, objectName text, attributeName text, attributeData text[])
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttribute"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	# check attribute 
+	if attributeName not in dutil.generated.atts(kindName):
+		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
+
+	fname = kindName+"_set_"+attributeName+"(text,text[])"
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.setAttributeInsert(tag text, kindName text, objectName text, attributeName text, attributeData text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttributeInsert"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	# check attribute 
+	if attributeName not in dutil.generated.atts(kindName):
+		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
+
+	fname = kindName+"_set_"+attributeName+"_insert(text,text)"
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.setAttributeRemove(tag text, kindName text, objectName text, attributeName text, attributeData text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttributeRemove"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	# check attribute 
+	if attributeName not in dutil.generated.atts(kindName):
+		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
+
+	fname = kindName+"_set_"+attributeName+"_remove(text,text)"
+	try:
+		dutil.fcall(fname,objectName,attributeData)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION jsn.renameObject(tag text, kindName text, oldName text, newName text)
 RETURNS text
 AS
