@@ -156,13 +156,15 @@ class DB:
 			self.endTransaction()
 			return self.errorJson(name, tag, str(e))
 
-	def runDBFunction(self,name,args,tag):
+	def checkFunctionArguments(self, name, args, tag):
+		"""Check the signature of the function against our definition"""
 		if name not in self.methods:
-			raise Exception("%s is not a valid db function." % name)
+			raise Exception("'%s' is not a DBAPI method" % name)
 		needed_args = self.methods[name]
-		# have we the exact needed arguments
+		# Check that the caller has specified all of the required arguments
 		if set(needed_args) != set(args.keys()):
 			not_present = set(needed_args) - set(args.keys())
+			extra_args = set(args.keys()) - set(needed_args)
 			# note that "filter" and "revision" are always optional
 			if not_present <= set(["filter", "revision"]):
 				if "filter" in not_present:
@@ -171,7 +173,14 @@ class DB:
 					args["revision"] = None
 				logging.debug("%s was not present, pass None arguments" % not_present)
 			else:
-				raise Exception("Missing arguments: %s" % list(not_present))
+				raise Exception("Missing arguments: %s" % not_present)
+			if len(extra_args):
+				raise Exception("Extra arguments: %s" % extra_args)
+
+	def runDBFunction(self,name,args,tag):
+		self.checkFunctionArguments(name, args, tag)
+		needed_args = self.methods[name]
+
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string
