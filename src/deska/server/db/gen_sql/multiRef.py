@@ -1,7 +1,8 @@
 class MultiRef:
     multiRef_tables_str = "SELECT relname FROM get_table_info() WHERE typname = 'identifier_set';"
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
-    tbl_name_template_str = "SELECT kind FROM get_templates_info('%(tbl)s') WHERE template = '%(tbl)s';"
+    tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
+    template_column_str = "SELECT attname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'TEMPLATIZED';"
     coltype = "SELECT typename FROM kindAttributes('%(tbl)s') WHERE attname = '%(ref_tbl)s'"
     
     add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_tbl)s_multiRef(
@@ -216,6 +217,112 @@ $$
 LANGUAGE plpgsql SECURITY DEFINER;
 '''
 
+#tempalte for commit of templates of inner tables
+#tbl=whole name of inner table, tbl_name=name of table that has identifier_set attribute, tbl_template=inner template table for which is fn made, template_column=column that references template table
+    commit_template_str = '''CREATE OR REPLACE FUNCTION genproc.%(tbl_template)s_commit()
+RETURNS integer 
+AS
+$$
+DECLARE ver bigint;
+    %(tbl_name)s_template_uid bigint;
+    %(tbl_name)s_uid bigint;
+    current_obj bigint;
+BEGIN
+    SELECT get_current_changeset() INTO ver;
+
+    CREATE TEMP TABLE temp_%(tbl_name)s_template_data AS SELECT * FROM %(tbl_name)s_template_data_version();
+    CREATE TEMP TABLE temp_%(tbl_name)s_data AS SELECT * FROM %(tbl_name)s_data_version();
+    CREATE TEMP TABLE temp_inner_template_data AS SELECT * FROM %(tbl_template)s_data_version();
+    CREATE TEMP TABLE temp_inner_data AS SELECT * FROM %(tbl)s_data_version();
+    
+--correction of templates' production   
+--find all templates that were affected by some modification of template in current changeset
+    CREATE TEMP TABLE affected_templates AS (
+        WITH RECURSIVE resolved_data AS (
+            (SELECT DISTINCT %(tbl_name)s_template as uid FROM %(tbl_template)s_history WHERE version = ver
+            )
+            UNION ALL
+            SELECT dv.uid FROM temp_%(tbl_name)s_template_data dv, resolved_data rd WHERE dv.%(template_column)s = rd.uid
+        )
+        SELECT uid
+        FROM resolved_data
+
+        UNION
+
+        SELECT h.uid FROM %(tbl_name)s_template_history h 
+            LEFT OUTER JOIN (SELECT DISTINCT uid FROM %(tbl_name)s_template_history WHERE version = ver) inv ON (h.uid = inv.uid)
+        WHERE inv.uid IS NOT NULL
+        GROUP BY h.uid HAVING COUNT(*) = 1
+    );
+
+    DELETE FROM %(tbl_template)s WHERE %(tbl_name)s_template IN ( SELECT uid FROM affected_templates);
+    FOR %(tbl_name)s_template_uid IN SELECT DISTINCT %(tbl_name)s_template FROM %(tbl_template)s_history WHERE version = ver LOOP
+        INSERT INTO %(tbl_template)s (%(tbl_name)s_template, %(reftbl_name)s) SELECT %(tbl_name)s_template, %(reftbl_name)s FROM %(tbl_template)s_history WHERE version = ver AND %(tbl_name)s_template = %(tbl_name)s_template_uid;
+    END LOOP;
+
+    --for each affected template find its current data
+    raise notice 'for templates %%', array( (SELECT affected.uid FROM affected_templates affected LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL));
+    FOR %(tbl_name)s_template_uid IN (SELECT affected.uid FROM affected_templates affected 
+        LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL) LOOP
+
+        current_obj = %(tbl_name)s_template_uid;        
+        WHILE (current_obj IS NOT NULL) LOOP
+            INSERT INTO %(tbl_template)s (%(tbl_name)s_template, service)
+                SELECT %(tbl_name)s_template_uid AS %(tbl_name)s_template, %(reftbl_name)s FROM temp_inner_template_data WHERE %(tbl_name)s_template = current_obj;
+            IF exists(SELECT * FROM %(tbl_template)s WHERE %(tbl_name)s_template = %(tbl_name)s_template_uid) THEN
+                EXIT;               
+            ELSE
+                SELECT %(template_column)s INTO current_obj FROM temp_%(tbl_name)s_template_data WHERE uid = current_obj;
+            END IF;
+        END LOOP;
+    END LOOP;
+
+    --correction of kind's production       
+    --copy data with origin in inner table (not from template)
+
+--objects that are templated by modified template and objects that where just added
+    CREATE TEMP TABLE affected_objects AS (
+        SELECT data.uid FROM temp_%(tbl_name)s_data data
+            LEFT OUTER JOIN affected_templates templ ON (data.%(template_column)s = templ.uid)
+            LEFT OUTER JOIN temp_inner_data idata ON (data.uid = idata.%(tbl_name)s)
+        WHERE templ.uid IS NOT NULL AND idata.%(tbl_name)s IS NULL
+
+        UNION
+
+        SELECT h.uid FROM %(tbl_name)s_history h 
+            LEFT OUTER JOIN (SELECT DISTINCT uid FROM %(tbl_name)s_history WHERE version = ver) inv ON (h.uid = inv.uid)
+        WHERE inv.uid IS NOT NULL
+        GROUP BY h.uid HAVING COUNT(*) = 1
+    );
+
+--delete all objects that has not its own data
+    DELETE FROM %(tbl)s WHERE %(tbl_name)s IN ( SELECT affected.uid FROM affected_objects affected 
+        LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL );
+
+    --resolve inner data for all affected objects that has not its own data
+    
+    raise notice 'for %% ',array(SELECT affected.uid FROM affected_objects affected LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL);
+    FOR %(tbl_name)s_uid IN (SELECT affected.uid FROM affected_objects affected 
+        LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL) LOOP
+        --templates are already resolved, we can use data from production.template
+        SELECT %(template_column)s INTO %(tbl_name)s_template_uid FROM temp_%(tbl_name)s_data WHERE uid = %(tbl_name)s_uid;
+        INSERT INTO %(tbl)s (%(tbl_name)s, %(reftbl_name)s)
+                SELECT %(tbl_name)s_uid AS %(tbl_name)s, %(reftbl_name)s FROM %(tbl_template)s WHERE %(tbl_name)s_template = %(tbl_name)s_template_uid;
+    END LOOP;
+
+    DROP TABLE temp_%(tbl_name)s_template_data;
+    DROP TABLE temp_%(tbl_name)s_data;
+    DROP TABLE affected_templates;
+    DROP TABLE affected_objects;
+    DROP TABLE temp_inner_template_data;
+    DROP TABLE temp_inner_data;
+    RETURN 1;
+END
+$$
+LANGUAGE plpgsql;
+ 
+'''
+
     diff_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff(from_version bigint, to_version bigint)
 RETURNS void
 AS
@@ -350,18 +457,24 @@ LANGUAGE plpgsql;
         self.tab_sql.write("SET search_path TO deska, production, history;\n")
         self.fn_sql.write("SET search_path TO genproc, deska, production, history;\n")
 
+        record = self.plpy.execute(self.tbl_name_template_str)
+        self.template_tables = dict()
+        for row in record:
+            if row[0] != row[1]:
+                self.template_tables[row[0]] = row[1]
+
         record = self.plpy.execute(self.multiRef_tables_str)
         for row in record:
             table = row[0]
             tab_relation_rec = self.plpy.execute(self.multiRef_info_str % {'tbl': table})
             if len(tab_relation_rec):
-				reftable = tab_relation_rec[0][1]
-				attnames = tab_relation_rec[0][0]
-				refattnames = tab_relation_rec[0][2]
-				self.check_multiRef_definition(table, reftable, attnames, refattnames)
-				#we needs the oposite direction than the one that alredy exists
-				self.gen_tables(table, reftable)
-				self.gen_functions(table, reftable, attnames, refattnames)
+                reftable = tab_relation_rec[0][1]
+                attnames = tab_relation_rec[0][0]
+                refattnames = tab_relation_rec[0][2]
+                self.check_multiRef_definition(table, reftable, attnames, refattnames)
+                #we needs the oposite direction than the one that alredy exists
+                self.gen_tables(table, reftable)
+                self.gen_functions(table, reftable, attnames, refattnames)
 
         self.tab_sql.close()
         self.fn_sql.close()
@@ -400,7 +513,6 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
-        self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
@@ -408,5 +520,19 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.get_identifier_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_get_old_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_get_new_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        if table in self.template_tables:
+            #this table is template of another table, join_base_tab is name of inner table that is templated
+            base_table = self.template_tables[table]
+            join_base_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : base_table, 'ref_tbl' : reftable}
+            record = self.plpy.execute(self.template_column_str % {'tbl': table})
+            if len(record) != 1:
+                raise ValueError, 'template is badly defined'
+            template_col = record[0][0]
+            
+            #table is template of another table
+            #tbl=whole name of inner table, tbl_name=name of table that has identifier_set attribute, tbl_template=inner template table for which is fn made, template_column=column that references template table
+            self.fn_sql.write(self.commit_template_str % {'tbl': join_base_tab, 'tbl_name' : base_table, 'tbl_template': join_tab, 'template_column': template_col, 'reftbl_name': reftable})
+        else:
+            self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         
         
