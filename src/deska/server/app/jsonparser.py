@@ -16,7 +16,7 @@ class CommandParser:
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
-			raise Exception("No CMD in json: " + self.jsn)
+			raise Exception("No CMD in json: %s" % self.jsn)
 
 	def getfn(self):
 		cmd = self.jsn[CMD]
