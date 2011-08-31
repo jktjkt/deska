@@ -77,6 +77,67 @@ def main(tag,kindName,objectName,revision):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.resolvedObjectData(tag text, kindName text, objectName text, revision text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,revision):
+	name = "resolvedObjectData"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
+	select = "SELECT * FROM {0}_resolved_object_data($1,$2)".format(kindName)
+	try:
+		revisionNumber = dutil.fcall("revision2num(text)",revision)
+		colnames, data = dutil.getdata(select,objectName,revisionNumber)
+	except dutil.DeskaException as dberr:
+		return dberr.json(name,jsn)
+
+	data = [dutil.mystr(x) for x in data[0]]
+	res = dict(zip(colnames,data))
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.resolvedObjectDataWithOrigin(tag text, kindName text, objectName text, revision text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+import re
+
+@pytypes
+def main(tag,kindName,objectName,revision):
+	name = "resolvedObjectDataWithOrigin"
+	jsn = dutil.jsn(name,tag)
+
+	# check kind name
+	if kindName not in dutil.generated.kinds():
+		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+
+	select = "SELECT * FROM {0}_resolved_object_data_template_info($1,$2)".format(kindName)
+	try:
+		revisionNumber = dutil.fcall("revision2num(text)",revision)
+		colnames, data = dutil.getdata(select,objectName,revisionNumber)
+	except dutil.DeskaException as dberr:
+		return dberr.json(name,jsn)
+
+	data = [dutil.mystr(x) for x in data[0]]
+	res = dict(zip(colnames,data))
+	jsn[name] = res
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION jsn.multipleObjectData(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS

@@ -18,6 +18,8 @@ class DB:
                 "createObject": ["tag", "kindName","objectName"],
                 "renameObject": ["tag", "kindName","oldObjectName","newObjectName"],
                 "setAttribute": ["tag", "kindName","objectName","attributeName","attributeData"],
+                "setAttributeInsert": ["tag", "kindName","objectName","attributeName","attributeData"],
+                "setAttributeRemove": ["tag", "kindName","objectName","attributeName","attributeData"],
                 "startChangeset": ["tag"],
                 "commitChangeset": ["tag", "commitMessage"],
                 "pendingChangesets": ["tag", "filter"],
@@ -29,9 +31,11 @@ class DB:
 		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
 		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", ],
 		"objectData": ["tag", "kindName", "objectName","revision"],
-		"objectData": ["tag", "kindName", "objectName","revision"],
-		#"objectData": ["tag", "kindName", "objectName","revision", "filter"],
+		"resolvedObjectData": ["tag", "kindName", "objectName","revision"],
+		#"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
 		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
+		#"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
+		#"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
 		"listRevisions": ["tag", "filter"]
 	})
 

@@ -2,28 +2,15 @@ from jsonparser import CommandParser
 from dbapi import DB
 
 data = list([
-	'{"command": "freezeView", "tag":"TAG"}',
-	'{"command": "unFreezeView", "tag":"TAG"}',
-	'{"command": "kindNames", "tag":"TAG"}',
-	'{"command": "kindAttributes", "kindName": "vendor" , "tag":"TAG"}',
-	'{"command": "kindAttributes", "kindName": "hardware" , "tag":"TAG"}',
-	'{"command": "kindAttributes", "kindName": "interface" , "tag":"TAG"}',
-	'{"command": "kindAttributes", "kindName": "host", "tag":"TAG"}',
-	'{"command": "kindInstances",  "kindName": "vendor" , "tag":"TAG"}',
-	'{"command": "kindRelations", "kindName": "interface" , "tag":"TAG"}',
-	'{"command": "kindRelations", "kindName": "vendor" , "tag":"TAG"}',
 	'{"command": "startChangeset", "tag":"TAG"}',
-	'{"command": "createObject", "kindName": "vendor", "objectName": "" , "tag":"TAG"}',
-	'{"command": "createObject", "kindName": "vendor", "objectName": "HP" , "tag":"TAG"}',
-	'{"command": "createObject", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "vendor", "attributeData":"HP", "tag":"TAG"}',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "purchase", "attributeData":"10/10/2011", "tag":"TAG"}',
-	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hp2", "attributeName": "warranty", "attributeData":"10/10/2013", "tag":"TAG"}',
-	'{"command": "objectData", "kindName": "hardware", "objectName": "hp2" , "tag":"TAG"}',
-	'{"command": "objectData", "kindName": "hardware", "objectName": "noneexisting" , "tag":"TAG"}',
-	'{"command": "commitChangeset", "commitMessage": "test message", "tag":"TAG"}',
-	'{"command": "pendingChangesets", "tag":"TAG"}',
-	'{"command": "dataDifference", "revisionA":"r1", "revisionB":"r2", "tag":"TAG"}'
+	'{"command": "createObject", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
+	'{"command": "createObject", "kindName": "service", "objectName": "www" , "tag":"TAG"}',
+	'{"command": "createObject", "kindName": "service", "objectName": "dhcp" , "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":["www","dhcp"], "tag":"TAG"}',
+	'{"command": "setAttributeRemove", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":"dhcp", "tag":"TAG"}',
+	'{"command": "objectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
+	'{"command": "setAttributeInsert", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":"dhcp", "tag":"TAG"}',
+	'{"command": "objectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
 ])
 
 dbargs = {"database": "deska_dev"}
