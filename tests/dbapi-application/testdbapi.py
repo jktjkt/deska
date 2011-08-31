@@ -31,7 +31,7 @@ class JsonApiTester(unittest.TestCase):
 
     def setUp(self):
         """Start the process"""
-        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER]
+        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER, "--cfggen-backend", "fake"]
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

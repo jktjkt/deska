@@ -3,14 +3,22 @@
 class NullGenerator(object):
     '''Encapsulate access to the git repository'''
 
+    def __init__(self, behavior):
+        self.behavior = behavior
+
+    def maybeThrow(self):
+        if self.behavior is not None:
+            raise self.behavior
+
     def openRepo(self):
-        pass
+        self.maybeThrow()
 
     def diff(self):
+        self.maybeThrow()
         return "NullGenerator: configuration generators were not configured yet"
 
     def apiSave(self, message):
-        pass
+        self.maybeThrow()
 
     def generate(self):
-        pass
+        self.maybeThrow()

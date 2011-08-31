@@ -45,15 +45,17 @@ class DB:
 		# showConfigDiff is special
 	})
 
-	def __init__(self,**kwargs):
+	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
 		try:
-			self.db = psycopg2.connect(**kwargs);
+			self.db = psycopg2.connect(**dbOptions);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
 			# commit search_path
 			self.db.commit()
 			self.freeze = False
 			self.error = None
+			self.cfggenBackend = cfggenBackend
+			self.cfggenOptions = cfggenOptions
 		except Exception, e:
 			self.error = e
 
@@ -159,21 +161,23 @@ class DB:
 		oldpath = sys.path
 		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../LowLevelPyDeska/generators"))
 		sys.path = [mypath] + sys.path
-		# FIXME: make it configurable
-		if False:
+		if self.cfggenBackend == "git":
 			import shutil
 			from gitgenerator import GitGenerator
-			repodir = "/tmp/sample-config-repo"
-			workdir = "/tmp/sample-config-working/" + self.currentChangeset()
+			repodir = self.cfggenOptions["cfggenGitRepo"]
+			workdir = self.cfggenOptions["cfggenGitWorkdir"] + "/" + self.currentChangeset()
 			if os.path.exists(workdir):
 				# got to clean it up
 				shutil.rmtree(workdir)
-			scriptdir = repodir + "/scripts"
+			scriptdir = self.cfggenOptions["cfggenScriptPath"]
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
+		elif self.cfggenBackend == "fake":
+			from nullgenerator import NullGenerator
+			self.cfgGenerator = NullGenerator(behavior=None)
 		else:
 			# no configuration generator has been configured
 			from nullgenerator import NullGenerator
-			self.cfgGenerator = NullGenerator()
+			self.cfgGenerator = NullGenerator(behavior=NotImplementedError("Attempted to access configuration generators which haven't been configured yet"))
 		sys.path = oldpath
 
 	def cfgRegenerate(self):
