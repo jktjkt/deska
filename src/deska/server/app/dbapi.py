@@ -12,31 +12,37 @@ class DB:
 		"kindNames": ["tag"],
 		"kindAttributes": ["tag", "kindName"],
 		"kindRelations": ["tag", "kindName"],
-		"kindInstances": ["tag", "kindName","revision","filter"],
-		"deleteObject": ["tag", "kindName","objectName"],
+		"kindInstances": ["tag", "kindName", "revision", "filter"],
+		"objectData": ["tag", "kindName", "objectName", "revision"],
+		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
+		"resolvedObjectData": ["tag", "kindName", "objectName","revision"],
+		#"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
+		#"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
+		#"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
+		"deleteObject": ["tag", "kindName", "objectName"],
+		"createObject": ["tag", "kindName", "objectName"],
 		"restoreDeletedObject": ["tag", "kindName","objectName"],
-		"createObject": ["tag", "kindName","objectName"],
-		"renameObject": ["tag", "kindName","oldObjectName","newObjectName"],
-		"setAttribute": ["tag", "kindName","objectName","attributeName","attributeData"],
-		"setAttributeInsert": ["tag", "kindName","objectName","attributeName","attributeData"],
-		"setAttributeRemove": ["tag", "kindName","objectName","attributeName","attributeData"],
+		"renameObject": ["tag", "kindName", "oldObjectName", "newObjectName"],
+		"setAttribute": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		"setAttributeInsert": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		"setAttributeRemove": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		# applyBatchedChanges is somewhere else
 		"startChangeset": ["tag"],
 		"commitChangeset": ["tag", "commitMessage"],
 		"pendingChangesets": ["tag", "filter"],
 		"resumeChangeset": ["tag", "changeset"],
 		"detachFromCurrentChangeset": ["tag", "message"],
 		"abortCurrentChangeset": ["tag"],
+		# lockCurrentChangeset is special
+		# unlockCurrentChangeset is special
+		# freezeView is special
+		# unfreezeView is special
+		"listRevisions": ["tag", "filter"],
 		"dataDifference": ["tag", "revisionA", "revisionB"],
 		"dataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
-		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", ],
-		"objectData": ["tag", "kindName", "objectName","revision"],
-		"resolvedObjectData": ["tag", "kindName", "objectName","revision"],
-		#"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
-		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
-		#"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
-		#"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
-		"listRevisions": ["tag", "filter"]
+		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
+		# showConfigDiff is special
 	})
 
 	def __init__(self,**kwargs):
