@@ -27,7 +27,7 @@ class DB:
                 "detachFromCurrentChangeset": ["tag", "message"],
                 "abortCurrentChangeset": ["tag"],
 		"dataDifference": ["tag", "revisionA", "revisionB"],
-		"dataDifferenceInTemporaryChangeset": ["tag"],
+		"dataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
 		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", ],
 		"objectData": ["tag", "kindName", "objectName","revision"],
