@@ -191,12 +191,15 @@ class DB:
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
+		try:
+			self.checkFunctionArguments(name, args, tag)
+		except Exception, e:
+			return self.errorJson(name, tag, str(e))
 		self.lockChangeset()
 		self.initCfgGenerator()
 		if not self.changesetHasFreshConfig():
 			self.cfgRegenerate()
 			self.markChangesetFresh()
-		# FIXME: deal with missing arguments
 		self.cfgPushToScm(args["commitMessage"])
 		res = self.standaloneRunDbFunction(name, args, tag)
 		self.unlockChangeset()
