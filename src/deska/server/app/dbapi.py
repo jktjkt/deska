@@ -122,6 +122,75 @@ class DB:
 		if not self.freeze:
 			self.db.commit()
 
+	def lockChangeset(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def unlockChangeset(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def changesetHasFreshConfig(self):
+		# FIXME: implement me by calling a DB function
+		return False
+
+	def markChangesetFresh(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def currentChangeset(self):
+		# FIXME: get name of the current changeset from the DB
+		return "unnamed"
+
+	def initCfgGenerator(self):
+		# We really do want to re-init the config generator each and every time
+		# FIXME: make it configurable
+		import sys
+		import os
+		import shutil
+		sys.path.append("/home/jkt/work/fzu/deska/src/deska/LowLevelPyDeska/generators")
+		from gitgenerator import GitGenerator
+		repodir = "/tmp/sample-config-repo"
+		workdir = "/tmp/sample-config-working/" + self.currentChangeset()
+		if os.path.exists(workdir):
+			# got to clean it up
+			shutil.rmtree(workdir)
+		scriptdir = repodir + "/scripts"
+		self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
+
+	def cfgRegenerate(self):
+		self.cfgGenerator.openRepo()
+		self.cfgGenerator.generate()
+
+	def cfgPushToScm(self, message):
+		self.cfgGenerator.apiSave(message)
+
+	def cfgGetDiff(self):
+		return self.cfgGenerator.diff()
+
+	def showConfigDiff(self, name, tag, forceRegen):
+		response = {"response": name, "tag": tag}
+		self.lockChangeset()
+		self.initCfgGenerator()
+		if forceRegen or not self.changesetHasFreshConfig():
+			self.cfgRegenerate()
+			self.markChangesetFresh()
+		response[name] = self.cfgGetDiff()
+		self.unlockChangeset()
+		return json.dumps(response)
+
+	def commitConfig(self, name, args, tag):
+		self.lockChangeset()
+		self.initCfgGenerator()
+		if not self.changesetHasFreshConfig():
+			self.cfgRegenerate()
+			self.markChangesetFresh()
+		# FIXME: deal with missing arguments
+		self.cfgPushToScm(args["commitMessage"])
+		res = self.standaloneRunDbFunction(name, args, tag)
+		self.unlockChangeset()
+		return res
+
 	def run(self,name,args):
 		logging.debug("start run method(%s, %s)" % (name, args))
 
@@ -138,12 +207,25 @@ class DB:
 		if name in set(["freezeView","unFreezeView"]):
 			return self.freezeUnfreeze(name,tag)
 
+		if name == "showConfigDiff":
+			forceRegen = False
+			if args.has_key("forceRegen") and args["forceRegen"] == True:
+				forceRegen = True
+			return self.showConfigDiff(name, tag, forceRegen)
+
+		if name == "commitChangeset":
+			# this one is special, it has to commit to the DB *and* push to SCM
+			return self.commitConfig(name, args, tag)
+
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
 			if "modifications" not in args:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		return self.standaloneRunDbFunction(name, args, tag)
+
+	def standaloneRunDbFunction(self, name, args, tag):
 		try:
 			data = self.runDBFunction(name,args,tag)
 			self.endTransaction()
