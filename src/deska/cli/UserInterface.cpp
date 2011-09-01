@@ -26,6 +26,7 @@
 
 #include "CliCommands.h"
 #include "CliCommands_Log.h"
+#include "CliCommands_Rebase.h"
 #include "DbInteraction.h"
 #include "Exceptions.h"
 #include "Parser.h"

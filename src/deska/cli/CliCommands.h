@@ -28,7 +28,6 @@
 
 #include "CliObjects.h"
 #include "deska/db/Revisions.h"
-#include "deska/db/ObjectModification.h"
 
 
 namespace Deska {
@@ -36,64 +35,6 @@ namespace Cli {
 
 
 class UserInterface;
-
-
-/** @short Visitor for converting ObjectModification made by un in the changeset to user readable format
-*          for purposes of rebase.
-*/
-struct OurModificationConverter: public boost::static_visitor<std::string>
-{
-    //@{
-    /** @short Function for converting single object modification.
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    */
-    std::string operator()(const Db::CreateObjectModification &modification) const;
-    std::string operator()(const Db::DeleteObjectModification &modification) const;
-    std::string operator()(const Db::RenameObjectModification &modification) const;
-    std::string operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
-
-
-
-/** @short Visitor for converting ObjectModification made by someone else in newer revision to user readable format
-*          for purposes of rebase.
-*/
-struct ExternModificationConverter: public boost::static_visitor<std::string>
-{
-    //@{
-    /** @short Function for converting single object modification.
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    */
-    std::string operator()(const Db::CreateObjectModification &modification) const;
-    std::string operator()(const Db::DeleteObjectModification &modification) const;
-    std::string operator()(const Db::RenameObjectModification &modification) const;
-    std::string operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
-
-
-
-/** @short Visitor for converting ObjectModification made in both newer revision and the changeset
-*          to user readable format for purposes of rebase.
-*/
-struct BothModificationConverter: public boost::static_visitor<std::string>
-{
-    //@{
-    /** @short Function for converting single object modification.
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    */
-    std::string operator()(const Db::CreateObjectModification &modification) const;
-    std::string operator()(const Db::DeleteObjectModification &modification) const;
-    std::string operator()(const Db::RenameObjectModification &modification) const;
-    std::string operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
-
-
 
 
 /** @short Abstract class for each command.
@@ -282,43 +223,6 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
-};
-
-
-
-/** @short Cli command.
-*
-*   Rebases current changeset.
-*
-*   @see Command
-*/
-class Rebase: public Command
-{
-public:
-    /** @short Constructor sets command name and completion pattern.
-    *
-    *   @param userInterface Pointer to the UserInterface
-    */
-    Rebase(UserInterface *userInterface);
-
-    virtual ~Rebase();
-
-    /** @short Rebases current changeset.
-    *
-    *   @param params Unused here.
-    */
-    virtual void operator()(const std::string &params);
-
-private:
-    /** @short Function for sorting object modifications.
-    *
-    *   Sorting at first by kind, then by name, then by modification type.
-    *
-    *   @param a First object modification
-    *   @param b Second object modification
-    *   @return True if b is greater than a, else false
-    */
-    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
 
