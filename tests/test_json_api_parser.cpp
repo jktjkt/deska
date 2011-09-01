@@ -159,11 +159,12 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations_errors, JsonApiTestFixtureFailOnStrea
     // We want to test various different error scenarios here
     typedef std::pair<string,string> PairStringString;
     vector<PairStringString> data;
-    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "JSON field 'rel' is not allowed in this context (expecting one of: relation target)."));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\", \"target\": \"pwn\"}", "Invalid relation kind 'EMBED_INTO2'"));
+    data.push_back(std::make_pair<string,string>("{\"rel\": \"EMBED_INTO\"}", "JSON field 'rel' is not allowed in this context (expecting one of: relation target column)."));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO2\", \"target\": \"pwn\", \"column\": \"x\"}", "Invalid relation kind 'EMBED_INTO2'"));
     data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\"}", "Mandatory field 'target' not present in the response"));
-    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"foo\": \"bar\"}",
-                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation target)."));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"x\"}", "Mandatory field 'column' not present in the response"));
+    data.push_back(std::make_pair<string,string>("{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"column\": \"bar\", \"foo\": \"bar\"}",
+                                                 "JSON field 'foo' is not allowed in this context (expecting one of: relation target column)."));
     BOOST_FOREACH(const PairStringString &value, data) {
         expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"identifier\"}\n");
         expectRead("{\"kindRelations\": [" + value.first + "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
@@ -275,21 +276,21 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"template\": \"identifier\", \"anotherKind\": \"identifier\", "
+               "\"real\": \"double\", \"price\": \"double\", \"inherit\": \"identifier\", \"anotherKind\": \"identifier\", "
                "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\", "
                "\"role\": \"identifier_set\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
-               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"defaults\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
     expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
             "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\","
-            "\"template\": \"bleh\", \"anotherKind\": \"foo_ref\", \"role\": [\"a\", \"b\", \"cc\"]}, \"response\": \"objectData\"}\n");
+            "\"inherit\": \"bleh\", \"anotherKind\": \"foo_ref\", \"role\": [\"a\", \"b\", \"cc\"]}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
     expected["foo"] = "bar";
     expected["int"] = 10;
@@ -302,7 +303,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["ipv6"] = boost::asio::ip::address_v6::from_string("::1");
     expected["date"] = boost::gregorian::date(2011, 6, 20);
     expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
-    expected["template"] = "bleh";
+    expected["inherit"] = "bleh";
     expected["anotherKind"] = "foo_ref";
     std::set<Identifier> role;
     role.insert("a");
@@ -362,8 +363,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
-               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"baz\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"template\"}"
                "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
@@ -423,8 +424,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
-               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"template\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleResolvedObjectDataWithOrigin\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
@@ -459,8 +460,8 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
-               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\"}"
+               "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"template\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleResolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
