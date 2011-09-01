@@ -137,15 +137,15 @@ BOOST_FIXTURE_TEST_CASE(json_kindRelations, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"identifier\"}\n");
     expectRead("{\"kindRelations\": ["
-            "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\"}, "
-            "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\"}, "
-            "{\"relation\": \"REFERS_TO\", \"target\": \"reference\"}, "
-            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\"}], \"response\": \"kindRelations\",\"tag\":\"T\"}\n");
+            "{\"relation\": \"EMBED_INTO\", \"target\": \"hardware\", \"column\": \"machine\"}, "
+               "{\"relation\": \"MERGE_WITH\", \"target\": \"second-kind\", \"column\": \"foo\"}, "
+            "{\"relation\": \"REFERS_TO\", \"target\": \"reference\", \"column\": \"link\"}, "
+            "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"bar\"}], \"response\": \"kindRelations\",\"tag\":\"T\"}\n");
     vector<ObjectRelation> expected;
-    expected.push_back(ObjectRelation::embedInto("hardware"));
-    expected.push_back(ObjectRelation::mergeWith("second-kind"));
-    expected.push_back(ObjectRelation::refersTo("reference"));
-    expected.push_back(ObjectRelation::templatized("by-which-kind"));
+    expected.push_back(ObjectRelation::embedInto("hardware", "machine"));
+    expected.push_back(ObjectRelation::mergeWith("second-kind", "foo"));
+    expected.push_back(ObjectRelation::refersTo("reference", "link"));
+    expected.push_back(ObjectRelation::templatized("by-which-kind", "bar"));
     vector<ObjectRelation> res = j->kindRelations("identifier");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
