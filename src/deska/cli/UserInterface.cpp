@@ -25,6 +25,7 @@
 #include <boost/foreach.hpp>
 
 #include "CliCommands.h"
+#include "CliCommands_Log.h"
 #include "DbInteraction.h"
 #include "Exceptions.h"
 #include "Parser.h"
