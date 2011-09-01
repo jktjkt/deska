@@ -74,9 +74,11 @@ class RelationList(list):
 		if kind in source:
 			if (type(source[kind]) == list):
 				for tbl in source[kind]:
-					self.append({"relation": reltype, "target": tbl})
+					# FIXME: use a real column name here
+					self.append({"relation": reltype, "target": tbl, "column": tbl})
 			else:
-				self.append({"relation": reltype, "target": source[kind]})
+				# FIXME: use a real column name here
+				self.append({"relation": reltype, "target": source[kind], "column": source[kind]})
 
 @pytypes
 def main(tag,kindName):
