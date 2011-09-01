@@ -24,7 +24,7 @@
 #include <sstream>
 #include <boost/foreach.hpp>
 
-
+#include "CliCommands.h"
 #include "DbInteraction.h"
 #include "Exceptions.h"
 #include "Parser.h"

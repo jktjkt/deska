@@ -34,13 +34,13 @@
 
 #include "CliObjects.h"
 #include "ContextStack.h"
-#include "CliCommands.h"
 
 namespace Deska
 {
 namespace Cli
 {
 
+class Command;
 class DbInteraction;
 class Parser;
 class ParserException;
