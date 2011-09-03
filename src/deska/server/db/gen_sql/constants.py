@@ -1203,10 +1203,22 @@ LANGUAGE plpgsql;
 	RETURNS void
 	AS
 	$$
-	DECLARE
-		ver bigint;
 	BEGIN
 		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_changeset_init_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_%(ref_tbl)s_init_diff()
+	RETURNS void
+	AS
+	$$
+	BEGIN
+		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -1247,6 +1259,8 @@ BEGIN
 	AS  SELECT %(diff_columns)s
 		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
 			FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.uid = chv.uid);
+			
+	%(inner_tables_diff)s
 END
 $$
   LANGUAGE plpgsql;

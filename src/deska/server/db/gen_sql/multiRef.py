@@ -339,6 +339,26 @@ LANGUAGE plpgsql;
 
 '''
 
+    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+    changeset_var bigint;
+    from_version bigint;
+BEGIN
+    changeset_var = get_current_changeset();
+    from_version = id2num(parent(changeset_var));
+    CREATE TEMP TABLE %(tbl)s_diff_data
+    AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
+            FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
     diff_terminate_function_str = '''CREATE FUNCTION %(tbl)s_terminate_diff()
 RETURNS void
 AS
@@ -515,6 +535,7 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.diff_changeset_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.sets_equal_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.get_identifier_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
