@@ -464,7 +464,7 @@ void UserInterface::run()
             }
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
-            ostr << "Unexpected error: " << e.what();
+            ostr << "Unexpected remore error: " << e.whatWithBacktrace();
             io->reportError(ostr.str());
         }
     }
