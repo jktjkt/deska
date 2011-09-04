@@ -248,14 +248,31 @@ void Rebase::operator()(const std::string &params)
         ui->io->printMessage("No rebase needed.");
         return;
     }
-
-    ui->m_dbInteraction->lockCurrentChangeset();
+    
+    try {
+        ui->m_dbInteraction->lockCurrentChangeset();
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while locking old changeset for rebase.");
+        return;
+    }
 
     // Start new changeset for rebase
     Db::TemporaryChangesetId oldChangeset = *(ui->currentChangeset);
     ui->m_dbInteraction->detachFromChangeset("Rebase in progress");
     Db::TemporaryChangesetId newChangeset = ui->m_dbInteraction->createNewChangeset();
-    ui->m_dbInteraction->lockCurrentChangeset();
+    try {
+        ui->m_dbInteraction->lockCurrentChangeset();
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while locking new changeset for rebase.");
+        ui->m_dbInteraction->abortChangeset();
+        ui->m_dbInteraction->resumeChangeset(oldChangeset);
+        try {
+            ui->m_dbInteraction->unlockCurrentChangeset();
+        } catch (Db::ChangesetLockingError &e) {
+            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        }
+        return;
+    }
     Db::RevisionId newParentRevision = ui->m_dbInteraction->changesetParent(newChangeset);
 
     // Obtain modifications lists for three-way diff
@@ -279,7 +296,11 @@ void Rebase::operator()(const std::string &params)
         ui->io->reportError("Error while creating rebase temp file \"" + std::string(tempFile) + "\".");
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        ui->m_dbInteraction->unlockCurrentChangeset();
+        try {
+            ui->m_dbInteraction->unlockCurrentChangeset();
+        } catch (Db::ChangesetLockingError &e) {
+            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        }
         return;
     }
     std::ofstream ofs(tempFile);
@@ -288,7 +309,11 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        ui->m_dbInteraction->unlockCurrentChangeset();
+        try {
+            ui->m_dbInteraction->unlockCurrentChangeset();
+        } catch (Db::ChangesetLockingError &e) {
+            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        }
         return;
     }
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
@@ -325,7 +350,11 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        ui->m_dbInteraction->unlockCurrentChangeset();
+        try {
+            ui->m_dbInteraction->unlockCurrentChangeset();
+        } catch (Db::ChangesetLockingError &e) {
+            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        }
         return;
     }
 
@@ -352,7 +381,11 @@ void Rebase::operator()(const std::string &params)
         remove(tempFile);
         ui->m_dbInteraction->abortChangeset();
         ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        ui->m_dbInteraction->unlockCurrentChangeset();
+        try {
+            ui->m_dbInteraction->unlockCurrentChangeset();
+        } catch (Db::ChangesetLockingError &e) {
+            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        }
         return;
     }
     ifs.close();
@@ -363,7 +396,11 @@ void Rebase::operator()(const std::string &params)
     ui->m_dbInteraction->resumeChangeset(oldChangeset);
     ui->m_dbInteraction->abortChangeset();
     ui->m_dbInteraction->resumeChangeset(newChangeset);
-    ui->m_dbInteraction->unlockCurrentChangeset();
+    try {
+        ui->m_dbInteraction->unlockCurrentChangeset();
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while unlocking new changeset after rebase.");
+    }
     ui->io->printMessage("Rebase successful.");
 }
 

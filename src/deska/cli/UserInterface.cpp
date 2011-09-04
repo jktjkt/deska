@@ -92,7 +92,14 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
         if (io->confirmRestoration(ObjectDefinition(kind,object))) {
-            m_dbInteraction->restoreDeletedObject(context);
+            try {
+                m_dbInteraction->restoreDeletedObject(context);
+            } catch (Db::RemoteDbError &e) {
+                std::ostringstream ostr;
+                ostr << "Unexpected error: " << e.what();
+                io->reportError(ostr.str());
+                return false;
+            }
             newItem = ContextStackItem(kind, object);
             return true;
         } else {
@@ -107,9 +114,16 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
                                          const Db::Identifier &kind, const Db::Identifier &object,
                                          ContextStackItem &newItem)
 {
-    if (m_dbInteraction->objectExists(context)) {
-        newItem = ContextStackItem(kind, object);
-        return true;
+    try {
+        if (m_dbInteraction->objectExists(context)) {
+            newItem = ContextStackItem(kind, object);
+            return true;
+        }
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
 
     // Object does not exist -> try to create it
@@ -118,12 +132,24 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
         if (nonInteractiveMode || io->confirmRestoration(ObjectDefinition(kind,object))) {
-            m_dbInteraction->restoreDeletedObject(context);
+            try {
+                m_dbInteraction->restoreDeletedObject(context);
+            } catch (Db::RemoteDbError &e) {
+                std::ostringstream ostr;
+                ostr << "Unexpected error: " << e.what();
+                io->reportError(ostr.str());
+                return false;
+            }
             newItem = ContextStackItem(kind, object);
             return true;
         } else {
             return false;
         }
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
 }
 
@@ -141,9 +167,10 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
         }
         m_dbInteraction->setAttribute(adjustedContext, AttributeDefinition(attribute, value));
         return true;
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
     }
 }
@@ -162,9 +189,10 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
         }
         m_dbInteraction->setAttributeInsert(adjustedContext, attribute, value);
         return true;
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
     }
 }
@@ -184,8 +212,9 @@ bool UserInterface::applySetAttributeRemove(const ContextStack &context, const D
         m_dbInteraction->setAttributeRemove(adjustedContext, attribute, value);
         return true;
     } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
     }
 }
@@ -194,14 +223,21 @@ bool UserInterface::applySetAttributeRemove(const ContextStack &context, const D
 
 bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute)
 {
-    ContextStack adjustedContext = context;
-    if (context.back().kind != kind) {
-        adjustedContext.back().kind = kind;
-        if (!m_dbInteraction->objectExists(adjustedContext))
-            return false;
+    try {
+        ContextStack adjustedContext = context;
+        if (context.back().kind != kind) {
+            adjustedContext.back().kind = kind;
+            if (!m_dbInteraction->objectExists(adjustedContext))
+                return false;
+        }
+        m_dbInteraction->removeAttribute(adjustedContext, attribute);
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
-    m_dbInteraction->removeAttribute(adjustedContext, attribute);
-    return true;
 }
 
 
@@ -209,11 +245,18 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
                                        const Db::Filter &filter)
 {
-    if (m_dbInteraction->expandContextStack(context).empty()) {
-        io->printMessage("Entered filter does not match any object.");
+    try {
+        if (m_dbInteraction->expandContextStack(context).empty()) {
+            io->printMessage("Entered filter does not match any object.");
+            return false;
+        } else {
+            return true;
+        }
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
-    } else {
-        return true;
     }
 }
 
@@ -221,40 +264,61 @@ bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Id
 
 bool UserInterface::applyFunctionShow(const ContextStack &context)
 {
-    if (context.empty()) {
-        // Print top level objects if we are not in any context
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
-             io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
-        }
-    } else {
-        // If we are in some context, print all attributes and kind names
-        try {
-            showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
-        } catch (std::runtime_error &e) {
-            std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
-            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-                io->printObject(*it, 0, true);
-                showObjectRecursive(*it, 1);
+    try {
+        if (context.empty()) {
+            // Print top level objects if we are not in any context
+            BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
+                 io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
+            }
+        } else {
+            // If we are in some context, print all attributes and kind names
+            try {
+                showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
+            } catch (std::runtime_error &e) {
+                std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
+                for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+                    io->printObject(*it, 0, true);
+                    showObjectRecursive(*it, 1);
+                }
             }
         }
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
-    return true;
 }
 
 
 
 bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
-    m_dbInteraction->deleteObject(context);
-    return true;
+    try {
+        m_dbInteraction->deleteObject(context);
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
+    }
 }
 
 
 
 bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
-    m_dbInteraction->renameObject(context, newName);
-    return true;
+    try {
+        m_dbInteraction->renameObject(context, newName);
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
+    }
 }
 
 
@@ -267,9 +331,16 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
         return false;
     }
 
-    if (m_dbInteraction->objectExists(context)) {
+    try {
+        if (m_dbInteraction->objectExists(context)) {
+            std::ostringstream ostr;
+            ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
+            io->reportError(ostr.str());
+            return false;
+        }
+    } catch (Db::RemoteDbError &e) {
         std::ostringstream ostr;
-        ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
+        ostr << "Unexpected error: " << e.what();
         io->reportError(ostr.str());
         return false;
     }
@@ -284,8 +355,15 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    if (m_dbInteraction->objectExists(context))
-        return true;
+    try {
+        if (m_dbInteraction->objectExists(context))
+            return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
+    }
 
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
@@ -309,21 +387,29 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
         io->reportError("Error: You have to be connected to a changeset to set an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
-    if (context.back().kind == kind)
-        return true;
-    ContextStack adjustedContext = context;
-    adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
-        try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
-            if (mergedObjects.empty())
-                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
-        } catch (std::logic_error &e) {
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+
+    try {
+        if (context.back().kind == kind)
+            return true;
+        ContextStack adjustedContext = context;
+        adjustedContext.back().kind = kind;
+        if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
+            try {
+                std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+                if (mergedObjects.empty())
+                    mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+                return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+            } catch (std::logic_error &e) {
+                return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+            }
         }
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
-    return true;
 }
 
 
@@ -335,21 +421,29 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
         io->reportError("Error: You have to be connected to a changeset to insert an identifier to a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
-    if (context.back().kind == kind)
-        return true;
-    ContextStack adjustedContext = context;
-    adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
-        try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
-            if (mergedObjects.empty())
-                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
-        } catch (std::logic_error &e) {
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+
+    try {
+        if (context.back().kind == kind)
+            return true;
+        ContextStack adjustedContext = context;
+        adjustedContext.back().kind = kind;
+        if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
+            try {
+                std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+                if (mergedObjects.empty())
+                    mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+                return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+            } catch (std::logic_error &e) {
+                return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
+            }
         }
+        return true;
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
+        return false;
     }
-    return true;
 }
 
 
@@ -361,15 +455,23 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
         io->reportError("Error: You have to be connected to a changeset to remove an identifier from a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
-    if (context.back().kind == kind)
+
+    try {
+        if (context.back().kind == kind)
+            return true;
+        ContextStack adjustedContext = context;
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext)) {
+            io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove identifiers from its sets.");
+            return false;
+        }
         return true;
-    ContextStack adjustedContext = context;
-    adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
-        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove identifiers from its sets.");
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
     }
-    return true;
 }
 
 
@@ -380,15 +482,23 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
-    if (context.back().kind == kind)
+
+    try {
+        if (context.back().kind == kind)
+            return true;
+        ContextStack adjustedContext = context;
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext)) {
+            io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove its attributes.");
+            return false;
+        }
         return true;
-    ContextStack adjustedContext = context;
-    adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
-        io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove its attributes.");
+    } catch (Db::RemoteDbError &e) {
+        std::ostringstream ostr;
+        ostr << "Unexpected error: " << e.what();
+        io->reportError(ostr.str());
         return false;
     }
-    return true;
 }
 
 
@@ -468,12 +578,18 @@ void UserInterface::run()
         std::string parsedCommand(line.first.begin(), commandEnd);
         std::string parsedArguments((commandEnd == line.first.end() ? commandEnd : (commandEnd +1)), line.first.end());
         
-        if (commandsMap.find(parsedCommand) == commandsMap.end()) {
-            // Command not found -> use CLI parser
-            m_parser->parseLine(line.first);
-        } else {
-            // Command found -> run it
-            (*(commandsMap[parsedCommand]))(parsedArguments);
+        try {
+            if (commandsMap.find(parsedCommand) == commandsMap.end()) {
+                // Command not found -> use CLI parser
+                m_parser->parseLine(line.first);
+            } else {
+                // Command found -> run it
+                (*(commandsMap[parsedCommand]))(parsedArguments);
+            }
+        } catch (Db::RemoteDbError &e) {
+            std::ostringstream ostr;
+            ostr << "Unexpected error: " << e.what();
+            io->reportError(ostr.str());
         }
     }
 }
