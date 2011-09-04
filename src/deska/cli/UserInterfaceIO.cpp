@@ -558,26 +558,38 @@ unsigned int UserInterfaceIO::digits(unsigned int n)
 std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int width)
 {
     std::vector<std::string> lines;
-    boost::char_separator<char> separators(" \t\n");
-    boost::tokenizer<boost::char_separator<char> > tokenizer(text, separators);
+    boost::char_separator<char> separators(" \t");
+    boost::char_separator<char> lineSeparators("\n");
+    boost::tokenizer<boost::char_separator<char> > lineTokenizer(text, lineSeparators);
+    
     std::string word;
     std::string line;
     
-    for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
-         it != tokenizer.end(); ++it) {
-        word = *it;
-        boost::algorithm::trim(word);
-        if ((line.length() + word.length() + 1) > width) {
+    for (boost::tokenizer<boost::char_separator<char> >::const_iterator itl = lineTokenizer.begin();
+         itl != lineTokenizer.end(); ++itl) {
+        if (itl->empty()) {
+            lines.push_back("");
+            continue;
+        }
+        boost::tokenizer<boost::char_separator<char> > tokenizer(*itl, separators);
+        for (boost::tokenizer<boost::char_separator<char> >::const_iterator it = tokenizer.begin();
+             it != tokenizer.end(); ++it) {
+            word = *it;
+            boost::algorithm::trim(word);
+            if ((line.length() + word.length() + 1) > width) {
+                lines.push_back(line);
+                line.clear();
+            }
+            if (!line.empty())
+                line += " ";
+            line += word;
+        }
+
+        if (!line.empty()) {
             lines.push_back(line);
             line.clear();
         }
-        if (!line.empty())
-            line += " ";
-        line += word;
     }
-
-    if (!line.empty())
-        lines.push_back(line);
 
     return lines;
 }
