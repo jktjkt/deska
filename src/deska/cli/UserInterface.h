@@ -47,8 +47,6 @@ class ParserException;
 class UserInterfaceIOBase;
 class UserInterface;
 
-// FIXME: Add more try catch block around each function, that can throw an exception. Create some exceptions hiearchy.
-//        For example recoverable, non recoverable...
 
 /** @short Class for communication with the user.
 *
