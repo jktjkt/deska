@@ -464,7 +464,7 @@ void UserInterface::run()
             }
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
-            ostr << "Unexpected remote error: " << e.whatWithBacktrace();
+            ostr << "Unexpected server error:\n" << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
         }
     }
