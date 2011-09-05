@@ -57,3 +57,12 @@ def imperative(r):
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x2")["service"], AnyOrderList(["www", "imap"]))
     deska.init()
     # FAIL r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www", "imap"]))
+
+    # test filtering
+    r.assertEqual(sorted(deska.host[deska.host.service.contains("www")].keys()),
+                  ["x%d" % i for i in range(3)])
+    r.assertEqual(sorted(deska.host[deska.host.service.notContains("www")].keys()),
+                  ["x%d" % i for i in range(3, 10)])
+
+    # FIXME: more filters for set-specific stuff
+    # FIXME: compound filters
