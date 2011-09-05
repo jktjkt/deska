@@ -215,11 +215,12 @@ def resolvedObjectData(kindName, objectName, revision=None):
         args["revision"] = revision
     return ApiMethod("resolvedObjectData", args)
 
-def multipleObjectData(kindName, revision=None):
-    # FIXME: filter
+def multipleObjectData(kindName, revision=None, filter=None):
     args = {"kindName": kindName}
     if revision is not None:
         args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
     return ApiMethod("multipleObjectData", args)
 
 def kindInstances(kindName, revision=None):
