@@ -135,7 +135,6 @@ BEGIN
     
     --set {(rowuid, NULL)} represents empty set for object rowuid
     IF array_upper(value,1) IS NULL THEN
-        raise notice 'empty set';
         INSERT INTO %(tbl)s_history (%(tbl_name)s,%(ref_tbl_name)s,version) VALUES (rowuid, NULL, ver);
         RETURN 1;
     END IF;
@@ -261,7 +260,6 @@ BEGIN
     END LOOP;
 
     --for each affected template find its current data
-    raise notice 'for templates %%', array( (SELECT affected.uid FROM affected_templates affected LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL));
     FOR %(tbl_name)s_template_uid IN (SELECT affected.uid FROM affected_templates affected 
         LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL) LOOP
 
@@ -301,7 +299,6 @@ BEGIN
 
     --resolve inner data for all affected objects that has not its own data
     
-    raise notice 'for %% ',array(SELECT affected.uid FROM affected_objects affected LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL);
     FOR %(tbl_name)s_uid IN (SELECT affected.uid FROM affected_objects affected 
         LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL) LOOP
         --templates are already resolved, we can use data from production.template

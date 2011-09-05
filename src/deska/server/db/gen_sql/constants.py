@@ -1352,7 +1352,8 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
+			--select columns with resolved id_set and resolved refuid names
+			SELECT %(columns_ex_templ_id_set_res_name)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE name = name_;
 			IF NOT FOUND THEN
 				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
@@ -1364,7 +1365,8 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, %(template_column)s, %(template_column)s as orig_template
+        --select uids for refuids and resolved id_set
+        SELECT %(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE name = name_
         UNION ALL
@@ -1374,6 +1376,7 @@ BEGIN
         FROM template_data_version dv, resolved_data rd
         WHERE dv.uid = rd.%(template_column)s
 	)
+	--select id_set from resolved_data and get name for refuid
 	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
 	FROM resolved_data WHERE %(template_column)s IS NULL;
 
