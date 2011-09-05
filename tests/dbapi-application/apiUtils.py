@@ -190,6 +190,18 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       attributeName,
                                       "attributeData": attributeData})
 
+def setAttributeInsert(kindName, objectName, attributeName, attributeData):
+    return ApiMethod("setAttributeInsert", {"kindName": kindName, "objectName":
+                                      objectName, "attributeName":
+                                      attributeName,
+                                      "attributeData": attributeData})
+
+def setAttributeRemove(kindName, objectName, attributeName, attributeData):
+    return ApiMethod("setAttributeRemove", {"kindName": kindName, "objectName":
+                                      objectName, "attributeName":
+                                      attributeName,
+                                      "attributeData": attributeData})
+
 def renameObject(kindName, oldObjectName, newObjectName):
     return ApiMethod("renameObject", {"kindName": kindName,
                                       "oldObjectName": oldObjectName,
