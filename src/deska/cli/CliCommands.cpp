@@ -153,34 +153,17 @@ void Resume::operator()(const std::string &params)
         ui->io->reportError(ostr.str());
         return;
     }
-    try {
-        // Print list of pending changesets, so user can choose one
-        std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
-        int choice = ui->io->chooseChangeset(pendingChangesets);
+    // Print list of pending changesets, so user can choose one
+    std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
+    int choice = ui->io->chooseChangeset(pendingChangesets);
 
-        if (choice >= 0) {
-            // Some changeset was choosen
-            ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
-            ui->currentChangeset = pendingChangesets[choice].revision;
-            std::ostringstream ostr;
-            ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
-            ui->io->printMessage(ostr.str());
-        }
-        
-    } catch (Deska::Db::NotFoundError &e) {
-        ui->io->reportError("Server reports an error:\nObject not found:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::NoChangesetError &e) {
-        ui->io->reportError("Server reports an error:\nYou aren't associated to a changeset:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::ChangesetAlreadyOpenError &e) {
-        ui->io->reportError("Server reports an error:\nChangeset is already open:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::SqlError &e) {
-        ui->io->reportError("Server reports an error:\nError in executing an SQL statement:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::ServerError &e) {
-        ui->io->reportError("Server reports an error:\nInternal server error:\n\n" + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::JsonSyntaxError &e) {
-        ui->io->reportError("Cannot parse JSON data.\n " + e.whatWithBacktrace() + "\n");
-    } catch (Deska::Db::JsonStructureError &e) {
-        ui->io->reportError("Received malformed JSON data:\n " + e.whatWithBacktrace() + "\n");
+    if (choice >= 0) {
+        // Some changeset was choosen
+        ui->m_dbInteraction->resumeChangeset(pendingChangesets[choice].revision);
+        ui->currentChangeset = pendingChangesets[choice].revision;
+        std::ostringstream ostr;
+        ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
+        ui->io->printMessage(ostr.str());
     }
 }
 
@@ -220,11 +203,12 @@ void Commit::operator()(const std::string &params)
         ui->io->printMessage(ostr.str());
         ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
         ui->m_parser->clearContextStack();
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: quick & durty "fix" for the demo
-        std::ostringstream ss;
-        ss << "Error: commit failed: " << e.what();
-        ui->io->reportError(ss.str());
+    } catch (Db::ConstraintError &e) {
+        std::ostringstream ostr;
+        ostr << "Commit failed due to constraint violation: " << e.what();
+        ui->io->reportError(ostr.str());
+    } catch (Db::ObsoleteParentError &e) {
+        ui->io->reportError("Changeset parent obsolete. Use \"rebase\" and try again.");
     }
 }
 
@@ -371,9 +355,13 @@ void Diff::operator()(const std::string &params)
     try {
         Db::RevisionId revA = stringToRevision(paramsList[0]);
         Db::RevisionId revB = stringToRevision(paramsList[1]);
+        try {
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference(
             stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
         ui->io->printDiff(modifications);
+        } catch (Db::RevisionRangeError &e) {
+            ui->io->reportError("Revision range does not make a sense.");
+        }
     } catch (std::invalid_argument &e) {
         ui->io->reportError("Invalid parameters entered!");
         return;
@@ -483,36 +471,40 @@ Dump::~Dump()
 
 void Dump::operator()(const std::string &params)
 {
-    ui->m_dbInteraction->freezeView();
-    if (params.empty()) {
-        // FIXME: Dump recursively
-        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                //ui->io->printObject(object, 0, false);
-                ui->io->printObject(object, 0, true);
-                dumpObjectRecursive(object, 1);
+    try {
+        ui->m_dbInteraction->freezeView();
+        if (params.empty()) {
+            // FIXME: Dump recursively
+            //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+            BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+                BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                    //ui->io->printObject(object, 0, false);
+                    ui->io->printObject(object, 0, true);
+                    dumpObjectRecursive(object, 1);
+                }
             }
-        }
-    } else {
-        std::ofstream ofs(params.c_str());
-        if (!ofs) {
-            ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
+        } else {
+            std::ofstream ofs(params.c_str());
+            if (!ofs) {
+                ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
+                ui->m_dbInteraction->unFreezeView();
+                return;
+            }
+            // FIXME: Dump recursively
+            //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
+            BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
+                BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
+                    //ui->io->printObject(object, 0, false, ofs);
+                    ui->io->printObject(object, 0, true, ofs);
+                    dumpObjectRecursive(object, 1, ofs);
+                }
+            }
+            ofs.close();
             ui->m_dbInteraction->unFreezeView();
-            return;
+            ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
         }
-        // FIXME: Dump recursively
-        //BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
-        BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->kindNames()) {
-            BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
-                //ui->io->printObject(object, 0, false, ofs);
-                ui->io->printObject(object, 0, true, ofs);
-                dumpObjectRecursive(object, 1, ofs);
-            }
-        }
-        ofs.close();
-        ui->m_dbInteraction->unFreezeView();
-        ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
+    } catch (Db::FreezingError &e) {
+        ui->io->reportError("Error while freezeing DB view for dump. Dumping failed.");
     }
 }
 
@@ -604,28 +596,33 @@ void Restore::operator()(const std::string &params)
         ui->io->reportError("Error while opening commands file \"" + params + "\".");
         return;
     }
+    
     ui->nonInteractiveMode = true;
     std::string line;
     ContextStack stackBackup = ui->m_parser->currentContextStack();
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
-    ui->m_dbInteraction->lockCurrentChangeset();
-    while (!getline(ifs, line).eof()) {
-        ++lineNumber;
-        if (!line.empty() && line[0] == '#')
-            continue;
-        ui->m_parser->parseLine(line);
-        if (ui->parsingFailed)
-            break;
-    }
-    ui->nonInteractiveMode = false;
-    ui->m_dbInteraction->unlockCurrentChangeset();
-    if (ui->parsingFailed) {
-        std::ostringstream ostr;
-        ostr << "Parsing of commands file failed on line " << lineNumber << ".";
-        ui->io->reportError(ostr.str());
-    } else {
-        ui->io->printMessage("All commands successfully executed.");
+    try {
+        ui->m_dbInteraction->lockCurrentChangeset();
+        while (!getline(ifs, line).eof()) {
+            ++lineNumber;
+            if (!line.empty() && line[0] == '#')
+                continue;
+            ui->m_parser->parseLine(line);
+            if (ui->parsingFailed)
+                break;
+        }
+        ui->nonInteractiveMode = false;
+        ui->m_dbInteraction->unlockCurrentChangeset();
+        if (ui->parsingFailed) {
+            std::ostringstream ostr;
+            ostr << "Parsing of commands file failed on line " << lineNumber << ".";
+            ui->io->reportError(ostr.str());
+        } else {
+            ui->io->printMessage("All commands successfully executed.");
+        }
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while locking changeset for restore. Rostoration failed.");
     }
     ifs.close();
     ui->m_parser->setContextStack(stackBackup);
