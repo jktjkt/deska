@@ -223,6 +223,16 @@ def multipleObjectData(kindName, revision=None, filter=None):
         args["filter"] = filter
     return ApiMethod("multipleObjectData", args)
 
+def verifyingObjectMultipleData(r, kindName, objectName):
+    one = r.c(objectData(kindName, objectName))
+    multiple = r.c(multipleObjectData(kindName,
+                    filter={"condition": "columnEq", "kind": kindName,
+                            "attribute":"name", "value": objectName}))
+    r.assertTrue(len(multiple), 1)
+    r.assertTrue(multiple.has_key(objectName))
+    r.assertEqual(one, multiple[objectName])
+    return one
+
 def kindInstances(kindName, revision=None):
     # FIXME: filter
     args = {"kindName": kindName}
