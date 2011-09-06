@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include "Connection_p.h"
 #include "ProcessIO.h"
+#include "deska/cli/CliConfig.h"
 
 namespace Deska {
 namespace Db {
@@ -31,6 +32,8 @@ Connection_p::Connection_p(): io(0)
 {
     // FIXME: don't hardcode these
     std::vector<std::string> args;
+    //std::string test = Cli::CliConfig::getInstance()->getVar<std::string>("DBConnection.Server");
+
     args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska_server.py");
 
     // FIXME: switch to boost::program_options, see redmine #179
