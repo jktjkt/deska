@@ -59,13 +59,14 @@ class _Kind(object):
 class _AttributePlaceholder(object):
     """Represent an object's attribute in a filter statement"""
 
-    def __init__(self, kind, attribute):
+    def __init__(self, kind, attribute, dataType):
         if not isinstance(kind, str):
             raise TypeError, "kind has to be string, not %s" % type(kind)
         if not isinstance(attribute, str):
             raise TypeError, "attribute has to be string, not %s" % type(attribute)
         self.kind = kind
         self.attribute = attribute
+        self.dataType = dataType
 
     def __repr__(self):
         return "%s(%s.%s)" % (self.__class__, self.kind, self.attribute)
@@ -94,18 +95,33 @@ class _AttributePlaceholder(object):
     def __ge__(self, other):
         return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_GE)
 
+    def __contains__(self, other):
+        if self.dataType != _l.AttributeType.IDENTIFIER_SET:
+            raise TypeError, "Column %s is not iterable" % self.name
+        else:
+            # __contains__ shall return boolean, or at least something directly convertible to boolean.
+            # This is unusable here, because we try hard to postpone the decision to the DB side of the wire.
+            # I guess that's the similar reason to why the SQL Alchemy also use their own methods here.
+            raise NotImplementedError, "Sorry, Python doesn't fully support __contains__ overrides. Use contains() instead and see source for details."
+
+    def contains(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_CONTAINS)
+
+    def notContains(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_NOT_CONTAINS)
+
 
 def _discoverScheme(conn, target=None):
     for kind in conn.kindNames():
         # Create a placeholder object at the kind level; this will contain all attributes
         kindInstance = _Kind(kind, conn)
         for attr in conn.kindAttributes(kind):
-            if attr == "name":
+            if attr.name == "name":
                 raise KeyError, "The DB scheme claims that there's a 'name' attribute. That attribute is a special one and should not be returned by DBAPI."
             # create our attribute placeholders
             setattr(kindInstance, attr.name,
-                    _AttributePlaceholder(kind, attr.name))
-        kindInstance.name = _AttributePlaceholder(kind, "name")
+                    _AttributePlaceholder(kind, attr.name, attr.type))
+        kindInstance.name = _AttributePlaceholder(kind, "name", _l.AttributeType.IDENTIFIER)
         # and register the completed object
         if target is not None:
             target[kind] = kindInstance

@@ -300,6 +300,9 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_resolved_data())
 			self.fn_sql.write(table.gen_resolved_data_diff())
 			self.fn_sql.write(table.gen_commit_templated())
+			#for templated tables that has columns that refers to set of identifiers, works like coalesce
+			if tbl in self.refers_to_set:
+				self.fn_sql.write(table.gen_refs_set_coal())
 		else:
 			self.fn_sql.write(table.gen_commit())
 
