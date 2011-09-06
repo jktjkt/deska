@@ -52,7 +52,9 @@ CliConfig::CliConfig(int _x): x(_x)
 
     boost::program_options::options_description options("Deska CLI Options");
     options.add_options()
-        ("DBConnection.Server", po::value<std::string>(), "path to executable for connection to Deska server");
+        ("DBConnection.Server", po::value<std::string>(), "path to executable for connection to Deska server")
+        ("DBConnection.User", po::value<std::string>(), "Deska user")
+        ("DBConnection.DB", po::value<std::string>(), "Deska DB to connect to");
 
     std::ifstream configStream("deska.ini");
     po::store(po::parse_config_file(configStream, options), configVars);
