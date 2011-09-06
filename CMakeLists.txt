@@ -96,6 +96,10 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+set(libDeskaConfig_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
+)
+
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.cpp
@@ -157,6 +161,8 @@ set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
+add_library(DeskaConfig SHARED ${libDeskaConfig_SRCS})
+target_link_libraries(DeskaConfig ${DESKA_BOOST_LIBS})
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
