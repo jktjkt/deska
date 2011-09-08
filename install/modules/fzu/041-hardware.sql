@@ -27,6 +27,8 @@ CREATE TABLE hardware (
 	serial_2 text,
 	-- Warranty contract ID, in vendor's preferred form
 	warranty_no text,
+    -- Optional reference to a warranty vendor for contact information
+    warranty_vendor bigint,
 	-- Internal inventory number at FZU, format: dddddd-d
 	inventory_no text,
 

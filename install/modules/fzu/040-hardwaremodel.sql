@@ -16,26 +16,37 @@ CREATE TABLE hardwaremodel (
 	-- TODO - better use uid
 	vendor bigint 
 		CONSTRAINT hardwaremodel_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
-	-- GB of RAM
+	-- MB of RAM
 	ram int
 		CONSTRAINT "hardwaremodel ram should be positive number"
 		CHECK (ram > 0),
 	-- number of CPU's
-	cpu_num int
-		CONSTRAINT "hardwaremodel cpu_num should be positive number"
+	cpu_sockets int
+		CONSTRAINT "hardwaremodel cpu_sockets should be positive number"
 		CHECK (cpu_num > 0),
 	-- cpu type
 	cpu_type text,
-	cpu_cores int
-		CONSTRAINT "cpu_cores should be positive number"
+	cpu_physicalcores int
+		CONSTRAINT "cpu_physicalcores should be positive number"
 		CHECK (cpu_cores > 0),
 	cpu_ht bool,
-	cpu_performance int,
-	-- hdd size
-	hdd_size int
-		CONSTRAINT "hardwaremodel hdd_size should be positive number"
+    -- performance of the box
+	hepspec double,
+	-- size of one disk drive
+	hdd_drive_capacity int
+		CONSTRAINT "hardwaremodel hdd_drive_capacity should be positive number"
 		CHECK (hdd_size > 0),
-	power int,
+    -- number of spindles in the machine
+    hdd_drive_count int,
+    -- an unspecified note for the disk
+    hdd_note text,
+
+    -- maximal power consumption of a box
+	power_max int,
+    -- how many power supplies does it have?
+    -- note that it is completely acceptable to have zero here (like for blades)
+    power_supply_count int,
+
 	note text
 );
 

@@ -13,10 +13,10 @@ CREATE TABLE virtual_hardware (
 	-- this column is required in all plugins
 	name identifier
 		CONSTRAINT "virtual_hardware with this name already exists" UNIQUE NOT NULL,
-	-- TODO - make this sense?
-	hardwaremodel bigint 
-		CONSTRAINT virtual_hardware_fk_hardwaremodel REFERENCES hardwaremodel(uid) DEFERRABLE,
-	note text,
-	template bigint
+    -- how many CPUs are assigned to this machine?
+    cpu_num int,
+    -- how much RAM (in MB) to put in there?
+    ram int,
+	note text
 );
 

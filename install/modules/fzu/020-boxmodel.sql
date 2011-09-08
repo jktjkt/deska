@@ -1,16 +1,13 @@
---
--- every module must be place in schema production
---
+---
+--- modelbox: specify common dimensions of a piece of iron which provides some space for accomodating other equipment
+---
 SET search_path TO production,deska;
 
 CREATE SEQUENCE boxmodel_uid START 1;
 
--- boxmodels
 CREATE TABLE boxmodel (
-	-- nextval can be used - will aplly to history table
 	uid bigint DEFAULT nextval('boxmodel_uid')
 		CONSTRAINT boxmodel_pk PRIMARY KEY,
--- this column is required in all plugins
 	name identifier
 		CONSTRAINT "boxmodel with this name already exists" UNIQUE NOT NULL,
 	-- size
