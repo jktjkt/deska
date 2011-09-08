@@ -24,7 +24,8 @@ project(deska)
 cmake_minimum_required(VERSION 2.6)
 
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
-add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
+# STL debugging breaks ABI compatibility with virtualy any library that uses STL, hence disabled
+# add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
