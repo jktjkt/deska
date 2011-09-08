@@ -1,0 +1,69 @@
+Schuze Deska, 2011-09-07 FZU
+----------------------------
+
+Pritomni: Tomas, Honza
+Omluveni: Martina (zubar), Lukas (dovolena)
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Tomas:
+- zkousky, min prace
+- tab completion pro relace
+- error reporting od DB
+- boost::program_options
+
+Honza:
+- relace jsou ztrojtene
+- probrani includu + split CLI
+- integrace generovatek na strane serveru
+- high-level Python pro identifier_set
+- unit testy, zejmena na identifier_set
+- prace na schematu (necommitnuto, pardon)
+
+Diskuse:
+--------
+
+Tomas: nefunguje "no service", DB vraci chybu -> udelat test
+
+Honza: MERGE_WITH by se mozna vyplatilo mit "jednosmernou". Tomas rika, ze CLI
+je s tim OK, a zda se to obecne jako dobry napad. Motivace: funkcionalita "box"
+se hodi mergovat nejen do hardware, ale i do switch (napr., a i do libovolneho
+jineho rack-mount zarizeni). Honza napise do ML.
+
+Honza: pouzit nejake staticke std::string instance pro nazvy konfiguracnich
+policek
+
+_GLIBCXX_DEBUG zpusobuje fatalni nekopatibilitu STL (coz Honza velice dobre
+vedel, kdyz to povoloval, a od te doby zapomnel). Da se to obejit, ale je to
+fura prace a neni na to cas -> odlozeno, udelat bugreport, podivat se na to
+(Honza).
+
+Dalsi featura na "po odevzdani": komentare (dokumentace) schematu predavana pres
+DBAPI. Odlozeno.
+
+Prace na priste:
+----------------
+
+Martina: generovani kodu pro sety
+Martina: testy
+Lukas: identifier_set v DBAPI na strane serveru
+Lukas: implementace funkci pro diff a pro generovani, lock, unlock
+Lukas: schema FZU
+Lukas: jak ma DB sortovat diff (pozor na reference na vytvarene objekty,...)
+Tomas: boost::program_options
+Tomas: testy pro *vsechno*, co umi CLI
+Tomas: tab completion pro relace
+Honza: review Lukasova schematu (zamereni na strukturu DB)
+Honza: prevod Lukasovych testu
+Honza: sety v DBAPI: unit testy, high-level Python
+Honza: specifikace merge (behem rebase)
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+        honza_udela_diff())
+
+Pristi schuzka:
+---------------
+
+Pondeli 12. zari, 18.30 FZU.
+
+Schuzka trvala cca. hodinu dvacet.
