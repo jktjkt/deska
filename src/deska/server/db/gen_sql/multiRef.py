@@ -135,7 +135,6 @@ BEGIN
     
     --set {(rowuid, NULL)} represents empty set for object rowuid
     IF array_upper(value,1) IS NULL THEN
-        raise notice 'empty set';
         INSERT INTO %(tbl)s_history (%(tbl_name)s,%(ref_tbl_name)s,version) VALUES (rowuid, NULL, ver);
         RETURN 1;
     END IF;
@@ -261,7 +260,6 @@ BEGIN
     END LOOP;
 
     --for each affected template find its current data
-    raise notice 'for templates %%', array( (SELECT affected.uid FROM affected_templates affected LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL));
     FOR %(tbl_name)s_template_uid IN (SELECT affected.uid FROM affected_templates affected 
         LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL) LOOP
 
@@ -301,7 +299,6 @@ BEGIN
 
     --resolve inner data for all affected objects that has not its own data
     
-    raise notice 'for %% ',array(SELECT affected.uid FROM affected_objects affected LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL);
     FOR %(tbl_name)s_uid IN (SELECT affected.uid FROM affected_objects affected 
         LEFT OUTER JOIN temp_inner_data data ON (affected.uid = data.%(tbl_name)s) WHERE data.%(tbl_name)s IS NULL) LOOP
         --templates are already resolved, we can use data from production.template
@@ -333,6 +330,26 @@ BEGIN
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s
     FROM %(tbl)s_data_version(from_version) inner1
     FULL OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+    changeset_var bigint;
+    from_version bigint;
+BEGIN
+    changeset_var = get_current_changeset();
+    from_version = id2num(parent(changeset_var));
+    CREATE TEMP TABLE %(tbl)s_diff_data
+    AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
+            FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -515,6 +532,7 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.diff_changeset_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.sets_equal_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.get_identifier_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})

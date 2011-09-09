@@ -16,15 +16,19 @@ select host_set_service_insert('hpv1', 'www');
 select host_set_service_insert('hpv1', 'dhcp');
 --select host_set_service_remove('hpv1', 'dhcp');
 --select host_set_service_remove('hpv1', 'www');
+--select host_resolved_object_data('hpv1');
 select commitchangeset('2');
 
 select startchangeset();
 select host_set_service('hpv1', array['dhcp']);
+--select host_resolved_object_data('hpv1');
 select commitchangeset('3');
+--select host_resolved_object_data('hpv1');
 
 select startchangeset();
 select host_add('hpv8');
 select host_set_service('hpv8', array['www']);
+--select host_resolved_object_data('hpv8');
 select commitchangeset('4');
 
 select startchangeset();
@@ -32,6 +36,7 @@ select host_template_add('host_templ');
 select host_add('hpv2');
 select host_set_template_host('hpv2','host_templ');
 select host_template_set_service('host_templ',array['www','dhcp']);
+--select host_resolved_object_data('hpv2');
 select commitchangeset('5');
 
 --select * from inner_host_template_service_multiRef_history
@@ -63,3 +68,4 @@ select commitchangeset('9');
 select host_resolved_data();
 select host_template_resolved_data();
 select host_get_data('hpv1');
+select host_resolved_object_data('hpv1');

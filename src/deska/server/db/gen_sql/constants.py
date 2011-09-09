@@ -1203,10 +1203,22 @@ LANGUAGE plpgsql;
 	RETURNS void
 	AS
 	$$
-	DECLARE
-		ver bigint;
 	BEGIN
 		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+#template for function that prepairs temp table for diff functions
+	diff_changeset_init_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_%(ref_tbl)s_init_diff()
+	RETURNS void
+	AS
+	$$
+	BEGIN
+		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -1247,6 +1259,8 @@ BEGIN
 	AS  SELECT %(diff_columns)s
 		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
 			FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.uid = chv.uid);
+			
+	%(inner_tables_diff)s
 END
 $$
   LANGUAGE plpgsql;
@@ -1338,7 +1352,8 @@ BEGIN
 		current_changeset = get_current_changeset_or_null();
 		IF current_changeset IS NULL THEN
 			--user wants current data from production
-			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
+			--select columns with resolved id_set and resolved refuid names
+			SELECT %(columns_ex_templ_id_set_res_name)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE name = name_;
 			IF NOT FOUND THEN
 				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
@@ -1350,7 +1365,8 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	WITH recursive resolved_data AS (
-        SELECT %(columns)s, %(template_column)s, %(template_column)s as orig_template
+        --select uids for refuids and resolved id_set
+        SELECT %(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template
         FROM %(tbl)s_data_version(from_version)
         WHERE name = name_
         UNION ALL
@@ -1360,6 +1376,7 @@ BEGIN
         FROM template_data_version dv, resolved_data rd
         WHERE dv.uid = rd.%(template_column)s
 	)
+	--select id_set from resolved_data and get name for refuid
 	SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(orig_template) AS %(template_column)s INTO %(data_columns)s
 	FROM resolved_data WHERE %(template_column)s IS NULL;
 
