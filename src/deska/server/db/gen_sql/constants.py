@@ -1586,7 +1586,7 @@ BEGIN
 		RETURN old_array;
 	END IF;
 
-	RETURN deska.ret_id_set(%(tbl)s_template_get_%(reftbl)s(new_obj_id));
+	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id);
 END;
 $$
 LANGUAGE plpgsql;

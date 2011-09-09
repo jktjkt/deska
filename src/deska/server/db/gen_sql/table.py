@@ -426,7 +426,7 @@ class Table(constants.Templates):
 		resolved_object_data_string = self.resolved_object_data_string
 		resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
 		multiple_collist_id_set_list = cols_ex_template_dict.keys()
-		if self.embed_into <> "" or len(self.merge_with) > 0:
+		if self.embed_into <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
 				if col == self.embed_into or col in self.merge_with:
@@ -437,7 +437,7 @@ class Table(constants.Templates):
 							"COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))
 					else:
 						multiple_rd_dv_coalesce_list.append(
-							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
+							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
 			if self.embed_into <> "":
 				resolved_object_data_string = self.resolved_object_data_embed_string
 				resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
@@ -567,7 +567,6 @@ class Table(constants.Templates):
 			rd_dv_coal = ',\n'.join(["COALESCE(rd.%s,dv.%s) AS %s" % (x, x, x) for x in collist])
 
 		columns = ','.join(collist)
-
 		att_name_type = list()
 		for col in collist:
 			att_name_type.append("%s %s" % (col, self.col[col]))
@@ -594,7 +593,12 @@ class Table(constants.Templates):
 		This function is called only for tables that are templated and have column that refers to set of identifiers (has column template and column of type identifier set, that refers to some table).
 		Generated functions work like coalsce, have parameters array of text and uid of template object. First not null object or null is returned. If array is null, than array for template object is generated.
 		"""
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+		
 		refs_set_coal_fns = ""
 		for col in self.refers_to_set:
-			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, 'reftbl': col}
+			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": templ_table, 'reftbl': col}
 		return refs_set_coal_fns
