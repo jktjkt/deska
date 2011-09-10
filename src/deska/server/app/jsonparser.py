@@ -8,6 +8,17 @@ import logging
 CMD = "command"
 ERR = "dbException"
 
+def perform_io(db, stdin, stdout):
+	line = stdin.readline()
+	logging.debug("read data %s" % line)
+	if not line:
+		raise StopIteration
+	jsn = CommandParser(line)
+	fn = jsn.getfn()
+	args = jsn.getargs()
+	stdout.write(db.run(fn,args) + "\n")
+	stdout.flush()
+
 class CommandParser:
 	# dict of commands
 	# create json object from string in data

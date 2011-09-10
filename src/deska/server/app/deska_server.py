@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from jsonparser import CommandParser
+from jsonparser import perform_io
 from dbapi import DB
 import sys
 import logging
@@ -64,13 +64,7 @@ db = DB(dbOptions=dbargs, cfggenBackend=options.cfggenBackend, cfggenOptions=cfg
 logging.debug("conected to database")
 
 while True:
-	line = sys.stdin.readline()
-	logging.debug("read data %s" % line)
-	if not line:
-		break
-	jsn = CommandParser(line)
-	fn = jsn.getfn()
-	args = jsn.getargs()
-	sys.stdout.write(db.run(fn,args) + "\n")
-	sys.stdout.flush()
-
+    try:
+        perform_io(db, sys.stdin, sys.stdout)
+    except StopIteration:
+        break
