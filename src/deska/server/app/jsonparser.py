@@ -9,15 +9,23 @@ CMD = "command"
 ERR = "dbException"
 
 def perform_io(db, stdin, stdout):
-	line = stdin.readline()
-	logging.debug("read data %s" % line)
-	if not line:
-		raise StopIteration
-	jsn = CommandParser(line)
-	fn = jsn.getfn()
-	args = jsn.getargs()
-	stdout.write(db.run(fn,args) + "\n")
-	stdout.flush()
+	try:
+		line = stdin.readline()
+		logging.debug("read data %s" % line)
+		if not line:
+			raise StopIteration
+		jsn = CommandParser(line)
+		fn = jsn.getfn()
+		args = jsn.getargs()
+		stdout.write(db.run(fn,args) + "\n")
+		stdout.flush()
+	except StopIteration:
+		raise
+	except Exception, e:
+		jsonErr = { "dbException": "ServerError", "message": str(e) }
+		stdout.write(json.dumps(jsonErr) + "\n")
+		stdout.flush()
+		raise
 
 class CommandParser:
 	# dict of commands
