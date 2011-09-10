@@ -113,6 +113,7 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonExtraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/CachingJsonApi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/IOSocket.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ProcessIO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection_p.cpp

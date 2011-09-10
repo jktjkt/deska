@@ -49,9 +49,9 @@ Connection_p::Connection_p(): io(0)
     }
 
     io = new ProcessIO(args);
-    willRead.connect(boost::phoenix::bind(&ProcessIO::readStream, *io));
-    willWrite.connect(boost::phoenix::bind(&ProcessIO::writeStream, *io));
-    wantJustReadData.connect(boost::phoenix::bind(&ProcessIO::recentlyReadData, *io));
+    willRead.connect(boost::phoenix::bind(&IOSocket::readStream, *io));
+    willWrite.connect(boost::phoenix::bind(&IOSocket::writeStream, *io));
+    wantJustReadData.connect(boost::phoenix::bind(&IOSocket::recentlyReadData, *io));
 }
 
 Connection_p::~Connection_p()

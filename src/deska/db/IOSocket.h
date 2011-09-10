@@ -19,14 +19,11 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_DB_PROCESSIO_H
-#define DESKA_DB_PROCESSIO_H
+#ifndef DESKA_DB_IOSOCKET_H
+#define DESKA_DB_IOSOCKET_H
 
-#include <vector>
-#include <boost/optional.hpp>
-#include <tr1/memory>
-#include "boost/process.hpp"
-#include "IOSocket.h"
+#include <iosfwd>
+#include <string>
 
 namespace Deska {
 namespace Db {
@@ -36,11 +33,11 @@ namespace Db {
 This class encapsulates access to a newly launched child process, and sets up several debugging hooks for retrieving
 the data read from the child process.
 */
-class ProcessIO: public IOSocket
+class IOSocket
 {
 public:
-    ProcessIO(const std::vector<std::string> &arguments);
-    virtual ~ProcessIO();
+    IOSocket();
+    virtual ~IOSocket();
 
     /** @short Obtain a stream for reading and clear the reading debug buffer
 
@@ -49,34 +46,23 @@ public:
 
     @see recentlyReadData()
     */
-    std::istream *readStream();
+    virtual std::istream *readStream() = 0;
 
     /** @short Obtain a stream for writing
 
     No catching of debug data is performed at this point, because it is not needed anywhere (yet).
     */
-    std::ostream *writeStream();
-
-    void slotReadData(const std::string &data);
+    virtual std::ostream *writeStream() = 0;
 
     /** @short Return the data read since the last call to readStream()
 
     The "data read" refer to a sequence of bytes really obtained from the underlying pipe and not those actually
     retrieved from the istream. For now, this limitation, or a bug, is considered to be of little relevance.
     */
-    std::string recentlyReadData() const;
-private:
-    /** @short Identification of the launched child process
-
-    We've got to use boost::optional here because the boost::process::child has no default constructor,
-    see http://lists.boost.org/boost-users/2011/03/67265.php for details
-    */
-    boost::optional<boost::process::child> childProcess;
-    /** @short Buffer of recently read data */
-    std::string m_recentlyReadData;
+    virtual std::string recentlyReadData() const = 0;
 };
 
 }
 }
 
-#endif // DESKA_DB_PROCESSIO_H
+#endif // DESKA_DB_IOSOCKET_H

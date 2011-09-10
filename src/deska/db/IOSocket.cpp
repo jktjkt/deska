@@ -19,27 +19,18 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_DB_CONNECTION_P_H
-#define DESKA_DB_CONNECTION_P_H
-
-#include <boost/noncopyable.hpp>
-#include "deska/db/CachingJsonApi.h"
+#include "IOSocket.h"
 
 namespace Deska {
 namespace Db {
 
-class IOSocket;
-
-class Connection_p: public CachingJsonApi
+IOSocket::IOSocket()
 {
-public:
-    Connection_p();
-    virtual ~Connection_p();
-private:
-     IOSocket *io;
-};
+}
+
+IOSocket::~IOSocket()
+{
+}
 
 }
 }
-
-#endif // DESKA_DB_CONNECTION_P_H
