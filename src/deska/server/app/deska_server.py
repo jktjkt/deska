@@ -61,7 +61,7 @@ cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
                 }
 
 db = DB(dbOptions=dbargs, cfggenBackend=options.cfggenBackend, cfggenOptions=cfggenOptions)
-logging.debug("conected to database")
+logging.debug("connected to database")
 
 while True:
     try:
