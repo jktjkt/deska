@@ -10,7 +10,7 @@ PGHOST=${SHMDIR}
 export PGHOST
 
 # wait for the server to start
-sleep 1
+sleep 2
 
 for role in deska_user deska_admin; do
     psql -q -U postgres -c "CREATE ROLE ${role};"
