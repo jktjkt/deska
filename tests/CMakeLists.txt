@@ -149,6 +149,7 @@ if(RUN_SQL_TESTS)
     # Tests which use the high-level 'deska' module, and hence really need the
     # DB
     deska_dbapi_test(pydeska_basic_filters)
+    deska_dbapi_test(pydeska_identifier_set)
 
     # Test the git-based config file generators
     deska_cfggen_test(git_simple)
