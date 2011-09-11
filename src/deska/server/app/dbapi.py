@@ -220,7 +220,11 @@ class DB:
 		rfile = os.fdopen(reading, "rb")
 		wfile = os.fdopen(writing, "wb")
 		# communicate
-		perform_io(self, rfile, wfile)
+		while True:
+			try:
+				perform_io(self, rfile, wfile)
+			except StopIteration:
+				break
 		# and wait for the corpse to appear
 		proc.wait()
 		# that's all, baby!
