@@ -12,6 +12,13 @@ except ImportError:
     import simplejson as json
 from jsonparser import perform_io
 
+def close_standard_streams():
+	"""Close stdin/stdout/stderr"""
+	os.close(0)
+	os.close(1)
+	os.close(2)
+
+
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
@@ -210,7 +217,7 @@ class DB:
 		env["DESKA_VIA_FD_W"] = str(remote_writing)
 
 		# launch the process
-		proc = subprocess.Popen([script], cwd=workdir, env=env)
+		proc = subprocess.Popen([script], preexec_fn=close_standard_streams, cwd=workdir, env=env)
 
 		# close our end of the pipes
 		os.close(remote_reading)
