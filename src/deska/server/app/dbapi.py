@@ -196,7 +196,34 @@ class DB:
 		logging.debug("cfgRegenerate")
 		logging.debug(" opening repository")
 		self.cfgGenerator.openRepo()
-		self.cfgGenerator.generate()
+		logging.debug(" calling cfgGenerator.generate")
+		self.cfgGenerator.generate(self)
+		logging.debug("cfgRegenerate: done")
+
+
+	def executeScript(self, script, workdir):
+		# setup the environment and pipes for IO
+		env = os.environ
+		(remote_reading, writing) = os.pipe()
+		(reading, remote_writing) = os.pipe()
+		env["DESKA_VIA_FD_R"] = str(remote_reading)
+		env["DESKA_VIA_FD_W"] = str(remote_writing)
+
+		# launch the process
+		proc = subprocess.Popen([script], cwd=workdir, env=env)
+
+		# close our end of the pipes
+		os.close(remote_reading)
+		os.close(remote_writing)
+
+		# prepare Python wrappers over the pipes
+		rfile = os.fdopen(reading, "rb")
+		wfile = os.fdopen(writing, "wb")
+		# communicate
+		perform_io(self, rfile, wfile)
+		# and wait for the corpse to appear
+		proc.wait()
+		# that's all, baby!
 
 	def cfgPushToScm(self, message):
 		self.cfgGenerator.apiSave(message)
