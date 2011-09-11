@@ -8,6 +8,12 @@ import git
 
 GIT_NEW_WORKDIR=os.path.join(os.path.dirname(__file__), "git-new-workdir")
 
+class CommandExecutor(object):
+    def executeScript(self, command, workdir):
+        # now just abuse all the infrastructure around the git wrapper to
+        # execute the command
+        git.Git(workdir).execute([command])
+
 class GitGenerator(object):
     '''Encapsulate access to the git repository'''
 
@@ -44,7 +50,7 @@ class GitGenerator(object):
         self.git.commit("-m", message)
         self.git.push()
 
-    def generate(self):
+    def generate(self, executor):
         '''Actually run the config generators'''
 
         runAnything = False
@@ -60,9 +66,7 @@ class GitGenerator(object):
                 # Ignore scripts without an exectuable bit. This is on purpose,
                 # so that we can safely ignore a README etc.
                 continue
-            # now just abuse all the infrastructure around the git wrapper to
-            # execute the command
-            git.Git(self.workdir).execute([path])
+            executor.executeScript(path, self.workdir)
             runAnything = True
 
         if not runAnything:
@@ -72,14 +76,14 @@ class GitGenerator(object):
         '''Return a human-readable diff of the output, no matter of the initial state'''
         if not changesetIsFresh:
             self.openRepo()
-            self.generate()
+            self.generate(CommandExecutor())
         return self.diff()
 
     def completeSave(self, changesetIsFresh, message):
         '''Push the new output to the repository, regenerating stuff if needed'''
         if not changesetIsFresh:
             self.openRepo()
-            self.generate()
+            self.generate(CommandExecutor())
         self.apiSave(message)
 
 if __name__ == "__main__":
