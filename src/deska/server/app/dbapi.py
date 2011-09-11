@@ -1,11 +1,16 @@
+import sys
+import os
 import psycopg2
 import datetime
 import time
 import logging
+import subprocess
+import shutil
 try:
     import json
 except ImportError:
     import simplejson as json
+from jsonparser import perform_io
 
 class DB:
 	methods = dict({
@@ -157,15 +162,12 @@ class DB:
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
 		# We really do want to re-init the config generator each and every time
-		import sys
-		import os
 		oldpath = sys.path
 		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../LowLevelPyDeska/generators"))
 		sys.path = [mypath] + sys.path
 		logging.debug("sys.path prepended by %s" % mypath)
 		if self.cfggenBackend == "git":
 			logging.debug("Initializing git generator")
-			import shutil
 			from gitgenerator import GitGenerator
 			repodir = self.cfggenOptions["cfggenGitRepo"]
 			if repodir is None:
