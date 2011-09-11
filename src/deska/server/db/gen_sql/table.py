@@ -474,10 +474,10 @@ class Table(constants.Templates):
 			if col in collist:
 				pos = collist.index(col)
 				if col in self.refers_to_set:
-					collist_id_set_list[pos] = "%s_get_%s(uid) AS %s" % (self.name, col, col)
-					collist_id_set_res_names_list[pos] = "%s_get_%s(uid) AS %s" % (self.name, col, col)
+					collist_id_set_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					collist_id_set_res_names_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
 					mpos = multiple_collist_id_set_list.index(col)
-					multiple_collist_id_set_list[mpos] = "%s_get_%s(uid) AS %s" % (self.name, col, col)
+					multiple_collist_id_set_list[mpos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
 					cols_ex_template_dict[col] = "text[]"
 				else:
 					cols_ex_template_dict[col] = "text"
