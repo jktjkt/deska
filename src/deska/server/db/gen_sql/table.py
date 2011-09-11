@@ -166,7 +166,7 @@ class Table(constants.Templates):
 			if col in collist:
 				pos = attributes.index(col)
 				if col in self.refers_to_set:
-					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid) AS %(col)s" % \
+					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid, from_version) AS %(col)s" % \
 						{'tbl': self.name, 'col': col, 'refuid': self.refuid_columns[col]}
 				else:
 					attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
@@ -437,7 +437,7 @@ class Table(constants.Templates):
 							"COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))
 					else:
 						multiple_rd_dv_coalesce_list.append(
-							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
+							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
 			if self.embed_into <> "":
 				resolved_object_data_string = self.resolved_object_data_embed_string
 				resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
@@ -460,7 +460,7 @@ class Table(constants.Templates):
 			if col in self.merge_with:
 				templated_rddv_collist.append("rd." + col)
 			elif col in self.refers_to_set:
-				templated_rddv_collist.append("%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
+				templated_rddv_collist.append("%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
 			else:
 				templated_rddv_collist.append("COALESCE(rd.%s,dv.%s) AS %s" % (col,col,col))
 		if len(templated_rddv_collist) > 0:

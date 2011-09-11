@@ -327,14 +327,12 @@ class Templates:
 
 	# template string for set functions for columns that reference set of identifiers
 	get_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_get_%(colname)s(IN obj_uid bigint)
+	%(tbl)s_get_%(colname)s(IN obj_uid bigint, from_version bigint = 0)
 	RETURNS text[]
 	AS
 	$$
-	DECLARE
-		ver bigint;
 	BEGIN
-		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid);
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid, from_version);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -1576,7 +1574,7 @@ LANGUAGE plpgsql;
 '''
 
 	ref_set_coal_string = '''--id is id of base table which is templated and refers to the set
-CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint)
+CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
 RETURNS text[]
 AS
 $$
@@ -1586,7 +1584,7 @@ BEGIN
 		RETURN old_array;
 	END IF;
 
-	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id);
+	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id, from_version);
 END;
 $$
 LANGUAGE plpgsql;

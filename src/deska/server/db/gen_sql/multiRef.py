@@ -92,7 +92,7 @@ BEGIN
         -- do nothing
     END;
         
-    DELETE FROM %(tbl)s_history WHERE %(ref_tbl_name)s = %(ref_tbl_name)s_uid;
+    DELETE FROM %(tbl)s_history WHERE %(ref_tbl_name)s = %(ref_tbl_name)s_uid  AND version = ver;
 
     IF NOT exists(SELECT * FROM %(tbl)s_history WHERE %(tbl_name)s = %(tbl_name)s_uid AND version = ver) THEN
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) VALUES (%(tbl_name)s_uid, NULL, ver);
@@ -413,6 +413,7 @@ BEGIN
         END IF;
     END IF;
 
+
     result = ARRAY(
     SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history h1
         JOIN version v1 ON (v1.id = h1.version)
@@ -423,7 +424,6 @@ BEGIN
         ON (v1.num = vmax1.maxnum)
     WHERE %(tbl_name)s = obj_uid
     );
-    
     RETURN deska.ret_id_set(result);
 END;
 $$
