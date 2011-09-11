@@ -168,7 +168,12 @@ class DB:
 			import shutil
 			from gitgenerator import GitGenerator
 			repodir = self.cfggenOptions["cfggenGitRepo"]
-			workdir = self.cfggenOptions["cfggenGitWorkdir"] + "/" + self.currentChangeset()
+			if repodir is None:
+				raise ValueError, "cfggenGitRepo is None"
+			workdir = self.cfggenOptions["cfggenGitWorkdir"]
+			if workdir is None:
+				raise ValueError, "cfggenGitWorkdir is None"
+			workdir = workdir + "/" + self.currentChangeset()
 			if os.path.exists(workdir):
 				# got to clean it up
 				shutil.rmtree(workdir)
