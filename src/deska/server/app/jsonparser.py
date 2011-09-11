@@ -3,6 +3,8 @@ try:
 except ImportError:
     import simplejson as json
 
+import sys
+import traceback
 import logging
 
 CMD = "command"
@@ -22,7 +24,10 @@ def perform_io(db, stdin, stdout):
 	except StopIteration:
 		raise
 	except Exception, e:
-		jsonErr = { "dbException": "ServerError", "message": str(e) }
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		jsonErr = { "dbException": "ServerError", "message": repr(
+			traceback.format_exception(exc_type, exc_value, exc_traceback)
+		) }
 		stdout.write(json.dumps(jsonErr) + "\n")
 		stdout.flush()
 		raise
