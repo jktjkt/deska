@@ -155,13 +155,16 @@ class DB:
 		return "unnamed"
 
 	def initCfgGenerator(self):
+		logging.debug("initCfgGenerator")
 		# We really do want to re-init the config generator each and every time
 		import sys
 		import os
 		oldpath = sys.path
 		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../LowLevelPyDeska/generators"))
 		sys.path = [mypath] + sys.path
+		logging.debug("sys.path prepended by %s" % mypath)
 		if self.cfggenBackend == "git":
+			logging.debug("Initializing git generator")
 			import shutil
 			from gitgenerator import GitGenerator
 			repodir = self.cfggenOptions["cfggenGitRepo"]
@@ -174,13 +177,17 @@ class DB:
 		elif self.cfggenBackend == "fake":
 			from nullgenerator import NullGenerator
 			self.cfgGenerator = NullGenerator(behavior=None)
+			logging.debug("No generators configured, will silently do nothing upon request")
 		else:
 			# no configuration generator has been configured
 			from nullgenerator import NullGenerator
 			self.cfgGenerator = NullGenerator(behavior=NotImplementedError("Attempted to access configuration generators which haven't been configured yet"))
+			logging.debug("No generators configured, will raise error upon use")
 		sys.path = oldpath
 
 	def cfgRegenerate(self):
+		logging.debug("cfgRegenerate")
+		logging.debug(" opening repository")
 		self.cfgGenerator.openRepo()
 		self.cfgGenerator.generate()
 
@@ -191,11 +198,13 @@ class DB:
 		return self.cfgGenerator.diff()
 
 	def showConfigDiff(self, name, tag, forceRegen):
+		logging.debug("showConfigDiff")
 		try:
 			response = {"response": name, "tag": tag}
 			self.lockChangeset()
 			self.initCfgGenerator()
 			if forceRegen or not self.changesetHasFreshConfig():
+				logging.debug("about to regenerate config")
 				self.cfgRegenerate()
 				self.markChangesetFresh()
 			response[name] = self.cfgGetDiff()
