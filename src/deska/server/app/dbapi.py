@@ -12,13 +12,6 @@ except ImportError:
     import simplejson as json
 from jsonparser import perform_io
 
-def close_standard_streams():
-	"""Close stdin/stdout/stderr"""
-	os.close(0)
-	os.close(1)
-	os.close(2)
-
-
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
@@ -217,7 +210,7 @@ class DB:
 		env["DESKA_VIA_FD_W"] = str(remote_writing)
 
 		# launch the process
-		proc = subprocess.Popen([script], preexec_fn=close_standard_streams, cwd=workdir, env=env)
+		proc = subprocess.Popen([script], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=workdir, env=env)
 
 		# close our end of the pipes
 		os.close(remote_reading)
@@ -233,7 +226,9 @@ class DB:
 			except StopIteration:
 				break
 		# and wait for the corpse to appear
-		proc.wait()
+		(stdout, stderr) = proc.communicate()
+		if proc.returncode:
+			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout, stderr)
 		# that's all, baby!
 
 	def cfgPushToScm(self, message):
