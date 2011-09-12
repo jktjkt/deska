@@ -85,7 +85,7 @@ Connection_p::Connection_p(): io(0)
             args.push_back("--cfggen-git-workdir");
             args.push_back(deska_cfggen_git_wc);
         }
-        if (char *deska_cfggen_git_scripts = ::getenv("DESKA_CFGGEN_GIT_SCRIPTS")) {
+        if (char *deska_cfggen_git_scripts = ::getenv("DESKA_CFGGEN_SCRIPTS")) {
             args.push_back("--cfggen-script-path");
             args.push_back(deska_cfggen_git_scripts);
         }

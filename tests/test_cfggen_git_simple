@@ -6,17 +6,17 @@ function die() {
 }
 
 # Prepare a "script" which consults our env variable for the actual commands
-cat > ${DESKA_CFGGEN_GIT_SCRIPTS}/01-doit.sh <<EOF
+cat > ${DESKA_CFGGEN_SCRIPTS}/01-doit.sh <<EOF
 #!/bin/bash
 eval "\${MYCMD}"
 EOF
-chmod +x ${DESKA_CFGGEN_GIT_SCRIPTS}/01-doit.sh
-cp -a ${DESKA_CFGGEN_GIT_SCRIPTS}/0{1,2}-doit.sh
-sed -i 's:MYCMD:MYCMD2:' ${DESKA_CFGGEN_GIT_SCRIPTS}/02-doit.sh
+chmod +x ${DESKA_CFGGEN_SCRIPTS}/01-doit.sh
+cp -a ${DESKA_CFGGEN_SCRIPTS}/0{1,2}-doit.sh
+sed -i 's:MYCMD:MYCMD2:' ${DESKA_CFGGEN_SCRIPTS}/02-doit.sh
 
 function generate() {
     #GIT_PYTHON_TRACE=full
-    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${DESKA_CFGGEN_GIT_WC} ${DESKA_CFGGEN_GIT_SCRIPTS} $* || die "Test failed"
+    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${DESKA_CFGGEN_GIT_WC} ${DESKA_CFGGEN_SCRIPTS} $* || die "Test failed"
 }
 
 function verify-same() {

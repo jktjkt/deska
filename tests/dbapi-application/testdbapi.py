@@ -94,13 +94,13 @@ if __name__ == "__main__":
     TESTCASE = sys.argv[2]
     CFGGEN_EXTRA_OPTIONS = []
     try:
-        CFGGEN_METHOD = os.environ["DESKA_CFGGEN_METHOD"]
+        CFGGEN_METHOD = os.environ["DESKA_CFGGEN_BACKEND"]
     except KeyError:
         CFGGEN_METHOD = "fake"
     if CFGGEN_METHOD == "git":
-        CFGGEN_EXTRA_OPTIONS = ["--cfggen-script-path", os.environ["DESKA_CFGGEN_SCRIPT_PATH"],
+        CFGGEN_EXTRA_OPTIONS = ["--cfggen-script-path", os.environ["DESKA_CFGGEN_SCRIPTS"],
                                 "--cfggen-git-repository", os.environ["DESKA_CFGGEN_GIT_REPO"],
-                                "--cfggen-git-workdir", os.environ["DESKA_CFGGEN_GIT_WORKDIR"]]
+                                "--cfggen-git-workdir", os.environ["DESKA_CFGGEN_GIT_WC"]]
     module = __import__(TESTCASE)
     if "imperative" in dir(module):
         imperative = module.imperative
