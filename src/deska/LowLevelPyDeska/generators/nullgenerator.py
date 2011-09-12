@@ -20,5 +20,5 @@ class NullGenerator(object):
     def apiSave(self, message):
         self.maybeThrow()
 
-    def generate(self):
+    def generate(self, executor):
         self.maybeThrow()
