@@ -258,3 +258,6 @@ def listRevisions(filter=None):
     if filter is not None:
         args["filter"] = filter
     return ApiMethod("listRevisions", args)
+
+def showConfigDiff(forceRegen=False):
+    return ApiMethod("showConfigDiff", {"forceRegen": forceRegen})
