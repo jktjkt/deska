@@ -11,15 +11,6 @@ function die() {
     exit 1
 }
 
-# Get the $DESKA_SOURCES variable
-. ./sql/util-cmake-options.sh || die "There's no ./sql/util-cmake-options.sh"
-
-DESKA_CFGGEN_GIT_REPO=${DESKA_GENERATED_FILES}/cfggen-repo
-DESKA_CFGGEN_GIT_PRIMARY_CLONE=${DESKA_GENERATED_FILES}/cfggen-primary
-DESKA_CFGGEN_GIT_WC=${DESKA_GENERATED_FILES}/cfggen-wc
-DESKA_CFGGEN_GIT_SCRIPTS=${DESKA_GENERATED_FILES}/scripts
-DESKA_CFGGEN_GIT_SECOND=${DESKA_GENERATED_FILES}/second-wd
-
 # Prepare a "script" which consults our env variable for the actual commands
 mkdir -p ${DESKA_CFGGEN_GIT_SCRIPTS}
 cat > ${DESKA_CFGGEN_GIT_SCRIPTS}/01-doit.sh <<EOF

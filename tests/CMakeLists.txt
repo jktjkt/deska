@@ -61,7 +61,9 @@ macro(deska_cli_test fname)
 endmacro(deska_cli_test)
 
 macro(deska_cfggen_test fname)
-    add_test(test_cfggen_${fname} ${CMAKE_CURRENT_SOURCE_DIR}/test_cfggen_${fname})
+    add_test(test_cfggen_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        run ${CMAKE_CURRENT_SOURCE_DIR}/test_cfggen_${fname})
 endmacro()
 
 set(ParserTestHelpers_SRCS

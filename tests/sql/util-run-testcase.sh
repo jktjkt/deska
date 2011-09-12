@@ -42,6 +42,25 @@ else
     echo "Skipping the DB init altogether"
 fi
 
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
+fi
+
+DESKA_CFGGEN_GIT_REPO=${DESKA_GENERATED_FILES}/cfggen-repo
+export DESKA_CFGGEN_GIT_REPO
+DESKA_CFGGEN_GIT_PRIMARY_CLONE=${DESKA_GENERATED_FILES}/cfggen-primary
+export DESKA_CFGGEN_GIT_PRIMARY_CLONE
+DESKA_CFGGEN_GIT_WC=${DESKA_GENERATED_FILES}/cfggen-wc
+export DESKA_CFGGEN_GIT_WC
+DESKA_CFGGEN_GIT_SCRIPTS=${DESKA_GENERATED_FILES}/scripts
+export DESKA_CFGGEN_GIT_SCRIPTS
+DESKA_CFGGEN_GIT_SECOND=${DESKA_GENERATED_FILES}/second-wd
+export DESKA_CFGGEN_GIT_SECOND
+
+export DESKA_SOURCES
+
 case "${TESTMODE}" in
     sql)
         if [[ ! -f $TESTCASE ]]; then
@@ -53,7 +72,6 @@ case "${TESTMODE}" in
     dbapi)
         export DESKA_USER
         export DESKA_DB
-        export DESKA_SOURCES
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
             $TESTCASE || die "Test"
         ;;
