@@ -73,6 +73,9 @@ git commit -m "Initial commit" || die "git commit failed"
 git push origin master || die "git push origin master failed"
 popd
 
+# Prepare (empty) generating scripts
+mkdir "${DESKA_CFGGEN_GIT_SCRIPTS}"
+
 export DESKA_SOURCES
 
 case "${TESTMODE}" in

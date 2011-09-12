@@ -6,7 +6,6 @@ function die() {
 }
 
 # Prepare a "script" which consults our env variable for the actual commands
-mkdir -p ${DESKA_CFGGEN_GIT_SCRIPTS}
 cat > ${DESKA_CFGGEN_GIT_SCRIPTS}/01-doit.sh <<EOF
 #!/bin/bash
 eval "\${MYCMD}"
