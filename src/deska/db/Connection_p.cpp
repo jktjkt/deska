@@ -73,6 +73,23 @@ Connection_p::Connection_p(): io(0)
             args.push_back(deska_db);
         }
 
+        if (char *deska_cfggen_backend = ::getenv("DESKA_CFGGEN_BACKEND")) {
+            args.push_back("--cfggen-backend");
+            args.push_back(deska_cfggen_backend);
+        }
+        if (char *deska_cfggen_git_repo = ::getenv("DESKA_CFGGEN_GIT_REPO")) {
+            args.push_back("--cfggen-git-repository");
+            args.push_back(deska_cfggen_git_repo);
+        }
+        if (char *deska_cfggen_git_wc = ::getenv("DESKA_CFGGEN_GIT_WC")) {
+            args.push_back("--cfggen-git-workdir");
+            args.push_back(deska_cfggen_git_wc);
+        }
+        if (char *deska_cfggen_git_scripts = ::getenv("DESKA_CFGGEN_GIT_SCRIPTS")) {
+            args.push_back("--cfggen-script-path");
+            args.push_back(deska_cfggen_git_scripts);
+        }
+
         io = new ProcessIO(args);
     }
     willRead.connect(boost::phoenix::bind(&IOSocket::readStream, *io));
