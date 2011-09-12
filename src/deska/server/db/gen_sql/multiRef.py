@@ -7,7 +7,7 @@ class MultiRef:
     
     add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_tbl)s_multiRef(
 %(tbl)s bigint
-    CONSTRAINT inner_%(tbl)s_fk_%(ref_tbl)s REFERENCES %(tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
+    CONSTRAINT inner_%(tbl)s_fk_%(ref_tbl)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
     CONSTRAINT inner_%(ref_tbl)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
 CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)

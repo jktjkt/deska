@@ -970,8 +970,8 @@ LANGUAGE plpgsql;
 	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid);
-		result.newdata = inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid);
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid));
 		RETURN NEXT result;
 	END IF;
 
