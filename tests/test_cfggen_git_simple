@@ -14,19 +14,22 @@ chmod +x ${DESKA_CFGGEN_SCRIPTS}/01-doit.sh
 cp -a ${DESKA_CFGGEN_SCRIPTS}/0{1,2}-doit.sh
 sed -i 's:MYCMD:MYCMD2:' ${DESKA_CFGGEN_SCRIPTS}/02-doit.sh
 
+
+MY_WC="${DESKA_CFGGEN_GIT_WC}/default"
+
 function generate() {
     #GIT_PYTHON_TRACE=full
-    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${DESKA_CFGGEN_GIT_WC} ${DESKA_CFGGEN_SCRIPTS} $* || die "Test failed"
+    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${MY_WC} ${DESKA_CFGGEN_SCRIPTS} $* || die "Test failed"
 }
 
 function verify-same() {
     rm -rf ${DESKA_CFGGEN_GIT_SECOND}
     git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_SECOND} || die "Cannot clone"
-    diff -Naurt -x .git ${DESKA_CFGGEN_GIT_WC} ${DESKA_CFGGEN_GIT_SECOND} || die "There are some differences"
+    diff -Naurt -x .git ${MY_WC} ${DESKA_CFGGEN_GIT_SECOND} || die "There are some differences"
 }
 
 function verify-files() {
-    pushd "${DESKA_CFGGEN_GIT_WC}"
+    pushd "${MY_WC}"
     CONTENTS=`find . -name .git -a -type d -prune -o -name README -a -type f -prune -o -type f -print`
     if [[ x${CONTENTS} != x${1} ]]; then
         echo "Found:"
@@ -39,7 +42,7 @@ function verify-files() {
 }
 
 function check-line-count() {
-    COUNT=`wc -l "${DESKA_CFGGEN_GIT_WC}/${1}" | cut -d ' ' -f 1`
+    COUNT=`wc -l "${MY_WC}/${1}" | cut -d ' ' -f 1`
     if [[ "${COUNT}" -ne "${2}" ]]; then
         die "Probably run the generators again (expected ${2} lines, got ${COUNT} lines instead)"
     fi

@@ -81,6 +81,9 @@ if [[ -n "${DESKA_WITH_GIT}" ]]; then
 
     # Prepare (empty) generating scripts
     mkdir "${DESKA_CFGGEN_SCRIPTS}"
+
+    # Prepare the root for the working directories (one per changeset)
+    mkdir "${DESKA_CFGGEN_GIT_WC}"
 fi
 
 export DESKA_SOURCES

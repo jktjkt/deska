@@ -77,7 +77,7 @@ Connection_p::Connection_p(): io(0)
             args.push_back("--cfggen-backend");
             args.push_back(deska_cfggen_backend);
         }
-        if (char *deska_cfggen_git_repo = ::getenv("DESKA_CFGGEN_GIT_REPO")) {
+        if (char *deska_cfggen_git_repo = ::getenv("DESKA_CFGGEN_GIT_PRIMARY_CLONE")) {
             args.push_back("--cfggen-git-repository");
             args.push_back(deska_cfggen_git_repo);
         }
