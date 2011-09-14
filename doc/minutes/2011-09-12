@@ -1,0 +1,82 @@
+Schuze Deska, 2011-09-12 FZU
+----------------------------
+
+Pritomni: Martina, Tomas, Honza
+Omluveni: Lukas (dovolena)
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- db schema:
+    - vypada OK
+    - podnety poslany mailem (zejmena triprvkove relace a nereflexivni merge_with)
+- sety v DBAPI: z me strany vse, je to na mrtvem bode, viz bugreporty
+- generovatka na strane serveru: hodne prace, kvuli zamykani changesetu se nedal
+pouzit resumeChangeset, nutno resit jiny zpusob komunikace pres specialni
+dvojici IO pipes
+- _GLIBCXX_DEBUG
+- trosku rozumnejsi vypisovani pythonich server-side exceptions
+
+Martina:
+- templatovane identifier_sety se do produkce kopirouje resolvovane
+- unit testy
+- diffovani pro current changeset
+
+Tomas:
+- nic, nemoc
+- slibil urcyhlenou napravu a dodelani
+
+Diskuse:
+--------
+
+- pravidelne commitovani
+
+- nereflexivni merge_with: dlouha diskuze, dve nove relace, jmena napr. USES a
+IS_USED_BY, Honza posle mail. Navrh vypada dobre. Je skoda, ze jsme na to prisli
+az ted, ale je to vystup prace na schematu, ktera drive jaksi neprobehla.
+
+Tomas: nefunguje "no service", DB vraci chybu -> udelat test
+
+Honza mel rozmyslet, jak s tim boost::program_options, resp. jestli do
+Connection maji jit jenom vector<string>, nebo nejaky Settings. Rozmysli na
+priste.
+
+
+Dostupnost:
+----------
+Lukas tu nebude cca. do 25. zari, podle informaci, ktere mame.
+
+Honza tu nebude od 23. zari do 2. rijna (tyden).
+
+Tomas tu nebude od 29. zari do 6. rijna.
+
+
+Prace na priste:
+----------------
+
+Martina: tripple relations
+Martina: generovani kodu pro sety
+Martina: testy
+Lukas: identifier_set v DBAPI na strane serveru
+Lukas: implementace funkci pro diff a pro generovani, lock, unlock
+Lukas: schema FZU
+Lukas: jak ma DB sortovat diff (pozor na reference na vytvarene objekty,...)
+Tomas: tripple relations
+Tomas: boost::program_options
+Tomas: testy pro *vsechno*, co umi CLI
+Honza: naspecifikovat nove relace
+Honza: review Lukasova schematu (zamereni na strukturu DB)
+Honza: prevod Lukasovych testu
+Honza: sety v DBAPI: unit testy, high-level Python
+Honza: specifikace merge (behem rebase)
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+       honza_udela_diff())
+Honza: rozmyslet, jak chce boost::program_options
+
+Pristi schuzka:
+---------------
+
+Tomas upresni termin, kdy muze, pote uvidime.
+
+Schuzka trvala cca. dve hodiny.
