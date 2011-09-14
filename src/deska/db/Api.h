@@ -157,11 +157,11 @@ public:
 
     /** @short Version of objectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -183,7 +183,7 @@ public:
 
     /** @short Version of resolvedObjectDataWithOrigin that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     // Manipulating objects
 

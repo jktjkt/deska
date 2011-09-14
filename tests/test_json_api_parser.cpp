@@ -384,7 +384,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     expected["b"]["template"] = Value();
     expected["b"]["anotherKind"] = "b";
     // Check just the interesting items
-    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind", "int", Value(666)));
+    map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }
@@ -444,7 +444,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     expected["b"]["int"] = std::make_pair("22", 20);
     expected["b"]["template"] = std::make_pair("b", "22");
     expected["b"]["anotherKind"] = std::make_pair("b", "b");
-    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666)));
+    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }
@@ -480,7 +480,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     expected["b"]["int"] = 20;
     expected["b"]["template"] = "22";
     expected["b"]["anotherKind"] = "b";
-    map<Identifier, map<Identifier, Value> > res = j->multipleResolvedObjectData("kk", AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666)));
+    map<Identifier, map<Identifier, Value> > res = j->multipleResolvedObjectData("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }

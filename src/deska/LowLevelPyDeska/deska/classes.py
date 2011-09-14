@@ -44,10 +44,12 @@ class _Kind(object):
     def __getitem__(self, condition):
         """Implementation of the filtering"""
         if isinstance(condition, (_l.AttributeExpression,_l.MetadataExpression)):
-            condition = _l.Filter(_l.Expression(condition))
+            condition = _l.OptionalFilter(_l.Filter(_l.Expression(condition)))
         elif isinstance(condition, (_l.Expression, _l.AndFilter, _l.OrFilter)):
-            condition = _l.Filter(condition)
+            condition = _l.OptionalFilter(_l.Filter(condition))
         elif isinstance(condition, _l.Filter):
+            condition = _l.OptionalFilter(condition)
+        elif isinstance(condition, _l.OptionalFilter):
             pass
         else:
             raise TypeError, "Object filtering expects a proper Filter, not %s" % type(condition)
@@ -58,6 +60,10 @@ class _Kind(object):
         # FIXME: change this to multipleResolvedObjectData when it gets supported by the server side
         ret_map = self.conn.multipleObjectData(self.kind, condition)
         return dict((x.key(), _map_to_class_with_values(x.data())) for x in ret_map)
+
+    def _all(self):
+        """Implement iteration over all items"""
+        return self.__getitem__(_l.OptionalFilter())
 
 class _AttributePlaceholder(object):
     """Represent an object's attribute in a filter statement"""
