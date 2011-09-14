@@ -242,8 +242,7 @@ def verifyingObjectMultipleData(r, kindName, objectName):
                             "attribute":"name", "value": objectName}))
     r.assertTrue(len(multiple), 1)
     r.assertTrue(multiple.has_key(objectName))
-    # FIXME: fails, redmine #281
-    #r.assertEqual(one, multiple[objectName])
+    r.assertEqual(one, multiple[objectName])
     return one
 
 def kindInstances(kindName, revision=None):
