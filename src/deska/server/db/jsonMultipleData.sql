@@ -32,7 +32,12 @@ def main(tag,kindName,revision,filter):
 		del atts[embed[kindName]]
 	if kindName in refs:
 		for kind in refs[kindName]:
-			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
+			# FIXME: this will have to change for the tripple relations
+			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+				#"inner_host_service_multiRef_get_set"
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+			else:
+				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
 			atts[kind] = coldef
 	columns = ",".join(atts.values())
 
