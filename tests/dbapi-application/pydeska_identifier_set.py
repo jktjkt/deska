@@ -22,7 +22,7 @@ def imperative(r):
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x0")["service"], ["www"])
     deska.init()
-    # FAIL r.assertEqual(deska.host[deska.host.name == "x0"]["x0"].service, ["www"])
+    r.assertEqual(deska.host[deska.host.name == "x0"]["x0"].service, ["www"])
 
     # set to a two-value list through an absolute name
     r.c(startChangeset())
@@ -32,7 +32,7 @@ def imperative(r):
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x1")["service"], AnyOrderList(["www", "imap"]))
     deska.init()
-    # FAIL r.assertEqual(deska.host[deska.host.name == "x1"]["x1"].service, AnyOrderList(["www", "imap"]))
+    r.assertEqual(deska.host[deska.host.name == "x1"]["x1"].service, AnyOrderList(["www", "imap"]))
 
     # use incremental operations
     r.c(startChangeset())
@@ -46,7 +46,7 @@ def imperative(r):
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x2")["service"], AnyOrderList(["www"]))
     deska.init()
-    # FAIL r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www"]))
+    r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www"]))
 
     # now add the imap role back in
     r.c(startChangeset())
@@ -56,7 +56,7 @@ def imperative(r):
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x2")["service"], AnyOrderList(["www", "imap"]))
     deska.init()
-    # FAIL r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www", "imap"]))
+    r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www", "imap"]))
 
     # test filtering
     # FAIL #280: filtering via identifier_set is not supported yet
