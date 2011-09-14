@@ -15,7 +15,10 @@ def _map_to_class_with_values(d):
     """Convert a map<string, Value> into a class with native Python data"""
     res = _KindInstanceInResult()
     for x in d:
-        setattr(res, x.key(), _l.DeskaDbValue_2_Py(x.data()))
+        val = _l.DeskaDbValue_2_Py(x.data())
+        if isinstance(val, _l.std_set_std_string):
+            val = [item for item in val]
+        setattr(res, x.key(), val)
     return res
 
 class _Kind(object):
