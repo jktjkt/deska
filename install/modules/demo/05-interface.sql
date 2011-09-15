@@ -14,7 +14,7 @@ CREATE TABLE interface (
 	name identifier NOT NULL,
 	-- host
 	-- TODO better use uid
-	host bigint
+	host_ref bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
 	-- IP
 	-- TODO unique constraint
@@ -25,5 +25,6 @@ CREATE TABLE interface (
 	mac macaddr,
 	note text,
 	template_interface bigint,
-	CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
+	vendor_ref bigint REFERENCES vendor(uid),
+	CONSTRAINT interface_pk_namexhost UNIQUE (name,host_ref)
 );

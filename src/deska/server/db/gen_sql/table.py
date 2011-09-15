@@ -116,17 +116,17 @@ class Table(constants.Templates):
 		"""Generates the set_attribute stored procedure for those columns in table that references some uid column of some table."""
 		return self.set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
 		
-	def gen_set_refuid_set(self, reftable):
+	def gen_set_refuid_set(self, col_name, reftable):
 		"""Generates set function for columns that contains set of identifiers that references."""
-		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': reftable, 'columns': self.get_columns()}
+		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 		
-	def gen_refuid_set_insert(self, reftable):
+	def gen_refuid_set_insert(self, col_name, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable, 'columns': self.get_columns()}
+		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 
-	def gen_refuid_set_remove(self, reftable):
+	def gen_refuid_set_remove(self, col_name, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable, 'columns': self.get_columns()}
+		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 
 
 	def gen_get_object_data(self):
@@ -137,9 +137,9 @@ class Table(constants.Templates):
 		if len(collist) == 0:
 			return ""
 
-		if self.embed_into <> "":
+		if self.embed_column <> "":
 			get_data_string = self.get_embed_data_string
-			del collist[self.embed_into]
+			del collist[self.embed_column]
 		else:
 			get_data_string = self.get_data_string
 
@@ -174,7 +174,7 @@ class Table(constants.Templates):
 
 		cols = ",".join(attributes)
 		type_def = self.get_data_type_string % {'tbl': self.name, 'columns': coltypes}
-		cols_def = get_data_string % {'tbl': self.name, 'columns': cols, 'data_columns': dcols, 'embedtbl': self.embed_into}
+		cols_def = get_data_string % {'tbl': self.name, 'columns': cols, 'data_columns': dcols}
 		
 		return get_identifier_set_fns + "\n" + type_def + "\n" + cols_def
 
@@ -318,7 +318,7 @@ class Table(constants.Templates):
 		rddvcols = collist.keys()
 		rddv_list = list()
 		for col in rddvcols:
-			if (col == self.embed_into) or (col in self.merge_with):
+			if (col == self.embed_column) or (col in self.merge_with):
 				rddv_list.append( "rd." + col)
 			else:
 				rddv_list.append(("COALESCE(rd.%s, dv.%s) AS %s" % (col, col, col)))
@@ -423,10 +423,10 @@ class Table(constants.Templates):
 		resolved_object_data_string = self.resolved_object_data_string
 		resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
 		multiple_collist_id_set_list = cols_ex_template_dict.keys()
-		if self.embed_into <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
+		if self.embed_column <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
-				if col == self.embed_into or col in self.merge_with:
+				if col == self.embed_column or col in self.merge_with:
 					multiple_rd_dv_coalesce_list.append("rd.%s AS %s" % (col, col))
 				else:
 					if col not in self.refers_to_set:
@@ -435,11 +435,11 @@ class Table(constants.Templates):
 					else:
 						multiple_rd_dv_coalesce_list.append(
 							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
-			if self.embed_into <> "":
+			if self.embed_column <> "":
 				resolved_object_data_string = self.resolved_object_data_embed_string
 				resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
-				collist.remove(self.embed_into)
-				del cols_ex_template_dict[self.embed_into]
+				collist.remove(self.embed_column)
+				del cols_ex_template_dict[self.embed_column]
 		else:
 			multiple_rd_dv_coalesce_list = ["COALESCE(rd.%s,dv.%s) AS %s" % (x,x,x) for x in collist]
 		
@@ -505,7 +505,7 @@ class Table(constants.Templates):
 		END AS %s_templ'''
 		templ_case_list = list()
 		for col in cols_ex_template_dict.keys():
-			if col == self.embed_into or col in self.merge_with:
+			if col == self.embed_column or col in self.merge_with:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
 			else:
 				templ_case_list.append(templ_case_cols_str % (col, col, col, col, col))
@@ -551,11 +551,11 @@ class Table(constants.Templates):
 		collist.remove('uid')
 		collist.remove('name')
 
-		if self.embed_into <> "" or len(self.merge_with) > 0:
+		if self.embed_column <> "" or len(self.merge_with) > 0:
 			rd_dv_list = list()
 			for col in collist:
 				#column that refers to embed into parent and merge with columns are not present in template
-				if (col == self.embed_into) or (col in self.merge_with):
+				if (col == self.embed_column) or (col in self.merge_with):
 					rd_dv_list.append("rd." + col)
 				else:
 					rd_dv_list.append("COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))

@@ -504,10 +504,6 @@ LANGUAGE plpgsql;
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise ValueError, 'multiRef relation is badly defined, too many columns in relation'
 
-        #attname is the same as reftable
-        if attname != reftable:
-            raise ValueError, 'multiRef relation is badly defined, name of referencing column should be the same as reftable'
-
         #refattname should be uid
         if refattname != 'uid':
             raise ValueError, 'multiRef relation is badly defined, referenced column should be uid column'

@@ -34,7 +34,7 @@ def %(name)s(%(args)s):
 	"""
 	templates_str = "SELECT * FROM get_templates_info();"
 	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
-	embed_into_str = "SELECT refkind FROM kindRelations_full_info('%s') WHERE relation = 'EMBED_INTO';"
+	embed_into_str = "SELECT attname FROM kindRelations_full_info('%s') WHERE relation = 'EMBED_INTO';"
 	"""Query to get the name of table which is this table embed into """
 	refuid_columns_str = "SELECT attname,tabname FROM cols_ref_uid('%s');"
 	"""Query to get all refuid references in the table.
@@ -194,6 +194,8 @@ CREATE FUNCTION commit_all(message text)
 			for row in record:
 				table.refers_to_set.append(row[0])
 			self.refers_to_set[tbl] = table.refers_to_set
+		print tbl
+		print record
 
 		# add fk constraints
 		fkconstraints = self.plpy.execute(self.fk_str % tbl)
@@ -214,15 +216,15 @@ CREATE FUNCTION commit_all(message text)
 					self.refs[tbl].append(col[1])
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
-		table.embed_into = ""
+		table.embed_column = ""
 		for row in embed_into_rec:
-			table.embed_into = row[0]
+			table.embed_column = row[0]
 
 		refuid_rec = self.plpy.execute(self.refuid_columns_str % tbl)
 		table.refuid_columns = dict()
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
-
+		
 		record = self.plpy.execute(self.merge_with_str % tbl)
 		table.merge_with = list()
 		for row in record:
@@ -243,28 +245,22 @@ CREATE FUNCTION commit_all(message text)
 		#cols_ref_uid = table.get_cols_reference_uid()
 		for col in columns[:]:
 			if (col[0] in table.refuid_columns):
-				if tbl in self.refers_to_set and col[0] in self.refers_to_set[tbl]:
-					self.fn_sql.write(table.gen_set_refuid_set(col[0]))
-					self.fn_sql.write(table.gen_refuid_set_insert(col[0]))
-					self.fn_sql.write(table.gen_refuid_set_remove(col[0]))
+				reftable = table.refuid_columns[col[0]]
+				if col[0] in table.refers_to_set:
+					self.fn_sql.write(table.gen_set_refuid_set(col[0], reftable))
+					self.fn_sql.write(table.gen_refuid_set_insert(col[0], reftable))
+					self.fn_sql.write(table.gen_refuid_set_remove(col[0], reftable))
 				else:
-					reftable = table.refuid_columns[col[0]]
 					#column that references uid has another set function(with finding corresponding uid)
 					self.fn_sql.write(table.gen_set_ref_uid(col[0], reftable))
-			elif (col[0] != 'name' and col[0]!='uid'):
+			elif (col[0] != 'name' and col[0] != 'uid'):
 				self.fn_sql.write(table.gen_set(col[0]))
-
 			#get uid of that references uid should not return uid but name of according instance
-
-		#get uid from embed object
-		if (table.embed_into != ""):
-			reftable = table.embed_into
-			for k, v in table.refuid_columns.iteritems():
-				if v == table.embed_into:
-					embed_column = k
-					break
-
+		
+		if table.embed_column <> "":
 			#adding full quolified name with _ delimiter
+			embed_column = table.embed_column
+			reftable = table.refuid_columns[embed_column]
 			self.fn_sql.write(table.gen_add_embed(embed_column,reftable))
 			#get uid from embed object, again name have to be full
 			self.fn_sql.write(table.gen_get_uid_embed(embed_column,reftable))
