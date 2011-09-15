@@ -1,36 +1,30 @@
---
--- every module must be place in schema production
---
 SET search_path TO production,deska;
 
 CREATE SEQUENCE interface_uid START 1;
 
--- interfaces of host
+-- network interfaces of host
 CREATE TABLE interface (
-	-- this column is required in all plugins
 	uid bigint DEFAULT nextval('interface_uid')
 		CONSTRAINT interface_pk PRIMARY KEY,
-	-- this column is required in all plugins
 	name identifier 
 		CONSTRAINT "interface with this name already exists" NOT NULL,
 	-- host
-	-- TODO better use uid
 	host bigint
 		CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
-	dns_name text,
 	-- IP
 	-- TODO unique constraint
 	ip4 ipv4,
 	network bigint
 		CONSTRAINT interface_fk_network REFERENCES network(uid) DEFERRABLE,
-	--ip6 ipv6,
-	-- MAC
-	-- TODO unique constraint
+	ip6 ipv6,
+	-- MAC address of an interface. It does *not* have to be unique.
 	mac macaddr,
 	switch bigint
 		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
-	switch_pos text
+	port text
 		CONSTRAINT "interface switch_pos cannot be empty string"
+        -- FIXME: relax this constraint; we can't enforce it right now
+        -- (think virtual machines or anything else without a real, physical switch interconnect)
 		CHECK (char_length(switch_pos) > 0),
 	note text,
 	template bigint,
@@ -47,6 +41,7 @@ DECLARE net ipv4;
 BEGIN
 	SELECT ip4 INTO net FROM network WHERE uid = NEW.network;
 	IF NEW.ip4 << net THEN
+        -- FIXME: this is broken, got to calculate the network range on the fly from the low address and CIDR netmask
 		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
 	END IF;
 

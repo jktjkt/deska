@@ -42,6 +42,12 @@ macro(deska_dbapi_test fname)
         dbapi ${fname})
 endmacro(deska_dbapi_test)
 
+macro(deska_dbapi_test_with_git fname)
+    add_test(test_dbapi_${fname}
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh --with-git
+        dbapi ${fname})
+endmacro(deska_dbapi_test_with_git)
+
 # for persistent tests
 macro(deska_dbapi_persist_test fname)
     add_test(test_dbapi_${fname}
@@ -59,10 +65,6 @@ macro(deska_cli_test fname)
         ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
         run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
 endmacro(deska_cli_test)
-
-macro(deska_cfggen_test fname)
-    add_test(test_cfggen_${fname} ${CMAKE_CURRENT_SOURCE_DIR}/test_cfggen_${fname})
-endmacro()
 
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
@@ -151,9 +153,15 @@ if(RUN_SQL_TESTS)
     # Tests which use the high-level 'deska' module, and hence really need the
     # DB
     deska_dbapi_test(pydeska_basic_filters)
+    deska_dbapi_test(pydeska_identifier_set)
 
     # Test the git-based config file generators
-    deska_cfggen_test(git_simple)
+    add_test(test_cfggen_git_simple
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh --with-git
+        run ${CMAKE_CURRENT_SOURCE_DIR}/test_cfggen_git_simple)
+
+    # Tests for generating the config files
+    deska_dbapi_test_with_git(config_generators)
 endif()
 
 # Copy files from source directory to destination directory, substituting any

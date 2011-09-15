@@ -190,6 +190,18 @@ def setAttribute(kindName, objectName, attributeName, attributeData):
                                       attributeName,
                                       "attributeData": attributeData})
 
+def setAttributeInsert(kindName, objectName, attributeName, attributeData):
+    return ApiMethod("setAttributeInsert", {"kindName": kindName, "objectName":
+                                      objectName, "attributeName":
+                                      attributeName,
+                                      "attributeData": attributeData})
+
+def setAttributeRemove(kindName, objectName, attributeName, attributeData):
+    return ApiMethod("setAttributeRemove", {"kindName": kindName, "objectName":
+                                      objectName, "attributeName":
+                                      attributeName,
+                                      "attributeData": attributeData})
+
 def renameObject(kindName, oldObjectName, newObjectName):
     return ApiMethod("renameObject", {"kindName": kindName,
                                       "oldObjectName": oldObjectName,
@@ -215,12 +227,23 @@ def resolvedObjectData(kindName, objectName, revision=None):
         args["revision"] = revision
     return ApiMethod("resolvedObjectData", args)
 
-def multipleObjectData(kindName, revision=None):
-    # FIXME: filter
+def multipleObjectData(kindName, revision=None, filter=None):
     args = {"kindName": kindName}
     if revision is not None:
         args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
     return ApiMethod("multipleObjectData", args)
+
+def verifyingObjectMultipleData(r, kindName, objectName):
+    one = r.c(objectData(kindName, objectName))
+    multiple = r.c(multipleObjectData(kindName,
+                    filter={"condition": "columnEq", "kind": kindName,
+                            "attribute":"name", "value": objectName}))
+    r.assertTrue(len(multiple), 1)
+    r.assertTrue(multiple.has_key(objectName))
+    r.assertEqual(one, multiple[objectName])
+    return one
 
 def kindInstances(kindName, revision=None):
     # FIXME: filter
@@ -234,3 +257,6 @@ def listRevisions(filter=None):
     if filter is not None:
         args["filter"] = filter
     return ApiMethod("listRevisions", args)
+
+def showConfigDiff(forceRegen=False):
+    return ApiMethod("showConfigDiff", {"forceRegen": forceRegen})

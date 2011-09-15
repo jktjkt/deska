@@ -1,49 +1,66 @@
+import sys
+import os
 import psycopg2
 import datetime
 import time
 import logging
+import subprocess
+import shutil
 try:
     import json
 except ImportError:
     import simplejson as json
+from jsonparser import perform_io
 
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
-                "kindAttributes": ["tag", "kindName"],
-                "kindRelations": ["tag", "kindName"],
-                "kindInstances": ["tag", "kindName","revision","filter"],
-                "deleteObject": ["tag", "kindName","objectName"],
-                "restoreDeletedObject": ["tag", "kindName","objectName"],
-                "createObject": ["tag", "kindName","objectName"],
-                "renameObject": ["tag", "kindName","oldObjectName","newObjectName"],
-                "setAttribute": ["tag", "kindName","objectName","attributeName","attributeData"],
-                "startChangeset": ["tag"],
-                "commitChangeset": ["tag", "commitMessage"],
-                "pendingChangesets": ["tag", "filter"],
-                "resumeChangeset": ["tag", "changeset"],
-                "detachFromCurrentChangeset": ["tag", "message"],
-                "abortCurrentChangeset": ["tag"],
-		"dataDifference": ["tag", "revisionA", "revisionB"],
-		"dataDifferenceInTemporaryChangeset": ["tag"],
-		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
-		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", ],
-		"objectData": ["tag", "kindName", "objectName","revision"],
-		"objectData": ["tag", "kindName", "objectName","revision"],
-		#"objectData": ["tag", "kindName", "objectName","revision", "filter"],
+		"kindAttributes": ["tag", "kindName"],
+		"kindRelations": ["tag", "kindName"],
+		"kindInstances": ["tag", "kindName", "revision", "filter"],
+		"objectData": ["tag", "kindName", "objectName", "revision"],
 		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
-		"listRevisions": ["tag", "filter"]
+		"resolvedObjectData": ["tag", "kindName", "objectName","revision"],
+		#"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
+		#"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
+		#"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
+		"deleteObject": ["tag", "kindName", "objectName"],
+		"createObject": ["tag", "kindName", "objectName"],
+		"restoreDeletedObject": ["tag", "kindName","objectName"],
+		"renameObject": ["tag", "kindName", "oldObjectName", "newObjectName"],
+		"setAttribute": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		"setAttributeInsert": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		"setAttributeRemove": ["tag", "kindName", "objectName", "attributeName", "attributeData"],
+		# applyBatchedChanges is somewhere else
+		"startChangeset": ["tag"],
+		"commitChangeset": ["tag", "commitMessage"],
+		"pendingChangesets": ["tag", "filter"],
+		"resumeChangeset": ["tag", "changeset"],
+		"detachFromCurrentChangeset": ["tag", "message"],
+		"abortCurrentChangeset": ["tag"],
+		# lockCurrentChangeset is special
+		# unlockCurrentChangeset is special
+		# freezeView is special
+		# unfreezeView is special
+		"listRevisions": ["tag", "filter"],
+		"dataDifference": ["tag", "revisionA", "revisionB"],
+		"dataDifferenceInTemporaryChangeset": ["tag", "changeset"],
+		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
+		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
+		# showConfigDiff is special
 	})
 
-	def __init__(self,**kwargs):
+	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
 		try:
-			self.db = psycopg2.connect(**kwargs);
+			self.db = psycopg2.connect(**dbOptions);
 			self.mark = self.db.cursor()
 			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
 			# commit search_path
 			self.db.commit()
 			self.freeze = False
 			self.error = None
+			self.cfggenBackend = cfggenBackend
+			self.cfggenOptions = cfggenOptions
 		except Exception, e:
 			self.error = e
 
@@ -95,7 +112,7 @@ class DB:
 			self.freeze = False
 			return self.responseJson(name,tag)
 		else:
-				return self.errorJson(name,tag,"Only freeze or unFreeze")
+			return self.errorJson(name,tag,"Only freeze or unFreeze")
 
 	def applyBatchedChanges(self,changelist,tag):
 		if type(changelist) != list:
@@ -122,6 +139,129 @@ class DB:
 		if not self.freeze:
 			self.db.commit()
 
+	def lockChangeset(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def unlockChangeset(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def changesetHasFreshConfig(self):
+		# FIXME: implement me by calling a DB function
+		return False
+
+	def markChangesetFresh(self):
+		# FIXME: implement me by calling a DB function
+		pass
+
+	def currentChangeset(self):
+		# FIXME: get name of the current changeset from the DB
+		return "unnamed"
+
+	def initCfgGenerator(self):
+		logging.debug("initCfgGenerator")
+		# We really do want to re-init the config generator each and every time
+		oldpath = sys.path
+		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../LowLevelPyDeska/generators"))
+		sys.path = [mypath] + sys.path
+		logging.debug("sys.path prepended by %s" % mypath)
+		if self.cfggenBackend == "git":
+			logging.debug("Initializing git generator")
+			from gitgenerator import GitGenerator
+			repodir = self.cfggenOptions["cfggenGitRepo"]
+			if repodir is None:
+				raise ValueError, "cfggenGitRepo is None"
+			workdir = self.cfggenOptions["cfggenGitWorkdir"]
+			if workdir is None:
+				raise ValueError, "cfggenGitWorkdir is None"
+			workdir = workdir + "/" + self.currentChangeset()
+			if os.path.exists(workdir):
+				# got to clean it up
+				shutil.rmtree(workdir)
+			scriptdir = self.cfggenOptions["cfggenScriptPath"]
+			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
+		elif self.cfggenBackend == "fake":
+			from nullgenerator import NullGenerator
+			self.cfgGenerator = NullGenerator(behavior=None)
+			logging.debug("No generators configured, will silently do nothing upon request")
+		else:
+			# no configuration generator has been configured
+			from nullgenerator import NullGenerator
+			self.cfgGenerator = NullGenerator(behavior=NotImplementedError("Attempted to access configuration generators which haven't been configured yet"))
+			logging.debug("No generators configured, will raise error upon use")
+		sys.path = oldpath
+
+	def cfgRegenerate(self):
+		logging.debug("cfgRegenerate")
+		logging.debug(" opening repository")
+		self.cfgGenerator.openRepo()
+		logging.debug(" calling cfgGenerator.generate")
+		self.cfgGenerator.generate(self)
+		logging.debug("cfgRegenerate: done")
+
+
+	def executeScript(self, script, workdir):
+		# setup the environment and pipes for IO
+		env = os.environ
+		(remote_reading, writing) = os.pipe()
+		(reading, remote_writing) = os.pipe()
+		env["DESKA_VIA_FD_R"] = str(remote_reading)
+		env["DESKA_VIA_FD_W"] = str(remote_writing)
+
+		# launch the process
+		proc = subprocess.Popen([script], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=workdir, env=env)
+
+		# close our end of the pipes
+		os.close(remote_reading)
+		os.close(remote_writing)
+
+		# prepare Python wrappers over the pipes
+		rfile = os.fdopen(reading, "rb")
+		wfile = os.fdopen(writing, "wb")
+		# communicate
+		while True:
+			try:
+				perform_io(self, rfile, wfile)
+			except StopIteration:
+				break
+		# and wait for the corpse to appear
+		(stdout, stderr) = proc.communicate()
+		if proc.returncode:
+			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout, stderr)
+		# that's all, baby!
+
+	def cfgPushToScm(self, message):
+		self.cfgGenerator.apiSave(message)
+
+	def cfgGetDiff(self):
+		return self.cfgGenerator.diff()
+
+	def showConfigDiff(self, name, tag, forceRegen):
+		logging.debug("showConfigDiff")
+		response = {"response": name, "tag": tag}
+		self.lockChangeset()
+		self.initCfgGenerator()
+		if forceRegen or not self.changesetHasFreshConfig():
+			logging.debug("about to regenerate config")
+			self.cfgRegenerate()
+			self.markChangesetFresh()
+		response[name] = self.cfgGetDiff()
+		self.unlockChangeset()
+		return json.dumps(response)
+
+	def commitConfig(self, name, args, tag):
+		self.checkFunctionArguments(name, args, tag)
+		self.lockChangeset()
+		self.initCfgGenerator()
+		if not self.changesetHasFreshConfig():
+			self.cfgRegenerate()
+			self.markChangesetFresh()
+		self.cfgPushToScm(args["commitMessage"])
+		res = self.standaloneRunDbFunction(name, args, tag)
+		self.unlockChangeset()
+		return res
+
 	def run(self,name,args):
 		logging.debug("start run method(%s, %s)" % (name, args))
 
@@ -138,12 +278,25 @@ class DB:
 		if name in set(["freezeView","unFreezeView"]):
 			return self.freezeUnfreeze(name,tag)
 
+		if name == "showConfigDiff":
+			forceRegen = False
+			if args.has_key("forceRegen") and args["forceRegen"] == True:
+				forceRegen = True
+			return self.showConfigDiff(name, tag, forceRegen)
+
+		if name == "commitChangeset":
+			# this one is special, it has to commit to the DB *and* push to SCM
+			return self.commitConfig(name, args, tag)
+
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
 			if "modifications" not in args:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		return self.standaloneRunDbFunction(name, args, tag)
+
+	def standaloneRunDbFunction(self, name, args, tag):
 		try:
 			data = self.runDBFunction(name,args,tag)
 			self.endTransaction()
@@ -152,14 +305,15 @@ class DB:
 			self.endTransaction()
 			return self.errorJson(name, tag, str(e))
 
-	def runDBFunction(self,name,args,tag):
+	def checkFunctionArguments(self, name, args, tag):
+		"""Check the signature of the function against our definition"""
 		if name not in self.methods:
-			raise Exception("%s is not a valid db function." % name)
-		# copy needed args from command definition
-		needed_args = self.methods[name][:]
-		# have we the exact needed arguments
+			raise Exception("'%s' is not a DBAPI method" % name)
+		needed_args = self.methods[name]
+		# Check that the caller has specified all of the required arguments
 		if set(needed_args) != set(args.keys()):
 			not_present = set(needed_args) - set(args.keys())
+			extra_args = set(args.keys()) - set(needed_args)
 			# note that "filter" and "revision" are always optional
 			if not_present <= set(["filter", "revision"]):
 				if "filter" in not_present:
@@ -168,7 +322,14 @@ class DB:
 					args["revision"] = None
 				logging.debug("%s was not present, pass None arguments" % not_present)
 			else:
-				raise Exception("Missing arguments: %s" % list(not_present))
+				raise Exception("Missing arguments: %s" % not_present)
+			if len(extra_args):
+				raise Exception("Extra arguments: %s" % extra_args)
+
+	def runDBFunction(self,name,args,tag):
+		self.checkFunctionArguments(name, args, tag)
+		needed_args = self.methods[name]
+
 		# sort args
 		args = [args[i] for i in needed_args]
 		# cast to string

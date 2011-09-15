@@ -10,9 +10,11 @@ except ImportError:
 import apiUtils
 
 # enable "import libLowLevelPyDeska"
-sys.path.append(os.path.normpath(os.getcwd() + "../../.."))
+path_libLowLevelPyDeska = os.path.abspath(os.getcwd() + "../../..")
+sys.path.append(path_libLowLevelPyDeska)
 # enable "import deska"
-sys.path.append(os.environ["DESKA_SOURCES"] + "/src/deska/LowLevelPyDeska")
+path_deska = os.path.abspath(os.environ["DESKA_SOURCES"] + "/src/deska/LowLevelPyDeska")
+sys.path.append(path_deska)
 
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
@@ -31,7 +33,8 @@ class JsonApiTester(unittest.TestCase):
 
     def setUp(self):
         """Start the process"""
-        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER]
+        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER, "--cfggen-backend",
+                   CFGGEN_METHOD] + CFGGEN_EXTRA_OPTIONS
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -91,6 +94,20 @@ if __name__ == "__main__":
     DBNAME = os.environ["DESKA_DB"]
     DBUSER = os.environ["DESKA_USER"]
     TESTCASE = sys.argv[2]
+    CFGGEN_EXTRA_OPTIONS = []
+    try:
+        CFGGEN_METHOD = os.environ["DESKA_CFGGEN_BACKEND"]
+    except KeyError:
+        CFGGEN_METHOD = "fake"
+    if CFGGEN_METHOD == "git":
+        CFGGEN_EXTRA_OPTIONS = ["--cfggen-script-path", os.environ["DESKA_CFGGEN_SCRIPTS"],
+                                "--cfggen-git-repository", os.environ["DESKA_CFGGEN_GIT_PRIMARY_CLONE"],
+                                "--cfggen-git-workdir", os.environ["DESKA_CFGGEN_GIT_WC"]]
+    # massage the PYTHONPATH for the children
+    if not os.environ.has_key("PYTHONPATH"):
+        os.environ["PYTHONPATH"] = ":".join([path_libLowLevelPyDeska, path_deska])
+    else:
+        os.environ["PYTHONPATH"] = ":".join([os.environ["PYTHONPATH"], path_libLowLevelPyDeska, path_deska])
     module = __import__(TESTCASE)
     if "imperative" in dir(module):
         imperative = module.imperative

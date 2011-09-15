@@ -302,6 +302,7 @@ This is the list of currently defined exceptions, along with their other argumen
     sense & -- \\
     {\tt ChangesetLockingError} & Attempted to access a locked changeset or execute an invalid operation related to
     changeset locking & -- \\
+    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & -- \\
     {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
     {\tt ServerError} & The server has encountered an internal error & -- \\
 \end{longtable}
@@ -381,10 +382,10 @@ relation information etc.  The following types are defined:
         One of {\tt "string"}, {\tt "int"}, {\tt "identifier"}, {\tt "identifier\_set"}, {\tt "double"}, {\tt "date"},
         {\tt "timestamp"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
-        One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt\}} \newline or \newline
-        {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt\}} \\
+    One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \newline or \newline
+        {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
         {\tt \{"revision": }RevisionId{\tt, "author": }Identifier{\tt, "timestamp": }timestamp{\tt,
         "commitMessage": }string{\tt\}}
@@ -628,10 +629,10 @@ and the defined object relations.
 
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
-            \{"relation": "EMBED\_INTO", "target": "hardware"\}, \\
-            \{"relation": "MERGE\_WITH", "target": "second-kind"\}, \\
-            \{"relation": "REFERS\_TO", "target": "second-kind"\}, \\
-            \{"relation": "TEMPLATIZED", "target": "by-which-kind"\} \\
+            \{"relation": "EMBED\_INTO", "target": "hardware", "column": "hardware"\}, \\
+            \{"relation": "MERGE\_WITH", "target": "second-kind", "column": "foo"}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"}, \\
+            \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"} \\
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
@@ -642,7 +643,7 @@ and the defined object relations.
 
 Functions from this group are used for fetching actual data from the database.
 
-\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123"}
+\deskaFunc{kindInstances}{, "kindName": "something", "revision": "r123", "filter": \ldots}
     { ["a", "b", "c"] }
     {Returns identifiers of all objects of a given kind}
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
@@ -829,7 +830,7 @@ Querying History}, section \ref{sec:api-group-history}.
     \deskaFuncRef{startChangeset}/\deskaFuncRef{resumeChangeset} call) into the production DB.  A new persistent
     revision will be created.}
 
-\deskaFunc{pendingChangesets}{}
+\deskaFunc{pendingChangesets}{, "filter": \ldots}
     {[
      \{"changeset": "tmp123", "author": "user", "status": "DETACHED", "timestamp": "2011-04-07 17:22:33",
      "parentRevision": "r666", "message": "message", \\ "activeConnectionInfo": null\}
@@ -912,7 +913,7 @@ Querying History}, section \ref{sec:api-group-history}.
 
 Functions for browsing history of individual objects, retrieving lists of differences, etc.
 
-\deskaFunc{listRevisions}{}
+\deskaFunc{listRevisions}{, "filter": \ldots}
     {[
     \{"revision": "r123", "author": "user", "timestamp": "2011-04-07 17:22:33", "commitMessage": "message"\}
     ]}

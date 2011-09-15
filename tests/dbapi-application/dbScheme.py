@@ -21,7 +21,7 @@ def imperative(r):
     r.assertEqual(r.c(kindAttributes("interface_template")),
         dict((k, v) for k, v in helper_interface_attrs.iteritems() if k != "host"))
     r.assertEqual(r.c(kindAttributes("vendor")), {})
-    r.assertEqual(r.c(kindAttributes("service")), {"note": "string", "isvm": "int"})
+    r.assertEqual(r.c(kindAttributes("service")), {"note": "string"})
     r.assertEqual(r.c(kindAttributes("host")),
         {
             "hardware": "identifier", "note_host": "string",
@@ -33,29 +33,28 @@ def imperative(r):
 
     r.assertEqual(r.c(kindRelations("interface")),
         AnyOrderList([
-            {'relation': 'EMBED_INTO', 'target': 'host'},
-            {'relation': 'TEMPLATIZED', 'target': 'interface_template'}])
+            {'relation': 'EMBED_INTO', 'target': 'host', 'column': 'host'},
+            {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'interface_template'}])
     )
-    r.assertEqual(r.c(kindRelations("interface_template")),
-       AnyOrderList([{'relation': 'TEMPLATIZED', 'target':
-                      'interface_template'}])),
+    r.assertEqual(r.c(kindRelations("interface_template")), AnyOrderList([
+        {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'interface_template'}]))
     r.assertEqual(r.c(kindRelations("host")),
         AnyOrderList([
-            {'relation': 'MERGE_WITH', 'target': 'hardware'},
-            {'relation': 'TEMPLATIZED', 'target': 'host_template'},
-            {'relation': 'REFERS_TO', 'target': 'service'}
+            {'relation': 'MERGE_WITH', 'target': 'hardware', 'column': 'hardware'},
+            {'relation': 'TEMPLATIZED', 'target': 'host_template', 'column': 'host_template'},
+            {'relation': 'REFERS_TO', 'target': 'service', 'column': 'service'}
         ])
     )
     r.assertEqual(r.c(kindRelations("hardware")),
         AnyOrderList([
-            {'relation': 'REFERS_TO', 'target': 'vendor'},
-            {'relation': 'MERGE_WITH', 'target': 'host'},
-            {'relation': 'TEMPLATIZED', 'target': 'hardware_template'}])
+            {'relation': 'REFERS_TO', 'target': 'vendor', 'column': 'vendor'},
+            {'relation': 'MERGE_WITH', 'target': 'host', 'column': 'host'},
+            {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'hardware_template'}])
     )
     r.assertEqual(r.c(kindRelations("hardware_template")),
        AnyOrderList([
-           {'relation': 'REFERS_TO', 'target': 'vendor'},
-           {'relation': 'TEMPLATIZED', 'target': 'hardware_template'},
+           {'relation': 'REFERS_TO', 'target': 'vendor', 'column': 'vendor'},
+           {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'hardware_template'},
        ])
     )
     r.assertEqual(r.c(kindRelations("vendor")), [])

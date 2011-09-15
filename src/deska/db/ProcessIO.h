@@ -22,11 +22,11 @@
 #ifndef DESKA_DB_PROCESSIO_H
 #define DESKA_DB_PROCESSIO_H
 
-#include <string>
 #include <vector>
 #include <boost/optional.hpp>
 #include <tr1/memory>
 #include "boost/process.hpp"
+#include "IOSocket.h"
 
 namespace Deska {
 namespace Db {
@@ -36,7 +36,7 @@ namespace Db {
 This class encapsulates access to a newly launched child process, and sets up several debugging hooks for retrieving
 the data read from the child process.
 */
-class ProcessIO
+class ProcessIO: public IOSocket
 {
 public:
     ProcessIO(const std::vector<std::string> &arguments);

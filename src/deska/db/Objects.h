@@ -153,48 +153,50 @@ typedef enum {
 } ObjectRelationKind;
 
 
-/** @short A pair of (kind-of-relation, table)
+/** @short A tuple of (kind-of-relation, table, column)
  *
  * Examples for a "host" would be:
- * (RELATION_MERGE_WITH, "hw")
+ * (RELATION_MERGE_WITH, "hw", "hw")
  * ...which means that the "host" records shall contain a reference to the "hw" table, and the reference shall be formed by a
  * column named "hw" which points to the name of the object in the "hw" table. We do not define the name of the target column,
  * simply because we always point to its identifier.
  *
  * In this situation, the record will be accompanied by the corresponding relation for the "hw" object kind:
- * (RELATION_MERGE_WITH, "host")
+ * (RELATION_MERGE_WITH, "host", "host")
  *
  * This is how templates work:
- * (RELATION_TEMPLATIZED, "hw-template") -- for the "hw" kind
+ * (RELATION_TEMPLATIZED, "hw-template", "template") -- for the "hw" kind
  *
  * Whereas for the "interface":
- * (RELATION_EMBED_INTO, "host")
+ * (RELATION_EMBED_INTO, "host", "host")
  *
  * Finally, to model generic relations (just a foreign key in the database table), use a RELATION_REFERS_TO. For example, if a "hw"
  * table has a foregin key "vendor" which references the "vendor" table, the "hw" kind will have the following relation record:
- * (RELATION_REFERS_TO, "vendor")
+ * (RELATION_REFERS_TO, "vendor", "manufacturer")
  * */
 struct ObjectRelation
 {
     /** @short Construct a RELATION_MERGE_WITH */
-    static ObjectRelation mergeWith(const Identifier &target);
+    static ObjectRelation mergeWith(const Identifier &target, const Identifier &column);
 
     /** @short Construct a RELATION_EMBED_INTO */
-    static ObjectRelation embedInto(const Identifier &target);
+    static ObjectRelation embedInto(const Identifier &target, const Identifier &column);
 
     /** @short COnstruct a RELATION_REFERS_TO */
-    static ObjectRelation refersTo(const Identifier &target);
+    static ObjectRelation refersTo(const Identifier &target, const Identifier &column);
 
     /** @short Construct a RELATION_TEMPLATIZED */
-    static ObjectRelation templatized(const Identifier &target);
+    static ObjectRelation templatized(const Identifier &target, const Identifier &column);
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
     /** @short Name of the target table this relation refers to */
     Identifier target;
+    /** @short Column in the source table which provides this reference */
+    Identifier column;
 
 private:
-    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target);
+    ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target, const Identifier &_column);
 };
 
 bool operator==(const ObjectRelation &a, const ObjectRelation &b);

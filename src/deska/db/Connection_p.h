@@ -28,7 +28,7 @@
 namespace Deska {
 namespace Db {
 
-class ProcessIO;
+class IOSocket;
 
 class Connection_p: public CachingJsonApi
 {
@@ -36,7 +36,7 @@ public:
     Connection_p();
     virtual ~Connection_p();
 private:
-     ProcessIO *io;
+     IOSocket *io;
 };
 
 }

@@ -52,6 +52,12 @@ def doTests(r):
     for x in matching.itervalues():
         r.assertEqual(x.hardware, None)
         r.assertEqual(x.note_host, "ahoj")
+    # now ask for the same, but without an artificial filter
+    matching = deska.host._all()
+    r.assertEqual(len(matching), len(expectedNames))
+    for x in matching.itervalues():
+        r.assertEqual(x.hardware, None)
+        r.assertEqual(x.note_host, "ahoj")
 
     # make sure that the following returns no results
     r.assertEqual(deska.host[deska.host.note_host != "ahoj"].keys(), [])

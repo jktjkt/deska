@@ -91,6 +91,8 @@ REMOTEDBEXCEPTION(ObsoleteParentError)
 REMOTEDBEXCEPTION(NotASetError)
 /** @short Attempted to access a locked changeset or execute an invalid operation related to changeset locking */
 REMOTEDBEXCEPTION(ChangesetLockingError)
+/** @short An error has occurred when generating configuration files */
+REMOTEDBEXCEPTION(CfgGeneratingError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
@@ -155,11 +157,11 @@ public:
 
     /** @short Version of objectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleObjectData(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Version of resolvedObjectData that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Get all attributes, including the inherited ones
      *
@@ -181,7 +183,7 @@ public:
 
     /** @short Version of resolvedObjectDataWithOrigin that returns multiple objects of the same kind at once */
     virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
-        const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
+        const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     // Manipulating objects
 
@@ -300,8 +302,14 @@ public:
 
     // Output generators
 
+    /** @short Do we have to regenerate the configuration? */
+    typedef enum {
+        MAYBE_REGENERATE, /**< @short Regenerate only if the server deems that it's required */
+        FORCE_REGENERATE /**< @short Force regenerating of the output */
+    } ConfigGeneratingMode;
+
     /** @short Show the human readable difference in the generated configuration, as determined by changes in the current changeset */
-    virtual std::string showConfigDiff(bool forceRegenerate=false) = 0;
+    virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE) = 0;
 };
 
 }

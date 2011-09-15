@@ -24,7 +24,9 @@
 #include <sstream>
 #include <boost/foreach.hpp>
 
-
+#include "CliCommands.h"
+#include "CliCommands_Log.h"
+#include "CliCommands_Rebase.h"
 #include "DbInteraction.h"
 #include "Exceptions.h"
 #include "Parser.h"
@@ -115,7 +117,7 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         newItem = m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
+        if (nonInteractiveMode || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             newItem = ContextStackItem(kind, object);
             return true;
@@ -130,20 +132,14 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
 bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Identifier &kind,
                                       const Db::Identifier &attribute, const Db::Value &value)
 {
-    try {
-        ContextStack adjustedContext = context;
-        if (context.back().kind != kind) {
-            adjustedContext.back().kind = kind;
-            if (!m_dbInteraction->objectExists(adjustedContext))
-                m_dbInteraction->createObject(adjustedContext);
-        }
-        m_dbInteraction->setAttribute(adjustedContext, AttributeDefinition(attribute, value));
-        return true;
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
-        return false;
+    ContextStack adjustedContext = context;
+    if (context.back().kind != kind) {
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext))
+            m_dbInteraction->createObject(adjustedContext);
     }
+    m_dbInteraction->setAttribute(adjustedContext, AttributeDefinition(attribute, value));
+    return true;
 }
 
 
@@ -151,20 +147,14 @@ bool UserInterface::applySetAttribute(const ContextStack &context, const Db::Ide
 bool UserInterface::applySetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
-    try {
-        ContextStack adjustedContext = context;
-        if (context.back().kind != kind) {
-            adjustedContext.back().kind = kind;
-            if (!m_dbInteraction->objectExists(adjustedContext))
-                m_dbInteraction->createObject(adjustedContext);
-        }
-        m_dbInteraction->setAttributeInsert(adjustedContext, attribute, value);
-        return true;
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
-        return false;
+    ContextStack adjustedContext = context;
+    if (context.back().kind != kind) {
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext))
+            m_dbInteraction->createObject(adjustedContext);
     }
+    m_dbInteraction->setAttributeInsert(adjustedContext, attribute, value);
+    return true;
 }
 
 
@@ -172,20 +162,14 @@ bool UserInterface::applySetAttributeInsert(const ContextStack &context, const D
 bool UserInterface::applySetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                                             const Db::Identifier &attribute, const Db::Identifier &value)
 {
-    try {
-        ContextStack adjustedContext = context;
-        if (context.back().kind != kind) {
-            adjustedContext.back().kind = kind;
-            if (!m_dbInteraction->objectExists(adjustedContext))
-                return false;
-        }
-        m_dbInteraction->setAttributeRemove(adjustedContext, attribute, value);
-        return true;
-    } catch (Deska::Db::RemoteDbError &e) {
-        // FIXME: potemkin's fix for the demo
-        io->reportError(e.what());
-        return false;
+    ContextStack adjustedContext = context;
+    if (context.back().kind != kind) {
+        adjustedContext.back().kind = kind;
+        if (!m_dbInteraction->objectExists(adjustedContext))
+            return false;
     }
+    m_dbInteraction->setAttributeRemove(adjustedContext, attribute, value);
+    return true;
 }
 
 
@@ -278,7 +262,7 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
 
 
 bool UserInterface::confirmCategoryEntered(const ContextStack &context,
-                                           const Db::Identifier &kind, const Db::Identifier &object)
+                                           const Db::Identifier &kind, const Db::Identifier &object, bool &autoCreate)
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
@@ -294,7 +278,8 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return true;
 
     // Object does not exist -> ask the user here
-    return io->confirmCreation(ObjectDefinition(kind,object));
+    autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
+    return autoCreate;
 }
 
 
@@ -306,11 +291,12 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
         io->reportError("Error: You have to be connected to a changeset to set an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+
     if (context.back().kind == kind)
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
@@ -332,11 +318,12 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
         io->reportError("Error: You have to be connected to a changeset to insert an identifier to a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+
     if (context.back().kind == kind)
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
@@ -358,6 +345,7 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
         io->reportError("Error: You have to be connected to a changeset to remove an identifier from a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+
     if (context.back().kind == kind)
         return true;
     ContextStack adjustedContext = context;
@@ -377,6 +365,7 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
     }
+
     if (context.back().kind == kind)
         return true;
     ContextStack adjustedContext = context;
@@ -465,12 +454,18 @@ void UserInterface::run()
         std::string parsedCommand(line.first.begin(), commandEnd);
         std::string parsedArguments((commandEnd == line.first.end() ? commandEnd : (commandEnd +1)), line.first.end());
         
-        if (commandsMap.find(parsedCommand) == commandsMap.end()) {
-            // Command not found -> use CLI parser
-            m_parser->parseLine(line.first);
-        } else {
-            // Command found -> run it
-            (*(commandsMap[parsedCommand]))(parsedArguments);
+        try {
+            if (commandsMap.find(parsedCommand) == commandsMap.end()) {
+                // Command not found -> use CLI parser
+                m_parser->parseLine(line.first);
+            } else {
+                // Command found -> run it
+                (*(commandsMap[parsedCommand]))(parsedArguments);
+            }
+        } catch (Db::RemoteDbError &e) {
+            std::ostringstream ostr;
+            ostr << "Unexpected server error:\n" << e.whatWithBacktrace() << std::endl;
+            io->reportError(ostr.str());
         }
     }
 }

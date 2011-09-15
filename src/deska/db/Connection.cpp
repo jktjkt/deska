@@ -67,12 +67,12 @@ std::map<Identifier, Value> Connection::resolvedObjectData(const Identifier &kin
     return p->resolvedObjectData(kindName, objectName, revision);
 }
 
-std::map<Identifier, std::map<Identifier, Value> > Connection::multipleObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
+std::map<Identifier, std::map<Identifier, Value> > Connection::multipleObjectData(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleObjectData(kindName, filter, revision);
 }
 
-std::map<Identifier, std::map<Identifier, Value> > Connection::multipleResolvedObjectData(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
+std::map<Identifier, std::map<Identifier, Value> > Connection::multipleResolvedObjectData(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleResolvedObjectData(kindName, filter, revision);
 }
@@ -82,7 +82,7 @@ std::map<Identifier, std::pair<Identifier, Value> > Connection::resolvedObjectDa
     return p->resolvedObjectDataWithOrigin(kindName, objectName, revision);
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectDataWithOrigin(const Identifier &kindName, const Filter &filter, const boost::optional<RevisionId> &revision)
+std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectDataWithOrigin(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleResolvedObjectDataWithOrigin(kindName, filter, revision);
 }
@@ -202,7 +202,7 @@ std::vector<ObjectModificationResult> Connection::resolvedDataDifferenceInTempor
     return p->resolvedDataDifferenceInTemporaryChangeset(changeset, filter);
 }
 
-std::string Connection::showConfigDiff(bool forceRegenerate)
+std::string Connection::showConfigDiff(const ConfigGeneratingMode forceRegenerate)
 {
     return p->showConfigDiff(forceRegenerate);
 }

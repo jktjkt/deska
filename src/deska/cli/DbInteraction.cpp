@@ -24,7 +24,6 @@
 #include <boost/foreach.hpp>
 #include <sstream>
 #include "DbInteraction.h"
-#include "deska/db/Api.h"
 
 namespace Deska
 {
@@ -69,7 +68,7 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
         BOOST_ASSERT(!objectExists(objects.front()));
         Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
         // If the name of new object is specified, returned name should be the same
-        if (!objects.front().name.empty())
+        if (!(pathToVector(objects.front().name).back().empty()))
             BOOST_ASSERT(newObjectName == objects.front().name);
         return ContextStackItem(objects.front().kind, pathToVector(newObjectName).back());
     }
@@ -466,7 +465,7 @@ Db::RevisionId DbInteraction::changesetParent(const Db::TemporaryChangesetId &ch
 
 
 
-std::string DbInteraction::configDiff(bool forceRegenerate)
+std::string DbInteraction::configDiff(const Db::Api::ConfigGeneratingMode forceRegenerate)
 {
     return m_api->showConfigDiff(forceRegenerate);
 }
@@ -505,6 +504,10 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     objects.push_back(ObjectDefinition(it->kind, it->name));
                 }
             } else {
+                for (std::vector<ObjectDefinition>::iterator itoe = objects.begin(); itoe != objects.end(); ++itoe) {
+                    if (pathToVector(itoe->name).back().empty())
+                        throw std::logic_error("Deska::Cli::DbInteraction::expandContextStack: Can not expand context stack with objects with empty names.");
+                }
                 if (it->filter) {
                     // If there is a filter, we have to construct filter for all extracted objects at first.
                     std::vector<Db::Filter> currObjects;
@@ -537,7 +540,7 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     // If we have already some objects and in the context is object now, step in its context
                     // for each extracted object.
                     for (size_t i = 0; i < objects.size(); ++i) {
-                        objects[0] = stepInContext(objects[0], ObjectDefinition(it->kind, it->name));
+                        objects[i] = stepInContext(objects[i], ObjectDefinition(it->kind, it->name));
                     }
                 }
             }
@@ -546,6 +549,35 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
 
     return objects;
 }
+
+
+
+void DbInteraction::lockCurrentChangeset()
+{
+    m_api->lockCurrentChangeset();
+}
+
+
+
+void DbInteraction::unlockCurrentChangeset()
+{
+    m_api->unlockCurrentChangeset();
+}
+
+
+
+void DbInteraction::freezeView()
+{
+    m_api->freezeView();
+}
+
+
+
+void DbInteraction::unFreezeView()
+{
+    m_api->unFreezeView();
+}
+
 
 
 }

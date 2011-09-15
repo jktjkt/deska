@@ -34,21 +34,19 @@
 
 #include "CliObjects.h"
 #include "ContextStack.h"
-#include "CliCommands.h"
 
 namespace Deska
 {
 namespace Cli
 {
 
+class Command;
 class DbInteraction;
 class Parser;
 class ParserException;
 class UserInterfaceIOBase;
 class UserInterface;
 
-// FIXME: Add more try catch block around each function, that can throw an exception. Create some exceptions hiearchy.
-//        For example recoverable, non recoverable...
 
 /** @short Class for communication with the user.
 *
@@ -99,7 +97,7 @@ public:
     bool confirmCreateObject(const ContextStack &context,
                              const Db::Identifier &kind, const Db::Identifier &object);
     bool confirmCategoryEntered(const ContextStack &context,
-                                const Db::Identifier &kind, const Db::Identifier &object);
+                                const Db::Identifier &kind, const Db::Identifier &object, bool &autoCreate);
     bool confirmSetAttribute(const ContextStack &context, const Db::Identifier &kind,
                              const Db::Identifier &attribute, const Db::Value &value);
     bool confirmSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,

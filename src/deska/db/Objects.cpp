@@ -102,42 +102,42 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 {
     switch (o.kind) {
     case RELATION_MERGE_WITH:
-        return stream << "mergeWith(" << o.target << ")";
+        return stream << "mergeWith(" << o.target << ", " << o.column << ")";
     case RELATION_EMBED_INTO:
-        return stream << "embedInto(" << o.target << ")";
+        return stream << "embedInto(" << o.target << ", " << o.column << ")";
     case RELATION_REFERS_TO:
-        return stream << "refersTo(" << o.target << ")";
+        return stream << "refersTo(" << o.target << ", " << o.column << ")";
     case RELATION_TEMPLATIZED:
-        return stream << "templatized(" << o.target << ")";
+        return stream << "templatized(" << o.target << ", " << o.column << ")";
     case RELATION_INVALID:
         return stream << "RELATION_INVALID";
     }
     return stream << "[Invalid relation: " << static_cast<int>(o.kind) << "]";
 }
 
-ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target):
-    kind(_kind), target(_target)
+ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target, const Identifier &_column):
+    kind(_kind), target(_target), column(_column)
 {
 }
 
-ObjectRelation ObjectRelation::mergeWith(const Identifier &target)
+ObjectRelation ObjectRelation::mergeWith(const Identifier &target, const Identifier &column)
 {
-    return ObjectRelation(RELATION_MERGE_WITH, target);
+    return ObjectRelation(RELATION_MERGE_WITH, target, column);
 }
 
-ObjectRelation ObjectRelation::embedInto(const Identifier &target)
+ObjectRelation ObjectRelation::embedInto(const Identifier &target, const Identifier &column)
 {
-    return ObjectRelation(RELATION_EMBED_INTO, target);
+    return ObjectRelation(RELATION_EMBED_INTO, target, column);
 }
 
-ObjectRelation ObjectRelation::refersTo(const Identifier &target)
+ObjectRelation ObjectRelation::refersTo(const Identifier &target, const Identifier &column)
 {
-    return ObjectRelation(RELATION_REFERS_TO, target);
+    return ObjectRelation(RELATION_REFERS_TO, target, column);
 }
 
-ObjectRelation ObjectRelation::templatized(const Identifier &target)
+ObjectRelation ObjectRelation::templatized(const Identifier &target, const Identifier &column)
 {
-    return ObjectRelation(RELATION_TEMPLATIZED, target);
+    return ObjectRelation(RELATION_TEMPLATIZED, target, column);
 }
 
 /** @short Variant visitor that returns the type name of a Deska::Db::Value */

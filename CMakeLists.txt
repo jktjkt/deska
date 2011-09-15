@@ -24,7 +24,8 @@ project(deska)
 cmake_minimum_required(VERSION 2.6)
 
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
-add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
+# STL debugging breaks ABI compatibility with virtualy any library that uses STL, hence disabled
+# add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -fdiagnostics-show-option" )
 
@@ -96,6 +97,10 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+set(libDeskaConfig_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
+)
+
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.cpp
@@ -108,7 +113,9 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonHandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonExtraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/CachingJsonApi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/IOSocket.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ProcessIO.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/UnixFdIO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection_p.cpp
 )
@@ -138,6 +145,8 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliCommands.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliCommands_Log.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliCommands_Rebase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/UserInterfaceIO.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ReadlineWrapper.cpp
@@ -155,6 +164,8 @@ set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
+add_library(DeskaConfig SHARED ${libDeskaConfig_SRCS})
+target_link_libraries(DeskaConfig ${DESKA_BOOST_LIBS})
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})

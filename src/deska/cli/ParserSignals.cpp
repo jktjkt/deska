@@ -94,9 +94,8 @@ bool ParserSignalCategoryEntered::confirm(SignalsHandler *signalsHandler) const
     if (signalsHandler->autoCreate) {
         return true;
     } else {
-        signalsHandler->autoCreate = signalsHandler->userInterface->confirmCategoryEntered(signalsContext, kindName, objectName);
+        return signalsHandler->userInterface->confirmCategoryEntered(signalsContext, kindName, objectName, signalsHandler->autoCreate);
     }
-    return signalsHandler->autoCreate;
 }
 
 

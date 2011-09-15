@@ -37,7 +37,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 {
     tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
     tSimpleString %= qi::lexeme[+(ascii::char_ - ('"' | ascii::space))];
-    tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(ascii::alnum | '_') % "->")]];
+    tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(ascii::alnum | '_') % "->") >> -qi::lit("->")]];
     tIdentifierSet %= qi::lit("[") > (tIdentifier % ",") > qi::lit("]");
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
     tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];
@@ -111,7 +111,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();
-    objectIdentifier.name("object identifier (alphanumerical letters and _)");
+    objectIdentifier.name("identifier (alphanumerical letters and _)");
 
     tRevisionId = qi::lexeme["r" >> qi::uint_[qi::_val = qi::_1]];
     tTemporaryChangesetId = qi::lexeme["tmp" >> qi::uint_[qi::_val = qi::_1]];

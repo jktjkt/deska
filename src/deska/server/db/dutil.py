@@ -2,6 +2,7 @@
 
 import Postgres
 import json
+import re
 import generated
 
 class DeskaException(Exception):
@@ -28,8 +29,8 @@ class DeskaException(Exception):
 		self.type = self.getType(self.code)
 		if self.code == '42601':
 			self.message = "Syntax error, something strange happend."
-		if self.code == '42883':
-			self.message = "Either kindName or attribute does not exists."
+		#if self.code == '42883':
+		#	self.message = "Either kindName or attribute does not exists."
 
 	def getType(self,errcode):
 		'''Return DeskaExceptionType for given error code'''
@@ -86,6 +87,8 @@ def mystr(s):
 		return float(s)
 	if type(s) == Postgres.types.bool:
 		return bool(s)
+	if type(s) == Postgres.types.text.Array:
+		return [str(x) for x in list(s)]
 	return str(s)
 
 def fcall(fname,*args):
@@ -329,6 +332,19 @@ class Filter():
 		self.values.extend(newValues)
 		return ret
 
+def collectOriginColumns(columns):
+	'''collect data into small arrays of [origin,value]'''
+	origin = dict()
+	data = dict()
+	for col in columns:
+		if re.match('.*_templ$',col):
+			origin[col[0:len(col)-6]] = columns[col]
+		else:
+			data[col] = columns[col]
+	for col in origin:
+		data[col] = [origin[col],data[col]]
+	return data
+
 def oneKindDiff(kindName,a = None,b = None):
 	with xact():
 		if (a is None) and (b is None):
@@ -338,6 +354,51 @@ def oneKindDiff(kindName,a = None,b = None):
 		else:
 			# diff for 2 revisions
 			init = proc(kindName + "_init_diff(bigint,bigint)")
+			#get changeset ids first
+			revision2num = proc("revision2num(text)")
+			a = revision2num(a)
+			b = revision2num(b)
+			init(a,b)
+
+		terminate = proc(kindName + "_terminate_diff()")
+		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
+		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
+
+		res = list()
+		for line in created():
+			obj = dict()
+			obj["command"] = "createObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		for line in setattr(a,b):
+			obj = dict()
+			obj["command"] = "setAttribute"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			obj["attributeName"] = mystr(line[1])
+			obj["oldValue"] = mystr(line[2])
+			obj["newValue"] = mystr(line[3])
+			res.append(obj)
+		for line in deleted():
+			obj = dict()
+			obj["command"] = "deleteObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		terminate()
+	return res
+
+def oneResolvedKindDiff(kindName,a = None,b = None):
+	with xact():
+		if (a is None) and (b is None):
+			# diff for temporaryChangeset
+			init = proc(kindName + "_init_resolved_diff()")
+			init()
+		else:
+			# diff for 2 revisions
+			init = proc(kindName + "_init_resolved_diff(bigint,bigint)")
 			#get changeset ids first
 			revision2num = proc("revision2num(text)")
 			a = revision2num(a)

@@ -3,10 +3,34 @@ try:
 except ImportError:
     import simplejson as json
 
+import sys
+import traceback
 import logging
 
 CMD = "command"
 ERR = "dbException"
+
+def perform_io(db, stdin, stdout):
+	try:
+		line = stdin.readline()
+		logging.debug("read data %s" % line)
+		if not line:
+			raise StopIteration
+		jsn = CommandParser(line)
+		fn = jsn.getfn()
+		args = jsn.getargs()
+		stdout.write(db.run(fn,args) + "\n")
+		stdout.flush()
+	except StopIteration:
+		raise
+	except Exception, e:
+		exc_type, exc_value, exc_traceback = sys.exc_info()
+		jsonErr = { "dbException": "ServerError", "message": repr(
+			traceback.format_exception(exc_type, exc_value, exc_traceback)
+		) }
+		stdout.write(json.dumps(jsonErr) + "\n")
+		stdout.flush()
+		raise
 
 class CommandParser:
 	# dict of commands
@@ -16,7 +40,7 @@ class CommandParser:
 		self.jsn = json.loads(data)
 		# if it does not have CMD, error
 		if CMD not in self.jsn:
-			raise Exception("No CMD in json: " + self.jsn)
+			raise Exception("No CMD in json: %s" % self.jsn)
 
 	def getfn(self):
 		cmd = self.jsn[CMD]

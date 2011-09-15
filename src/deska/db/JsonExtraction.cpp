@@ -421,20 +421,22 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
     JsonHandler h;
     std::string relationKind;
     std::string target;
+    std::string column;
     h.read("relation").extract(&relationKind);
     h.read("target").extract(&target);
+    h.read("column").extract(&column);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
 
     // Now process the actual data
     if (relationKind == "EMBED_INTO") {
-        return ObjectRelation::embedInto(target);
+        return ObjectRelation::embedInto(target, column);
     } else if (relationKind == "MERGE_WITH") {
-        return ObjectRelation::mergeWith(target);
+        return ObjectRelation::mergeWith(target, column);
     } else if (relationKind == "REFERS_TO") {
-        return ObjectRelation::refersTo(target);
+        return ObjectRelation::refersTo(target, column);
     } else if (relationKind == "TEMPLATIZED") {
-        return ObjectRelation::templatized(target);
+        return ObjectRelation::templatized(target, column);
     } else {
         std::ostringstream s;
         s << "Invalid relation kind '" << relationKind << "'";
@@ -727,6 +729,7 @@ void JsonConversionTraits<RemoteDbError>::extract(const json_spirit::Value &v)
         else DESKA_CATCH_REMOTE_EXCEPTION(ObsoleteParentError)
         else DESKA_CATCH_REMOTE_EXCEPTION(NotASetError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ChangesetLockingError)
+        else DESKA_CATCH_REMOTE_EXCEPTION(CfgGeneratingError)
         else DESKA_CATCH_REMOTE_EXCEPTION(SqlError)
         else DESKA_CATCH_REMOTE_EXCEPTION(ServerError)
         else {

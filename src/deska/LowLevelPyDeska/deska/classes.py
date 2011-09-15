@@ -15,7 +15,10 @@ def _map_to_class_with_values(d):
     """Convert a map<string, Value> into a class with native Python data"""
     res = _KindInstanceInResult()
     for x in d:
-        setattr(res, x.key(), _l.DeskaDbValue_2_Py(x.data()))
+        val = _l.DeskaDbValue_2_Py(x.data())
+        if isinstance(val, _l.std_set_std_string):
+            val = [item for item in val]
+        setattr(res, x.key(), val)
     return res
 
 class _Kind(object):
@@ -41,10 +44,12 @@ class _Kind(object):
     def __getitem__(self, condition):
         """Implementation of the filtering"""
         if isinstance(condition, (_l.AttributeExpression,_l.MetadataExpression)):
-            condition = _l.Filter(_l.Expression(condition))
+            condition = _l.OptionalFilter(_l.Filter(_l.Expression(condition)))
         elif isinstance(condition, (_l.Expression, _l.AndFilter, _l.OrFilter)):
-            condition = _l.Filter(condition)
+            condition = _l.OptionalFilter(_l.Filter(condition))
         elif isinstance(condition, _l.Filter):
+            condition = _l.OptionalFilter(condition)
+        elif isinstance(condition, _l.OptionalFilter):
             pass
         else:
             raise TypeError, "Object filtering expects a proper Filter, not %s" % type(condition)
@@ -56,16 +61,21 @@ class _Kind(object):
         ret_map = self.conn.multipleObjectData(self.kind, condition)
         return dict((x.key(), _map_to_class_with_values(x.data())) for x in ret_map)
 
+    def _all(self):
+        """Implement iteration over all items"""
+        return self.__getitem__(_l.OptionalFilter())
+
 class _AttributePlaceholder(object):
     """Represent an object's attribute in a filter statement"""
 
-    def __init__(self, kind, attribute):
+    def __init__(self, kind, attribute, dataType):
         if not isinstance(kind, str):
             raise TypeError, "kind has to be string, not %s" % type(kind)
         if not isinstance(attribute, str):
             raise TypeError, "attribute has to be string, not %s" % type(attribute)
         self.kind = kind
         self.attribute = attribute
+        self.dataType = dataType
 
     def __repr__(self):
         return "%s(%s.%s)" % (self.__class__, self.kind, self.attribute)
@@ -94,18 +104,33 @@ class _AttributePlaceholder(object):
     def __ge__(self, other):
         return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_GE)
 
+    def __contains__(self, other):
+        if self.dataType != _l.AttributeType.IDENTIFIER_SET:
+            raise TypeError, "Column %s is not iterable" % self.name
+        else:
+            # __contains__ shall return boolean, or at least something directly convertible to boolean.
+            # This is unusable here, because we try hard to postpone the decision to the DB side of the wire.
+            # I guess that's the similar reason to why the SQL Alchemy also use their own methods here.
+            raise NotImplementedError, "Sorry, Python doesn't fully support __contains__ overrides. Use contains() instead and see source for details."
+
+    def contains(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_CONTAINS)
+
+    def notContains(self, other):
+        return self._operatorHelper(other, _l.ComparisonOperator.COLUMN_NOT_CONTAINS)
+
 
 def _discoverScheme(conn, target=None):
     for kind in conn.kindNames():
         # Create a placeholder object at the kind level; this will contain all attributes
         kindInstance = _Kind(kind, conn)
         for attr in conn.kindAttributes(kind):
-            if attr == "name":
+            if attr.name == "name":
                 raise KeyError, "The DB scheme claims that there's a 'name' attribute. That attribute is a special one and should not be returned by DBAPI."
             # create our attribute placeholders
             setattr(kindInstance, attr.name,
-                    _AttributePlaceholder(kind, attr.name))
-        kindInstance.name = _AttributePlaceholder(kind, "name")
+                    _AttributePlaceholder(kind, attr.name, attr.type))
+        kindInstance.name = _AttributePlaceholder(kind, "name", _l.AttributeType.IDENTIFIER)
         # and register the completed object
         if target is not None:
             target[kind] = kindInstance

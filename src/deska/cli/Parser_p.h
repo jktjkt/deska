@@ -322,6 +322,8 @@ private:
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
     /** Map of kinds and vector of kinds, that are merged with the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
+    /** Map of kinds and that are refferring to another kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > refersTo;
 
     /** The parser context is held there. */
     ContextStack contextStack;

@@ -32,6 +32,7 @@ BEGIN;
 \i jsonVersioning.sql
 \i jsonFunctions.sql
 \i jsonData.sql
+\i jsonMultipleData.sql
 
 \i fn-refs-set.sql
 

@@ -50,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
     expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\"}], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
+    expectRead("{\"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\", \"column\": \"name_of_a\"}], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
     delete j;
@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 
     // Now, let's check the relations. And start with checking "b" just for fun:
     vector<ObjectRelation> expectedRelations;
-    expectedRelations.push_back(ObjectRelation::templatized("a"));
+    expectedRelations.push_back(ObjectRelation::templatized("a", "name_of_a"));
     vector<ObjectRelation> resRelations = j->kindRelations("b");
     BOOST_CHECK_EQUAL_COLLECTIONS(resRelations.begin(), resRelations.end(), expectedRelations.begin(), expectedRelations.end());
 

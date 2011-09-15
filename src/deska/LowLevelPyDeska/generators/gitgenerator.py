@@ -8,6 +8,12 @@ import git
 
 GIT_NEW_WORKDIR=os.path.join(os.path.dirname(__file__), "git-new-workdir")
 
+class CommandExecutor(object):
+    def executeScript(self, command, workdir):
+        # now just abuse all the infrastructure around the git wrapper to
+        # execute the command
+        git.Git(workdir).execute([command])
+
 class GitGenerator(object):
     '''Encapsulate access to the git repository'''
 
@@ -38,13 +44,13 @@ class GitGenerator(object):
         self.git.add("-A")
         return self.git.diff("--color", "--staged")
 
-    def save(self, message):
+    def apiSave(self, message):
         '''Commit and push the changes into a persistent location'''
         self.git.add("-A")
         self.git.commit("-m", message)
         self.git.push()
 
-    def generate(self):
+    def generate(self, executor):
         '''Actually run the config generators'''
 
         runAnything = False
@@ -60,27 +66,25 @@ class GitGenerator(object):
                 # Ignore scripts without an exectuable bit. This is on purpose,
                 # so that we can safely ignore a README etc.
                 continue
-            # now just abuse all the infrastructure around the git wrapper to
-            # execute the command
-            git.Git(self.workdir).execute([path])
+            executor.executeScript(path, self.workdir)
             runAnything = True
 
         if not runAnything:
             raise RuntimeError, "No executable scripts found in %s" % self.scriptdir
 
-    def apiConfigDiff(self, changesetIsFresh):
+    def completeConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''
         if not changesetIsFresh:
             self.openRepo()
-            self.generate()
+            self.generate(CommandExecutor())
         return self.diff()
 
-    def apiSave(self, changesetIsFresh, message):
+    def completeSave(self, changesetIsFresh, message):
         '''Push the new output to the repository, regenerating stuff if needed'''
         if not changesetIsFresh:
             self.openRepo()
-            self.generate()
-        self.save(message)
+            self.generate(CommandExecutor())
+        self.apiSave(message)
 
 if __name__ == "__main__":
     import sys
@@ -88,13 +92,13 @@ if __name__ == "__main__":
     offset = 4
     while offset < len(sys.argv):
         if sys.argv[offset] == "diff-fresh":
-            print g.apiConfigDiff(True)
+            print g.completeConfigDiff(True)
         elif sys.argv[offset] == "diff-nonfresh":
-            print g.apiConfigDiff(False)
+            print g.completeConfigDiff(False)
         elif sys.argv[offset] == "save-fresh":
-            print g.apiSave(True, str(offset))
+            print g.completeSave(True, str(offset))
         elif sys.argv[offset] == "save-nonfresh":
-            print g.apiSave(False, str(offset))
+            print g.completeSave(False, str(offset))
         else:
             raise ValueError, "Unsupported operator %s" % sys.argv[offset]
         offset += 1

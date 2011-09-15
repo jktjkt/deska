@@ -82,6 +82,7 @@ Readline::Readline(const std::string &historyStorageFileName, const size_t maxHi
     using_history();
     loadHistory(historyFileName);
     rl_attempted_completion_function = generateCompletions;
+    rl_basic_word_break_characters = " \n\t";
     CompletionHelper::getInstance()->setUserCompleter(customCompleter);
 }
 
@@ -188,8 +189,7 @@ char **CompletionHelper::hGenerateCompletions(const char *text, int start, int e
     lineTokens = tokenize(preInput);
     bool runGenerator = false;
     for (std::vector<std::vector<std::string> >::const_iterator it = lineCompletions.begin();
-         it != lineCompletions.end(); ++it)
-    {
+         it != lineCompletions.end(); ++it) {
         if ((!tokensEqual(*it, lineTokens)) || (it->size() <= lineTokens.size()))
             continue;
         runGenerator = true;

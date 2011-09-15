@@ -2,6 +2,11 @@
 
 cd `dirname $0`
 
+if [[ x"$1" == "x--with-git" ]]; then
+    export DESKA_WITH_GIT=1
+    shift
+fi
+
 . ./util-config.sh
 
 TESTMODE="${1}"
@@ -42,6 +47,47 @@ else
     echo "Skipping the DB init altogether"
 fi
 
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
+fi
+
+if [[ -n "${DESKA_WITH_GIT}" ]]; then
+    DESKA_CFGGEN_BACKEND=git
+    export DESKA_CFGGEN_BACKEND
+    DESKA_CFGGEN_GIT_REPO=${DESKA_GENERATED_FILES}/cfggen-repo
+    export DESKA_CFGGEN_GIT_REPO
+    DESKA_CFGGEN_GIT_PRIMARY_CLONE=${DESKA_GENERATED_FILES}/cfggen-primary
+    export DESKA_CFGGEN_GIT_PRIMARY_CLONE
+    DESKA_CFGGEN_GIT_WC=${DESKA_GENERATED_FILES}/cfggen-wc
+    export DESKA_CFGGEN_GIT_WC
+    DESKA_CFGGEN_SCRIPTS=${DESKA_GENERATED_FILES}/scripts
+    export DESKA_CFGGEN_SCRIPTS
+    DESKA_CFGGEN_GIT_SECOND=${DESKA_GENERATED_FILES}/second-wd
+    export DESKA_CFGGEN_GIT_SECOND
+
+    # Initialize the master repository which simulates a remote repo
+    git init --bare ${DESKA_CFGGEN_GIT_REPO} || die "git init --bare my_repo failed"
+    # Initialize the "primary clone"; that's the repository from which we create extra WCs
+    git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} || die "git clone my_repo my_primary_clone failed"
+    # Got to start the master branch now, or git-new-workdir will break
+    pushd ${DESKA_CFGGEN_GIT_PRIMARY_CLONE}
+    echo "This is a repo of the resulting configuration" > README
+    git add README || die "git add README failed"
+    git commit -m "Initial commit" || die "git commit failed"
+    git push origin master || die "git push origin master failed"
+    popd
+
+    # Prepare (empty) generating scripts
+    mkdir "${DESKA_CFGGEN_SCRIPTS}"
+
+    # Prepare the root for the working directories (one per changeset)
+    mkdir "${DESKA_CFGGEN_GIT_WC}"
+fi
+
+export DESKA_SOURCES
+
 case "${TESTMODE}" in
     sql)
         if [[ ! -f $TESTCASE ]]; then
@@ -53,7 +99,6 @@ case "${TESTMODE}" in
     dbapi)
         export DESKA_USER
         export DESKA_DB
-        export DESKA_SOURCES
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
             $TESTCASE || die "Test"
         ;;
