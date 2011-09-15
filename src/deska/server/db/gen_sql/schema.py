@@ -135,7 +135,7 @@ CREATE FUNCTION commit_all(message text)
 		# print this to add proc into genproc schema
 		self.table_sql.write("SET search_path TO history,deska,versioning,production;\n")
 		self.fn_sql.write("\\i create_schemas_2.sql\n")
-		self.fn_sql.write("SET search_path TO genproc,history,deska,versioning,production;\n")
+		self.fn_sql.write("SET search_path TO genproc,innertabs,history,deska,versioning,production;\n")
 
 		for tbl in self.tables:
 			self.gen_for_table(tbl)

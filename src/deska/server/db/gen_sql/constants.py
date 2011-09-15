@@ -1195,33 +1195,6 @@ LANGUAGE plpgsql;
 
 '''
 
-#template for function that prepairs temp table for diff functions
-	diff_init_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_%(ref_tbl)s_init_diff(from_version bigint, to_version bigint)
-	RETURNS void
-	AS
-	$$
-	BEGIN
-		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
-
-#template for function that prepairs temp table for diff functions
-	diff_changeset_init_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_%(ref_tbl)s_init_diff()
-	RETURNS void
-	AS
-	$$
-	BEGIN
-		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
 
 #template for function that prepairs temp table for diff functions from resolved_data
 	diff_init_resolved_function_string = '''CREATE FUNCTION %(tbl)s_init_resolved_diff(from_version bigint, to_version bigint)

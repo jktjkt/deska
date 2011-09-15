@@ -248,20 +248,17 @@ class Table(constants.Templates):
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		
-		inner_init_diff_str = "PERFORM %(tbl)s_%(ref_tbl)s_init_diff(from_version, to_version);"
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_functions = ""
-		inner_init_diff_current_changeset_str = "PERFORM %(tbl)s_%(ref_tbl)s_init_diff();"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();"
 		inner_init_diff_current_changeset = ""
 		for reftbl in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
-			inner_init_diff_functions = inner_init_diff_functions + self.diff_init_refuid_set_string % {'tbl': self.name,'ref_tbl': reftbl} + self.diff_changeset_init_refuid_set_string % {'tbl': self.name,'ref_tbl': reftbl}
 			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
 			#contains perform tbl_reftbl_init_diff();
 			inner_init_diff_current_changeset = inner_init_diff_current_changeset + inner_init_diff_current_changeset_str % {'tbl': self.name, 'ref_tbl': reftbl}
 		
-		return  inner_init_diff_functions + \
-				self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
+		return  self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
 				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff_current_changeset}
 
 	#generates function terminate_diff which is oposite of init_diff
