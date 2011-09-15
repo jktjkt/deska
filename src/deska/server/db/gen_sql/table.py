@@ -166,7 +166,7 @@ class Table(constants.Templates):
 			if col in collist:
 				pos = attributes.index(col)
 				if col in self.refers_to_set:
-					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid) AS %(col)s" % \
+					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid, from_version) AS %(col)s" % \
 						{'tbl': self.name, 'col': col, 'refuid': self.refuid_columns[col]}
 				else:
 					attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
@@ -248,20 +248,17 @@ class Table(constants.Templates):
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		
-		inner_init_diff_str = "PERFORM %(tbl)s_%(ref_tbl)s_init_diff(from_version, to_version);"
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_functions = ""
-		inner_init_diff_current_changeset_str = "PERFORM %(tbl)s_%(ref_tbl)s_init_diff();"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();"
 		inner_init_diff_current_changeset = ""
 		for reftbl in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
-			inner_init_diff_functions = inner_init_diff_functions + self.diff_init_refuid_set_string % {'tbl': self.name,'ref_tbl': reftbl} + self.diff_changeset_init_refuid_set_string % {'tbl': self.name,'ref_tbl': reftbl}
 			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
 			#contains perform tbl_reftbl_init_diff();
 			inner_init_diff_current_changeset = inner_init_diff_current_changeset + inner_init_diff_current_changeset_str % {'tbl': self.name, 'ref_tbl': reftbl}
 		
-		return  inner_init_diff_functions + \
-				self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
+		return  self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
 				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff_current_changeset}
 
 	#generates function terminate_diff which is oposite of init_diff
@@ -425,8 +422,8 @@ class Table(constants.Templates):
 		#table which is thatone embed into
 		resolved_object_data_string = self.resolved_object_data_string
 		resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
-		
-		if self.embed_into <> "" or len(self.merge_with) > 0:
+		multiple_collist_id_set_list = cols_ex_template_dict.keys()
+		if self.embed_into <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
 				if col == self.embed_into or col in self.merge_with:
@@ -437,7 +434,7 @@ class Table(constants.Templates):
 							"COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))
 					else:
 						multiple_rd_dv_coalesce_list.append(
-							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
+							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
 			if self.embed_into <> "":
 				resolved_object_data_string = self.resolved_object_data_embed_string
 				resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
@@ -460,7 +457,7 @@ class Table(constants.Templates):
 			if col in self.merge_with:
 				templated_rddv_collist.append("rd." + col)
 			elif col in self.refers_to_set:
-				templated_rddv_collist.append("%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
+				templated_rddv_collist.append("%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
 			else:
 				templated_rddv_collist.append("COALESCE(rd.%s,dv.%s) AS %s" % (col,col,col))
 		if len(templated_rddv_collist) > 0:
@@ -474,8 +471,10 @@ class Table(constants.Templates):
 			if col in collist:
 				pos = collist.index(col)
 				if col in self.refers_to_set:
-					collist_id_set_list[pos] = "%s_get_%s(uid) AS %s" % (self.name, col, col)
-					collist_id_set_res_names_list[pos] = "%s_get_%s(uid) AS %s" % (self.name, col, col)
+					collist_id_set_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					collist_id_set_res_names_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					mpos = multiple_collist_id_set_list.index(col)
+					multiple_collist_id_set_list[mpos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
 					cols_ex_template_dict[col] = "text[]"
 				else:
 					cols_ex_template_dict[col] = "text"
@@ -488,7 +487,9 @@ class Table(constants.Templates):
 		collist_id_set = ",".join(collist_id_set_list)
 		#for refuid columns contains get_name, for id_set contains tbl_get_"id_set_att"(uid)
 		collist_id_set_res_names = ",".join(collist_id_set_res_names_list)
-
+		#for multiple data we need even names of objetcs into which listed objects are embed into
+		multiple_collist_id_set = ",".join(multiple_collist_id_set_list)
+		
 		ticols = ',\n'.join(["%s %s" % (k, v) for (k, v) in zip(cols_ex_template_dict.keys(), cols_ex_template_dict.values())])
 		templ_cols = ',\n'.join(["%s_templ %s" % (k, d) for (k, d) in zip(cols_ex_template_dict.keys(), ['text']*len(cols_ex_template_dict))])
 		case_col_string = '''
@@ -525,7 +526,7 @@ class Table(constants.Templates):
 		resolve_object_data_template_info = resolved_object_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': cols, 'rd_dv_coalesce': rddvcoal, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'data_columns': dticols, 'template_column': templ_col}
 		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		multiple_data_type = self.multiple_resolved_data_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'template_column': templ_col}
-		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': collist_id_set}
+		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': multiple_collist_id_set}
 		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 
 
@@ -563,7 +564,6 @@ class Table(constants.Templates):
 			rd_dv_coal = ',\n'.join(["COALESCE(rd.%s,dv.%s) AS %s" % (x, x, x) for x in collist])
 
 		columns = ','.join(collist)
-
 		att_name_type = list()
 		for col in collist:
 			att_name_type.append("%s %s" % (col, self.col[col]))
@@ -590,7 +590,12 @@ class Table(constants.Templates):
 		This function is called only for tables that are templated and have column that refers to set of identifiers (has column template and column of type identifier set, that refers to some table).
 		Generated functions work like coalsce, have parameters array of text and uid of template object. First not null object or null is returned. If array is null, than array for template object is generated.
 		"""
+		if self.name.endswith("_template"):
+			templ_table = self.name
+		else:
+			templ_table = self.name + "_template"
+		
 		refs_set_coal_fns = ""
 		for col in self.refers_to_set:
-			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, 'reftbl': col}
+			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": templ_table, 'reftbl': col}
 		return refs_set_coal_fns

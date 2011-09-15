@@ -64,6 +64,13 @@ select host_template_set_service('host_templ3',array['ftp']);
 select host_set_template_host('hpv3','host_templ3');
 select commitchangeset('9');
 
+select startchangeset();
+select host_set_service_remove('hpv8', 'www');
+--select host_resolved_object_data('hpv8');
+--select host_get_data('hpv8');
+--select 
+select commitchangeset('10');
+
 
 select host_resolved_data();
 select host_template_resolved_data();

@@ -327,14 +327,12 @@ class Templates:
 
 	# template string for set functions for columns that reference set of identifiers
 	get_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_get_%(colname)s(IN obj_uid bigint)
+	%(tbl)s_get_%(colname)s(IN obj_uid bigint, from_version bigint = 0)
 	RETURNS text[]
 	AS
 	$$
-	DECLARE
-		ver bigint;
 	BEGIN
-		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid);
+		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid, from_version);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -972,8 +970,8 @@ LANGUAGE plpgsql;
 	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid);
-		result.newdata = inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid);
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid));
 		RETURN NEXT result;
 	END IF;
 
@@ -1197,33 +1195,6 @@ LANGUAGE plpgsql;
 
 '''
 
-#template for function that prepairs temp table for diff functions
-	diff_init_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_%(ref_tbl)s_init_diff(from_version bigint, to_version bigint)
-	RETURNS void
-	AS
-	$$
-	BEGIN
-		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
-
-#template for function that prepairs temp table for diff functions
-	diff_changeset_init_refuid_set_string = '''CREATE FUNCTION
-	%(tbl)s_%(ref_tbl)s_init_diff()
-	RETURNS void
-	AS
-	$$
-	BEGIN
-		PERFORM genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();
-	END
-	$$
-	LANGUAGE plpgsql SECURITY DEFINER;
-
-'''
 
 #template for function that prepairs temp table for diff functions from resolved_data
 	diff_init_resolved_function_string = '''CREATE FUNCTION %(tbl)s_init_resolved_diff(from_version bigint, to_version bigint)
@@ -1576,7 +1547,7 @@ LANGUAGE plpgsql;
 '''
 
 	ref_set_coal_string = '''--id is id of base table which is templated and refers to the set
-CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint)
+CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
 RETURNS text[]
 AS
 $$
@@ -1586,7 +1557,7 @@ BEGIN
 		RETURN old_array;
 	END IF;
 
-	RETURN deska.ret_id_set(%(tbl)s_template_get_%(reftbl)s(new_obj_id));
+	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id, from_version);
 END;
 $$
 LANGUAGE plpgsql;
