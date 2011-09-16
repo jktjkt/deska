@@ -271,7 +271,7 @@ BEGIN
 				JOIN pg_class AS class1 ON (constr.conrelid = class1.oid)
 				--join with referenced TABLE
 				JOIN pg_class AS class2 ON (constr.confrelid = class2.oid)
-			WHERE contype='f' AND class1.relname = 'host';
+			WHERE contype='f' AND class1.relname = kindname;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
