@@ -30,23 +30,7 @@ namespace Cli {
 
 
 
-CliConfig *CliConfig::getInstance()
-{
-    static CliConfig inst(0);
-    return &inst;
-}
-
-
-
-template <typename T>
-T CliConfig::getVar(const std::string &name)
-{
-    return configVars[name].as<T>();
-}
-
-
-
-CliConfig::CliConfig(int _x): x(_x)
+CliConfig::CliConfig(const std::string configFile, int argc, char **argv)
 {
     namespace po = boost::program_options;
 
@@ -57,14 +41,18 @@ CliConfig::CliConfig(int _x): x(_x)
         ("DBConnection.DB", po::value<std::string>(), "Deska DB to connect to");
 
     std::ifstream configStream("deska.ini");
+    po::store(po::parse_command_line(argc, argv, options), configVars);
     po::store(po::parse_config_file(configStream, options), configVars);
 }
 
 
 
-CliConfig::~CliConfig()
+template <typename T>
+T CliConfig::getVar(const std::string &name)
 {
+    return configVars[name].as<T>();
 }
+
 
 
 }

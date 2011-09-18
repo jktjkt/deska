@@ -31,18 +31,18 @@ namespace Deska {
 namespace Cli {
 
 
-/** @short Singleton for storing, parsing and obtaining program configuration variables.
-*
-*   All variables are parsed from file "deska.ini".
-*/
+/** @short Class for storing, parsing and obtaining program configuration variables. */
 class CliConfig
 {
 public:
-    /** @short Gets an instance of the singleton.
+
+    /** @short Constructor loads configuration from command line and configuration file.
     *
-    *   @return An instance of the singleton.
+    *   @param configFile Name of file with configuration
+    *   @param argc Number of parameters from the command line
+    *   @param argv Parameters from the command line
     */
-    static CliConfig *getInstance();
+    CliConfig(const std::string configFile, int argc, char **argv);
 
     /** @short Function for obtaining values loaded from config file.
     *
@@ -57,15 +57,8 @@ public:
     T getVar(const std::string &name);
 
 private:
-    CliConfig(int _x);
-    CliConfig(const CliConfig&);
-    CliConfig& operator=(const CliConfig&);
-    ~CliConfig();
-
     /** Map of parsed variables. */
     boost::program_options::variables_map configVars;
-
-    int x;
 };
 
 
