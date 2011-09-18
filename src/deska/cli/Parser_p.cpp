@@ -67,13 +67,13 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
                 isEmbedded = true;
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = itr->target;
-                refersTo[*itk].push_back(itr->target);
+                refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
             }
             if (itr->kind == Db::RELATION_REFERS_TO) {
-                refersTo[*itk].push_back(itr->target);
+                refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
             }
         }
         if (!isEmbedded)
@@ -1108,10 +1108,13 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             // Error have to occur at the end of the line
             if ((realEnd - it->errorPosition()) == 0) {
                 //Check whether the attribute reffers to some kind
-                std::vector<Db::Identifier>::iterator itr = std::find(refersTo[contextStack.back().kind].begin(),
-                    refersTo[contextStack.back().kind].end(), it->context());
+                std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itr;
+                for (itr = refersTo[contextStack.back().kind].begin();
+                     itr != refersTo[contextStack.back().kind].end(); ++itr)
+                         if (itr->first == it->context())
+                             break;
                 if (itr != refersTo[contextStack.back().kind].end()) {
-                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(it->context());
+                    std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
                     }
