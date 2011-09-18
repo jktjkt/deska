@@ -483,6 +483,7 @@ void Dump::operator()(const std::string &params)
                     dumpObjectRecursive(object, 1);
                 }
             }
+            ui->m_dbInteraction->unFreezeView();
         } else {
             std::ofstream ofs(params.c_str());
             if (!ofs) {
