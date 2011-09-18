@@ -332,7 +332,7 @@ class Templates:
 	AS
 	$$
 	BEGIN
-		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid, from_version);
+		RETURN genproc.inner_%(tbl)s_%(refcol)s_multiref_get_set(obj_uid, from_version);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -967,11 +967,11 @@ LANGUAGE plpgsql;
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
 	new_data.uid = COALESCE(new_data.uid, old_data.uid);
-	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
+	IF NOT inner_%(tbl)s_%(refcol)s_multiRef_sets_equal(new_data.uid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid));
-		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid));
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_old_set(new_data.uid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_new_set(new_data.uid));
 		RETURN NEXT result;
 	END IF;
 
@@ -1298,12 +1298,12 @@ LANGUAGE plpgsql;
 '''
 
 	diff_terminate_refuid_set_function_string = '''CREATE FUNCTION
-%(tbl)s_%(ref_tbl)s_terminate_diff()
+%(tbl)s_%(refcol)s_terminate_diff()
 RETURNS void
 AS
 $$
 BEGIN
-	PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_terminate_diff();
+	PERFORM inner_%(tbl)s_%(refcol)s_multiref_terminate_diff();
 END;
 $$
 LANGUAGE plpgsql;
@@ -1547,7 +1547,7 @@ LANGUAGE plpgsql;
 '''
 
 	ref_set_coal_string = '''--id is id of base table which is templated and refers to the set
-CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
+CREATE OR REPLACE FUNCTION %(tbl)s_%(refcol)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
 RETURNS text[]
 AS
 $$
@@ -1557,7 +1557,7 @@ BEGIN
 		RETURN old_array;
 	END IF;
 
-	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id, from_version);
+	RETURN %(tbl_template)s_get_%(refcol)s(new_obj_id, from_version);
 END;
 $$
 LANGUAGE plpgsql;

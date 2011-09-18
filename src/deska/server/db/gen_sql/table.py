@@ -118,15 +118,15 @@ class Table(constants.Templates):
 		
 	def gen_set_refuid_set(self, col_name, reftable):
 		"""Generates set function for columns that contains set of identifiers that references."""
-		return self.set_refuid_set_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
+		return self.set_refuid_set_string % {'tbl': self.name, 'reftbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 		
 	def gen_refuid_set_insert(self, col_name, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_insert_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
+		return self.refuid_set_insert_string % {'tbl': self.name, 'reftbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 
 	def gen_refuid_set_remove(self, col_name, reftable):
 		"""Generates function to insert one item to set of identifiers."""
-		return self.refuid_set_remove_string % {'tbl': self.name, 'ref_tbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
+		return self.refuid_set_remove_string % {'tbl': self.name, 'reftbl': reftable, 'colname': col_name, 'columns': self.get_columns()}
 
 
 	def gen_get_object_data(self):
@@ -160,14 +160,14 @@ class Table(constants.Templates):
 
 		get_identifier_set_fns = ""
 		for col in self.refers_to_set:
-			get_identifier_set_fns = get_identifier_set_fns + self.get_refuid_set_string % {'tbl': self.name, 'colname': col, 'ref_tbl': col}
+			get_identifier_set_fns = get_identifier_set_fns + self.get_refuid_set_string % {'tbl': self.name, 'colname': col, 'refcol': col}
 
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = attributes.index(col)
 				if col in self.refers_to_set:
-					attributes[pos] = "%(tbl)s_get_%(refuid)s(uid, from_version) AS %(col)s" % \
-						{'tbl': self.name, 'col': col, 'refuid': self.refuid_columns[col]}
+					attributes[pos] = "%(tbl)s_get_%(col)s(uid, from_version) AS %(col)s" % \
+						{'tbl': self.name, 'col': col}
 				else:
 					attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
 						{'col': col, 'refuid': self.refuid_columns[col]}
@@ -226,7 +226,7 @@ class Table(constants.Templates):
 		if len(self.refers_to_set) > 0:
 			refs_set_cols_changes = ""
 			for col in self.refers_to_set:
-				refs_set_cols_changes = refs_set_cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'reftbl': tbl, 'column': col}
+				refs_set_cols_changes = refs_set_cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'refcol': col, 'column': col}
 			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string}            
 
 		#for all remaining columns we generate if clause to find possible changes
@@ -248,15 +248,15 @@ class Table(constants.Templates):
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		
-		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff(from_version, to_version);"
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_init_diff();"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff();"
 		inner_init_diff_current_changeset = ""
-		for reftbl in self.refers_to_set:
+		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
-			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
+			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'refcol': col}
 			#contains perform tbl_reftbl_init_diff();
-			inner_init_diff_current_changeset = inner_init_diff_current_changeset + inner_init_diff_current_changeset_str % {'tbl': self.name, 'ref_tbl': reftbl}
+			inner_init_diff_current_changeset = inner_init_diff_current_changeset + inner_init_diff_current_changeset_str % {'tbl': self.name, 'refcol': col}
 		
 		return  self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
 				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff_current_changeset}
@@ -268,11 +268,11 @@ class Table(constants.Templates):
 		Terminate_diff is oposite of init_diff."""
 		
 		inner_terminate_diff = ""
-		inner_terminate_diff_str = "PERFORM %(tbl)s_%(ref_tbl)s_terminate_diff();"
+		inner_terminate_diff_str = "PERFORM %(tbl)s_%(refcol)s_terminate_diff();"
 		inner_diff_terminate_fn = ""
-		for reftbl in self.refers_to_set:
-			inner_diff_terminate_fn = inner_diff_terminate_fn + self.diff_terminate_refuid_set_function_string % {'tbl': self.name, 'ref_tbl': reftbl}
-			inner_terminate_diff = inner_terminate_diff + inner_terminate_diff_str % {'tbl': self.name, 'ref_tbl': reftbl}
+		for col in self.refuid_columns:
+			inner_diff_terminate_fn = inner_diff_terminate_fn + self.diff_terminate_refuid_set_function_string % {'tbl': self.name, 'refcol': col}
+			inner_terminate_diff = inner_terminate_diff + inner_terminate_diff_str % {'tbl': self.name, 'refcol': col}
 		
 		return inner_diff_terminate_fn + self.diff_terminate_function_string % {'tbl': self.name, 'inner_temrinate_diff': inner_terminate_diff}
 
@@ -597,5 +597,5 @@ class Table(constants.Templates):
 		
 		refs_set_coal_fns = ""
 		for col in self.refers_to_set:
-			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": templ_table, 'reftbl': col}
+			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": templ_table, 'refcol': col}
 		return refs_set_coal_fns
