@@ -60,7 +60,7 @@ macro(deska_cli_test fname)
     # from regular boost::test usage
     set(test_cli_${fname}_SRCS test_cli_${fname}.cpp)
     add_executable(test_cli_${fname} ${test_cli_${fname}_SRCS})
-    target_link_libraries(test_cli_${fname} ParserTestHelpers CliTestHelpers)
+    target_link_libraries(test_cli_${fname} CliTestHelpers)
     add_test(test_cli_${fname}
         ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
         run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
@@ -78,8 +78,11 @@ set(CliTestHelpers_SRCS
 )
 
 add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
-add_library(CliTestHelpers ${CliTestHelpers_SRCS})
 target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
+
+add_library(CliTestHelpers ${CliTestHelpers_SRCS})
+target_link_libraries(CliTestHelpers DeskaCli DeskaCliParser DeskaCliParserSupport DeskaDb)
+
 
 deska_test(parser_mock_objects)
 deska_test(mock_streambuf)

@@ -120,11 +120,13 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection_p.cpp
 )
 
-set(libDeskaCliParser_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ContextStack.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliObjects.cpp
+set(libDeskaCliParserSupport_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/PredefinedRules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/InfoExtractor.cpp
+)
+
+set(libDeskaCliParser_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ContextStack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_AttributeRemovalsParser.cpp
@@ -142,6 +144,10 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_TopLevelParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
+)
+
+set(libDeskaCli_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliObjects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliCommands.cpp
@@ -153,7 +159,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ChildProcess.cpp
 )
 
-set(deskaCli_SRCS
+set(deskaCliApp_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
 )
 
@@ -164,14 +170,23 @@ set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
+add_library(DeskaCliParserSupport SHARED ${libDeskaCliParserSupport_SRCS})
+target_link_libraries(DeskaCliParserSupport ${DESKA_BOOST_LIBS})
+
 add_library(DeskaConfig SHARED ${libDeskaConfig_SRCS})
 target_link_libraries(DeskaConfig ${DESKA_BOOST_LIBS})
+
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
-add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 
-add_executable(deska-cli ${deskaCli_SRCS})
-target_link_libraries(deska-cli DeskaCliParser DeskaDb ${READLINE_LIBRARY})
+add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
+target_link_libraries(DeskaCliParser DeskaCliParserSupport)
+
+add_library(DeskaCli ${libDeskaCli_SRCS})
+target_link_libraries(DeskaCli DeskaCliParser DeskaCliParserSupport DeskaDb DeskaConfig ${READLINE_LIBRARY})
+
+add_executable(deska-cli ${deskaCliApp_SRCS})
+target_link_libraries(deska-cli DeskaCli)
 
 add_library(LowLevelPyDeska SHARED ${libLowLevelPyDeska_SRCS})
 target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
