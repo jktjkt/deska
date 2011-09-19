@@ -42,7 +42,7 @@ public:
     *   @param argc Number of parameters from the command line
     *   @param argv Parameters from the command line
     */
-    CliConfig(const std::string configFile, int argc, char **argv);
+    CliConfig(const std::string &configFile, int argc, char **argv);
 
     /** @short Function for obtaining values loaded from config file.
     *

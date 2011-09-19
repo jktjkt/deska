@@ -30,7 +30,7 @@ namespace Cli {
 
 
 
-CliConfig::CliConfig(const std::string configFile, int argc, char **argv)
+CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
 {
     namespace po = boost::program_options;
 
