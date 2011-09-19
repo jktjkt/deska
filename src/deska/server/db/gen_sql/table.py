@@ -270,7 +270,7 @@ class Table(constants.Templates):
 		inner_terminate_diff = ""
 		inner_terminate_diff_str = "PERFORM %(tbl)s_%(refcol)s_terminate_diff();"
 		inner_diff_terminate_fn = ""
-		for col in self.refuid_columns:
+		for col in self.refers_to_set:
 			inner_diff_terminate_fn = inner_diff_terminate_fn + self.diff_terminate_refuid_set_function_string % {'tbl': self.name, 'refcol': col}
 			inner_terminate_diff = inner_terminate_diff + inner_terminate_diff_str % {'tbl': self.name, 'refcol': col}
 		
@@ -407,9 +407,6 @@ class Table(constants.Templates):
 		#list of columns of given kind
 		collist = cols_ex_template_dict.keys()
 
-		data_attributes = ['data.%s' % col for col in collist]
-		dcols = ','.join(data_attributes) + ',' + 'data.template'
-
 		#table tbl is templated by table tbl_template
 		#table tbl_template is templated by tbl_template
 		if self.name.endswith("_template"):
@@ -434,7 +431,7 @@ class Table(constants.Templates):
 							"COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))
 					else:
 						multiple_rd_dv_coalesce_list.append(
-							"%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": templ_table, "reftbl": col})
+							"%(tbl)s_%(refcol)s_ref_set_coal(rd.%(refcol)s,dv.uid,from_version) AS %(refcol)s" % {"tbl": templ_table, "refcol": col})
 			if self.embed_column <> "":
 				resolved_object_data_string = self.resolved_object_data_embed_string
 				resolved_object_data_template_info_string = self.resolved_object_data_template_info_embed_string
@@ -457,7 +454,7 @@ class Table(constants.Templates):
 			if col in self.merge_with:
 				templated_rddv_collist.append("rd." + col)
 			elif col in self.refers_to_set:
-				templated_rddv_collist.append("%(tbl)s_%(reftbl)s_ref_set_coal(rd.%(reftbl)s,dv.uid,from_version) AS %(reftbl)s" % {"tbl": self.name, "reftbl": col})
+				templated_rddv_collist.append("%(tbl)s_%(refcol)s_ref_set_coal(rd.%(refcol)s,dv.uid,from_version) AS %(refcol)s" % {"tbl": self.name, "refcol": col})
 			else:
 				templated_rddv_collist.append("COALESCE(rd.%s,dv.%s) AS %s" % (col,col,col))
 		if len(templated_rddv_collist) > 0:
@@ -478,8 +475,9 @@ class Table(constants.Templates):
 					cols_ex_template_dict[col] = "text[]"
 				else:
 					cols_ex_template_dict[col] = "text"
-					collist[pos] = "%s_get_name(%s) AS %s" % (col, col, col)
-					collist_id_set_res_names_list[pos] = "%s_get_name(%s) AS %s" % (col, col, col)
+					reftable = self.refuid_columns[col]
+					collist[pos] = "%s_get_name(%s) AS %s" % (reftable, col, col)
+					collist_id_set_res_names_list[pos] = "%s_get_name(%s) AS %s" % (reftable, col, col)
 
 		#for refuid columns contains get_name
 		cols_ex_templ = ",".join(collist)
