@@ -318,6 +318,8 @@ private:
     std::vector<Db::Identifier> allKinds;
     /** Map of kind names and kinds, where is the kind embedded. */
     std::map<Db::Identifier, Db::Identifier> embeddedInto;
+    /** Map of kind names and kinds, where is the kind embedded including merged kinds. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > embeddedIntoInclMerge;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
     /** Map of kinds and vector of kinds, that are merged with the kind. */

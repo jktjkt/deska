@@ -247,7 +247,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_simple_string_inline, ParserTestFixture)
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("hardware", "id", Deska::Db::Value(1243));
     expectSetAttr("hardware", "hardware_name", Deska::Db::Value("jmeno"));
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -283,7 +283,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_first_attr_name_inline, ParserTestFixture)
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -383,13 +383,25 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFix
 /** @short Embedding incompatible types after a paren't attribute */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFixture)
 {
+    /*
     const std::string line = "hardware abcde id 123 interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("hardware", "id", Deska::Db::Value(123));
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
+    expectNothingElse();
+    verifyEmptyStack();
+    */
+    parser->parseLine("hardware abcde id 123 interface eth0\n");
+    expectParsingStarted();
+    expectCategoryEntered("hardware", "abcde");
+    expectSetAttr("hardware", "id", Deska::Db::Value(123));
+    expectCategoryEntered("interface", "eth0");
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectParsingFinished();
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -397,14 +409,23 @@ BOOST_FIXTURE_TEST_CASE(embed_incompatible_types_with_attr_inline, ParserTestFix
 /** @short Embedding incompatible types immediately after paren't definition */
 BOOST_FIXTURE_TEST_CASE(embed_incompatible_immediately_inline, ParserTestFixture)
 {
+    /*
     const std::string line = "hardware abcde interface eth0";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
+    */
+    parser->parseLine("hardware abcde interface eth0\n");
+    expectParsingStarted();
+    expectCategoryEntered("hardware", "abcde");
+    expectCategoryEntered("interface", "eth0");
+    expectParsingFinished();
+    expectNothingElse();
+    verifyStackTwoLevels("hardware", Deska::Db::Identifier("abcde"), "interface", Deska::Db::Identifier("eth0"));
 }
 
 /** @short An embedded object in an inline form should not cause full rollback to empty state, but stay in the previous context */
@@ -600,7 +621,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixt
     parser->parseLine(line);
     expectParsingStarted();
     expectCategoryEntered("hardware", "foo");
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
     //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -949,11 +970,19 @@ BOOST_FIXTURE_TEST_CASE(error_function_show_param_in_context_no_nested, ParserTe
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("123"));
     
+    /*
     const std::string line = "show interface eth0\n";
     const std::string::const_iterator it = line.begin() + line.find("interface");
     parser->parseLine(line);
     expectParsingStarted();
     expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
+    */
+    const std::string line = "show interface eth0\n";
+    const std::string::const_iterator it = line.begin() + line.find("eth0");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectCategoryEntered("interface", "eth0");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface eth0 does not exist.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("123"));
 }
@@ -969,10 +998,11 @@ BOOST_FIXTURE_TEST_CASE(error_function_delete_param_in_context_no_nested, Parser
     verifyStackOneLevel("hardware", Deska::Db::Identifier("123"));
     
     const std::string line = "show interface eth0\n";
-    const std::string::const_iterator it = line.begin() + line.find("interface");
+    const std::string::const_iterator it = line.begin() + line.find("eth0");
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name of nested object in hardware.", line, it));
+    expectCategoryEntered("interface", "eth0");
+    expectParseError(Deska::Cli::ObjectNotFound("Error while parsing object name. Object interface eth0 does not exist.", line, it));
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("123"));
 }
@@ -1819,6 +1849,21 @@ BOOST_FIXTURE_TEST_CASE(eror_attrs_sets_remove_2, ParserTestFixture)
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
     expectNothingElse();
     verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", Deska::Db::Identifier("eth0"));
+}
+
+/** @short Entering merged kind and setting attribute */
+BOOST_FIXTURE_TEST_CASE(merged_kind_set_attr, ParserTestFixture)
+{
+    parser->parseLine("hardware xx interface eth0 ip 1.1.1.1\n");
+    expectParsingStarted();
+    expectCategoryEntered("hardware", "xx");
+    expectCategoryEntered("interface", "eth0");
+    expectSetAttr("interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("1.1.1.1")));
+    expectCategoryLeft();
+    expectCategoryLeft();
+    expectParsingFinished();
+    expectNothingElse();
+    verifyEmptyStack();
 }
 
 /** @short Construction of new interface */

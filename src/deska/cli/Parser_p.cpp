@@ -80,6 +80,14 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
             topLevelKindsIds.push_back(*itk);
     }
 
+    for (std::map<Db::Identifier, Db::Identifier>::iterator it = embeddedInto.begin(); it != embeddedInto.end(); ++it) {
+        embeddedIntoInclMerge[it->first].push_back(it->second);
+        for (std::vector<Db::Identifier>::iterator itm = mergeWith[it->second].begin();
+             itm != mergeWith[it->second].end(); ++itm) {
+            embeddedIntoInclMerge[it->first].push_back(*itm);
+        }
+    }
+
     // Create attributes parser and filters expressions parser for each kind
     for (std::vector<Db::Identifier>::iterator it = allKinds.begin(); it != allKinds.end(); ++it) {
         attributesSettingParsers[*it] = new AttributesSettingParser<Iterator>(*it, this);
@@ -319,10 +327,20 @@ void ParserImpl<Iterator>::categoryEntered(const Db::Identifier &kind, const Db:
         objects.push_back(std::make_pair<Db::Identifier, Db::Identifier>(emb->second, *it));
     }
     std::map<Db::Identifier, Db::Identifier>::const_iterator emb = embeddedInto.find(objects.back().first);
-    if (emb != embeddedInto.end() && ((contextStack.empty()) || (contextStack.back().kind != emb->second))) {
-        addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
-        parsingSucceededActions = false;
-        return;
+    if (emb != embeddedInto.end()) {
+        if (contextStack.empty()) {
+            addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+            parsingSucceededActions = false;
+            return;
+        } else {
+            std::vector<Db::Identifier>::const_iterator embmerg = find(embeddedIntoInclMerge[objects.back().first].begin(),
+                embeddedIntoInclMerge[objects.back().first].end(), contextStack.back().kind);
+            if (embmerg == embeddedIntoInclMerge[objects.back().first].end()){
+                addParseError(ParseError<Iterator>(kind, name, PARSE_ERROR_TYPE_KIND_NESTING));
+                parsingSucceededActions = false;
+                return;
+            }
+        }
     }
     std::vector<std::pair<Db::Identifier, Db::Identifier> >::reverse_iterator ito;
     for (ito = objects.rbegin(); ito != objects.rend() - 1; ++ito)
@@ -525,11 +543,21 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
                                           KindsFiltersParser<Iterator> *kindsFiltersParser,
                                           KindsConstructParser<Iterator> *kindsConstructParser)
 {
+    // Adding own kinds
     std::vector<Db::Identifier> nestedKinds = parserKindsEmbedsRecursively(kindName);
     for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
         kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
         kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
         kindsConstructParser->addKind(*it);
+    }
+    // Adding kinds from merged kinds
+    for (std::vector<Db::Identifier>::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
+        std::vector<Db::Identifier> nestedKinds = parserKindsEmbedsRecursively(*itm);
+        for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
+            kindsOnlyParser->addKind(*it, predefinedRules->getObjectIdentifier());
+            kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
+            kindsConstructParser->addKind(*it);
+        }
     }
 }
 
@@ -538,9 +566,17 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
 template <typename Iterator>
 void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, FiltersParser<Iterator> *filtersParser)
 {
+    // Adding own kinds
     std::vector<Db::Identifier> nestedKinds = parserKindsEmbeds(kindName);
     for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
         filtersParser->addNestedKindExpressionsParser(*it, filterExpressionsParsers[*it]);
+    }
+    // Adding kinds from merged kinds
+    for (std::vector<Db::Identifier>::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
+        std::vector<Db::Identifier> nestedKinds = parserKindsEmbeds(*itm);
+        for (std::vector<Db::Identifier>::iterator it = nestedKinds.begin(); it != nestedKinds.end(); ++it) {
+            filtersParser->addNestedKindExpressionsParser(*it, filterExpressionsParsers[*it]);
+        }
     }
 }
 
