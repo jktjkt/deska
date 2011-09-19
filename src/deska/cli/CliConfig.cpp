@@ -40,7 +40,7 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
         ("DBConnection.User", po::value<std::string>(), "Deska user")
         ("DBConnection.DB", po::value<std::string>(), "Deska DB to connect to");
 
-    std::ifstream configStream("deska.ini");
+    std::ifstream configStream(configFile.c_str());
     po::store(po::parse_command_line(argc, argv, options), configVars);
     po::store(po::parse_config_file(configStream, options), configVars);
 }
