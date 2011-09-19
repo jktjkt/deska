@@ -33,6 +33,7 @@
 #include "ContextStack.h"
 #include "ChildProcess.h"
 #include "UserInterfaceIO.h"
+#include "CliConfig.h"
 
 
 namespace Deska
@@ -123,11 +124,12 @@ UserInterfaceIO::UserInterfaceIO()
 
 
 
-UserInterfaceIO::UserInterfaceIO(Parser* parser):
-    tabSize(4), promptEnd("> ")
+UserInterfaceIO::UserInterfaceIO(Parser* parser, CliConfig* _config):
+    tabSize(4), promptEnd("> "), config(_config)
 {
     completer = new CliCompleter(parser);
-    reader = new ReadlineWrapper::Readline(".deska_cli_history", 64, completer);
+    reader = new ReadlineWrapper::Readline(config->getVar<std::string>(CLI_HistoryFilename),
+                                           config->getVar<int>(CLI_HistoryLimit), completer);
 }
 
 

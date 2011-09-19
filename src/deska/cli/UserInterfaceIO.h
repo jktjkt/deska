@@ -45,6 +45,9 @@ namespace Cli
 {
 
 
+class CliConfig;
+
+
 /** @brief Custom completions generator */
 class CliCompleter: public ReadlineWrapper::Completer
 {
@@ -109,9 +112,10 @@ public:
     /** @short Constructor initializes input reader and CLI constants.
     *
     *   @param parser Pointer to the parser
+    *   @param _config Pointer to the CliConfig class for configuration parameters parsed from command line and config file
     *   @see Parser
     */
-    UserInterfaceIO(Parser* parser);
+    UserInterfaceIO(Parser* parser, CliConfig* _config);
     
     /** @short Destroys custom completer and line reader. */
     virtual ~UserInterfaceIO();
@@ -359,6 +363,8 @@ private:
     ReadlineWrapper::Readline *reader;
     /** Custom completions generator. */
     CliCompleter *completer;
+    /** Class containing loaded configuration parameters. */
+    CliConfig *config;
 };
 
 
