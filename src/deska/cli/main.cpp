@@ -30,9 +30,12 @@
 #include "UserInterface.h"
 #include "UserInterfaceIO.h"
 #include "Parser.h"
+#include "CliConfig.h"
 
-int main()
+int main(int argc, char **argv)
 {
+    //FIXME
+    //Deska::Cli::CliConfig config("deska.ini", argc, argv);
     Deska::Db::Connection conn;
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
