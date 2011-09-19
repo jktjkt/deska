@@ -55,5 +55,12 @@ T CliConfig::getVar(const std::string &name)
 
 
 
+/////////////////////////Template instances for linker//////////////////////////
+
+template int CliConfig::getVar(const std::string &name);
+
+template std::string CliConfig::getVar(const std::string &name);
+
+
 }
 }
