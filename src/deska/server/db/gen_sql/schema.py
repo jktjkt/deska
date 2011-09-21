@@ -64,9 +64,9 @@ CREATE FUNCTION commit_all(message text)
 		-- should we check constraint before version_commit?
 		--SET CONSTRAINTS ALL IMMEDIATE;
 		SELECT create_version(message) INTO rev;
-		
+
 		SET CONSTRAINTS ALL IMMEDIATE;
-		
+
 		RETURN rev;
 	END
 	$$
@@ -117,7 +117,7 @@ CREATE FUNCTION commit_all(message text)
 		for row in record:
 			self.templates[row[0]] = row[1]
 			self.template_relations[row[1]] = row[0]
-		
+
 
 	# generate sql for all tables
 	def gen_schema(self,filename):
@@ -151,7 +151,7 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.templates:
 			self.refs[tbl] = self.refs[self.templates[tbl]]
-			
+
 
 		# create some python helper functions
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
@@ -222,7 +222,7 @@ CREATE FUNCTION commit_all(message text)
 		table.refuid_columns = dict()
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
-		
+
 		record = self.plpy.execute(self.merge_with_str % tbl)
 		table.merge_with = list()
 		for row in record:
@@ -234,7 +234,7 @@ CREATE FUNCTION commit_all(message text)
 			for row in refuid_rec:
 				if row[0] not in table.refuid_columns:
 					table.refuid_columns[row[0]] = row[1]
-					
+
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 
@@ -254,7 +254,7 @@ CREATE FUNCTION commit_all(message text)
 			elif (col[0] != 'name' and col[0] != 'uid'):
 				self.fn_sql.write(table.gen_set(col[0]))
 			#get uid of that references uid should not return uid but name of according instance
-		
+
 		if table.embed_column <> "":
 			#adding full quolified name with _ delimiter
 			embed_column = table.embed_column
@@ -290,7 +290,7 @@ CREATE FUNCTION commit_all(message text)
 			#tbl is template
 				table.templates = self.templates[tbl]
 			else:
-				table.templates = ""			
+				table.templates = ""
 			self.fn_sql.write(table.gen_resolved_data())
 			self.fn_sql.write(table.gen_resolved_data_diff())
 			self.fn_sql.write(table.gen_commit_templated())
@@ -312,7 +312,7 @@ CREATE FUNCTION commit_all(message text)
 		commit_tables=""
 		for table in self.tables:
 			commit_tables = commit_tables + commit_table_template % {'tbl': table}
-		
+
 		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
 		for table in self.refers_to_set:
 			for reftable in self.refers_to_set[table]:
