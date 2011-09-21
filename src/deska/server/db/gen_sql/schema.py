@@ -187,15 +187,13 @@ CREATE FUNCTION commit_all(message text)
 		constraints = self.plpy.execute(self.pk_str % tbl)
 		for col in constraints[:]:
 			table.add_pk(col[0],col[1])
-			
+
 		record = self.plpy.execute(self.refers_to_set_info_str % {'tbl': tbl})
 		table.refers_to_set = list()
 		if len(record) > 0:
 			for row in record:
 				table.refers_to_set.append(row[0])
 			self.refers_to_set[tbl] = table.refers_to_set
-		print tbl
-		print record
 
 		# add fk constraints
 		fkconstraints = self.plpy.execute(self.fk_str % tbl)
