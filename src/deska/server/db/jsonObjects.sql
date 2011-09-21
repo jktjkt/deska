@@ -77,7 +77,7 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 	if attributeName not in dutil.generated.atts(kindName):
 		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
 
-	fname = kindName+"_set_"+attributeName+"_insert(text,text)"
+	fname = kindName+"_set_"+attributeName+"_insert(identifier,identifier)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
 	except dutil.DeskaException as err:
@@ -106,7 +106,7 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 	if attributeName not in dutil.generated.atts(kindName):
 		return dutil.errorJson(name,tag,"InvalidAttributeError","{0} has no attribute {1}.".format(kindName,attributeName))
 
-	fname = kindName+"_set_"+attributeName+"_remove(text,text)"
+	fname = kindName+"_set_"+attributeName+"_remove(identifier,identifier)"
 	try:
 		dutil.fcall(fname,objectName,attributeData)
 	except dutil.DeskaException as err:
