@@ -124,7 +124,7 @@ class Templates:
 			WHEN unique_violation THEN
 			-- do nothing
 		END;
-		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_set_%(colname)s(name_, value);
+		RETURN genproc.inner_%(tbl)s_%(colname)s_multiref_set_%(colname)s(name_, value);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -132,7 +132,7 @@ class Templates:
 '''
 	#template for generating function to add one item to set of identifiers
 	refuid_set_insert_string = '''CREATE FUNCTION
-	%(tbl)s_set_%(ref_tbl)s_insert(IN name_ text,IN value text)
+	%(tbl)s_set_%(colname)s_insert(IN name_ identifier,IN value identifier)
 	RETURNS integer
 	AS
 	$$
@@ -151,7 +151,7 @@ class Templates:
 		EXCEPTION WHEN unique_violation THEN
 			-- do nothing
 		END;
-		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_insert(name_, value);
+		RETURN genproc.inner_%(tbl)s_set_%(colname)s_insert(name_, value);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -159,7 +159,7 @@ class Templates:
 '''
 	#template for generating function to remove one item from set of identifiers
 	refuid_set_remove_string = '''CREATE FUNCTION
-	%(tbl)s_set_%(ref_tbl)s_remove(IN name_ text,IN value text)
+	%(tbl)s_set_%(colname)s_remove(IN name_ identifier,IN value identifier)
 	RETURNS integer
 	AS
 	$$
@@ -178,7 +178,7 @@ class Templates:
 		EXCEPTION WHEN unique_violation THEN
 			-- do nothing
 		END;
-		RETURN genproc.inner_%(tbl)s_set_%(ref_tbl)s_remove(name_, value);
+		RETURN genproc.inner_%(tbl)s_set_%(colname)s_remove(name_, value);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -332,7 +332,7 @@ class Templates:
 	AS
 	$$
 	BEGIN
-		RETURN genproc.inner_%(tbl)s_%(ref_tbl)s_multiref_get_set(obj_uid, from_version);
+		RETURN genproc.inner_%(tbl)s_%(refcol)s_multiref_get_set(obj_uid, from_version);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -561,12 +561,12 @@ class Templates:
 		--if name is not given then it would be generated
 		--this works only for embed objects
 		IF %(tbl)s_name = '' THEN
-			SELECT COUNT(*) + 1 INTO name_count FROM %(tbl)s_data_version() WHERE %(reftbl)s = %(reftbl)s_uid;
+			SELECT COUNT(*) + 1 INTO name_count FROM %(tbl)s_data_version() WHERE %(column)s = %(reftbl)s_uid;
 			SELECT MIN(generated.num) INTO new_name_num
 			FROM
 				(SELECT name, num FROM deska.num_decorated_name('%(tbl)s',name_count)) generated
 				LEFT OUTER JOIN
-				(SELECT name FROM %(tbl)s_data_version() WHERE %(reftbl)s = %(reftbl)s_uid) tab_name
+				(SELECT name FROM %(tbl)s_data_version() WHERE %(column)s = %(reftbl)s_uid) tab_name
 				ON (generated.name = tab_name.name)
 			WHERE tab_name.name IS NULL;
 			%(tbl)s_name = '%(tbl)s_' || new_name_num;
@@ -574,7 +574,7 @@ class Templates:
 		END IF;
 		
 		SELECT get_current_changeset() INTO ver;
-		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND %(reftbl)s = %(reftbl)s_uid AND name = %(tbl)s_name AND dest_bit = '1';
+		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name AND dest_bit = '1';
 		IF FOUND THEN
 			RAISE EXCEPTION 'object with name %% was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
@@ -967,11 +967,11 @@ LANGUAGE plpgsql;
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
 	new_data.uid = COALESCE(new_data.uid, old_data.uid);
-	IF NOT inner_%(tbl)s_%(reftbl)s_multiRef_sets_equal(new_data.uid) 
+	IF NOT inner_%(tbl)s_%(refcol)s_multiRef_sets_equal(new_data.uid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_old_set(new_data.uid));
-		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(reftbl)s_multiRef_get_new_set(new_data.uid));
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_old_set(new_data.uid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_new_set(new_data.uid));
 		RETURN NEXT result;
 	END IF;
 
@@ -1298,12 +1298,12 @@ LANGUAGE plpgsql;
 '''
 
 	diff_terminate_refuid_set_function_string = '''CREATE FUNCTION
-%(tbl)s_%(ref_tbl)s_terminate_diff()
+%(tbl)s_%(refcol)s_terminate_diff()
 RETURNS void
 AS
 $$
 BEGIN
-	PERFORM inner_%(tbl)s_%(ref_tbl)s_multiref_terminate_diff();
+	PERFORM inner_%(tbl)s_%(refcol)s_multiref_terminate_diff();
 END;
 $$
 LANGUAGE plpgsql;
@@ -1547,7 +1547,7 @@ LANGUAGE plpgsql;
 '''
 
 	ref_set_coal_string = '''--id is id of base table which is templated and refers to the set
-CREATE OR REPLACE FUNCTION %(tbl)s_%(reftbl)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
+CREATE OR REPLACE FUNCTION %(tbl)s_%(refcol)s_ref_set_coal(old_array text[], new_obj_id bigint, from_version bigint = 0)
 RETURNS text[]
 AS
 $$
@@ -1557,7 +1557,7 @@ BEGIN
 		RETURN old_array;
 	END IF;
 
-	RETURN %(tbl_template)s_get_%(reftbl)s(new_obj_id, from_version);
+	RETURN %(tbl_template)s_get_%(refcol)s(new_obj_id, from_version);
 END;
 $$
 LANGUAGE plpgsql;

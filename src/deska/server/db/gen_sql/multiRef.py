@@ -3,14 +3,13 @@ class MultiRef:
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
     tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
     template_column_str = "SELECT attname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'TEMPLATIZED';"
-    coltype = "SELECT typename FROM kindAttributes('%(tbl)s') WHERE attname = '%(ref_tbl)s'"
     
-    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_tbl)s_multiRef(
+    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_col)s_multiRef(
 %(tbl)s bigint
-    CONSTRAINT inner_%(tbl)s_fk_%(ref_tbl)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
+    CONSTRAINT inner_%(tbl)s_fk_%(ref_col)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
-    CONSTRAINT inner_%(ref_tbl)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
-CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
+    CONSTRAINT inner_%(ref_col)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
+CONSTRAINT inner_%(tbl)s_%(ref_col)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
 );
 
 '''
@@ -25,7 +24,7 @@ CONSTRAINT inner_%(tbl)s_%(ref_tbl)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s
 '''
 
     add_item_str = '''  CREATE FUNCTION
-genproc.inner_%(tbl_name)s_set_%(ref_tbl_name)s_insert(IN %(tbl_name)s_name text, IN %(ref_tbl_name)s_name text)
+genproc.inner_%(tbl_name)s_set_%(ref_col)s_insert(IN %(tbl_name)s_name text, IN %(ref_tbl_name)s_name text)
 RETURNS integer
 AS
 $$
@@ -67,7 +66,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 '''
 
     del_item_str = '''  CREATE FUNCTION
-genproc.inner_%(tbl_name)s_set_%(ref_tbl_name)s_remove(IN %(tbl_name)s_name text, IN %(ref_tbl_name)s_name text)
+genproc.inner_%(tbl_name)s_set_%(ref_col)s_remove(IN %(tbl_name)s_name text, IN %(ref_tbl_name)s_name text)
 RETURNS integer
 AS
 $$
@@ -109,7 +108,7 @@ LANGUAGE plpgsql SECURITY DEFINER;
 
     # template string for set functions for columns that reference set of identifiers
     set_string = '''CREATE FUNCTION
-genproc.%(tbl)s_set_%(ref_tbl_name)s(IN name_ text,IN value text[])
+genproc.%(tbl)s_set_%(ref_col)s(IN name_ text,IN value text[])
 RETURNS integer
 AS
 $$
@@ -486,50 +485,43 @@ LANGUAGE plpgsql;
             tab_relation_rec = self.plpy.execute(self.multiRef_info_str % {'tbl': table})
             if len(tab_relation_rec):
                 reftable = tab_relation_rec[0][1]
-                attnames = tab_relation_rec[0][0]
-                refattnames = tab_relation_rec[0][2]
-                self.check_multiRef_definition(table, reftable, attnames, refattnames)
+                attname = tab_relation_rec[0][0]
+                refattname = tab_relation_rec[0][2]
+                self.check_multiRef_definition(table, reftable, attname, refattname)
                 #we needs the oposite direction than the one that alredy exists
-                self.gen_tables(table, reftable)
-                self.gen_functions(table, reftable, attnames, refattnames)
+                self.gen_tables(table, reftable, attname)
+                self.gen_functions(table, reftable, attname, refattname)
 
         self.tab_sql.close()
         self.fn_sql.close()
 
-    def gen_inner_table_references(self, table, reftable):
-        return self.add_inner_table_str % {'tbl': table, 'ref_tbl': reftable}
+    def gen_inner_table_references(self, table, reftable, attname):
+        return self.add_inner_table_str % {'tbl': table, 'ref_tbl': reftable, 'ref_col': attname}
 
     def check_multiRef_definition(self, table, reftable, attname, refattname):
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise ValueError, 'multiRef relation is badly defined, too many columns in relation'
 
-        #attname is the same as reftable
-        if attname != reftable:
-            raise ValueError, 'multiRef relation is badly defined, name of referencing column should be the same as reftable'
-
         #refattname should be uid
         if refattname != 'uid':
             raise ValueError, 'multiRef relation is badly defined, referenced column should be uid column'
         
-        record = self.plpy.execute(self.coltype % {'tbl' : table, 'ref_tbl' : reftable})
-        if record[0][0] != 'identifier_set':
-            raise ValueError, 'multiRef relation is badly defined, referencing column should be of identifier_set type'
-
     def gen_inner_table_history(self, table):
         return table.gen_hist()
 
-    def gen_tables(self, table, reftable):
-        self.tab_sql.write(self.gen_inner_table_references(table, reftable))
-        join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl': table, 'ref_tbl': reftable}
-        self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
+    def gen_tables(self, table, reftable, attname):
+        self.tab_sql.write(self.gen_inner_table_references(table, reftable, attname))
+        #inner table name is inner_tablename_idsetattname_multiref, where idset attname is name of column that references to set of identifiers
+        join_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl': table, 'ref_col': attname}
+        self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
 
 
     def gen_functions(self, table, reftable, attname, refattname):
-        join_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
-        self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
-        self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
-        self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable})
+        join_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl' : table, 'ref_col' : attname}
+        self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
+        self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
+        self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_changeset_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
@@ -541,7 +533,7 @@ LANGUAGE plpgsql;
         if table in self.template_tables:
             #this table is template of another table, join_base_tab is name of inner table that is templated
             base_table = self.template_tables[table]
-            join_base_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : base_table, 'ref_tbl' : reftable}
+            join_base_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl' : base_table, 'ref_col' : attname}
             record = self.plpy.execute(self.template_column_str % {'tbl': table})
             if len(record) != 1:
                 raise ValueError, 'template is badly defined'
