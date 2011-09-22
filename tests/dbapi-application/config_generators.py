@@ -15,7 +15,7 @@ def writeGenerator(fname, script):
 def imperative(r):
     # create a sample script that simply dumps names of all hosts to a file
     writeGenerator("01",
-"""#!/usr/bin/env python2
+"""#!/usr/bin/env python
 import deska
 
 deska.init()
