@@ -128,6 +128,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(createObjects)
     deska_dbapi_test(createObjects_autoname)
     deska_dbapi_test(diffing)
+    deska_dbapi_test(simple_filtering)
 
     # unit tests which work on any reasonable state of the DB, no matter what
     # changesets are already present, etc
@@ -138,9 +139,6 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(multipleObjectData)
     deska_dbapi_test(createDelRestore)
     deska_dbapi_test(rebaseChangeset)
-
-    # these will be removed later on
-    deska_dbapi_persist_test(test_2_filter)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)

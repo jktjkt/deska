@@ -1,8 +1,9 @@
-from testutils import js
-from deskatest import DeskaTest
+from apiUtils import *
 
-class filterTest(DeskaTest):
-	def test_011a_filterTest(self):
+def imperative(r):
+    pass
+
+def test_011a_filterTest(self):
 		'''test filter for listRevisions'''
 		# r1 always exists
 		filter = {"condition": "columnEq", "column": "revision", "value": "r1", "kind": "metadata"}
@@ -50,7 +51,7 @@ class filterTest(DeskaTest):
 			res = self.command(js.listRevisions,filter)
 			self.OK(res.OK)
 
-	def test_011b_filterTest(self):
+def test_011b_filterTest(self):
 		'''test filter for pendingChangeset'''
 		# tmp1 always exists
 		filter = {"condition": "columnEq", "column": "changeset", "value": "tmp1", "kind": "metadata"}
@@ -98,7 +99,7 @@ class filterTest(DeskaTest):
 			res = self.command(js.pendingChangesets,filter)
 			self.OK(res.OK)
 
-	def test_012_filterJoinTest(self):
+def test_012_filterJoinTest(self):
 		'''test joining for listRevisions and pendingChangeset'''
 		# join listRevisions with hardware
 		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
