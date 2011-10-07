@@ -14,8 +14,10 @@ def helper_diff_2_cmdlist(diff):
         newlist.append(cmd)
     return newlist
 
-def revert_diff(diff):
-    for cmd in diff:
+def revert_cmdlist(list):
+    res = []
+    for item in list:
+        cmd = item.command
         if cmd["command"] == "setAttribute":
             cmd["attributeData"] = cmd["oldValue"]
             if cmd["attributeData"] == 'None':
@@ -26,8 +28,8 @@ def revert_diff(diff):
             cmd["command"] = "deleteObject"
         elif cmd["command"] == "deleteObject":
             cmd["command"] = "createObject"
-    diff.reverse()
-    return diff
+        res.prepend(cmd)
+    return res
 
 def imperative(r):
     changeset = r.c(startChangeset())
@@ -41,6 +43,7 @@ def imperative(r):
         createObject("hardware", "hw1")
     ]
     cmdlist2 = [
+        # do NOT reshuffle this list!
         setAttribute("hardware", "hw1", "vendor", "v1"),
         setAttribute("hardware", "hw1", "purchase", "2011-01-01"),
         setAttribute("hardware", "hw1", "warranty", "2011-01-01")
@@ -62,6 +65,30 @@ def imperative(r):
                    sorted(helper_extract_commands(cmdlist1 + cmdlist2)))
     # FIXME: redmine #283
     #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+
+    changeset = r.c(startChangeset())
+    cmdlist3 = [
+        setAttribute("hardware", "hw1", "vendor", "v2"),
+    ]
+    for x in cmdlist3:
+        r.cvoid(x)
+
+    # FIXME: redmine #283
+    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+
+    revC = r.c(commitChangeset("changed one attribute"))
+    reportedDiff = r.c(dataDifference(revB, revC))
+    r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+                   sorted(helper_extract_commands(cmdlist3)))
+    # FIXME: redmine #283
+    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+
+    reportedDiff = r.c(dataDifference(revA, revC))
+    # now be careful, we have to filter out the modification to hw1.vendor
+    r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+                   sorted(helper_extract_commands(cmdlist1 + cmdlist2[1:] + cmdlist3)))
+
+
 
 def foo():
     def test_001_dataDifference(self):
