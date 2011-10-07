@@ -110,6 +110,10 @@ def imperative(r):
         # FIXME: redmine #283
         #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
+    # finally, there should be absolutely no difference in here
+    # FIXME: Redmine #284, this one is broken
+    #r.assertEquals(r.c(dataDifference(revA, revD)), [])
+
 
 def foo():
     def test_001_dataDifference(self):
