@@ -31,19 +31,23 @@ def imperative(r):
                                          "changeset", "value": changeset})
               )[0]["parentRevision"]
 
-    cmdlist = [
+    cmdlist1 = [
         createObject("vendor", "v1"),
         createObject("vendor", "v2"),
-        createObject("hardware", "hw1"),
+        createObject("hardware", "hw1")
+    ]
+    cmdlist2 = [
         setAttribute("hardware", "hw1", "vendor", "v1"),
         setAttribute("hardware", "hw1", "purchase", "2011-01-01"),
         setAttribute("hardware", "hw1", "warranty", "2011-01-01")
     ]
-    for x in cmdlist:
+    for x in cmdlist1:
         r.c(x)
+    for x in cmdlist2:
+        r.cvoid(x)
 
     revB = r.c(commitChangeset("test diff"))
-    r.assertLt(revA, revB)
+    r.assertTrue(revA < revB)
 
 def foo():
     def test_001_dataDifference(self):
