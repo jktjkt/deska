@@ -48,13 +48,6 @@ macro(deska_dbapi_test_with_git fname)
         dbapi ${fname})
 endmacro(deska_dbapi_test_with_git)
 
-# for persistent tests
-macro(deska_dbapi_persist_test fname)
-    add_test(test_dbapi_${fname}
-        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
-        persist ${fname})
-endmacro(deska_dbapi_persist_test)
-
 macro(deska_cli_test fname)
     # See comments in tests/fix_boost_test_sigchld.h for why this is different
     # from regular boost::test usage
