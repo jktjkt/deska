@@ -50,6 +50,9 @@ def imperative(r):
     for x in cmdlist2:
         r.cvoid(x)
 
+    # FIXME: redmine #283
+    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+
     revB = r.c(commitChangeset("test diff"))
     r.assertTrue(revA < revB)
 
@@ -57,7 +60,8 @@ def imperative(r):
 
     r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                    sorted(helper_extract_commands(cmdlist1 + cmdlist2)))
-
+    # FIXME: redmine #283
+    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
 def foo():
     def test_001_dataDifference(self):
