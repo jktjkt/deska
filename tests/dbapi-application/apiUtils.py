@@ -167,9 +167,12 @@ def startChangeset():
 def commitChangeset(message):
     return ApiMethod("commitChangeset", {"commitMessage": message})
 
-def pendingChangesets():
-    # FIXME: filter
-    return ApiMethod("pendingChangesets", None)
+def pendingChangesets(filter=None):
+    if filter is None:
+        args = None
+    else:
+        args = {"filter": filter}
+    return ApiMethod("pendingChangesets", args)
 
 def resumeChangeset(revision):
     return ApiMethod("resumeChangeset", {"changeset": revision})
