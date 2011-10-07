@@ -566,19 +566,26 @@ class Table(constants.Templates):
 		for col in collist:
 			att_name_type.append("%s %s" % (col, self.col[col]))
 		columns_types = ",\n".join(att_name_type)
-		diff_type = self.diff_data_type_str % {'tbl': self.name, 'col_types': columns_types}
+		#this definition should contain ","
+		template_col = "%s bigint," % (templ_col)
+		diff_type = self.diff_data_type_str % {'tbl': self.name, 'col_types': columns_types, 'template_column': template_col}
 		changeses_function = self.data_resolved_changes_function_string % {'tbl': self.name, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'columns_ex_templ': columns, 'template_column': templ_col}
+		
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
+		inner_init_diff = ""
+		for col in self.refers_to_set:
+            #funtions that are tbl_reftbl_init diff
+			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'refcol': col}
 
 		#template, name must be present
 		collist = self.col.keys()
-		collist.remove('uid')
 		select_new_attributes = ["chv.%s AS new_%s" % (x, x) for x in collist]
 		select_new_attributes.append("chv.dest_bit AS new_dest_bit")
 		#dest_bit from resolved data is allways 0
 		select_old_attributes = ["dv.%s AS old_%s" % (x, x) for x in collist]
 		select_old_attributes.append("CAST('0' AS bit(1)) AS old_dest_bit")
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
-		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col}
+		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff}
 		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col}
 		return diff_type + '\n' + changeses_function + '\n' + init_function + '\n' + current_changeset_diff
 

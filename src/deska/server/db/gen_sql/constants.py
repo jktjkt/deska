@@ -1132,7 +1132,8 @@ LANGUAGE plpgsql;
 	uid bigint,
 	name identifier,
 	%(col_types)s,
---	template bigint,
+--template column is not in all tables, definition should contain ","
+	%(template_column)s
 	dest_bit bit(1)
 );
 '''
@@ -1206,6 +1207,8 @@ BEGIN
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
 		FROM %(tbl)s_resolved_data(from_version) dv FULL OUTER JOIN %(tbl)s_resolved_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+		
+	%(inner_tables_diff)s
 END
 $$
 LANGUAGE plpgsql;
