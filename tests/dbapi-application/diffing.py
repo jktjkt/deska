@@ -88,6 +88,27 @@ def imperative(r):
     r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                    sorted(helper_extract_commands(cmdlist1 + cmdlist2[1:] + cmdlist3)))
 
+    # now let's remove what we've added
+    changeset = r.c(startChangeset())
+    cmdlist4 = [
+        deleteObject("vendor", "v2"),
+        deleteObject("hardware", "hw1"),
+        deleteObject("vendor", "v1"),
+    ]
+    for x in cmdlist4:
+        r.cvoid(x)
+
+    # FIXME: redmine #283
+    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+
+    revD = r.c(commitChangeset("removed stuff"))
+    # try with both of them
+    for rev in (revB, revC):
+        reportedDiff = r.c(dataDifference(rev, revD))
+        r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+                       sorted(helper_extract_commands(cmdlist4)))
+        # FIXME: redmine #283
+        #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
 
 def foo():
