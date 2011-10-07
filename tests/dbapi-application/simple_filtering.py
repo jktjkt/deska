@@ -65,14 +65,46 @@ def imperative(r):
         r.assertEqual([x["message"] for x in r.c(pendingChangesets(filter=myFilter))],
                      ["%d" % x for x in res])
 
-def test_012_filterJoinTest(self):
-		'''test joining for listRevisions and pendingChangeset'''
-		# join listRevisions with hardware
-		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		# join pendingChangeset with hardware
-		filter = {"condition": "columnEq", "column": "name", "value": "hp2", "kind": "hardware"}
-		res = self.command(js.pendingChangesets,filter)
-		self.OK(res.OK)
+    # create some changesets with some useful data in them
+    changesetA = r.c(startChangeset())
+    r.c(createObject("hardware", "hw1"))
+    r.cvoid(detachFromCurrentChangeset("."))
+    changesetB = r.c(startChangeset())
+    r.c(createObject("hardware", "hw2"))
+    r.cvoid(detachFromCurrentChangeset("."))
+    changesetC = r.c(startChangeset())
+    r.c(createObject("hardware", "hw3"))
 
+    # ask for all changesets which touch a particular object
+    r.assertEqual([x["changeset"] for x in
+                   r.c(pendingChangesets(filter={"condition": "columnEq", "attribute": "name", "value": "hw2", "kind":"hardware"}))
+                  ], [changesetB])
+
+    r.cvoid(detachFromCurrentChangeset(".."))
+
+    # now commit these changes (cannot just commit the changesets, but got to
+    # recreate the changes)
+    r.c(startChangeset())
+    helper_createHw(r, "hw1")
+    revA = r.c(commitChangeset("."))
+    r.c(startChangeset())
+    helper_createHw(r, "hw2")
+    revB = r.c(commitChangeset("."))
+    r.c(startChangeset())
+    helper_createHw(r, "hw3")
+    r.cvoid(setAttribute("hardware", "hw2", "note_hardware", "foo"))
+    revC = r.c(commitChangeset("."))
+    r.c(startChangeset())
+    helper_createHw(r, "hw4")
+    revD = r.c(commitChangeset("."))
+
+
+    # ask for all revisions which have touched a particular object
+    r.assertEqual([x["revision"] for x in
+                   r.c(listRevisions(filter={"condition": "columnEq", "attribute": "name", "value": "hw2", "kind":"hardware"}))
+                  ], [revB, revC])
+
+def helper_createHw(r, name):
+    r.c(createObject("hardware", name))
+    r.cvoid(setAttribute("hardware", name, "purchase", "2011-03-04"))
+    r.cvoid(setAttribute("hardware", name, "warranty", "2011-03-04"))
