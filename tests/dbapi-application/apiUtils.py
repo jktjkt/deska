@@ -266,3 +266,6 @@ def showConfigDiff(forceRegen=False):
 
 def dataDifference(revisionA, revisionB):
     return ApiMethod("dataDifference", {"revisionA": revisionA, "revisionB": revisionB})
+
+def dataDifferenceInTemporaryChangeset(changeset):
+    return ApiMethod("dataDifferenceInTemporaryChangeset", {"changeset": changeset})
