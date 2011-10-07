@@ -1,5 +1,9 @@
 from apiUtils import *
 
+def helper_extract_commands(list):
+    """Extract commands from a list of ApiMethod instances and filter out the "tag" values from each dict on the fly"""
+    return [dict([(k,v) for (k,v) in y.iteritems() if k != "tag"]) for y in [x.command for x in list]]
+
 def helper_diff_2_cmdlist(diff):
     newlist = []
     for cmd in diff:
@@ -48,6 +52,12 @@ def imperative(r):
 
     revB = r.c(commitChangeset("test diff"))
     r.assertTrue(revA < revB)
+
+    reportedDiff = r.c(dataDifference(revA, revB))
+
+    r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+                   sorted(helper_extract_commands(cmdlist1 + cmdlist2)))
+
 
 def foo():
     def test_001_dataDifference(self):
