@@ -141,7 +141,6 @@ if(RUN_SQL_TESTS)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)
-    deska_dbapi_persist_test(test_2_objectData)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
