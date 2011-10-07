@@ -1,55 +1,56 @@
 from apiUtils import *
 
 def imperative(r):
-    pass
+    myFilter = {"condition": "columnEq", "metadata": "revision", "value": "r1"}
 
-def test_011a_filterTest(self):
-		'''test filter for listRevisions'''
-		# r1 always exists
-		filter = {"condition": "columnEq", "column": "revision", "value": "r1", "kind": "metadata"}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		# number of revisions - 1
-		filter = {"condition": "columnNe", "column": "revision", "value": "r1", "kind": "metadata"}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		revisions1 = res.result()
-		# number of revisions - 1 / other method
-		filter = {"condition": "columnGt", "column": "revision", "value": "r1", "kind": "metadata"}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		revisions2 = res.result()
-		# compare 2 results
-		self.assertEqual(revisions1,revisions2)
+    # r1 should be there
+    revisions = r.c(listRevisions(myFilter))
+    r.assertEqual(revisions[0]["revision"], "r1")
 
-		# 2 revisions
-		filter = {"operator": "or", "operands": [
-			{"condition": "columnEq", "column": "revision", "value": "r1", "kind": "metadata"},
-			{"condition": "columnEq", "column": "revision", "value": "r2", "kind": "metadata"},
-			{"condition": "columnEq", "column": "revision", "value": "r3", "kind": "metadata"}
-			]}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		revisions1 = res.result()
-		filter = {"operator": "and", "operands": [
-			{"condition": "columnGe", "column": "revision", "value": "r1", "kind": "metadata"},
-			{"condition": "columnLe", "column": "revision", "value": "r3", "kind": "metadata"}
-			]}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.OK)
-		revisions2 = res.result()
-		self.assertEqual(revisions1,revisions2)
+    # but no other revisions
+    for operator in ("columnGt", "columnNe", "columnLt"):
+        myFilter["condition"] = operator
+        r.assertEqual(r.c(listRevisions(myFilter)), [])
 
-		# bad syntax of filter
-		filter = {"xxx": "columnGt", "column": "revision", "value": "r1", "kind": "metadata"}
-		res = self.command(js.listRevisions,filter)
-		self.OK(res.otherError)
+    # let's create some, then!
+    for x in range(2):
+        r.c(startChangeset())
+        r.c(commitChangeset("blah %d" % x))
 
-		# test all conditions
-		for cond in ["columnGe","columnLe","columnGt","columnLt","columnNe","columnEq"]:
-			filter = {"condition": cond, "column": "revision", "value": "r1", "kind": "metadata"}
-			res = self.command(js.listRevisions,filter)
-			self.OK(res.OK)
+    filters = [
+        {"operator": "or", "operands": [
+			{"condition": "columnEq", "metadata": "revision", "value": "r1"},
+			{"condition": "columnEq", "metadata": "revision", "value": "r2"},
+			{"condition": "columnEq", "metadata": "revision", "value": "r3"}
+			]
+        },
+        {"condition": "columnGe", "metadata": "revision", "value": "r1"},
+        {"condition": "columnLt", "metadata": "revision", "value": "r666"},
+        {"operator": "and", "operands": [
+			{"condition": "columnGe", "metadata": "revision", "value": "r1"},
+			{"condition": "columnLe", "metadata": "revision", "value": "r3"},
+			]
+        }
+    ]
+    for f in filters:
+        r.assertEqual(r.c(listRevisions()), r.c(listRevisions(filter=f)))
+
+    # create two more
+    for x in range(2):
+        r.c(startChangeset())
+        r.c(commitChangeset("blah %d" % x))
+
+    # try all operators
+    for (op, key, res) in [("Ge", 4, [4, 5]), ("Gt", 2, [3, 4, 5]),
+                           ("Lt", 4, [1, 2, 3]), ("Le", 4, [1, 2, 3, 4]),
+                           ("Ne", 3, [1, 2, 4, 5]), ("Eq", 2, [2])]:
+        myFilter = {"condition": "column%s" % op, "metadata": "revision", "value": "r%d" % key}
+        r.assertEqual([x["revision"] for x in r.c(listRevisions(filter=myFilter))],
+                     ["r%d" % x for x in res])
+
+    # test a wrong filter
+    r.cfail(listRevisions(filter={"xxx": "columnGt"}))
+
 
 def test_011b_filterTest(self):
 		'''test filter for pendingChangeset'''
