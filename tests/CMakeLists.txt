@@ -127,6 +127,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(pendingChangesets)
     deska_dbapi_test(createObjects)
     deska_dbapi_test(createObjects_autoname)
+    deska_dbapi_test(diffing)
 
     # unit tests which work on any reasonable state of the DB, no matter what
     # changesets are already present, etc
@@ -140,7 +141,6 @@ if(RUN_SQL_TESTS)
 
     # these will be removed later on
     deska_dbapi_persist_test(test_2_filter)
-    deska_dbapi_persist_test(test_2_diff)
     deska_dbapi_persist_test(test_2_objectData)
 
     # Tests for interaction between the CLI and the DB parts
