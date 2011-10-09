@@ -23,19 +23,19 @@ CREATE TABLE hardwaremodel (
 	-- number of CPU's
 	cpu_sockets int
 		CONSTRAINT "hardwaremodel cpu_sockets should be positive number"
-		CHECK (cpu_num > 0),
+		CHECK (cpu_sockets > 0),
 	-- cpu type
 	cpu_type text,
 	cpu_physicalcores int
 		CONSTRAINT "cpu_physicalcores should be positive number"
-		CHECK (cpu_cores > 0),
+		CHECK (cpu_physicalcores > 0),
 	cpu_ht bool,
     -- performance of the box
-	hepspec double,
+	hepspec real,
 	-- size of one disk drive
 	hdd_drive_capacity int
 		CONSTRAINT "hardwaremodel hdd_drive_capacity should be positive number"
-		CHECK (hdd_size > 0),
+		CHECK (hdd_drive_capacity > 0),
     -- number of spindles in the machine
     hdd_drive_count int,
     -- an unspecified note for the disk

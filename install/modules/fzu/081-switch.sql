@@ -19,7 +19,7 @@ CREATE TABLE switch (
     inventory_no text,
 
     inside bigint
-        CONSTRAINT modelswitch_fk_box REFERENCES box(uid) DEFERRABLE,
+        CONSTRAINT modelswitch_fk_box REFERENCES box(uid) DEFERRABLE
     
 );
 
