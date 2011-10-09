@@ -86,17 +86,27 @@ CREATE FUNCTION commit_all(message text)
 
 		# init set of tables
 		self.tables = set()
+		# structures for relations
+		self.relFromCol = dict()
+		self.relFromTbl = dict()
+		self.relToTbl = dict()
+
 		# dict of attributes dicts
 		self.atts = dict()
 		# dict of embeded
 		self.embed = dict()
+		self.embedNames = dict()
 		# dict of merged
 		self.merge = dict()
+		self.mergeNames = dict()
 		# dict of templated tables
 		#keys are template tables, values are tables templated by them
 		self.template = dict()
-		# dict of refs
+		self.templateNames = dict()
+		# dict for refs
 		self.refs = dict()
+		self.refNames = dict()
+
 		# dict of tables that refers to some sets of uids
 		self.refers_to_set = dict()
 		# select all tables
@@ -160,6 +170,13 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
 		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
 		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
+		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
+		print self.py_fn_str % {'name': "mergeNames", 'args': '', 'result': str(self.mergeNames)}
+		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
+		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
+		print self.py_fn_str % {'name': "relFromCol", 'args': '', 'result': str(self.relFromCol)}
+		print self.py_fn_str % {'name': "relFromTbl", 'args': '', 'result': str(self.relFromTbl)}
+		print self.py_fn_str % {'name': "relToTbl", 'args': '', 'result': str(self.relToTbl)}
 		return
 
 	# generate sql for one table
@@ -199,19 +216,28 @@ CREATE FUNCTION commit_all(message text)
 		fkconstraints = self.plpy.execute(self.fk_str % tbl)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
+			relName = col[0]
+			self.relFromTbl[relName] = tbl
+			self.relFromCol[relName] = col[1]
+			self.relToTbl[relName] = col[2]
+
 			# if there is a reference, change int for identifier'
 			if col[1] not in table.refers_to_set:
 				self.atts[tbl][col[1]] = 'identifier'
 			prefix = col[0][0:7]
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
+				self.embedNames[tbl] = relName
 			#FIXME: this is not right, only for remember, merge has to be defined in another way
 			elif prefix == "rmerge_":
 				self.merge[tbl] = col[1]
+				self.mergeNames[tbl] = relName
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
+				self.templateNames[tbl] = relName
 			else:
-					self.refs[tbl].append(col[1])
+				self.refs[tbl].append(col[1])
+				self.refNames[tbl] = relName
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
 		table.embed_column = ""
