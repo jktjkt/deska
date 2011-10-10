@@ -73,7 +73,7 @@ class RelationList(list):
 	def addRelation(self,reltype,kind,source):
 		if kind in source:
 			relName = source[kind]
-			self.append({"relation": reltype, "target": dutil.generated.relToTbl()[relName], "column": dutil.generated.relFromCol()[relName]})
+			self.append({"relation": reltype, "target": dutil.generated.relToTbl(relName), "column": dutil.generated.relFromCol(relName)})
 
 @pytypes
 def main(tag,kindName):

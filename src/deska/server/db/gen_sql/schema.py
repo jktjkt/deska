@@ -174,9 +174,9 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "mergeNames", 'args': '', 'result': str(self.mergeNames)}
 		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
 		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
-		print self.py_fn_str % {'name': "relFromCol", 'args': '', 'result': str(self.relFromCol)}
-		print self.py_fn_str % {'name': "relFromTbl", 'args': '', 'result': str(self.relFromTbl)}
-		print self.py_fn_str % {'name': "relToTbl", 'args': '', 'result': str(self.relToTbl)}
+		print self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"}
+		print self.py_fn_str % {'name': "relFromTbl", 'args': 'relName', 'result': str(self.relFromTbl) + "[relName]"}
+		print self.py_fn_str % {'name': "relToTbl", 'args': 'relName', 'result': str(self.relToTbl) + "[relName]"}
 		return
 
 	# generate sql for one table

@@ -15,10 +15,12 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	embed = dutil.generated.embed()
+	embed = dutil.generated.embedNames()
 	if kindName in embed:
 		#FIXME: propagate delimiter constant here,or drop this argument
-		columns = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->')".format(ref = embed[kindName], kind = kindName)
+		refTbl = dutil.generated.relToTbl(embed[kindName])
+		refCol = dutil.generated.relFromCol(embed[kindName])
+		columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->')".format(ref = refTbl, kind = kindName, col = refCol)
 	else:
 		columns = "{0}.name"
 
