@@ -53,7 +53,7 @@ def imperative(r):
     for x in cmdlist2:
         r.cvoid(x)
 
-    # FIXME: redmine #283
+    # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revB = r.c(commitChangeset("test diff"))
@@ -63,7 +63,7 @@ def imperative(r):
 
     r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                    sorted(helper_extract_commands(cmdlist1 + cmdlist2)))
-    # FIXME: redmine #283
+    # FIXME: redmine #277
     #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
     changeset = r.c(startChangeset())
@@ -73,14 +73,14 @@ def imperative(r):
     for x in cmdlist3:
         r.cvoid(x)
 
-    # FIXME: redmine #283
+    # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revC = r.c(commitChangeset("changed one attribute"))
     reportedDiff = r.c(dataDifference(revB, revC))
     r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                    sorted(helper_extract_commands(cmdlist3)))
-    # FIXME: redmine #283
+    # FIXME: redmine #277
     #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
     reportedDiff = r.c(dataDifference(revA, revC))
@@ -98,7 +98,7 @@ def imperative(r):
     for x in cmdlist4:
         r.cvoid(x)
 
-    # FIXME: redmine #283
+    # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revD = r.c(commitChangeset("removed stuff"))
@@ -107,7 +107,7 @@ def imperative(r):
         reportedDiff = r.c(dataDifference(rev, revD))
         r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                        sorted(helper_extract_commands(cmdlist4)))
-        # FIXME: redmine #283
+        # FIXME: redmine #277
         #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
     # finally, there should be absolutely no difference in here
