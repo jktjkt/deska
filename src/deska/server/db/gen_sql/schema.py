@@ -227,17 +227,17 @@ CREATE FUNCTION commit_all(message text)
 			prefix = col[0][0:7]
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
-				self.embedNames[tbl] = relName
+				self.embedNames[relName] = tbl
 			#FIXME: this is not right, only for remember, merge has to be defined in another way
 			elif prefix == "rmerge_":
 				self.merge[tbl] = col[1]
-				self.mergeNames[tbl] = relName
+				self.mergeNames[relName] = tbl
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
-				self.templateNames[tbl] = relName
+				self.templateNames[relName] = tbl
 			else:
 				self.refs[tbl].append(col[1])
-				self.refNames[tbl] = relName
+				self.refNames[relName] = tbl
 
 		embed_into_rec = self.plpy.execute(self.embed_into_str % tbl)
 		table.embed_column = ""
