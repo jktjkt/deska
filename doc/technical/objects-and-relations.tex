@@ -66,94 +66,96 @@ to build complex inheritance and composition patterns, common to the object-orie
 
 Let's start with perhaps one of the simplest relation, the {\tt REFERS\_TO} one.  The sole purpose of this relation is
 to make sure that an object's attribute does not contain just an ordinary text, but that the value of said attribute
-shall be checked that it refers to an instance of some other kind.
+refers to an object of a given kind.
 
-There are many use cases for such relation, the most basic one is probably the DB-way of enumerations.  Suppose we have
-a hardware inventory and want to keep track of vendors or manufacturers.  It would be impractical to modify the database
-code when a new company selling servers emerges, so it makes sense to treat the ``manufacturer'' as data.  This is
-simply done by creating a new kind, let's call it ``vendor'', and instantiating new objects for each supplier currently
-in use.  The {\tt machine} kind which typically holds objects representing each physical server would then gain a new
-attribute called {\tt vendor} with type {\tt identifier}, which will make sure that the possible values have to conform
-to the syntax constraints defined for identifiers.  For the referential integrity to work, a new {\em relation} shall be
-created.  This new relation shall have the type {\tt REFERS\_TO}, and be from the kind {\tt machine} to kind {\tt
-vendor}.
+There are many use cases for such relation, the most basic one is probably the DB-way of defining enumerations.  Suppose
+we are designing a hardware inventory and want to keep track of vendors or manufacturers.  It would be impractical to
+modify the database code when a new company selling servers emerges, so it makes sense to treat the list of
+manufacturers as data.  This is simply done by creating a new kind, let's call it ``vendor'', and instantiating new
+objects for each supplier currently in use.  The {\tt machine} kind which typically holds objects representing each
+physical server would then gain a new attribute called {\tt vendor} with type {\tt identifier}, which will make sure
+that the possible values have to conform to the syntax constraints defined for identifiers.  For the referential
+integrity to work, a new {\em relation} shall be created.  This new relation shall have the type {\tt REFERS\_TO}, and
+be from the kind {\tt machine} to kind {\tt vendor}.
 
 When a new delivery from a brand new company arrives, activating that new manufacturer is simply a matter of
 creating new object of the {\tt vendor} kind.
 
 \subsection{Relations Explained}
 
-Each relation therefore gives a potential that objects of a particular kind cold somehow refer to objects of some other
-kind (or of the same kind, for that matter).  It is important to understand that this relation is {\bf optional}, and
-can be present or absent on a per-object basis.  Under the hood, it is implemented as a database foreign key, and as the
-foreign keys can be {\tt NULL} unless explicitly prohibited, an object can easily exist without that particular
-relation.
+Each relation therefore merely specifies that objects of a particular kind {\em can} somehow refer to objects of some
+other kind (or of the same kind, for that matter).  It is important to understand that this relation is {\bf optional},
+and can be present or absent on a per-object basis, and that these relations concern the individual objects.  Under the
+hood, relations are implemented as database foreign keys, and as foreign keys can be {\tt NULL} unless explicitly
+prohibited, an object can easily exist without that particular relation taking any effect.
 
-The foreign key is a column similar to other object properties.  It has its own name, which might or might not be the
-same as the name of the target kind.  The established Deska conventions call for either using a name which matches the
-purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reusing the name of the other kind.
-There are certain situations (which are indeed present in the sample schemes, as shipped with Deska) which warrant using
-a completely different name, so implementors shall refer to their best judgement when inventing naming conventions.
+The foreign key is just a table column similar to other object attributes.  It has its own name defined by the scheme
+architect, and is usually fully accessible to the DBAPI users.  The established Deska conventions call for either using
+a name which matches the purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reusing the name
+of the target kind.  There are certain situations (which are even present in the sample schemes, as shipped with Deska)
+which warrant using a completely different name, so implementors shall refer to their best judgement when inventing
+naming conventions.
 
 \subsection{Multi-value References}
 
-So far, we have shown relations which generally represent a N:1 mapping -- an object of the source kind (a row in the
-source table) refers to at most one of the target objects.  However, this concept is not sufficient for a particularly
-compelling feature, notably for {\em tagging}.
+So far, we have shown relations which generally represent an N:1 mapping -- an object of the source kind (a row in the
+source table) refers either to nothing, or to exactly one target object.  However, this concept is not sufficient for a
+particularly compelling feature, notably for {\em tagging}.
 
-Tagging is probably a well-known concept from the general-purpose computing -- an object can be tagged by a set of
-labels, which generally refer to identifiers of other objects.  In real life, a photo can be tagged with names of people
-on the picture.  In a data center, a server can be tagged with several roles that it has to fulfil; for example, machine
-{\tt srv012} can act as a web server and an MX host at the same time.
+Tagging is probably a well-known concept from the general-purpose computing experience. An object can be tagged by a set
+of labels, which generally refer to identifiers of other objects.  In real life, a photo gets tagged with names of
+people who are on the picture.  In a data center, each server gets tagged with several roles that it fulfils; for
+example, machine {\tt srv012} can act as a web server and an MX host at the same time, and hence shall get two tags, the
+{\tt www} and {\tt smtp} ones.
 
 In Deska, this feature is provided by the combination of the {\tt identifier\_set} attribute data type and the {\tt
-REFERS\_TO} relation.  The purpose of this is to hide away the fact that the relational databases tend to model the M:N
-relation, as used in tagging, with an auxiliary table.  The Deska DBAPI provides means of accessing the contained
-information without exporting the auxiliary table at all.
+REFERS\_TO} relation.  In our example, the {\tt role} is a standalone kind, and the {\tt host} kind has an attribute
+{\tt services} of type {\tt identifier\_set}.  Where the RDBMS equivalent of tagging would involve dealing with an
+auxiliary table just for the mapping, the Deska DBAPI provides an abstraction without any extra kinds.
 
 \subsection{Templates and Default Value Inheritance}
 
 There are certain cases where many objects have certain shared properties.  As an example, imagine a situation where you
 order a delivery of 50 new, identical servers.  A lot of their properties is going to be the same, or almost the same,
 among all of them.  Therefore it might make sense to create one artificial object, let's call it a {\em template} one,
-that will store all the interesting properties, and have the fifty new individual objects ``inherit'' the default values
-from it.  This scenario is assisted by the {\tt TEMPLATIZED} relation.
+put all the shared data in there, and have fifty new individual objects ``inherit'' the default values from it.  This
+scenario is assisted by the {\tt TEMPLATIZED} relation.
 
 Templates are typically implemented through two kinds, let's call them {\tt hardware} and {\tt template\_hardware}, and
 a relation of type {\tt TEMPLATIZED}, which would typically be ``activated'' via the {\tt template} attribute of the
 first kind (remember, relations always exist between individual objects).  So in our sample scenario when a vendor
-delivers fifty new RM~666 boxes, we would create one instance of the {\tt template\_hardware} kind with the name of {\tt
-rm666\_2011\_03}, assign interesting properties to that object (like the end of warranty, support contract number etc.),
-and then create fifty {\tt hardware} objects for the individual machines, and set their {\tt template} attribute to
-{\tt rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each
+delivers fifty new RM-666 boxes, we would create one instance of the {\tt template\_hardware} kind with the name {\tt
+rm666\_2011\_03}, assign interesting properties to that object (like the end of warranty period, support contract number
+etc.), and then create fifty {\tt hardware} objects for the individual machines, setting their {\tt template} attribute
+to {\tt rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each
 object are inherited from the associated template.
 
-This default value substitution can be overridden at any time by settings an explicit non-null value at the level of the
-leaf object.  Resetting the attribute value back to {\tt null} effectively restores the inherited default.  It is not
-possible to override an inherited attribute value by {\tt null}; doing that requires explicitly cancelling the relation
-for that particular object.  In our case, the inheriting can be stopped by setting the {\tt hardware}'s attribute {\tt
-template} to {\tt null}.
+This default value substitution can be overridden at any time by setting an explicit non-null value at the level of the
+leaf object.  Resetting the attribute value back to {\tt null} later effectively restores the inherited default.  It is
+not possible to override an inherited attribute value by {\tt null}; doing that requires explicitly cancelling the
+relation for that particular object.  In our case, the inheritance can be stopped by setting the {\tt hardware}'s
+attribute {\tt template} to {\tt null}.
 
 Users should be careful to not abuse the template relation where composition would be more appropriate.  As a rule of
 thumb, if it makes sense to deal with a subset of object's attributes as a different entity (maybe distinguishing
-between the hardware's physical dimensions, its inner compounds like CPUs, its model number, and its rack location), it
-is usually recommended not to go with composition or other means instead of templating.
+between the hardware's physical dimensions, its inner compounds like CPU configuration, the model number, and machine's
+rack location), it is usually recommended to go with composition or something else instead of templating.
 
 \subsection{Composition}
 
 In the previous section, we have briefly mentioned that it makes sense to ``split'' properties of one real-world object
-into several groups.  On the other hand, doing so imposes a significant burden on the hands of a system administrator,
+into several groups.  On the other hand, doing so imposes a significant burden on the hands of a system administrator
 who suddenly does not have to create just a single object for each machine in the rack, but several of them -- one for
 the hardware inventory, another for ``rack placement'' (or position), yet another for the logical computer that runs on
 top of that, and so on.  To confine this object explosion and to limit the amount of work required to handle such
 objects, Deska provides the {\tt CONTAINS} relation.
 
-Using this relations, a ``logical object'' is essentially composed of many smaller objects, where each of the
-``contained'' parts provides a particular feature.  For example, a logical ``computer'' object could be composed of the
-following building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for
-stuff like serial number) and {\tt placement} (for the physical space it occupies in a rack).  An Ethernet switch would
-typically include a {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
-provided no conflicts arise.
+Using this relations, a logical object is essentially composed of many smaller objects, where each of the ``contained''
+parts provides a particular function.  For example, a logical ``computer'' object could be composed of the following
+building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for stuff like
+serial number) and {\tt placement} (for the physical space it occupies in a rack).  An Ethernet switch would typically
+include a {\tt placement} object as well, so it means that the low-level building blocks can be freely reused, provided
+no conflicts arise.
 
 The Deska database contains special hooks which ensure that when the user creates an object which is included in
 another one (in our example, a {\tt placement}), appropriate foreign keys will immediately tie the just created instance
