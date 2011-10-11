@@ -1,0 +1,93 @@
+Schuze Deska, 2011-10-11 FZU
+----------------------------
+
+Pritomni: Martina, Lukas, Honza
+Pozde: Tomas
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+
+Lukas:
+- predelava relace na trojice
+
+Martina:
+- tripple relations
+- resolving templatovanych kindu
+- problemy s NULL v identifier_set
+- prilis dlouhe identifikatory
+
+Tomas:
+- konfigurace CLI
+- prace s MERGE_WITH
+- zacal delat na testech, neni pushnuto
+
+Honza:
+- prevod Lukasovych testu
+- dokumentace relaci
+
+
+Ukoly:
+------
+
+Honza: prevod Lukasovych testu
+    - hotovo
+Honza: naspecifikovat nove relace
+    - rozpracovano
+Honza: sety v DBAPI: unit testy, high-level Python
+    - ceka na DB cast, zejmena #280
+Honza: specifikace merge (behem rebase)
+    - neni
+Honza: integrace generovatek do serveru (funkce honza_pregeneruje(),
+       honza_udela_diff())
+    - ceka se na DB
+Honza: rozmyslet, jak chce boost::program_options
+    - neni
+
+
+Diskuse:
+--------
+
+Lukas 14 dni delal na relacich, nekolikrat zahazoval kod, nic nepushnul. Tomas
+si hral s testy pro CLI, rovnez nic nepushnul. Dohodli jsme se, ze budeme
+skutecne pushovat kazdy den, kdy na Desce budeme cokoli delat. Hlavnim duvodem
+je to, ze budeme vzajemne motivovani k praci a nebude duvod si myslet, ze se
+nekdo flaka, kdyz on zatim vytrvale pracuje.
+
+Zbyvajici prace:
+----------------
+
+Martina:
+- testy
+- dodelat relace
+- nova relace kompozice
+- dodelat identifier_set: cca do 19. rijna by melo byt
+
+Lukas:
+- refactoring prace s relacema (nove datove struktury)
+- filtry
+- filtry a identifier_set
+- zamykani
+
+Tomas:
+- testy CLI
+- rebase, vcetne specifikace
+- kompozice
+
+Honza:
+- dokumentace
+- instalator,...
+- znovu projit schema
+
+M/L:
+- kontrola schematu pro rozumnost behem generovani
+
+
+Pristi schuzka:
+---------------
+
+Utery 18. rijna 2011, 18.00 FZU.
+
+Zavoral: "domluvime se zacatkem tydne".
+
+Schuzka trvala 75 minut.
