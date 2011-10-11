@@ -21,43 +21,42 @@
 \newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
 
 \begin{abstract}
-The Deska database can store data of varying structure.  In this chapter, we provide an overview of what can be stored,
+The Deska database can store data of varying structure.  In this chapter, we provide an overview of what can be stored
 and how to use the provided facilities to design a database scheme which closely matches the real-world processes.  The
-basic building blocks of the Deska database, the kinds, objects and relations, are described here.
+basic building blocks of the Deska database, the {\em kinds}, {\em objects} and {\em relations}, are described here.
 \end{abstract}
 
-\section{Objects and Relations: the basic building blocks}
+\section{Objects and Relations: The Basic Building Blocks}
 
-Deska does not actively try to deny its background in relation databases, and therefore it comes at no surprise that the
-basic building blocks, the Deska {\em objects}, {\em kinds} and {\em relations} all have their well-known parallels in
-the relation database world.
+Deska does not try to deny its background in relation databases, and therefore it comes at no surprise that the basic
+building blocks, the Deska {\em objects}, {\em kinds} and {\em relations}, all have their well-known parallels in the
+relation database world.
 
-Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a relational
-database table -- all objects of the same type, or {\em kind} as we call that in the Deska jargon, live in the same
-table, and they all can store the same amount of information in their {\em attributes} -- the database
-columns.  One of the columns is usually a primary key, which in Deska corresponds to a special attribute called {\em
-name}.  This name is used to uniquely identify an {\em object} in a {\em kind}, similarly to how a primary key is a
-unique reference to a single row in a database table.
+Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a DB table --
+all objects of the same type, or {\em kind} as we call that in the Deska jargon, live in one table, and they all can
+store the same amount of information in their {\em attributes}, the database columns.  One of the columns is usually a
+primary key, which in the Deska corresponds to a special attribute called {\em name}.  This name is used to uniquely
+identify an {\em object} among all other objects of the same {\em kind}, similarly to how a primary key is a unique
+reference to a single row in a database table.
 
 The primary key on its own is rather meaningless, though -- one has to know what table it belongs to in order to do
-anything useful with this information.  The situation is the same in Deska, where one has to always pass a tuple of
-identifiers when trying to identify an object -- the name of the {\em kind} and the identifier of the object's {\em
-name}.
+anything useful with that information.  The situation is the same in Deska, where one has to always pass a tuple of
+identifiers when trying to identify an object, the name of the {\em kind} and the identifier of the object's {\em name}.
 
-Similarly to how a typical RDBMS hosts many tables, Deska usually works with many {\em kinds} at one.  All tables are
-born equal, and hence even the Deska kinds all exists on the same level of a virtual hierarchy.  Even though the
+Similarly to how a typical RDBMS hosts many tables, Deska usually works with many {\em kinds} at once.  All tables are
+born equal, and hence even the Deska kinds all exist on the same level of a virtual hierarchy.  Even though the
 real-world is full of examples where something ``belongs'' to something else, like an {\tt eth0} interface could belong
 to machine called {\tt www}, there's no such thing at this level of the Deska interface -- when you want to work with a
-particular object, perhaps the {\tt www}'s {\tt eth0}, you always have to use a globally unique name as a reference.
+particular object, perhaps the {\tt www}'s {\tt eth0}, you always have to identify it through a globally unique name.
 Of course, all of this is hidden (and much else provided by) by the upper layers thanks to the concept of {\em
 relations}.
 
 \section{Relations}
 
-A {\em relation} is something which exists between two {\em kinds} and can be used to model wildly differing scenarios.
-A relation consists of the left and right {\em kinds} to which it refers, and the associated {\em type} of the
-relation\footnote{This is further augmented by auxiliary information of which object attribute is used by the relation,
-but all of that can be safely ignored for now.  Don't worry, we'll get back to that later.}.
+A {\em relation} is something which might exist between two {\em kinds} and can be used to model wildly differing
+scenarios.  A relation is defined by the left and right {\em kinds} to which it refers and of the associated {\em type}
+of the relation\footnote{This is further augmented by auxiliary information of which object attribute is used by the
+relation, but all of that can be safely ignored for now.  Don't worry, we'll get back to that later.}.
 
 The relations serve different purposes, all of which are described in this section.  Some of them are suitable for
 maintaining referential integrity, others serve as ``context helpers'' for humans to work with, yet others can be used
@@ -96,7 +95,7 @@ purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reu
 There are certain situations (which are indeed present in the sample schemes, as shipped with Deska) which warrant using
 a completely different name, so implementors shall refer to their best judgement when inventing naming conventions.
 
-\subsection{Multi-value references}
+\subsection{Multi-value References}
 
 So far, we have shown relations which generally represent a N:1 mapping -- an object of the source kind (a row in the
 source table) refers to at most one of the target objects.  However, this concept is not sufficient for a particularly
@@ -112,7 +111,7 @@ REFERS\_TO} relation.  The purpose of this is to hide away the fact that the rel
 relation, as used in tagging, with an auxiliary table.  The Deska DBAPI provides means of accessing the contained
 information without exporting the auxiliary table at all.
 
-\subsection{Templates and default value inheritance}
+\subsection{Templates and Default Value Inheritance}
 
 There are certain cases where many objects have certain shared properties.  As an example, imagine a situation where you
 order a delivery of 50 new, identical servers.  A lot of their properties is going to be the same, or almost the same,
@@ -205,7 +204,7 @@ just created.  This means that the user just has to ``create a failure for machi
 itself will assign an identifier like {\tt srv012->1} to it.  This feature is directly available from the CLI, and the
 user does not have to deal with low-level naming conventions at all.
 
-\subsection{Relations rationale}
+\subsection{Relations Rationale}
 
 We have seen that the relations allow describing further complex object hierarchies without violating the basic Deska
 design that the database contains flat lists of objects, which themselves consist of a key-value pairs holding the
