@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(filter_dumping)
     string s2 = "MetadataExpression(changeset != MetadataValue<TemporaryChangesetId>(tmp666))";
     MetadataExpression e3(FILTER_COLUMN_LT, "state", PendingChangeset::ATTACH_DETACHED);
     string s3 = "MetadataExpression(state < MetadataValue<PendingChangeset::AttachStatus>(DETACHED))";
-    MetadataExpression e4(FILTER_COLUMN_LE, "author", Value("foo"));
+    MetadataExpression e4(FILTER_COLUMN_LE, "author", Value(std::string("foo")));
     string s4 = "MetadataExpression(author <= MetadataValue<Value>(Value<string>(foo)))";
     AttributeExpression e5(FILTER_COLUMN_GT, "kind", "attr", Value(123));
     string s5 = "AttributeExpression(kind.attr > Value<int>(123))";
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(filter_dumping)
     v3.push_back(e7);
     AndFilter e8(v3);
     string s8 = "AndFilter([" + s5 + ", " + s6 + ", " + s7 + ", ])";
-    AttributeExpression e9(FILTER_COLUMN_CONTAINS, "kind", "attr", Value("key"));
+    AttributeExpression e9(FILTER_COLUMN_CONTAINS, "kind", "attr", Value(std::string("key")));
     string s9 = "AttributeExpression(kind.attr contains Value<string>(key))";
     std::set<Identifier> roles;
     roles.insert("foo");
