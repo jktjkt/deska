@@ -15,19 +15,21 @@ helper_host_attrs = {
     "service": "identifier_set", "template_host": "identifier"
 }
 
-def helper_split_templated_args(source, name):
-    return dict((k, v) for k, v in source.iteritems() if k != name)
+def helper_split_templated_args(source, ignored):
+    return dict((k, v) for k, v in source.iteritems() if k not in ignored)
 
 def imperative(r):
     r.assertEqual(r.c(kindNames()), AnyOrderList(
         ('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware', 'service', 'host_template')))
 
     r.assertEqual(r.c(kindAttributes("interface")), helper_interface_attrs)
-    r.assertEqual(r.c(kindAttributes("interface_template")), helper_split_templated_args(helper_interface_attrs, "host"))
+    r.assertEqual(r.c(kindAttributes("interface_template")), helper_split_templated_args(helper_interface_attrs, ("host",)))
     r.assertEqual(r.c(kindAttributes("vendor")), {})
     r.assertEqual(r.c(kindAttributes("service")), {"note": "string"})
     r.assertEqual(r.c(kindAttributes("host")), helper_host_attrs)
-    r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, "hardware"))
+    r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, ("hardware",)))
+    r.assertEqual(r.c(kindAttributes("hardware")), helper_hardware_attrs)
+    r.assertEqual(r.c(kindAttributes("hardware_template")), helper_split_templated_args(helper_hardware_attrs, ("hardware","host")))
 
     # try to ask for a non-existing object
     r.cfail(kindAttributes("pwnpwn"), InvalidKindError())
