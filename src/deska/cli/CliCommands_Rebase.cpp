@@ -124,18 +124,10 @@ std::string OurModificationConverter::operator()(const Db::RenameObjectModificat
 std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "#set attribute " << modification.attributeName;
-    if (modification.oldAttributeData) {
-         ostr << " from " << *(modification.oldAttributeData);
-    } else {
-        ostr << "(none)";
-    }
-    ostr << std::endl;
-    ostr << modification.kindName << " " << modification.objectName << " ";
-    if (modification.attributeData)
-        ostr << modification.attributeName << *(modification.attributeData);
-    else
-        ostr << "no " << modification.attributeName;
+    ostr << "#set attribute " << modification.attributeName <<
+            readableAttrPrinter(" from", modification.oldAttributeData) << std::endl <<
+            modification.kindName << " " << modification.objectName <<
+            readableAttrPrinter(" to", modification.attributeData);
     return ostr.str();
 }
 
@@ -173,9 +165,9 @@ std::string ExternModificationConverter::operator()(const Db::SetAttributeModifi
 {
     std::ostringstream ostr;
     ostr << "# attribute " << modification.kindName << " " << modification.objectName << " "
-         << modification.attributeName << "set from "
-         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
-         << (modification.attributeData ? *(modification.attributeData) : "null") << " in newer revision";
+         << modification.attributeName << "set"
+         << readableAttrPrinter(" from", modification.oldAttributeData)
+         << readableAttrPrinter(" to", modification.attributeData) << " in newer revision";
     return ostr.str();
 }
 
@@ -215,9 +207,9 @@ std::string BothModificationConverter::operator()(const Db::SetAttributeModifica
 {
     std::ostringstream ostr;
     ostr << "attribute " << modification.kindName << " " << modification.objectName << " "
-         << modification.attributeName << "set from "
-         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
-         << (modification.attributeData ? *(modification.attributeData) : "null")
+         << modification.attributeName << "set"
+         << readableAttrPrinter(" from", modification.oldAttributeData)
+         << readableAttrPrinter(" to", modification.attributeData)
          << " in both newer revision and our changeset";
     return ostr.str();
 }
