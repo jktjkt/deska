@@ -111,9 +111,19 @@ void ModificationPrinter::operator()(const Db::RenameObjectModification &modific
 void ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::cout << "set attribute " << modification.kindName << " " << modification.objectName << " "
-              << modification.attributeName << " from "
-              << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
-              << (modification.attributeData ? *(modification.attributeData) : "null") << std::endl;
+              << modification.attributeName;
+
+    if (modification.oldAttributeData) {
+        std::cout << " from " << *(modification.oldAttributeData);
+    } else {
+        std::cout << " (none)";
+    }
+    if (modification.attributeData) {
+        std::cout << " to " << *(modification.attributeData);
+    } else {
+        std::cout << " (none)";
+    }
+    std::cout << std::endl;
 }
 
 

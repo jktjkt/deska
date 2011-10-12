@@ -124,8 +124,13 @@ std::string OurModificationConverter::operator()(const Db::RenameObjectModificat
 std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "#set attribute " << modification.attributeName << " from "
-         << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << std::endl;
+    ostr << "#set attribute " << modification.attributeName;
+    if (modification.oldAttributeData) {
+         ostr << " from " << *(modification.oldAttributeData);
+    } else {
+        ostr << "(none)";
+    }
+    ostr << std::endl;
     ostr << modification.kindName << " " << modification.objectName << " ";
     if (modification.attributeData)
         ostr << modification.attributeName << *(modification.attributeData);
