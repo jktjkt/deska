@@ -38,7 +38,7 @@ type_dict = ({
 	"ipv4": "ipv4address",
 	"ipv6": "ipv6address",
 	"inet": "string",
-    "bool": "boolean"
+	"bool": "bool"
 })
 
 @pytypes
