@@ -11,7 +11,7 @@ def imperative(r):
 
     variants = ("ahoj", 3, 333.666, None, _l.IPv4Address("127.0.0.1"),
                 _l.IPv6Address("::1"), _l.MacAddress("00:16:3e:37:53:2B"),
-                datetime.datetime.now(), datetime.date.today())
+                datetime.datetime.now(), datetime.date.today(), True, False)
 
     for x in variants:
         print "%s: %s" % (type(x), x)
