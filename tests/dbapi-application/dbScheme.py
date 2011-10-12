@@ -7,7 +7,7 @@ helper_interface_attrs = {
     "mac": "macaddress", "template_interface": "identifier"
 }
 helper_hardware_attrs = {
-    "warranty": "date", "purchase": "date", "vendor": "identifier",
+    "warranty": "date", "purchase": "date", "vendor": "identifier", "cpu_ht": "bool",
     "template_hardware": "identifier", "cpu_num": "int", "ram": "int", "note_hardware": "string", "host" : "identifier"
 }
 helper_host_attrs = {
