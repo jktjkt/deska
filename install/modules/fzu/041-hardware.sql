@@ -14,8 +14,8 @@ CREATE TABLE hardware (
 	name identifier
 		CONSTRAINT "hardware with this name already exists" UNIQUE NOT NULL,
 	-- model of hardware
-	hardwaremodel bigint 
-		CONSTRAINT hardware_fk_hardwaremodel REFERENCES hardwaremodel(uid) DEFERRABLE,
+	modelhardware bigint 
+		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE,
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	box bigint
