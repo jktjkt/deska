@@ -52,7 +52,13 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
 template <typename T>
 T CliConfig::getVar(const std::string &name)
 {
-    return configVars[name].as<T>();
+    if (configVars.count(name)) {
+        return configVars[name].as<T>();
+    } else {
+        std::ostringstream ss;
+        ss << "Configuration error: option '" << name << "' not found";
+        throw std::runtime_error(ss.str());
+    }
 }
 
 
