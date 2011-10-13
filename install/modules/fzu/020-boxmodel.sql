@@ -3,13 +3,13 @@
 ---
 SET search_path TO production,deska;
 
-CREATE SEQUENCE boxmodel_uid START 1;
+CREATE SEQUENCE modelbox_uid START 1;
 
-CREATE TABLE boxmodel (
-	uid bigint DEFAULT nextval('boxmodel_uid')
-		CONSTRAINT boxmodel_pk PRIMARY KEY,
+CREATE TABLE modelbox (
+	uid bigint DEFAULT nextval('modelbox_uid')
+		CONSTRAINT modelbox_pk PRIMARY KEY,
 	name identifier
-		CONSTRAINT "boxmodel with this name already exists" UNIQUE NOT NULL,
+		CONSTRAINT "modelbox with this name already exists" UNIQUE NOT NULL,
 	-- size
 	sizeX int
 		CONSTRAINT "sizex cannot be negative number" CHECK (sizeX >= 0),
