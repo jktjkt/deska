@@ -150,12 +150,15 @@ the hardware inventory, another for ``rack placement'' (or position), yet anothe
 top of that, and so on.  To confine this object explosion and to limit the amount of work required to handle such
 objects, Deska provides the {\tt CONTAINS} relation.
 
-Using this relations, a logical object is essentially composed of many smaller objects, where each of the ``contained''
+Using this relation, a logical object is essentially composed of many smaller objects, where each of the ``contained''
 parts provides a particular function.  For example, a logical ``computer'' object could be composed of the following
 building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for stuff like
-serial number) and {\tt placement} (for the physical space it occupies in a rack).  An Ethernet switch would typically
+serial number) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
 include the {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
-provided no conflicts arise.
+provided no conflicts arise.  It is important to realize that this reusing happens at the {\em kind} level and not at
+the object level --  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
+never to both.  The {\tt placement} {\em kind}, however, contains many individual objects, some of which refer to {\tt
+switch}, and others referring to {\tt computer} instances.
 
 The Deska database contains special hooks which prevent possible ambiguities. For example, when user creates an object
 which can be included in another one (in our example, a {\tt placement}), appropriate foreign keys will immediately tie
