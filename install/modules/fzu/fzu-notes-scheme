@@ -83,15 +83,12 @@ A pseudographical scheme representation:
     - REFERS_TO formfactor (identifier_set via "accepted_content")
     - REFERS_TO formfactor (required)
     - FIXME: maybe merge with the formfactor?
-    - CONTAINABLE modelhw
-    - CONTAINABLE modelswitch
-    - CONTAINABLE modeldiskarray
 
 - formfactor
     [nothing]
 
 - modelhw
-    - CONTAINS modelbox
+    - REFERS_TO modelbox
     - REFERS_TO vendor
     - REFERS_TO warranty_contract
     - ram
@@ -107,13 +104,13 @@ A pseudographical scheme representation:
     - psu_count
 
 - modelswitch
-    - CONTAINS modelbox
+    - REFERS_TO modelbox
     - REFERS_TO vendor
     - REFERS_TO warranty_contract
     - port_validity_regexp (FIXME: see note at modelbox for its bay_validity_regexp)
 
 - modeldiskarray
-    - CONTAINS modelbox
+    - REFERS_TO modelbox
     - REFERS_TO vendor
     - REFERS_TO warranty_contract
 
@@ -128,4 +125,3 @@ A pseudographical scheme representation:
     [nothing]
 
 FIXME missing: failures and other events
-FIXME: modelbox: shall we use CONTAINS, or REFERS_TO?
