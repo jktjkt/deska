@@ -121,6 +121,7 @@ A pseudographical scheme representation:
     [nothing]
 
 - warranty_contract
+    - expires
     - phone
 
 - services
