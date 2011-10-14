@@ -178,6 +178,9 @@ exist, without the accompanying {\tt host}).  In all cases, though, the Deska se
 up foreign keys properly when the ``contained'' and ``using'' objects come into existence at any time, no matter which
 one gets created first.
 
+Due to technical reasons, the {\tt CONTAINS} relation is complemented by a {\tt CONTAINABLE} relation in the opposite
+direction.  As a rule of thumb, if there is a relation {\em A contains B}, there is also a {\em B containable A}.
+
 \subsection{Object Embedding}
 
 Earlier in this chapter, we have mentioned that there is no structure among the kinds, and that as a result, all objects
