@@ -384,7 +384,8 @@ relation information etc.  The following types are defined:
         {\tt "timestamp"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
     One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINS", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINABLE", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -631,7 +632,8 @@ and the defined object relations.
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware", "column": "hardware"\}, \\
-            \{"relation": "MERGE\_WITH", "target": "second-kind", "column": "foo"\}, \\
+            \{"relation": "CONTAINS", "target": "second-kind", "column": "foo"\}, \\
+            \{"relation": "CONTAINABLE", "target": "second-kind", "column": "bar"\}, \\
             \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"\}, \\
             \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"\} \\
             ]}
