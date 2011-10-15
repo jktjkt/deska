@@ -107,7 +107,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_DATE].name("date in YYYY-MM-DD format");
 
     rulesMap[Db::TYPE_TIMESTAMP] = tTimeStamp
-        [qi::_val = phoenix::bind(&boost::posix_time::from_iso_string, qi::_1)];
+        [qi::_val = phoenix::bind(&boost::posix_time::time_from_string, qi::_1)];
     rulesMap[Db::TYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();
