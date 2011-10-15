@@ -5,6 +5,10 @@ from dbapi import DB
 import sys
 import logging
 from optparse import OptionParser
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 parser = OptionParser()
 parser.add_option("-d", "--database", dest="database", default="deska_dev",
@@ -59,8 +63,17 @@ cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
                  "cfggenGitRepo": options.cfggenGitRepo,
                  "cfggenGitWorkdir": options.cfggenGitWorkdir
                 }
+try:
+    db = DB(dbOptions=dbargs, cfggenBackend=options.cfggenBackend, cfggenOptions=cfggenOptions)
+except Exception, e:
+    msg = "Cannot connect to database: %s" % e
+    logging.error(msg)
+    response = {"dbException": {"type": "ServerError", "message": msg}}
+    sys.stdout.write(json.dumps(response))
+    sys.stdout.write("\n")
+    sys.stdout.flush()
+    sys.exit(1)
 
-db = DB(dbOptions=dbargs, cfggenBackend=options.cfggenBackend, cfggenOptions=cfggenOptions)
 logging.debug("connected to database")
 
 while True:

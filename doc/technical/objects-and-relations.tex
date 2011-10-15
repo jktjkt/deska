@@ -1,0 +1,244 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[czech,english]{babel}
+\usepackage{a4wide}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+
+\begin{document}
+
+\title{Deska: Objects and Relations}
+
+\author{Jan Kundrát}
+
+\maketitle
+
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
+\begin{abstract}
+The Deska database can store data of varying structure.  In this chapter, we provide an overview of what can be stored
+and how to use the provided facilities to design a database scheme which closely matches the real-world processes.  The
+basic building blocks of the Deska database, the {\em kinds}, {\em objects} and {\em relations}, are described here.
+\end{abstract}
+
+\section{Objects and Relations: The Basic Building Blocks}
+
+Deska does not try to deny its background in relation databases, and therefore it comes at no surprise that the basic
+building blocks, the Deska {\em objects}, {\em kinds} and {\em relations}, all have their well-known parallels in the
+relation database world.
+
+Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a DB table --
+all objects of the same type, or {\em kind} as we call that in the Deska jargon, live in one table, and they all can
+store the same amount of information in their {\em attributes}, the database columns.  One of the columns is usually a
+primary key, which in the Deska corresponds to a special attribute called {\em name}.  This name is used to uniquely
+identify an {\em object} among all other objects of the same {\em kind}, similarly to how a primary key is a unique
+reference to a single row in a database table.
+
+The primary key on its own is rather meaningless, though -- one has to know what table it belongs to in order to do
+anything useful with that information.  The situation is the same in Deska, where one has to always pass a tuple of
+identifiers when trying to identify an object, the name of the {\em kind} and the identifier of the object's {\em name}.
+
+Similarly to how a typical RDBMS hosts many tables, Deska usually works with many {\em kinds} at once.  All tables are
+born equal, and hence even the Deska kinds all exist on the same level of a virtual hierarchy.  Even though the
+real-world is full of examples where something ``belongs'' to something else, like an {\tt eth0} interface could belong
+to machine called {\tt www}, there's no such thing at this level of the Deska interface -- when you want to work with a
+particular object, perhaps the {\tt www}'s {\tt eth0}, you always have to identify it through a globally unique name.
+Of course, all of this is hidden (and much else provided by) by the upper layers thanks to the concept of {\em
+relations}.
+
+\section{Relations}
+
+A {\em relation} is something which might exist between two {\em kinds} and can be used to model wildly differing
+scenarios.  A relation is defined by the left and right {\em kinds} to which it refers and of the associated {\em type}
+of the relation\footnote{This is further augmented by auxiliary information of which object attribute is used by the
+relation, but all of that can be safely ignored for now.  Don't worry, we'll get back to that later.}.
+
+The relations serve different purposes, all of which are described in this section.  Some of them are suitable for
+maintaining referential integrity, others serve as ``context helpers'' for humans to work with, yet others can be used
+to build complex inheritance and composition patterns, common to the object-oriented programming.
+
+\subsection{Referential Integrity}
+
+Let's start with perhaps one of the simplest relation, the {\tt REFERS\_TO} one.  The sole purpose of this relation is
+to make sure that an object's attribute does not contain just an ordinary text, but that the value of said attribute
+refers to an object of a given kind.
+
+There are many use cases for such relation, the most basic one is probably the DB-way of defining enumerations.  Suppose
+we are designing a hardware inventory and want to keep track of vendors or manufacturers.  It would be impractical to
+modify the database code when a new company selling servers emerges, so it makes sense to treat the list of
+manufacturers as data.  This is simply done by creating a new kind, let's call it ``vendor'', and instantiating new
+objects for each supplier currently in use.  The {\tt machine} kind which typically holds objects representing each
+physical server would then gain a new attribute called {\tt vendor} with type {\tt identifier}, which will make sure
+that the possible values have to conform to the syntax constraints defined for identifiers.  For the referential
+integrity to work, a new {\em relation} shall be created.  This new relation shall have the type {\tt REFERS\_TO}, and
+be from the kind {\tt machine} to kind {\tt vendor}.
+
+When a new delivery from a brand new company arrives, activating that new manufacturer is simply a matter of
+creating new object of the {\tt vendor} kind.
+
+\subsection{Relations Explained}
+
+Each relation therefore merely specifies that objects of a particular kind {\em can} somehow refer to objects of some
+other kind (or of the same kind, for that matter).  It is important to understand that this relation is {\bf optional},
+and can be present or absent on a per-object basis, and that these relations concern the individual objects.  Under the
+hood, relations are implemented as database foreign keys, and as foreign keys can be {\tt NULL} unless explicitly
+prohibited, an object can easily exist without that particular relation taking any effect.
+
+The foreign key is just a table column similar to other object attributes.  It has its own name defined by the scheme
+architect, and is usually fully accessible to the DBAPI users.  The established Deska conventions call for either using
+a name which matches the purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reusing the name
+of the target kind.  There are certain situations (which are even present in the sample schemes, as shipped with Deska)
+which warrant using a completely different name, so implementors shall refer to their best judgement when inventing
+naming conventions.
+
+\subsection{Multi-value References}
+
+So far, we have shown relations which generally represent an N:1 mapping -- an object of the source kind (a row in the
+source table) refers either to nothing, or to exactly one target object.  However, this concept is not sufficient for a
+particularly compelling feature, notably for {\em tagging}.
+
+Tagging is probably a well-known concept from the general-purpose computing experience. An object can be tagged by a set
+of labels, which generally refer to identifiers of other objects.  In real life, a photo gets tagged with names of
+people who are on the picture.  In a data center, each server gets tagged with several roles that it fulfils; for
+example, machine {\tt srv012} can act as a web server and an MX host at the same time, and hence shall get two tags, the
+{\tt www} and {\tt smtp} ones.
+
+In Deska, this feature is provided by the combination of the {\tt identifier\_set} attribute data type and the {\tt
+REFERS\_TO} relation.  In our example, the {\tt role} is a standalone kind, and the {\tt host} kind has an attribute
+{\tt services} of type {\tt identifier\_set}.  Where the RDBMS equivalent of tagging would involve dealing with an
+auxiliary table just for the mapping, the Deska DBAPI provides an abstraction without any extra kinds.
+
+\subsection{Templates and Default Value Inheritance}
+
+There are certain cases where many objects have certain shared properties.  As an example, imagine a situation where you
+order a delivery of 50 new, identical servers.  A lot of their properties is going to be the same, or almost the same,
+among all of them.  Therefore it might make sense to create one artificial object, let's call it a {\em template} one,
+put all the shared data in there, and have fifty new individual objects ``inherit'' the default values from it.  This
+scenario is assisted by the {\tt TEMPLATIZED} relation.
+
+Templates are typically implemented through two kinds, let's call them {\tt hardware} and {\tt template\_hardware}, and
+a relation of type {\tt TEMPLATIZED}, which would typically be ``activated'' via the {\tt template} attribute of the
+first kind (remember, relations always exist between individual objects).  So in our sample scenario when a vendor
+delivers fifty new RM-666 boxes, we would create one instance of the {\tt template\_hardware} kind with the name {\tt
+rm666\_2011\_03}, assign interesting properties to that object (like the end of warranty period, support contract number
+etc.), and then create fifty {\tt hardware} objects for the individual machines, setting their {\tt template} attribute
+to {\tt rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each
+object are inherited from the associated template.
+
+This default value substitution can be overridden at any time by setting an explicit non-null value at the level of the
+leaf object.  Resetting the attribute value back to {\tt null} later effectively restores the inherited default.  It is
+not possible to override an inherited attribute value by {\tt null}; doing that requires explicitly cancelling the
+relation for that particular object.  In our case, the inheritance can be stopped by setting the {\tt hardware}'s
+attribute {\tt template} to {\tt null}.
+
+Users should be careful to not abuse the template relation where composition would be more appropriate.  As a rule of
+thumb, if it makes sense to deal with a subset of object's attributes as a different entity (maybe distinguishing
+between the hardware's physical dimensions, its inner compounds like CPU configuration, the model number, and machine's
+rack location), it is usually recommended to go with composition or something else instead of templating.
+
+\subsection{Composition}
+
+In the previous section, we have briefly mentioned that it makes sense to ``split'' properties of one real-world object
+into several groups.  On the other hand, doing so imposes a significant burden on the hands of a system administrator
+who suddenly does not have to create just a single object for each machine in the rack, but several of them -- one for
+the hardware inventory, another for ``rack placement'' (or position), yet another for the logical computer that runs on
+top of that, and so on.  To confine this object explosion and to limit the amount of work required to handle such
+objects, Deska provides the {\tt CONTAINS} relation.
+
+Using this relation, a logical object is essentially composed of many smaller objects, where each of the ``contained''
+parts provides a particular function.  For example, a logical ``computer'' object could be composed of the following
+building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for stuff like
+serial number) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
+include the {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
+provided no conflicts arise.  It is important to realize that this reusing happens at the {\em kind} level and not at
+the object level --  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
+never to both.  The {\tt placement} {\em kind}, however, contains many individual objects, some of which refer to {\tt
+switch}, and others referring to {\tt computer} instances.
+
+The Deska database contains special hooks which prevent possible ambiguities. For example, when user creates an object
+which can be included in another one (in our example, a {\tt placement}), appropriate foreign keys will immediately tie
+the freshly created instance to the pre-existing object with the same name, if one exists.  Therefore, if there is
+already a switch called {\tt foobar} and one attempts to create a {\tt placement} of the same kind, it will immediately
+get tied to the switch with the same name.  Constraint checks are in place that forbid creating a {\tt switch} and a
+{\tt host} with the same name, as it would be impossible to {\em place} them into a rack any time later.  This check is
+transitive, i.e. if there is a {\tt machine} which includes {\tt hardware} which in turn includes a {\tt placement}, it
+is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
+
+It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
+building blocks objects on their own right, without being ``used'' by the other objects -- an example where this would
+be very appropriate is our {\tt placement} kind.  In other situations however, it might be wise to allow the low-level
+objects to exist without actually being referenced from elsewhere (it should generally be allowed to put a machine into
+inventory even though it remains off and without an assigned hostname, and hence just the {\tt hardware} object shall
+exist, without the accompanying {\tt host}).  In all cases, though, the Deska server automatically takes care of setting
+up foreign keys properly when the ``contained'' and ``using'' objects come into existence at any time, no matter which
+one gets created first.
+
+Due to technical reasons, the {\tt CONTAINS} relation is complemented by a {\tt CONTAINABLE} relation in the opposite
+direction.  As a rule of thumb, if there is a relation {\em A contains B}, there is also a {\em B containable A}.
+
+\subsection{Object Embedding}
+
+Earlier in this chapter, we have mentioned that there is no structure among the kinds, and that as a result, all objects
+have to bear a name which is unique among all objects in the given kind.  However, not only the real world in all its
+complexities, but also a simple data center is full of examples where this naming convention would get in the way; the
+above mentioned example of a network interface name is a prime example.  There are many ways out of that; the most
+obvious ones involve GUIDs and other forms of human-unfriendly means.  In Deska, we have chosen another approach which
+is assisted by the {\tt EMBED\_INTO} relation, and is hopefully more readable to humans.
+
+An embedded object ``almost'' violates the limitation that an object's name has to be unique in a given kind.  Instead,
+the global name is composed of two parts: the name of the {\em parent} object and a logical name, which has to be valid
+only in the context of a parent, which are then joined together by a separator {\tt ->}, hereby forming a unique
+identifier.  In practice, {\tt srv012}'s network interface {\tt eth0} would be therefore called {\tt srv012->eth0}.
+Under the hood, this is implemented by two distinct attributes and the standard rules for constraint checking guarantee
+that there is no potential for possible inconsistency.
+
+In practice, this relaxed naming is still not enough to be directly usable by people, and hence the Deska CLI (and any
+other GUIs shipped with Deska, for that matter) fully supports object embedding using this relation.  There is no need
+to manually type composed identifiers, as the object nesting is presented transparently to users.
+
+The object embedding also has a feature that allows generating locally unique names for the local part of the name.
+That features comes handy when a DB scheme uses object embedding e.g. for tracking failures and other events associated
+with a piece of hardware.  The Deska way of handling this use case is to create a kind (let's call it {\tt failure}) and
+have its objects embedded into the parent object instances (like {\tt hardware}).  However, doing so without an
+additional assistance provided by the CLI or the Deska server would impose an annoying burden on users, who would have
+to come up with a unique name when logging a ``failure'' of an equipment.  To address this limitation, the Deska DBAPI
+call for creating new objects (\deskaFuncRef{createObject}) has an option for automatically assigning a locally-unique
+name for the object just created.  This means that the user just has to ``create a failure for machine {\tt srv012}'',
+and the Deska DB itself will assign an identifier like {\tt srv012->1} to it.  This feature is directly available from
+the CLI, and the user does not have to deal with low-level naming conventions at all.
+
+\subsection{Relations Rationale}
+
+We have seen that the relations allow describing complex object hierarchies without violating the basic Deska design
+rule that the database contains flat lists of objects, which themselves consist of a key-value pairs holding the actual
+data.  Applications are therefore free to use the Deska DBAPI without having any knowledge about the relations at all,
+and they would still have access to all the data.  At the same time, applications which want to go further and provide
+additional assistance can use advanced features (and more function calls) to effectively streamline the end users' work
+flow.  The worst thing that the former, ``naive'' applications could encounter are cases where a particular action
+(like, for example, creating a {\tt switch} and a {\tt host} with the same name) is denied by the integrity checking
+constraints.  On the other hand, applications which choose to employ the relations can use them to build rich object
+hierarchies and presenting them to the users without creating much confusion.
+
+\section{Attributes}
+
+In the previous sections, we have often used the term {\em attribute} without properly codifying what we refer to,
+relying on the intuitive definition.  For most purposes, such a definition is enough, but let's reiterate what an
+attribute really is and what data it can hold.
+
+As we have already mentioned, a {\em kind} specifies which attributes can be set (and hold data) for an object.  These
+attributes are simply a pair of a key and value.  Each attribute hence has a {\em name}, which is defined at the kind
+level, and a {\em value}, which is specific to each object instance.  The value is well-typed, meaning that each kind
+defines a data type for each attribute, and the data being stored in the attribute values has to conform to the
+specified data type.  It is also possible to place additional constraints on the attribute values, either through the
+object relations, or via further database triggers.
+
+The list of supported data types covers the most obvious and common needs (like strings and numeric values), and also
+includes datacenter-specific types like IPv4/IPv6 or Ethernet MAC addresses.  For a full list of the defined data types,
+please consult section \ref{sec:json-data-types-reference} on page~\pageref{sec:json-data-types-reference}.
+
+\end{document}

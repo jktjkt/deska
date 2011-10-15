@@ -31,6 +31,7 @@
 
 using std::vector;
 using std::map;
+using std::string;
 using namespace Deska::Db;
 
 /** @short Fuzzy comparator for Deska::Value which can dela with floating point values
@@ -86,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"some-object\"}\n");
     expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
             "\"price\": \"double\", \"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", "
-            "\"timestamp\": \"timestamp\", \"date\": \"date\""
+            "\"timestamp\": \"timestamp\", \"date\": \"date\", \"flag\": \"bool\""
             "}, \"tag\": \"T\", \"response\": \"kindAttributes\"}\n");
     vector<KindAttributeDataType> expected;
     expected.push_back(KindAttributeDataType("bar", TYPE_INT));
@@ -98,6 +99,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindAttributes, JsonApiTestFixtureFailOnStreamThrow
     expected.push_back(KindAttributeDataType("ipv6", TYPE_IPV6_ADDRESS));
     expected.push_back(KindAttributeDataType("timestamp", TYPE_TIMESTAMP));
     expected.push_back(KindAttributeDataType("date", TYPE_DATE));
+    expected.push_back(KindAttributeDataType("flag", TYPE_BOOL));
     vector<KindAttributeDataType> res = j->kindAttributes("some-object");
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
@@ -209,7 +211,7 @@ BOOST_FIXTURE_TEST_CASE(json_kindInstances_filterNe, JsonApiTestFixtureFailOnStr
     expectWrite("{\"command\":\"kindInstances\",\"tag\":\"T\",\"kindName\":\"blah\",\"revision\":\"r666\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"attr\",\"value\":\"foo\"}}\n");
     expectRead("{\"kindInstances\": [], \"response\": \"kindInstances\", \"tag\":\"T\"}\n");
     vector<Identifier> expected;
-    vector<Identifier> res = j->kindInstances("blah", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind", "attr", Value("foo"))), RevisionId(666));
+    vector<Identifier> res = j->kindInstances("blah", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind", "attr", Value(std::string("foo")))), RevisionId(666));
     BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), expected.begin(), expected.end());
     expectEmpty();
 }
@@ -292,19 +294,19 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
             "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\","
             "\"inherit\": \"bleh\", \"anotherKind\": \"foo_ref\", \"role\": [\"a\", \"b\", \"cc\"]}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
-    expected["foo"] = "bar";
+    expected["foo"] = std::string("bar");
     expected["int"] = 10;
     expected["real"] = 100.666;
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
-    expected["baz"] = "id";
+    expected["baz"] = string("id");
     expected["mac"] = Deska::Db::MacAddress(0x00, 0x16, 0x3e, 0x37, 0x53, 0x2b);
     expected["ipv4"] = boost::asio::ip::address_v4::from_string("127.0.0.1");
     expected["ipv6"] = boost::asio::ip::address_v6::from_string("::1");
     expected["date"] = boost::gregorian::date(2011, 6, 20);
     expected["timestamp"] = boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33));
-    expected["inherit"] = "bleh";
-    expected["anotherKind"] = "foo_ref";
+    expected["inherit"] = string("bleh");
+    expected["anotherKind"] = string("foo_ref");
     std::set<Identifier> role;
     role.insert("a");
     role.insert("b");
@@ -343,7 +345,7 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectData, JsonApiTestFixtureFailOnStreamT
     expectRead("{\"resolvedObjectData\": "
             "{\"foo\": \"bar\", \"baz\": 666}, \"tag\":\"T\", \"response\": \"resolvedObjectData\"}\n");
     map<Identifier, Value> expected;
-    expected["foo"] = "bar";
+    expected["foo"] = string("bar");
     expected["baz"] = 666;
     map<Identifier, Value> res = j->resolvedObjectData("kk", "oo");
     // In this case, we limit ourselves to string comparisons. There's a map invloved here, which means that
@@ -373,16 +375,16 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
                "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": null, \"anotherKind\": \"b\"} "
                "}, \"tag\":\"T\", \"response\": \"multipleObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
-    expected["a"]["foo"] = "barA";
+    expected["a"]["foo"] = string("barA");
     expected["a"]["int"] = 10;
-    expected["a"]["baz"] = "idA";
+    expected["a"]["baz"] = string("idA");
     expected["a"]["template"] = Value();
-    expected["a"]["anotherKind"] = "a";
-    expected["b"]["foo"] = "barB";
+    expected["a"]["anotherKind"] = string("a");
+    expected["b"]["foo"] = string("barB");
     expected["b"]["int"] = 20;
-    expected["b"]["baz"] = "idB";
+    expected["b"]["baz"] = string("idB");
     expected["b"]["template"] = Value();
-    expected["b"]["anotherKind"] = "b";
+    expected["b"]["anotherKind"] = string("b");
     // Check just the interesting items
     map<Identifier, map<Identifier,Value> > res = j->multipleObjectData("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
@@ -402,7 +404,7 @@ BOOST_FIXTURE_TEST_CASE(json_resolvedObjectDataWithOrigin, JsonApiTestFixtureFai
     expectRead("{\"resolvedObjectDataWithOrigin\": "
             "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"tag\":\"T\", \"response\": \"resolvedObjectDataWithOrigin\"}\n");
     map<Identifier, std::pair<Identifier,Value> > expected;
-    expected["foo"] = std::make_pair("obj-defining-this", "bar");
+    expected["foo"] = std::make_pair("obj-defining-this", string("bar"));
     expected["baz"] = std::make_pair("this-obj", 666);
     map<Identifier, std::pair<Identifier,Value> > res = j->resolvedObjectDataWithOrigin("kk", "oo");
     // In this case, we limit ourselves to string comparisons. There's a map invloved here, which means that
@@ -434,16 +436,16 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
                "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20], \"template\": [\"b\", \"22\"], \"anotherKind\": [\"b\", \"b\"]} "
                "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectDataWithOrigin\"}\n");
     map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
-    expected["a"]["foo"] = std::make_pair("1", "barA");
-    expected["a"]["baz"] = std::make_pair("1", "idA");
+    expected["a"]["foo"] = std::make_pair("1", string("barA"));
+    expected["a"]["baz"] = std::make_pair("1", string("idA"));
     expected["a"]["int"] = std::make_pair("11", 10);
     expected["a"]["template"] = std::make_pair("a", Value());
-    expected["a"]["anotherKind"] = std::make_pair("a", "a");
-    expected["b"]["foo"] = std::make_pair("1", "barB");
-    expected["b"]["baz"] = std::make_pair("2", "idB");
+    expected["a"]["anotherKind"] = std::make_pair("a", string("a"));
+    expected["b"]["foo"] = std::make_pair("1", string("barB"));
+    expected["b"]["baz"] = std::make_pair("2", string("idB"));
     expected["b"]["int"] = std::make_pair("22", 20);
-    expected["b"]["template"] = std::make_pair("b", "22");
-    expected["b"]["anotherKind"] = std::make_pair("b", "b");
+    expected["b"]["template"] = std::make_pair("b", string("22"));
+    expected["b"]["anotherKind"] = std::make_pair("b", string("b"));
     map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
@@ -470,16 +472,16 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
                "\"b\": {\"foo\": \"barB\", \"baz\": \"idB\", \"int\": 20, \"template\": \"22\", \"anotherKind\": \"b\"} "
                "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectData\"}\n");
     map<Identifier, map<Identifier,Value> > expected;
-    expected["a"]["foo"] = "barA";
-    expected["a"]["baz"] = "idA";
+    expected["a"]["foo"] = string("barA");
+    expected["a"]["baz"] = string("idA");
     expected["a"]["int"] = 10;
     expected["a"]["template"] = Value();
-    expected["a"]["anotherKind"] = "a";
-    expected["b"]["foo"] = "barB";
-    expected["b"]["baz"] = "idB";
+    expected["a"]["anotherKind"] = string("a");
+    expected["b"]["foo"] = string("barB");
+    expected["b"]["baz"] = string("idB");
     expected["b"]["int"] = 20;
-    expected["b"]["template"] = "22";
-    expected["b"]["anotherKind"] = "b";
+    expected["b"]["template"] = string("22");
+    expected["b"]["anotherKind"] = string("b");
     map<Identifier, map<Identifier, Value> > res = j->multipleResolvedObjectData("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
@@ -538,7 +540,7 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     std::string jsonInputPrefix = "{\"command\":\"setAttribute\",\"tag\":\"T\",\"kindName\":\"k\",\"objectName\":\"o\",\"attributeName\":\"a\",\"attributeData\":";
     std::string jsonOutput = "{\"response\": \"setAttribute\", \"tag\":\"T\"}\n";
     // string or identifier
-    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutput, Deska::Db::Value("some string")));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "\"some string\"}\n", jsonOutput, Deska::Db::Value(string("some string"))));
     // set of identifiers
     std::set<std::string> stringset;
     stringset.insert("first");
@@ -546,6 +548,9 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     data.push_back(SetAttrTestData(jsonInputPrefix + "[\"first\",\"second\"]}\n", jsonOutput, Deska::Db::Value(stringset)));
     // int
     data.push_back(SetAttrTestData(jsonInputPrefix + "123}\n", jsonOutput, Deska::Db::Value(123)));
+    // bool
+    data.push_back(SetAttrTestData(jsonInputPrefix + "true}\n", jsonOutput, Deska::Db::Value(true)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "false}\n", jsonOutput, Deska::Db::Value(false)));
     // double
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutput, Deska::Db::Value(333.666)));
     // null
@@ -780,7 +785,7 @@ std::vector<ObjectModificationResult> diffObjects()
     res.push_back(CreateObjectModification("k1", "o1"));
     res.push_back(DeleteObjectModification("k2", "o2"));
     res.push_back(RenameObjectModification("k3", "ooooold", "new"));
-    res.push_back(SetAttributeModification("k5", "o5", "a5", Deska::Db::Value("new"), Deska::Db::Value("old")));
+    res.push_back(SetAttributeModification("k5", "o5", "a5", Deska::Db::Value(string("new")), Deska::Db::Value(string("old"))));
     return res;
 }
 }
@@ -877,8 +882,8 @@ BOOST_FIXTURE_TEST_CASE(json_applyBatchedChanges, JsonApiTestFixtureFailOnStream
     expectRead("{\"response\": \"applyBatchedChanges\", \"tag\":\"T\"}\n");
     std::vector<ObjectModificationResult> diff = diffObjects();
     std::vector<ObjectModificationCommand> modifications(diff.begin(), diff.end());
-    modifications.push_back(SetAttributeModification("k6", "o6", "a6", Deska::Db::Value("new6")));
-    modifications.push_back(SetAttributeModification("k7", "o7", "a7", Deska::Db::Value("new7"), Deska::Db::Value()));
+    modifications.push_back(SetAttributeModification("k6", "o6", "a6", Deska::Db::Value(string("new6"))));
+    modifications.push_back(SetAttributeModification("k7", "o7", "a7", Deska::Db::Value(string("new7")), Deska::Db::Value()));
     modifications.push_back(SetAttributeInsertModification("k8", "o8", "a8", "666"));
     modifications.push_back(SetAttributeRemoveModification("k9", "o9", "a9", "333"));
     j->applyBatchedChanges(modifications);

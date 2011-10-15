@@ -45,7 +45,7 @@ You're supposed to use the Value typedef in your code.
 */
 typedef boost::variant<
     // Primitive types
-    std::string, double, int,
+    std::string, double, int, bool,
     // Network addresses
     boost::asio::ip::address_v4, boost::asio::ip::address_v6, MacAddress,
     // Date and time
@@ -78,6 +78,8 @@ typedef enum {
     TYPE_INT,
     /** @short Double */
     TYPE_DOUBLE,
+    /** @short Boolean value */
+    TYPE_BOOL,
     /** @short IPv4 address */
     TYPE_IPV4_ADDRESS,
     /** @short IPv6 address */

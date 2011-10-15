@@ -40,7 +40,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     // Simulate slots triggered by the Parser
     slotParserParsingStarted();
     slotParserCategoryEntered("a", "b");
-    slotParserSetAttr("a", "foo", Deska::Db::Value("bar"));
+    slotParserSetAttr("a", "foo", Deska::Db::Value(std::string("bar")));
     slotParserRemoveAttr("a", "rab");
     slotParserSetAttrInsert("a", "seta", "xx");
     slotParserSetAttrRemove("a", "setb", "yy");
@@ -50,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE( test_mock_objects, ParserTestFixture )
     // ...and verify that we indeed received them
     expectParsingStarted();
     expectCategoryEntered("a", "b");
-    expectSetAttr("a", "foo", Deska::Db::Value("bar"));
+    expectSetAttr("a", "foo", Deska::Db::Value(std::string("bar")));
     expectRemoveAttr("a", "rab");
     expectSetAttrInsert("a", "seta", "xx");
     expectSetAttrRemove("a", "setb", "yy");

@@ -40,6 +40,8 @@ std::ostream& operator<<(std::ostream &stream, const Type t)
         return stream << "TYPE_INT";
     case TYPE_DOUBLE:
         return stream << "TYPE_DOUBLE";
+    case TYPE_BOOL:
+        return stream << "TYPE_BOOL";
     case TYPE_IPV4_ADDRESS:
         return stream << "TYPE_IPV4_ADDRESS";
     case TYPE_IPV6_ADDRESS:

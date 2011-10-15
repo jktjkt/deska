@@ -1,0 +1,136 @@
+
+Real-world entities:
+--------------------
+
+- server
+    - hardware model: CPU, RAM, power, disk configuration,...
+    - hardware instance: serial #, history of failures, rack location (placement)
+    - OS runtime: hostname, interfaces,...
+- switch
+    - switch model
+    - switch instance: serial #, placement,...
+    - network configuration
+- virtual machine:
+    - virtual hw instance: allocated RAM,...
+    - OS runtime
+    - FIXME: history of issues?
+- disk array
+    - array model
+    - array instance: serial #, rack placement,...
+
+
+How to translate that into Deska:
+---------------------------------
+
+- modelhw: CPU, RAM, power, disks,...
+- modelswitch: port regexp,...
+- modeldiskarray: disk info?
+- interface: ipv4, ipv6, vlan?, switch/port/..., maybe also patch panel info?
+- host: ("OS runtime") hostname, embeds interfaces,...
+- vendor: just name
+- warranty_contract: ?
+- box: physical dimensions, rack location
+
+
+
+A pseudographical scheme representation:
+----------------------------------------
+
+- host: "A server I can SSH into"
+    - EMBED interface
+    - CONTAINS hardware (xor virt_hw)
+    - CONTAINS virt_hw (xor hardware)
+    - REFERS_to services (identifier_set)
+
+- hardware: "A physical server"
+    - CONTAINABLE host
+    - REFERS_TO modelhw (required)
+    - CONTAINS box (required)
+    - purchased
+    - REFERS_TO warranty_contract
+    - serial1
+    - serial2
+    - inventory_no
+
+- virt_hw: "An instance of a VM running under some hypervisor"
+    - CONTAINABLE host
+    - cpu_num
+    - ram
+
+- switch: "A physical switch"
+    - REFERS_TO modelswitch (required)
+    - REFERS_TO warranty_contract
+    - CONTAINS box (required)
+
+- interface: "A network interface that is connected somewhere"
+    - REFERS_TO switch (required)
+
+- box: "Something that is placed somewhere"
+    - CONTAINABLE hardware (xor switch xor diskarray)
+    - CONTAINABLE switch (xor hardware xor diskarray)
+    - CONTAINABLE diskarray (xor hardware xor switch)
+    - Does *not* contain a REFERS_TO: modelbox; this is handled through the (hardware/switch/diskarray) indirection
+    - REFERS_TO: box (via "in", optional)
+    - x
+    - y
+    - z
+
+- modelbox: 
+    - width
+    - height
+    - depth
+    - bays_validity_regexp (to define which of the bay numbers are usable)
+    - FIXME: method for bay enumeration? from the regexp?
+    - REFERS_TO formfactor (identifier_set via "accepted_content")
+    - REFERS_TO formfactor (required)
+    - FIXME: maybe merge with the formfactor?
+
+- formfactor
+    [nothing]
+
+- modelhw
+    - REFERS_TO modelbox
+    - REFERS_TO vendor
+    - ram
+    - cpu_sockets
+    - cpu_cores
+    - cpu_ht
+    - cpu_text
+    - hepspec
+    - hdd_drive_capacity
+    - hdd_drive_count
+    - hdd_note
+    - power_max
+    - psu_count
+
+- modelswitch
+    - REFERS_TO modelbox
+    - REFERS_TO vendor
+    - port_validity_regexp (FIXME: see note at modelbox for its bay_validity_regexp)
+
+- modeldiskarray
+    - REFERS_TO modelbox
+    - REFERS_TO vendor
+    - hdd_drive_capacity
+    - hdd_drive_count
+    - hdd_note
+
+- vendor
+    [nothing]
+
+- warranty_contract
+    - expires
+    - phone
+
+- services
+    [nothing]
+
+- diskarray
+
+FIXME missing: failures and other events
+FIXME: do we want to separate HDD configuration to be able to reuse it between
+modeldiskarray and modelhw?
+FIXME: networking (Ethernet management) for diskarray!
+FIXME: SAS attachments
+FIXME: FC switches, interfaces and interconnects
+FIXME: virtual switches (bridging for virtual machines)

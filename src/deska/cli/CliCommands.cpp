@@ -38,6 +38,17 @@
 namespace Deska {
 namespace Cli {
 
+/** @short Print a well-formatted representation of an attribute value*/
+std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v)
+{
+    std::ostringstream ss;
+    if (v) {
+        ss << prefixMessage << " " << *v;
+    } else {
+        ss << " (none)";
+    }
+    return ss.str();
+}
 
 Command::Command(UserInterface *userInterface): ui(userInterface)
 {

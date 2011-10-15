@@ -14,8 +14,8 @@ CREATE TABLE box (
 	name identifier
 		CONSTRAINT "box with this name already exists" UNIQUE NOT NULL,
 	-- box model
-	boxmodel bigint
-		CONSTRAINT box_fk_boxmode REFERENCES boxmodel(uid) DEFERRABLE,
+	modelbox bigint
+		CONSTRAINT box_fk_boxmode REFERENCES modelbox(uid) DEFERRABLE,
 	-- box can be another whbox
 	box bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
@@ -50,7 +50,7 @@ BEGIN
         IF NEW.box IS NOT NULL
 	THEN
 		-- find parent inside dimensions
-		SELECT insX,insY,insZ INTO parentX,parentY,parentZ FROM box JOIN boxmodel ON (box.box = boxmodel.uid)
+		SELECT insX,insY,insZ INTO parentX,parentY,parentZ FROM box JOIN modelbox ON (box.box = modelbox.uid)
 			WHERE box.uid = NEW.box;
 		-- position is inside the parent box
 		IF NEW.posX > parentX THEN
@@ -91,8 +91,8 @@ BEGIN
 			posZ <= NEW.posZ;
 
 		-- find sizes
-		SELECT boxmodel.sizeX,boxmodel.sizeY,boxmodel.sizeZ INTO sizeX,sizeY,sizeZ FROM boxmodel
-			WHERE uid = NEW.boxmodel;
+		SELECT modelbox.sizeX,modelbox.sizeY,modelbox.sizeZ INTO sizeX,sizeY,sizeZ FROM modelbox
+			WHERE uid = NEW.modelbox;
 
 		-- size is inside the parent box, and before next box
 		IF (NEW.posX + sizeX > nextX) OR (NEW.posX <= prevX) THEN

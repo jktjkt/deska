@@ -1,6 +1,6 @@
 SET search_path TO production,deska;
 
-CREATE SEQUENCE switch_uid START 1;
+CREATE SEQUENCE modelswitch_uid START 1;
 
 -- models of Ethernet switches
 CREATE TABLE modelswitch (

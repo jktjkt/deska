@@ -14,7 +14,4 @@ GRANT ROLE
 postgres=# create database deska_dev owner deska_admin;
 CREATE DATABASE
 
-postgres@velbloud ~ $ psql deska_dev
-deska_dev=# create language plpythonu;
-CREATE LANGUAGE
-
+Now enable PgPython, see doc/misc/pgpython for instructions.

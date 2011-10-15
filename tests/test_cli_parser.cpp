@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument, ParserTestFixture )
     // Set the attribute
     parser->parseLine("hardware_name \"foo bar baz\"\r\n");
     expectParsingStarted();
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("hpv2"));
@@ -113,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_trivial_argument_inline, ParserTestFixture )
     parser->parseLine("hardware hpv2 hardware_name \"foo bar baz\"\r\n");
     expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments, ParserTestFixture )
     // Set the second one
     parser->parseLine("hardware_name \"foo bar baz\"\r\n");
     expectParsingStarted();
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("hpv2"));
@@ -164,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_two_arguments_inline, ParserTestFixture )
     expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectSetAttr("hardware", "price", Deska::Db::Value(666.0));
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -214,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE(parsing_multiple_arguments_inline, ParserTestFixture)
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("hardware", "id", Deska::Db::Value(1243));
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("jmeno")));
     expectSetAttr("hardware", "price", Deska::Db::Value(1234.5));
     expectCategoryLeft();
     expectParsingFinished();
@@ -229,7 +229,7 @@ BOOST_FIXTURE_TEST_CASE(parsing_simple_string_inline, ParserTestFixture)
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("hardware", "id", Deska::Db::Value(1243));
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("jmeno")));
     expectSetAttr("hardware", "price", Deska::Db::Value(1234.5));
     expectCategoryLeft();
     expectParsingFinished();
@@ -246,7 +246,7 @@ BOOST_FIXTURE_TEST_CASE(error_in_simple_string_inline, ParserTestFixture)
     expectParsingStarted();
     expectCategoryEntered("hardware", "abcde");
     expectSetAttr("hardware", "id", Deska::Db::Value(1243));
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("jmeno")));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for hardware. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"interface\" ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
@@ -312,7 +312,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface, ParserTestFixture)
     
     parser->parseLine("host_name \"as123\"\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("as123"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("as123")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -341,8 +341,8 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_inline_with_attr_for_parent, ParserTest
     expectParsingStarted();
     expectCategoryEntered("host", "abcde");
     // hardware_id is an identifier, not an int
-    expectSetAttr("host", "hardware_id", Deska::Db::Value("123"));
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "hardware_id", Deska::Db::Value(std::string("123")));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("interface", "mac", Deska::Db::Value(Deska::Db::MacAddress("00:11:22:33:44:55")));
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
@@ -371,7 +371,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_inline, ParserTestFix
     parser->parseLine("host abcde hardware_id 1 interface eth0 mac 00:11:22:33:44:55\n");
     expectParsingStarted();
     expectCategoryEntered("host", "abcde");
-    expectSetAttr("host", "hardware_id", Deska::Db::Value("1")); // identifier, not an int
+    expectSetAttr("host", "hardware_id", Deska::Db::Value(std::string("1"))); // identifier, not an int
     expectCategoryEntered("interface", "eth0");
     expectSetAttr("interface", "mac", Deska::Db::Value(Deska::Db::MacAddress("00:11:22:33:44:55")));
     expectCategoryLeft();
@@ -440,7 +440,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_inline_embed, ParserTestFixture)
     
     parser->parseLine("host_name \"jmeno\"\r\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -468,7 +468,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed, ParserTestFixture)
     
     parser->parseLine("host_name \"jmeno\"\r\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -495,7 +495,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_embed, ParserTestFixture)
 
     parser->parseLine("host_name \"jmeno\"\r\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -541,7 +541,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_error_in_multiline_embed, ParserTestFixtu
 
     parser->parseLine("host_name \"jmeno\"\r\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -1145,7 +1145,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument, ParserTestFixture 
     // Set the second one
     parser->parseLine("hardware_name \"foo bar baz\"\r\n");
     expectParsingStarted();
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("hardware", Deska::Db::Identifier("hpv2"));
@@ -1269,7 +1269,7 @@ BOOST_FIXTURE_TEST_CASE( parsing_remove_one_set_one_argument_inline, ParserTestF
     expectParsingStarted();
     expectCategoryEntered("hardware", "hpv2");
     expectRemoveAttr("hardware", "price");
-    expectSetAttr("hardware", "hardware_name", Deska::Db::Value("foo bar baz"));
+    expectSetAttr("hardware", "hardware_name", Deska::Db::Value(std::string("foo bar baz")));
     expectCategoryLeft();
     expectParsingFinished();
     expectNothingElse();
@@ -1387,7 +1387,7 @@ BOOST_FIXTURE_TEST_CASE(nested_interface_after_parent_attr_attr_removal_inline, 
     parser->parseLine("host abcde hardware_id 1 interface eth0 no mac\n");
     expectParsingStarted();
     expectCategoryEntered("host", "abcde");
-    expectSetAttr("host", "hardware_id", Deska::Db::Value("1")); // identifier, not an int
+    expectSetAttr("host", "hardware_id", Deska::Db::Value(std::string("1"))); // identifier, not an int
     expectCategoryEntered("interface", "eth0");
     expectRemoveAttr("interface", "mac");
     expectCategoryLeft();
@@ -1408,7 +1408,7 @@ BOOST_FIXTURE_TEST_CASE(multiline_with_inline_embed_attr_remove, ParserTestFixtu
     
     parser->parseLine("host_name \"jmeno\"\r\n");
     expectParsingStarted();
-    expectSetAttr("host", "host_name", Deska::Db::Value("jmeno"));
+    expectSetAttr("host", "host_name", Deska::Db::Value(std::string("jmeno")));
     expectParsingFinished();
     expectNothingElse();
     verifyStackOneLevel("host", Deska::Db::Identifier("abcde"));
@@ -1948,9 +1948,9 @@ BOOST_FIXTURE_TEST_CASE(simple_filter, ParserTestFixture)
 {
     parser->parseLine("host where (host_name == \"cervena karkulka\")\n");   
     expectParsingStarted();
-    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value("cervena karkulka")));
+    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka"))));
     expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value("cervena karkulka")));
+    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka"))));
     expectNothingElse();
 }
 
@@ -1974,7 +1974,7 @@ BOOST_FIXTURE_TEST_CASE(joining_and_filter, ParserTestFixture)
     exprs.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip",
         Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
     exprs.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_NE, "host", "host_name",
-        Deska::Db::Value("some name")));
+        Deska::Db::Value(std::string("some name"))));
     expectObjectsFilter("host", Deska::Db::AndFilter(exprs));
     expectParsingFinished();
     verifyStackOneLevel("host", Deska::Db::AndFilter(exprs));
@@ -1990,11 +1990,11 @@ BOOST_FIXTURE_TEST_CASE(joining_and_or_nested_filter, ParserTestFixture)
     exprs.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip",
         Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
     exprs.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_NE, "host", "host_name",
-        Deska::Db::Value("some name")));
+        Deska::Db::Value(std::string("some name"))));
     std::vector<Deska::Db::Filter> exprs2;
     exprs2.push_back(Deska::Db::AndFilter(exprs));
     exprs2.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_CONTAINS, "host", "role",
-        Deska::Db::Value("www")));
+        Deska::Db::Value(std::string("www"))));
     expectObjectsFilter("host", Deska::Db::OrFilter(exprs2));
     expectParsingFinished();
     verifyStackOneLevel("host", Deska::Db::OrFilter(exprs2));

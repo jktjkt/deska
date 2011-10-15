@@ -345,6 +345,7 @@ API function.
     \endhead
     {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
     {\tt int} & INT & {\tt int} & {\tt 123} \\
+    {\tt bool} & BOOL & {\tt bool} & {\tt true} \\
     {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
     {\tt identifier\_set} & (extra table) & {\tt std::set<std::string>} & {\tt ["id1", "id2"]} \\
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
@@ -383,7 +384,8 @@ relation information etc.  The following types are defined:
         {\tt "timestamp"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
     One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINS", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINABLE", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -630,9 +632,10 @@ and the defined object relations.
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware", "column": "hardware"\}, \\
-            \{"relation": "MERGE\_WITH", "target": "second-kind", "column": "foo"}, \\
-            \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"}, \\
-            \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"} \\
+            \{"relation": "CONTAINS", "target": "second-kind", "column": "foo"\}, \\
+            \{"relation": "CONTAINABLE", "target": "second-kind", "column": "bar"\}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"\}, \\
+            \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"\} \\
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
