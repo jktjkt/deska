@@ -48,6 +48,7 @@ DbInteraction::DbInteraction(Db::Api *api):
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
+                mergedWith[itr->target].push_back(*itk);
             }
         }
         if (!isEmbedded)
@@ -349,6 +350,7 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
     if (object.name.empty())
         throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
 
+    // Kinds, that this kind contains
     std::vector<ObjectDefinition> mergedObjects;
     for (std::vector<Db::Identifier>::iterator it =
         mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
@@ -357,10 +359,26 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
         BOOST_ASSERT(instances.size() <= 1);
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
-            mergedObjects.push_back(ObjectDefinition(*it, object.name));
+            ObjectDefinition mObj(*it, object.name);
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
+                mergedObjects.push_back(ObjectDefinition(*it, object.name));
         }
     }
-   
+
+    // Kinds containing this kind
+    for (std::vector<Db::Identifier>::iterator it =
+        mergedWith[object.kind].begin(); it != mergedWith[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
+            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        BOOST_ASSERT(instances.size() <= 1);
+        if (!instances.empty()) {
+            BOOST_ASSERT(instances.front() == object.name);
+            ObjectDefinition mObj(*it, object.name);
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
+                mergedObjects.push_back(ObjectDefinition(*it, object.name));
+        }
+    }
+
     return mergedObjects;
 }
 
