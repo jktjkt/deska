@@ -278,7 +278,16 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return true;
 
     // Object does not exist -> ask the user here
-    autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
+    try {
+        std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(context);
+        if (mergedObjects.empty())
+            autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
+        else
+            autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object), mergedObjects);
+    } catch (std::logic_error &e) {
+        autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object));
+    }
+    
     return autoCreate;
 }
 
