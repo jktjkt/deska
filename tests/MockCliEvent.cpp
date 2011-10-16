@@ -524,7 +524,10 @@ std::ostream& operator<<(std::ostream &out,
          it != v.end(); ++it) {
         if (it != v.begin())
             out << ", ";
-        out << it->first << "->" << it->second;
+        if (it->second.empty())
+            out << it->first;
+        else
+            out << it->first << "->" << it->second;
     }
     out << "]";
     return out;
