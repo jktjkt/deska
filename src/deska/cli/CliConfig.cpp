@@ -56,7 +56,7 @@ T CliConfig::getVar(const std::string &name)
         return configVars[name].as<T>();
     } else {
         std::ostringstream ss;
-        ss << "Configuration error: option '" << name << "' not found";
+        ss << "Configuration error: Option '" << name << "' not found neither in config file nor on command line.";
         throw std::runtime_error(ss.str());
     }
 }
