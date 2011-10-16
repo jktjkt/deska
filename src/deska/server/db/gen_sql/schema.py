@@ -32,7 +32,7 @@ def %(name)s(%(args)s):
 	"""Query to get all tables that have attribute template.
 	For these tables would be generated template table.
 	"""
-	templates_str = "SELECT * FROM get_templates_info();"
+	templates_str = "SELECT * FROM get_templates_info() WHERE template <> kind;"
 	"""Query to get all templates in the schema production, the template name and the name of table that is templated by this template"""
 	embed_into_str = "SELECT attname FROM kindRelations_full_info('%s') WHERE relation = 'EMBED_INTO';"
 	"""Query to get the name of table which is this table embed into """
@@ -115,8 +115,11 @@ CREATE FUNCTION commit_all(message text)
 		self.templates = dict()
 		self.template_relations = dict()
 		for row in record:
+			#row[0] is template name
+			#row[1] is table templated by template row[0]
 			self.templates[row[0]] = row[1]
 			self.template_relations[row[1]] = row[0]
+			self.template_relations[row[0]] = row[0]
 
 
 	# generate sql for all tables
@@ -310,14 +313,36 @@ CREATE FUNCTION commit_all(message text)
 		commit_table_template = '''PERFORM %(tbl)s_commit();
 		'''
 		commit_tables=""
-		for table in self.tables:
+		tables_to_commit = self.tables.copy()
+		#we need templates to be commited before templated tables by them
+		for table in self.templates:
+			commit_tables = commit_tables + commit_table_template % {'tbl': table}
+			templated_table = self.templates[table]
+			commit_tables = commit_tables + commit_table_template % {'tbl': templated_table}
+			tables_to_commit.remove(table)
+			tables_to_commit.remove(templated_table)
+
+            
+		for table in tables_to_commit:
+			#here template means string which is formated not template of table
 			commit_tables = commit_tables + commit_table_template % {'tbl': table}
 
 		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
+		print self.templates
+		print self.template_relations
+		print self.refers_to_set
 		for table in self.refers_to_set:
-			for reftable in self.refers_to_set[table]:
-				table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
-				commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
+			if table not in self.templates:
+				for reftable in self.refers_to_set[table]:
+					if table in self.template_relations:
+						#table is templated but is not template
+						template_table = self.template_relations[table]
+						table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : template_table, 'ref_tbl' : reftable}
+						commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
+
+					table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
+					commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
+
 
 		return self.commit_string % {'commit_tables': commit_tables}
 

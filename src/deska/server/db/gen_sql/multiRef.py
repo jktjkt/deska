@@ -9,6 +9,7 @@ class MultiRef:
     CONSTRAINT inner_%(tbl)s_fk_%(ref_col)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
     CONSTRAINT inner_%(ref_col)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
+flag bit(1) DEFAULT '1', 
 CONSTRAINT inner_%(tbl)s_%(ref_col)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
 );
 
@@ -135,6 +136,7 @@ BEGIN
 
     --empty set of tuples (rowuid, refuid) represents null value, it is done by delete from ..
     IF value IS NULL THEN
+        INSERT INTO %(tbl)s_history (%(tbl_name)s,flag,version) VALUES (rowuid, '0', ver);
         RETURN 1;
     END IF;
     
@@ -180,7 +182,7 @@ BEGIN
 
     RETURN QUERY
     SELECT * FROM %(tbl)s_history
-        WHERE version = changeset_id
+        WHERE version = changeset_id AND flag = '1'
     UNION
     SELECT h1.* FROM %(tbl)s_history h1
         JOIN version v1 ON (v1.id = h1.version)
@@ -190,7 +192,7 @@ BEGIN
                 GROUP BY %(tbl_name)s
             ) vmax1
         ON (h1.%(tbl_name)s = vmax1.%(tbl_name)s AND v1.num = vmax1.maxnum)
-    WHERE h1.%(tbl_name)s NOT IN (
+    WHERE flag = '1' AND h1.%(tbl_name)s NOT IN (
         SELECT %(tbl_name)s FROM %(tbl)s_history
         WHERE version = changeset_id
     );
@@ -223,13 +225,76 @@ BEGIN
         
         SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND dv.uid = s.%(tbl_template_name)s)
+            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (dv.flag = '0' OR flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
         )
         SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
 
         DROP TABLE template_data_version;
         DROP TABLE inner_template_data_version;        
     END IF;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#resolved changes between versions
+    resolved_data_changes = '''CREATE FUNCTION %(tbl)s_resolved_changes_bv(from_version bigint, to_version bigint = 0)
+RETURNS SETOF %(tbl)s
+AS
+$$
+DECLARE
+    changeset_id bigint;
+BEGIN
+    changeset_id = get_current_changeset_or_null();
+    IF from_version = 0 AND changeset_id IS NULL THEN
+        CREATE TEMP TABLE template_data_version AS SELECT * FROM production.%(tbl_template_name)s;
+        CREATE TEMP TABLE inner_template_data_version AS SELECT * FROM %(tbl_template)s;
+    ELSE
+        CREATE TEMP TABLE template_data_version AS SELECT * FROM %(tbl_template_name)s_data_version(to_version);
+        CREATE TEMP TABLE inner_template_data_version AS SELECT * FROM %(tbl_template)s_data_version(to_version);
+    END IF;
+
+    --for each object uid finds its last modification between versions from_version and to_version
+    --joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version  
+    RETURN QUERY WITH RECURSIVE resolved_data AS(
+    SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s
+    FROM %(tbl_name)s_changes_between_versions(from_version, to_version) h
+    LEFT OUTER JOIN %(tbl)s_changes_between_versions(from_version, to_version) s ON (s.%(tbl_name)s = h.uid)
+    WHERE s.flag = '1'
+    
+    UNION ALL
+    
+    SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s
+    FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
+        LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND flag = '1' AND dv.uid = s.%(tbl_template_name)s)
+    )
+    SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL) AND %(template_column)s IS NULL;
+
+    DROP TABLE template_data_version;
+    DROP TABLE inner_template_data_version;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+    data_changes_function_string = '''CREATE FUNCTION %(tbl)s_changes_between_versions(from_version bigint, to_version bigint)
+RETURNS SETOF %(tbl)s_history
+AS
+$$
+BEGIN
+    --for each object uid finds its last modification between versions from_version and to_version
+    --joins it with history table of its kind to get object data in version to_version of all objects modified between from_version and to_version
+    RETURN QUERY
+    SELECT h1.*
+    FROM %(tbl)s_history h1
+        JOIN version v1 on (v1.id = h1.version)
+        JOIN (  SELECT uid, max(num) as maxnum
+                FROM %(tbl)s_history h join version v on (v.id = h.version )
+                WHERE v.num <= to_version and v.num > from_version
+                GROUP BY uid) vmax1
+        ON(h1.uid = vmax1.uid and v1.num = vmax1.maxnum);
 END
 $$
 LANGUAGE plpgsql;
@@ -260,7 +325,7 @@ BEGIN
         
         SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND dv.uid = s.%(tbl_template_name)s)
+            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND flag = '1' AND dv.uid = s.%(tbl_template_name)s)
         )
         SELECT %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
 
@@ -284,7 +349,7 @@ BEGIN
     IF data_version = 0 AND changeset_id IS NULL THEN
         RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s WHERE %(tbl_name)s = obj_uid;
     ELSE
-        RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s_data_version(data_version) WHERE %(tbl_name)s = obj_uid;
+        RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s_data_version(data_version) WHERE %(tbl_name)s = obj_uid AND flag = '1';
     END IF;
 END
 $$
@@ -304,7 +369,7 @@ BEGIN
     
     FOR %(tbl_name)s_uid IN SELECT DISTINCT %(tbl_name)s FROM %(tbl)s_history WHERE version = ver LOOP
         DELETE FROM %(tbl)s WHERE %(tbl_name)s = %(tbl_name)s_uid;
-        INSERT INTO %(tbl)s (%(tbl_name)s, %(ref_tbl_name)s) SELECT %(tbl_name)s, %(ref_tbl_name)s FROM %(tbl)s_history WHERE version = ver AND %(tbl_name)s = %(tbl_name)s_uid;
+        INSERT INTO %(tbl)s (%(tbl_name)s, %(ref_tbl_name)s) SELECT %(tbl_name)s, %(ref_tbl_name)s FROM %(tbl)s_history WHERE version = ver AND %(tbl_name)s = %(tbl_name)s_uid AND flag = '1';
     END LOOP;
     
     RETURN 1;
@@ -326,7 +391,7 @@ DECLARE ver bigint;
 BEGIN
     SELECT get_current_changeset() INTO ver;
 
-    CREATE TEMP TABLE temp_%(tbl_name)s_template_data AS SELECT * FROM %(tbl_name)s_template_data_version();
+    CREATE TEMP TABLE temp_%(tbl_template_name)s_data AS SELECT * FROM %(tbl_template_name)s_data_version();
     CREATE TEMP TABLE temp_%(tbl_name)s_data AS SELECT * FROM %(tbl_name)s_data_version();
     CREATE TEMP TABLE temp_inner_template_data AS SELECT * FROM %(tbl_template)s_data_version();
     CREATE TEMP TABLE temp_inner_data AS SELECT * FROM %(tbl)s_data_version();
@@ -335,42 +400,53 @@ BEGIN
 --find all templates that were affected by some modification of template in current changeset
     CREATE TEMP TABLE affected_templates AS (
         WITH RECURSIVE resolved_data AS (
-            (SELECT DISTINCT %(tbl_name)s_template as uid FROM %(tbl_template)s_history WHERE version = ver
+            (SELECT DISTINCT %(tbl_template_name)s as uid FROM %(tbl_template)s_history WHERE version = ver
             )
             UNION ALL
-            SELECT dv.uid FROM temp_%(tbl_name)s_template_data dv, resolved_data rd WHERE dv.%(template_column)s = rd.uid
+            SELECT dv.uid FROM temp_%(tbl_template_name)s_data dv, resolved_data rd WHERE dv.%(template_column)s = rd.uid
         )
         SELECT uid
         FROM resolved_data
+    )
+    UNION
+    --newly created templates
+    SELECT templ_history.uid FROM %(tbl_template_name)s_history templ_history LEFT OUTER JOIN %(tbl_template_name)s_data_version(id2num(parent(ver))) dv ON (templ_history.uid = dv.uid) WHERE templ_history.version = ver;
 
-        UNION
+--delete from templated inner table which are templated by affected templates and has no own data
+    DELETE FROM %(tbl_template)s WHERE %(tbl_template_name)s IN ( SELECT uid FROM affected_templates);
 
-        SELECT h.uid FROM %(tbl_name)s_template_history h 
-            LEFT OUTER JOIN (SELECT DISTINCT uid FROM %(tbl_name)s_template_history WHERE version = ver) inv ON (h.uid = inv.uid)
-        WHERE inv.uid IS NOT NULL
-        GROUP BY h.uid HAVING COUNT(*) = 1
-    );
-
-    DELETE FROM %(tbl_template)s WHERE %(tbl_name)s_template IN ( SELECT uid FROM affected_templates);
-    FOR %(tbl_name)s_template_uid IN SELECT DISTINCT %(tbl_name)s_template FROM %(tbl_template)s_history WHERE version = ver LOOP
-        INSERT INTO %(tbl_template)s (%(tbl_name)s_template, %(reftbl_name)s) SELECT %(tbl_name)s_template, %(reftbl_name)s FROM %(tbl_template)s_history WHERE version = ver AND %(tbl_name)s_template = %(tbl_name)s_template_uid;
-    END LOOP;
-
-    --for each affected template find its current data
-    FOR %(tbl_name)s_template_uid IN (SELECT affected.uid FROM affected_templates affected 
-        LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_name)s_template) WHERE tdata.%(tbl_name)s_template IS NULL) LOOP
-
-        current_obj = %(tbl_name)s_template_uid;        
-        WHILE (current_obj IS NOT NULL) LOOP
-            INSERT INTO %(tbl_template)s (%(tbl_name)s_template, service)
-                SELECT %(tbl_name)s_template_uid AS %(tbl_name)s_template, %(reftbl_name)s FROM temp_inner_template_data WHERE %(tbl_name)s_template = current_obj;
-            IF exists(SELECT * FROM %(tbl_template)s WHERE %(tbl_name)s_template = %(tbl_name)s_template_uid) THEN
-                EXIT;               
-            ELSE
-                SELECT %(template_column)s INTO current_obj FROM temp_%(tbl_name)s_template_data WHERE uid = current_obj;
-            END IF;
-        END LOOP;
-    END LOOP;
+    INSERT INTO %(tbl_template)s (%(tbl_template_name)s, service)
+        WITH RECURSIVE resolved_data AS(
+            SELECT dv.uid AS uid, inner_templ.%(reftbl_name)s, inner_templ.flag, dv.%(template_column)s AS template
+            FROM temp_%(tbl_template_name)s_data dv
+            --join is faster then IN operator, we neeed to resolve only affected templates
+                LEFT OUTER JOIN affected_templates affected ON (dv.uid = affected.uid)
+            --we need to know with which template is object templated, we should join this data
+                LEFT OUTER JOIN temp_inner_template_data inner_templ ON (inner_templ.%(tbl_template_name)s = dv.uid)
+            WHERE affected.uid IS NOT NULL
+                
+            UNION ALL
+            
+            SELECT rd.uid AS uid, s.%(reftbl_name)s AS %(reftbl_name)s, s.flag, dv.%(template_column)s AS template
+            FROM temp_%(tbl_template_name)s_data dv JOIN resolved_data rd ON (rd.template = dv.uid)
+                LEFT OUTER JOIN temp_inner_template_data s ON (rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
+        )
+        SELECT uid AS %(tbl_template_name)s, %(reftbl_name)s FROM resolved_data WHERE flag = '1';
+    
+    CREATE TEMP TABLE temp_affected_%(tbl_template_name)s_data AS
+    WITH RECURSIVE resolved_data AS(
+    SELECT tdata.%(tbl_template_name)s AS %(tbl_template_name)s, tdata.%(reftbl_name)s AS %(reftbl_name)s, tdata.flag, affected.uid AS template
+    FROM affected_templates affected 
+        LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_template_name)s)
+    WHERE tdata.flag = '0' OR flag IS NULL
+    
+    UNION ALL
+    
+    SELECT rd.%(tbl_template_name)s AS %(tbl_template_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, s.flag, dv.%(template_column)s AS template
+    FROM temp_%(tbl_template_name)s_data dv JOIN resolved_data rd ON (rd.template = dv.uid)
+        LEFT OUTER JOIN temp_inner_template_data s ON (rd.%(reftbl_name)s IS NULL AND s.flag = '1' AND dv.uid = s.%(tbl_template_name)s)
+    )
+    SELECT %(tbl_template_name)s AS %(tbl_template_name)s, %(reftbl_name)s AS %(reftbl_name)s, flag FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_template_name)s IS NOT NULL) AND template IS NULL;
 
     --correction of kind's production       
     --copy data with origin in inner table (not from template)
@@ -410,6 +486,7 @@ BEGIN
     DROP TABLE affected_objects;
     DROP TABLE temp_inner_template_data;
     DROP TABLE temp_inner_data;
+    DROP TABLE temp_affected_%(tbl_template_name)s_data;
     RETURN 1;
 END
 $$
@@ -424,7 +501,7 @@ $$
 BEGIN
     --full outer join of data in from_version and list of changes made between from_version and to_version
     CREATE TEMP TABLE %(tbl)s_diff_data
-    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s
+    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_data_version(from_version) inner1
     FULL OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
 END
@@ -440,7 +517,7 @@ $$
 BEGIN
     --full outer join of data in from_version and list of changes made between from_version and to_version
     CREATE TEMP TABLE %(tbl)s_diff_data
-    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s
+    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data_version(from_version) inner1
     FULL OUTER JOIN %(tbl)s_resolved_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
 END
@@ -462,7 +539,7 @@ BEGIN
     changeset_var = get_current_changeset();
     from_version = id2num(parent(changeset_var));
     CREATE TEMP TABLE %(tbl)s_diff_data
-    AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s
+    AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
         FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
             FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
 END
@@ -516,12 +593,12 @@ BEGIN
         --we need current data
         changeset_id = get_current_changeset_or_null();
         IF changeset_id IS NULL THEN
-            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid);            
+            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid AND flag = '1');            
             RETURN deska.ret_id_set(result);
         ELSE
-            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id);
+            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id  AND flag = '1');
             
-            IF array_upper(result,1) >= 1 THEN
+            IF EXISTS(SELECT * FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id) THEN
                 RETURN deska.ret_id_set(result);
             END IF;
             from_version = id2num(parent(changeset_id));
@@ -537,7 +614,7 @@ BEGIN
             WHERE v.num <= from_version AND %(tbl_name)s = obj_uid
         ) vmax1
         ON (v1.num = vmax1.maxnum)
-    WHERE %(tbl_name)s = obj_uid
+    WHERE %(tbl_name)s = obj_uid AND flag = '1'
     );
     RETURN deska.ret_id_set(result);
 END;
@@ -553,7 +630,7 @@ $$
 DECLARE
     changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(old_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid);
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(old_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE old_%(tbl_name)s = obj_uid AND old_flag = '1');
 END
 $$
 LANGUAGE plpgsql;
@@ -567,7 +644,7 @@ $$
 DECLARE
     changeset_id bigint;
 BEGIN
-    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(new_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid);
+    RETURN ARRAY(SELECT %(ref_tbl_name)s_get_name(new_%(ref_tbl_name)s) FROM %(tbl)s_diff_data WHERE new_%(tbl_name)s = obj_uid AND new_flag = '1');
 END
 $$
 LANGUAGE plpgsql;
@@ -648,6 +725,7 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.get_identifier_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_get_old_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_get_new_set % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+        self.fn_sql.write(self.data_changes_function_string % {'tbl': join_tab})
         if table in self.template_tables:
             #this table is template of another table, join_base_tab is name of inner table that is templated
             base_table = self.template_tables[table]
@@ -659,7 +737,7 @@ LANGUAGE plpgsql;
             
             #table is template of another table
             #tbl=whole name of inner table, tbl_name=name of table that has identifier_set attribute, tbl_template=inner template table for which is fn made, template_column=column that references template table
-            self.fn_sql.write(self.commit_template_str % {'tbl': join_base_tab, 'tbl_name' : base_table, 'tbl_template': join_tab, 'template_column': template_col, 'reftbl_name': reftable})
+            self.fn_sql.write(self.commit_template_str % {'tbl': join_base_tab, 'tbl_name' : base_table, 'tbl_template': join_tab, 'template_column': template_col, 'reftbl_name': reftable, 'tbl_template_name': table})
         else:
             self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         
@@ -675,6 +753,7 @@ LANGUAGE plpgsql;
             self.fn_sql.write(self.get_object_resolved_set_templated % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})        
             self.fn_sql.write(self.diff_init_resolved_function_string % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
             self.fn_sql.write(self.resolved_data % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})
+            self.fn_sql.write(self.resolved_data_changes % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})
         else:
             self.fn_sql.write(self.get_object_resolved_set % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable})   
-            
+
