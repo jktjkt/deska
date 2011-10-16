@@ -25,6 +25,23 @@
 #include "MockCliEvent.h"
 
 
+bool testChangesetsEqual(const Deska::Db::PendingChangeset &a, const Deska::Db::PendingChangeset &b)
+{
+    return a.revision == b.revision && a.author == b.author &&
+           a.parentRevision == b.parentRevision && a.message == b.message &&
+           a.attachStatus == b.attachStatus && a.activeConnectionInfo == b.activeConnectionInfo;
+}
+
+
+
+bool testRevisionsEqual(const Deska::Db::RevisionMetadata &a, const Deska::Db::RevisionMetadata &b)
+{
+    return a.revision == b.revision && a.author == b.author && a.timestamp == b.timestamp &&
+           a.commitMessage == b.commitMessage;
+}
+
+
+
 MockCliEvent MockCliEvent::reportError(const std::string &errorMessage)
 {
     MockCliEvent res(EVENT_REPORT_ERROR);
@@ -441,8 +458,8 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
            std::equal(map2.begin(), map2.end(), other.map2.begin()) &&
            std::equal(vectpair.begin(), vectpair.end(), other.vectpair.begin()) &&
            std::equal(vect.begin(), vect.end(), other.vect.begin()) &&
-           std::equal(changesets.begin(), changesets.end(), other.changesets.begin()) &&
-           std::equal(revisions.begin(), revisions.end(), other.revisions.begin()) &&
+           std::equal(changesets.begin(), changesets.end(), other.changesets.begin(), testChangesetsEqual) &&
+           std::equal(revisions.begin(), revisions.end(), other.revisions.begin(), testRevisionsEqual) &&
            std::equal(diff.begin(), diff.end(), other.diff.begin()) &&
            std::equal(attrs.begin(), attrs.end(), other.attrs.begin()) &&
            std::equal(attrsorig.begin(), attrsorig.end(), other.attrsorig.begin()) &&
