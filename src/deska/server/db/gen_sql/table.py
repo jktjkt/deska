@@ -490,24 +490,44 @@ class Table(constants.Templates):
 		
 		ticols = ',\n'.join(["%s %s" % (k, v) for (k, v) in zip(cols_ex_template_dict.keys(), cols_ex_template_dict.values())])
 		templ_cols = ',\n'.join(["%s_templ %s" % (k, d) for (k, d) in zip(cols_ex_template_dict.keys(), ['text']*len(cols_ex_template_dict))])
+		case_id_set_string = '''
+		CASE	WHEN %(tbl)s_get_%(col)s(uid, from_version) IS NULL THEN NULL
+			ELSE name
+		END AS %(col)s_templ'''
+                        
 		case_col_string = '''
 		CASE	WHEN %s IS NULL THEN NULL
 			ELSE name
 		END AS %s_templ'''
-		case_cols = ','.join([case_col_string % (x,x) for x in cols_ex_template_dict.keys()])
+		
+		#case_cols = ','.join([case_col_string % (x,x) for x in cols_ex_template_dict.keys()])
+		case_cols_list = list()
 
 		templ_case_cols_str = '''
 		CASE	WHEN rd.%s_templ IS NOT NULL THEN rd.%s_templ
 			WHEN rd.%s_templ IS NULL AND dv.%s IS NOT NULL THEN dv.name
 			ELSE NULL
 		END AS %s_templ'''
+		
+		templ_case_id_set_str = '''
+			CASE	WHEN rd.%(col)s_templ IS NOT NULL THEN rd.%(col)s_templ
+			WHEN rd.%(col)s_templ IS NULL AND %(tbl)s_get_%(col)s(dv.uid,from_version) IS NOT NULL THEN dv.name
+			ELSE NULL
+		END AS %(col)s_templ
+		'''
+		
 		templ_case_list = list()
 		for col in cols_ex_template_dict.keys():
 			if col == self.embed_column or col in self.merge_with:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
+			elif col in self.refers_to_set:
+				templ_case_list.append(templ_case_id_set_str % {'col': col, 'tbl': self.name})
+				case_cols_list.append(case_id_set_string % {'col': col, 'tbl': self.name})
 			else:
 				templ_case_list.append(templ_case_cols_str % (col, col, col, col, col))
+				case_cols_list.append(case_col_string % (col, col))
 
+		case_cols = ','.join(case_cols_list)
 		templ_case_cols = ','.join(templ_case_list)
 
 		templ_columns_list = ["%s_templ" % x for x in cols_ex_template_dict.keys()]
@@ -520,7 +540,8 @@ class Table(constants.Templates):
 
 		templ_info_type = self.resolved_data_template_info_type_string % {'tbl': self.name, 'columns': ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		resolve_object_data_fce = resolved_object_data_string % {'tbl': self.name, 'columns': cols, 'columns_ex_templ': cols_ex_templ, 'rd_dv_coalesce': rddvcoal, 'templ_tbl': templ_table, 'data_columns': dcols, 'template_column': templ_col, "columns_ex_templ_id_set": collist_id_set, "columns_ex_templ_id_set_res_name": collist_id_set_res_names}
-		resolve_data_template_info_fce = self.resolved_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'template_column': templ_col}
+		#columns should containt get_idsetcol_col for columns that refers to id set, templ_case_columns needs to containt tbl_get_id_set for id_set columns (virtual column from select could not be used in case)
+		resolve_data_template_info_fce = self.resolved_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns_ex_templ_id_set': collist_id_set, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'template_column': templ_col}
 		resolve_object_data_template_info = resolved_object_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': cols, 'rd_dv_coalesce': rddvcoal, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'data_columns': dticols, 'template_column': templ_col}
 		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		multiple_data_type = self.multiple_resolved_data_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'template_column': templ_col}

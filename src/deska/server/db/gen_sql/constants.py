@@ -1528,10 +1528,10 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	RETURN QUERY WITH recursive resolved_data AS (
-        SELECT uid,name,%(columns)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
-        FROM %(tbl)s_data_version(from_version)
-        UNION ALL
-        SELECT
+		SELECT uid,name,%(columns_ex_templ_id_set)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
+		FROM %(tbl)s_data_version(from_version)
+		UNION ALL
+		SELECT
 			rd.uid AS uid, rd.name AS name,
 			%(rd_dv_coalesce)s,
 			%(templ_case_columns)s,

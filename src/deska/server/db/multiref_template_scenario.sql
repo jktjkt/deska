@@ -64,6 +64,22 @@ select service_add('ftp');
 select host_template_set_service_insert('host_templ','ftp');
 select commitchangeset('7');
 
+--select * from host_resolved_data_template_info();
+SELECT uid,name,hardware,host_get_service(uid, 0) AS service,note_host, 
+		CASE	WHEN hardware IS NULL THEN NULL
+			ELSE name
+		END AS hardware_templ,
+		CASE	WHEN host_get_service(uid, 0) IS NULL THEN NULL
+			ELSE name
+		END AS service_templ,
+		CASE	WHEN note_host IS NULL THEN NULL
+			ELSE name
+		END AS note_host_templ, template_host, template_host as orig_template
+		FROM host_data_version(0)
+--select * from host_resolved_data();
+--select host_template_service_ref_set_coal(array['www'],1,0);
+--select host_template_service_ref_set_coal(NULL,1,0);
+
 select startchangeset();
 select host_add('hpv3');
 select host_set_template_host('hpv3','host_templ2');

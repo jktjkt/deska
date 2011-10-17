@@ -586,35 +586,12 @@ RETURNS text[]
 AS
 $$
 DECLARE
-    changeset_id bigint;
     result text[];
 BEGIN
-    IF from_version = 0 THEN
-        --we need current data
-        changeset_id = get_current_changeset_or_null();
-        IF changeset_id IS NULL THEN
-            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s WHERE %(tbl_name)s = obj_uid AND flag = '1');            
-            RETURN deska.ret_id_set(result);
-        ELSE
-            result = ARRAY(SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id  AND flag = '1');
-            
-            IF EXISTS(SELECT * FROM %(tbl)s_history WHERE %(tbl_name)s = obj_uid AND version = changeset_id) THEN
-                RETURN deska.ret_id_set(result);
-            END IF;
-            from_version = id2num(parent(changeset_id));
-        END IF;
-    END IF;
-
-
+--we need to get pure data (not reoslved) from version from_version, due to resolved data in production we need to get them from history table
     result = ARRAY(
-    SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_history h1
-        JOIN version v1 ON (v1.id = h1.version)
-        JOIN (  SELECT max(num) AS maxnum
-            FROM %(tbl)s_history h JOIN version v ON (v.id = h.version)
-            WHERE v.num <= from_version AND %(tbl_name)s = obj_uid
-        ) vmax1
-        ON (v1.num = vmax1.maxnum)
-    WHERE %(tbl_name)s = obj_uid AND flag = '1'
+        SELECT %(ref_tbl_name)s_get_name(%(ref_tbl_name)s) FROM %(tbl)s_data_version(from_version)
+        WHERE %(tbl_name)s = obj_uid AND flag = '1'
     );
     RETURN deska.ret_id_set(result);
 END;
