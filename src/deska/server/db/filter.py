@@ -1,10 +1,12 @@
 # this is filter implementation
 
-import Postgres
+#import Postgres
 import json
 import re
 import generated
-import dutil
+from testdutil import DutilException
+from testdutil import mystr
+from testdutil import fcall
 
 class Condition():
 	'''Class to store and handle column/value/operator data'''
@@ -82,8 +84,8 @@ class Condition():
 		refNames = generated.refNames()
 		# find referenced columns
 		for relName in refNames:
-			fromTbl = genereted.relFromTbl(relName)
-			fromCol = genereted.relFromCol(relName)
+			fromTbl = generated.relFromTbl(relName)
+			fromCol = generated.relFromCol(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
 				self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
@@ -165,7 +167,7 @@ class Filter():
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
 		ret = ''
-		self.kinds = self.kinds - set({mykind})
+		self.kinds = self.kinds - set([mykind])
 		for kind in self.kinds:
 			if mykind == "metadata":
 				joincond = "{0}.id = {1}.version".format(mykind,kind)
@@ -181,24 +183,25 @@ class Filter():
 				for relName in refNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
-					if fromTbl == kind and toTbl = mykind:
+					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
 						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
-					if toTbl == kind and fromTbl = mykind:
+					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
 						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 						
 				# find if there is embeding
+				embedNames = generated.embedNames()
 				for relName in embedNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
-					if fromTbl == kind and toTbl = mykind:
+					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
 						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
-					if toTbl == kind and fromTbl = mykind:
+					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
 						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
@@ -238,3 +241,15 @@ class Filter():
 		self.values.extend(newValues)
 		return ret
 
+#jsn = {"operator": "or", "operands": [
+#	{"condition": "columnEq", "metadata": "revision", "value": "r1"},
+#	{"condition": "columnEq", "metadata": "revision", "value": "r2"},
+#	{"condition": "columnEq", "metadata": "revision", "value": "r3"}
+#	]}
+jsn = {"operator": "or", "operands": [
+	{"condition": "columnEq", "kind": "host",  "attribute": "name", "value": "r1"},
+	{"condition": "columnEq", "kind": "interface",  "attribute": "name", "value": "r1->eth0"},
+	]}
+f = Filter(json.dumps(jsn),1)
+print(f.getJoin('host'))
+print(f.getWhere())
