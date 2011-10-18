@@ -325,7 +325,7 @@ class Templates:
 
 '''
 
-	# template string for set functions for columns that reference set of identifiers
+	# template string for get functions for columns that reference set of identifiers
 	get_refuid_set_string = '''CREATE FUNCTION
 	%(tbl)s_get_%(colname)s(IN obj_uid bigint, from_version bigint = 0)
 	RETURNS text[]
@@ -333,6 +333,23 @@ class Templates:
 	$$
 	BEGIN
 		RETURN genproc.inner_%(tbl)s_%(refcol)s_multiref_get_set(obj_uid, from_version);
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for get resolved set functions for columns that reference set of identifiers
+	get_resolved_refuid_set_string = '''CREATE FUNCTION
+	%(tbl)s_get_resolved_%(colname)s(IN obj_uid bigint, from_version bigint = 0)
+	RETURNS text[]
+	AS
+	$$
+	DECLARE
+		result text[];
+	BEGIN
+		result =  ARRAY(SELECT CAST(dv.name AS text) FROM genproc.inner_%(tbl)s_%(refcol)s_multiref_get_object_resolved_set(obj_uid, from_version) uids JOIN %(refcol)s_data_version(from_version) dv ON (uids = dv.uid));
+		RETURN deska.ret_id_set(result);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -1578,7 +1595,7 @@ BEGIN
 	IF from_version = 0 AND changeset_id IS NULL  THEN
 		RETURN QUERY SELECT name, uid, %(columns_ex_templ_id_set)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
 	ELSE
-		CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
+		CREATE TEMP TABLE rd_template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 		RETURN QUERY WITH recursive resolved_data AS (
 		--id_set in is get 
@@ -1589,13 +1606,13 @@ BEGIN
 				rd.uid AS uid, rd.name AS name, rd.version AS version,
 				%(rd_dv_coalesce)s,
 				dv.%(template_column)s, rd.orig_template
-			FROM template_data_version dv, resolved_data rd
+			FROM rd_template_data_version dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s
 		)
 		SELECT name, uid, %(columns_ex_templ)s, orig_template AS %(template_column)s
 		FROM resolved_data WHERE %(template_column)s IS NULL;
 
-		DROP TABLE template_data_version;
+		DROP TABLE rd_template_data_version;
 	END IF;
 END
 $$

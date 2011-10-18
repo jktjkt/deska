@@ -161,6 +161,7 @@ class Table(constants.Templates):
 		get_identifier_set_fns = ""
 		for col in self.refers_to_set:
 			get_identifier_set_fns = get_identifier_set_fns + self.get_refuid_set_string % {'tbl': self.name, 'colname': col, 'refcol': col}
+			get_identifier_set_fns = get_identifier_set_fns + self.get_resolved_refuid_set_string % {'tbl': self.name, 'colname': col, 'refcol': col}
 
 		for col in self.refuid_columns:
 			if col in collist:
@@ -403,7 +404,7 @@ class Table(constants.Templates):
 		multiple_ticols = ',\n'.join(
 			["%s %s" % (k, v) for (k, v) in
 				zip(cols_ex_template_dict.keys(), cols_ex_template_dict.values())])
-
+		
 		#list of columns of given kind
 		collist = cols_ex_template_dict.keys()
 
@@ -464,14 +465,15 @@ class Table(constants.Templates):
 		collist_id_set_list = list(collist)
 		collist_id_set_res_names_list = list(collist)
 		# replace uid of referenced object its name
+		#columns in collist has resolved names after this loop 
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
 				if col in self.refers_to_set:
 					collist_id_set_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
-					collist_id_set_res_names_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					collist_id_set_res_names_list[pos] = "%s_get_resolved_%s(uid, from_version) AS %s" % (self.name, col, col)
 					mpos = multiple_collist_id_set_list.index(col)
-					multiple_collist_id_set_list[mpos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					multiple_collist_id_set_list[mpos] = "%s_get_resolved_%s(uid, from_version) AS %s" % (self.name, col, col)
 					cols_ex_template_dict[col] = "text[]"
 				else:
 					cols_ex_template_dict[col] = "text"
@@ -518,8 +520,11 @@ class Table(constants.Templates):
 		
 		templ_case_list = list()
 		for col in cols_ex_template_dict.keys():
-			if col == self.embed_column or col in self.merge_with:
+			if col == self.embed_column:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
+			elif col in self.merge_with:
+				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
+				case_cols_list.append(case_col_string % (col, col))                
 			elif col in self.refers_to_set:
 				templ_case_list.append(templ_case_id_set_str % {'col': col, 'tbl': self.name})
 				case_cols_list.append(case_id_set_string % {'col': col, 'tbl': self.name})
@@ -541,9 +546,9 @@ class Table(constants.Templates):
 		templ_info_type = self.resolved_data_template_info_type_string % {'tbl': self.name, 'columns': ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		resolve_object_data_fce = resolved_object_data_string % {'tbl': self.name, 'columns': cols, 'columns_ex_templ': cols_ex_templ, 'rd_dv_coalesce': rddvcoal, 'templ_tbl': templ_table, 'data_columns': dcols, 'template_column': templ_col, "columns_ex_templ_id_set": collist_id_set, "columns_ex_templ_id_set_res_name": collist_id_set_res_names}
 		#columns should containt get_idsetcol_col for columns that refers to id set, templ_case_columns needs to containt tbl_get_id_set for id_set columns (virtual column from select could not be used in case)
-		resolve_data_template_info_fce = self.resolved_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns_ex_templ_id_set': collist_id_set, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'template_column': templ_col}
-		resolve_object_data_template_info = resolved_object_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': cols, 'rd_dv_coalesce': rddvcoal, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'data_columns': dticols, 'template_column': templ_col}
-		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
+		resolve_data_template_info_fce = self.resolved_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns_ex_templ_id_set': collist_id_set, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'template_column': templ_col}
+		resolve_object_data_template_info = resolved_object_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': collist_id_set, 'rd_dv_coalesce': rddvcoal, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'data_columns': dticols, 'template_column': templ_col}
+		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string % {'tbl': self.name, 'columns': ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		multiple_data_type = self.multiple_resolved_data_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'template_column': templ_col}
 		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': multiple_collist_id_set}
 		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
