@@ -1,0 +1,57 @@
+Schuze Deska, 2011-10-11 FZU
+----------------------------
+
+Pritomni: Martina, Lukas, Tomas, Honza
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Tomas:
+- priprava CLI na relaci CONTAINS
+- testy CLI
+- premysleni nad rebase, interne na papir
+- 10 - 12 hodin
+
+Lukas:
+- prace na novych relacich (kvuli tretimu sloupecku)
+- prace s filtry
+- 18 hodin
+
+Martina:
+- identifier_set a flag pro NULL
+- resolvovani dat with origin
+- diffovani
+- premysleni nad relaci contains
+- na papire napsano 15.5
+
+Honza:
+- fzu schema
+- dokumentace relaci
+- dalsi dokumentace
+- boolean
+- 17.5 hodiny
+
+branch newrelations: mergnutelne do konce tydne ci zacatku pristiho
+branch tripple relations: mergnuto, smazat
+branch set_of_identifiers: pracuje, mergnutelne ve stredu ci koncem tydne
+
+Diskuse:
+--------
+
+Tomas -> Honza: popsat, jak maji vypadat mozne relace
+
+Lukas: restore: spis specialni funkci commitRestore
+
+- Lukas s Martinou se poradi nad podobou FZU schematu, bud vymysli konkretni
+zmeny, nebo odhadnou komplikovanost CONTAINS/CONTAINABLE
+
+- Tomas do CLI doplni filtr pro vsechny instance nejakeho kindu
+
+- Tomas odstrani duplikaci expect bloku v test_cli_io, zrejme pres test fixture
+
+Pristi schuzka:
+---------------
+
+Utery 1. listopadu 2011, 18.00 FZU.
+
+Schuzka trvala 75 minut.
