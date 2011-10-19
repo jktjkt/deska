@@ -420,7 +420,6 @@ class Table(constants.Templates):
 		#table which is thatone embed into
 		resolved_object_data_string = self.resolved_object_data_string
 		resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
-		multiple_collist_id_set_list = cols_ex_template_dict.keys()
 		if self.embed_column <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
@@ -466,6 +465,8 @@ class Table(constants.Templates):
 		collist_id_set_res_names_list = list(collist)
 		# replace uid of referenced object its name
 		#columns in collist has resolved names after this loop 
+		multiple_collist_id_set_list = cols_ex_template_dict.keys()
+		multiple_collist_res_id_set_list = cols_ex_template_dict.keys()
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
@@ -473,13 +474,14 @@ class Table(constants.Templates):
 					collist_id_set_list[pos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
 					collist_id_set_res_names_list[pos] = "%s_get_resolved_%s(uid, from_version) AS %s" % (self.name, col, col)
 					mpos = multiple_collist_id_set_list.index(col)
-					multiple_collist_id_set_list[mpos] = "%s_get_resolved_%s(uid, from_version) AS %s" % (self.name, col, col)
+					multiple_collist_id_set_list[mpos] = "%s_get_%s(uid, from_version) AS %s" % (self.name, col, col)
+					multiple_collist_res_id_set_list[mpos] = "%s_get_resolved_%s(uid, from_version) AS %s" % (self.name, col, col)
 					cols_ex_template_dict[col] = "text[]"
 				else:
 					cols_ex_template_dict[col] = "text"
 					reftable = self.refuid_columns[col]
-					collist[pos] = "%s_get_name(%s) AS %s" % (reftable, col, col)
-					collist_id_set_res_names_list[pos] = "%s_get_name(%s) AS %s" % (reftable, col, col)
+					collist[pos] = "%s_get_name(%s, from_version) AS %s" % (reftable, col, col)
+					collist_id_set_res_names_list[pos] = "%s_get_name(%s, from_version) AS %s" % (reftable, col, col)
 
 		#for refuid columns contains get_name
 		cols_ex_templ = ",".join(collist)
@@ -489,6 +491,8 @@ class Table(constants.Templates):
 		collist_id_set_res_names = ",".join(collist_id_set_res_names_list)
 		#for multiple data we need even names of objetcs into which listed objects are embed into
 		multiple_collist_id_set = ",".join(multiple_collist_id_set_list)
+		#has get id_set resolved and get name
+		multiple_collist_res_id_set =  ",".join(multiple_collist_res_id_set_list)
 		
 		ticols = ',\n'.join(["%s %s" % (k, v) for (k, v) in zip(cols_ex_template_dict.keys(), cols_ex_template_dict.values())])
 		templ_cols = ',\n'.join(["%s_templ %s" % (k, d) for (k, d) in zip(cols_ex_template_dict.keys(), ['text']*len(cols_ex_template_dict))])
@@ -550,7 +554,7 @@ class Table(constants.Templates):
 		resolve_object_data_template_info = resolved_object_data_template_info_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': collist_id_set, 'rd_dv_coalesce': rddvcoal, 'columns_ex_templ': cols_ex_templ, 'case_columns': case_cols, 'templ_case_columns': templ_case_cols, 'columns_templ': cols_templ, 'data_columns': dticols, 'template_column': templ_col}
 		multiple_object_data_templ_info_type = self.multiple_resolved_data_template_info_type_string % {'tbl': self.name, 'columns': ticols, 'templ_columns': templ_cols, 'template_column': templ_col}
 		multiple_data_type = self.multiple_resolved_data_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'template_column': templ_col}
-		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': multiple_collist_id_set}
+		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': multiple_collist_id_set, 'columns_ex_templ_res_id_set': multiple_collist_res_id_set}
 		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
 
 

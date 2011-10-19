@@ -55,6 +55,7 @@ BEGIN
     END;
     
     BEGIN
+        DELETE FROM %(tbl)s_history WHERE version = ver AND %(ref_tbl_name)s IS NULL;
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version)
             VALUES (%(tbl_name)s_uid, %(ref_tbl_name)s_uid, ver);
     EXCEPTION WHEN unique_violation THEN
@@ -98,7 +99,7 @@ BEGIN
         -- do nothing
     END;
         
-    DELETE FROM %(tbl)s_history WHERE %(ref_tbl_name)s = %(ref_tbl_name)s_uid  AND version = ver;
+    DELETE FROM %(tbl)s_history WHERE %(tbl_name)s = %(tbl_name)s_uid AND %(ref_tbl_name)s = %(ref_tbl_name)s_uid  AND version = ver;
 
     IF NOT exists(SELECT * FROM %(tbl)s_history WHERE %(tbl_name)s = %(tbl_name)s_uid AND version = ver) THEN
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version) VALUES (%(tbl_name)s_uid, NULL, ver);
@@ -301,7 +302,7 @@ LANGUAGE plpgsql;
 
 '''
 
-    get_object_resolved_set_templated = '''CREATE FUNCTION %(tbl)s_get_object_resolved_set(obj_uid bigint, data_version bigint = 0)
+    get_object_resolved_set = '''CREATE FUNCTION %(tbl)s_get_object_resolved_set(obj_uid bigint, data_version bigint = 0)
 RETURNS SETOF bigint
 AS
 $$
@@ -314,42 +315,23 @@ BEGIN
     ELSE
         CREATE TEMP TABLE template_data_version AS SELECT * FROM %(tbl_template_name)s_data_version(data_version);
         CREATE TEMP TABLE inner_template_data_version AS SELECT * FROM %(tbl_template)s_data_version(data_version);
-
+  
         RETURN QUERY WITH RECURSIVE resolved_data AS(
-        SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s
+        SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s, s.flag
         FROM %(tbl_name)s_data_version(data_version) h
         LEFT OUTER JOIN %(tbl)s_data_version(data_version) s ON (s.%(tbl_name)s = h.uid)
         WHERE h.uid = obj_uid
         
         UNION ALL
         
-        SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s
+        SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s, s.flag
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND flag = '1' AND dv.uid = s.%(tbl_template_name)s)
+            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (s.flag = '0' OR s.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
         )
-        SELECT %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
+        SELECT service AS %(reftbl_name)s FROM resolved_data WHERE flag = '1';
 
         DROP TABLE template_data_version;
         DROP TABLE inner_template_data_version;        
-    END IF;
-END
-$$
-LANGUAGE plpgsql;
-
-'''
-
-    get_object_resolved_set = '''CREATE FUNCTION %(tbl)s_get_object_resolved_set(obj_uid bigint, data_version bigint = 0)
-RETURNS SETOF bigint
-AS
-$$
-DECLARE
-    changeset_id bigint;
-BEGIN
-    changeset_id = get_current_changeset_or_null();
-    IF data_version = 0 AND changeset_id IS NULL THEN
-        RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s WHERE %(tbl_name)s = obj_uid;
-    ELSE
-        RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s_data_version(data_version) WHERE %(tbl_name)s = obj_uid AND flag = '1';
     END IF;
 END
 $$
@@ -727,10 +709,10 @@ LANGUAGE plpgsql;
             if len(record) != 1:
                 raise ValueError, 'template is badly defined'
             template_col = record[0][0]
-            self.fn_sql.write(self.get_object_resolved_set_templated % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})        
+            self.fn_sql.write(self.get_object_resolved_set % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})        
             self.fn_sql.write(self.diff_init_resolved_function_string % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
             self.fn_sql.write(self.resolved_data % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})
             self.fn_sql.write(self.resolved_data_changes % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})
         else:
-            self.fn_sql.write(self.get_object_resolved_set % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable})   
+            self.fn_sql.write(self.get_object_set_version % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable})   
 

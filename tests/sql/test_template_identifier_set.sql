@@ -198,7 +198,7 @@ BEGIN
 	DEALLOCATE retservices;
 
 	PREPARE expservices  AS SELECT service, template FROM pgtap.test_host_service WHERE version = 2 ORDER BY host;
-	CREATE TEMPORARY TABLE old_version_resolved_data AS SELECT service, host_template_get_name(template_host) FROM host_resolved_data(old_version2) ORDER BY host_template_get_name(template_host);
+	CREATE TEMPORARY TABLE old_version_resolved_data AS SELECT service, host_template_get_name(template_host) FROM host_resolved_data(old_version2) ORDER BY name;
 	PREPARE retservices AS SELECT * FROM old_version_resolved_data;
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'host multiple data from older version' );
 	DEALLOCATE expservices;

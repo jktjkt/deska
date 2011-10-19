@@ -328,9 +328,6 @@ CREATE FUNCTION commit_all(message text)
 			commit_tables = commit_tables + commit_table_template % {'tbl': table}
 
 		#commit of tables that are created in deska schema for inner propose, to maintain set of referenced identifier
-		print self.templates
-		print self.template_relations
-		print self.refers_to_set
 		for table in self.refers_to_set:
 			if table not in self.templates:
 				for reftable in self.refers_to_set[table]:

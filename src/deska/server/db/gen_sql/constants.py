@@ -348,7 +348,7 @@ class Templates:
 	DECLARE
 		result text[];
 	BEGIN
-		result =  ARRAY(SELECT CAST(dv.name AS text) FROM genproc.inner_%(tbl)s_%(refcol)s_multiref_get_object_resolved_set(obj_uid, from_version) uids JOIN %(refcol)s_data_version(from_version) dv ON (uids = dv.uid));
+		result =  ARRAY(SELECT CAST(dv.name AS text) FROM genproc.inner_%(tbl)s_%(refcol)s_multiref_get_object_resolved_set(obj_uid, from_version) uids LEFT OUTER JOIN %(refcol)s_data_version(from_version) dv ON (uids = dv.uid));
 		RETURN deska.ret_id_set(result);
 	END
 	$$
@@ -1593,7 +1593,7 @@ DECLARE
 BEGIN
 	changeset_id = get_current_changeset_or_null();
 	IF from_version = 0 AND changeset_id IS NULL  THEN
-		RETURN QUERY SELECT name, uid, %(columns_ex_templ_id_set)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
+		RETURN QUERY SELECT name, uid, %(columns_ex_templ_res_id_set)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
 	ELSE
 		CREATE TEMP TABLE rd_template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
