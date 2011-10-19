@@ -55,7 +55,7 @@ BEGIN
     END;
     
     BEGIN
-        DELETE FROM %(tbl)s_history WHERE version = ver AND %(ref_tbl_name)s IS NULL;
+        DELETE FROM %(tbl)s_history WHERE version = ver AND %(tbl_name)s = %(tbl_name)s_uid AND %(ref_tbl_name)s IS NULL;
         INSERT INTO %(tbl)s_history (%(tbl_name)s, %(ref_tbl_name)s, version)
             VALUES (%(tbl_name)s_uid, %(ref_tbl_name)s_uid, ver);
     EXCEPTION WHEN unique_violation THEN
@@ -224,9 +224,9 @@ BEGIN
         
         UNION ALL
         
-        SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s
+        SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s, s.flag
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (dv.flag = '0' OR flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
+            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
         )
         SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
 
@@ -326,7 +326,7 @@ BEGIN
         
         SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s, s.flag
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (s.flag = '0' OR s.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
+            LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
         )
         SELECT service AS %(reftbl_name)s FROM resolved_data WHERE flag = '1';
 
