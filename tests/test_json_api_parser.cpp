@@ -615,6 +615,15 @@ BOOST_FIXTURE_TEST_CASE(json_commitChangeset, JsonApiTestFixtureFailOnStreamThro
     expectEmpty();
 }
 
+/** @short Basic test for restoringCommit() */
+BOOST_FIXTURE_TEST_CASE(json_restoringCommit, JsonApiTestFixtureFailOnStreamThrow)
+{
+    expectWrite("{\"command\":\"restoringCommit\",\"tag\":\"T\",\"commitMessage\":\"description\",\"author\":\"user\",\"timestamp\":\"2011-04-07 17:22:33\"}\n");
+    expectRead("{\"response\": \"restoringCommit\", \"tag\":\"T\", \"restoringCommit\": \"r333\"}\n");
+    BOOST_CHECK_EQUAL(j->restoringCommit("description", "user", boost::posix_time::ptime(boost::gregorian::date(2011, 4, 7), boost::posix_time::time_duration(17, 22, 33))), RevisionId(333));
+    expectEmpty();
+}
+
 /** @short Basic test for pendingChangesets() */
 BOOST_FIXTURE_TEST_CASE(json_pendingChangesets, JsonApiTestFixtureFailOnStreamThrow)
 {

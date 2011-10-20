@@ -283,6 +283,9 @@ public:
     /** @short Unfreeze the client's view on the persistent revisions */
     virtual void unFreezeView() = 0;
 
+    /** @short Extended version of \deskaFuncRef{commitChangeset} that allows specifying additional revision metadata */
+    virtual RevisionId restoringCommit(const std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp) = 0;
+
     // Diffing
 
     /** @short Return a list of metadata for matching revisions */

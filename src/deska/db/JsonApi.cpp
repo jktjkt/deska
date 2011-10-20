@@ -424,6 +424,20 @@ void JsonApiParser::unFreezeView()
     h.work();
 }
 
+RevisionId JsonApiParser::restoringCommit(const std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp)
+{
+    JsonCommandContext c1("restoringCommit");
+
+    RevisionId revision(0);
+    JsonHandlerApiWrapper h(this, "restoringCommit");
+    h.read("restoringCommit").extract(&revision);
+    h.argument("commitMessage", commitMessage);
+    h.argument("author", author);
+    h.argument("timestamp", timestamp);
+    h.work();
+    return revision;
+}
+
 std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
 {
     JsonCommandContext c1("listRevisions");
