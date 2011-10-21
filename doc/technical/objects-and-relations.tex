@@ -210,6 +210,30 @@ flow.  The worst thing that the former, ``naive'' applications could encounter a
 constraints.  On the other hand, applications which choose to employ the relations can use them to build rich object
 hierarchies and presenting them to the users without creating much confusion.
 
+\subsection{Limits of Relations}
+
+There are certain rules that limit the possible relations.  Basically, any setup which wishes to use relations has to
+respect the following two simple conditions:
+
+\begin{itemize}
+    \item {\em No duplicates.} Given kinds A and B and an attribute C of kind A, there is at most one relation between A
+        and B that uses attribute C.
+    \item {\em No conflicts.} Any setup which might introduce ambiguity to the possible interpretation of relations is
+        prohibited.
+\end{itemize}
+
+While the first condition is clear on its own, the second rule deserves further explanation.
+
+First of all, there could ever only be a single {\tt EMBED\_INTO} relation between two given kinds, and that relation
+must not be present in both directions.  In addition to that, each kind can only be embedded into at most one other
+kind, but never more.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
+relations being edges).
+
+The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\no duplicates} rule applies here.
+
+FIXME: TEMPLATE
+FIXME: CONTAINS
+
 \section{Attributes}
 
 In the previous sections, we have often used the term {\em attribute} without properly codifying what we refer to,
