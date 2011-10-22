@@ -155,6 +155,8 @@ get tied to said switch.  Constraint checks are in place that forbid creating a 
 transitive, i.e. if there is a {\tt machine} which includes {\tt hardware} which in turn includes a {\tt placement}, it
 is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
 
+FIXME: define what shall happen when user renames a contained, or a containing object
+
 It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
 building blocks objects on their own right, without being ``used'' by the other objects -- an example where this would
 be very appropriate is our {\tt placement} kind.  In other situations however, it might be wise to allow the low-level
