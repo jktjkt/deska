@@ -113,6 +113,7 @@ def getdata(select,*args):
 	try:
 		with xact():
 			plan = prepare(select)
+			Postgres.NOTICE("Running command: "+select)
 			return plan.column_names, plan(*args)
 	except Postgres.Exception as dberr:
 		raise DeskaException(dberr)
