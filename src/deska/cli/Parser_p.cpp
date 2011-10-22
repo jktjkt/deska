@@ -195,6 +195,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
     usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
     usages["new"] = "Creates a new object of kind given as parameter. Name will be generated (e.g. new failure).";
     usages["last"] = "Selects an object of given kind with the highest numerical name (e.g. last failure).";
+    usages["all"] = "Selects all objects of given kind (e.g. all host).";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
     usages["show"] = "Shows attributes and nested kinds of the object. Parameter is here optional and works in the same way as for delete. When executed without parameter at top-level, it shows all object kinds and names.";
     usages["end"] = "Leaves one level of current context.";
