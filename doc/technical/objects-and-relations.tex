@@ -228,7 +228,8 @@ While the first condition is clear on its own, the second rule deserves further 
 
 First of all, there could ever only be a single {\tt EMBED\_INTO} relation between two given kinds, and that relation
 must not be present in both directions.  In addition to that, each kind can only be embedded into at most one other
-kind, but never more.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
+kind, but never more\footnote{This limitation might be lifted in future versions of Deska.  Applications are advised to
+be ready for such a change}.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
 The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\no duplicates} rule applies here.
