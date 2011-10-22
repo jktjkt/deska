@@ -53,6 +53,8 @@ typedef enum {
     PARSE_ERROR_TYPE_KIND_NESTING,
     /** @short Error in a kinds's name in a filter */
     PARSE_ERROR_TYPE_KIND_FILTER,
+    /** @short Error in a kinds's name in a special filter */
+    PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER,
     /** @short Error in nesting */
     PARSE_ERROR_TYPE_NESTING,
     /** @short Error in an attribute's name */
@@ -154,6 +156,34 @@ public:
     */
     void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
                     const qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > &kinds,
+                    const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
+/** @short Handles errors during parsing a kind's name in a special filter like "all" or "last". */
+template <typename Iterator>
+class KindSpecialFiltersErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function invoked when some error occures during parsing of kind name.
+    *
+    *   Generates appropriate parse error and pushes it to errors stack.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param kinds Symbols table with possible kind names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+                    const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &kinds,
                     const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
 };
 

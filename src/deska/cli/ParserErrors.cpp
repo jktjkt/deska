@@ -82,6 +82,22 @@ void KindFiltersErrorHandler<Iterator>::operator()(Iterator start, Iterator end,
 
 
 template <typename Iterator>
+void KindSpecialFiltersErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos,
+                              const spirit::info& what,
+                              const qi::symbols<char, qi::rule<Iterator, ascii::space_type> > &kinds,
+                              const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
+{
+    ParseError<Iterator> error(start, end, errorPos, what, kinds, kindName, PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER);
+    // Because of usage of eps rule in parser grammars, error handler could be invoked even though there is no error.
+    // We have to check this case. In case of function words "show" or "delete" for kind with no nested kinds,
+    // empty expected tokens are allowed.
+    if ((error.valid()) || (parser->getParsingMode() == PARSING_MODE_SHOW) || (parser->getParsingMode() == PARSING_MODE_DELETE))
+        parser->addParseError(error);
+}
+
+
+
+template <typename Iterator>
 void NestingErrorHandler<Iterator>::operator()(Iterator start, Iterator end, Iterator errorPos,
                                                const spirit::info &what, const std::string &failingToken,
                                                const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const
@@ -207,6 +223,8 @@ std::string parseErrorTypeToString(const ParseErrorType errorType)
             return "object name";
         case PARSE_ERROR_TYPE_KIND_FILTER:
             return "kind name in a filter";
+        case PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER:
+            return "kind name in a special filter";
         case PARSE_ERROR_TYPE_NESTING:
             return "kind name";
         case PARSE_ERROR_TYPE_ATTRIBUTE:
@@ -407,6 +425,7 @@ std::string ParseError<Iterator>::toString() const
             sout << " for " << m_context << ". Can't find nesting parents";
             break;
         case PARSE_ERROR_TYPE_KIND_FILTER:
+        case PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER:
             if (m_context.empty())
                 sout << ". Unknown kind";
             else
@@ -522,6 +541,8 @@ template void KindConstructErrorHandler<iterator_type>::operator()(iterator_type
 template void KindErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Identifier(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void KindFiltersErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, Db::Filter(), ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
+
+template void KindSpecialFiltersErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const qi::symbols<char, qi::rule<iterator_type, ascii::space_type> > &kinds, const Db::Identifier &kindName, ParserImpl<iterator_type>* parser) const;
 
 template void NestingErrorHandler<iterator_type>::operator()(iterator_type start, iterator_type end, iterator_type errorPos, const spirit::info &what, const std::string &failingToken, const Db::Identifier &kindName, ParserImpl<iterator_type> *parser) const;
 

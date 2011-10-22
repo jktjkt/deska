@@ -1948,9 +1948,9 @@ BOOST_FIXTURE_TEST_CASE(simple_filter, ParserTestFixture)
 {
     parser->parseLine("host where (host_name == \"cervena karkulka\")\n");   
     expectParsingStarted();
-    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka"))));
+    expectObjectsFilter("host", boost::optional<Deska::Db::Filter>(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka")))));
     expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka"))));
+    verifyStackOneLevel("host", boost::optional<Deska::Db::Filter>(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "host", "host_name", Deska::Db::Value(std::string("cervena karkulka")))));
     expectNothingElse();
 }
 
@@ -1959,9 +1959,9 @@ BOOST_FIXTURE_TEST_CASE(joining_filter, ParserTestFixture)
 {
     parser->parseLine("host where (interface.ip == 192.168.15.32)\n");   
     expectParsingStarted();
-    expectObjectsFilter("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
+    expectObjectsFilter("host", boost::optional<Deska::Db::Filter>(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32")))));
     expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
+    verifyStackOneLevel("host", boost::optional<Deska::Db::Filter>(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_EQ, "interface", "ip", Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32")))));
     expectNothingElse();
 }
 
@@ -1975,9 +1975,9 @@ BOOST_FIXTURE_TEST_CASE(joining_and_filter, ParserTestFixture)
         Deska::Db::Value(boost::asio::ip::address_v4::from_string("192.168.15.32"))));
     exprs.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_NE, "host", "host_name",
         Deska::Db::Value(std::string("some name"))));
-    expectObjectsFilter("host", Deska::Db::AndFilter(exprs));
+    expectObjectsFilter("host", boost::optional<Deska::Db::Filter>(Deska::Db::AndFilter(exprs)));
     expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::AndFilter(exprs));
+    verifyStackOneLevel("host", boost::optional<Deska::Db::Filter>(Deska::Db::AndFilter(exprs)));
     expectNothingElse();
 }
 
@@ -1995,9 +1995,9 @@ BOOST_FIXTURE_TEST_CASE(joining_and_or_nested_filter, ParserTestFixture)
     exprs2.push_back(Deska::Db::AndFilter(exprs));
     exprs2.push_back(Deska::Db::AttributeExpression(Deska::Db::FILTER_COLUMN_CONTAINS, "host", "role",
         Deska::Db::Value(std::string("www"))));
-    expectObjectsFilter("host", Deska::Db::OrFilter(exprs2));
+    expectObjectsFilter("host", boost::optional<Deska::Db::Filter>(Deska::Db::OrFilter(exprs2)));
     expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::OrFilter(exprs2));
+    verifyStackOneLevel("host", boost::optional<Deska::Db::Filter>(Deska::Db::OrFilter(exprs2)));
     expectNothingElse();
 }
 
@@ -2021,6 +2021,74 @@ BOOST_FIXTURE_TEST_CASE(error_filter_attribute_name, ParserTestFixture)
     parser->parseLine(line);
     expectParsingStarted();
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"hardware\" \"host\" \"interface\" ].", line, it));
+    verifyEmptyStack();
+    expectNothingElse();
+}
+
+/** @short Filter for all objects */
+BOOST_FIXTURE_TEST_CASE(filter_all_objects, ParserTestFixture)
+{
+    parser->parseLine("all host\n");
+    expectParsingStarted();
+    expectObjectsFilter("host", boost::optional<Deska::Db::Filter>());
+    expectParsingFinished();
+    verifyStackOneLevel("host", boost::optional<Deska::Db::Filter>());
+    expectNothingElse();
+}
+
+/** @short Filter for all nested objects accessed from top-level */
+BOOST_FIXTURE_TEST_CASE(filter_all_objects_2, ParserTestFixture)
+{
+    parser->parseLine("all interface\n");
+    expectParsingStarted();
+    expectObjectsFilter("interface", boost::optional<Deska::Db::Filter>());
+    expectParsingFinished();
+    verifyStackOneLevel("interface", boost::optional<Deska::Db::Filter>());
+    expectNothingElse();
+}
+
+/** @short Filter for all nested objects */
+BOOST_FIXTURE_TEST_CASE(filter_all_nested_objects, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    parser->parseLine("all interface\n");
+    expectParsingStarted();
+    expectObjectsFilter("interface", boost::optional<Deska::Db::Filter>());
+    expectParsingFinished();
+    verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", boost::optional<Deska::Db::Filter>());
+    expectNothingElse();
+}
+
+/** @short Filter for last nested objects */
+BOOST_FIXTURE_TEST_CASE(filter_last_nested_objects, ParserTestFixture)
+{
+    parser->parseLine("host hpv2\n");   
+    expectParsingStarted();
+    expectCategoryEntered("host", "hpv2");
+    expectParsingFinished();
+    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
+
+    parser->parseLine("last interface\n");
+    expectParsingStarted();
+    expectObjectsFilter("interface", boost::optional<Deska::Db::Filter>(Deska::Db::SpecialExpression(Deska::Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, "interface")));
+    expectParsingFinished();
+    verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", boost::optional<Deska::Db::Filter>(Deska::Db::SpecialExpression(Deska::Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, "interface")));
+    expectNothingElse();
+}
+
+/** @short Error in filter for all objects */
+BOOST_FIXTURE_TEST_CASE(error_filter_all_objects, ParserTestFixture)
+{
+    std::string line = "all bla\n";
+    const std::string::const_iterator it = line.begin() + line.find(" bla");
+    parser->parseLine(line);
+    expectParsingStarted();
+    expectParseError(Deska::Cli::InvalidObjectKind("Error while parsing kind name in a special filter. Unknown kind. Expected one of [ \"hardware\" \"host\" \"interface\" ].", line, it));
     verifyEmptyStack();
     expectNothingElse();
 }

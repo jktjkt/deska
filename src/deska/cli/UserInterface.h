@@ -89,7 +89,7 @@ public:
     bool applySetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                            const Db::Identifier &attribute, const Db::Identifier &value);
     bool applyRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute);
-    bool applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
+    bool applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const boost::optional<Db::Filter> &filter);
     bool applyFunctionShow(const ContextStack &context);
     bool applyFunctionDelete(const ContextStack &context);
     bool applyFunctionRename(const ContextStack &context, const Db::Identifier &newName);
@@ -105,7 +105,7 @@ public:
     bool confirmSetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
                              const Db::Identifier &attribute, const Db::Identifier &value);
     bool confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &kind, const Db::Identifier &attribute);
-    bool confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const Db::Filter &filter);
+    bool confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind, const boost::optional<Db::Filter> &filter);
     bool confirmFunctionShow(const ContextStack &context);
     bool confirmFunctionDelete(const ContextStack &context);
     bool confirmFunctionRename(const ContextStack &context, const Db::Identifier &newName);

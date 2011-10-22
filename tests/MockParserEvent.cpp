@@ -95,7 +95,7 @@ MockParserEvent MockParserEvent::functionRename(const Deska::Db::Identifier &new
     return res;
 }
 
-MockParserEvent MockParserEvent::objectsFilter(const Deska::Db::Identifier &name, const Deska::Db::Filter &filter)
+MockParserEvent MockParserEvent::objectsFilter(const Deska::Db::Identifier &name, const boost::optional<Deska::Db::Filter> &filter)
 {
     MockParserEvent res(EVENT_OBJECTS_FILTER);
     res.i1 = name;

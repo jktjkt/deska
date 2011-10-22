@@ -38,14 +38,14 @@ ContextStackItem::ContextStackItem()
 
 
 ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Identifier &objectName):
-    kind(kindName), name(objectName), filter(boost::optional<Db::Filter>())
+    kind(kindName), name(objectName), filter(boost::optional<Db::Filter>()), itemType(CONTEXT_STACK_ITEM_TYPE_OBJECT)
 {
 }
 
 
 
-ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Filter &objectsFilter):
-    kind(kindName), name(""), filter(objectsFilter)
+ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const boost::optional<Db::Filter> &objectsFilter):
+    kind(kindName), name(""), filter(objectsFilter), itemType(CONTEXT_STACK_ITEM_TYPE_FILTER)
 {
 }
 
@@ -54,10 +54,15 @@ ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const Db::Fil
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
 {
     stream << i.kind;
-    if (i.filter)
-        stream << " where " << *(i.filter);
-    else
+    if (i.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER)
+        if (i.filter)
+            stream << " where " << *(i.filter);
+        else
+            stream << " where *";
+    else if (i.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_OBJECT)
         stream << " " << i.name;
+    else
+        throw std::domain_error("ContextStackItemType out of range");
     return stream;
 }
 
@@ -65,12 +70,17 @@ std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
 
 bool operator==(const ContextStackItem &a, const ContextStackItem &b)
 {
-    if ((a.filter) && (b.filter))
-        return a.kind == b.kind && *(a.filter) == *(b.filter);
-    else if (!(a.filter) && !(b.filter))
+    if ((a.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) && (b.itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER)) {
+        if ((a.filter) && (b.filter))
+            return a.kind == b.kind && *(a.filter) == *(b.filter);
+        else if (!(a.filter) && !(b.filter))
+            return a.kind == b.kind;
+        else return false;
+    } else if (!(a.filter) && !(b.filter)) {
         return a.kind == b.kind && a.name == b.name;
-    else
+    } else {
         return false;
+    }
 }
 
 
@@ -88,7 +98,7 @@ Db::Identifier contextStackToPath(const ContextStack &contextStack)
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
         if (it != contextStack.begin())
             ss << "->";
-        if (it->filter)
+        if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER)
             throw std::runtime_error("Deska::Cli::contextStackToPath: Can not convert context stack with filters to path");
         ss << it->name;
     }
@@ -103,7 +113,7 @@ std::string contextStackToString(const ContextStack &contextStack)
     for (ContextStack::const_iterator it = contextStack.begin(); it != contextStack.end(); ++it) {
         if (it != contextStack.begin())
             ss << "->";
-        if (it->filter)
+        if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER)
             ss << "filter on " << it->kind;
         else
             ss << *it;

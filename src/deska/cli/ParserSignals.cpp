@@ -212,7 +212,7 @@ bool ParserSignalRemoveAttribute::confirm(SignalsHandler *signalsHandler) const
 
 
 ParserSignalObjectsFilter::ParserSignalObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
-                                                     const Db::Filter &filter):
+                                                     const boost::optional<Db::Filter> &filter):
     signalsContext(context), kindName(kind), objectsFilter(filter)
 {
 }
@@ -404,7 +404,7 @@ void SignalsHandler::slotRemoveAttribute(const Db::Identifier &kind, const Db::I
 
 
 
-void SignalsHandler::slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter)
+void SignalsHandler::slotObjectsFilter(const Db::Identifier &kind, const boost::optional<Db::Filter> &filter)
 {
     signalsStack.push_back(ParserSignalObjectsFilter(m_parser->currentContextStack(), kind, filter));
 }

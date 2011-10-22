@@ -64,7 +64,7 @@ public:
     static MockParserEvent functionRename(const Deska::Db::Identifier &newName);
 
     /** @short The objectsFilter() signal */
-    static MockParserEvent objectsFilter(const Deska::Db::Identifier &name, const Deska::Db::Filter &filter);
+    static MockParserEvent objectsFilter(const Deska::Db::Identifier &name, const boost::optional<Deska::Db::Filter> &filter);
 
     /** @short Parser error */
     static MockParserEvent parserError(const Deska::Cli::ParserException &err);
