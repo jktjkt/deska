@@ -340,7 +340,7 @@ public:
     *   @param filter Parsed filter
     */
     ParserSignalObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
-                              const Db::Filter &filter);
+                              const boost::optional<Db::Filter> &filter);
 
     /** @short Performs action, that is the signal connected with.
     *
@@ -364,7 +364,7 @@ private:
     //@{
     /** Additional information needed to be stored for particular signals. */
     Db::Identifier kindName;
-    Db::Filter objectsFilter;
+    boost::optional<Db::Filter> objectsFilter;
     //@}
 };
 
@@ -573,7 +573,7 @@ private:
     void slotSetAttributeInsert(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value);
     void slotSetAttributeRemove(const Db::Identifier &kind, const Db::Identifier &attribute, const Db::Identifier &value);
     void slotRemoveAttribute(const Db::Identifier &kind, const Db::Identifier &attribute);
-    void slotObjectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
+    void slotObjectsFilter(const Db::Identifier &kind, const boost::optional<Db::Filter> &filter);
     void slotFunctionShow();
     void slotFunctionDelete();
     void slotFunctionRename(const Db::Identifier &newName);

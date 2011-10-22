@@ -195,6 +195,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
     usages["create"] = "Creates object given as parameter (e.g. create hardware hp456). Longer parameters are also allowed (e.g. create host golias120 interface eth0) This will create both objects.";
     usages["new"] = "Creates a new object of kind given as parameter. Name will be generated (e.g. new failure).";
     usages["last"] = "Selects an object of given kind with the highest numerical name (e.g. last failure).";
+    usages["all"] = "Selects all objects of given kind (e.g. all host).";
     usages["delete"] = "Deletes object given as parameter (e.g. delete hardware hp456). Longer parameters are also allowed (e.g. delete host golias120 interface eth0) This will delete only interface eth0 in the object host golias120.";
     usages["show"] = "Shows attributes and nested kinds of the object. Parameter is here optional and works in the same way as for delete. When executed without parameter at top-level, it shows all object kinds and names.";
     usages["end"] = "Leaves one level of current context.";
@@ -432,13 +433,16 @@ void ParserImpl<Iterator>::attributeRemove(const Db::Identifier &kind, const Db:
 
 
 template <typename Iterator>
-void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const Db::Filter &filter)
+void ParserImpl<Iterator>::objectsFilter(const Db::Identifier &kind, const boost::optional<Db::Filter> &filter)
 {
     contextStack.push_back(ContextStackItem(kind, filter));
     if (!dryRun)
         m_parser->objectsFilter(kind, filter);
 #ifdef PARSER_DEBUG
-    std::cout << "Objects filter: " << kind << ": " << filter << std::endl;
+    if (filter)
+        std::cout << "Objects filter: " << kind << ": " << *filter << std::endl;
+    else
+        std::cout << "Objects filter: " << kind << ": *" << std::endl;
 #endif
 }
 
@@ -947,6 +951,17 @@ void ParserImpl<Iterator>::reportParseError(const std::string& line)
         return;
     }
 
+    // Error in kind name in special filter
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << it->toString() << std::endl;
+#endif
+        m_parser->parseError(InvalidObjectKind(it->toString(), line, it->errorPosition()));
+        return;
+    }
+
     // Error in kind name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
@@ -988,6 +1003,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         if ((!allKinds.empty()) && (line.empty())) {
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
+            possibilities.push_back(line + "all");
         }
     } else {
         // Do not add completions of attributes when in non-standard mode.
@@ -1022,6 +1038,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
         if (!embededKinds.empty()) {
             possibilities.push_back(line + "new");
             possibilities.push_back(line + "last");
+            possibilities.push_back(line + "all");
             if (line.empty()) {
                 possibilities.push_back(line + "delete");
                 possibilities.push_back(line + "rename");
@@ -1089,6 +1106,21 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     if (it != parseErrors.end()) {
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
+        }
+    }
+
+    // Find out, if the user wants to enter kind name for filter
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER);
+    if (it != parseErrors.end()) {
+        // Error have to occur at the end of the line
+        // Because of parsing the pair no <attribute name> using sequence parser with space skipper error occures
+        // right after no keyword. That means it is one character before end of the line.
+        if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
@@ -1231,7 +1263,7 @@ template void ParserImpl<iterator_type>::attributeSetRemove(const Db::Identifier
 
 template void ParserImpl<iterator_type>::attributeRemove(const Db::Identifier &kindName, const Db::Identifier &name);
 
-template void ParserImpl<iterator_type>::objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
+template void ParserImpl<iterator_type>::objectsFilter(const Db::Identifier &kind, const boost::optional<Db::Filter> &filter);
 
 template void ParserImpl<iterator_type>::parsedSingleKind();
 

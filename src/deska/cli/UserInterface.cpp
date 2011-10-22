@@ -189,7 +189,7 @@ bool UserInterface::applyRemoveAttribute(const ContextStack &context, const Db::
 
 
 bool UserInterface::applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind, 
-                                       const Db::Filter &filter)
+                                       const boost::optional<Db::Filter> &filter)
 {
     if (m_dbInteraction->expandContextStack(context).empty()) {
         io->printMessage("Entered filter does not match any object.");
@@ -389,7 +389,7 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 
 
 bool UserInterface::confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
-                                         const Db::Filter &filter)
+                                         const boost::optional<Db::Filter> &filter)
 {
     return true;
 }

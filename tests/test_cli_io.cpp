@@ -65,6 +65,7 @@ BOOST_FIXTURE_TEST_CASE(start_quit, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
@@ -128,6 +129,7 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
@@ -215,6 +217,7 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
@@ -315,6 +318,7 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
@@ -409,6 +413,7 @@ BOOST_FIXTURE_TEST_CASE(objects_connecting, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
@@ -485,6 +490,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");

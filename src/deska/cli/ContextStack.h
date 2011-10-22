@@ -38,6 +38,14 @@ namespace Cli {
 /** @short Structure for pairs kind name - object name of filter. */
 struct ContextStackItem
 {
+    /** @short Type of the context stack item */
+    typedef enum {
+        /** @short Item representing filter */
+        CONTEXT_STACK_ITEM_TYPE_FILTER,
+        /** @short Item representing object */
+        CONTEXT_STACK_ITEM_TYPE_OBJECT
+    } ContextStackItemType;
+
     /** @short Constructor for creating an empty object. */
     ContextStackItem();
 
@@ -53,7 +61,7 @@ struct ContextStackItem
     *   @param kindName Name of the kind (eg. host)
     *   @param objectName Name of the instance of the kind (eg. hpv2)
     */
-    ContextStackItem(const Db::Identifier &kindName, const Db::Filter &objectsFilter);
+    ContextStackItem(const Db::Identifier &kindName, const boost::optional<Db::Filter> &objectsFilter);
 
     /** Name of the kind */
     Db::Identifier kind;
@@ -61,6 +69,8 @@ struct ContextStackItem
     Db::Identifier name;
     /** Filter */
     boost::optional<Db::Filter> filter;
+    /** Type of the context stack item */
+    ContextStackItemType itemType;
 };
 
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i);

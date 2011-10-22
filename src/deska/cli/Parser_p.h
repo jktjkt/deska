@@ -174,7 +174,7 @@ public:
     void attributeSetInsert(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value);
     void attributeSetRemove(const Db::Identifier &kind, const Db::Identifier &name, const Db::Identifier &value);
     void attributeRemove(const Db::Identifier &kind, const Db::Identifier &name);
-    void objectsFilter(const Db::Identifier &kind, const Db::Filter &filter);
+    void objectsFilter(const Db::Identifier &kind, const boost::optional<Db::Filter> &filter);
     //@}
 
     /** @short Sets flag singleKind to true.

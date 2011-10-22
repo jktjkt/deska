@@ -57,8 +57,15 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
     // the keyword is not found in the table. The eps is there to ensure, that the start rule will be entered every
     // time and so the error handler for bad keywords could be bound to it. The eoi rule is there to avoid the grammar
     // require more input on the end of the line, which is side effect of eps usage in this way.
-    start = (qi::lit("last") > lastKind)
-          | (eps(!_a) > dispatch >> -eoi[_a = true]);
+    start = specialFilter | normalFilter;
+    
+    normalFilter = (eps(!_a) > dispatch >> -eoi[_a = true]);
+    
+    specialFilter = specialFilterL | specialFilterA;
+
+    specialFilterL = (qi::lit("last") > lastKind);
+
+    specialFilterA = (qi::lit("all") > keywordAll);
 
     // Kind name recognized -> try to parse attribute value. The raw function is here to get the name of the
     // attribute being parsed.
@@ -70,9 +77,19 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
             phoenix::construct<Db::SpecialExpression>(Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE,
                                                       phoenix::ref(currentKindName)))];
 
+    keywordAll = raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))] > lazy(_a)
+        [phoenix::bind(&KindsFiltersParser::allObjects, this, phoenix::ref(currentKindName))];
+
     phoenix::function<KindFiltersErrorHandler<Iterator> > kindFiltersErrorHandler = KindFiltersErrorHandler<Iterator>();
+    phoenix::function<KindSpecialFiltersErrorHandler<Iterator> > kindSpecialFiltersErrorHandler =
+        KindSpecialFiltersErrorHandler<Iterator>();
     //phoenix::function<NestingErrorHandler<Iterator> > nestingErrorHandler = NestingErrorHandler<Iterator>();
-    on_error<fail>(start, kindFiltersErrorHandler(_1, _2, _3, _4, phoenix::ref(filters), phoenix::ref(m_name), m_parent));
+    on_error<fail>(normalFilter, kindFiltersErrorHandler(
+        _1, _2, _3, _4, phoenix::ref(filters), phoenix::ref(m_name), m_parent));
+    on_error<fail>(specialFilterL, kindSpecialFiltersErrorHandler(
+        _1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
+    on_error<fail>(specialFilterA, kindSpecialFiltersErrorHandler(
+        _1, _2, _3, _4, phoenix::ref(kinds), phoenix::ref(m_name), m_parent));
     // In case of enabling error handler for nesting, on_error<fail> for kindErrorHandler have to be changed
     // to on_error<rethrow>.
     //on_error<fail>(start, nestingErrorHandler(_1, _2, _3, _4, phoenix::ref(currentKindName),
@@ -101,6 +118,14 @@ void KindsFiltersParser<Iterator>::parsedFilter(const Db::Identifier &kindName, 
 
 
 
+template <typename Iterator>
+void KindsFiltersParser<Iterator>::allObjects(const Db::Identifier &kindName)
+{
+    m_parent->objectsFilter(kindName, boost::optional<Db::Filter>());
+}
+
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template KindsFiltersParser<iterator_type>::KindsFiltersParser(const Db::Identifier &kindName, ParserImpl<iterator_type> *parent);
@@ -108,6 +133,8 @@ template KindsFiltersParser<iterator_type>::KindsFiltersParser(const Db::Identif
 template void KindsFiltersParser<iterator_type>::addKindFilter(const Db::Identifier &kindName, FiltersParser<iterator_type> *filtersParser);
 
 template void KindsFiltersParser<iterator_type>::parsedFilter(const Db::Identifier &kindName, const Db::Filter &filter);
+
+template void KindsFiltersParser<iterator_type>::allObjects(const Db::Identifier &kindName);
 
 }
 }
