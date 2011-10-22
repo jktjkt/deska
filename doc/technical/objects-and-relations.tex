@@ -232,7 +232,9 @@ kind, but never more\footnote{This limitation might be lifted in future versions
 be ready for such a change}.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
-The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\no duplicates} rule applies here.
+The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\em no duplicates} rule applies here.
+This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
+user and can be paraphrased as just ``this object makes a reference of some type to that object''.
 
 FIXME: TEMPLATE
 FIXME: CONTAINS
