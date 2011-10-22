@@ -52,14 +52,8 @@ class Condition():
 			raise DutilException("FilterError","Item 'kind' or 'metadata' must be in condition.")
 		self.parse()
 
-	def parse(self):
-		'''Update condition data for easy creation of Deska SQL condition'''
-		if self.col == "changeset" and self.kind == "metadata":
-			self.col = "id"
-			self.id = "changeset2id({0})".format(self.id)
-		if self.col == "revision" and self.kind == "metadata":
-			self.col = "num"
-			self.id = "revision2num({0})".format(self.id)
+	def relationParse(self):
+		'''Work with relations'''
 		embedNames = generated.embedNames()
 		# asking for embed name
 		for relName in embedNames:
@@ -72,15 +66,7 @@ class Condition():
 				newcond["kind"] = self.kind
 				newcond["condition"] = self.op
 				newcond["value"] = mystr(parent)
-				self.newcond = Condition(newcond,self.counter + 1)
-		# FIXME: test this and rework if needed
-		#revEmbed = {v:k for k,v in embed.items()}
-		#if self.col in revEmbed:
-		#	# We are called from else part - self.newcond...
-		#	# because this is column refers to another table
-		#	#FIXME: version parametr, $1 every time, check for conflicts
-		#	self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
-		#	self.kind = revEmbed[self.col]
+				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
 		refNames = generated.refNames()
 		# find referenced columns
 		for relName in refNames:
@@ -90,6 +76,8 @@ class Condition():
 				# update coldef for identifier references
 				self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
 
+	def operatorParse(self):
+		'''Work with operators'''
 		if self.op not in self.opMap:
 			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
 		self.op = self.opMap[self.op]
@@ -110,6 +98,17 @@ class Condition():
 				self.nullCompensation = ""
 			else:
 				raise DutilException("FilterError","Operator '{0}' is not supported for NULL values.".format(self.op))
+
+	def parse(self):
+		'''Update condition data for easy creation of Deska SQL condition'''
+		if self.col == "changeset" and self.kind == "metadata":
+			self.col = "id"
+			self.id = "changeset2id({0})".format(self.id)
+		if self.col == "revision" and self.kind == "metadata":
+			self.col = "num"
+			self.id = "revision2num({0})".format(self.id)
+		self.relationParse()
+		self.operatorParse()
 
 	def get(self):
 		'''Return deska SQL condition'''
@@ -134,6 +133,13 @@ class Condition():
 	def getAffectedKind(self):
 		'''Return kind in condition'''
 		return self.kind
+
+class AdditionalEmbedCondition(Condition):
+	def relationParse(self):
+		# We are called from else part - self.newcond...
+		# because this is column refers to another table
+		#FIXME: version parametr, $1 every time, check for conflicts
+		self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 
 class Filter():
 	'''Class for handling filters'''
@@ -250,6 +256,6 @@ jsn = {"operator": "or", "operands": [
 	{"condition": "columnEq", "kind": "host",  "attribute": "name", "value": "r1"},
 	{"condition": "columnEq", "kind": "interface",  "attribute": "name", "value": "r1->eth0"},
 	]}
-f = Filter(json.dumps(jsn),1)
-print(f.getJoin('host'))
+f = Filter(json.dumps(jsn),2)
+print(f.getJoin('interface'))
 print(f.getWhere())
