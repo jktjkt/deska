@@ -77,6 +77,7 @@ public:
     virtual void unlockCurrentChangeset();
     virtual void freezeView();
     virtual void unFreezeView();
+    virtual RevisionId restoringCommit(const std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp);
 
     // Diffing
     virtual std::vector<RevisionMetadata> listRevisions(const boost::optional<Filter> &filter=boost::optional<Filter>()) const;

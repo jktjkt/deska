@@ -1,0 +1,43 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass{book}
+\usepackage[utf8]{inputenc}
+\usepackage[czech,english]{babel}
+\usepackage{a4wide}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{etoolbox}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage{subfiles}
+
+% there's no abstract environment in chapter
+% http://tex.stackexchange.com/questions/3468/an-abstract-at-the-start-of-every-chapter
+\newenvironment{abstract}{\rightskip1in\itshape}{}
+
+\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+
+\begin{document}
+
+\title{Deska: A Tool for Central Administration and Monitoring of a Grid Site}
+
+\author{Jan Kundrát}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+
+\part{Technical Documentation}
+
+\subfile{intro}
+\subfile{objects-and-relations}
+\subfile{dbapi-protocol}
+%\subfile{running-config-generators}
+
+\part{User's Guide}
+
+\part{Programmer's Documentation}
+
+\end{document}

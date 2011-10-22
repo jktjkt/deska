@@ -1,24 +1,8 @@
 % vim: spelllang=en spell textwidth=120
-\documentclass{article}
-\usepackage[utf8]{inputenc}
-\usepackage[czech,english]{babel}
-\usepackage{a4wide}
-\usepackage{listings}
-\usepackage{longtable}
-\usepackage{etoolbox}
-\usepackage{lmodern}
-\usepackage[T1]{fontenc}
-\usepackage{textcomp}
-
+\documentclass[deska]{subfiles}
 \begin{document}
 
-\title{Deska: The Database Access Protocol}
-
-\author{Jan Kundrát}
-
-\maketitle
-
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+\chapter{The Database Access Protocol}
 
 \begin{abstract}
 This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
@@ -28,6 +12,7 @@ reimplementation.
 \end{abstract}
 
 \section{Background}
+\label{sec:dbapi-protocol}
 
 First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
 database, after all, is built on PostgreSQL, which already provides a library which can be used to access database
@@ -496,6 +481,11 @@ she attempted a commit.  In that case, the new commit won't be performed.  The u
 still valid via the diffing functions (see section \ref{sec:api-group-history}) and apply them in a newly created
 changeset.
 
+The whole contents of the DBAPI database can be easily restored from a series of snapshots via the ordinary DBAPI
+functions for object manipulation.  In order to be able to set a few properties which are normally assigned by the Deska
+server during commit, the privileged user shall substitute calls to the \deskaFuncRef{commitChangeset} through the
+\deskaFuncRef{restoringCommit} function.
+
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
@@ -910,6 +900,16 @@ Querying History}, section \ref{sec:api-group-history}.
     {Unfreeze the client's view on the persistent revisions}
     {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
     \ref{sec:api-revision-semantics} for details.}
+
+\deskaFunc{restoringCommit}{, "commitMessage": "message", "author": "user", "timestamp": "2011-04-07 17:22:33"}
+    {"r123"}
+    {Extended version of \deskaFuncRef{commitChangeset} that allows specifying additional revision metadata}
+    {When the user has sufficient permissions, she might use the DBAPI for recovery purposes.  Using this mode, she is
+    allowed to specify certain properties when committing revisions which are normally assigned by the Deska database.
+
+    This function is similar to the \deskaFuncRef{commitChangeset}, but in addition accepts two additional arguments, the {\tt
+    author} and {\tt timestamp}.  They are used instead of the current user and current time as the metadata for history
+    revisions.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}

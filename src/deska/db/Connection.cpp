@@ -177,6 +177,11 @@ void Connection::unFreezeView()
     p->unFreezeView();
 }
 
+RevisionId Connection::restoringCommit(const std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp)
+{
+    return p->restoringCommit(commitMessage, author, timestamp);
+}
+
 std::vector<RevisionMetadata> Connection::listRevisions(const boost::optional<Filter> &filter) const
 {
     return p->listRevisions(filter);
