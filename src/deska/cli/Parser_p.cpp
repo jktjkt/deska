@@ -1003,6 +1003,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             possibilities.push_back(line + *it);
         }
         if ((!allKinds.empty()) && (line.empty())) {
+            possibilities.push_back(line + "create");
             possibilities.push_back(line + "delete");
             possibilities.push_back(line + "rename");
             possibilities.push_back(line + "all");
@@ -1042,6 +1043,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesOfCurrentContext(const std::str
             possibilities.push_back(line + "last");
             possibilities.push_back(line + "all");
             if (line.empty()) {
+                possibilities.push_back(line + "create");
                 possibilities.push_back(line + "delete");
                 possibilities.push_back(line + "rename");
             }
