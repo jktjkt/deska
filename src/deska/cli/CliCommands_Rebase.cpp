@@ -124,10 +124,10 @@ std::string OurModificationConverter::operator()(const Db::RenameObjectModificat
 std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "#set attribute " << modification.attributeName <<
+    ostr << "# set attribute " << modification.attributeName <<
             readableAttrPrinter(" from", modification.oldAttributeData) << std::endl <<
-            modification.kindName << " " << modification.objectName <<
-            readableAttrPrinter(" to", modification.attributeData);
+            modification.kindName << " " << modification.objectName << " " << modification.attributeName <<
+            " " << modification.attributeData;
     return ostr.str();
 }
 
@@ -206,7 +206,7 @@ std::string BothModificationConverter::operator()(const Db::RenameObjectModifica
 std::string BothModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "attribute " << modification.kindName << " " << modification.objectName << " "
+    ostr << "# attribute " << modification.kindName << " " << modification.objectName << " "
          << modification.attributeName << "set"
          << readableAttrPrinter(" from", modification.oldAttributeData)
          << readableAttrPrinter(" to", modification.attributeData)
