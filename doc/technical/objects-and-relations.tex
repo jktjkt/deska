@@ -155,6 +155,8 @@ get tied to said switch.  Constraint checks are in place that forbid creating a 
 transitive, i.e. if there is a {\tt machine} which includes {\tt hardware} which in turn includes a {\tt placement}, it
 is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
 
+FIXME: define what shall happen when user renames a contained, or a containing object
+
 It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
 building blocks objects on their own right, without being ``used'' by the other objects -- an example where this would
 be very appropriate is our {\tt placement} kind.  In other situations however, it might be wise to allow the low-level
@@ -226,13 +228,23 @@ While the first condition is clear on its own, the second rule deserves further 
 
 First of all, there could ever only be a single {\tt EMBED\_INTO} relation between two given kinds, and that relation
 must not be present in both directions.  In addition to that, each kind can only be embedded into at most one other
-kind, but never more.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
+kind, but never more\footnote{This limitation might be lifted in future versions of Deska.  Applications are advised to
+be ready for such a change}.  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
-The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\no duplicates} rule applies here.
+The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\em no duplicates} rule applies here.
+This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
+user and can be paraphrased as just ``this object makes a reference of some type to that object''.
 
-FIXME: TEMPLATE
-FIXME: CONTAINS
+In contrast to the {\tt REFERS\_TO}, the {\tt TEMPLATE} relation is much stricter.  Each kind can only have at most one
+kind as the target of the templating relation (ie. the source of the default values).  Additionally, a kind which serves
+as a template to some other kind is automatically a template source for itself, and cannot be used as a template by any
+other kind.
+
+Semantics of the {\tt CONTAINS} relation are also rather strict.  A low-level building block can be contained in many
+higher-level objects, provided that the containment graph never contains a diamond-like shape.  This means that if kinds
+A and B both contain kind C, either directly or indirectly, through other kinds, it is forbidden to have another kind D
+contain A and B at the same time, again directly or indirectly.
 
 \section{Attributes}
 
