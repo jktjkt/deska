@@ -277,13 +277,15 @@ std::vector<std::string> ParserImpl<Iterator>::tabCompletionPossibilities(const 
         bool parsingSucceeded;
         parsingSucceeded = parseLineImpl(line);
         if (parsingSucceeded) {
-            if (*(line.end()-1) == ' ') {
+            if ((*(line.end() - 1) == ' ') || (*(line.end() - 1) == '\t') || (*(line.end() - 1) == '\n') ||
+                (*(line.end() - 1) == '(') || (*(line.end() - 1) == ')')) {
                 insertTabPossibilitiesOfCurrentContext(line, possibilities);
             } else {
                 // This should not happen, because CliCompleter truncates the last uncomplete token
             }
         } else {
-            if (*(line.end()-1) == ' ') {
+            if ((*(line.end() - 1) == ' ') || (*(line.end() - 1) == '\t') || (*(line.end() - 1) == '\n') ||
+                (*(line.end() - 1) == '(') || (*(line.end() - 1) == ')')) {
                 insertTabPossibilitiesFromErrors(line, possibilities);
             } else {
                 // This should not happen, because CliCompleter truncates the last uncomplete token
@@ -1054,7 +1056,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                                                             std::vector<std::string> &possibilities)
 {
     std::string::const_iterator realEnd = line.end() - 1;
-    while (*realEnd != ' ') {
+    while ((*realEnd != ' ') && (*realEnd != '\t') && (*realEnd != '\n') && (*realEnd != '(') && (*realEnd != ')')) {
         if (realEnd == line.begin())
             break;
         --realEnd;
@@ -1068,6 +1070,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_OBJECT_NAME) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedTypes();
@@ -1089,6 +1095,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         // Because of parsing the pair no <attribute name> using sequence parser with space skipper error occures
         // right after no keyword. That means it is one character before end of the line.
@@ -1104,6 +1114,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
@@ -1117,6 +1131,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         // Because of parsing the pair no <attribute name> using sequence parser with space skipper error occures
         // right after no keyword. That means it is one character before end of the line.
@@ -1132,6 +1150,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
@@ -1145,6 +1167,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_ATTRIBUTE) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
@@ -1158,6 +1184,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIERS_SET);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_IDENTIFIERS_SET) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
@@ -1171,6 +1201,10 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_VALUE_TYPE) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
         std::vector<std::string> expectedTypes = it->expectedTypes();
         if ((expectedTypes.size() == 1) && (expectedTypes.front() == "identifier (alphanumerical letters and _)")) {
             // Error have to occur at the end of the line

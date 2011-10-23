@@ -75,6 +75,12 @@ typedef enum {
     PARSE_ERROR_TYPE_IDENTIFIER_NOT_FOUND
 } ParseErrorType;
 
+/** @short Converts ParseErrorType to a string representation
+*   
+*   @param errorType ParseErrorType to convert
+*   @return String representation of the error
+*/
+std::string parseErrorTypeToString(const ParseErrorType errorType);
 
 
 /** @short Handles errors during parsing a kind's name during new object construction parsing. */

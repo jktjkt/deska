@@ -62,7 +62,7 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     // Do not pass the last incomplete token to the parser
     std::string::const_iterator space = end;
     bool noSpace = false;
-    while (*space != ' ') {
+    while ((*space != ' ') && (*space != '\t') && (*space != '\n') && (*space != '(') && (*space != ')')) {
         if (space == line.begin()) {
             noSpace = true;
             break;
