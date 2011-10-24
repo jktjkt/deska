@@ -271,6 +271,88 @@ CREATE TABLE pgtap.test2_host_service_template(
 );
 
 
+CREATE FUNCTION test_mod_templated_identifier_set_templates()
+RETURNS SETOF text
+AS
+$$
+DECLARE
+	old_version bigint;
+	old_version2 bigint;
+BEGIN
+	INSERT INTO test2_host_service VALUES ('host2', CAST(ARRAY[] AS text[]), 'host_templ22', 1);
+	INSERT INTO test2_host_service VALUES ('host3', ARRAY['service1','service2'], 'host_templ23', 1);
+	INSERT INTO test2_host_service VALUES ('host4', ARRAY['service1','service3'], 'host_templ24', 1);
+	INSERT INTO test2_host_service VALUES ('host5', CAST(ARRAY[] AS text[]), 'host_templ25', 1);
+
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ21', ARRAY['service1'], NULL, 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ22', CAST(ARRAY[] AS text[]), 'host_templ21', 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ23', ARRAY['service1','service2'], 'host_templ21', 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ24', ARRAY['service1'], 'host_templ21', 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ25', CAST(ARRAY[] AS text[]), 'host_templ22', 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ26', ARRAY['service1'], 'host_templ21', 1);
+	INSERT INTO pgtap.test2_host_service_template VALUES ('host_templ27', ARRAY['service1'], 'host_templ21', 1);
+
+	PERFORM startchangeset();
+	PERFORM service_add('service1');
+	PERFORM service_add('service2');
+	PERFORM service_add('service3');
+	PERFORM host_template_add('host_templ21');
+	PERFORM host_template_add('host_templ22');
+	PERFORM host_template_add('host_templ23');
+	PERFORM host_template_add('host_templ24');
+	PERFORM host_template_set_service('host_templ21',ARRAY['service1']);
+	PERFORM host_template_set_template_host('host_templ22','host_templ21');
+	PERFORM host_template_set_template_host('host_templ23','host_templ21');
+	PERFORM host_template_set_template_host('host_templ24','host_templ21');
+	PERFORM host_add('host2');
+	PERFORM host_add('host3');
+	PERFORM host_add('host4');
+	PERFORM host_set_template_host('host2','host_templ22');
+	PERFORM host_set_template_host('host3','host_templ23');
+	PERFORM host_set_template_host('host4','host_templ24');
+	PERFORM host_template_set_service_remove('host_templ22', 'service1');
+	PERFORM host_template_set_service_insert('host_templ23', 'service2');
+	PERFORM host_set_service_insert('host4', 'service3');
+	PERFORM host_template_add('host_templ25');
+	PERFORM host_template_add('host_templ26');
+	PERFORM host_template_add('host_templ27');
+	PERFORM host_template_set_template_host('host_templ25','host_templ22');
+	PERFORM host_template_set_template_host('host_templ26','host_templ21');
+	PERFORM host_template_set_template_host('host_templ27','host_templ21');
+	PERFORM host_add('host5');
+	PERFORM host_set_template_host('host5','host_templ25');
+
+	PREPARE expservices  AS SELECT service, template FROM pgtap.test2_host_service WHERE version = 1 AND host = 'host4';
+	PREPARE retservices AS SELECT service, template_host FROM host_resolved_object_data('host4');
+	RETURN NEXT results_eq( 'retservices', 'expservices', 'services are ok after 2 levels inheritance - opened changeset' );
+	DEALLOCATE expservices;
+	DEALLOCATE retservices;
+
+	PREPARE expservices  AS SELECT service, template FROM pgtap.test2_host_service WHERE version = 1 AND host = 'host5';
+	PREPARE retservices AS SELECT service, template_host FROM host_resolved_object_data('host5');
+	RETURN NEXT results_eq( 'retservices', 'expservices', 'services are ok after 2 levels inheritance - opened changeset' );
+	DEALLOCATE expservices;
+	DEALLOCATE retservices;
+
+	PREPARE expservices  AS SELECT service, template FROM pgtap.test2_host_service WHERE version = 1 ORDER BY host;
+	PREPARE retservices AS SELECT service, host_template_get_name(template_host) FROM host_resolved_data() WHERE name IN ('host2','host3','host4','host5') ORDER BY name;
+	RETURN NEXT results_eq( 'retservices', 'expservices', 'services in all hosts are ok after 2 levels inheritance - opened changeset' );
+	DEALLOCATE expservices;
+	DEALLOCATE retservices;
+
+	PREPARE expservices  AS SELECT service, template FROM pgtap.test2_host_service_template WHERE version = 1 ORDER BY host;
+	PREPARE retservices AS SELECT service, host_template_get_name(template_host) FROM host_template_resolved_data() WHERE name IN ('host_templ21','host_templ22','host_templ23','host_templ24','host_templ25','host_templ26','host_templ27') ORDER BY name;
+	RETURN NEXT results_eq( 'retservices', 'expservices', 'services in all templates are ok after 2 levels inheritance - opened changeset' );
+	DEALLOCATE expservices;
+	DEALLOCATE retservices;
+
+	old_version = revision2num(commitchangeset('1'));
+
+
+END
+$$
+LANGUAGE plpgsql;
+
 SELECT * FROM runtests();
 
 ROLLBACK;
