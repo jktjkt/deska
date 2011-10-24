@@ -217,6 +217,9 @@ CREATE FUNCTION commit_all(message text)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 			relName = col[0]
+			if relName in self.relFromTbl:
+				#FIXME: this should not happen, HOTFIX:
+				relName = relName + "_XXX"
 			self.relFromTbl[relName] = tbl
 			self.relFromCol[relName] = col[1]
 			self.relToTbl[relName] = col[2]
