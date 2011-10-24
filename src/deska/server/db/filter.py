@@ -11,6 +11,7 @@ from testdutil import fcall
 class Condition():
 	'''Class to store and handle column/value/operator data'''
 
+	# standart operators
 	opMap = {
 		"columnEq": "=",
 		"columnNe": "!=",
@@ -18,6 +19,12 @@ class Condition():
 		"columnGe": ">=",
 		"columnLe": "<=",
 		"columnLt": "<"
+	}
+	# operators for sets
+	opSetMap = {
+		"columnEq": "=",
+		"columnNe": "!=",
+		"columnContains": "= ANY"
 	}
 
 	def __init__(self,data,condId):
@@ -74,19 +81,29 @@ class Condition():
 			fromCol = generated.relFromCol(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
-				self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+				if generated.atts(self.kind)[self.col] == "identifier_set":
+					self.id = self.id
+				else:
+					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
-		if self.op not in self.opMap:
-			raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
-		self.op = self.opMap[self.op]
+		# check contains operator
+		if generated.atts(self.kind)[self.col] == "identifier_set":
+			if self.op not in self.opSetMap:
+				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
+			self.op = self.opSetMap[self.op]
+		else:
+			if self.op not in self.opMap:
+				raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
+			self.op = self.opMap[self.op]
 
 		# FZU: This is special fzu db logic, drop it if you use standart SQL logic
 		# if you don't want it, just delete use of this variable
 		self.nullCompensation = ""
 		if self.op == '!=':
 			self.nullCompensation = " OR {0}.{1} IS NULL"
+
 
 		# propper work with nulls
 		if self.val is None:
@@ -113,6 +130,9 @@ class Condition():
 	def get(self):
 		'''Return deska SQL condition'''
 		if self.newcond is None:
+			if self.op == "= ANY":
+				'''ANY has special syntax'''
+				return ("{3} {2} ({0}.{1})"+self.nullCompensation).format(self.kind,self.col,self.op,self.id), [self.val]
 			if self.val is None:
 				'''do not return none'''
 				return "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id), []
@@ -253,9 +273,9 @@ class Filter():
 #	{"condition": "columnEq", "metadata": "revision", "value": "r3"}
 #	]}
 jsn = {"operator": "or", "operands": [
-	{"condition": "columnEq", "kind": "host",  "attribute": "name", "value": "r1"},
-	{"condition": "columnEq", "kind": "interface",  "attribute": "name", "value": "r1->eth0"},
+	{"condition": "columnEq", "kind": "host",  "attribute": "service", "value": "r1"},
 	]}
+jsn = {"condition": "columnContains", "kind": "host",  "attribute": "service", "value": "r1"}
 f = Filter(json.dumps(jsn),2)
 print(f.getJoin('interface'))
 print(f.getWhere())
