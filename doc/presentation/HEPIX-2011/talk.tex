@@ -1,0 +1,281 @@
+\documentclass{beamer}
+\definecolor{links}{HTML}{2A1B81}
+\usepackage[utf8]{inputenc}
+%\usepackage{ucs}
+%\usepackage[utf8x]{inputenc}
+\usepackage{minted}
+\usepackage{hyperref}
+\hypersetup{colorlinks,urlcolor=links}
+\setbeamertemplate{navigation symbols}{}
+
+\begin{document}
+
+\title{Deska: Tool for Central Administration of a Grid Site}
+\author{Jan Kundrát \\ \href{mailto:kundratj@fzu.cz}{\nolinkurl{kundratj@fzu.cz}}
+\vspace{5mm}
+\\ Lukáš Kerpl \\ Martina Krejčová \\ Tomáš Hubík}
+\institute{Institute of Physics of the AS CR, v.v.i.}
+\begin{frame}
+\begin{columns}
+\begin{column}{.4\textwidth}
+\includegraphics[width=4cm]{logo-FZU-male.pdf} \\
+\includegraphics[width=4cm]{deska_logo.pdf}
+\end{column}
+\begin{column}{.6\textwidth}
+\maketitle
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Outline}
+\begin{itemize}
+    \item Problems we are facing
+    \item Partial solutions
+    \item The Deska project
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Problem: The Duplicate Information}
+\begin{itemize}
+    \item Information about one host is scattered among many places
+        \begin{itemize}
+            \item HW inventory DB
+            \item Warranty \& issue tracking
+            \item Switch port configuration
+            \item DHCP server
+            \item DNS
+            \item Cfengine roles
+            \item Torque's CPU multipliers
+            \item MRTG \& RRD network graphs
+            \item Nagios
+            \item Ganglia
+            \item Munin
+            \item \ldots
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Bringing it back together}
+\begin{itemize}
+    \item We {\em really} want to move the pieces back together
+    \item Have a central, authoritative place to make modifications
+    \item Use a database to generate services' configuration
+        \begin{itemize}
+            \item Distribute the configuration files via an existing mechanism
+        \end{itemize}
+    \item Integrate the new tool with the already existing services
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Analysis of Existing Systems}
+\begin{itemize}
+    \item OCS Inventory
+        \begin{itemize}
+            \item Different design goals: autodiscovery vs. authoritative decision
+            \item Auto-discovery of nodes
+            \item See Matthias Schröder's talk later today
+        \end{itemize}
+    \item RackMonkey
+        \begin{itemize}
+            \item Just HW tracking
+            \item No support for different sizes than a pizza box
+            \item Perl
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Analysis of Existing Systems: Grid}
+\begin{itemize}
+    \item Quattor
+        \begin{itemize}
+            \item Widely used in WLCG
+            \item Handles even stuff which we already manage in a different way
+            \item Problematic to use just the ``interesting'' parts
+        \end{itemize}
+    \item Smurf
+        \begin{itemize}
+            \item Nice design
+            \item No publicly available releases and documentation at the time we started
+            \item Was undergoing a major rewrite back then
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{System Requirements}
+\begin{itemize}
+    \item Central database with all information about the data center
+    \item Integration with existing tools and services
+    \item Possibility to change the DB scheme when new requirements arise
+    \item Version control like SVN
+    \item Console, text-based interface
+    \item Python scripting
+    \item Close collaboration with the actual administrators
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Database Layout: Objects and Kinds}
+\begin{itemize}
+    \item Each item is represented by an {\bf object} of some {\bf kind}
+        \begin{itemize}
+            \item Kind $\rightarrow$ database table
+                \begin{itemize}
+                    \item Defines the set of attributes and their types
+                    \item {\tt host}, {\tt hardware}, {\tt vendor},\ldots
+                \end{itemize}
+            \item Object $\rightarrow$ row in a table
+                \begin{itemize}
+                    \item Holds actual data
+                    \item ({\tt wn123}, {\tt www01}, {\tt wn123->eth0},\ldots)
+                \end{itemize}
+        \end{itemize}
+        \begin{minted}{text}
+            host wn123
+                hardware sgi-xe310
+                rack R06
+                position 10
+            end
+        \end{minted}
+    \item The layout is user-defined
+        \begin{itemize}
+            \item Deska itself contains nothing datacenter-specific
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Database Layout: Relations}
+\begin{itemize}
+    \item Relations define how these kinds interact with each other
+    \item Foreign keys on steroids -- they add a special {\em meaning} to the
+        relation
+    \item Different types of relations serve different purposes
+        \begin{itemize}
+            \item Templates provide default values of arguments
+                \begin{itemize}
+                    \item Handy for dealing with many hosts at once
+                \end{itemize}
+            \item Object Composition
+                \begin{itemize}
+                    \item Reusing building blocks in the DB design
+                \end{itemize}
+            \item Object nesting
+                \begin{itemize}
+                    \item Workaround for naming hierarchy (ie. {\tt eth0} that
+                        belongs to {\tt wn123} is called {\tt wn123->eth0})
+                \end{itemize}
+            \item \ldots and much more
+        \end{itemize}
+    \item {\bf Complicated topic}, please see the full specification
+(\href{https://projects.flaska.net/attachments/download/70/2011-10-13-objects-and-relations-17f3ce3.pdf}{link})
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Database Layout (cont.)}
+\begin{itemize}
+    \item Version used by FZU is shipped as part of Deska; this is just a small part
+\end{itemize}
+\center{\includegraphics[width=10cm]{fzu-scheme.pdf}}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Working Copy}
+\begin{itemize}
+    \item Users work on a snapshot of a DB state
+    \item Propagation to the real DB only after an explicit commit; atomic commits
+    \item Review how a change in an object's properties is reflected in the
+        output configuration
+    \item Output configuration can be committed to an existing VCS system upon Deska commit
+\end{itemize}
+\end{frame}
+
+{
+\usebackgroundtemplate{\includegraphics[width=1.7\paperwidth]{git-diff-config-file.pdf}}
+\begin{frame}[plain]
+\end{frame}
+}
+
+\begin{frame}[fragile]
+\frametitle{Python Scripting}
+\begin{itemize}
+    \item DB scheme is converted to a native object hierarchy
+        \begin{itemize}
+            \item Classes are created at runtime, on the fly
+            \item No manual effort required
+        \end{itemize}
+    \item Efficient, server-side querying
+    \item Syntax similar to the SQL Alchemy
+\end{itemize}
+\begin{minted}{python}
+import deska
+# discover the DB scheme & create classes
+deska.init()
+
+for host in deska.host[deska.host.name != "foo"]:
+    print "%s\n" % host
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska's Implementation: Technologies}
+\begin{itemize}
+    \item Initial ideas got scrapped (twice), current design is a 3\textsuperscript{rd} iteration
+    \item PostgreSQL 9.0 for the DB, heavy use of PL/pgSQL \& PgPython
+    \item Database access wrapped through a JSON API
+            (\href{https://projects.flaska.net/attachments/download/71/2011-10-23-dbapi-protocol-10f3789.pdf}{link})
+    \item SSH-based authentication/authorization
+    \item C++ CLI
+    \item Python for scripting and output generators
+    \item Extensive unit tests
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Deska's Implementation: Current Status}
+\begin{itemize}
+    \item Student project, Faculty of Mathematics and Physics, Charles
+        University in Prague
+    \item DB core is ready, CLI works, configuration generators are integrated with Git
+    \item We are improving the UI and fixing bugs now
+    \item Scheduled delivery time: end of 2011
+    \item No online demo at this time, sorry
+    \item \ldots and yes, we are already delayed
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Future Plans}
+\begin{itemize}
+    \item Finish the coding
+    \item Integrate with other existing tools
+    \item Deploy at FZU in production
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Summary}
+\begin{itemize}
+    \item Augmenting the existing tools, not reinventing the wheel
+    \item Central authoritative database
+    \item User-customizable DB scheme
+    \item Version control
+    \item Text interface
+    \item Scripting
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Questions}
+\begin{center}
+Thank you for your attention!
+\end{center}
+\end{frame}
+
+\end{document}
