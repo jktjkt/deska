@@ -410,8 +410,8 @@ BEGIN
             UNION ALL
             
             SELECT rd.uid AS uid, s.%(ref_tbl_name)s AS %(ref_tbl_name)s, s.flag, dv.%(template_column)s AS %(template_column)s
-            FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
-                JOIN inner_template_data_version s ON (rd.%(ref_tbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
+            FROM resolved_data rd JOIN template_data_version dv ON ((rd.flag = '0' OR rd.flag IS NULL) AND rd.%(template_column)s = dv.uid)
+                LEFT OUTER JOIN inner_template_data_version s ON (dv.uid = s.%(tbl_template_name)s)
         )
         SELECT uid AS %(tbl_name)s, %(ref_tbl_name)s AS %(ref_tbl_name)s, flag FROM resolved_data WHERE %(template_column)s IS NULL OR flag = '1';
     
@@ -474,26 +474,11 @@ BEGIN
             UNION ALL
             
             SELECT rd.uid AS uid, s.%(reftbl_name)s AS %(reftbl_name)s, s.flag, dv.%(template_column)s AS template
-            FROM temp_%(tbl_template_name)s_data dv JOIN resolved_data rd ON (rd.template = dv.uid)
-                LEFT OUTER JOIN temp_inner_template_data s ON (rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
+            FROM resolved_data rd JOIN temp_%(tbl_template_name)s_data dv ON (rd.template = dv.uid AND (rd.flag IS NULL OR rd.flag = '0'))
+                LEFT OUTER JOIN temp_inner_template_data s ON (dv.uid = s.%(tbl_template_name)s)
         )
-        SELECT uid AS %(tbl_template_name)s, %(reftbl_name)s, flag FROM resolved_data;
+        SELECT uid AS %(tbl_template_name)s, %(reftbl_name)s, flag FROM resolved_data WHERE template IS NULL OR %(reftbl_name)s IS NOT NULL OR flag = '1';
     
-    CREATE TEMP TABLE temp_affected_%(tbl_template_name)s_data AS
-    WITH RECURSIVE resolved_data AS(
-    SELECT tdata.%(tbl_template_name)s AS %(tbl_template_name)s, tdata.%(reftbl_name)s AS %(reftbl_name)s, tdata.flag, affected.uid AS template
-    FROM affected_templates affected 
-        LEFT OUTER JOIN temp_inner_template_data tdata ON (affected.uid = tdata.%(tbl_template_name)s)
-    WHERE tdata.flag = '0' OR flag IS NULL
-    
-    UNION ALL
-    
-    SELECT rd.%(tbl_template_name)s AS %(tbl_template_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, s.flag, dv.%(template_column)s AS template
-    FROM temp_%(tbl_template_name)s_data dv JOIN resolved_data rd ON (rd.template = dv.uid)
-        LEFT OUTER JOIN temp_inner_template_data s ON (rd.%(reftbl_name)s IS NULL AND s.flag = '1' AND dv.uid = s.%(tbl_template_name)s)
-    )
-    SELECT %(tbl_template_name)s AS %(tbl_template_name)s, %(reftbl_name)s AS %(reftbl_name)s, flag FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_template_name)s IS NOT NULL) AND template IS NULL;
-
     --correction of kind's production       
     --copy data with origin in inner table (not from template)
 
@@ -504,7 +489,7 @@ BEGIN
             LEFT OUTER JOIN affected_templates templ ON (data.%(template_column)s = templ.uid)
             LEFT OUTER JOIN temp_inner_data idata ON (data.uid = idata.%(tbl_name)s)
             LEFT OUTER JOIN %(tbl_name)s_history th ON (th.uid = data.uid AND th.version = ver)
-        WHERE templ.uid IS NOT NULL AND (idata.%(tbl_name)s IS NULL AND (idata.flag = '0' OR idata.flag IS NULL)) AND th.uid = NULL
+        WHERE templ.uid IS NOT NULL AND (idata.%(tbl_name)s IS NULL AND (idata.flag = '0' OR idata.flag IS NULL)) AND th.uid IS NULL
     );
 
 --delete all objects that has not its own data
@@ -527,7 +512,6 @@ BEGIN
     DROP TABLE affected_objects;
     DROP TABLE temp_inner_template_data;
     DROP TABLE temp_inner_data;
-    DROP TABLE temp_affected_%(tbl_template_name)s_data;
     RETURN 1;
 END
 $$
