@@ -108,7 +108,7 @@ def imperative(r):
     cmdlist4 = [
         deleteObject("vendor", "v2"),
         deleteObject("hardware", "hw1"),
-        deleteObject("vendor", "v1"),
+        deleteObject("vendor", "v1a"),
     ]
     for x in cmdlist4:
         r.cvoid(x)
@@ -116,15 +116,21 @@ def imperative(r):
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
-    revD = r.c(commitChangeset("removed stuff"))
+    revE = r.c(commitChangeset("removed stuff"))
     # try with both of them
     for rev in (revB, revC):
-        reportedDiff = r.c(dataDifference(rev, revD))
+        reportedDiff = r.c(dataDifference(rev, revE))
         r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
-                       sorted(helper_extract_commands(cmdlist4)))
+                       sorted(helper_extract_commands([
+                           deleteObject("vendor", "v2"),
+                           deleteObject("hardware", "hw1"),
+                           # this is different, we got to use the old name, not
+                           # the new one
+                           deleteObject("vendor", "v1"),
+                       ])))
         # FIXME: redmine #277
         #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
     # finally, there should be absolutely no difference in here
     # FIXME: Redmine #284, this one is broken
-    #r.assertEquals(r.c(dataDifference(revA, revD)), [])
+    #r.assertEquals(r.c(dataDifference(revA, revE)), [])
