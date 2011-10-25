@@ -88,6 +88,21 @@ def imperative(r):
     r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
                    sorted(helper_extract_commands(cmdlist1 + cmdlist2[1:] + cmdlist3)))
 
+    # try renaming an object
+    changeset = r.c(startChangeset())
+    cmdlist4 = [ renameObject("vendor", "v1", "v1a") ]
+    for x in cmdlist4:
+        r.cvoid(x)
+    # FIXME: redmine #277
+    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    revD = r.c(commitChangeset("renaming stuff"))
+    reportedDiff = r.c(dataDifference(revC, revD))
+    # FIXME: redmine #286, renames are reported back as setAttribute calls :(
+    #r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+    #               sorted(helper_extract_commands(cmdlist4)))
+    # FIXME: redmine #277
+    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+
     # now let's remove what we've added
     changeset = r.c(startChangeset())
     cmdlist4 = [
