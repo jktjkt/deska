@@ -131,6 +131,12 @@ def imperative(r):
         # FIXME: redmine #277
         #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
+    reportedDiff = r.c(dataDifference(revD, revE))
+    r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
+                   sorted(helper_extract_commands(cmdlist4)))
+    # FIXME: redmine #277
+    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+
     # finally, there should be absolutely no difference in here
     # FIXME: Redmine #284, this one is broken
     #r.assertEquals(r.c(dataDifference(revA, revE)), [])
