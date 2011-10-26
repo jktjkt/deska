@@ -413,7 +413,7 @@ BEGIN
             FROM resolved_data rd JOIN template_data_version dv ON ((rd.flag = '0' OR rd.flag IS NULL) AND rd.%(template_column)s = dv.uid)
                 LEFT OUTER JOIN inner_template_data_version s ON (dv.uid = s.%(tbl_template_name)s)
         )
-        SELECT uid AS %(tbl_name)s, %(ref_tbl_name)s AS %(ref_tbl_name)s, flag FROM resolved_data WHERE %(template_column)s IS NULL OR flag = '1';
+        SELECT uid AS %(tbl_name)s, %(ref_tbl_name)s AS %(ref_tbl_name)s, flag FROM resolved_data WHERE flag = '1';
     
     DROP TABLE template_data_version;
     DROP TABLE inner_template_data_version;
