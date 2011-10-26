@@ -454,7 +454,7 @@ class Table(constants.Templates):
 			if col in self.merge_with:
 				templated_rddv_collist.append("rd." + col)
 			elif col in self.refers_to_set:
-				templated_rddv_collist.append("%(tbl)s_%(refcol)s_ref_set_coal(rd.%(refcol)s,dv.uid,from_version) AS %(refcol)s" % {"tbl": self.name, "refcol": col})
+				templated_rddv_collist.append("%(tbl_template)s_%(refcol)s_ref_set_coal(rd.%(refcol)s,dv.uid,from_version) AS %(refcol)s" % {"tbl_template": templ_table, "refcol": col})
 			else:
 				templated_rddv_collist.append("COALESCE(rd.%s,dv.%s) AS %s" % (col,col,col))
 		if len(templated_rddv_collist) > 0:
@@ -517,7 +517,7 @@ class Table(constants.Templates):
 		
 		templ_case_id_set_str = '''
 			CASE	WHEN rd.%(col)s_templ IS NOT NULL THEN rd.%(col)s_templ
-			WHEN rd.%(col)s_templ IS NULL AND %(tbl)s_get_%(col)s(dv.uid,from_version) IS NOT NULL THEN dv.name
+			WHEN rd.%(col)s_templ IS NULL AND %(templ_tbl)s_get_%(col)s(dv.uid,from_version) IS NOT NULL THEN dv.name
 			ELSE NULL
 		END AS %(col)s_templ
 		'''
@@ -530,7 +530,7 @@ class Table(constants.Templates):
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
 				case_cols_list.append(case_col_string % (col, col))                
 			elif col in self.refers_to_set:
-				templ_case_list.append(templ_case_id_set_str % {'col': col, 'tbl': self.name})
+				templ_case_list.append(templ_case_id_set_str % {'col': col, 'templ_tbl': templ_table})
 				case_cols_list.append(case_id_set_string % {'col': col, 'tbl': self.name})
 			else:
 				templ_case_list.append(templ_case_cols_str % (col, col, col, col, col))

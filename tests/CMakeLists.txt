@@ -123,6 +123,7 @@ if(RUN_SQL_TESTS)
     deska_sql_test(diff_identifier_set)
     deska_sql_test(template_identifier_set)
     deska_sql_test(mod_templated_id_set)
+    deska_sql_test(template_identifier_set_data_origin)
 
     deska_dbapi_test(dbScheme)
     deska_dbapi_test(pendingChangesets)
