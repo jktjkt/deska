@@ -30,6 +30,15 @@ namespace Db {
 
 class Connection_p;
 
+/** @short Connection to the Deska database
+
+This class wraps a connection to the Deska database over an ABI-stable interface.  The usual PIMPL idiom (also known as the
+d-pointer) is employed to provide access to an underlying Connection_p.  The API we provide at this level is a complete
+implementation of the Deska::Db::Api interface.
+
+@see Deska::Db::Api
+
+*/
 class Connection: public Api, private boost::noncopyable
 {
 public:
