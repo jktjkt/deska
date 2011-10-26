@@ -178,6 +178,10 @@ target_link_libraries(DeskaConfig ${DESKA_BOOST_LIBS})
 
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
+set_target_properties(DeskaDb PROPERTIES
+    VERSION 0.10
+    SOVERSION 0.10
+)
 
 add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
 target_link_libraries(DeskaCliParser DeskaCliParserSupport)
