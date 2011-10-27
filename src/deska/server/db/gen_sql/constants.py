@@ -1274,7 +1274,8 @@ BEGIN
 	CREATE TEMP TABLE local_template_data_version AS (SELECT * FROM %(templ_tbl)s_data_version(0));
 	CREATE TEMP TABLE current_changest_resolved_data AS (
 		WITH RECURSIVE resolved_data AS(
-		SELECT uid, name, %(columns_ex_templ)s, %(template_column)s, %(template_column)s AS orig_template, dest_bit FROM %(tbl)s_history WHERE version = changeset_var
+		--it is necessary to resolve all data in current version, resolved changes from changeset could not find inherited changes from templates
+		SELECT uid, name, %(columns_ex_templ)s, %(template_column)s, %(template_column)s AS orig_template, dest_bit FROM %(tbl)s_data_version()
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name,

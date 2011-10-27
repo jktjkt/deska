@@ -218,7 +218,7 @@ BEGIN
         CREATE TEMP TABLE inner_template_data_version AS SELECT * FROM %(tbl_template)s_data_version(data_version);
 
         RETURN QUERY WITH RECURSIVE resolved_data AS(
-        SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s
+        SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s, s.flag
         FROM %(tbl_name)s_data_version(data_version) h
         LEFT OUTER JOIN %(tbl)s_data_version(data_version) s ON (s.%(tbl_name)s = h.uid)
         
@@ -228,7 +228,7 @@ BEGIN
         FROM template_data_version dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
             LEFT OUTER JOIN inner_template_data_version s ON (rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL) AND dv.uid = s.%(tbl_template_name)s)
         )
-        SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
+        SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s, flag  FROM resolved_data WHERE (%(reftbl_name)s IS NOT NULL OR %(tbl_name)s IS NOT NULL);
 
         DROP TABLE template_data_version;
         DROP TABLE inner_template_data_version;        
@@ -566,6 +566,26 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
         FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
+            FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+    diff_changeset_init_resolved_function_str = '''CREATE FUNCTION %(tbl)s_init_diff()
+RETURNS void
+AS
+$$
+DECLARE
+    changeset_var bigint;
+    from_version bigint;
+BEGIN
+    changeset_var = get_current_changeset();
+    from_version = id2num(parent(changeset_var));
+    CREATE TEMP TABLE %(tbl)s_diff_data
+    AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
+       FROM %(tbl)s_resolved_data_version() chv
             FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
 END
 $$
