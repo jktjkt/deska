@@ -1,0 +1,117 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\chapter{The DeskaDb C++ Library}
+
+\begin{abstract}
+This chapter describes the overall architecture of the {\tt DeskaDb}, a C++ library which wraps access to a Deska
+database.
+\end{abstract}
+
+\section{Usage}
+
+The main feature provided by the DeskaDb library is implemented by the {\tt Deska::Db::Connection} class.  When
+instantiated, it provides access to the full set of functions mandated by the Deska DBAPI (see section \ref{sec:api-ref}
+on page \pageref{sec:api-ref}).  Please consult the appropriate reference documentation for the semantic of these
+functions.
+
+\section{Internal Architecture}
+
+The {\tt Deska::Db::Connection} employs a number of classes under the hood.  Their functions are described in this
+section.
+
+At the very lowest level lies the {\tt Deska::Db::JsonExtractionTraits} policy class which defines proper methods of
+JSON serialization and deserialization of individuala data types, from strings, numbers and Deska identifiers to more
+complicated, compound types like IP addresses, timestamps and Deska server-side exceptions.  Each specialization of this
+class shall provide two methods, the {\tt toJson()} and {\tt fromJson()}, which are supposed to properly convert back
+and forth between the native C++ classes and their associated JSON representation.  The methods shall simply return the
+appropriate values, except for those that implement conversion of server-side errors to C++ exceptions, which are
+immediately thrown due to the limitations of C++ polymorphism.
+
+The functionality provided by these low-level policy classes is typically used through the {\tt
+Deska::Db::JsonExtractor} class, which is in turn is employed by the {\tt Deska::Db::JsonHandler} and its specialization
+{\tt Deska::Db::JsonHandlerApiWrapper}.  Together, these classes provide a convenient interface where the upper layers
+simply declare what kind of objects and attributes, along with their data types, are expected at a particular context,
+and the system automatically processes each of them.  The responsibilities are sanely divided; the {\tt JsonHandler}
+encapsulates basic attribute access, the {\tt JsonHandlerApiWrapper} adds a few methods which are usable for a streaming
+DBAPI-like interface, and the {\tt JsonExtractor} takes care of storing the individual attribute values in a type-safe
+manner, using the {\tt JsonField} for the underlying storage.
+
+The core of the DBAPI protocol is implemented through the {\tt JsonApiParser}, a class which performs translation
+between the DBAPI function calls and the associated compound JSON structures.  This class is further augmented by
+various helper classes like the {\tt JsonWrappedAttributeMap}, {\tt JsonWrappedAttributeMapList}, {\tt
+JsonWrappedAttributeMapWithOrigin}, {\tt JsonWrappedAttributeMapWithOriginList}, {\tt JsonWrappedAttribute}, {\tt
+JsonWrappedAttributeWithOrigin}, {\tt JsonWrappedObjectModification} and the {\tt
+JsonWrappedObjectModificationResultSequence}, which enforce high-level constraints of the DBAPI protocol, like the
+correct data type of the Deska object attributes\footnote{This is different from the JSON-level data types, which simply
+enforce the syntax validity of the JSON stream.  These classes, however, work with the dynamically determined database
+metastructure, and verifies that the remote server returns valid values for functions which look at the Deska object
+data.}
+
+To allow this dynamic checking of high-level constraints, the {\tt CachingJsonApi} class adds metadata caching to the
+picture.  This addition is necessary to prevent illegal loops of metadata requests going on between the Deska library
+and the remote server.
+
+The {\tt Deska\_p} class adds a streaming IO support on top of the {\tt CachingJsonApi}, and is finally wrapped in the
+{\tt Deska::Db::Connection} class which strives to provide a stable ABI on top of C++ objects (which is, one might add,
+a futile deal for non-leaf classes with virtual methods).
+
+\subsection{Working with JSON}
+
+The Deska DBAPI is based on a continuous exchange of JSON objects.  The list of attributes expected for an individual
+object is always defined by the context in which an obbject appears.  This leads to the general structure of the JSON
+parsing code.
+
+Basically, each function defines a tree of objects which are expected as a return value, and at the same time builds a
+JSON structure to be sent to the server.  All of that is accomplished through the {\tt JsonHandler} class, as in this
+snippet:
+
+\begin{minted}{c++}
+std::vector<ObjectRelation>
+JsonApiParser::kindRelations(const Identifier &kindName) const
+{
+    // Setup a context for the libebt library.  This is used to provide detailed
+    // error messages which include a detailed backtrace of the context in which
+    // an error has occurred.
+    JsonCommandContext c1("kindRelations");
+
+    // Allocate a space for the return value of this function
+    std::vector<ObjectRelation> res;
+
+    // The JsonHandlerApiWrapper class is a bit special; it adds the knowledge of
+    // the Deska DBAPI protocol where the data we are sending include the
+    // ``command'' field, while the expected output contains the ``response''
+    // field.  In addition, server-side errors are transparently dealt with and
+    // converted to exceptions.
+    JsonHandlerApiWrapper h(this, "kindRelations");
+
+    // The data we are sending include the ``kindName'' attribute
+    h.argument(j_kindName, kindName);
+
+    // We expect to receive the ``kindRelations'' data. It is an error if this
+    // field is missing from the output.
+    h.read("kindRelations")
+    // ...and the received value is automatically stored to the ``res'' variable.
+    // Note that its data type is automatically deduced and enforced.
+        .extract(&res);
+
+    // Call to the work() method builds a JSON object from the data we have put
+    // together, sends it through the IO socket, waits for a complete response,
+    // parses it from JSON, checks all the required fields for presence and their
+    // syntax validity and finally extracts the data to the output variable, the
+    // ``res''.
+    h.work();
+
+    // Everything is done at this point.
+    return res;
+}
+\end{minted}
+
+\subsection{Extending Deska DBAPI}
+
+Instructions for adding new data types to the Deska DBAPI protocol are available in section \ref{sec:json-extending} on
+page \pageref{sec:json-extending}.  Basically, adding new data types involves providing appropriate specialization of
+the {\tt JsonExtractionTraits} policy class, instantiating a few templates and adding the unit tests.
+
+\end{document}

@@ -11,12 +11,13 @@
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{subfiles}
+\usepackage{minted}
 
 % there's no abstract environment in chapter
 % http://tex.stackexchange.com/questions/3468/an-abstract-at-the-start-of-every-chapter
 \newenvironment{abstract}{\rightskip1in\itshape}{}
 
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+\newcommand{\deskaFuncRef}[1]{{\hyperref[sec:api-ref-#1]{\tt {#1}}}}
 
 \begin{document}
 
@@ -39,5 +40,7 @@
 \part{User's Guide}
 
 \part{Programmer's Documentation}
+
+\subfile{prog-cpp-deskadb}
 
 \end{document}
