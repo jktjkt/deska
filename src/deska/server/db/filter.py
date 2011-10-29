@@ -4,9 +4,9 @@
 import json
 import re
 import generated
-from testdutil import DutilException
-from testdutil import mystr
-from testdutil import fcall
+from dutil import DutilException
+from dutil import mystr
+from dutil import fcall
 
 class Condition():
 	'''Class to store and handle column/value/operator data'''
@@ -267,15 +267,3 @@ class Filter():
 		self.values.extend(newValues)
 		return ret
 
-#jsn = {"operator": "or", "operands": [
-#	{"condition": "columnEq", "metadata": "revision", "value": "r1"},
-#	{"condition": "columnEq", "metadata": "revision", "value": "r2"},
-#	{"condition": "columnEq", "metadata": "revision", "value": "r3"}
-#	]}
-jsn = {"operator": "or", "operands": [
-	{"condition": "columnEq", "kind": "host",  "attribute": "service", "value": "r1"},
-	]}
-jsn = {"condition": "columnContains", "kind": "host",  "attribute": "service", "value": "r1"}
-f = Filter(json.dumps(jsn),2)
-print(f.getJoin('interface'))
-print(f.getWhere())

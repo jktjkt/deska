@@ -3,6 +3,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 
 @pytypes
@@ -48,7 +49,7 @@ def main(tag,kindName,revision,filter):
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)
@@ -83,6 +84,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 
 @pytypes
@@ -128,7 +130,7 @@ def main(tag,kindName,revision,filter):
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_resolved_data($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)
@@ -163,6 +165,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 import re
 
@@ -214,7 +217,7 @@ def main(tag,kindName,revision,filter):
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_resolved_data_template_info($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)
