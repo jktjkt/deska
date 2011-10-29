@@ -26,7 +26,7 @@ def main(tag,kindName,revision,filter):
 	embed = dutil.generated.embedNames()
 	refs = dutil.generated.refNames()
 	for relName in embed:
-		if relName == kindName:
+		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
@@ -35,15 +35,17 @@ def main(tag,kindName,revision,filter):
 			# delete embed attribute
 			del atts[refCol]
 	for relName in refs:
-		if relName == kindName:
-			# FIXME: this will have to change for the tripple relations
-			kind = refs[relName]
-			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#FIXME: what is that
+				coldef = coldef
 			else:
-				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
@@ -107,7 +109,7 @@ def main(tag,kindName,revision,filter):
 	embed = dutil.generated.embedNames()
 	refs = dutil.generated.refNames()
 	for relName in embed:
-		if relName == kindName:
+		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
@@ -116,15 +118,17 @@ def main(tag,kindName,revision,filter):
 			# delete embed attribute
 			del atts[refCol]
 	for relName in refs:
-		if relName == kindName:
-			# FIXME: this will have to change for the tripple relations
-			kind = refs[relName]
-			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#FIXME: what is that
+				coldef = coldef
 			else:
-				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
@@ -194,7 +198,7 @@ def main(tag,kindName,revision,filter):
 	embed = dutil.generated.embedNames()
 	refs = dutil.generated.refNames()
 	for relName in embed:
-		if relName == kindName:
+		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
@@ -203,15 +207,17 @@ def main(tag,kindName,revision,filter):
 			# delete embed attribute
 			del atts[refCol]
 	for relName in refs:
-		if relName == kindName:
-			# FIXME: this will have to change for the tripple relations
-			kind = refs[relName]
-			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				#FIXME: what is that
+				coldef = coldef
 			else:
-				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
