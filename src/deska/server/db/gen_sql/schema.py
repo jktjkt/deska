@@ -163,7 +163,8 @@ CREATE FUNCTION commit_all(message text)
 			self.refs[tbl] = self.refs[self.templates[tbl]]
 			for relName in refNamesCopy:
 				if self.refNames[relName] == self.templates[tbl]:
-					newRelName = relName + "XXX_ref_templ"
+					#FIXME: now we can overwrite another relation with same name, but this is wanted until we fix function for getting fks
+					newRelName = relName + "_XXX"
 					self.refNames[newRelName] = tbl
 					self.relFromTbl[newRelName] = tbl
 					self.relFromCol[newRelName] = self.relFromCol[relName]
