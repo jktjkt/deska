@@ -37,14 +37,14 @@ def imperative(r):
     r.assertEqual(r.c(kindRelations("interface")),
         AnyOrderList([
             {'relation': 'EMBED_INTO', 'target': 'host', 'column': 'host'},
-            {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'interface_template'}])
+            {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'}])
     )
     r.assertEqual(r.c(kindRelations("interface_template")), AnyOrderList([
-        {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'interface_template'}]))
+        {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'}]))
     r.assertEqual(r.c(kindRelations("host")),
         AnyOrderList([
             {'relation': 'MERGE_WITH', 'target': 'hardware', 'column': 'hardware'},
-            {'relation': 'TEMPLATIZED', 'target': 'host_template', 'column': 'host_template'},
+            {'relation': 'TEMPLATIZED', 'target': 'host_template', 'column': 'template_host'},
             {'relation': 'REFERS_TO', 'target': 'service', 'column': 'service'}
         ])
     )
@@ -52,12 +52,12 @@ def imperative(r):
         AnyOrderList([
             {'relation': 'REFERS_TO', 'target': 'vendor', 'column': 'vendor'},
             {'relation': 'MERGE_WITH', 'target': 'host', 'column': 'host'},
-            {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'hardware_template'}])
+            {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'template_hardware'}])
     )
     r.assertEqual(r.c(kindRelations("hardware_template")),
        AnyOrderList([
            {'relation': 'REFERS_TO', 'target': 'vendor', 'column': 'vendor'},
-           {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'hardware_template'},
+           {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'template_hardware'},
        ])
     )
     r.assertEqual(r.c(kindRelations("vendor")), [])
