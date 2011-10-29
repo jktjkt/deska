@@ -28,7 +28,7 @@ def imperative(r):
 
     # continue with kindRelations
     expectedRelations = {
-        "interface": "[embedInto(host, host), templatized(interface_template, interface_template)]",
+        "interface": "[embedInto(host, host), templatized(interface_template, template_interface)]",
         "hardware": "[mergeWith(host, host), refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
         "host": "[mergeWith(hardware, hardware), refersTo(service, service), templatized(host_template, template_host)]",
         "host_template": "[refersTo(service, service), templatized(host_template, template_host)]",
