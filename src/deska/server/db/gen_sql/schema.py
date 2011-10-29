@@ -158,14 +158,14 @@ CREATE FUNCTION commit_all(message text)
 
 		self.fn_sql.close()
 		self.table_sql.close()
-
+		refNamesCopy = self.refNames.copy()
 		for tbl in self.templates:
 			self.refs[tbl] = self.refs[self.templates[tbl]]
-			for relName in self.refNames.copy():
+			for relName in refNamesCopy:
 				if self.refNames[relName] == self.templates[tbl]:
 					newRelName = relName + "XXX_ref_templ"
 					self.refNames[newRelName] = tbl
-					self.relFromTbl[newRelName] = self.relFromTbl[relName]
+					self.relFromTbl[newRelName] = tbl
 					self.relFromCol[newRelName] = self.relFromCol[relName]
 					self.relToTbl[newRelName] = self.relToTbl[relName]
 

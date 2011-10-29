@@ -42,7 +42,7 @@ def main(tag,kindName,revision,filter):
 				#"inner_host_service_multiRef_get_set"
 				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
 				#FIXME: what is that
-				coldef = coldef
+				coldef = atts[refCol]
 			else:
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
 			atts[refCol] = coldef
@@ -125,7 +125,7 @@ def main(tag,kindName,revision,filter):
 				#"inner_host_service_multiRef_get_set"
 				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
 				#FIXME: what is that
-				coldef = coldef
+				coldef = atts[refCol]
 			else:
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
 			atts[refCol] = coldef
@@ -214,7 +214,7 @@ def main(tag,kindName,revision,filter):
 				#"inner_host_service_multiRef_get_set"
 				#coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
 				#FIXME: what is that
-				coldef = coldef
+				coldef = atts[refCol]
 			else:
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
 			atts[refCol] = coldef
