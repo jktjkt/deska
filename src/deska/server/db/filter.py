@@ -39,8 +39,10 @@ class Condition():
 		self.op = data["condition"]
 		self.counter = condId
 		self.id = "${0}".format(condId)
+		self.metadata = False
 		if "metadata" in data:
 			self.kind = "metadata"
+			self.metadata = True
 			self.col = data["metadata"]
 			# we cannot see now, if it is about pending changeset or list revisions
 			if self.col not in ["revision","message","author","timestamp","changeset"]:
@@ -61,6 +63,9 @@ class Condition():
 
 	def relationParse(self):
 		'''Work with relations'''
+		if self.metadata:
+			'''skip this checks'''
+			return
 		embedNames = generated.embedNames()
 		# asking for embed name
 		for relName in embedNames:
@@ -88,8 +93,8 @@ class Condition():
 
 	def operatorParse(self):
 		'''Work with operators'''
-		# check contains operator
-		if self.kind != "metadata" and generated.atts(self.kind)[self.col] == "identifier_set":
+		# check contains operator, not for metadata or col = name
+		if not self.metadata and self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
 			if self.op not in self.opSetMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
 			self.op = self.opSetMap[self.op]
@@ -124,9 +129,7 @@ class Condition():
 		if self.col == "revision" and self.kind == "metadata":
 			self.col = "num"
 			self.id = "revision2num({0})".format(self.id)
-		if self.kind == "metadata":
-			'''Do not perform these checks'''
-			self.relationParse()
+		self.relationParse()
 		self.operatorParse()
 
 	def get(self):

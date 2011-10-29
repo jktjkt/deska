@@ -158,6 +158,7 @@ AS
 $$
 import dutil
 from dutil import mystr
+from filter import Filter
 import json
 
 @pytypes
@@ -166,7 +167,7 @@ def main(tag,filter):
 	jsn = dutil.jsn(name,tag)
 
 	try:
-		filter = dutil.Filter(filter,1)
+		filter = Filter(filter,1)
 		where, values = filter.getWhere()
 		select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
 	except dutil.DutilException as err:
