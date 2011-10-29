@@ -197,3 +197,20 @@ target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON
 
 include(CTest)
 add_subdirectory(tests)
+
+if(BUILD_DOCS)
+    include(UseLATEX.cmake)
+    set(PDFLATEX_COMPILER_FLAGS "-shell-escape" "${PDFLATEX_COMPILER_FLAGS}")
+    macro(deska_doc dir fname)
+        add_latex_document("doc/${dir}/${fname}.tex"
+            MANGLE_TARGET_NAMES DEFAULT_PDF)
+    endmacro(deska_doc)
+    #add_latex_document("doc/technical/subfiles.ins" DEFAULT_PDF MANGLE_TARGET_NAMES    INPUTS
+    #    "doc/technical/subfiles.dtx" "doc/technical/subfiles.ins")
+    #deska_doc(technical subfiles.sty)
+    deska_doc(technical intro)
+    deska_doc(technical objects-and-relations)
+    deska_doc(technical dbapi-protocol)
+    deska_doc(technical prog-cpp-deskadb)
+    deska_doc(technical running-config-generators)
+endif(BUILD_DOCS)
