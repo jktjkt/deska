@@ -161,6 +161,13 @@ CREATE FUNCTION commit_all(message text)
 
 		for tbl in self.templates:
 			self.refs[tbl] = self.refs[self.templates[tbl]]
+			for relName in self.refNames.copy():
+				if self.refNames[relName] == self.templates[tbl]:
+					newRelName = relName + "XXX_ref_templ"
+					self.refNames[newRelName] = tbl
+					self.relFromTbl[newRelName] = self.relFromTbl[relName]
+					self.relFromCol[newRelName] = self.relFromCol[relName]
+					self.relToTbl[newRelName] = self.relToTbl[relName]
 
 
 		# create some python helper functions
