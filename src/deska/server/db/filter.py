@@ -89,7 +89,7 @@ class Condition():
 	def operatorParse(self):
 		'''Work with operators'''
 		# check contains operator
-		if generated.atts(self.kind)[self.col] == "identifier_set":
+		if self.kind != "metadata" and generated.atts(self.kind)[self.col] == "identifier_set":
 			if self.op not in self.opSetMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
 			self.op = self.opSetMap[self.op]
@@ -124,7 +124,9 @@ class Condition():
 		if self.col == "revision" and self.kind == "metadata":
 			self.col = "num"
 			self.id = "revision2num({0})".format(self.id)
-		self.relationParse()
+		if self.kind == "metadata":
+			'''Do not perform these checks'''
+			self.relationParse()
 		self.operatorParse()
 
 	def get(self):
