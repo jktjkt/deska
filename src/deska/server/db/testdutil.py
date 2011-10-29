@@ -1,6 +1,5 @@
 # this is deska util module with helper functions for jsonapi
 
-import Postgres
 import json
 import re
 import generated
@@ -73,22 +72,6 @@ def errorJson(command,tag,typ,message):
 
 def mystr(s):
 	'''Like str but only not for all'''
-	if s is None:
-		return s
-	if type(s) == Postgres.types.int8:
-		return int(s)
-	if type(s) == Postgres.types.int4:
-		return int(s)
-	if type(s) == Postgres.types.int2:
-		return int(s)
-	if type(s) == Postgres.types.float4:
-		return float(s)
-	if type(s) == Postgres.types.float8:
-		return float(s)
-	if type(s) == Postgres.types.bool:
-		return bool(s)
-	if type(s) == Postgres.types.text.Array:
-		return [str(x) for x in list(s)]
 	return str(s)
 
 def fcall(fname,*args):
@@ -96,13 +79,9 @@ def fcall(fname,*args):
 	@param fname ID of stored procedure like name(text)
 	atr1, atr2 ... parameters for the stored procedure
 	'''
-	try:
-		with xact():
-			func = proc(fname)
-			return func(*args)
-		return 1
-	except Postgres.Exception as dberr:
-		raise DeskaException(dberr)
+	name, delim = args
+	s = name.split(delim)
+	return delim.join(s[0:len(s)-1]), s[len(s)-1]
 
 def getdata(select,*args):
 	'''Get data from database.
@@ -112,7 +91,6 @@ def getdata(select,*args):
 	'''
 	try:
 		with xact():
-			Postgres.NOTICE("Running command: "+select)
 			plan = prepare(select)
 			return plan.column_names, plan(*args)
 	except Postgres.Exception as dberr:

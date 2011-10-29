@@ -22,23 +22,28 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if relName == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if relName == kindName:
 			# FIXME: this will have to change for the tripple relations
+			kind = refs[relName]
 			if dutil.generated.atts(kindName)[kind] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
 				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
 			else:
 				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
 			atts[kind] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:
@@ -97,18 +102,28 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
-			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if relName == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if relName == kindName:
+			# FIXME: this will have to change for the tripple relations
+			kind = refs[relName]
+			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+				#"inner_host_service_multiRef_get_set"
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+			else:
+				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
 			atts[kind] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:
@@ -173,18 +188,28 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
-			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if relName == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if relName == kindName:
+			# FIXME: this will have to change for the tripple relations
+			kind = refs[relName]
+			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+				#"inner_host_service_multiRef_get_set"
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+			else:
+				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
 			atts[kind] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:

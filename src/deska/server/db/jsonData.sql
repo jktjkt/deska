@@ -15,10 +15,16 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	embed = dutil.generated.embed()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		columns = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->')".format(ref = embed[kindName], kind = kindName)
+	embed = dutil.generated.embedNames()
+	if kindName in embed.values():
+		'''We need this for else branch'''
+		for relName in embed:
+			if embed[relName] == kindName:
+				'''Here we hope that there is only one of these ->FIXME'''
+				#FIXME: propagate delimiter constant here,or drop this argument
+				refTbl = dutil.generated.relToTbl(relName)
+				refCol = dutil.generated.relFromCol(relName)
+				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->')".format(ref = refTbl, kind = kindName, col = refCol)
 	else:
 		columns = "{0}.name"
 
