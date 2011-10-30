@@ -13,8 +13,8 @@ database.
 
 The main feature provided by the DeskaDb library is implemented by the {\tt Deska::Db::Connection} class.  When
 instantiated, it provides access to the full set of functions mandated by the Deska DBAPI (see section \ref{sec:api-ref}
-on page \pageref{sec:api-ref}).  Please consult the appropriate reference documentation for the semantic of these
-functions.
+on page \pageref{sec:api-ref}).  Please consult the appropriate reference documentation for semantics of these functions
+and a general overview of the Deska DBAPI protocol.
 
 \section{Internal Architecture}
 
@@ -24,13 +24,13 @@ section.
 At the very lowest level lies the {\tt Deska::Db::JsonExtractionTraits} policy class which defines proper methods of
 JSON serialization and deserialization of individuala data types, from strings, numbers and Deska identifiers to more
 complicated, compound types like IP addresses, timestamps and Deska server-side exceptions.  Each specialization of this
-class shall provide two methods, the {\tt toJson()} and {\tt fromJson()}, which are supposed to properly convert back
-and forth between the native C++ classes and their associated JSON representation.  The methods shall simply return the
-appropriate values, except for those that implement conversion of server-side errors to C++ exceptions, which are
+class shall provides two methods, the {\tt toJson()} and {\tt fromJson()}, which are supposed to properly convert back
+and forth between the native C++ classes and their associated JSON representation.  These methods shall simply return
+the appropriate values, except for those that implement conversion of server-side errors to C++ exceptions, which are
 immediately thrown due to the limitations of C++ polymorphism.
 
 The functionality provided by these low-level policy classes is typically used through the {\tt
-Deska::Db::JsonExtractor} class, which is in turn is employed by the {\tt Deska::Db::JsonHandler} and its specialization
+Deska::Db::JsonExtractor} class, which is in turn employed by the {\tt Deska::Db::JsonHandler} and its specialization
 {\tt Deska::Db::JsonHandlerApiWrapper}.  Together, these classes provide a convenient interface where the upper layers
 simply declare what kind of objects and attributes, along with their data types, are expected at a particular context,
 and the system automatically processes each of them.  The responsibilities are sanely divided; the {\tt JsonHandler}
@@ -60,7 +60,7 @@ a futile deal for non-leaf classes with virtual methods).
 \subsection{Working with JSON}
 
 The Deska DBAPI is based on a continuous exchange of JSON objects.  The list of attributes expected for an individual
-object is always defined by the context in which an obbject appears.  This leads to the general structure of the JSON
+object is always defined by the context in which an object appears.  This leads to the general structure of the JSON
 parsing code.
 
 Basically, each function defines a tree of objects which are expected as a return value, and at the same time builds a
