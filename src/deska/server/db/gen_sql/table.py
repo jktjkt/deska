@@ -225,10 +225,24 @@ class Table(constants.Templates):
 
 		refers_set_set_fn = ""
 		if len(self.refers_to_set) > 0:
+			columns_changes = ""
+			var_set = ""
+			var_set_str = '''old%(col)s text[];
+		new%(col)s text[];'''
+			old_new_sets_list = list()
+			select_old_new_sets_list = list()
 			refs_set_cols_changes = ""
 			for col in self.refers_to_set:
+				old_new_sets_list.append("old%(col)s" % {'col': col})
+				old_new_sets_list.append("new%(col)s"% {'col': col})
+				select_old_new_sets_list.append("old_%(col)s" % {'col': col})
+				select_old_new_sets_list.append("new_%(col)s"% {'col': col})
+				var_set = var_set + var_set_str % {'col': col}
 				refs_set_cols_changes = refs_set_cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'refcol': col, 'column': col}
-			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string}            
+				
+			old_new_sets = ",".join(old_new_sets_list)
+			select_old_new_sets = ",".join(select_old_new_sets_list)
+			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_sets, 'select_old_new_list': select_old_new_sets, 'set_variables': var_set}            
 
 		#for all remaining columns we generate if clause to find possible changes
 		for col in collist:
@@ -244,7 +258,6 @@ class Table(constants.Templates):
 		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
 		#with dv (diff version), chv(changes between versions) prefix
 		collist = self.col.copy()
-		collist['dest_bit'] = 'bit(1)'
 		select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
@@ -603,20 +616,21 @@ class Table(constants.Templates):
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
 		inner_init_diff = ""
+		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff();"
+		inner_init_diff_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
 			inner_init_diff = inner_init_diff + inner_init_diff_str % {'tbl': self.name, 'refcol': col}
+			inner_init_diff_changeset = inner_init_diff_changeset + inner_init_diff_changeset_str % {'tbl': self.name, 'refcol': col}
 
 		#template, name must be present
 		collist = self.col.keys()
 		select_new_attributes = ["chv.%s AS new_%s" % (x, x) for x in collist]
-		select_new_attributes.append("chv.dest_bit AS new_dest_bit")
 		#dest_bit from resolved data is allways 0
 		select_old_attributes = ["dv.%s AS old_%s" % (x, x) for x in collist]
-		select_old_attributes.append("CAST('0' AS bit(1)) AS old_dest_bit")
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff}
-		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col}
+		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff_changeset}
 		return diff_type + '\n' + changeses_function + '\n' + init_function + '\n' + current_changeset_diff
 
 	def gen_refs_set_coal(self):

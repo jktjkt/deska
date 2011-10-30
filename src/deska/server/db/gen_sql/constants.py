@@ -983,12 +983,11 @@ LANGUAGE plpgsql;
 
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
-	new_data.uid = COALESCE(new_data.uid, old_data.uid);
-	IF NOT inner_%(tbl)s_%(refcol)s_multiRef_sets_equal(new_data.uid) 
+	IF NOT inner_%(tbl)s_%(refcol)s_multiRef_sets_equal(newuid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_old_set(new_data.uid));
-		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_new_set(new_data.uid));
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_old_set(newuid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_new_set(newuid));
 		RETURN NEXT result;
 	END IF;
 
@@ -1048,8 +1047,11 @@ LANGUAGE plpgsql;
 	 AS
 	 $$
 	 DECLARE
-		old_data %(tbl)s_history%%rowtype;
-		new_data %(tbl)s_history%%rowtype;
+		%(set_variables)s
+		newuid bigint;
+		olduid bigint;
+		newname text;
+		oldname text;
 		result diff_refs_set_set_attribute_type;
 		current_changeset bigint;
 	 BEGIN
@@ -1060,14 +1062,15 @@ LANGUAGE plpgsql;
 			from_version = id2num(parent(current_changeset));
 		END IF;
 
-		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
-		FOR %(old_new_obj_list)s IN
-			SELECT %(select_old_new_list)s
+		--for each row in diff_data lists modifications of each attribute
+		FOR newuid, olduid, newname, oldname, %(old_new_obj_list)s IN
+			SELECT new_uid, old_uid, new_name, old_name, %(select_old_new_list)s
 			FROM %(tbl)s_diff_data
-			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
+			WHERE new_name IS NOT NULL
 		LOOP
+			newuid = COALESCE(newuid, olduid);
 			--all other changes are mentioned with new name
-			result.objname = new_data.name;
+			result.objname = newname;
 			--check if the column was changed
 			%(columns_changes)s
 		END LOOP;
@@ -1223,7 +1226,7 @@ BEGIN
 	--full outer join of data in from_version and list of changes made between from_version and to_version
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
-		FROM %(tbl)s_resolved_data(from_version) dv FULL OUTER JOIN %(tbl)s_resolved_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
+		FROM %(tbl)s_resolved_data(from_version) dv FULL OUTER JOIN %(tbl)s_resolved_data(to_version) chv ON (dv.uid = chv.uid);
 		
 	%(inner_tables_diff)s
 END
@@ -1296,6 +1299,8 @@ BEGIN
 
 	DROP TABLE current_changest_resolved_data;
 	DROP TABLE local_template_data_version;
+	
+	%(inner_tables_diff)s
 END
 $$
   LANGUAGE plpgsql;
