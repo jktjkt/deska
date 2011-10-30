@@ -191,4 +191,79 @@ RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spir
 This piece of a real-world code demonstrates that the Deska-provided JSON helpers are very flexible and well-suited for
 converting JSON objects to native C++ classes.
 
+\section{IO Support}
+
+The {\tt DeskaDb} library delegates its IO interaction to a dedicates class, an implementation of the {\tt IOSocket}
+interface.  Two distinct implementations are provided, the {\tt ProcessIO}, which launches a child process and
+communicates with it through the stdin/stdout, and the {\tt UnixFdIO}, which uses a pair of Unix pipes, usually
+inherited from its parent process, to perform the communication.  The latter is required for proper support for
+configuraiton generators, which are described in section \ref{sec:config-generators} on page
+\pageref{sec:config-generators}.
+
+\subsection{Stream Copying}
+
+The {\tt ProcessIO} class uses an extension to the Boost library, the {\tt boost::process} class.  However, we have
+encountered quite a few issues when trying to use a completely stream-based interface for JSON parsing.  In short, the
+JSON parser already has support for reading a sequence of characters from a {\tt std::istream}, but if used in this
+mode, the error conditions reported back in case of a syntax error do not contain a directly usable context.  This is
+why we had to add support for copying the data read from the stream so far to a buffer for possible error reporting.
+
+Due to the design of the iostreams library, we had to work on rather low layers and augment the streambuf
+implementation.  What we have done at this layer was extending the {\tt boost::process::detail::systembuf} with a pair
+of Boost signals for proper event signalling, where we emit events as soon as data are read from the underlying socket.
+While strictly not needed for Deska, we have also added a symmetrical support for the same signaling of low-level
+writes.
+
+This code is available in the forked {\tt src/3rd-party/process/boost/process/detail/systembuf.hpp} file.
+
+\subsection{Unit Tests and IO}
+
+Writing a proper unit tests for the IO parsing routines is also far from straightforward, mainly to the complex nature
+of the IO interaction patterns.  It is trivial to use a string stream as an input of the data, but when writing a test
+case for a complex interaction which involves both reading and writing, and making sure that the operations are executed
+in order, a simple string-based approach fails.  This is when the {\tt MockStreamBuffer} comes into play.
+
+The {\tt MockStreamBuffer} class, as defined in file {\tt tests/MockStreamBuffer.h}, provides a full implementation of
+the usual iostream's streambuf interface.  Before using the associated stream, the programmer shall execute calls to
+{\tt expectRead}, {\tt expectWrite} etc. functions to record what kind of access the stream shall support.  If the user
+of the stream subsequently deviates from the expected access pattern, an exception will be thrown\footnote{The exception
+indicating an unexpected operation is thrown immediately when the {\tt streambuf} detects an error.  Due to the nature
+of iostreams, this might not be the place where the deviation actually comes from.  To minimize this risk of
+inconstistency and in order to be as deterministic as possible, the {\tt MockStreamBuffer}'s size shall be set to {\tt
+1} at the time of its construction.}.  Please also note to {\tt flush} the stream in order to force the actual data to
+reach the streambuf:
+
+\begin{minted}{c++}
+/** Test a simple RW interaction */
+BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixtureNoThrow)
+{
+    // At first, set up our expectations.  We start with writing a few items.
+    // The fact that there are two calls to expectWrite() is not relevant.
+    buf.expectWrite("foo bar baz");
+    buf.expectWrite("pwn");
+    buf.expectRead("abc "); // note the trailing space
+    buf.expectReadEof();
+    os << "foo " << "bar " << "baz" << std::flush;
+    os << "pwn" << std::flush;
+
+    std::string tmp;
+    is >> tmp;
+    BOOST_CHECK_EQUAL(tmp, "abc");
+    BOOST_CHECK(!is.fail());
+    BOOST_CHECK(!is.eof());
+    // Because of the trailing space and the rules for reading into strings,
+    // we are not at the end of the stream just yet.
+    // We will be after the next read, though:
+    is >> tmp;
+    // There was just a space, and hence no real string to be read -> failure.
+    BOOST_CHECK(is.fail());
+    BOOST_CHECK(is.eof());
+    BOOST_CHECK(buf.consumedEverything());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
+}
+\end{minted}
+
+The {\tt MockStreamBuffer} class is heavily used in this manner throughout the unit tests to enforce meaningful
+operation of the JSON interface.
+
 \end{document}
