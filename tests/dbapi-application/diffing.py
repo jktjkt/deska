@@ -6,20 +6,12 @@ def imperative(r):
                                          "changeset", "value": changeset})
               )[0]["parentRevision"]
 
-    cmdlist1 = [
-        createObject("vendor", "v1"),
-        createObject("vendor", "v2"),
-        createObject("hardware", "hw1")
-    ]
-    cmdlist2 = [
-        setAttribute("hardware", "hw1", "vendor", "v1"),
-        setAttribute("hardware", "hw1", "purchase", "2011-01-01"),
-        setAttribute("hardware", "hw1", "warranty", "2011-01-01")
-    ]
-    for x in cmdlist1:
-        r.c(x)
-    for x in cmdlist2:
-        r.cvoid(x)
+    r.c(createObject("vendor", "v1"))
+    r.c(createObject("vendor", "v2"))
+    r.c(createObject("hardware", "hw1"))
+    r.cvoid(setAttribute("hardware", "hw1", "vendor", "v1"))
+    r.cvoid(setAttribute("hardware", "hw1", "purchase", "2011-01-01"))
+    r.cvoid( setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
@@ -42,11 +34,7 @@ def imperative(r):
     #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
     changeset = r.c(startChangeset())
-    cmdlist3 = [
-        setAttribute("hardware", "hw1", "vendor", "v2"),
-    ]
-    for x in cmdlist3:
-        r.cvoid(x)
+    r.cvoid(setAttribute("hardware", "hw1", "vendor", "v2"))
 
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
@@ -77,9 +65,7 @@ def imperative(r):
 
     # try renaming an object
     changeset = r.c(startChangeset())
-    cmdlist4 = [ renameObject("vendor", "v1", "v1a") ]
-    for x in cmdlist4:
-        r.cvoid(x)
+    r.cvoid(renameObject("vendor", "v1", "v1a"))
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
     revD = r.c(commitChangeset("renaming stuff"))
@@ -92,13 +78,9 @@ def imperative(r):
 
     # now let's remove what we've added
     changeset = r.c(startChangeset())
-    cmdlist4 = [
-        deleteObject("vendor", "v2"),
-        deleteObject("hardware", "hw1"),
-        deleteObject("vendor", "v1a"),
-    ]
-    for x in cmdlist4:
-        r.cvoid(x)
+    r.cvoid(deleteObject("vendor", "v2"))
+    r.cvoid(deleteObject("hardware", "hw1"))
+    r.cvoid(deleteObject("vendor", "v1a"))
 
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
