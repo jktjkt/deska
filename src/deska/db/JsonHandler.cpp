@@ -26,6 +26,7 @@
 // errors which are rather hard to debug.
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/optional.hpp>
+#include "json_spirit/json_spirit_writer_template.h"
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
 
@@ -181,8 +182,11 @@ void JsonHandler::parseJsonObject(const json_spirit::Object &jsonObject)
             // Oh yeah, json_spirit::Value doesn't implement operator!=. Well, at least it has operator== :).
             if (!(node.value_ == rule->jsonValue)) {
                 std::ostringstream s;
-                // FIXME: print the value here; this could be tricky as not all of them could be converted to string
-                s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'";
+                s << "JSON value mismatch for field '" << rule->jsonFieldRead << "'. Expected ";
+                json_spirit::write_stream(node.value_, s);
+                s << ", got ";
+                json_spirit::write_stream(rule->jsonValue, s);
+                s << " instead.";
                 throw JsonStructureError(s.str());
             }
         }
