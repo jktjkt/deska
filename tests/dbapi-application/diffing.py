@@ -24,9 +24,9 @@ def imperative(r):
         {"command": "createObject", "kindName": "vendor", "objectName": "v1"},
         {"command": "createObject", "kindName": "vendor", "objectName": "v2"},
         {"command": "createObject", "kindName": "hardware", "objectName": "hw1"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldValue": None, "newValue": "v1"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "warranty", "oldValue": None, "newValue": "2011-01-01"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldValue": None, "newValue": "2011-01-01"}
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": None, "attributeData": "v1"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "warranty", "oldAttributeData": None, "attributeData": "2011-01-01"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
     r.assertEquals(reportedDiff, expectedDiff)
 
@@ -42,7 +42,7 @@ def imperative(r):
     revC = r.c(commitChangeset("changed one attribute"))
     reportedDiff = r.c(dataDifference(revB, revC))
     expectedDiff = [
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldValue": "v1", "newValue": "v2"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": "v1", "attributeData": "v2"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
     # FIXME: redmine #277
@@ -54,10 +54,10 @@ def imperative(r):
         {"command": "createObject", "kindName": "vendor", "objectName": "v2"},
         {"command": "createObject", "kindName": "hardware", "objectName": "hw1"},
         # this is not present, as it's overridden by the next line:
-        # {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldValue": None, "newValue": "v1"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldValue": None, "newValue": "v2"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "warranty", "oldValue": None, "newValue": "2011-01-01"},
-        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldValue": None, "newValue": "2011-01-01"}
+        # {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": None, "attributeData": "v1"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": None, "attributeData": "v2"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "warranty", "oldAttributeData": None, "attributeData": "2011-01-01"},
+        {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
 
     # now be careful, we have to filter out the modification to hw1.vendor
