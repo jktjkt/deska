@@ -55,6 +55,8 @@ a distinct kind.  These classes then provide an interface for iterating over all
 server-side filtering.  The returned data is always presented in a form which is native to Python; this means that the
 C++ timestamps are converted to the {\tt datetime.datetime} values etc.
 
+\subsection{Server-side Filtering}
+
 In the following example, we iterate over all hosts in the Deska database whose name is not ``foo''.  Please note that
 the Python bindings have no hardcoded knowledge of a ``host'', and everything is deduced from the database scheme on the
 fly, without any manual intervention.  The high-level Python bindings are capable of converting any valid Deska database
@@ -74,7 +76,36 @@ for host in deska.host[deska.host.name != "foo"]:
     print "%s\n" % host
 \end{minted}
 
-FIXME: show how to iterate over all items
-FIXME: demonstrate how we can access object attributes
+\subsection{Iterating over Everything and Data Access}
+
+The ability of performing server-side searches has a significant advantage when the amount of data to process is huge.
+However, in certain situations, it might make more sense to delegate the filtering to native Python code, or just skip
+the filtering altogether.  The following example demonstrates how to iterate over all objects of a given kind.  In
+addition, we also print object attributes along with their name to show how to access these values:
+
+\begin{minted}{python}
+# Same as above
+import deska
+deska.init()
+
+# The magic .all() method lets you iterate over all objects
+# of a given kind.  Object attributes are available as the regular
+# class members.  Remember that Python by default iterates over
+# keys of a container, so you have to explicitly use iteritems().
+for (name, host) in deska.host._all().iteritems():
+    print "%s: %s\n" % (name, host.note_host)
+\end{minted}
+
+Iteration over all items is allowed by using the method {\tt \_all()} instead of an filter expression.  The iteration
+itself follows the traditional Python rules, ie. by default it iterates just over the host names.  Use the {\tt
+iteritems()} function to iterate over a list of (name, data) pairs.
+
+\subsection{Native Data Types}
+
+The high-level Python code also implicitly converts the data stored in object attributes into native Python values.
+This means that the timestamps are converted into the {\tt datetime.datetime} objects,  Unfortunately, Python lacks a
+native data type for an IP address (both IPv4 and IPv6) and Ethernet MAC addresses.  Therefore, these are passed to the
+user as Python strings.  This behavior might change in future versions of Deska or when native Python classes for
+Internet addresses become common.
 
 \end{document}
