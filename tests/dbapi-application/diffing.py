@@ -70,9 +70,9 @@ def imperative(r):
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
     revD = r.c(commitChangeset("renaming stuff"))
     reportedDiff = r.c(dataDifference(revC, revD))
+    expectedDiff = [{"command": "renameObject", "kindName": "vendor", "oldObjectName": "v1", "newObjectName": "v1a"}]
     # FIXME: redmine #286, renames are reported back as setAttribute calls :(
-    #r.assertEquals(sorted(helper_diff_2_cmdlist(reportedDiff)),
-    #               sorted(helper_extract_commands(cmdlist4)))
+    r.assertEquals(reportedDiff, expectedDiff)
     # FIXME: redmine #277
     #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
 
