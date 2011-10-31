@@ -211,6 +211,11 @@ void FakeApi::unFreezeView()
 {
 }
 
+RevisionId FakeApi::restoringCommit(const std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp)
+{
+    return RevisionId(789);
+}
+
 std::vector<RevisionMetadata> FakeApi::listRevisions(const boost::optional<Filter> &filter) const
 {
     return std::vector<RevisionMetadata>();

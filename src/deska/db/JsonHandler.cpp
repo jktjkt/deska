@@ -329,6 +329,7 @@ template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const T
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const Filter &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const std::vector<ObjectModificationCommand> &);
 template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const bool &);
+template JsonField &JsonHandlerApiWrapper::argument(const std::string &, const boost::posix_time::ptime &);
 
 }
 }

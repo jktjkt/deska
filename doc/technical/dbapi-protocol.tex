@@ -1,24 +1,8 @@
 % vim: spelllang=en spell textwidth=120
-\documentclass{article}
-\usepackage[utf8]{inputenc}
-\usepackage[czech,english]{babel}
-\usepackage{a4wide}
-\usepackage{listings}
-\usepackage{longtable}
-\usepackage{etoolbox}
-\usepackage{lmodern}
-\usepackage[T1]{fontenc}
-\usepackage{textcomp}
-
+\documentclass[deska]{subfiles}
 \begin{document}
 
-\title{Deska: The Database Access Protocol}
-
-\author{Jan Kundrát}
-
-\maketitle
-
-\newcommand{\deskaFuncRef}[1]{{\tt {#1}}}
+\chapter{The Database Access Protocol}
 
 \begin{abstract}
 This chapter discusses design of the protocol that serves as an exclusive communication method for accessing the Deska
@@ -28,6 +12,7 @@ reimplementation.
 \end{abstract}
 
 \section{Background}
+\label{sec:dbapi-protocol}
 
 First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
 database, after all, is built on PostgreSQL, which already provides a library which can be used to access database
@@ -345,6 +330,7 @@ API function.
     \endhead
     {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
     {\tt int} & INT & {\tt int} & {\tt 123} \\
+    {\tt bool} & BOOL & {\tt bool} & {\tt true} \\
     {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
     {\tt identifier\_set} & (extra table) & {\tt std::set<std::string>} & {\tt ["id1", "id2"]} \\
     {\tt double} & DOUBLE & {\tt double} & {\tt 333.666} \\
@@ -383,7 +369,8 @@ relation information etc.  The following types are defined:
         {\tt "timestamp"} or a user-defined type \\
     {\tt Deska::Db::ObjectRelation} &
     One of \newline {\tt\{"relation": "EMBED\_INTO", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
-        {\tt\{"relation": "MERGE\_WITH", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINS", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
+        {\tt\{"relation": "CONTAINABLE", "target": }Identifier{\tt, "column": }Identifier{\tt\}}, \newline
         {\tt\{"relation": "REFERS\_TO", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \newline or \newline
         {\tt\{"relation": "TEMPLATIZED", "target": }Identifier{\tt, "column": }Identifier{\tt\}} \\
     {\tt Deska::Db::RevisionMetadata} &
@@ -494,6 +481,11 @@ she attempted a commit.  In that case, the new commit won't be performed.  The u
 still valid via the diffing functions (see section \ref{sec:api-group-history}) and apply them in a newly created
 changeset.
 
+The whole contents of the DBAPI database can be easily restored from a series of snapshots via the ordinary DBAPI
+functions for object manipulation.  In order to be able to set a few properties which are normally assigned by the Deska
+server during commit, the privileged user shall substitute calls to the \deskaFuncRef{commitChangeset} through the
+\deskaFuncRef{restoringCommit} function.
+
 Objects can be created via the \deskaFuncRef{createObject} function, deleted through the \deskaFuncRef{deleteObject} and
 renamed via the \deskaFuncRef{renameObject}.  Attribute values are set via the \deskaFuncRef{setAttribute} call.
 Certain attributes accept a {\tt NULL} value, customary to model an unset attribute; to use it, also use
@@ -592,6 +584,7 @@ The diffing functions (see section \ref{sec:api-group-history}) sorts the result
 description for more details.
 
 \subsection{API Reference}
+\label{sec:api-ref}
 
 \newcommand{\deskaFunc}[5]
 {\paragraph{#1}\label{sec:api-ref-#1}
@@ -630,9 +623,10 @@ and the defined object relations.
 \deskaFunc{kindRelations}{, "kindName": "something"}
     { [ \\
             \{"relation": "EMBED\_INTO", "target": "hardware", "column": "hardware"\}, \\
-            \{"relation": "MERGE\_WITH", "target": "second-kind", "column": "foo"}, \\
-            \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"}, \\
-            \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"} \\
+            \{"relation": "CONTAINS", "target": "second-kind", "column": "foo"\}, \\
+            \{"relation": "CONTAINABLE", "target": "second-kind", "column": "bar"\}, \\
+            \{"relation": "REFERS\_TO", "target": "second-kind", "column": "blah"\}, \\
+            \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"\} \\
             ]}
     {Retrieve relations between different Kinds}
     {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
@@ -907,6 +901,16 @@ Querying History}, section \ref{sec:api-group-history}.
     {Unfreeze the client's view on the persistent revisions}
     {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
     \ref{sec:api-revision-semantics} for details.}
+
+\deskaFunc{restoringCommit}{, "commitMessage": "message", "author": "user", "timestamp": "2011-04-07 17:22:33"}
+    {"r123"}
+    {Extended version of \deskaFuncRef{commitChangeset} that allows specifying additional revision metadata}
+    {When the user has sufficient permissions, she might use the DBAPI for recovery purposes.  Using this mode, she is
+    allowed to specify certain properties when committing revisions which are normally assigned by the Deska database.
+
+    This function is similar to the \deskaFuncRef{commitChangeset}, but in addition accepts two additional arguments, the {\tt
+    author} and {\tt timestamp}.  They are used instead of the current user and current time as the metadata for history
+    revisions.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}

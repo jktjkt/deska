@@ -3,6 +3,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 
 @pytypes
@@ -22,28 +23,33 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
-			# FIXME: this will have to change for the tripple relations
-			if dutil.generated.atts(kindName)[kind] == "identifier_set":
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, kind)
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
 			else:
-				coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)
@@ -78,6 +84,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 
 @pytypes
@@ -97,23 +104,33 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
-			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
+				#"inner_host_service_multiRef_get_set"
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
+			else:
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_resolved_data($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)
@@ -148,6 +165,7 @@ RETURNS text
 AS
 $$
 import dutil
+from filter import Filter
 import json
 import re
 
@@ -173,23 +191,33 @@ def main(tag,kindName,revision,filter):
 		new_atts[att] = "{0}.{1}".format(kindName,att)
 	atts = new_atts
 
-	embed = dutil.generated.embed()
-	refs = dutil.generated.refs()
-	if kindName in embed:
-		#FIXME: propagate delimiter constant here,or drop this argument
-		coldef = "join_with_delim({ref}_get_name({kind}.{ref}, $1), {kind}.name, '->') AS name".format(ref = embed[kindName], kind = kindName)
-		atts["name"] = coldef
-		# delete embed attribute
-		del atts[embed[kindName]]
-	if kindName in refs:
-		for kind in refs[kindName]:
-			coldef = "{0}_get_name({1},$1)".format(kind,atts[kind])
-			atts[kind] = coldef
+	embed = dutil.generated.embedNames()
+	refs = dutil.generated.refNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			#FIXME: propagate delimiter constant here,or drop this argument
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			atts["name"] = coldef
+			# delete embed attribute
+			del atts[refCol]
+	for relName in refs:
+		if refs[relName] == kindName:
+			refTbl = dutil.generated.relToTbl(relName)
+			refCol = dutil.generated.relFromCol(relName)
+			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
+				#"inner_host_service_multiRef_get_set"
+				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
+			else:
+				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			atts[refCol] = coldef
+
 	columns = ",".join(atts.values())
 
 	try:
 		# set start to 2, $1 - version is set
-		filter = dutil.Filter(filter,2)
+		filter = Filter(filter,2)
 		where, values = filter.getWhere()
 		select = 'SELECT '+ columns +' FROM {0}_resolved_data_template_info($1) AS {0} ' + filter.getJoin(kindName) + where
 		select = select.format(kindName)

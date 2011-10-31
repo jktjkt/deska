@@ -1,0 +1,80 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\chapter{Python Bindings}
+
+\begin{abstract}
+In this chapter, we deal with the Python bindings for most of the functions from the  {\tt DeskaDb} library.
+\end{abstract}
+
+The Python bindings for the {\tt DeskaDb} library are consisted of two layers.  The lower-level one is maintained
+manually with help of the Boost.Python package, and contains essentially a one-to-one mapping of the interesting bits of
+the C++ implementation to the Python code.  At this layer, we provide the low-level building blocks, from simple
+bindings of the class methods to explicit conversion functions which deal with the differences between the Python and
+C++ type system.  In contrast to the lower-level functions, the second half of the Python code provides a high-level
+access to the Deska objects form the database.
+
+\section{Low-level Bindings}
+
+The lower-level Python bindings are implemented in C++ with help of the Boost.Python library.  The functionality we
+implement is centered around the {\tt Deska::Db::Connection} class and its methods which provide a read-only access to
+the data in the Deska database.  Functions which work on various C++ data types, including the variants such as the {\tt
+Deska::Db::Value}, are provided at this place.  The source code is in the {\tt src/deska/LowLevelPyDeska} directory.
+
+The code is made accessible to Python via the {\tt libLowLevelPyDeska.so} shared module, which can be directly imported
+from Python.  Working with these functions directly is not recommended for the end users of the Deska system, as the
+types mimic the C++ classes rather closely, not following much of the Python conventions, as indicated in the following
+example.  The code shown here is a real excerpt from the Deska code which transforms the result of the {\tt objectData}
+functions into native Python objects:
+
+\begin{minted}{python}
+import libLowLevelPyDeska as _l
+
+def _map_to_class_with_values(d):
+    """Convert a map<string, Value> into a class with native Python data"""
+    res = _KindInstanceInResult()
+    for x in d:
+        val = _l.DeskaDbValue_2_Py(x.data())
+        if isinstance(val, _l.std_set_std_string):
+            val = [item for item in val]
+        setattr(res, x.key(), val)
+    return res
+\end{minted}
+
+As we have already mentioned, this form is rather hostile to the potential user, and its usage might be rather error
+prone.  This is why it is further wrapped by the upper layers of the Python interface.
+
+\section{High-level Python Code}
+
+In contrast to the lower-level stuff described in the previous section, which mimics the C++ interface rather closely,
+the high-level Python API is generated completely automatically at runtime and is intended to closely match the Deska
+database scheme.  To reach this goal, this layer uses the metadata discovery features (see section
+\ref{sec:api-group-dbscheme} on page \pageref{sec:api-group-dbscheme}) to create a hierarchy of Python classes, each for
+a distinct kind.  These classes then provide an interface for iterating over all objects of a kind, or for performing
+server-side filtering.  The returned data is always presented in a form which is native to Python; this means that the
+C++ timestamps are converted to the {\tt datetime.datetime} values etc.
+
+In the following example, we iterate over all hosts in the Deska database whose name is not ``foo''.  Please note that
+the Python bindings have no hardcoded knowledge of a ``host'', and everything is deduced from the database scheme on the
+fly, without any manual intervention.  The high-level Python bindings are capable of converting any valid Deska database
+scheme to native Python objects without any user effort at all:
+
+\begin{minted}{python}
+import deska
+# Discover the DB scheme & create classes.
+# The whole scheme discovery is hidden behind this call.
+deska.init()
+
+# Iterate over all hosts in the DB whose name is not equal to the given string.
+# Please note that the filtering is done completely on the server side, as the
+# search condition is transparently converted to a Deska ``filter''.
+for host in deska.host[deska.host.name != "foo"]:
+    # Let's just print each host's name
+    print "%s\n" % host
+\end{minted}
+
+FIXME: show how to iterate over all items
+FIXME: demonstrate how we can access object attributes
+
+\end{document}

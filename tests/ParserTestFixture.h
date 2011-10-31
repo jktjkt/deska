@@ -74,7 +74,7 @@ struct ParserTestFixture: public boost::signals2::trackable
     void slotParserFunctionRename(const Deska::Db::Identifier &newName);
 
     /** @short Handler for Parser's objectsFilter() */
-    void slotParserObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
+    void slotParserObjectsFilter(const Deska::Db::Identifier &kind, const boost::optional<Deska::Db::Filter> &filter);
 
     /** @short Handler for Parser's parserError() signal */
     void slotParserParseError(const Deska::Cli::ParserException &exception);
@@ -146,7 +146,7 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     @see expectCategoryEntered()
     */
-    void expectObjectsFilter(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
+    void expectObjectsFilter(const Deska::Db::Identifier &kind, const boost::optional<Deska::Db::Filter> &filter);
     
     /** @short Check that the first signal which was not checked yet was the parseError, with corresponding arguments
 
@@ -171,19 +171,19 @@ struct ParserTestFixture: public boost::signals2::trackable
 
     void verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Identifier &name);
 
-    void verifyStackOneLevel(const Deska::Db::Identifier &kind, const Deska::Db::Filter &filter);
+    void verifyStackOneLevel(const Deska::Db::Identifier &kind, const boost::optional<Deska::Db::Filter> &filter);
 
     void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
                               const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2);
 
-    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const boost::optional<Deska::Db::Filter> &filter1,
                               const Deska::Db::Identifier &kind2, const Deska::Db::Identifier &name2);
 
     void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Identifier &name1,
-                              const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2);
+                              const Deska::Db::Identifier &kind2, const boost::optional<Deska::Db::Filter> &filter2);
 
-    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const Deska::Db::Filter &filter1,
-                              const Deska::Db::Identifier &kind2, const Deska::Db::Filter &filter2);
+    void verifyStackTwoLevels(const Deska::Db::Identifier &kind1, const boost::optional<Deska::Db::Filter> &filter1,
+                              const Deska::Db::Identifier &kind2, const boost::optional<Deska::Db::Filter> &filter2);
 
     void verifyEmptyStack();
 

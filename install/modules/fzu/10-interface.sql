@@ -22,10 +22,10 @@ CREATE TABLE interface (
 	switch bigint
 		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
 	port text
-		CONSTRAINT "interface switch_pos cannot be empty string"
+		CONSTRAINT "interface port cannot be empty string"
         -- FIXME: relax this constraint; we can't enforce it right now
         -- (think virtual machines or anything else without a real, physical switch interconnect)
-		CHECK (char_length(switch_pos) > 0),
+		CHECK (char_length(port) > 0),
 	note text,
 	template bigint,
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)

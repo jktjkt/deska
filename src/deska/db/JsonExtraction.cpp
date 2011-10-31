@@ -521,6 +521,15 @@ json_spirit::Value JsonConversionTraits<bool>::toJson(const bool &value)
     return value;
 }
 
+/** @short Extract boolean from JSON */
+template<>
+bool JsonConversionTraits<bool>::extract(const json_spirit::Value &v)
+{
+    JsonContext c1("When extracting bool");
+    checkJsonValueType(v, json_spirit::bool_type);
+    return v.get_bool();
+}
+
 /** @short Helper for extracting an optional value */
 template<typename T> struct JsonConversionTraits<boost::optional<T> > {
     static boost::optional<T> extract(const json_spirit::Value &v) {
@@ -529,6 +538,9 @@ template<typename T> struct JsonConversionTraits<boost::optional<T> > {
             return boost::optional<T>();
         else
             return JsonConversionTraits<T>::extract(v);
+    }
+    static json_spirit::Value toJson(const boost::optional<T> &value) {
+        return value ? JsonConversionTraits<T>::toJson(*value) : json_spirit::Value();
     }
 };
 
@@ -593,6 +605,8 @@ template<> struct JsonConversionTraits<std::vector<KindAttributeDataType> > {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_IDENTIFIER_SET));
             } else if (datatype == "double") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_DOUBLE));
+            } else if (datatype == "bool") {
+                res.push_back(KindAttributeDataType(item.name_, TYPE_BOOL));
             } else if (datatype == "macaddress") {
                 res.push_back(KindAttributeDataType(item.name_, TYPE_MAC_ADDRESS));
             } else if (datatype == "ipv4address") {
@@ -797,6 +811,13 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");
         target->value = value.get_real();
+        return;
+    }
+    case TYPE_BOOL:
+    {
+        JsonContext c2("When extracting TYPE_BOOL");
+        checkJsonValueType(value, json_spirit::bool_type);
+        target->value = value.get_bool();
         return;
     }
     case TYPE_IPV4_ADDRESS:
@@ -1021,6 +1042,7 @@ template JsonField& JsonField::extract(boost::optional<std::string>*);
 template JsonField& JsonField::extract(std::vector<PendingChangeset>*);
 template JsonField& JsonField::extract(PendingChangeset::AttachStatus*);
 template JsonField& JsonField::extract(boost::posix_time::ptime*);
+template JsonField& JsonField::extract(bool*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMap*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapList*);
 template JsonField& JsonField::extract(JsonWrappedAttributeMapWithOrigin*);

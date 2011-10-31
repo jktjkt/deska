@@ -89,6 +89,10 @@ PredefinedRules<Iterator>::PredefinedRules()
         [qi::_val = phoenix::static_cast_<double>(qi::_1)];
     rulesMap[Db::TYPE_DOUBLE].name("double");
 
+    rulesMap[Db::TYPE_BOOL] = qi::bool_
+        [qi::_val = phoenix::static_cast_<bool>(qi::_1)];
+    rulesMap[Db::TYPE_BOOL].name("bool");
+
     rulesMap[Db::TYPE_IPV4_ADDRESS] = tIPv4Addr
         // got to specify the overload by hand; see http://stackoverflow.com/questions/2326586/how-to-force-template-function-overload-for-boostbind for details
         [qi::_val = phoenix::bind(static_cast<boost::asio::ip::address_v4(*)(const std::string&)>(&boost::asio::ip::address_v4::from_string), qi::_1)];
@@ -107,7 +111,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     rulesMap[Db::TYPE_DATE].name("date in YYYY-MM-DD format");
 
     rulesMap[Db::TYPE_TIMESTAMP] = tTimeStamp
-        [qi::_val = phoenix::bind(&boost::posix_time::from_iso_string, qi::_1)];
+        [qi::_val = phoenix::bind(&boost::posix_time::time_from_string, qi::_1)];
     rulesMap[Db::TYPE_TIMESTAMP].name("timestamp in YYY-MM-DD HH:MM:SS format");
 
     objectIdentifier %= tIdentifier.alias();

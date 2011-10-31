@@ -30,10 +30,11 @@
 #include <boost/tokenizer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "ContextStack.h"
 #include "ChildProcess.h"
-#include "UserInterfaceIO.h"
+#include "CliCommands.h"
 #include "CliConfig.h"
+#include "ContextStack.h"
+#include "UserInterfaceIO.h"
 
 
 namespace Deska
@@ -61,7 +62,7 @@ std::vector<std::string> CliCompleter::getCompletions(const std::string &line,
     // Do not pass the last incomplete token to the parser
     std::string::const_iterator space = end;
     bool noSpace = false;
-    while (*space != ' ') {
+    while ((*space != ' ') && (*space != '\t') && (*space != '\n') && (*space != '(') && (*space != ')')) {
         if (space == line.begin()) {
             noSpace = true;
             break;
@@ -111,9 +112,8 @@ void ModificationPrinter::operator()(const Db::RenameObjectModification &modific
 void ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::cout << "set attribute " << modification.kindName << " " << modification.objectName << " "
-              << modification.attributeName << " from "
-              << (modification.oldAttributeData ? *(modification.oldAttributeData) : "null") << " to "
-              << (modification.attributeData ? *(modification.attributeData) : "null") << std::endl;
+              << modification.attributeName << readableAttrPrinter(" from", modification.oldAttributeData)
+              << readableAttrPrinter(" to", modification.attributeData) << std::endl;
 }
 
 

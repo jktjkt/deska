@@ -1,0 +1,53 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+
+\begin{document}
+
+\chapter{A Gentle Introduction}
+
+\begin{abstract}
+The first chapter explains what Deska is, and what it tries to achieve.
+\end{abstract}
+
+\section{Motivation}
+
+The Deska project started as an internal project at the Institute of Physics of the AS CR, v.v.i.  Its goal is to
+provide a central place for storing all information about the infrastructure of a typical grid computing center, and
+offer a suite of add-on scripts which use that knowledge to make everyday operation run smoother.  A central focus of
+the design was to come up with a system that propagates changes to proper places, never leaving stale content behind,
+but also provides a detailed accounting log of all changes performed.
+
+Due to the never-stopping evolution in the data center design where one cannot reliably anticipate what innovations are
+coming in a few years, the system we have built sports an extensible framework that allows us to manage entities which
+were unknown at the design phase.  We propose a data model that, to our best knowledge, provides enough features to
+sustain the real-world growth of grid center operation, yet is simple enough to work with even for staffers without deep
+knowledge of relation algebra.  For more details on how the model operates and what features are supported, please see
+chapter \ref{sec:objects-and-relations} on page~\pageref{sec:objects-and-relations}.
+
+\section{Implementation}
+
+The Deska system, as delivered, can be divided into four parts.  The first part, which is the most visible to the actual
+user, is the CLI console, a text-mode application that connects to the Deska server and is intended to be used for
+day-to-day work, including modifications and reporting.  The CLI console is implemented in C++.  Second part, the
+database server, translates the domain-specific JSON-based wire protocol called {\em Deska DBAPI} (see chapter
+\ref{sec:dbapi-protocol} on page~\pageref{sec:dbapi-protocol}) into calls to stored procedures in the PostgreSQL server,
+which perform any required modifications or retrieve the data.  The database server is implemented in a mixture of
+Python and PgSQL languages and provides object-level versioning for all data contained therein, with features similar to
+Subversion.
+
+Unlike the traditional systems, in Deska, the structure of the database itself is not set in stone, but can be tweaked
+and changed by the Deska administrator, provided she follows certain rules.  Nevertheless, the standard distribution
+ships database scheme which closely models the real-world needs of the computing center in Prague.  This scheme is the
+third part of the whole suite, and comprises tens of individual table definitions in standard SQL.  Any required
+information about their mutual relations is communicated in the terms of Deska relations (see chapter
+\ref{sec:objects-and-relations-relations} on page~\pageref{sec:objects-and-relations-relations}) using conventional SQL
+features.
+
+Finally, for the Deska database to actually implement useful functions, a set of scripts is shipped that uses the
+information contained in the database and makes it available to various services.  This group is implemented in pure
+Python and contains a layer which presents the database contents as a native Python object hierarchy.  This is further
+used to create, or {\em generate}, configuration for various services which are in use in Prague, from DHCP servers and
+DNS to network switches.  Included is a complete setup which makes sure that each revision, as stored in the Deska
+database, is available in an external VCS repository.
+
+\end{document}

@@ -2,8 +2,8 @@
 
 from apiUtils import *
 
-expectedHardwareData = {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host": None}
-expectedHardwareData2 = {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "ram": None, "note_hardware": None, "template_hardware": None, "host": None}
+expectedHardwareData = {"vendor": "vendor1", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "cpu_ht": None, "ram": None, "note_hardware": None, "template_hardware": None, "host": None}
+expectedHardwareData2 = {"vendor": "vendor2", "warranty": "2010-10-10", "purchase": "2008-10-10", "cpu_num": None, "cpu_ht": None, "ram": None, "note_hardware": None, "template_hardware": None, "host": None}
 expectedInterfaceData = {"ip4": None, "ip6": None, "mac": "01:23:45:67:89:ab", "note": "host1->eth0 note", "template_interface": None}
 expectedInterfaceData2 = {"ip4": None, "ip6": None, "mac": "01:23:45:67:89:aa", "note": "host1->eth0 note", "template_interface": None}
 

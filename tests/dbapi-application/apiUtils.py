@@ -167,9 +167,12 @@ def startChangeset():
 def commitChangeset(message):
     return ApiMethod("commitChangeset", {"commitMessage": message})
 
-def pendingChangesets():
-    # FIXME: filter
-    return ApiMethod("pendingChangesets", None)
+def pendingChangesets(filter=None):
+    if filter is None:
+        args = None
+    else:
+        args = {"filter": filter}
+    return ApiMethod("pendingChangesets", args)
 
 def resumeChangeset(revision):
     return ApiMethod("resumeChangeset", {"changeset": revision})
@@ -260,3 +263,9 @@ def listRevisions(filter=None):
 
 def showConfigDiff(forceRegen=False):
     return ApiMethod("showConfigDiff", {"forceRegen": forceRegen})
+
+def dataDifference(revisionA, revisionB):
+    return ApiMethod("dataDifference", {"revisionA": revisionA, "revisionB": revisionB})
+
+def dataDifferenceInTemporaryChangeset(changeset):
+    return ApiMethod("dataDifferenceInTemporaryChangeset", {"changeset": changeset})

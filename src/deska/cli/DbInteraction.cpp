@@ -48,6 +48,7 @@ DbInteraction::DbInteraction(Db::Api *api):
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
+                mergedWith[itr->target].push_back(*itk);
             }
         }
         if (!isEmbedded)
@@ -349,6 +350,7 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
     if (object.name.empty())
         throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
 
+    // Kinds, that this kind contains
     std::vector<ObjectDefinition> mergedObjects;
     for (std::vector<Db::Identifier>::iterator it =
         mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
@@ -357,10 +359,26 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
         BOOST_ASSERT(instances.size() <= 1);
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
-            mergedObjects.push_back(ObjectDefinition(*it, object.name));
+            ObjectDefinition mObj(*it, object.name);
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
+                mergedObjects.push_back(ObjectDefinition(*it, object.name));
         }
     }
-   
+
+    // Kinds containing this kind
+    for (std::vector<Db::Identifier>::iterator it =
+        mergedWith[object.kind].begin(); it != mergedWith[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
+            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        BOOST_ASSERT(instances.size() <= 1);
+        if (!instances.empty()) {
+            BOOST_ASSERT(instances.front() == object.name);
+            ObjectDefinition mObj(*it, object.name);
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
+                mergedObjects.push_back(ObjectDefinition(*it, object.name));
+        }
+    }
+
     return mergedObjects;
 }
 
@@ -485,9 +503,9 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
     } catch (std::runtime_error &e) {
         for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
             if (objects.empty()) {
-                if (it->filter) {
+                if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
                     // If we have not any objects extracted yet, get some using filter when in context stack is filter
-                    std::vector<Db::Identifier> instances = m_api->kindInstances(it->kind, *(it->filter));
+                    std::vector<Db::Identifier> instances = m_api->kindInstances(it->kind, it->filter);
                     if (instances.empty()) {
                         // If the filter does not match any objects, return empty vector, because it does not make
                         // a sense to extract objects using the rest of the context now.
@@ -508,7 +526,7 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     if (pathToVector(itoe->name).back().empty())
                         throw std::logic_error("Deska::Cli::DbInteraction::expandContextStack: Can not expand context stack with objects with empty names.");
                 }
-                if (it->filter) {
+                if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
                     // If there is a filter, we have to construct filter for all extracted objects at first.
                     std::vector<Db::Filter> currObjects;
                     for (std::vector<ObjectDefinition>::iterator ito = objects.begin(); ito != objects.end(); ++ito) {
@@ -518,7 +536,8 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     Db::Filter currObjectsFilter = Db::OrFilter(currObjects);
                     std::vector<Db::Filter> finalFilter;
                     finalFilter.push_back(currObjectsFilter);
-                    finalFilter.push_back(*(it->filter));
+                    if (it->filter)
+                        finalFilter.push_back(*(it->filter));
                     // Now when we have filter for all extracted objects, we can chain it with the filter in the context
                     // using Db::AndFilter and get instances of all objects satisfying this filter.
                     std::vector<Db::Identifier> instances = m_api->kindInstances(it->kind, Db::Filter(

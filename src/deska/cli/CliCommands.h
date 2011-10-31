@@ -33,6 +33,7 @@
 namespace Deska {
 namespace Cli {
 
+std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v);
 
 class UserInterface;
 

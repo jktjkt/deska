@@ -82,7 +82,7 @@ Readline::Readline(const std::string &historyStorageFileName, const size_t maxHi
     using_history();
     loadHistory(historyFileName);
     rl_attempted_completion_function = generateCompletions;
-    rl_basic_word_break_characters = " \n\t";
+    rl_basic_word_break_characters = " \n\t()";
     CompletionHelper::getInstance()->setUserCompleter(customCompleter);
 }
 
@@ -247,7 +247,7 @@ CompletionHelper::~CompletionHelper()
 std::vector<std::string> CompletionHelper::tokenize(const std::string &line)
 {
     std::vector<std::string> tokens;
-    boost::char_separator<char> separators(" \t\n");
+    boost::char_separator<char> separators(" \t\n()");
     boost::tokenizer<boost::char_separator<char> > tokenizer(line, separators);
     std::string token;
     

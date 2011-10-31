@@ -51,18 +51,14 @@ class DB:
 	})
 
 	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
-		try:
-			self.db = psycopg2.connect(**dbOptions);
-			self.mark = self.db.cursor()
-			self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
-			# commit search_path
-			self.db.commit()
-			self.freeze = False
-			self.error = None
-			self.cfggenBackend = cfggenBackend
-			self.cfggenOptions = cfggenOptions
-		except Exception, e:
-			self.error = e
+		self.db = psycopg2.connect(**dbOptions);
+		self.mark = self.db.cursor()
+		self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
+		# commit search_path
+		self.db.commit()
+		self.freeze = False
+		self.cfggenBackend = cfggenBackend
+		self.cfggenOptions = cfggenOptions
 
 	def utf2str(self,data):
 		'''Convert dict structure into str'''
@@ -268,11 +264,6 @@ class DB:
 		if "tag" not in args:
 			return self.errorJson(name, None, "Missing 'tag'!")
 		tag = args["tag"]
-
-		# test if connection is ok
-		if self.error is not None:
-			return self.errorJson(name, tag, "No connection to DB")
-
 
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):

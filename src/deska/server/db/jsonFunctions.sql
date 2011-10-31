@@ -38,7 +38,7 @@ type_dict = ({
 	"ipv4": "ipv4address",
 	"ipv6": "ipv6address",
 	"inet": "string",
-    "bool": "boolean"
+	"bool": "bool"
 })
 
 @pytypes
@@ -71,14 +71,9 @@ import json
 
 class RelationList(list):
 	def addRelation(self,reltype,kind,source):
-		if kind in source:
-			if (type(source[kind]) == list):
-				for tbl in source[kind]:
-					# FIXME: use a real column name here
-					self.append({"relation": reltype, "target": tbl, "column": tbl})
-			else:
-				# FIXME: use a real column name here
-				self.append({"relation": reltype, "target": source[kind], "column": source[kind]})
+		for relName in source:
+			if source[relName] == kind:
+				self.append({"relation": reltype, "target": dutil.generated.relToTbl(relName), "column": dutil.generated.relFromCol(relName)})
 
 @pytypes
 def main(tag,kindName):
@@ -90,13 +85,10 @@ def main(tag,kindName):
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
 	res = RelationList()
-	res.addRelation("EMBED_INTO",kindName,dutil.generated.embed())
-	res.addRelation("MERGE_WITH",kindName,dutil.generated.merge())
-	templates = dutil.generated.template()
-	# revert dict
-	revtemplates = {v:k for k, v in templates.items()}
-	res.addRelation("TEMPLATIZED",kindName,templates)
-	res.addRelation("REFERS_TO",kindName,dutil.generated.refs())
+	res.addRelation("EMBED_INTO",kindName,dutil.generated.embedNames())
+	res.addRelation("MERGE_WITH",kindName,dutil.generated.mergeNames())
+	res.addRelation("TEMPLATIZED",kindName,dutil.generated.templateNames())
+	res.addRelation("REFERS_TO",kindName,dutil.generated.refNames())
 	
 	jsn[name] = res
 	return json.dumps(jsn)

@@ -7,3 +7,8 @@
 *.blg
 *.pdf
 *.out
+*.cls
+*.sty
+*.nav
+*.snm
+*.vrb

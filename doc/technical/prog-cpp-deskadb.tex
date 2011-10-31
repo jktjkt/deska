@@ -1,0 +1,269 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\chapter{The DeskaDb C++ Library}
+
+\begin{abstract}
+This chapter describes the overall architecture of the {\tt DeskaDb}, a C++ library which wraps access to a Deska
+database.
+\end{abstract}
+
+\section{Usage}
+
+The main feature provided by the DeskaDb library is implemented by the {\tt Deska::Db::Connection} class.  When
+instantiated, it provides access to the full set of functions mandated by the Deska DBAPI (see section \ref{sec:api-ref}
+on page \pageref{sec:api-ref}).  Please consult the appropriate reference documentation for semantics of these functions
+and a general overview of the Deska DBAPI protocol.
+
+\section{Internal Architecture}
+
+The {\tt Deska::Db::Connection} employs a number of classes under the hood.  Their functions are described in this
+section.
+
+At the very lowest level lies the {\tt Deska::Db::JsonExtractionTraits} policy class which defines proper methods of
+JSON serialization and deserialization of individuala data types, from strings, numbers and Deska identifiers to more
+complicated, compound types like IP addresses, timestamps and Deska server-side exceptions.  Each specialization of this
+class shall provides two methods, the {\tt toJson()} and {\tt fromJson()}, which are supposed to properly convert back
+and forth between the native C++ classes and their associated JSON representation.  These methods shall simply return
+the appropriate values, except for those that implement conversion of server-side errors to C++ exceptions, which are
+immediately thrown due to the limitations of C++ polymorphism.
+
+The functionality provided by these low-level policy classes is typically used through the {\tt
+Deska::Db::JsonExtractor} class, which is in turn employed by the {\tt Deska::Db::JsonHandler} and its specialization
+{\tt Deska::Db::JsonHandlerApiWrapper}.  Together, these classes provide a convenient interface where the upper layers
+simply declare what kind of objects and attributes, along with their data types, are expected at a particular context,
+and the system automatically processes each of them.  The responsibilities are sanely divided; the {\tt JsonHandler}
+encapsulates basic attribute access, the {\tt JsonHandlerApiWrapper} adds a few methods which are usable for a streaming
+DBAPI-like interface, and the {\tt JsonExtractor} takes care of storing the individual attribute values in a type-safe
+manner, using the {\tt JsonField} for the underlying storage.
+
+The core of the DBAPI protocol is implemented through the {\tt JsonApiParser}, a class which performs translation
+between the DBAPI function calls and the associated compound JSON structures.  This class is further augmented by
+various helper classes like the {\tt JsonWrappedAttributeMap}, {\tt JsonWrappedAttributeMapList}, {\tt
+JsonWrappedAttributeMapWithOrigin}, {\tt JsonWrappedAttributeMapWithOriginList}, {\tt JsonWrappedAttribute}, {\tt
+JsonWrappedAttributeWithOrigin}, {\tt JsonWrappedObjectModification} and the {\tt
+JsonWrappedObjectModificationResultSequence}, which enforce high-level constraints of the DBAPI protocol, like the
+correct data type of the Deska object attributes\footnote{This is different from the JSON-level data types, which simply
+enforce the syntax validity of the JSON stream.  These classes, however, work with the dynamically determined database
+metastructure, and verifies that the remote server returns valid values for functions which look at the Deska object
+data.}
+
+To allow this dynamic checking of high-level constraints, the {\tt CachingJsonApi} class adds metadata caching to the
+picture.  This addition is necessary to prevent illegal loops of metadata requests going on between the Deska library
+and the remote server.
+
+The {\tt Deska\_p} class adds a streaming IO support on top of the {\tt CachingJsonApi}, and is finally wrapped in the
+{\tt Deska::Db::Connection} class which strives to provide a stable ABI on top of C++ objects (which is, one might add,
+a futile deal for non-leaf classes with virtual methods).
+
+\subsection{Working with JSON}
+
+The Deska DBAPI is based on a continuous exchange of JSON objects.  The list of attributes expected for an individual
+object is always defined by the context in which an object appears.  This leads to the general structure of the JSON
+parsing code.
+
+Basically, each function defines a tree of objects which are expected as a return value, and at the same time builds a
+JSON structure to be sent to the server.  All of that is accomplished through the {\tt JsonHandler} class, as in this
+snippet:
+
+\begin{minted}{c++}
+std::vector<ObjectRelation>
+JsonApiParser::kindRelations(const Identifier &kindName) const
+{
+    // Setup a context for the libebt library.  This is used to provide detailed
+    // error messages which include a detailed backtrace of the context in which
+    // an error has occurred.
+    JsonCommandContext c1("kindRelations");
+
+    // Allocate a space for the return value of this function
+    std::vector<ObjectRelation> res;
+
+    // The JsonHandlerApiWrapper class is a bit special; it adds the knowledge of
+    // the Deska DBAPI protocol where the data we are sending include the
+    // ``command'' field, while the expected output contains the ``response''
+    // field.  In addition, server-side errors are transparently dealt with and
+    // converted to exceptions.
+    JsonHandlerApiWrapper h(this, "kindRelations");
+
+    // The data we are sending include the ``kindName'' attribute
+    h.argument(j_kindName, kindName);
+
+    // We expect to receive the ``kindRelations'' data. It is an error if this
+    // field is missing from the output.
+    h.read("kindRelations")
+    // ...and the received value is automatically stored to the ``res'' variable.
+    // Note that its data type is automatically deduced and enforced.
+        .extract(&res);
+
+    // Call to the work() method builds a JSON object from the data we have put
+    // together, sends it through the IO socket, waits for a complete response,
+    // parses it from JSON, checks all the required fields for presence and their
+    // syntax validity and finally extracts the data to the output variable, the
+    // ``res''.
+    h.work();
+
+    // Everything is done at this point.
+    return res;
+}
+\end{minted}
+
+\subsection{Extending Deska DBAPI}
+
+Instructions for adding new data types to the Deska DBAPI protocol are available in section \ref{sec:json-extending} on
+page \pageref{sec:json-extending}.  Basically, adding new data types involves providing appropriate specialization of
+the {\tt JsonExtractionTraits} policy class, instantiating a few templates and adding the unit tests.
+
+\subsubsection{Converting between native types and JSON}
+
+Here is an example of how a typical conversion looks like:
+
+\begin{minted}{c++}
+/** Convert a MAC address to and from its JSON representation */
+template<> struct JsonConversionTraits<Deska::Db::MacAddress> {
+    // This function converts a JSON string into a MAC address.
+    // In this instance, we have settled on plain string as the
+    // JSON serialization format.  Other classes, especially those
+    // with many individual member variables, might be better
+    // represented as JSON objects.
+    static Deska::Db::MacAddress extract(const json_spirit::Value &v) {
+        // Setup a proper context for error reporting
+        JsonContext c1("When extracting Deska::Db::MacAddress");
+        // Make sure that the value we work with is a string
+        checkJsonValueType(v, json_spirit::str_type);
+        try {
+            // Construct a MAC address from the string representation
+            // and throw an exception if it fails
+            return Deska::Db::MacAddress(v.get_str());
+        } catch (std::domain_error &e) {
+            // We were unable to construct a native class.  Let's convert
+            // the error into an exception which is JSON-related and throw
+            // that.
+            throw JsonStructureError(e.what());
+        }
+    }
+
+    // Convert a native C++ object into JSON
+    static json_spirit::Value toJson(const Deska::Db::MacAddress &value) {
+        // In this case, we can simply use the existing iostream support
+        // of the MacAddress class.
+        std::ostringstream ss;
+        ss << value;
+        return ss.str();
+    }
+};
+\end{minted}
+
+In this example, we were lucky enough to be able to use the textual representation of an object value directly in JSON.
+In other cases, this shortcut might not be desirable, and you would have to resort to using JSON objects instead.  The
+usual JSON helper classes might come handy in these cases, as shown in the following example which shows how the Deska
+code reads records about committed revisions:
+
+\begin{minted}{c++}
+/** Extract RevisionMetadata from JSON */
+template<>
+RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
+    // We start with setting up a context for error reporting.  In a language
+    // like C++, it's better done by hand due to lack of a runtime introspection.
+    JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
+    // The class for extracting data...
+    JsonHandler h;
+    // ...the result and a few auxiliary variables...
+    RevisionId revision(0);
+    std::string author;
+    boost::posix_time::ptime timestamp;
+    std::string commitMessage;
+    // At this time, we have to set up extracting of the individual fields.
+    // No real access takes place at this time; we simply set up a proper
+    // structure.
+    h.read("revision").extract(&revision);
+    h.read("author").extract(&author);
+    h.read("timestamp").extract(&timestamp);
+    h.read("commitMessage").extract(&commitMessage);
+    // Make sure it's an JSON object...
+    checkJsonValueType(v, json_spirit::obj_type);
+    // ...and extract it now.
+    h.parseJsonObject(v.get_obj());
+    return RevisionMetadata(revision, author, timestamp, commitMessage);
+}
+\end{minted}
+
+This piece of a real-world code demonstrates that the Deska-provided JSON helpers are very flexible and well-suited for
+converting JSON objects to native C++ classes.
+
+\section{IO Support}
+
+The {\tt DeskaDb} library delegates its IO interaction to a dedicates class, an implementation of the {\tt IOSocket}
+interface.  Two distinct implementations are provided, the {\tt ProcessIO}, which launches a child process and
+communicates with it through the stdin/stdout, and the {\tt UnixFdIO}, which uses a pair of Unix pipes, usually
+inherited from its parent process, to perform the communication.  The latter is required for proper support for
+configuraiton generators, which are described in section \ref{sec:config-generators} on page
+\pageref{sec:config-generators}.
+
+\subsection{Stream Copying}
+
+The {\tt ProcessIO} class uses an extension to the Boost library, the {\tt boost::process} class.  However, we have
+encountered quite a few issues when trying to use a completely stream-based interface for JSON parsing.  In short, the
+JSON parser already has support for reading a sequence of characters from a {\tt std::istream}, but if used in this
+mode, the error conditions reported back in case of a syntax error do not contain a directly usable context.  This is
+why we had to add support for copying the data read from the stream so far to a buffer for possible error reporting.
+
+Due to the design of the iostreams library, we had to work on rather low layers and augment the streambuf
+implementation.  What we have done at this layer was extending the {\tt boost::process::detail::systembuf} with a pair
+of Boost signals for proper event signalling, where we emit events as soon as data are read from the underlying socket.
+While strictly not needed for Deska, we have also added a symmetrical support for the same signaling of low-level
+writes.
+
+This code is available in the forked {\tt src/3rd-party/process/boost/process/detail/systembuf.hpp} file.
+
+\subsection{Unit Tests and IO}
+
+Writing a proper unit tests for the IO parsing routines is also far from straightforward, mainly to the complex nature
+of the IO interaction patterns.  It is trivial to use a string stream as an input of the data, but when writing a test
+case for a complex interaction which involves both reading and writing, and making sure that the operations are executed
+in order, a simple string-based approach fails.  This is when the {\tt MockStreamBuffer} comes into play.
+
+The {\tt MockStreamBuffer} class, as defined in file {\tt tests/MockStreamBuffer.h}, provides a full implementation of
+the usual iostream's streambuf interface.  Before using the associated stream, the programmer shall execute calls to
+{\tt expectRead}, {\tt expectWrite} etc. functions to record what kind of access the stream shall support.  If the user
+of the stream subsequently deviates from the expected access pattern, an exception will be thrown\footnote{The exception
+indicating an unexpected operation is thrown immediately when the {\tt streambuf} detects an error.  Due to the nature
+of iostreams, this might not be the place where the deviation actually comes from.  To minimize this risk of
+inconstistency and in order to be as deterministic as possible, the {\tt MockStreamBuffer}'s size shall be set to {\tt
+1} at the time of its construction.}.  Please also note to {\tt flush} the stream in order to force the actual data to
+reach the streambuf:
+
+\begin{minted}{c++}
+/** Test a simple RW interaction */
+BOOST_FIXTURE_TEST_CASE(simple_rw, MockStreamFixtureNoThrow)
+{
+    // At first, set up our expectations.  We start with writing a few items.
+    // The fact that there are two calls to expectWrite() is not relevant.
+    buf.expectWrite("foo bar baz");
+    buf.expectWrite("pwn");
+    buf.expectRead("abc "); // note the trailing space
+    buf.expectReadEof();
+    os << "foo " << "bar " << "baz" << std::flush;
+    os << "pwn" << std::flush;
+
+    std::string tmp;
+    is >> tmp;
+    BOOST_CHECK_EQUAL(tmp, "abc");
+    BOOST_CHECK(!is.fail());
+    BOOST_CHECK(!is.eof());
+    // Because of the trailing space and the rules for reading into strings,
+    // we are not at the end of the stream just yet.
+    // We will be after the next read, though:
+    is >> tmp;
+    // There was just a space, and hence no real string to be read -> failure.
+    BOOST_CHECK(is.fail());
+    BOOST_CHECK(is.eof());
+    BOOST_CHECK(buf.consumedEverything());
+    BOOST_REQUIRE(!(is.bad() || os.bad() || thrown));
+}
+\end{minted}
+
+The {\tt MockStreamBuffer} class is heavily used in this manner throughout the unit tests to enforce meaningful
+operation of the JSON interface.
+
+\end{document}

@@ -51,7 +51,7 @@ template <typename Iterator> class FiltersParser;
 *   @see KindErrorHandler
 */
 template <typename Iterator>
-class KindsFiltersParser: public qi::grammar<Iterator, ascii::space_type, qi::locals<bool> >
+class KindsFiltersParser: public qi::grammar<Iterator, ascii::space_type>
 {
 
 public:
@@ -82,16 +82,28 @@ private:
     */
     void parsedFilter(const Db::Identifier &kindName, const Db::Filter &filter);
 
+    /** @short Function used as semantic action for parsed "all" keyword.
+    *
+    *   Calls appropriate method in main parser.
+    *
+    *   @param kindName Name of the kind.
+    */
+    void allObjects(const Db::Identifier &kindName);
+
     /** Kind name - identifier type pairs definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, Db::Filter(), ascii::space_type> > filters;
     /** Kind name definitions for purposes of Nabialek trick. */
     qi::symbols<char, qi::rule<Iterator, ascii::space_type> > kinds;
 
-    /** Rule for parsing kind names. */
-    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > start;
     /** Rule for parsing filters. */
+    qi::rule<Iterator, ascii::space_type> start;
+    qi::rule<Iterator, ascii::space_type, qi::locals<bool> > normalFilter;
+    qi::rule<Iterator, ascii::space_type> specialFilter;
+    qi::rule<Iterator, ascii::space_type> specialFilterA;
+    qi::rule<Iterator, ascii::space_type> specialFilterL;
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, Db::Filter(), ascii::space_type> > > dispatch;
     qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > lastKind;
+    qi::rule<Iterator, ascii::space_type, qi::locals<qi::rule<Iterator, ascii::space_type> > > keywordAll;
 
     /** Name of kind which identifier is being currently parsed. This variable is used for error handling. */
     Db::Identifier currentKindName;
