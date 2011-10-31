@@ -14,23 +14,6 @@ def helper_diff_2_cmdlist(diff):
         newlist.append(cmd)
     return newlist
 
-def revert_cmdlist(list):
-    res = []
-    for item in list:
-        cmd = item.command
-        if cmd["command"] == "setAttribute":
-            cmd["attributeData"] = cmd["oldValue"]
-            if cmd["attributeData"] == 'None':
-                cmd["attributeData"] = None
-            del cmd["oldValue"]
-            del cmd["newValue"]
-        elif cmd["command"] == "createObject":
-            cmd["command"] = "deleteObject"
-        elif cmd["command"] == "deleteObject":
-            cmd["command"] = "createObject"
-        res.prepend(cmd)
-    return res
-
 def imperative(r):
     changeset = r.c(startChangeset())
     revA = r.c(pendingChangesets(filter={"condition": "columnEq", "metadata":
