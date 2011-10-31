@@ -170,7 +170,13 @@ def oneKindDiff(kindName,a = None,b = None):
 			obj["attributeName"] = mystr(line[1])
 			obj["oldAttributeData"] = mystr(line[2])
 			obj["attributeData"] = mystr(line[3])
-			res.append(obj)
+			if obj["attributeName"] == "name":
+				# a rename shall be reported back in a special way
+				res.append({"command": "renameObject", "kindName":
+				obj["kindName"], "oldObjectName": obj["oldAttributeData"],
+				"newObjectName": obj["attributeData"]})
+			else:
+				res.append(obj)
 		for line in deleted():
 			obj = dict()
 			obj["command"] = "deleteObject"
