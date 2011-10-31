@@ -25,21 +25,6 @@
 using namespace boost::python;
 using namespace Deska::Db;
 
-// FIXME: remove later?
-template<typename T>
-T Value_extract(const Value &v)
-{
-    if (v) {
-        try {
-            return boost::get<T>(*v);
-        } catch (const boost::bad_get &e) {
-            throw std::runtime_error(std::string("Deska::Db::Value is of a different type: ") + e.what());
-        }
-    } else {
-        throw std::runtime_error("Deska::Db::Value is null");
-    }
-}
-
 /** @short Convert a Deska::Db::Value into Deska::Db::NonOptionalValue or throw an exception */
 NonOptionalValue DeskaDbValue_2_DeskaDbNonOptionalValue(const Value &v)
 {
