@@ -1,19 +1,5 @@
 from apiUtils import *
 
-def helper_extract_commands(list):
-    """Extract commands from a list of ApiMethod instances and filter out the "tag" values from each dict on the fly"""
-    return [dict([(k,v) for (k,v) in y.iteritems() if k != "tag"]) for y in [x.command for x in list]]
-
-def helper_diff_2_cmdlist(diff):
-    newlist = []
-    for cmd in diff:
-        if cmd["command"] == "setAttribute":
-            del cmd["oldValue"]
-            cmd["attributeData"] = cmd["newValue"]
-            del cmd["newValue"]
-        newlist.append(cmd)
-    return newlist
-
 def imperative(r):
     changeset = r.c(startChangeset())
     revA = r.c(pendingChangesets(filter={"condition": "columnEq", "metadata":
