@@ -1,28 +1,75 @@
 Schuze Deska, 2011-11-01 FZU
 ----------------------------
 
-Pritomni:
+Pritomni: Tomas, Honza
+Pozde: Martina, Lukas
 
 Prehled, co kdo udelal od minula:
 ---------------------------------
 
+Honza:
+- dokumentace
+- unit testy
+- prejmenovani objektu vs. diff
+- DBAPI podpora pro backup/restore
+- probrani meho kodu na FIXME
+- celkem 20.5 hodiny (dva kalendarni tydny)
+
+Martina:
+- testy k identifier_set, zejmena templaty
+- diff
+- opravy chyb
+- "hodne prace, ted vic nenapada"
+- vyzkum relaci contains,...
+- kazdy tyden 26-28 hodin
+
+Lukas:
+- vyzkum relaci contains,... 6-8 hodin
+- nove relaqce v masteru, filtry,... 26 hodin
+
+Tomas:
+- predelal filtry, problem s boost::optional a all
+- bugy v tab completion
+- rebase
+- "prvni tyden dost, druhy min"
+- 15 + par
+
 Diskuse:
 --------
+
+schuzka se Zavoralem
+
+- Honza napise, idealne tento ctvrtek/patek
+
+probrat instalator
+
+- testy budou pouzivat novy, ktery bude umet jenom instalaci od nuly
+
+Martina: poznamka o tom, ze poradi krpoku je dulezite
+
+Martina: neni jasny bug 285, Honza znovu overi
 
 Chybejici veci:
 ---------------
 
 - Vyjasnit relaci CONTAINS
+    - probirame
 - Schema FZU
     - jak s relacemi
     - prebouchat do SQL
+    - Lukas & Martina behem stredy 2. listopadu
 - filtrovani
     - bugy v redmine
     - overit, zda funguji joiny pres ruzne relace
+        - joiny budou fungovat pouze pres jednu relaci, tranzitivita zatim
+        nebude
     - testy
+    - Honza: pridat do dbapi-protocol.tex operatory pro relace (+vysvetlit)
+    - napsat, ze columnGt etc na id_set nefunguji
 - instalator
     - napsat
     - overeni "rozumnosti" schematu
+        - pravidla viz objects-and-relations.tex
 - generatory konfigurace
     - zavisi na schematu FZU
     - napsat
@@ -30,25 +77,63 @@ Chybejici veci:
     - ve spec je napsano, ze i kontrola pro konf. switchu
 - diffovani
     - bugy v redmine
-    - hezka prezentace v CLI
-- rebase
+    - hezka prezentace v CLI (Tomas)
+- rebase (Tomas)
     - specifikace (Tomas)
     - UI implementace (Tomas)
     - unit testy
-- unit testy na urovni CLI
+- unit testy na urovni CLI (Tomas)
     - ma testovat cely system, nejen CLI
 - konfigurace CLI (Honza)
 - dokumentace DB casti
-- dev dokumentace CLI
-- user's guide pro CLI
+- dev dokumentace CLI (Tomas)
+- user's guide pro CLI (Honza)
 - neinteraktivni mod CLI (napsano ve specifikaci)
-- installation manual (SQL zejmena)
+    - backup, restore
+    - zpristupnit pres CLI argumenty
+- installation manual (SQL zejmena) (Honza)
 - skriptiky kolem Desky a FZU ("management utilities")
     - zavisi na schematu
 - kresleni racku!!!
     - zavisi na schematu
 - funkcni backup/restore
+    - zamykani atd - Lukas
+- multipleResolvedObjectData: Lukas
 - switch na SL6?
+
+Tomas:
+- rebase v CLI
+- hezke diffovani v CLI
+- testy CLI
+- dokumentace CLI
+
+Lukas:
+- chybejici DBAPI funkce na serveru
+- filtry
+- poradi v diffu
+- schema FZU zrevidovat & prevest do SQL
+
+Martina:
+- zvlast rename pro diffovani
+- diff v changesetu
+- podpora pro contains/containable
+
+Honza:
+- dokumentace
+- ...
+
+Poradi v diffu:
+
+1) delete
+2) rename
+3) create
+4) setAttr
 
 Pristi schuzka:
 ---------------
+
+Zrejme utery 8. listopadu, Tomas ve ctvrtek sdeli, zda to plati.
+
+Tento tyden (doufejme) Zavoral.
+
+Schuzka trvala dve a pul hodiny.
