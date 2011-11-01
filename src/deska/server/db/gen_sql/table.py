@@ -258,6 +258,7 @@ class Table(constants.Templates):
 		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
 		#with dv (diff version), chv(changes between versions) prefix
 		collist = self.col.copy()
+		collist['dest_bit'] = 'bit(1)'
 		select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
 		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
