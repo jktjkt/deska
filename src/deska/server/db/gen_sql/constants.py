@@ -1237,21 +1237,29 @@ LANGUAGE plpgsql;
 
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
-	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_diff()
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
 DECLARE
-	changeset_var bigint;
 	from_version bigint;
 BEGIN
-	--it's necessary to have opened changeset in witch we would like to see diff
-	changeset_var = get_current_changeset();
-	from_version = id2num(parent(changeset_var));
+	IF changeset_id = 0 THEN
+		--it's necessary to have opened changeset in witch we would like to see diff
+		changeset_id = get_current_changeset();
+	END IF;
+	
+	BEGIN
+		from_version = id2num(parent(changeset_id));
+	EXCEPTION
+		--parent version was not found in table with opened changesets, given changeset was already closed
+		WHEN SQLSTATE '70001' THEN
+			SELECT num -1 INTO from_version FROM version WHERE id = changeset_id;
+	END;
 	--full outer join of data in parent revision and changes made in opened changeset
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS  SELECT %(diff_columns)s
-		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
+		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
 			FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.uid = chv.uid);
 			
 	%(inner_tables_diff)s
