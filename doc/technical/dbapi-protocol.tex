@@ -132,8 +132,7 @@ Again, the order of appearance of the individual key-value pairs in a particular
 So far, we have mentioned that the data are transfered ``serialized as JSON values'', but did not specify how this
 serialization is defined and what the mapping between native data types in a programming language (like an {\tt int}, or
 a {\tt string}), the database server and the JSON transport is.  The following sections provide detailed information in
-this matter.  For a quick reference, please check the overview tables in section \ref{sec:json-data-types-reference} on
-page~\pageref{sec:json-data-types-reference}.
+this matter.  For a quick reference, please check the overview tables in \secref{sec:json-data-types-reference}.
 
 \subsubsection{Primitive types}
 
@@ -217,7 +216,7 @@ boost::posix\_time::ptime}, it's better to use the complex form in preference to
 
 It is also important to note that this section only serves as a generic guideline about how to proceed when implementing
 JSON I/O for custom data types.  Considerable amount of work is required to be able to exchange custom values over JSON,
-see section \ref{sec:json-extending} for details.
+see \secref{sec:json-extending} for details.
 
 \subsubsection{Optional Values}
 
@@ -437,13 +436,13 @@ The Deska DBAPI provides functions for accessing the information contained in th
 \subsection{The Deska DBAPI at a Glance}
 
 The API can be divided into six groups.  The first part are commands for querying the database scheme, which are
-described in section \ref{sec:api-group-dbscheme}.  These commands inform the user about what kinds of top-level objects are
+described in \secref{sec:api-group-dbscheme}.  These commands inform the user about what kinds of top-level objects are
 defined, what relations exist among them and which attributes belong to each object.  Second part of the API
-(section \ref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
-part (section \ref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
-part (section \ref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
-results, or provide a frozen view of the DB state for consistency.  The fifth part (section \ref{sec:api-group-history})
-discusses browsing the revision history and the last part (section \ref{sec:api-group-conf-generators}) controls
+(\secref{sec:api-group-data-retrieval}) is concerned with returning actual object data.  Going further, the third
+part (\secref{sec:api-group-data-modification}) focuses on manipulating the data in the database, while the fourth
+part (\secref{sec:api-group-vcs}) allows the user to manage the individual changesets and eventually commit the
+results, or provide a frozen view of the DB state for consistency.  The fifth part (\secref{sec:api-group-history})
+discusses browsing the revision history and the last part (\secref{sec:api-group-conf-generators}) controls
 execution of the server-side configuration generators.
 
 Each session would typically start with a call to \deskaFuncRef{kindNames} to find out what kinds of top-level objects
@@ -473,12 +472,12 @@ changesets can be also explicitly locked and unlocked through the \deskaFuncRef{
 
 Certain applications, like dumping the database contents, require to temporarily ``freeze'' the state of the database to
 guarantee that the result accurately represents the real database state.  The DBAPI provides a pair of functions for
-this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see section
-\ref{sec:api-revision-semantics} for details.
+this purpose, the \deskaFuncRef{freezeView} and \deskaFuncRef{unFreezeView}, see \secref{sec:api-revision-semantics} for
+details.
 
 It is possible that someone has already committed a new version after our original user created a changeset, but before
 she attempted a commit.  In that case, the new commit won't be performed.  The user should verify that the changes are
-still valid via the diffing functions (see section \ref{sec:api-group-history}) and apply them in a newly created
+still valid via the diffing functions (see \secref{sec:api-group-history}) and apply them in a newly created
 changeset.
 
 The whole contents of the DBAPI database can be easily restored from a series of snapshots via the ordinary DBAPI
@@ -580,7 +579,7 @@ and \deskaFuncRef{pendingChangesets}.
 Functions which return lists of objects or their identifiers, like \deskaFuncRef{kindNames},
 \deskaFuncRef{kindInstances} etc, do not provide any guarantees about the sort order.
 
-The diffing functions (see section \ref{sec:api-group-history}) sorts the results according to special rules, see their
+The diffing functions (see \secref{sec:api-group-history}) sorts the results according to special rules, see their
 description for more details.
 
 \subsection{API Reference}
@@ -642,10 +641,10 @@ Functions from this group are used for fetching actual data from the database.
     {Returns identifiers of all objects of a given kind}
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
     database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
-    depends on the usual rules -- see section \ref{sec:api-revision-semantics} on page
-    \pageref{sec:api-revision-semantics} for details.  Another optional argument, {\tt filter}, can be used to select
-    a subset of objects to operate on.  The filter expressions can reference not only the immediate attributes of the
-    selected object kind, but can also follow defined object relations to create more complex queries.  \deskaUnsortedRes}
+    depends on the usual rules -- see \secref{sec:api-revision-semantics} for details.  Another optional argument, {\tt
+    filter}, can be used to select a subset of objects to operate on.  The filter expressions can reference not only the
+    immediate attributes of the selected object kind, but can also follow defined object relations to create more
+    complex queries.  \deskaUnsortedRes}
 
 \deskaFunc{objectData}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
@@ -797,15 +796,15 @@ Any function which modifies objects stored in the Deska database belongs to this
     {Use this function to send a list of modifications to the database in one network operation, potentially saving
     substantial amounts of time.
 
-    The format of the list of changes to be performed is the same as what the various diffing functions (section
-    \ref{sec:api-group-history} return.)
+    The format of the list of changes to be performed is the same as what the various diffing functions (
+    \secref{sec:api-group-history} return.)
     }
 
 \subsubsection{Version Control}
 \label{sec:api-group-vcs}
 
 This group contains functions for creating, modifying and committing changesets.  For history retrieval, see the {\em
-Querying History}, section \ref{sec:api-group-history}.
+Querying History}, \secref{sec:api-group-history}.
 
 \deskaFunc{startChangeset}{}
     {"tmp123"}
@@ -892,15 +891,15 @@ Querying History}, section \ref{sec:api-group-history}.
 \deskaFunc{freezeView}{}{}
     {Freeze the view of the revisions}
     {Start a server-side multiversion transaction which freezes the server's idea about what the latest revision in the
-    database is. See section \ref{sec:api-revision-semantics} for details.
+    database is. See \secref{sec:api-revision-semantics} for details.
 
     It is an error to start or resume a changeset while the database state is frozen via this function; doing so will
     result in the {\tt FreezingError} exception.}
 
 \deskaFunc{unFreezeView}{}{}
     {Unfreeze the client's view on the persistent revisions}
-    {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and section
-    \ref{sec:api-revision-semantics} for details.}
+    {This function removes the frozen view of the database state.  See \deskaFuncRef{freezeView} and
+    \secref{sec:api-revision-semantics} for details.}
 
 \deskaFunc{restoringCommit}{, "commitMessage": "message", "author": "user", "timestamp": "2011-04-07 17:22:33"}
     {"r123"}

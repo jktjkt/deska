@@ -12,9 +12,9 @@ database.
 \section{Usage}
 
 The main feature provided by the DeskaDb library is implemented by the {\tt Deska::Db::Connection} class.  When
-instantiated, it provides access to the full set of functions mandated by the Deska DBAPI (see section \ref{sec:api-ref}
-on page \pageref{sec:api-ref}).  Please consult the appropriate reference documentation for semantics of these functions
-and a general overview of the Deska DBAPI protocol.
+instantiated, it provides access to the full set of functions mandated by the Deska DBAPI (see \secref{sec:api-ref}).
+Please consult the appropriate reference documentation for semantics of these functions and a general overview of the
+Deska DBAPI protocol.
 
 \section{Internal Architecture}
 
@@ -110,9 +110,9 @@ JsonApiParser::kindRelations(const Identifier &kindName) const
 
 \subsection{Extending Deska DBAPI}
 
-Instructions for adding new data types to the Deska DBAPI protocol are available in section \ref{sec:json-extending} on
-page \pageref{sec:json-extending}.  Basically, adding new data types involves providing appropriate specialization of
-the {\tt JsonExtractionTraits} policy class, instantiating a few templates and adding the unit tests.
+Instructions for adding new data types to the Deska DBAPI protocol are available in \secref{sec:json-extending}.
+Basically, adding new data types involves providing appropriate specialization of the {\tt JsonExtractionTraits} policy
+class, instantiating a few templates and adding the unit tests.
 
 \subsubsection{Converting between native types and JSON}
 
@@ -197,8 +197,7 @@ The {\tt DeskaDb} library delegates its IO interaction to a dedicates class, an 
 interface.  Two distinct implementations are provided, the {\tt ProcessIO}, which launches a child process and
 communicates with it through the stdin/stdout, and the {\tt UnixFdIO}, which uses a pair of Unix pipes, usually
 inherited from its parent process, to perform the communication.  The latter is required for proper support for
-configuraiton generators, which are described in section \ref{sec:config-generators} on page
-\pageref{sec:config-generators}.
+configuraiton generators, which are described in \secref{sec:config-generators}.
 
 \subsection{Stream Copying}
 
