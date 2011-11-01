@@ -1,0 +1,54 @@
+Schuze Deska, 2011-11-01 FZU
+----------------------------
+
+Pritomni:
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Diskuse:
+--------
+
+Chybejici veci:
+---------------
+
+- Vyjasnit relaci CONTAINS
+- Schema FZU
+    - jak s relacemi
+    - prebouchat do SQL
+- filtrovani
+    - bugy v redmine
+    - overit, zda funguji joiny pres ruzne relace
+    - testy
+- instalator
+    - napsat
+    - overeni "rozumnosti" schematu
+- generatory konfigurace
+    - zavisi na schematu FZU
+    - napsat
+    - zdokumentovat (Honza)
+    - ve spec je napsano, ze i kontrola pro konf. switchu
+- diffovani
+    - bugy v redmine
+    - hezka prezentace v CLI
+- rebase
+    - specifikace (Tomas)
+    - UI implementace (Tomas)
+    - unit testy
+- unit testy na urovni CLI
+    - ma testovat cely system, nejen CLI
+- konfigurace CLI (Honza)
+- dokumentace DB casti
+- dev dokumentace CLI
+- user's guide pro CLI
+- neinteraktivni mod CLI (napsano ve specifikaci)
+- installation manual (SQL zejmena)
+- skriptiky kolem Desky a FZU ("management utilities")
+    - zavisi na schematu
+- kresleni racku!!!
+    - zavisi na schematu
+- funkcni backup/restore
+- switch na SL6?
+
+Pristi schuzka:
+---------------
