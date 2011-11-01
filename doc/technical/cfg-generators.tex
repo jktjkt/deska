@@ -9,4 +9,58 @@
 FIXME: describe how the config generators work
 \end{abstract}
 
+FIXME\ldots
+
+\subsection{Technical notes for the showConfigDiff DBAPI method}
+
+The DBAPI provides just a single method for running the configuration generators on the server side.  The aim of that
+function is to handle everything ``behind the scenes'', from setting up the configuration output directory and
+triggering the transformations to diffing the output.  The crucial idea here is that the CLI should not contain any
+domain-specific knowledge of how the whole process works, but instead shall present the user with just a single ``show
+me the changes'' functionality.
+
+There are many methods for correctly transferring the diff information and conveying that to the user.  Current version
+of the DBAPI spec deals with this complexity by essentially ignoring the complications and supporting only the most
+rudimentary form of the changes, the {\tt git diff} output.
+
+Using this approach, the actual data being transferred are simply dumped to the user's screen.  Everything else is
+handled by the SCM integration layer of the Deska server.
+
+\subsubsection{Pending Changesets}
+
+The basic unit to operate on when dealing with the configuration generating scripts is a pending changeset.  Only a
+changeset can possibly trigger output modifications, and only when transformed into a persistent revision.  Similarly,
+the actual configuration data are needed either at the time of a commit (in order to be pushed into a SCM repository of
+the output configuration files), or when the user wants to review them.  These two moments are identical for us -- they
+identify a point in time where the output has to be ready and reflect the present state of the DB.
+
+The output of the configuration generators is a function of the database state.  When the state of the database does not
+change, neither should the configuration generators\footnote{There are also the usual corner cases, though -- suppose a
+DNS zone file.  The zone file typically contains a textual information about the ``age'' of a zone, which is typically
+done by embedding a transformed timestamp inside.  Clearly, this information depends not only on the database state, but
+also on some external information, like the current time or the ``generation'' of a particular configuration file.  For
+these cases, the Deska DBAPI adds a ``force generators re-run'' option which will make sure that a stale copy of the
+configuration output will not get used.  In addition to that, it's possible to ship a plugin which will use a policy to
+decide whether to re-use a previous output or not.}.  The Deska DB server can therefore cache the outputs on a changeset
+level -- ie. maintain a configuration output separately for each changeset.
+
+Deciding whether to regenerate or reuse a previous version is then just a matter of maintaining a simple boolean flag
+for the freshness of the output.  Creating a new changeset or rebasing to a new revision set it to false, while a
+successful generator run sets it to true.
+
+\subsubsection{SCM Branching}
+
+In most situations, the configuration output will likely be stored in a SCM system.  Therefore, it makes sense to
+integrate the output management logic to the SCM-specific operations.  The reference implementation of the Deska server
+uses {\tt git}'s {\tt git-new-workdir} and branches quite heavily.
+
+\subsubsection{How to do that in Git}
+
+\begin{itemize}
+    \item {\tt git-new-workdir} for setting up a WC the first time
+    \item {\tt git.cmd.Git(path).add('-A')} for creating an index
+    \item {\tt git.cmd.Git(path).diff('-{-}color', '-{-}staged')} for obtaining a diff
+    \item {\tt git reset -{-}hard HEAD \&\& git clean -d -f -f} for throwing out all the changes
+\end{itemize}
+
 \end{document}
