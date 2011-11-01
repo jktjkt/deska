@@ -72,16 +72,16 @@ Suppose the hypothetical command {\tt foo}, which does not accept any arguments.
 following format, provided the client decided to use {\tt "0"} as the associated tag (we will omit the trailing line
 feed for brevity in the following examples):
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "tag": "0"}
-\end{lstlisting}
+\end{minted}
 
 A response is always constructed by simply changing the {\tt command} key to a {\tt response} literal and repeating the
 {\tt tag} key, therefore a response for the above command will look like this:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"response": "foo", "tag": "0"}
-\end{lstlisting}
+\end{minted}
 
 The {\tt response} key is included in order to allow stateless implementations of the DBAPI parsers.  Had the parameter
 been omitted, it would not be possible to enforce proper structure of the JSON data without keeping track of what
@@ -97,11 +97,11 @@ Most of the commands will very likely accept a few arguments.  These commands ar
 the one we discussed above, with the arguments simply appended to the top-level JSON object.  The parameters are,
 however, not repeated in the relevant response, which retains just the (response, tag) pair:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "arg1": "arg1 value",
         "name of arg2": "some value", "tag": "0"}
     {"response": "foo", "tag": "0"}
-\end{lstlisting}
+\end{minted}
 
 The JSON standard mandates that white space outside of string literals is ignored, and therefore implementations are
 free to add it to make the JSON data more readable, or not include them at all.  In addition, to improve the
@@ -119,11 +119,11 @@ added, changed or returned.
 For example, if the above command was extended with a return value of {\tt string} type, a full command-response pair
 would look like this one:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "arg1": "arg1 value",
         "name of arg2": "some value", "tag": "0"}
     {"response": "foo", "tag": "0", "foo": "The returned value"}
-\end{lstlisting}
+\end{minted}
 
 Again, the order of appearance of the individual key-value pairs in a particular JSON object is not relevant.
 
@@ -145,12 +145,12 @@ symbolic name is transmitted as a string literal with the matching name.
 
 Suppose the following C++ definition:
 
-\begin{lstlisting}[language=c++]
+\begin{minted}{cpp}
     enum Foo {
         BAR,
         BAZ
     };
-\end{lstlisting}
+\end{minted}
 
 A value of {\tt BAR} is transferred as a JSON string {\tt "BAR"}.  There is no technical way of distinguishing between
 a value of the {\tt enum Foo(BAR)} and the string literal {\tt "BAR"}; the correct interpretation is always defined by
@@ -172,16 +172,16 @@ A sequence is represented as the JSON list with the individual list items being 
 underlying data type. Suppose we want to send a {\tt std::vector<int>} of (1, 2, 3) as the {\tt a1} argument of command
 {\tt foo}:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "tag": "0", "a1": [1, 2, 3]}
-\end{lstlisting}
+\end{minted}
 
 A map is only allowed to be indexed by string literals. A map similar to the sequence from the previous example would
 look like this:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "tag": "0", "a1": ["a": 1, "b": 2, "c": 3]}
-\end{lstlisting}
+\end{minted}
 
 The example above is equivalent to a {\tt std::map<std::string, int>} which contains $"a" \rightarrow 1$, $"b"
 \rightarrow 2$ and $"c" \rightarrow 3$.  Please note that the order of appearance of these items in a map is undefined,
@@ -194,15 +194,15 @@ Custom objects, ie. instances of C++'s classes, are transmitted as JSON objects.
 implementations not respecting the order of appearance of individual values, the arguments to a class' constructor are
 passed prefixed by their name.  Therefore, given class {\tt Foo} with the following C++ constructor:
 
-\begin{lstlisting}[language=c++]
+\begin{minted}{cpp}
     Foo::Foo(int i, const std::string &s);
-\end{lstlisting}
+\end{minted}
 
 We can modify our example command {\tt foo} to accept an instance of class {\tt Foo} like this:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "tag": "0", "a1": {"i": 10, "s": "something"}}
-\end{lstlisting}
+\end{minted}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
 information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
@@ -227,10 +227,10 @@ null} keyword as the JSON value.  In the context of optional function arguments,
 between the two conventions, so the following examples are equivalent, provided that the arguments {\tt a1} is defined
 an accept NULL:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"command": "foo", "tag": "0", "a1": null}
     {"command": "foo", "tag": "0"}
-\end{lstlisting}
+\end{minted}
 
 Please note that this rule does {\em not} translate to ``one can freely omit {\tt null} values in any place''; indeed,
 explicitly returning {\tt null}s is compulsory e.g. when processing object attributes.
@@ -248,9 +248,9 @@ the usual form (ie. with {\tt "command"} replaced by {\tt "response"} and the re
 of adding the returned data in a key named after the API method, it will create another top-level key called {\tt
 "dbException"} pointing to a JSON object representing an exception.  The new object will have the following structure:
 
-\begin{lstlisting}
+\begin{minted}{js}
     {"type": "TypeOfException", "message": "description"}
-\end{lstlisting}
+\end{minted}
 
 Where the key {\tt "type"} is always a string identifying the exception and the {\tt "message"} always contains a string
 with a textual message usable for debugging.  The object might contain more data, which could be used to pass
