@@ -668,7 +668,6 @@ void SpecializedExtractor<JsonWrappedObjectModification>::extract(const json_spi
         h.parseJsonObject(v.get_obj());
         target->diff = RenameObjectModification(kindName, oldObjectName, newObjectName);
     } else if (modificationKind == "setAttribute") {
-        // FIXME: check and preserve the attribute data types here!
         JsonContext c2("When processing the setAttribute data");
         Identifier kindName, objectName, attributeName;
         h.read("kindName").extract(&kindName);
