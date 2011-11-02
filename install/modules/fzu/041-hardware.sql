@@ -22,7 +22,9 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contact(uid) DEFERRABLE,
 	-- box (contains)
 	box bigint
-		CONSTRAINT rmerge_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		-- merge / contains
+		--CONSTRAINT rmerge_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
 	-- Serial number one, in vendor's preferred form
 	serial_1 text,

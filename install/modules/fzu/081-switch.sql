@@ -12,7 +12,9 @@ CREATE TABLE switch (
 		CONSTRAINT switch_fk_modelswitch REFERENCES modelswitch(uid) DEFERRABLE,
 	-- contains box
 	box bigint
-		CONSTRAINT rmerge_switch_fk_box REFERENCES box(uid) DEFERRABLE,
+		-- merge / contains
+		--CONSTRAINT rmerge_switch_fk_box REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT switch_fk_box REFERENCES box(uid) DEFERRABLE,
 	purchase date,
 	-- reference for the warranty information
 	warranty_contact bigint
