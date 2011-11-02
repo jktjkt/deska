@@ -566,9 +566,10 @@ hosts} should be used for this purpose, and its filter shall be set to the follo
 {\tt \{"condition": }ComparisonOperator{\tt, "kind": "interface", "attribute": "vlan", "value": }Value{\tt \}}
 
 The database server will parse this filter and attempt to issue a corresponding {\tt JOIN} statement, connecting the
-corresponding tables to each other via correct relation.  Using these
-``foreign'' attributes is allowed only in case that both kinds are connected via a compatible relation.  If there is no
-such relation, the Deska server returns the {\tt FilterError} exception.
+corresponding tables to each other via correct relation.  Using these ``foreign'' attributes is allowed only in case
+that both kinds are connected via a compatible relation.  If there is no such relation, the Deska server returns the
+{\tt FilterError} exception.  At this time, the Deska server does not support transitive relation traversal, so only
+those kinds which are joined by an immediate relation can be processed in this way.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
