@@ -405,7 +405,7 @@ relation information etc.  The following types are defined:
         \\
     {\tt Deska::Db::ComparisonOperator} &
         {\tt "columnEq"} or {\tt "columnNe"} or {\tt "columnGt"} or {\tt "columnGe"} or {\tt "columnLt"} or
-        {\tt "columnLe"}
+        {\tt "columnLe"} or {\tt "columnContains"} or {\tt "columnNotContains"}
         \\
     {\tt Deska::Db::SpecialFilterType} &
         {\tt "embeddedLastOne"}
@@ -539,7 +539,11 @@ In the first two cases, the comparison is performed using defined comparison ope
 At this time, the defined comparison operators are equality, non-equality, being greater/lesser than, and
 greater-or-equal and less-or-equal.  The constant value against which a property is compared can be anything which is
 acceptable in the context of a Deska attribute value, a revision identification, a temporary changeset identification,
-or any similar revision (or changeset) metadata.
+or any similar revision (or changeset) metadata.  For filters against an {\tt identifier\_set} data type, only the
+existing {\tt columnEq} and {\tt columnNe} and new {\tt columnContains} and {\tt columnNotContains} comparison operators
+are allowed.  The greater/lesser operators are not allowed in expressions which reference identifier
+sets\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
+supported.}.
 
 In the last case concerning the special filters, the filter condition does not operate on regular object properties, but
 rather on some ``magic'' value.  At this time, only one filter type is implemented, which matches an object which has
