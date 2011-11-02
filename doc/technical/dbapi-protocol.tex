@@ -541,6 +541,11 @@ greater-or-equal and less-or-equal.  The constant value against which a property
 acceptable in the context of a Deska attribute value, a revision identification, a temporary changeset identification,
 or any similar revision (or changeset) metadata.
 
+In the last case concerning the special filters, the filter condition does not operate on regular object properties, but
+rather on some ``magic'' value.  At this time, only one filter type is implemented, which matches an object which has
+been inserted for the last time.  This feature comes handy when combined with the {\tt EMBED\_INTO} relation and
+automatic name assignment via \deskaFuncRef{createObject}.
+
 When comparing against revision or changeset metadata, the ``property name'' is specified using the {\tt metadata} key,
 and can refer to any property which is normally returned by the function being extended with a filter (like revision
 IDs, commit/changeset timestamps, revision authors, state of a pending changeset etc.).  When filtering by a Deska
@@ -562,10 +567,6 @@ corresponding tables to each other via correct relation.  Using these
 such relation, the Deska server returns the {\tt FilterError} exception.
 
 FIXME: change the sentence above when fine-grained filter exceptions are introduced
-
-Finally, there is also the ``special'' kind of filters that do not limit the amount of data based on the attribute values
-or revision metadata, but on some external metainformation.  Currently, only on of these filters is defined, the {\tt
-last} one, which causes the Deska server to consider just the lastly inserted embedded item of a given kind.
 
 \subsubsection{Output Ordering}
 
