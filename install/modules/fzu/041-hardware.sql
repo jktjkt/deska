@@ -17,18 +17,23 @@ CREATE TABLE hardware (
 	modelhardware bigint 
 		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE,
 	purchase date NOT NULL,
-	warranty date NOT NULL,
+	-- reference for the warranty information
+	warranty_contract bigint
+		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
+	-- box (contains)
 	box bigint
-		CONSTRAINT hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT rmerge_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
 	-- Serial number one, in vendor's preferred form
 	serial_1 text,
 	-- Serial number two, in vendor's preferred form
 	serial_2 text,
+
+	-- FIXME: can we remove this?
 	-- Warranty contract ID, in vendor's preferred form
-	warranty_no text,
-    -- Optional reference to a warranty vendor for contact information
-    warranty_vendor bigint,
+	--warranty_no text,
+	-- Optional reference to a warranty vendor for contact information
+	--warranty_vendor bigint,
 	-- Internal inventory number at FZU, format: dddddd-d
 	inventory_no text,
 
