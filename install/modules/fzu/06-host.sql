@@ -18,7 +18,7 @@ CREATE TABLE host (
 		CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	virtual_hardware bigint
 		CONSTRAINT rmerge_host_fk_virtual_hardware REFERENCES virtual_hardware(uid) DEFERRABLE,
-	service idetifier_set
+	service identifier_set
 		CONSTRAINT rset_host_fk_virtual_hardware REFERENCES service(uid) DEFERRABLE,
 	note text
 );
