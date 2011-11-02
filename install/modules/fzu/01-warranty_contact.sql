@@ -8,8 +8,8 @@ CREATE TABLE warranty_contact (
 		CONSTRAINT warranty_contact_pk PRIMARY KEY,
 	name identifier
 		CONSTRAINT "warranty_contact with this name already exists" UNIQUE NOT NULL,
-    phone text,
-    supportmail text,
-    supportnote text
+	phone text,
+	supportmail text,
+	supportnote text
 );
 
