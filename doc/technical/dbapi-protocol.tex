@@ -531,13 +531,15 @@ allows the user to specify a condition which, if present and not null, will be a
 operate on, and records which do not match the user-supplied filter will be excluded from further evaluation.  This is
 intended to serve as an accelerator for operations which are best handled with server-side searching.
 
-A basic unit for building filters is a simple {\em expression}.  There are two basic kinds of expressions, an expression
-referring to a revision or changeset {\em metadata}, or an expression comparing the value of an object's attribute.  In
-both cases, the comparison is performed using defined comparison operator against a user-supplied constant.  At this
-time, the defined comparison operators are equality, non-equality, being greater/lesser than, and greater-or-equal and
-less-or-equal.  The constant value against which a property is compared can be anything which is acceptable in the
-context of a Deska attribute value, a revision identification, a temporary changeset identification, or any similar
-revision (or changeset) metadata.
+A basic unit for building filters is a simple {\em expression}.  There are three basic kinds of expressions, an expression
+referring to a revision or changeset {\em metadata}, an expression comparing the value of an object's attribute, or
+finally a ``special'' expression referring to properties like ``last inserted item'' etc.
+
+In the first two cases, the comparison is performed using defined comparison operator against a user-supplied constant.
+At this time, the defined comparison operators are equality, non-equality, being greater/lesser than, and
+greater-or-equal and less-or-equal.  The constant value against which a property is compared can be anything which is
+acceptable in the context of a Deska attribute value, a revision identification, a temporary changeset identification,
+or any similar revision (or changeset) metadata.
 
 When comparing against revision or changeset metadata, the ``property name'' is specified using the {\tt metadata} key,
 and can refer to any property which is normally returned by the function being extended with a filter (like revision
