@@ -222,7 +222,7 @@ class Filter():
 
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
-		ret = self.getIdSetJoin()
+		ret = ''
 		self.kinds = self.kinds - set([mykind])
 		for kind in self.kinds:
 			if mykind == "metadata":
@@ -265,7 +265,7 @@ class Filter():
 				if not findJoinable:
 					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
 				#TODO: merge, template relations
-		return ret
+		return ret + self.getIdSetJoin()
 
 	def parse(self,data):
 		'''Parse filter data and create SQL WHERE part'''
