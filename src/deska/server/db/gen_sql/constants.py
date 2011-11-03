@@ -1123,6 +1123,39 @@ LANGUAGE plpgsql;
 
 '''
 
+	data_changeset_function_string = '''CREATE FUNCTION %(tbl)s_data_changeset(changeset_id bigint = 0)
+RETURNS SETOF %(tbl)s_history AS
+$$
+DECLARE
+ parent_version bigint;
+ to_version bigint;
+BEGIN
+	IF changeset_id = 0 THEN
+		changeset_id = get_current_changeset();
+	END IF;
+
+	BEGIN
+		parent_version = id2num(parent(changeset_id));
+	EXCEPTION
+		--has no parent in changeset table, changeset was already closed
+		WHEN SQLSTATE '70001' THEN
+			SELECT num INTO to_version FROM version WHERE id = changeset_id;
+			RETURN QUERY SELECT * FROM %(tbl)s_data_version(to_version);
+			RETURN;
+	END;
+
+	RETURN QUERY 
+	SELECT par.* FROM %(tbl)s_data_version(parent_version) par
+		LEFT OUTER JOIN %(tbl)s_history curr ON (par.uid = curr.uid AND curr.version = changeset_id)
+	WHERE curr.uid IS NULL
+	UNION
+	SELECT * FROM %(tbl)s_history WHERE version = changeset_id;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
 
 #template for function which selects all changes of all objects, that where done between from_version and to_version versions
 #is used in diff functions
@@ -1261,7 +1294,7 @@ BEGIN
 	AS  SELECT %(diff_columns)s
 		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
 			FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.uid = chv.uid);
-			
+	
 	%(inner_tables_diff)s
 END
 $$
@@ -1269,24 +1302,44 @@ $$
 
 '''
 
-#template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
-	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_resolved_diff()
+#template for function that prepairs temp table for diff functions, which selects diffs between changeset and its parent
+	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_resolved_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
 DECLARE
-	changeset_var bigint;
 	from_version bigint;
+	to_version bigint;
 BEGIN
 	--it's necessary to have opened changeset in witch we would like to see diff
-	changeset_var = get_current_changeset();
-	from_version = id2num(parent(changeset_var));
-
-	CREATE TEMP TABLE local_template_data_version AS (SELECT * FROM %(templ_tbl)s_data_version(0));
-	CREATE TEMP TABLE current_changest_resolved_data AS (
+	IF changeset_id = 0 THEN
+		--it's necessary to have opened changeset in witch we would like to see diff
+		changeset_id = get_current_changeset();
+	END IF;
+	
+	BEGIN
+		from_version = id2num(parent(changeset_id));
+	EXCEPTION
+		--parent version was not found in table with opened changesets, given changeset was already closed
+		WHEN SQLSTATE '70001' THEN
+			SELECT num INTO to_version FROM version WHERE id = changeset_id;
+			from_version = to_version - 1;
+			CREATE TEMP TABLE %(tbl)s_diff_data AS 
+				SELECT %(diff_columns)s FROM %(tbl)s_resolved_data(to_version) chv
+					LEFT OUTER JOIN %(tbl)s_resolved_data(from_version) dv ON (dv.uid = chv.uid);
+			
+			%(inner_tables_diff)s
+			
+			RETURN;
+	END;
+	
+	--data valid in changeset_id are the newest data present in the from_version and in the changeset with the changeset_id
+	CREATE TEMP TABLE local_template_data_version AS SELECT * FROM %(templ_tbl)s_data_changeset(changeset_id);
+	
+	CREATE TEMP TABLE current_changeset_resolved_data AS (
 		WITH RECURSIVE resolved_data AS(
 		--it is necessary to resolve all data in current version, resolved changes from changeset could not find inherited changes from templates
-		SELECT uid, name, %(columns_ex_templ)s, %(template_column)s, %(template_column)s AS orig_template, dest_bit FROM %(tbl)s_data_version()
+		SELECT uid, name, %(columns_ex_templ)s, %(template_column)s, %(template_column)s AS orig_template, dest_bit FROM %(tbl)s_data_changeset(changeset_id)
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name,
@@ -1302,10 +1355,10 @@ BEGIN
 	--full outer join of data in parent revision and changes made in opened changeset
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS  SELECT %(diff_columns)s
-		FROM current_changest_resolved_data chv
+		FROM current_changeset_resolved_data chv
 			FULL OUTER JOIN %(tbl)s_resolved_data(from_version) dv ON (dv.uid = chv.uid);
 
-	DROP TABLE current_changest_resolved_data;
+	DROP TABLE current_changeset_resolved_data;
 	DROP TABLE local_template_data_version;
 	
 	%(inner_tables_diff)s
@@ -1539,7 +1592,8 @@ LANGUAGE plpgsql;
 	%(columns)s,
 	--columns for origin of data, templates' names
 	%(templ_columns)s,
-	%(template_column)s bigint
+	%(template_column)s bigint,
+	dest_bit bit(1)
 );
 '''
 
@@ -1547,7 +1601,8 @@ LANGUAGE plpgsql;
 	name identifier,
 	uid bigint,
 	%(columns)s,
-	%(template_column)s bigint
+	%(template_column)s bigint,
+	dest_bit bit(1)
 );
 '''
 
@@ -1559,18 +1614,19 @@ BEGIN
 	CREATE TEMP TABLE template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 	RETURN QUERY WITH recursive resolved_data AS (
-		SELECT uid,name,%(columns_ex_templ_id_set)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template
+		SELECT uid,name,%(columns_ex_templ_id_set)s, %(case_columns)s, %(template_column)s, %(template_column)s as orig_template, dest_bit
 		FROM %(tbl)s_data_version(from_version)
 		UNION ALL
 		SELECT
 			rd.uid AS uid, rd.name AS name,
 			%(rd_dv_coalesce)s,
 			%(templ_case_columns)s,
-			dv.%(template_column)s, rd.orig_template
+			dv.%(template_column)s, rd.orig_template,
+			rd.dest_bit
         FROM template_data_version dv, resolved_data rd
         WHERE dv.uid = rd.%(template_column)s
 	)
-	SELECT name, uid, %(columns_ex_templ)s, %(columns_templ)s, orig_template AS template
+	SELECT name, uid, %(columns_ex_templ)s, %(columns_templ)s, orig_template AS template, dest_bit
 	FROM resolved_data WHERE %(template_column)s IS NULL;
 
 	DROP TABLE template_data_version;
@@ -1607,23 +1663,24 @@ DECLARE
 BEGIN
 	changeset_id = get_current_changeset_or_null();
 	IF from_version = 0 AND changeset_id IS NULL  THEN
-		RETURN QUERY SELECT name, uid, %(columns_ex_templ_res_id_set)s, %(template_column)s AS %(template_column)s FROM production.%(tbl)s;
+		RETURN QUERY SELECT name, uid, %(columns_ex_templ_res_id_set)s, %(template_column)s AS %(template_column)s, B'0'::bit(1) AS dest_bit FROM production.%(tbl)s;
 	ELSE
 		CREATE TEMP TABLE rd_template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 		RETURN QUERY WITH recursive resolved_data AS (
 		--id_set in is get 
-			SELECT uid,name,version,%(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template
+			SELECT uid,name,version,%(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template, dest_bit
 			FROM %(tbl)s_data_version(from_version)
 			UNION ALL
 			SELECT
 				rd.uid AS uid, rd.name AS name, rd.version AS version,
 				%(rd_dv_coalesce)s,
-				dv.%(template_column)s, rd.orig_template
+				dv.%(template_column)s, rd.orig_template,
+				rd.dest_bit
 			FROM rd_template_data_version dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s
 		)
-		SELECT name, uid, %(columns_ex_templ)s, orig_template AS %(template_column)s
+		SELECT name, uid, %(columns_ex_templ)s, orig_template AS %(template_column)s, dest_bit
 		FROM resolved_data WHERE %(template_column)s IS NULL;
 
 		DROP TABLE rd_template_data_version;

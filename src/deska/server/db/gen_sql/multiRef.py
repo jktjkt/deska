@@ -203,6 +203,40 @@ LANGUAGE plpgsql;
 
 '''
 
+    data_changeset_str = '''CREATE FUNCTION %(tbl)s_data_changeset(changeset_id bigint = 0)
+RETURNS SETOF %(tbl)s_history
+AS
+$$
+DECLARE
+    parent_version bigint;
+BEGIN
+    --for each object finds its last modification before data_version
+    --joins it with history table of its kind to get object data in version data_version
+    IF changeset_id = 0 THEN
+        changeset_id = get_current_changeset();
+    END IF;
+    
+    BEGIN
+        parent_version = id2num(parent(changeset_id));
+    EXCEPTION
+        WHEN SQLSTATE '70001' THEN
+            SELECT num - 1 INTO parent_version FROM version WHERE id = changeset_id;
+    END;                
+
+    RETURN QUERY
+    SELECT * FROM %(tbl)s_history
+        WHERE version = changeset_id AND flag = '1'
+    UNION
+    SELECT par.* FROM %(tbl)s_data_version(parent_version) par
+        LEFT OUTER JOIN (SELECT DISTINCT %(tbl_name)s FROM %(tbl)s_history WHERE version = changeset_id) curr ON (curr.%(tbl_name)s = par.%(tbl_name)s)
+    WHERE curr.%(tbl_name)s IS NULL;
+END
+$$
+LANGUAGE plpgsql;
+
+'''
+
+
     resolved_data = '''CREATE FUNCTION %(tbl)s_resolved_data_version(data_version bigint = 0)
 RETURNS SETOF %(tbl)s
 AS
@@ -513,19 +547,27 @@ LANGUAGE plpgsql;
 
 
 
-    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff()
+    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
 DECLARE
-    changeset_var bigint;
     from_version bigint;
 BEGIN
-    changeset_var = get_current_changeset();
-    from_version = id2num(parent(changeset_var));
+    IF changeset_id = 0 THEN
+        changeset_id = get_current_changeset();
+    END IF;
+    
+    BEGIN
+        from_version = id2num(parent(changeset_id));
+    EXCEPTION
+        WHEN SQLSTATE '70001' THEN
+            SELECT num - 1 INTO from_version FROM version WHERE id = changeset_id;
+    END;
+
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
-        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_var) chv
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
             FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
 END
 $$
@@ -533,22 +575,58 @@ LANGUAGE plpgsql;
 
 '''
 
-    diff_changeset_init_resolved_function_str = '''CREATE FUNCTION %(tbl)s_init_resolved_diff()
+    diff_changeset_init_resolved_function_str = '''CREATE FUNCTION %(tbl)s_init_resolved_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
 DECLARE
-    changeset_var bigint;
     from_version bigint;
+    to_version bigint;
 BEGIN
-    changeset_var = get_current_changeset();
-    from_version = id2num(parent(changeset_var));
+    IF changeset_id = 0 THEN
+        changeset_id = get_current_changeset();
+    END IF;
     
-    --full outer join of data in from_version and list of changes made between from_version and to_version
+    BEGIN
+        from_version = id2num(parent(changeset_id));
+    EXCEPTION
+        WHEN SQLSTATE '70001' THEN
+            --changeset with id changeset_id was already commited, exists version with this id
+            SELECT num INTO to_version FROM version WHERE id = changeset_id;
+            from_version = to_version - 1;
+            CREATE TEMP TABLE %(tbl)s_diff_data AS
+                SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
+                    FROM %(tbl)s_resolved_data_version(from_version) inner1
+                    FULL OUTER JOIN %(tbl)s_resolved_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
+            RETURN;
+    END;
+    
+    CREATE TEMP TABLE template_data_changeset AS SELECT * FROM %(tbl_template_name)s_data_changeset(changeset_id);
+    CREATE TEMP TABLE inner_template_data_changeset AS SELECT * FROM %(tbl_template)s_data_changeset(changeset_id);
+    
+    CREATE TEMP TABLE resolved_changeset  AS
+    WITH RECURSIVE resolved_data AS(
+        SELECT h.uid, s.%(tbl_name)s, s.%(reftbl_name)s, h.%(template_column)s, s.flag
+        FROM %(tbl_name)s_data_changeset(changeset_id) h
+        LEFT OUTER JOIN %(tbl)s_data_changeset(changeset_id) s ON (s.%(tbl_name)s = h.uid)
+        
+        UNION ALL
+        
+        SELECT rd.uid AS uid, rd.%(tbl_name)s, s.%(reftbl_name)s AS %(reftbl_name)s, dv.%(template_column)s AS %(template_column)s, s.flag
+        FROM template_data_changeset dv JOIN resolved_data rd ON (rd.%(template_column)s = dv.uid)
+            LEFT OUTER JOIN inner_template_data_changeset s ON (dv.uid = s.%(tbl_template_name)s)
+        WHERE rd.%(reftbl_name)s IS NULL AND (rd.flag = '0' OR rd.flag IS NULL)
+        )
+        SELECT uid AS %(tbl_name)s, %(reftbl_name)s AS %(reftbl_name)s, flag  FROM resolved_data WHERE flag = '1';       
+    
     CREATE TEMP TABLE %(tbl)s_diff_data
-    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
+    AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data_version(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_resolved_data_version() inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    FULL OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
+    
+    DROP TABLE resolved_changeset;
+    DROP TABLE inner_template_data_changeset;
+    DROP TABLE template_data_changeset;
 END
 $$
 LANGUAGE plpgsql;
@@ -702,6 +780,7 @@ LANGUAGE plpgsql;
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.data_version_str % {'tbl': join_tab, 'tbl_name' : table})
+        self.fn_sql.write(self.data_changeset_str % {'tbl': join_tab, 'tbl_name' : table})
         self.fn_sql.write(self.diff_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_changeset_init_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
         self.fn_sql.write(self.diff_terminate_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
@@ -734,7 +813,7 @@ LANGUAGE plpgsql;
             template_col = record[0][0]
             self.fn_sql.write(self.get_object_resolved_set % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})        
             self.fn_sql.write(self.diff_init_resolved_function_string % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
-            self.fn_sql.write(self.diff_changeset_init_resolved_function_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
+            self.fn_sql.write(self.diff_changeset_init_resolved_function_str % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col})
             self.fn_sql.write(self.resolved_data % {'tbl': join_tab, 'tbl_name' : table, 'tbl_template_name': template_table, 'tbl_template': join_template_tab, 'template_column': template_col, 'reftbl_name': reftable})
             if table not in self.template_tables:
                 self.fn_sql.write(self.commit_templated_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable, 'template_column': template_col, 'tbl_template_name': template_table, 'tbl_template': join_template_tab})

@@ -265,7 +265,7 @@ class Table(constants.Templates):
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff();"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(changeset_id);"
 		inner_init_diff_current_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
@@ -390,7 +390,7 @@ class Table(constants.Templates):
 
 	def gen_data_version(self):
 		"""Generates data_version stored function that returns data of all object in this table taht were in the table in the given version."""
-		return self.data_version_function_string % {'tbl': self.name}
+		return self.data_version_function_string % {'tbl': self.name} + self.data_changeset_function_string % {'tbl': self.name}
 
 	def gen_data_changes(self):
 		return self.data_changes_function_string % {'tbl': self.name}
@@ -617,7 +617,7 @@ class Table(constants.Templates):
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff();"
+		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(changeset_id);"
 		inner_init_diff_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
@@ -626,6 +626,7 @@ class Table(constants.Templates):
 
 		#template, name must be present
 		collist = self.col.keys()
+		collist.append('dest_bit')
 		select_new_attributes = ["chv.%s AS new_%s" % (x, x) for x in collist]
 		#dest_bit from resolved data is allways 0
 		select_old_attributes = ["dv.%s AS old_%s" % (x, x) for x in collist]
