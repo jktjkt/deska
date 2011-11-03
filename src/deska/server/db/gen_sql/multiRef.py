@@ -345,7 +345,7 @@ DECLARE
     changeset_id bigint;
 BEGIN
     changeset_id = get_current_changeset_or_null();
-    RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)_data_version(data_version) WHERE %(tbl_name)s = obj_uid WHERE flag = '1';
+    RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s_data_version(data_version) WHERE %(tbl_name)s = obj_uid AND flag = '1';
 END
 $$
 LANGUAGE plpgsql;
@@ -818,6 +818,6 @@ LANGUAGE plpgsql;
             if table not in self.template_tables:
                 self.fn_sql.write(self.commit_templated_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable, 'template_column': template_col, 'tbl_template_name': template_table, 'tbl_template': join_template_tab})
         else:
-            self.fn_sql.write(self.get_object_set_version % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable})
+            self.fn_sql.write(self.get_object_set % {'tbl': join_tab, 'tbl_name' : table, 'reftbl_name': reftable})
             self.fn_sql.write(self.commit_str % {'tbl': join_tab, 'tbl_name' : table, 'ref_tbl_name': reftable})
 
