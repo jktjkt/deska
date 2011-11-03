@@ -107,9 +107,9 @@ LANGUAGE plpgsql;
             self.constraint_sql.write(self.gen_merge_reference(reftable, table))
             self.trigger_sql.write(self.gen_link_trigger(table, reftable))
             
-            if table not in self.composition_touples:
-                self.composition_touples[table] = list()
-            self.composition_touples[table].append(reftable)
+            if reftable not in self.composition_touples:
+                self.composition_touples[reftable] = list()
+            self.composition_touples[reftable].append(table)
             
         self.constraint_sql.write(self.gen_add_check_constraint())
 
@@ -129,18 +129,19 @@ LANGUAGE plpgsql;
         add_constr_string = ""
         for table in self.composition_touples:
             compos_cols = self.composition_touples[table]
-            nn_col_str = ""
-            #list of columns in composition relation with table and their type .. bigint
-            compos_cols_types_list = list()
-            for col in compos_cols:
-                nn_col_str = nn_col_str + self.nn_inc_count_str % {'column': col}
-                compos_cols_types_list.append("%(column)s bigint" % {'column': col})
-            
-            #is used for parameters in function to check them to be no more one of them not null
-            compos_cols_types_str = ",".join(compos_cols_types_list)
-            compos_cols_str = ",".join(compos_cols)
-            check_function_str = check_function_str + self.check_composition_function_str % {'tbl': table, 'composition_columns_params': compos_cols_types_str, 'inc_count_if_col_nn': nn_col_str}
-            add_constr_string = self.add_check_composition_constraint % {'tbl': table, 'composition_columns': compos_cols_str}
+            if len(compos_cols) > 1:
+                nn_col_str = ""
+                #list of columns in composition relation with table and their type .. bigint
+                compos_cols_types_list = list()
+                for col in compos_cols:
+                    nn_col_str = nn_col_str + self.nn_inc_count_str % {'column': col}
+                    compos_cols_types_list.append("%(column)s bigint" % {'column': col})
+                
+                #is used for parameters in function to check them to be no more one of them not null
+                compos_cols_types_str = ",".join(compos_cols_types_list)
+                compos_cols_str = ",".join(compos_cols)
+                check_function_str = check_function_str + self.check_composition_function_str % {'tbl': table, 'composition_columns_params': compos_cols_types_str, 'inc_count_if_col_nn': nn_col_str}
+                add_constr_string = add_constr_string + self.add_check_composition_constraint % {'tbl': table, 'composition_columns': compos_cols_str}
         return check_function_str + add_constr_string
 
     def check_merge_definition(self, table, reftable, attname, refattname):
