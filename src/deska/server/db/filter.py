@@ -22,9 +22,7 @@ class Condition():
 	}
 	# operators for sets
 	opSetMap = {
-		"columnEq": "=",
-		"columnNe": "!=",
-		"columnContains": "= ANY"
+		"columnContains": "="
 	}
 
 	def __init__(self,data,condId):
@@ -40,6 +38,7 @@ class Condition():
 		self.counter = condId
 		self.id = "${0}".format(condId)
 		self.metadata = False
+		self.idSet = False
 		if "metadata" in data:
 			self.kind = "metadata"
 			self.metadata = True
@@ -57,6 +56,9 @@ class Condition():
 			# add also name
 			if self.col not in generated.atts(self.kind) and self.col != "name":
 				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
+
+			if self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
+				self.idSet = True
 		else:
 			raise DutilException("FilterError","Item 'kind' or 'metadata' must be in condition.")
 		self.parse()
@@ -86,15 +88,16 @@ class Condition():
 			fromCol = generated.relFromCol(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
+				#FIXME: delete same if-else when not needed
 				if generated.atts(self.kind)[self.col] == "identifier_set":
-					self.id = self.id
+					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
 				else:
 					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
 		# check contains operator, not for metadata or col = name
-		if not self.metadata and self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
+		if self.idSet:
 			if self.op not in self.opSetMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
 			self.op = self.opSetMap[self.op]
@@ -134,10 +137,10 @@ class Condition():
 
 	def get(self):
 		'''Return deska SQL condition'''
+		if self.idSet:
+			'''Change kind to inner_'''
+			self.kind = "inner_"+self.col
 		if self.newcond is None:
-			if self.op == "= ANY":
-				'''ANY has special syntax'''
-				return ("{3} {2} ({0}.{1})"+self.nullCompensation).format(self.kind,self.col,self.op,self.id), [self.val]
 			if self.val is None:
 				'''do not return none'''
 				return "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id), []
@@ -154,6 +157,13 @@ class Condition():
 				cond1 = ("{0}.{1} {2} {3}"+self.nullCompensation).format(self.kind,self.col,self.op,self.id)
 				cond2, val2 = self.newcond.get()
 				return "( ({0}) AND ({1}) )".format(cond1,cond2), [self.val]+val2
+
+	def getIdSetInfo(self):
+		'''Return kind,col if there is identifier_set condition'''
+		if self.idSet:
+			return self.kind, self.col
+		else:
+			return None, None
 
 	def getAffectedKind(self):
 		'''Return kind in condition'''
@@ -177,6 +187,8 @@ class Filter():
 		self.values = list()
 		# set of kinds
 		self.kinds = set()
+		# dict for identifier_set info kind:column
+		self.idSetInfo = dict()
 		self.where = ''
 		if filterData is None:
 			self.data = None
@@ -195,9 +207,22 @@ class Filter():
 			return '',[]
 		return "WHERE " + self.where, self.values
 
+	def getIdSetJoin(self):
+		'''Return join part for identifier_set joining'''
+		ret = ''
+		for kind in self.idSetInfo:
+			col = self.idSetInfo[kind]
+			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
+			#FIXME: or {1}_{0} - get it from relation info
+			#FIXME: until wait for function, use just the table
+			#ret = ret + " JOIN inner_{0}_{1}_data_version($1) AS inner_{1} ON {2} ".format(kind, col, joincond)
+			ret = ret + " JOIN inner_{0}_{1}_multiref_history AS inner_{1} ON {2} ".format(kind, col, joincond)
+		return ret
+
+
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
-		ret = ''
+		ret = self.getIdSetJoin()
 		self.kinds = self.kinds - set([mykind])
 		for kind in self.kinds:
 			if mykind == "metadata":
@@ -266,6 +291,10 @@ class Filter():
 		cond = Condition(data,self.counter)
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
+		# also add identifier_set information for joining
+		idSetKind, idSetColumn = cond.getIdSetInfo()
+		if idSetKind is not None and idSetColumn is not None:
+			self.idSetInfo[idSetKind] = idSetColumn
 		ret, newValues = cond.get()
 		self.counter = self.counter + len(newValues)
 		#add values into list
