@@ -19,6 +19,8 @@
 
 \newcommand{\deskaFuncRef}[1]{{\hyperref[sec:api-ref-#1]{\tt {#1}}}}
 
+\newcommand{\secref}[1]{section~\ref{#1} on page~\pageref{#1}}
+
 \begin{document}
 
 \title{Deska: A Tool for Central Administration and Monitoring of a Grid Site}
@@ -30,18 +32,25 @@
 \setcounter{tocdepth}{3}
 \tableofcontents
 
-\part{Technical Documentation}
+\part{Overview}
 
 \subfile{intro}
 \subfile{objects-and-relations}
-\subfile{dbapi-protocol}
-%\subfile{running-config-generators}
 
 \part{User's Guide}
 
-\part{Programmer's Documentation}
+\subfile{building}
+\subfile{admin-dbscheme}
+\subfile{cli-usage}
 
+\part{Developer Documentation}
+
+\subfile{dbapi-protocol}
 \subfile{prog-cpp-deskadb}
+\subfile{cli-app}
 \subfile{python-bindings}
+\subfile{server-py}
+\subfile{sql-procedures}
+\subfile{cfg-generators}
 
 \end{document}

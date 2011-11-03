@@ -49,11 +49,11 @@ prone.  This is why it is further wrapped by the upper layers of the Python inte
 
 In contrast to the lower-level stuff described in the previous section, which mimics the C++ interface rather closely,
 the high-level Python API is generated completely automatically at runtime and is intended to closely match the Deska
-database scheme.  To reach this goal, this layer uses the metadata discovery features (see section
-\ref{sec:api-group-dbscheme} on page \pageref{sec:api-group-dbscheme}) to create a hierarchy of Python classes, each for
-a distinct kind.  These classes then provide an interface for iterating over all objects of a kind, or for performing
-server-side filtering.  The returned data is always presented in a form which is native to Python; this means that the
-C++ timestamps are converted to the {\tt datetime.datetime} values etc.
+database scheme.  To reach this goal, this layer uses the metadata discovery features (see
+\secref{sec:api-group-dbscheme}) to create a hierarchy of Python classes, each for a distinct kind.  These classes then
+provide an interface for iterating over all objects of a kind, or for performing server-side filtering.  The returned
+data is always presented in a form which is native to Python; this means that the C++ timestamps are converted to the
+{\tt datetime.datetime} values etc.
 
 \subsection{Server-side Filtering}
 

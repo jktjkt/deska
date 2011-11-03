@@ -8,8 +8,11 @@ CREATE TABLE modelswitch (
 		CONSTRAINT modelswitch_pk PRIMARY KEY,
 	name identifier
 		CONSTRAINT "modelswitch with this name already exists" UNIQUE NOT NULL,
-    vendor bigint
-        CONSTRAINT modelswitch_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+	vendor bigint
+		CONSTRAINT modelswitch_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+	modelbox bigint
+		CONSTRAINT modelswitch_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
+	--FIXME: TODO port_validity_regexp
 	ports text NOT NULL
 		CONSTRAINT "switch ports cannot be empty string"
 		CHECK (char_length(ports) > 0)

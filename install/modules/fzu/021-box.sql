@@ -17,7 +17,7 @@ CREATE TABLE box (
 	modelbox bigint
 		CONSTRAINT box_fk_boxmode REFERENCES modelbox(uid) DEFERRABLE,
 	-- box can be another whbox
-	box bigint
+	parent bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
 	-- position
 	posX int
