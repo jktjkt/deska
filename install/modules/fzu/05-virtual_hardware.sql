@@ -16,6 +16,8 @@ CREATE TABLE virtual_hardware (
 	-- how many CPUs are assigned to this machine?
 	cpu_num int,
 	-- how much RAM (in MB) to put in there?
-	ram int
+	ram int,
+    --virtual host is containable host
+    host bigint
 );
 

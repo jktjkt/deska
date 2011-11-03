@@ -21,11 +21,12 @@ CREATE TABLE hardware (
 	warranty_contact bigint
 		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contact(uid) DEFERRABLE,
 	-- box (contains)
-	box bigint
+	box bigint NOT NULL
 		-- merge / contains
-		--CONSTRAINT rmerge_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
-		CONSTRAINT hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT rmerge_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
+	--hardware is containable host
+	host bigint,
 	-- Serial number one, in vendor's preferred form
 	serial_1 text,
 	-- Serial number two, in vendor's preferred form

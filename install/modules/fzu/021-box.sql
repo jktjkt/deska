@@ -26,7 +26,12 @@ CREATE TABLE box (
 		CONSTRAINT "posy cannot be negative number" CHECK (posY >= 0),
 	posZ int
 		CONSTRAINT "posz cannot be negative number" CHECK (posZ >= 0),
-	note text
+	note text,
+	--box is containable hardawre
+	hardware bigint,
+	--box is containable switch
+	switch bigint
+	--box is containable diskarray
 );
 
 -- function for trigger, checking position number

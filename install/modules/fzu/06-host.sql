@@ -16,12 +16,10 @@ CREATE TABLE host (
 	-- hardware where it runs
 	hardware bigint
 		-- merge / contains
-		--CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
-		CONSTRAINT host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
+		CONSTRAINT rmerge_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	virtual_hardware bigint
 		-- merge / contains
-		--CONSTRAINT rmerge_host_fk_virtual_hardware REFERENCES virtual_hardware(uid) DEFERRABLE,
-		CONSTRAINT host_fk_virtual_hardware REFERENCES virtual_hardware(uid) DEFERRABLE,
+		CONSTRAINT rmerge_host_fk_virtual_hardware REFERENCES virtual_hardware(uid) DEFERRABLE,
 	service identifier_set
 		CONSTRAINT rset_host_fk_virtual_hardware REFERENCES service(uid) DEFERRABLE,
 	note text
