@@ -52,7 +52,7 @@ DECLARE parentX int;
 	sizeY int;
 	sizeZ int;
 BEGIN
-        IF NEW.box IS NOT NULL
+        IF NEW.parent IS NOT NULL
 	THEN
 		-- find parent inside dimensions
 		SELECT insX,insY,insZ INTO parentX,parentY,parentZ FROM box JOIN modelbox ON (box.box = modelbox.uid)
