@@ -53,6 +53,8 @@ BEGIN
         -- use the CONTAINABLE relation, find our matching modelbox from there
         -- and work on that values.
 
+		-- FIXME: also change this to support the inner_bay_regexp
+
 		-- find parent inside dimensions
 		SELECT insX,insY,insZ INTO parentX,parentY,parentZ FROM box JOIN modelbox ON (box.box = modelbox.uid)
 			WHERE box.uid = NEW.box;
