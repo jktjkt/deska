@@ -6,24 +6,29 @@ SET search_path TO production,deska;
 CREATE SEQUENCE modelbox_uid START 1;
 
 CREATE TABLE modelbox (
-	uid bigint DEFAULT nextval('modelbox_uid')
-		CONSTRAINT modelbox_pk PRIMARY KEY,
-	name identifier
-		CONSTRAINT "modelbox with this name already exists" UNIQUE NOT NULL,
-	-- size
-	sizeX int
-		CONSTRAINT "sizex cannot be negative number" CHECK (sizeX >= 0),
-	sizeY int
-		CONSTRAINT "sizey cannot be negative number" CHECK (sizeX >= 0),
-	sizeZ int
-		CONSTRAINT "sizez cannot be negative number" CHECK (sizeX >= 0),
-	-- inside dimensions
-	insX int
-		CONSTRAINT "insx cannot be negative number" CHECK (insX >= 0),
-	insY int
-		CONSTRAINT "insy cannot be negative number" CHECK (insY >= 0),
-	insZ int
-		CONSTRAINT "insz cannot be negative number" CHECK (insZ >= 0),
-	note text
+    uid bigint DEFAULT nextval('modelbox_uid')
+        CONSTRAINT modelbox_pk PRIMARY KEY,
+    name identifier
+        CONSTRAINT "modelbox with this name already exists" UNIQUE NOT NULL,
+    -- size
+    width int
+        CONSTRAINT "width cannot be negative number" CHECK (width >= 0),
+    height int
+        CONSTRAINT "height cannot be negative number" CHECK (height >= 0),
+    depth int
+        CONSTRAINT "depth cannot be negative number" CHECK (depth >= 0),
+
+    -- Regular expression for a list of valid bays in this
+    -- rack/sleeve/enclosure/...
+    bays_validity_regexp text,
+
+    -- Which types of hardware we can accomodate?
+    -- FIXME: maybe change this to a special formfactor_tag set, see the ML for
+    -- discussion
+    -- FIXME: how shall I name this constraint?
+    -- accepts_inside identifier_set
+    --    CONSTRAINT rset_foo_FIXME REFERENCES modelbox(uid) DEFERRABLE,
+
+    note text
 );
 
