@@ -3,6 +3,14 @@
 ---
 SET search_path TO production,deska;
 
+CREATE SEQUENCE formfactor_uid START 1;
+CREATE TABLE formfactor (
+    uid bigint DEFAULT nextval('formfactor_uid')
+        CONSTRAINT formfactor_pk PRIMARY KEY,
+    name identifier
+        CONSTRAINT "formfactor with this name already exists" UNIQUE NOT NULL
+);
+
 CREATE SEQUENCE modelbox_uid START 1;
 
 CREATE TABLE modelbox (
@@ -22,12 +30,13 @@ CREATE TABLE modelbox (
     -- rack/sleeve/enclosure/...
     bays_validity_regexp text,
 
+    -- Outer form factor of this box
+    formfactor bigint
+        CONSTRAINT modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
+
     -- Which types of hardware we can accomodate?
-    -- FIXME: maybe change this to a special formfactor_tag set, see the ML for
-    -- discussion
-    -- FIXME: how shall I name this constraint?
-    -- accepts_inside identifier_set
-    --    CONSTRAINT rset_foo_FIXME REFERENCES modelbox(uid) DEFERRABLE,
+    accepts_inside identifier_set
+       CONSTRAINT rset_modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
 
     note text
 );
