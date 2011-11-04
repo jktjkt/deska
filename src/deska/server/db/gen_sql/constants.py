@@ -955,6 +955,20 @@ LANGUAGE plpgsql;
 
 '''
 
+#template for function that finds all rename changes
+	diff_rename_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+RETURNS SETOF deska.diff_rename_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name, new_name
+	FROM %(tbl)s_diff_data
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND new_name <> old_name;
+END;
+$$
+LANGUAGE plpgsql;
+'''
+
 #template for if constructs in diff_set_attribute
 	one_column_change_string = '''
 	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
@@ -1020,16 +1034,7 @@ LANGUAGE plpgsql;
 			FROM %(tbl)s_diff_data
 			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
 		LOOP
-			--if name was changed, then this modification would be mentioned with old object name
-			--all other changes are mentioned with new name
-			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
-					--first change is changed name
-					result.objname = old_data.name;
-					result.attribute = 'name';
-					result.olddata = old_data.name;
-					result.newdata = new_data.name;
-					RETURN NEXT result;
-			END IF;
+			--all changes are mentioned with new name
 			result.objname = new_data.name;
 			--check if the column was changed
 			%(columns_changes)s

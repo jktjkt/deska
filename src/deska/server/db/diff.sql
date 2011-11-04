@@ -11,3 +11,8 @@ CREATE TYPE deska.diff_refs_set_set_attribute_type AS(
     olddata text[],
     newdata text[]
 );
+
+CREATE TYPE deska.diff_rename_type AS(
+    oldname deska.identifier,
+    newname deska.identifier
+);

@@ -249,7 +249,8 @@ class Table(constants.Templates):
 			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
 
 		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
-            refers_set_set_fn
+            refers_set_set_fn + \
+            self.diff_rename_string % {'tbl': self.name}
 
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions

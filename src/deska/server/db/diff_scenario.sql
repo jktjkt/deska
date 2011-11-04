@@ -1,4 +1,4 @@
- 
+﻿ 
 set search_path to deska, api, genproc, history, versioning, production;
 
 SELECT startChangeset();
@@ -105,3 +105,24 @@ SELECT commitChangeset('13');
 -- 	SELECT hardware_set_vendor('Martina_007','JustVendor');
 -- --dont use commit before test
 -- --SELECT commitChangeset('end');
+
+SELECT startChangeset();
+	SELECT hardware_set_name('Martina_007', 'Olderone');
+SELECT commitChangeset('13');
+
+
+--select * from hardware_init_diff(13,15);
+--select * from hardware_diff_created();
+--select * from hardware_diff_deleted();
+--select * from hardware_diff_set_attributes(13,15);
+--select * from hardware_diff_rename();
+--select * from hardware_terminate_diff();
+
+--select * from hardware_diff_data;
+
+--select * from hardware_init_diff(14,15);
+--select * from hardware_diff_created();
+--select * from hardware_diff_deleted();
+--select * from hardware_diff_set_attributes(14,15);
+--select * from hardware_diff_rename();
+--select * from hardware_terminate_diff();
