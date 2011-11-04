@@ -13,19 +13,19 @@ CREATE TABLE box (
 -- this column is required in all plugins
 	name identifier
 		CONSTRAINT "box with this name already exists" UNIQUE NOT NULL,
-	-- box model
-	modelbox bigint
-		CONSTRAINT box_fk_boxmode REFERENCES modelbox(uid) DEFERRABLE,
-	-- box can be another whbox
-	parent bigint
+	-- The "box model" is defined by the kinds into which we are contained, not
+	-- at this level.
+
+	-- Our "parent"
+	inside bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
 	-- position
-	posX int
-		CONSTRAINT "posx cannot be negative number" CHECK (posX >= 0),
-	posY int
-		CONSTRAINT "posy cannot be negative number" CHECK (posY >= 0),
-	posZ int
-		CONSTRAINT "posz cannot be negative number" CHECK (posZ >= 0),
+	x int
+		CONSTRAINT "'x' cannot be negative number" CHECK (x >= 0),
+	y int
+		CONSTRAINT "'y' cannot be negative number" CHECK (y >= 0),
+	z int
+		CONSTRAINT "'z' cannot be negative number" CHECK (z >= 0),
 	note text
 );
 
@@ -49,18 +49,22 @@ DECLARE parentX int;
 BEGIN
         IF NEW.box IS NOT NULL
 	THEN
+        -- FIXME: this is broken; there's no "box.box" at all. Also we have to
+        -- use the CONTAINABLE relation, find our matching modelbox from there
+        -- and work on that values.
+
 		-- find parent inside dimensions
 		SELECT insX,insY,insZ INTO parentX,parentY,parentZ FROM box JOIN modelbox ON (box.box = modelbox.uid)
 			WHERE box.uid = NEW.box;
 		-- position is inside the parent box
-		IF NEW.posX > parentX THEN
-			RAISE EXCEPTION 'posX is greater than parent insX: (% > %)', NEW.posX, parentX;
+		IF NEW.x > parentX THEN
+			RAISE EXCEPTION 'x is greater than parent insX: (% > %)', NEW.x, parentX;
 		END IF;
-		IF NEW.posY > parentY THEN
-			RAISE EXCEPTION 'posY is greater than parent insY: (% > %)', NEW.posY, parentY;
+		IF NEW.y > parentY THEN
+			RAISE EXCEPTION 'y is greater than parent insY: (% > %)', NEW.y, parentY;
 		END IF;
-		IF NEW.posZ > parentZ THEN
-			RAISE EXCEPTION 'posZ is greater than parent insZ: (% > %)', NEW.posZ, parentZ;
+		IF NEW.z > parentZ THEN
+			RAISE EXCEPTION 'z is greater than parent insZ: (% > %)', NEW.z, parentZ;
 		END IF;
 		nextX = parentX;
 		nextY = parentY;
@@ -69,39 +73,39 @@ BEGIN
 		prevY = 0;
 		prevZ = 0;
 		-- find next position in parent box
-		SELECT min(posX) INTO nextX FROM box
+		SELECT min(x) INTO nextX FROM box
 			WHERE box = NEW.box AND
-			posX > NEW.posX;
-		SELECT min(posY) INTO nextY FROM box
+			x > NEW.x;
+		SELECT min(y) INTO nextY FROM box
 			WHERE box = NEW.box AND
-			posY > NEW.posY;
-		SELECT min(posZ) INTO nextZ FROM box
+			y > NEW.y;
+		SELECT min(z) INTO nextZ FROM box
 			WHERE box = NEW.box AND
-			posZ > NEW.posZ;
+			z > NEW.z;
 
 		-- find previous position in parent box
-		SELECT max(posX) INTO prevX FROM box
+		SELECT max(x) INTO prevX FROM box
 			WHERE box = NEW.box AND
-			posX <= NEW.posX;
-		SELECT max(posY) INTO prevY FROM box
+			x <= NEW.x;
+		SELECT max(y) INTO prevY FROM box
 			WHERE box = NEW.box AND
-			posY <= NEW.posY;
-		SELECT max(posZ) INTO prevZ FROM box
+			y <= NEW.y;
+		SELECT max(z) INTO prevZ FROM box
 			WHERE box = NEW.box AND
-			posZ <= NEW.posZ;
+			z <= NEW.z;
 
 		-- find sizes
 		SELECT modelbox.sizeX,modelbox.sizeY,modelbox.sizeZ INTO sizeX,sizeY,sizeZ FROM modelbox
 			WHERE uid = NEW.modelbox;
 
 		-- size is inside the parent box, and before next box
-		IF (NEW.posX + sizeX > nextX) OR (NEW.posX <= prevX) THEN
+		IF (NEW.x + sizeX > nextX) OR (NEW.x <= prevX) THEN
 			RAISE EXCEPTION 'There is not enough free space in box';
 		END IF;
-		IF (NEW.posY + sizeY > nextY) OR (NEW.posY <= prevY) THEN
+		IF (NEW.y + sizeY > nextY) OR (NEW.y <= prevY) THEN
 			RAISE EXCEPTION 'There is not enough free space in box';
 		END IF;
-		IF (NEW.posZ + sizeZ > nextZ) OR (NEW.posZ <= prevZ) THEN
+		IF (NEW.z + sizeZ > nextZ) OR (NEW.z <= prevZ) THEN
 			RAISE EXCEPTION 'There is not enough free space in box';
 		END IF;
 	END IF;	
