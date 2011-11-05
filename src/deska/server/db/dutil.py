@@ -135,15 +135,19 @@ def collectOriginColumns(columns):
 		data[col] = [origin[col],data[col]]
 	return data
 
-def oneKindDiff(kindName,a = None,b = None):
+def oneKindDiff(kindName,difname,a = None,b = None):
+	if difname == "resolved":
+		diffname = "_init_resolved_diff"
+	else:
+		diffname = "_init_diff"
 	with xact():
 		if (a is None) and (b is None):
 			# diff for temporaryChangeset
-			init = proc(kindName + "_init_diff()")
+			init = proc(kindName + diffname + "()")
 			init()
 		else:
 			# diff for 2 revisions
-			init = proc(kindName + "_init_diff(bigint,bigint)")
+			init = proc(kindName + diffname + "(bigint,bigint)")
 			#get changeset ids first
 			revision2num = proc("revision2num(text)")
 			a = revision2num(a)
@@ -152,10 +156,24 @@ def oneKindDiff(kindName,a = None,b = None):
 
 		terminate = proc(kindName + "_terminate_diff()")
 		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
+		renamed = prepare("SELECT * FROM " + kindName + "_diff_rename()")
 		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
 		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
 
 		res = list()
+		for line in deleted():
+			obj = dict()
+			obj["command"] = "deleteObject"
+			obj["kindName"] = kindName
+			obj["objectName"] = mystr(line[0])
+			res.append(obj)
+		for line in renamed():
+			obj = dict()
+			obj["command"] = "renameObject"
+			obj["kindName"] = kindName
+			obj["oldName"] = mystr(line[0])
+			obj["newName"] = mystr(line[1])
+			res.append(obj)
 		for line in created():
 			obj = dict()
 			obj["command"] = "createObject"
@@ -170,63 +188,7 @@ def oneKindDiff(kindName,a = None,b = None):
 			obj["attributeName"] = mystr(line[1])
 			obj["oldAttributeData"] = mystr(line[2])
 			obj["attributeData"] = mystr(line[3])
-			if obj["attributeName"] == "name":
-				# a rename shall be reported back in a special way
-				res.append({"command": "renameObject", "kindName":
-				obj["kindName"], "oldObjectName": obj["oldAttributeData"],
-				"newObjectName": obj["attributeData"]})
-			else:
-				res.append(obj)
-		for line in deleted():
-			obj = dict()
-			obj["command"] = "deleteObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
 			res.append(obj)
 		terminate()
 	return res
 
-def oneResolvedKindDiff(kindName,a = None,b = None):
-	with xact():
-		if (a is None) and (b is None):
-			# diff for temporaryChangeset
-			init = proc(kindName + "_init_resolved_diff()")
-			init()
-		else:
-			# diff for 2 revisions
-			init = proc(kindName + "_init_resolved_diff(bigint,bigint)")
-			#get changeset ids first
-			revision2num = proc("revision2num(text)")
-			a = revision2num(a)
-			b = revision2num(b)
-			init(a,b)
-
-		terminate = proc(kindName + "_terminate_diff()")
-		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
-		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
-		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
-
-		res = list()
-		for line in created():
-			obj = dict()
-			obj["command"] = "createObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		for line in setattr(a,b):
-			obj = dict()
-			obj["command"] = "setAttribute"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			obj["attributeName"] = mystr(line[1])
-			obj["oldValue"] = mystr(line[2])
-			obj["newValue"] = mystr(line[3])
-			res.append(obj)
-		for line in deleted():
-			obj = dict()
-			obj["command"] = "deleteObject"
-			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			res.append(obj)
-		terminate()
-	return res

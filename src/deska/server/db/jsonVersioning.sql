@@ -204,12 +204,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag,a,b):
 	name = "dataDifference"
+	diffname = "normal"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneKindDiff(kindName,a,b))
+			res.extend(oneKindDiff(kindName,diffname,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -231,12 +232,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag):
 	name = "dataDifferenceInTemporaryChangeset"
+	diffname = "normal"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneKindDiff(kindName))
+			res.extend(oneKindDiff(kindName,diffname))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -258,12 +260,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag,a,b):
 	name = "resolvedDataDifference"
+	diffname = "resolved"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName,a,b))
+			res.extend(oneResolvedKindDiff(kindName,diffname,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -285,12 +288,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag):
 	name = "resolvedDataDifferenceInTemporaryChangeset"
+	diffname = "resolved"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName))
+			res.extend(oneResolvedKindDiff(kindName,diffname))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
