@@ -135,16 +135,25 @@ def collectOriginColumns(columns):
 		data[col] = [origin[col],data[col]]
 	return data
 
-def oneKindDiff(kindName,difname,a = None,b = None):
-	if difname == "resolved":
+def oneKindDiff(kindName,diffname,a = None,b = None):
+	'''get diff for one kind'''
+	if diffname == "resolved":
 		diffname = "_init_resolved_diff"
 	else:
 		diffname = "_init_diff"
 	with xact():
+		Postgres.NOTICE("Running diff: {0}{1}({2},{3})".format(kindName,diffname,a,b))
 		if (a is None) and (b is None):
 			# diff for temporaryChangeset
-			init = proc(kindName + diffname + "()")
-			init()
+			init = proc(kindName + diffname + "(bigint)")
+			init(None)
+		elif (b is None):
+			# diff for temporaryChangeset with changeset parameter
+			init = proc(kindName + diffname + "(bigint)")
+			#get changeset ids first
+			changeset2id = proc("changeset2id(text)")
+			a = changeset2id(a)
+			init(a)
 		else:
 			# diff for 2 revisions
 			init = proc(kindName + diffname + "(bigint,bigint)")
