@@ -113,7 +113,7 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()),
                   sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
     # Now the same, but indirectly
-    # FAILS, Redmine#268
-    #matching = deska.hardware[deska.vendor.name == None]
-    #r.assertEqual(sorted(matching.keys()),
-    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
+    # Redmine#268
+    matching = deska.hardware[deska.vendor.name == None]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
