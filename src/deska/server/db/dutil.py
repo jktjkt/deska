@@ -171,8 +171,8 @@ def oneKindDiff(kindName,difname,a = None,b = None):
 			obj = dict()
 			obj["command"] = "renameObject"
 			obj["kindName"] = kindName
-			obj["oldName"] = mystr(line[0])
-			obj["newName"] = mystr(line[1])
+			obj["oldObjectName"] = mystr(line[0])
+			obj["newObjectName"] = mystr(line[1])
 			res.append(obj)
 		for line in created():
 			obj = dict()
