@@ -177,10 +177,6 @@ CREATE FUNCTION commit_all(message text)
 		# create some python helper functions
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
 		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
-		print self.py_fn_str % {'name': "embed", 'args': '', 'result': str(self.embed)}
-		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
-		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.merge)}
-		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
 		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
 		print self.py_fn_str % {'name': "mergeNames", 'args': '', 'result': str(self.mergeNames)}
 		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
