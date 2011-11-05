@@ -15,6 +15,8 @@ class DeskaException(Exception):
 		'70021': 'NotFoundError',
 		'70007': 'ObsoleteParentError',
 		'70004': 'ConstraintError',
+		'23502': 'ConstraintError',#NOT NULL
+		'23514': 'ConstraintError',#check_positive
 		'*': 'ServerError'
 	}
 
@@ -22,6 +24,7 @@ class DeskaException(Exception):
 		'''Construct DeskaException from Postgres.dberr exception'''
 		self.code = dberr.code
 		self.message = dberr.message
+		Postgres.NOTICE("Creating exception with code "+self.code)
 		self.parseDberr()
 
 	def parseDberr(self):
