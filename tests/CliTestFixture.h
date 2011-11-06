@@ -108,6 +108,8 @@ struct CliTestFixture
     
     /** @short Initializes the testing CLI and starts test. Events queue have to be filled befor calling this function. */
     void startTest();
+
+    void expectCliInit();
     
     void expectHelper(const MockCliEvent &e);
     
