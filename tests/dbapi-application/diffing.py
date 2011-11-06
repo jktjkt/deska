@@ -1,6 +1,9 @@
 from apiUtils import *
 
 def imperative(r):
+    # Debugging: always report full difference in the diffs. This is
+    # Python-specific stuff, not Deska-specific variable.
+    r.maxDiff = None
     changeset = r.c(startChangeset())
     revA = r.c(pendingChangesets(filter={"condition": "columnEq", "metadata":
                                          "changeset", "value": changeset})
@@ -11,10 +14,9 @@ def imperative(r):
     r.c(createObject("hardware", "hw1"))
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "v1"))
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2011-01-01"))
-    r.cvoid( setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
+    r.cvoid(setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revB = r.c(commitChangeset("test diff"))
     r.assertTrue(revA < revB)
@@ -29,15 +31,13 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    # FIXME: redmine #292
+    #r.assertEquals(diffInChangeset, expectedDiff)
 
     changeset = r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "v2"))
 
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revC = r.c(commitChangeset("changed one attribute"))
     reportedDiff = r.c(dataDifference(revB, revC))
@@ -45,8 +45,8 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": "v1", "attributeData": "v2"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    # FIXME: redmine #292
+    #r.assertEquals(diffInChangeset, expectedDiff)
 
     reportedDiff = r.c(dataDifference(revA, revC))
     expectedDiff = [
@@ -66,15 +66,12 @@ def imperative(r):
     # try renaming an object
     changeset = r.c(startChangeset())
     r.cvoid(renameObject("vendor", "v1", "v1a"))
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
     revD = r.c(commitChangeset("renaming stuff"))
     reportedDiff = r.c(dataDifference(revC, revD))
     expectedDiff = [{"command": "renameObject", "kindName": "vendor", "oldObjectName": "v1", "newObjectName": "v1a"}]
-    # FIXME: redmine #286, renames are reported back as setAttribute calls :(
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    r.assertEquals(diffInChangeset, expectedDiff)
 
     # now let's remove what we've added
     changeset = r.c(startChangeset())
@@ -82,22 +79,8 @@ def imperative(r):
     r.cvoid(deleteObject("hardware", "hw1"))
     r.cvoid(deleteObject("vendor", "v1a"))
 
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
-
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
     revE = r.c(commitChangeset("removed stuff"))
-    # try with both of them
-    for rev in (revB, revC):
-        reportedDiff = r.c(dataDifference(rev, revE))
-        expectedDiff = [
-            {"command": "deleteObject", "kindName": "vendor", "objectName": "v1"},
-            {"command": "deleteObject", "kindName": "vendor", "objectName": "v2"},
-            {"command": "deleteObject", "kindName": "hardware", "objectName": "hw1"},
-        ]
-        r.assertEquals(reportedDiff, expectedDiff)
-        # FIXME: redmine #277
-        #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
-
     reportedDiff = r.c(dataDifference(revD, revE))
     expectedDiff = [
         {"command": "deleteObject", "kindName": "vendor", "objectName": "v1a"},
@@ -105,8 +88,17 @@ def imperative(r):
         {"command": "deleteObject", "kindName": "hardware", "objectName": "hw1"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    r.assertEquals(diffInChangeset, expectedDiff)
+
+    # try with both of them
+    expectedDiff = [
+        {"command": "deleteObject", "kindName": "vendor", "objectName": "v1"},
+        {"command": "deleteObject", "kindName": "vendor", "objectName": "v2"},
+        {"command": "deleteObject", "kindName": "hardware", "objectName": "hw1"},
+    ]
+    for rev in (revB, revC):
+        reportedDiff = r.c(dataDifference(rev, revE))
+        r.assertEquals(reportedDiff, expectedDiff)
 
     # finally, there should be absolutely no difference in here
     r.assertEquals(r.c(dataDifference(revA, revE)), [])
