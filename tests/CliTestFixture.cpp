@@ -133,8 +133,8 @@ void CliTestFixture::verifyEnd()
 void CliTestFixture::startTest()
 {
     BOOST_ASSERT(!testStarted);
-    int argc;
-    char **argv;
+    int argc = 0;
+    char **argv = 0;
     testStarted = true;
     conf = new Deska::Cli::CliConfig("deska.ini", argc, argv);
     conn = new Deska::Db::Connection();
