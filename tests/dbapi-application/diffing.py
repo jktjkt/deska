@@ -14,7 +14,7 @@ def imperative(r):
     r.c(createObject("hardware", "hw1"))
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "v1"))
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2011-01-01"))
-    r.cvoid( setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
+    r.cvoid(setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
     # FIXME: redmine #277
     #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
