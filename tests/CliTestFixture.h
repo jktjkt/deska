@@ -116,6 +116,7 @@ struct CliTestFixture
     MockCliEvent returnHelper(const MockCliEvent &e);
     
 
+    Deska::Cli::CliConfig *conf;
     Deska::Db::Connection *conn;
     Deska::Cli::Parser *parser;
     Deska::Cli::DbInteraction *db;

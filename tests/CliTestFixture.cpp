@@ -24,6 +24,7 @@
 #include <boost/test/test_tools.hpp>
 #include <boost/assert.hpp>
 #include "CliTestFixture.h"
+#include "deska/cli/CliConfig.h"
 
 // At first, define a few macros which specify how the code shall be generated
 
@@ -102,7 +103,7 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 }
 
 CliTestFixture::CliTestFixture():
-    conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
+    conf(0), conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
 {
 }
 
@@ -114,6 +115,7 @@ CliTestFixture::~CliTestFixture()
     delete db;
     delete parser;
     delete conn;
+    delete conf;
 }
 
 
@@ -131,12 +133,15 @@ void CliTestFixture::verifyEnd()
 void CliTestFixture::startTest()
 {
     BOOST_ASSERT(!testStarted);
+    int argc;
+    char **argv;
     testStarted = true;
+    conf = new Deska::Cli::CliConfig("deska.ini", argc, argv);
     conn = new Deska::Db::Connection();
     parser = new Deska::Cli::Parser(conn);
     db = new Deska::Cli::DbInteraction(conn);
     io = new TestUserInterfaceIO(this);
-    ui = new Deska::Cli::UserInterface(db, parser, io);
+    ui = new Deska::Cli::UserInterface(db, parser, io, conf);
     sh = new Deska::Cli::SignalsHandler(parser, ui);
     ui->run();
 }
