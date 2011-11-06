@@ -331,6 +331,13 @@ public:
 
 private:
 
+    /** @short Implementsation of askForConfirmation() function to remove double calls in tests
+    *
+    *   @param prompt Message to confirm
+    *   @return True if the message was confirmed, else false
+    */
+    virtual bool askForConfirmationImpl(const std::string &prompt);
+
     /** @short Construct string for indenting an output.
     *
     *   @param indentLevel Level of indentation (number of "tabs")

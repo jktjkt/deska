@@ -178,7 +178,7 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Are you sure you want to delete object(s) " << object << "?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -187,7 +187,7 @@ bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -196,7 +196,7 @@ bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create and link?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -212,7 +212,7 @@ bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object,
             ss << *it;
         }
     ss << "?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -221,18 +221,14 @@ bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " was/were deleted in current changeset. Restore?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
 
 bool UserInterfaceIO::askForConfirmation(const std::string &prompt)
 {
-    std::cout << prompt << " ";
-    std::string answer;
-    getline(std::cin, answer);
-    boost::algorithm::to_lower(answer);
-    return answer == "yes" || answer == "y";
+    return askForConfirmationImpl(prompt);
 }
 
 
@@ -533,6 +529,17 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
 void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 {
     completer->addCommandCompletion(completion);
+}
+
+
+
+bool UserInterfaceIO::askForConfirmationImpl(const std::string &prompt)
+{
+    std::cout << prompt << " ";
+    std::string answer;
+    getline(std::cin, answer);
+    boost::algorithm::to_lower(answer);
+    return answer == "yes" || answer == "y";
 }
 
 
