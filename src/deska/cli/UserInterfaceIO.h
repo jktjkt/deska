@@ -342,10 +342,10 @@ private:
     /** @short Construct wrapped string.
     *
     *   @param text Text to wrap.
-    *   @param width Max line width.
+    *   @param full Number of character already on the line.
     *   @return Vector of string wrapped to given width. Line by line.
     */
-    std::vector<std::string> wrap(const std::string &text, unsigned int width);
+    std::vector<std::string> wrap(const std::string &text, unsigned int full);
 
     /** @short function for counting number of digits in an unsigned integer.
     *   
@@ -365,6 +365,8 @@ private:
     CliCompleter *completer;
     /** Class containing loaded configuration parameters. */
     CliConfig *config;
+    /** Width of a line for wrapping, 0 for no wrapping */
+    int lineWidth;
 };
 
 

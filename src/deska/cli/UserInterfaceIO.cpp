@@ -125,7 +125,7 @@ UserInterfaceIO::UserInterfaceIO()
 
 
 UserInterfaceIO::UserInterfaceIO(Parser* parser, CliConfig* _config):
-    tabSize(4), promptEnd("> "), config(_config)
+    tabSize(4), promptEnd("> "), config(_config), lineWidth(config->getVar<int>(CLI_LineWidth))
 {
     completer = new CliCompleter(parser);
     reader = new ReadlineWrapper::Readline(config->getVar<std::string>(CLI_HistoryFilename),
@@ -144,7 +144,7 @@ UserInterfaceIO::~UserInterfaceIO()
 
 void UserInterfaceIO::reportError(const std::string &errorMessage)
 {
-    std::vector<std::string> lines = wrap(errorMessage, 80);
+    std::vector<std::string> lines = wrap(errorMessage, 0);
     for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
         std::cerr << *it << std::endl;
 }
@@ -153,7 +153,9 @@ void UserInterfaceIO::reportError(const std::string &errorMessage)
 
 void UserInterfaceIO::printMessage(const std::string &message)
 {
-    std::cout << message << std::endl;
+    std::vector<std::string> lines = wrap(message, 0);
+    for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+        std::cout << *it << std::endl;
 }
 
 
@@ -267,7 +269,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
     std::cout << "CLI commands:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
         std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        std::vector<std::string> wrappedDscr = wrap(it->second, (maxWordWidth + 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
                 std::cout << indent(maxWordWidth + 3, 1);
@@ -278,7 +280,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
     std::cout << "Parser keywords:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
         std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        std::vector<std::string> wrappedDscr = wrap(it->second, (maxWordWidth + 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
                 std::cout << indent(maxWordWidth + 3, 1);
@@ -292,7 +294,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
 void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
 {
     std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 78);
+    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 2);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
@@ -303,7 +305,7 @@ void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::st
 void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
 {
     std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 78);
+    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 2);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
@@ -557,9 +559,15 @@ unsigned int UserInterfaceIO::digits(unsigned int n)
 
 
 
-std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int width)
+std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int full)
 {
     std::vector<std::string> lines;
+
+    if (lineWidth <= 0) {
+        lines.push_back(text);
+        return lines;
+    }
+
     boost::char_separator<char> separators(" \t");
     boost::char_separator<char> lineSeparators("\n");
     boost::tokenizer<boost::char_separator<char> > lineTokenizer(text, lineSeparators);
@@ -578,9 +586,12 @@ std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned
              it != tokenizer.end(); ++it) {
             word = *it;
             boost::algorithm::trim(word);
-            if ((line.length() + word.length() + 1) > width) {
+            if ((line.length() + word.length() + 1) > (lineWidth - full)) {
                 lines.push_back(line);
                 line.clear();
+            } else if (line.empty() && (word.length() >= (lineWidth - full))) {
+                lines.push_back(word);
+                continue;
             }
             if (!line.empty())
                 line += " ";
