@@ -125,11 +125,11 @@ UserInterfaceIO::UserInterfaceIO()
 
 
 UserInterfaceIO::UserInterfaceIO(Parser* parser, CliConfig* _config):
-    tabSize(4), promptEnd("> "), config(_config), lineWidth(config->getVar<int>(CLI_LineWidth))
+    tabSize(4), promptEnd("> "), config(_config), lineWidth(config->getVar<unsigned int>(CLI_LineWidth))
 {
     completer = new CliCompleter(parser);
     reader = new ReadlineWrapper::Readline(config->getVar<std::string>(CLI_HistoryFilename),
-                                           config->getVar<int>(CLI_HistoryLimit), completer);
+                                           config->getVar<unsigned int>(CLI_HistoryLimit), completer);
 }
 
 

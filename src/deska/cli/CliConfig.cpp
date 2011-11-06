@@ -40,8 +40,8 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
         (DBConnection_User.c_str(), po::value<std::string>(), "Deska user")
         (DBConnection_DB.c_str(), po::value<std::string>(), "Deska DB to connect to")
         (CLI_HistoryFilename.c_str(), po::value<std::string>(), "name of file with history")
-        (CLI_HistoryLimit.c_str(), po::value<int>()->default_value(64), "number of lines stored in history")
-        (CLI_LineWidth.c_str(), po::value<int>()->default_value(0), "width of line for wrapping");
+        (CLI_HistoryLimit.c_str(), po::value<unsigned int>()->default_value(64), "number of lines stored in history")
+        (CLI_LineWidth.c_str(), po::value<unsigned int>()->default_value(0), "width of line for wrapping")
 
     std::ifstream configStream(configFile.c_str());
     po::store(po::parse_command_line(argc, argv, options), configVars);
@@ -67,6 +67,9 @@ T CliConfig::getVar(const std::string &name)
 /////////////////////////Template instances for linker//////////////////////////
 
 template int CliConfig::getVar(const std::string &name);
+
+template unsigned int CliConfig::getVar(const std::string &name);
+
 
 template std::string CliConfig::getVar(const std::string &name);
 

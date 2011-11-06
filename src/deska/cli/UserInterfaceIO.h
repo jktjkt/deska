@@ -366,7 +366,7 @@ private:
     /** Class containing loaded configuration parameters. */
     CliConfig *config;
     /** Width of a line for wrapping, 0 for no wrapping */
-    int lineWidth;
+    unsigned int lineWidth;
 };
 
 
