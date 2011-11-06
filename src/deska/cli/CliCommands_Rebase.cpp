@@ -39,6 +39,65 @@ namespace Deska {
 namespace Cli {
 
 
+
+/** @short Type of object modification for sorting purposes */
+typedef enum {
+    /** @short Db::DeleteObjectModification */
+    OBJECT_MODIFICATION_TYPE_DELETE = 0,
+    /** @short Db::RenameObjectModification */
+    OBJECT_MODIFICATION_TYPE_RENAME = 1,
+    /** @short Db::CreateObjectModification */
+    OBJECT_MODIFICATION_TYPE_CREATE = 2,
+    /** @short Db::SetAttributeModification */
+    OBJECT_MODIFICATION_TYPE_SETATTR = 3
+} ModificationType;
+
+ 
+
+/** @short Visitor for obtaining type of each object modification */
+struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
+{
+    //@{
+    /** @short Function for obtaining ModificationType for each modification
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Type of the modification
+    */
+    ModificationType operator()(const Db::CreateObjectModification &modification) const;
+    ModificationType operator()(const Db::DeleteObjectModification &modification) const;
+    ModificationType operator()(const Db::RenameObjectModification &modification) const;
+    ModificationType operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
+/** @short Visitor for comparing two modification of the same type */
+struct ModificationComparatorLesss: public boost::static_visitor<bool>
+{
+    //@{
+    /** @short Function for comparing two modifications of the same type
+    *
+    *   @param a Instance of modifications from Db::ObjectModification variant.
+    *   @param b Instance of modifications from Db::ObjectModification variant.
+    *   @return True if the first modification is "less" than the second. Comparing kinds and object names.
+    */
+    bool operator()(const Db::CreateObjectModification &a, const Db::CreateObjectModification &b) const;
+    bool operator()(const Db::DeleteObjectModification &a, const Db::DeleteObjectModification &b) const;
+    bool operator()(const Db::RenameObjectModification &a, const Db::RenameObjectModification &b) const;
+    /** When comparing SetAttribute modifications, that are on the same attribute of the same kind, but the
+    *   values differ, first modification is always "less". This ensures stable sorting.
+    */
+    bool operator()(const Db::SetAttributeModification &a, const Db::SetAttributeModification &b) const;
+    //@}
+
+    /** @short Function for enabling this comparator work. This function should not be called.
+    */
+    template <typename MA, typename MB>
+    bool operator()(const MA &a, const MB &b) const;
+};
+
+
 /** @short Visitor for converting ObjectModification made by un in the changeset to user readable format
 *          for purposes of rebase.
 */
@@ -97,6 +156,78 @@ struct BothModificationConverter: public boost::static_visitor<std::string>
     std::string operator()(const Db::SetAttributeModification &modification) const;
     //@}
 };
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::CreateObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_CREATE;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_DELETE;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::RenameObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_RENAME;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::SetAttributeModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_SETATTR;
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
+                                             const Db::CreateObjectModification &b) const
+{
+    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification &a,
+                                             const Db::DeleteObjectModification &b) const
+{
+    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification &a,
+                                             const Db::RenameObjectModification &b) const
+{
+    return ((a.kindName < b.kindName) && (a.oldObjectName < b.oldObjectName) && (a.newObjectName != b.newObjectName));
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification &a,
+                                             const Db::SetAttributeModification &b) const
+{
+    return ((a.kindName < b.kindName) && (a.objectName < b.objectName) &&
+            (a.attributeName < b.attributeName) && (a.attributeData != b.attributeData));
+}
+
+
+
+template <typename MA, typename MB>
+bool ModificationComparatorLesss::operator()(const MA &a, const MB &b) const
+{
+    throw std::invalid_argument("Deska::Cli::ModificationComparatorLesss::operator(): Comparator called to two different types of ObjectModificationResult.");
+    return false;
+}
+
+
 
 std::string OurModificationConverter::operator()(const Db::CreateObjectModification &modification) const
 {
@@ -317,79 +448,92 @@ void Rebase::operator()(const std::string &params)
         }
         return;
     }
+    ExternModificationConverter externModificationConverter;
+    BothModificationConverter bothModificationConverter;
+    OurModificationConverter ourModificationConverter;
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
         if (objectModificationResultLess(*ite, *ito)) {
-            ofs << boost::apply_visitor(ExternModificationConverter(), *ite) << std::endl;
+            ofs << boost::apply_visitor(externModificationConverter, *ite) << std::endl;
             ++ite;
         } else if (*ite == *ito) {
-            ofs << boost::apply_visitor(BothModificationConverter(), *ite) << std::endl;
+            ofs << boost::apply_visitor(bothModificationConverter, *ite) << std::endl;
             ++ite;
             ++ito;
         } else {
-            ofs << boost::apply_visitor(OurModificationConverter(), *ito) << std::endl;
+            ofs << boost::apply_visitor(ourModificationConverter, *ito) << std::endl;
             ++ito;
         }
     }
     while (ite != externModifications.end()) {
-        ofs << boost::apply_visitor(ExternModificationConverter(), *ite) << std::endl;
+        ofs << boost::apply_visitor(externModificationConverter, *ite) << std::endl;
         ++ite;
     }
     while (ito != ourModifications.end()) {
-        ofs << boost::apply_visitor(OurModificationConverter(), *ito) << std::endl;
+        ofs << boost::apply_visitor(ourModificationConverter, *ito) << std::endl;
         ++ito;
     }
 
     ofs.close();
 
-    // User resolves conflicts using text editor
-    ui->io->editFile(tempFile);
+    bool conflictResolved = false;
 
-    // Open the file after the user actions and apply changes
-    std::ifstream ifs(tempFile);
-    if (!ifs) {
-        ui->io->reportError("Error while opening resolved conflicts file \"" + std::string(tempFile) + "\".");
-        remove(tempFile);
-        ui->m_dbInteraction->abortChangeset();
-        ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        try {
-            ui->m_dbInteraction->unlockCurrentChangeset();
-        } catch (Db::ChangesetLockingError &e) {
-            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+    while (!conflictResolved) {
+        // User resolves conflicts using text editor
+        ui->io->editFile(tempFile);
+
+        // Open the file after the user actions and apply changes
+        std::ifstream ifs(tempFile);
+        if (!ifs) {
+            ui->io->reportError("Error while opening resolved conflicts file \"" + std::string(tempFile) + "\".");
+            remove(tempFile);
+            ui->m_dbInteraction->abortChangeset();
+            ui->m_dbInteraction->resumeChangeset(oldChangeset);
+            try {
+                ui->m_dbInteraction->unlockCurrentChangeset();
+            } catch (Db::ChangesetLockingError &e) {
+                ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+            }
+            return;
         }
-        return;
-    }
 
-    ui->nonInteractiveMode = true;
-    std::string line;
-    std::string parserLine;
-    ui->m_parser->clearContextStack();
-    unsigned int lineNumber = 0;
-    while (!getline(ifs, line).eof()) {
-        ++lineNumber;
-        if (!parserLine.empty() && parserLine[0] == '#')
-            continue;
-        ui->m_parser->parseLine(parserLine);
+        ui->nonInteractiveMode = true;
+        std::string line;
+        std::string parserLine;
         ui->m_parser->clearContextStack();
-        if (ui->parsingFailed)
-            break;
-    }
-    ui->nonInteractiveMode = false;
-    if (ui->parsingFailed) {
-        std::ostringstream ostr;
-        ostr << "Parsing of resolved conflicts file failed on line " << lineNumber << ".";
-        ui->io->reportError(ostr.str());
-        ifs.close();
-        remove(tempFile);
-        ui->m_dbInteraction->abortChangeset();
-        ui->m_dbInteraction->resumeChangeset(oldChangeset);
-        try {
-            ui->m_dbInteraction->unlockCurrentChangeset();
-        } catch (Db::ChangesetLockingError &e) {
-            ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+        unsigned int lineNumber = 0;
+        while (!getline(ifs, line).eof()) {
+            ++lineNumber;
+            if (!parserLine.empty() && parserLine[0] == '#')
+                continue;
+            ui->m_parser->parseLine(parserLine);
+            ui->m_parser->clearContextStack();
+            if (ui->parsingFailed)
+                break;
         }
-        return;
+        ui->nonInteractiveMode = false;
+        ifs.close();
+        if (ui->parsingFailed) {
+            std::ostringstream ostr;
+            ostr << "Parsing of resolved conflicts file failed on line " << lineNumber << ".";
+            ui->io->reportError(ostr.str());
+            // FIXME: What to do in non-interactive mode? Rebase in non-interactive mode seems weird.
+            // FIXME: Problem with next atemp is, that rebase is not atomical. Is there some way to "undo" all changes
+            //        in all current changeset?
+            if (!ui->io->askForConfirmation("Try to resolve conflict again?")) {
+                remove(tempFile);
+                ui->m_dbInteraction->abortChangeset();
+                ui->m_dbInteraction->resumeChangeset(oldChangeset);
+                try {
+                    ui->m_dbInteraction->unlockCurrentChangeset();
+                } catch (Db::ChangesetLockingError &e) {
+                    ui->io->reportError("Error while unlocking old changeset after rebase failure.");
+                }
+                return;
+            }
+        } else {
+            conflictResolved = true;
+        }
     }
-    ifs.close();
     remove(tempFile);
 
     // Delete old obsolete changeset and connect to the new one
@@ -409,8 +553,15 @@ void Rebase::operator()(const std::string &params)
 
 bool Rebase::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
 {
-    // TODO
-    return true;
+    ModificationTypeGetter modificationTypeGetter;
+    ModificationComparatorLesss modificationComparatorLesss;
+    if (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b)) {
+        return true;
+    } else if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
+        return false;
+    } else {
+        return (boost::apply_visitor(modificationComparatorLesss, a, b));
+    }
 }
 
 }
