@@ -47,7 +47,8 @@ struct OurModificationConverter: public boost::static_visitor<std::string>
     //@{
     /** @short Function for converting single object modification.
     *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that we made it
     */
     std::string operator()(const Db::CreateObjectModification &modification) const;
     std::string operator()(const Db::DeleteObjectModification &modification) const;
@@ -66,7 +67,8 @@ struct ExternModificationConverter: public boost::static_visitor<std::string>
     //@{
     /** @short Function for converting single object modification.
     *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that somebody else made it
     */
     std::string operator()(const Db::CreateObjectModification &modification) const;
     std::string operator()(const Db::DeleteObjectModification &modification) const;
@@ -85,7 +87,9 @@ struct BothModificationConverter: public boost::static_visitor<std::string>
     //@{
     /** @short Function for converting single object modification.
     *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that it was made in both our and
+    *           somebody else
     */
     std::string operator()(const Db::CreateObjectModification &modification) const;
     std::string operator()(const Db::DeleteObjectModification &modification) const;

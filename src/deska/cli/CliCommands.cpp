@@ -154,16 +154,42 @@ Resume::~Resume()
 
 void Resume::operator()(const std::string &params)
 {
-    if (!params.empty()) {
-        ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
-        return;
-    }
     if (ui->currentChangeset) {
         std::ostringstream ostr;
         ostr << "Error: You are already in the changeset " << *(ui->currentChangeset) << "!";
         ui->io->reportError(ostr.str());
         return;
     }
+
+    if (!params.empty()) {
+        
+        std::vector<std::string> paramsList = extractParams(params);
+        if (paramsList.size() != 1) {
+            ui->io->reportError("Invalid number of parameters entered!");
+            return;
+        }
+
+        boost::optional<Db::TemporaryChangesetId> tmpId;
+        try {
+            tmpId = stringToTemporaryChangesetId(paramsList[0]);
+        } catch (std::domain_error &e) {
+            std::ostringstream ss;
+            ss << "Invalid parameters: " << e.what();
+            ui->io->reportError(ss.str());
+            return;
+        }
+        try {
+            ui->m_dbInteraction->resumeChangeset(*tmpId);
+            ui->currentChangeset = *tmpId;
+            std::ostringstream ostr;
+            ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
+            ui->io->printMessage(ostr.str());
+        } catch (Db::ServerError &e) {
+            ui->io->reportError("Error while resuming changeset: " + e.whatWithBacktrace());
+        }
+        return;
+    }
+    
     // Print list of pending changesets, so user can choose one
     std::vector<Db::PendingChangeset> pendingChangesets = ui->m_dbInteraction->allPendingChangesets();
     int choice = ui->io->chooseChangeset(pendingChangesets);
@@ -176,6 +202,27 @@ void Resume::operator()(const std::string &params)
         ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
         ui->io->printMessage(ostr.str());
     }
+}
+
+
+
+Db::TemporaryChangesetId Resume::stringToTemporaryChangesetId(const std::string &tempChangesetId)
+{
+    if ((tempChangesetId.size() < 3) || (std::string(tempChangesetId.begin(), tempChangesetId.begin() + 3) != "tmp")) {
+        std::ostringstream ss;
+        ss << "String \"" << tempChangesetId << "\" is not a valid temporary changeset ID.";
+        throw std::domain_error(ss.str());
+    }
+    std::string tidStr(tempChangesetId.begin() + 3, tempChangesetId.end());
+    unsigned int tmpInt;
+    std::istringstream iss(tidStr);
+    iss >> tmpInt;
+    if (iss.fail()) {
+        std::ostringstream ss;
+        ss << "String \"" << tempChangesetId << "\" is not a valid temporary changeset ID.";
+        throw std::domain_error(ss.str());
+    }
+    return Db::TemporaryChangesetId(tmpInt);
 }
 
 
