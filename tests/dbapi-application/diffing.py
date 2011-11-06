@@ -16,8 +16,7 @@ def imperative(r):
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2011-01-01"))
     r.cvoid(setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revB = r.c(commitChangeset("test diff"))
     r.assertTrue(revA < revB)
@@ -32,15 +31,13 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    # FIXME: redmine #292
+    #r.assertEquals(diffInChangeset, expectedDiff)
 
     changeset = r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "v2"))
 
-    # FIXME: redmine #277
-    #diff_in_changeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
 
     revC = r.c(commitChangeset("changed one attribute"))
     reportedDiff = r.c(dataDifference(revB, revC))
@@ -48,8 +45,8 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": "v1", "attributeData": "v2"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #277
-    #r.assertEquals(sorted(reportedDiff), sorted(diff_in_changeset))
+    # FIXME: redmine #292
+    #r.assertEquals(diffInChangeset, expectedDiff)
 
     reportedDiff = r.c(dataDifference(revA, revC))
     expectedDiff = [
