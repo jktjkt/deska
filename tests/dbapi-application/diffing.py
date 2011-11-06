@@ -71,8 +71,7 @@ def imperative(r):
     reportedDiff = r.c(dataDifference(revC, revD))
     expectedDiff = [{"command": "renameObject", "kindName": "vendor", "oldObjectName": "v1", "newObjectName": "v1a"}]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #292
-    #r.assertEquals(diffInChangeset, expectedDiff)
+    r.assertEquals(diffInChangeset, expectedDiff)
 
     # now let's remove what we've added
     changeset = r.c(startChangeset())
@@ -89,8 +88,7 @@ def imperative(r):
         {"command": "deleteObject", "kindName": "hardware", "objectName": "hw1"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #292
-    #r.assertEquals(diffInChangeset, expectedDiff)
+    r.assertEquals(diffInChangeset, expectedDiff)
 
     # try with both of them
     expectedDiff = [
