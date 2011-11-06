@@ -149,6 +149,8 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 		if (a is None) and (b is None):
 			# diff for temporaryChangeset
 			init = proc(kindName + diffname + "(bigint)")
+			#send proper values for diff_set_attr... (#292)
+			a, b = 0, 0
 			init(None)
 		elif (b is None):
 			# diff for temporaryChangeset with changeset parameter
@@ -156,6 +158,8 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			#get changeset ids first
 			changeset2id = proc("changeset2id(text)")
 			a = changeset2id(a)
+			#send proper values for diff_set_attr... (#292)
+			b = 0
 			init(a)
 		else:
 			# diff for 2 revisions
