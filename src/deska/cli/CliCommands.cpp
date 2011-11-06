@@ -410,34 +410,43 @@ void Diff::operator()(const std::string &params)
         return;
     }
 
+    boost::optional<Db::RevisionId> revA, revB;
     try {
-        Db::RevisionId revA = stringToRevision(paramsList[0]);
-        Db::RevisionId revB = stringToRevision(paramsList[1]);
-        try {
-        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference(
-            stringToRevision(paramsList[0]), stringToRevision(paramsList[1]));
-        ui->io->printDiff(modifications);
-        } catch (Db::RevisionRangeError &e) {
-            ui->io->reportError("Revision range does not make a sense.");
-        }
-    } catch (std::invalid_argument &e) {
-        ui->io->reportError("Invalid parameters entered!");
+        revA = stringToRevision(paramsList[0]);
+        revB = stringToRevision(paramsList[1]);
+    } catch (std::domain_error &e) {
+        std::ostringstream ss;
+        ss << "diff: Invalid parameters: " << e.what();
+        ui->io->reportError(ss.str());
         return;
     }
+    try {
+        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
+        ui->io->printDiff(modifications);
+    } catch (Db::RevisionRangeError &e) {
+        ui->io->reportError("Revision range does not make a sense.");
+    }
+
 }
 
 
 
 Db::RevisionId Diff::stringToRevision(const std::string &rev)
 {
-    if ((rev.size() < 2) || (rev[0] != 'r'))
-        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    if ((rev.size() < 2) || (rev[0] != 'r')) {
+        std::ostringstream ss;
+        ss << "String \"" << rev << "\" is not a valid revision.";
+        throw std::domain_error(ss.str());
+    }
     std::string revStr(rev.begin() + 1, rev.end());
     unsigned int revInt;
     std::istringstream iss(revStr);
     iss >> revInt;
-    if (iss.fail())
-        throw std::invalid_argument("Deska::Cli::Log::stringToRevision: Error while converting string to revision ID.");
+    if (iss.fail()) {
+        std::ostringstream ss;
+        ss << "String \"" << rev << "\" is not a valid revision.";
+        throw std::domain_error(ss.str());
+    }
     return Db::RevisionId(revInt);
 }
 

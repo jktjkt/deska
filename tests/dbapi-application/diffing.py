@@ -31,7 +31,6 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    #redmine #292
     r.assertEquals(diffInChangeset, expectedDiff)
 
     changeset = r.c(startChangeset())
@@ -45,8 +44,7 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "vendor", "oldAttributeData": "v1", "attributeData": "v2"},
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #292
-    #r.assertEquals(diffInChangeset, expectedDiff)
+    r.assertEquals(diffInChangeset, expectedDiff)
 
     reportedDiff = r.c(dataDifference(revA, revC))
     expectedDiff = [
