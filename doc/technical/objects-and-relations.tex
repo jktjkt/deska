@@ -17,21 +17,21 @@ Deska does not try to deny its background in relation databases, and therefore i
 building blocks, the Deska {\em objects}, {\em kinds} and {\em relations}, all have their well-known parallels in the
 relation database world.
 
-Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a DB table --
+Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a DB table ---
 all objects of the same type, or {\em kind} as we call that in the Deska jargon, live in one table, and they all can
 store the same amount of information in their {\em attributes}, the database columns.  One of the columns is usually a
 primary key, which in the Deska corresponds to a special attribute called {\em name}.  This name is used to uniquely
 identify an {\em object} among all other objects of the same {\em kind}, similarly to how a primary key is a unique
 reference to a single row in a database table.
 
-The primary key on its own is rather meaningless, though -- one has to know what table it belongs to in order to do
+The primary key on its own is rather meaningless, though --- one has to know what table it belongs to in order to do
 anything useful with that information.  The situation is the same in Deska, where one has to always pass a tuple of
 identifiers when trying to identify an object, the name of the {\em kind} and the identifier of the object's {\em name}.
 
 Similarly to how a typical RDBMS hosts many tables, Deska usually works with many {\em kinds} at once.  All tables are
 born equal, and hence even the Deska kinds all exist on the same level of a virtual hierarchy.  Even though the
 real-world is full of examples where something ``belongs'' to something else, like an {\tt eth0} interface could belong
-to machine called {\tt www}, there's no such thing at this level of the Deska interface -- when you want to work with a
+to machine called {\tt www}, there's no such thing at this level of the Deska interface --- when you want to work with a
 particular object, perhaps the {\tt www}'s {\tt eth0}, you always have to identify it through a globally unique name.
 Of course, all of this is hidden (and much else provided by) by the upper layers thanks to the concept of {\em
 relations}.
@@ -84,7 +84,7 @@ naming conventions.
 
 \subsection{Multi-value References}
 
-So far, we have shown relations which generally represent an N:1 mapping -- an object of the source kind (a row in the
+So far, we have shown relations which generally represent an N:1 mapping --- an object of the source kind (a row in the
 source table) refers either to nothing, or to exactly one target object.  However, this concept is not sufficient for a
 particularly compelling feature, notably for {\em tagging}.
 
@@ -131,7 +131,7 @@ rack location), it is usually recommended to go with composition or something el
 
 In the previous section, we have briefly mentioned that it makes sense to ``split'' properties of one real-world object
 into several groups.  On the other hand, doing so imposes a significant burden on the hands of a system administrator
-who suddenly does not have to create just a single object for each machine in the rack, but several of them -- one for
+who suddenly does not have to create just a single object for each machine in the rack, but several of them --- one for
 the hardware inventory, another for ``rack placement'' (or position), yet another for the logical computer that runs on
 top of that, and so on.  To confine this object explosion and to limit the amount of work required to handle such
 objects, Deska provides the {\tt CONTAINS} relation.
@@ -142,7 +142,7 @@ building blocks: {\tt host} (for stuff like hostname and embedded network interf
 serial number) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
 include the {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
 provided no conflicts arise.  It is important to realize that this reusing happens at the {\em kind} level and not at
-the object level --  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
+the object level ---  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
 never to both.  The {\tt placement} {\em kind}, however, contains many individual objects, some of which refer to {\tt
 switch}, and others referring to {\tt computer} instances.
 
@@ -158,7 +158,7 @@ is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
 FIXME: define what shall happen when user renames a contained, or a containing object
 
 It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
-building blocks objects on their own right, without being ``used'' by the other objects -- an example where this would
+building blocks objects on their own right, without being ``used'' by the other objects --- an example where this would
 be very appropriate is our {\tt placement} kind.  In other situations however, it might be wise to allow the low-level
 objects to exist without actually being referenced from elsewhere (it should generally be allowed to put a machine into
 inventory even though it remains off and without an assigned hostname, and hence just the {\tt hardware} object shall
@@ -232,7 +232,7 @@ kind, but never more.\footnote{This limitation might be lifted in future version
 be ready for such a change.}  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
-The rules for the {\tt REFERS\_TO} are much more relaxed -- essentially, only the {\em no duplicates} rule applies here.
+The rules for the {\tt REFERS\_TO} are much more relaxed --- essentially, only the {\em no duplicates} rule applies here.
 This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
 user and can be paraphrased as just ``this object makes a reference of some type to that object''.
 

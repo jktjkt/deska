@@ -25,7 +25,7 @@ easier and safer to use, compared to the raw SQL usage.
 \section{Protocol Overview}
 
 The Deska Database API is modelled after a traditional RPC interface where user invokes a procedure on the remote host
-and waits for its result.  This in turn determines the mode of operation, which happens in {\em command} -- {\em
+and waits for its result.  This in turn determines the mode of operation, which happens in {\em command} --- {\em
 response} cycles.  That is, after a client issues a particular command, it will block and wait for the server's
 response.  No form of command pipelining is available at this point, but certain provisions are in place which will
 allow future extensions towards non-blocking operation.
@@ -138,7 +138,7 @@ this matter.  For a quick reference, please check the overview tables in \secref
 
 There are four basic data types in JSON, a {\tt string}, an {\tt integer}, a {\tt float} and a {\tt boolean}.  These
 values are directly used for transport of the corresponding C++ data types.  However, this mapping is not fully
-bidirectional for practical reasons -- one cannot look at the serialized JSON value and deduce what the original data
+bidirectional for practical reasons --- one cannot look at the serialized JSON value and deduce what the original data
 type was; a context is required for that operation.  This allows us to ``overload'' these JSON data types and serialize
 multiple source types using a single JSON type.  A typical example of this is any particular C++'s {\tt enum}, whose
 symbolic name is transmitted as a string literal with the matching name.
@@ -205,7 +205,7 @@ We can modify our example command {\tt foo} to accept an instance of class {\tt 
 \end{minted}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
-information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
+information about the syntax of the command {\tt foo} --- without that knowledge, we are typically not aware of the
 existence of class {\tt Foo} at all.  That crucial information is, as usual, determined from the current context in a
 command or response.
 
@@ -263,32 +263,32 @@ This is the list of currently defined exceptions, along with their other argumen
     Exception Name & Meaning & Additional arguments \\
     \hline
     \endhead
-    {\tt InvalidKindError} & The specified kind is not valid & -- \\
-    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & -- \\
+    {\tt InvalidKindError} & The specified kind is not valid & --- \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & --- \\
     {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
     better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
-    InvalidKindError}, etc. & -- \\
+    InvalidKindError}, etc. & --- \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
-        without one & -- \\
-    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+        without one & --- \\
+    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & --- \\
     {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
-    manipulation & -- \\
-    {\tt FilterError} & The specified filter is not valid & -- \\
+    manipulation & --- \\
+    {\tt FilterError} & The specified filter is not valid & --- \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
-    \deskaFuncRef{restoreDeletedObject}. & -- \\
-    {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
-    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & -- \\
-    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
-    {\tt ConstraintError} & The executed action violates an integrity constraint & -- \\
+    \deskaFuncRef{restoreDeletedObject}. & --- \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID & --- \\
+    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & --- \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & --- \\
+    {\tt ConstraintError} & The executed action violates an integrity constraint & --- \\
     {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
-    latest revision in the history & -- \\
+    latest revision in the history & --- \\
     {\tt NotASetError} & The attribute data type is not an {\tt identifier\_set}, and hence the operation does not make
-    sense & -- \\
+    sense & --- \\
     {\tt ChangesetLockingError} & Attempted to access a locked changeset or execute an invalid operation related to
-    changeset locking & -- \\
-    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & -- \\
-    {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
-    {\tt ServerError} & The server has encountered an internal error & -- \\
+    changeset locking & --- \\
+    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & --- \\
+    {\tt SqlError} & Execution of SQL statements resulted in an error & --- \\
+    {\tt ServerError} & The server has encountered an internal error & --- \\
 \end{longtable}
 
 FIXME: more filter exceptions with fine-grained semantics
@@ -636,7 +636,7 @@ and the defined object relations.
             \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"\} \\
             ]}
     {Retrieve relations between different Kinds}
-    {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
+    {This function returns a list of relations for the specified kinds of entities --- for more details and examples, see
     the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
@@ -649,7 +649,7 @@ Functions from this group are used for fetching actual data from the database.
     {Returns identifiers of all objects of a given kind}
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
     database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
-    depends on the usual rules -- see \secref{sec:api-revision-semantics} for details.  Another optional argument, {\tt
+    depends on the usual rules --- see \secref{sec:api-revision-semantics} for details.  Another optional argument, {\tt
     filter}, can be used to select a subset of objects to operate on.  The filter expressions can reference not only the
     immediate attributes of the selected object kind, but can also follow defined object relations to create more
     complex queries.  \deskaUnsortedRes}

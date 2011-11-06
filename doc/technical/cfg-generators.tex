@@ -31,18 +31,18 @@ handled by the SCM integration layer of the Deska server.
 The basic unit to operate on when dealing with the configuration generating scripts is a pending changeset.  Only a
 changeset can possibly trigger output modifications, and only when transformed into a persistent revision.  Similarly,
 the actual configuration data are needed either at the time of a commit (in order to be pushed into a SCM repository of
-the output configuration files), or when the user wants to review them.  These two moments are identical for us -- they
+the output configuration files), or when the user wants to review them.  These two moments are identical for us --- they
 identify a point in time where the output has to be ready and reflect the present state of the DB.
 
 The output of the configuration generators is a function of the database state.  When the state of the database does not
-change, neither should the configuration generators.\footnote{There are also the usual corner cases, though -- suppose a
+change, neither should the configuration generators.\footnote{There are also the usual corner cases, though --- suppose a
 DNS zone file.  The zone file typically contains a textual information about the ``age'' of a zone, which is typically
 done by embedding a transformed timestamp inside.  Clearly, this information depends not only on the database state, but
 also on some external information, like the current time or the ``generation'' of a particular configuration file.  For
 these cases, the Deska DBAPI adds a ``force generators re-run'' option which will make sure that a stale copy of the
 configuration output will not get used.  In addition to that, it's possible to ship a plugin which will use a policy to
 decide whether to re-use a previous output or not.}  The Deska DB server can therefore cache the outputs on a changeset
-level -- ie. maintain a configuration output separately for each changeset.
+level --- ie. maintain a configuration output separately for each changeset.
 
 Deciding whether to regenerate or reuse a previous version is then just a matter of maintaining a simple boolean flag
 for the freshness of the output.  Creating a new changeset or rebasing to a new revision set it to false, while a
