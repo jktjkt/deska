@@ -39,6 +39,7 @@ static const std::string DBConnection_DB = "DBConnection.DB";
 static const std::string CLI_HistoryFilename = "CLI.HistoryFilename";
 static const std::string CLI_HistoryLimit = "CLI.HistoryLimit";
 static const std::string CLI_LineWidth = "CLI.LineWidth";
+static const std::string CLI_NonInteractive = "CLI.NonInteractive";
 //@}
 
 

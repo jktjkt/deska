@@ -32,6 +32,7 @@
 #include "Parser.h"
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
+#include "CliConfig.h"
 #include "deska/db/JsonApi.h"
 
 
@@ -43,8 +44,9 @@ namespace Cli
 
 
 
-UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io):
-    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset()
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(),
+    forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive))
 {
     // Register all commands
     typedef std::tr1::shared_ptr<Command> Ptr;
@@ -117,7 +119,7 @@ bool UserInterface::applyCategoryEntered(const ContextStack &context,
         newItem = m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (nonInteractiveMode || io->confirmRestoration(ObjectDefinition(kind,object))) {
+        if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             newItem = ContextStackItem(kind, object);
             return true;
@@ -274,7 +276,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
         return false;
     }
 
-    if (nonInteractiveMode)
+    if (nonInteractiveMode || forceNonInteractive)
         return true;
 
     // Object does not exist -> ask the user here
@@ -305,7 +307,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
@@ -332,7 +334,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
         return true;
     ContextStack adjustedContext = context;
     adjustedContext.back().kind = kind;
-    if (!nonInteractiveMode && !m_dbInteraction->objectExists(adjustedContext)) {
+    if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
             std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
             if (mergedObjects.empty())
@@ -410,7 +412,7 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
         return false;
     }
 
-    if (nonInteractiveMode)
+    if (nonInteractiveMode || forceNonInteractive)
         return true;
     // FIXME: Some better messages
     if (context.back().filter)
