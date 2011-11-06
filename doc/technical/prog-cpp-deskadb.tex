@@ -44,7 +44,7 @@ various helper classes like the {\tt JsonWrappedAttributeMap}, {\tt JsonWrappedA
 JsonWrappedAttributeMapWithOrigin}, {\tt JsonWrappedAttributeMapWithOriginList}, {\tt JsonWrappedAttribute}, {\tt
 JsonWrappedAttributeWithOrigin}, {\tt JsonWrappedObjectModification} and the {\tt
 JsonWrappedObjectModificationResultSequence}, which enforce high-level constraints of the DBAPI protocol, like the
-correct data type of the Deska object attributes\footnote{This is different from the JSON-level data types, which simply
+correct data type of the Deska object attributes.\footnote{This is different from the JSON-level data types, which simply
 enforce the syntax validity of the JSON stream.  These classes, however, work with the dynamically determined database
 metastructure, and verifies that the remote server returns valid values for functions which look at the Deska object
 data.}
@@ -225,11 +225,11 @@ in order, a simple string-based approach fails.  This is when the {\tt MockStrea
 The {\tt MockStreamBuffer} class, as defined in file {\tt tests/MockStreamBuffer.h}, provides a full implementation of
 the usual iostream's streambuf interface.  Before using the associated stream, the programmer shall execute calls to
 {\tt expectRead}, {\tt expectWrite} etc. functions to record what kind of access the stream shall support.  If the user
-of the stream subsequently deviates from the expected access pattern, an exception will be thrown\footnote{The exception
+of the stream subsequently deviates from the expected access pattern, an exception will be thrown.\footnote{The exception
 indicating an unexpected operation is thrown immediately when the {\tt streambuf} detects an error.  Due to the nature
 of iostreams, this might not be the place where the deviation actually comes from.  To minimize this risk of
 inconstistency and in order to be as deterministic as possible, the {\tt MockStreamBuffer}'s size shall be set to {\tt
-1} at the time of its construction.}.  Please also note to {\tt flush} the stream in order to force the actual data to
+1} at the time of its construction.}  Please also note to {\tt flush} the stream in order to force the actual data to
 reach the streambuf:
 
 \begin{minted}{c++}

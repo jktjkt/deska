@@ -39,9 +39,9 @@ or frameworks.  There is also quite a number of ready-made libraries for JSON pa
 ubiquitous as, say, the XML.
 
 Even though the JSON standard itself is well-established, we still had to establish a common way of converting our RPC
-requests to a particular JSON form. To that end, we have chosen to use JSON {\em objects}\footnote{The reader should get
+requests to a particular JSON form. To that end, we have chosen to use JSON {\em objects},\footnote{The reader should get
 herself familiar with the notion of JSON before continuing with the rest of this document, as we will not go into much
-detail explaining how low-level JSON works.}, which are merely a sequence of key-value pairs, with key being a string
+detail explaining how low-level JSON works.} which are merely a sequence of key-value pairs, with key being a string
 identifier and value an arbitrary JSON object.  
 
 Due to certain technical limitations, a simple stream of JSON objects is rather impractical to parse.  In fact, none of
@@ -389,10 +389,10 @@ relation information etc.  The following types are defined:
         }Identifier{\tt, "attributeData": }Value{\tt \}}, \newline
         or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
-        }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}}\footnote{Both forms of the
+        }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}},\footnote{Both forms of the
         {\tt setAttribute} are acceptable.  During regular use, the form without the {\tt oldAttributeData} shall be
         used.  The longer form is accepted in order to enable simply feeding a result of a diff back into the Deska
-        server for further application.}, \newline
+        server for further application.} \newline
         or \newline
         {\tt \{"command": "setAttributeInsert", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Identifier{\tt \}}, \newline
@@ -542,8 +542,8 @@ acceptable in the context of a Deska attribute value, a revision identification,
 or any similar revision (or changeset) metadata.  For filters against an {\tt identifier\_set} data type, only the
 existing {\tt columnEq} and {\tt columnNe} and new {\tt columnContains} and {\tt columnNotContains} comparison operators
 are allowed.  The greater/lesser operators are not allowed in expressions which reference identifier
-sets\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
-supported.}.
+sets.\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
+supported.}
 
 In the last case concerning the special filters, the filter condition does not operate on regular object properties, but
 rather on some ``magic'' value.  At this time, only one filter type is implemented, which matches an object which has
