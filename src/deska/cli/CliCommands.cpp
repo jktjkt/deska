@@ -418,7 +418,7 @@ void Diff::operator()(const std::string &params)
         revB = stringToRevision(paramsList[1]);
     } catch (std::domain_error &e) {
         std::ostringstream ss;
-        ss << "diff: Invalid parameters: " << e.what();
+        ss << "Invalid parameters: " << e.what();
         ui->io->reportError(ss.str());
         return;
     }
