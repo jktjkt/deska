@@ -1,6 +1,9 @@
 from apiUtils import *
 
 def imperative(r):
+    # Debugging: always report full difference in the diffs. This is
+    # Python-specific stuff, not Deska-specific variable.
+    r.maxDiff = None
     changeset = r.c(startChangeset())
     revA = r.c(pendingChangesets(filter={"condition": "columnEq", "metadata":
                                          "changeset", "value": changeset})
