@@ -185,7 +185,9 @@ void Resume::operator()(const std::string &params)
             ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
             ui->io->printMessage(ostr.str());
         } catch (Db::ServerError &e) {
-            ui->io->reportError("Error while resuming changeset: " + e.what());
+            std::ostringstream ostr;
+            ostr << "Error while resuming changeset: " << e.what();
+            ui->io->reportError(ostr.str());
         }
         return;
     }
