@@ -2,6 +2,7 @@
 
 from jsonparser import perform_io
 from dbapi import DB
+import os
 import sys
 import logging
 from optparse import OptionParser
@@ -58,6 +59,10 @@ if options.database:
     dbargs["database"] = options.database
 if options.username:
     dbargs["user"] = options.username
+
+# Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
+# we don't have to deal with KeyboardInterrupt exception
+os.setsid()
 
 cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
                  "cfggenGitRepo": options.cfggenGitRepo,
