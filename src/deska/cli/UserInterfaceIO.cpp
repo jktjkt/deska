@@ -563,7 +563,7 @@ std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned
 {
     std::vector<std::string> lines;
 
-    if (lineWidth <= 0) {
+    if (lineWidth == 0) {
         lines.push_back(text);
         return lines;
     }
