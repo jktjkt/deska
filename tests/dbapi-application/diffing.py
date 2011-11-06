@@ -31,8 +31,8 @@ def imperative(r):
         {"command": "setAttribute", "kindName": "hardware", "objectName": "hw1", "attributeName": "purchase", "oldAttributeData": None, "attributeData": "2011-01-01"}
     ]
     r.assertEquals(reportedDiff, expectedDiff)
-    # FIXME: redmine #292
-    #r.assertEquals(diffInChangeset, expectedDiff)
+    #redmine #292
+    r.assertEquals(diffInChangeset, expectedDiff)
 
     changeset = r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "v2"))
