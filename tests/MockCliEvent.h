@@ -97,6 +97,10 @@ struct MockCliEvent
         EVENT_CONFIRM_RESTORATION,
         /** @short The confirmRestoration() return */
         RETURN_CONFIRM_RESTORATION,
+        /** @short The askForConfirmation() event */
+        EVENT_ASK_FOR_CONFIRMATION,
+        /** @short The askForConfirmation() return */
+        RETURN_ASK_FOR_CONFIRMATION,
         /** @short The askForCommitMessage() event */
         EVENT_ASK_FOR_COMMIT_MESSAGE,
         /** @short The askForCommitMessage() return */

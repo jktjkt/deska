@@ -183,6 +183,13 @@ public:
     */
     virtual bool confirmRestoration(const ObjectDefinition &object);
 
+    /** @short Displays confirmation message and returns users choice.
+    *
+    *   @param prompt Message to confirm
+    *   @return True if the message was confirmed, else false
+    */
+    virtual bool askForConfirmation(const std::string &prompt);
+
     /** @short Asks user to enter a commit message.
     *
     *   @return Entered message
@@ -323,13 +330,6 @@ public:
     virtual void addCommandCompletion(const std::string &completion);
 
 private:
-
-    /** @short Displays confirmation message and returns users choice.
-    *
-    *   @param prompt Message to confirm
-    *   @return True if the message was confirmed, else false
-    */
-    bool askForConfirmation(const std::string &prompt);
 
     /** @short Construct string for indenting an output.
     *

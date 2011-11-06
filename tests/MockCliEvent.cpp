@@ -169,6 +169,24 @@ MockCliEvent MockCliEvent::returnConfirmRestoration(bool confirm)
 
 
 
+MockCliEvent MockCliEvent::askForConfirmation(const std::string &message)
+{
+    MockCliEvent res(EVENT_ASK_FOR_CONFIRMATION);
+    res.str1 = message;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::returnAskForConfirmation(bool confirmed)
+{
+    MockCliEvent res(RETURN_ASK_FOR_CONFIRMATION);
+    res.boolean = confirmed;
+    return res;
+}
+
+
+
 MockCliEvent MockCliEvent::askForCommitMessage()
 {
     return MockCliEvent(EVENT_ASK_FOR_COMMIT_MESSAGE);
@@ -434,6 +452,8 @@ bool MockCliEvent::myReturn(const MockCliEvent &other) const
         return other.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2;
     case EVENT_CONFIRM_RESTORATION:
         return other.eventKind == RETURN_CONFIRM_RESTORATION;
+    case EVENT_ASK_FOR_CONFIRMATION:
+        return other.eventKind == RETURN_ASK_FOR_CONFIRMATION;
     case EVENT_ASK_FOR_COMMIT_MESSAGE:
         return other.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE;
     case EVENT_ASK_FOR_DETACH_MESSAGE:
@@ -594,6 +614,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         break;
     case MockCliEvent::RETURN_CONFIRM_RESTORATION:
         out << "returnConfirmRestoration( " << m.boolean << " )";
+        break;
+    case MockCliEvent::EVENT_ASK_FOR_CONFIRMATION:
+        out << "askForConfirmation( \"" << m.str1 << "\" )";
+        break;
+    case MockCliEvent::RETURN_ASK_FOR_CONFIRMATION:
+        out << "returnAskForConfirmation( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_ASK_FOR_COMMIT_MESSAGE:
         out << "askForCommitMessage()";
