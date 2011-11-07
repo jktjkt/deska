@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
     Deska::Cli::UserInterfaceIO io(&parser, &config);
-    Deska::Cli::UserInterface ui(&db, &parser, &io);
+    Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
     Deska::Cli::SignalsHandler(&parser, &ui);
     ui.run();
     return 0;

@@ -48,6 +48,7 @@ FORWARD_1_RETURN(readLine, ReadLine, pair_string_bool, strbool, std::string);
 FORWARD_3(printHelpKind, PrintHelpKind, std::string, vect_pair_str_str, std::vector<std::string>);
 FORWARD_0_RETURN(askForCommitMessage, AskForCommitMessage, std::string, str1);
 FORWARD_0_RETURN(askForDetachMessage, AskForDetachMessage, std::string, str1);
+FORWARD_1_RETURN(askForConfirmation, AskForConfirmation, bool, boolean, std::string);
 FORWARD_3_OSTREAM(printAttributes, PrintAttributes, std::vector<Deska::Cli::AttributeDefinition>, int);
 FORWARD_3_OSTREAM(printAttributesWithOrigin, PrintAttributesWithOrigin, vect_pair_attrdef_ident, int);
 FORWARD_4_OSTREAM(printObjects, PrintObjects, std::vector<Deska::Cli::ObjectDefinition>, int, bool);

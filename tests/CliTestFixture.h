@@ -108,12 +108,15 @@ struct CliTestFixture
     
     /** @short Initializes the testing CLI and starts test. Events queue have to be filled befor calling this function. */
     void startTest();
+
+    void expectCliInit();
     
     void expectHelper(const MockCliEvent &e);
     
     MockCliEvent returnHelper(const MockCliEvent &e);
     
 
+    Deska::Cli::CliConfig *conf;
     Deska::Db::Connection *conn;
     Deska::Cli::Parser *parser;
     Deska::Cli::DbInteraction *db;

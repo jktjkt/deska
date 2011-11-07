@@ -46,6 +46,7 @@ class Parser;
 class ParserException;
 class UserInterfaceIOBase;
 class UserInterface;
+class CliConfig;
 
 
 /** @short Class for communication with the user.
@@ -65,8 +66,9 @@ public:
     *   @param dbInteraction Pointer to the class used for communication with the database
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
     *   @param _io Pointer to the UserInterfaceIO class for IO oparations
+    *   @param _config Pointer to the CliConfig class for configuration parameters parsed from command line and config file
     */
-    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIOBase *_io);
+    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIOBase *_io, CliConfig* _config);
 
     /** @short Deletes commands from commands map. */
     ~UserInterface();
@@ -165,6 +167,10 @@ private:
     bool parsingFailed;
     /** Flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed. */
     bool nonInteractiveMode;
+    /** Flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed.
+    *   This flag overrides flag nonInteractiveMode. This is to be set using config file or program parameter.
+    */
+    bool forceNonInteractive;
 };
 
 
