@@ -141,6 +141,7 @@ def imperative(r):
     r.cvoid(setAttribute("hardware_template", "t2", "ram", 1024))
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t2"))
     hw3_4 = copy.deepcopy(hw3_1)
+    # this is our overriden attribute
     hw3_4["cpu_ht"] = ["hw3", False]
     hw3_4["cpu_num"] = ["t2", 4]
     hw3_4["ram"] = ["t2", 1024]
@@ -166,10 +167,33 @@ def imperative(r):
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
-
-
     # Let's play with a chain of inheritance
-    #r.cvoid(setAttribute("hardware_template", "t2", "template_hardware", "t1"))
+    r.c(startChangeset())
+    r.cvoid(setAttribute("hardware_template", "t2", "template_hardware", "t1"))
+    hw3_5 = copy.deepcopy(hw3_3)
+    hw3_5["cpu_num"] = ["t2", 4]
+    hw3_5["ram"] = ["t2", 1024]
+    hw3_5["template_hardware"] = "t2"
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_5["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_5["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
+    r.c(commitChangeset("test2"))
+    # and test after a commit again
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_5["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_5["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
 
     # FIXME: write more code
 
