@@ -252,6 +252,15 @@ def multipleResolvedObjectData(kindName, revision=None, filter=None):
         args["filter"] = filter
     return ApiMethod("multipleResolvedObjectData", args)
 
+def multipleResolvedObjectDataWithOrigin(kindName, revision=None, filter=None):
+    args = {"kindName": kindName}
+    if revision is not None:
+        args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
+    return ApiMethod("multipleResolvedObjectDataWithOrigin", args)
+
+
 def verifyingObjectMultipleData(r, kindName, objectName):
     one = r.c(objectData(kindName, objectName))
     multiple = r.c(multipleObjectData(kindName,
