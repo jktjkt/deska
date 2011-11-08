@@ -265,15 +265,11 @@ std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allA
     if (m_api->kindAttributes(object.kind).empty())
         return attributes;
 
-    // FIXME: Allow obtaining really resolved data.
-    /*typedef std::map<Db::Identifier, std::pair<Db::Identifier, Db::Value> > ObjectDataMap;
+    typedef std::map<Db::Identifier, std::pair<boost::optional<Db::Identifier>, Db::Value> > ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->resolvedObjectDataWithOrigin(object.kind, object.name)) {
         attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
-            AttributeDefinition(x.first, x.second.second), (x.second.first == object.name ? "" : x.second.first)));*/
-    typedef std::map<Db::Identifier, Db::Value> ObjectDataMap;
-    BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
-        attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
-            AttributeDefinition(x.first, x.second), ""));
+            AttributeDefinition(x.first, x.second.second),
+                                 (!x.second.first || *(x.second.first) == object.name ? "" : *(x.second.first))));
     }
     return attributes;
 }
