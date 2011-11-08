@@ -293,6 +293,10 @@ class DB:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		if name == "commitChangeset":
+			# this one is special, it has to commit to the DB *and* push to SCM
+			return self.commitConfig(name, args, tag)
+
 		return self.standaloneRunDbFunction(name, args, tag)
 
 	def standaloneRunDbFunction(self, name, args, tag):
