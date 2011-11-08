@@ -31,6 +31,16 @@ hw3_1 = {
     'warranty': ['hw3', '2012-10-10']
 }
 
+def strip_origin(x):
+    # FIXME: simplify this to a one-liner when #295 is fixed
+    res = {}
+    for k,v in x.iteritems():
+        if v is None:
+            res[k] = v
+        else:
+            res[k] = v[1]
+    return res
+
 def imperative(r):
     r.c(startChangeset())
     for obj in ["vendor1", "vendor2"]:
@@ -42,16 +52,18 @@ def imperative(r):
     r.cvoid(setAttribute("hardware", "hw3", "warranty", "2012-10-10"))
 
     # check it before commit
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
-
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
     r.c(commitChangeset("test2"))
 
     # now repeat the checks after a commit
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
-
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
