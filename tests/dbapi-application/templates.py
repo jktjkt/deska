@@ -77,6 +77,20 @@ def imperative(r):
     hw3_2 = hw3_1
     hw3_2["template_hardware"] = "t1"
     hw3_2["cpu_num"] = ["t1", 666]
+
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_2["template_hardware"] = 1
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_2["template_hardware"] = "t1"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+
+    r.c(commitChangeset("test2"))
+
+    # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
