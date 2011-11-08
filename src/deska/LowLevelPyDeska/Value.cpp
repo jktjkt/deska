@@ -70,7 +70,7 @@ Value Py_2_DeskaDbValue(const api::object &o)
         return NonOptionalValue(get_str_set());
 
     // bool
-    // This check has to be performed using low-level Python functions to prevent boost::python from treting ints as bools and vice versa.
+    // This check has to be performed using low-level Python functions to prevent boost::python from treating ints as bools and vice versa.
     // An alternative is a project-wide define, which is not exactly an etalon of elegance.
     // See http://boost.2283326.n4.nabble.com/Avoiding-implicit-boost-python-extract-lt-gt-conversions-td3433520.html for details
     if (PyBool_Check(o.ptr())) {
