@@ -265,8 +265,13 @@ class DB:
 			res = self.runDBFunction(name,args,tag)
 			self.cfgPushToScm(args["commitMessage"])
 		except Exception, e:
+			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
 			return self.errorJson(name, tag, str(e))
+		if "dbException" in res:
+			'''Or regular error in db response'''
+			self.db.rollback()
+			return res
 		self.db.commit()
 		self.unlockChangeset()
 		return res
