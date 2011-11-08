@@ -42,6 +42,7 @@ def strip_origin(x):
     return res
 
 def imperative(r):
+    # Start with creating some objects
     r.c(startChangeset())
     for obj in ["vendor1", "vendor2"]:
         r.assertEqual(r.c(createObject("vendor", obj)), obj)
@@ -51,6 +52,7 @@ def imperative(r):
     r.cvoid(setAttribute("hardware", "hw3", "purchase", "2010-10-10"))
     r.cvoid(setAttribute("hardware", "hw3", "warranty", "2012-10-10"))
 
+    # Make sure that their data is correct
     # check it before commit
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
@@ -67,16 +69,17 @@ def imperative(r):
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
-    # now let's see how templates come into play here
-
+    # Now let's see how templates come into play. Let's inherit two attributes.
     r.c(startChangeset())
     r.assertEqual(r.c(createObject("hardware_template", "t1")), "t1")
     r.cvoid(setAttribute("hardware_template", "t1", "cpu_num", 666))
+    r.cvoid(setAttribute("hardware_template", "t1", "cpu_ht", True))
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
     hw3_2 = hw3_1
     hw3_2["template_hardware"] = "t1"
     hw3_2["cpu_num"] = ["t1", 666]
+    hw3_2["cpu_ht"] = ["t1", True]
 
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
@@ -89,7 +92,33 @@ def imperative(r):
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
     r.c(commitChangeset("test2"))
+    # and test after a commit again
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_2["template_hardware"] = 1
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_2["template_hardware"] = "t1"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
+    # Let's see what happens when we override an inherited attribute
+    r.c(startChangeset())
+    r.cvoid(setAttribute("hardware", "hw3", "cpu_ht", False))
+    hw3_3 = hw3_1
+    hw3_3["cpu_ht"] = ["hw3", False]
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_2["template_hardware"] = 1
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_2["template_hardware"] = "t1"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
+
+    r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
@@ -102,6 +131,7 @@ def imperative(r):
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
 
+    # Let's play with a chain of inheritance
 
     # FIXME: write more code
 
