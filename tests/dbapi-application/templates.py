@@ -69,17 +69,19 @@ def imperative(r):
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
-    # Now let's see how templates come into play. Let's inherit two attributes.
+    # Now let's see how templates come into play. Let's inherit three attributes.
     r.c(startChangeset())
     r.assertEqual(r.c(createObject("hardware_template", "t1")), "t1")
     r.cvoid(setAttribute("hardware_template", "t1", "cpu_num", 666))
     r.cvoid(setAttribute("hardware_template", "t1", "cpu_ht", True))
+    r.cvoid(setAttribute("hardware_template", "t1", "ram", 333))
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
     hw3_2 = hw3_1
     hw3_2["template_hardware"] = "t1"
     hw3_2["cpu_num"] = ["t1", 666]
     hw3_2["cpu_ht"] = ["t1", True]
+    hw3_2["ram"] = ["t1", 333]
 
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
@@ -131,7 +133,29 @@ def imperative(r):
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
 
+    # See what happens when we switch it to derive from another template
+    r.c(startChangeset())
+    r.assertEqual(r.c(createObject("hardware_template", "t2")), "t2")
+    r.cvoid(setAttribute("hardware_template", "t2", "cpu_num", 4))
+    r.cvoid(setAttribute("hardware_template", "t2", "ram", 1024))
+    r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t2"))
+    hw3_4 = hw3_1
+    hw3_3["cpu_num"] = ["t2", 4]
+    hw3_3["ram"] = ["t2", 1024]
+    hw3_2["template_hardware"] = "t2"
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_2["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_2["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+
+
     # Let's play with a chain of inheritance
+    #r.cvoid(setAttribute("hardware_template", "t2", "template_hardware", "t1"))
 
     # FIXME: write more code
 
