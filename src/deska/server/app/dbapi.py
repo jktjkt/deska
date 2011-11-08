@@ -266,6 +266,7 @@ class DB:
 			self.cfgPushToScm(args["commitMessage"])
 		except Exception, e:
 			self.db.rollback()
+			return self.errorJson(name, tag, str(e))
 		self.db.commit()
 		self.unlockChangeset()
 		return res
