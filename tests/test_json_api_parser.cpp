@@ -395,18 +395,19 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
 BOOST_FIXTURE_TEST_CASE(json_resolvedObjectDataWithOrigin, JsonApiTestFixtureFailOnStreamThrow)
 {
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
-    expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\"}, \n"
+    expectRead("{\"kindAttributes\": {\"baz\": \"int\", \"foo\": \"string\", \"smrt\": \"timestamp\"}, \n"
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"response\":\"kindRelations\", \"tag\":\"T\", \"kindRelations\": []}\n");
 
     expectWrite("{\"command\":\"resolvedObjectDataWithOrigin\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\"}\n");
     expectRead("{\"resolvedObjectDataWithOrigin\": "
-            "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666]}, \"tag\":\"T\", \"response\": \"resolvedObjectDataWithOrigin\"}\n");
-    map<Identifier, std::pair<Identifier,Value> > expected;
-    expected["foo"] = std::make_pair("obj-defining-this", string("bar"));
-    expected["baz"] = std::make_pair("this-obj", 666);
-    map<Identifier, std::pair<Identifier,Value> > res = j->resolvedObjectDataWithOrigin("kk", "oo");
+               "{\"foo\": [\"obj-defining-this\", \"bar\"], \"baz\": [\"this-obj\", 666], \"smrt\": [null, null]}, \"tag\":\"T\", \"response\": \"resolvedObjectDataWithOrigin\"}\n");
+    map<Identifier, std::pair<boost::optional<Identifier>,Value> > expected;
+    expected["foo"] = std::make_pair(Identifier("obj-defining-this"), string("bar"));
+    expected["baz"] = std::make_pair(Identifier("this-obj"), 666);
+    expected["smrt"] = std::make_pair(boost::optional<Identifier>(), Value());
+    map<Identifier, std::pair<boost::optional<Identifier>,Value> > res = j->resolvedObjectDataWithOrigin("kk", "oo");
     // In this case, we limit ourselves to string comparisons. There's a map invloved here, which means that
     // BOOST_CHECK_EQUAL_COLLECTIONS is worthless, and there isn't much point in duplicating the whole logic from json_objectData
     // at yet another place. Let's stick with strings and don't expect to see detailed error reporting here.
@@ -421,7 +422,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"template\": \"identifier\", \"anotherKind\": \"identifier\"}, "
+               "\"template\": \"identifier\", \"anotherKind\": \"identifier\", \"smrt\": \"identifier_set\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
     // ... as well as relation information for proper filtering
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
@@ -432,21 +433,23 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
 
     expectWrite("{\"command\":\"multipleResolvedObjectDataWithOrigin\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
     expectRead("{\"multipleResolvedObjectDataWithOrigin\": {"
-               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10], \"template\": [\"a\", null], \"anotherKind\": [\"a\", \"a\"]}, "
-               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20], \"template\": [\"b\", \"22\"], \"anotherKind\": [\"b\", \"b\"]} "
+               "\"a\": {\"foo\": [\"1\", \"barA\"], \"baz\": [\"1\", \"idA\"], \"int\": [\"11\", 10], \"template\": [\"a\", null], \"anotherKind\": [\"a\", \"a\"], \"smrt\": [null, null]}, "
+               "\"b\": {\"foo\": [\"1\", \"barB\"], \"baz\": [\"2\", \"idB\"], \"int\": [\"22\", 20], \"template\": [\"b\", \"22\"], \"anotherKind\": [\"b\", \"b\"], \"smrt\": [null, null]} "
                "}, \"tag\":\"T\", \"response\": \"multipleResolvedObjectDataWithOrigin\"}\n");
-    map<Identifier, map<Identifier,std::pair<Identifier, Value> > > expected;
-    expected["a"]["foo"] = std::make_pair("1", string("barA"));
-    expected["a"]["baz"] = std::make_pair("1", string("idA"));
-    expected["a"]["int"] = std::make_pair("11", 10);
-    expected["a"]["template"] = std::make_pair("a", Value());
-    expected["a"]["anotherKind"] = std::make_pair("a", string("a"));
-    expected["b"]["foo"] = std::make_pair("1", string("barB"));
-    expected["b"]["baz"] = std::make_pair("2", string("idB"));
-    expected["b"]["int"] = std::make_pair("22", 20);
-    expected["b"]["template"] = std::make_pair("b", string("22"));
-    expected["b"]["anotherKind"] = std::make_pair("b", string("b"));
-    map<Identifier, map<Identifier, std::pair<Identifier, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
+    map<Identifier, map<Identifier,std::pair<boost::optional<Identifier>, Value> > > expected;
+    expected["a"]["foo"] = std::make_pair(Identifier("1"), string("barA"));
+    expected["a"]["baz"] = std::make_pair(Identifier("1"), string("idA"));
+    expected["a"]["int"] = std::make_pair(Identifier("11"), 10);
+    expected["a"]["template"] = std::make_pair(Identifier("a"), Value());
+    expected["a"]["anotherKind"] = std::make_pair(Identifier("a"), string("a"));
+    expected["a"]["smrt"] = std::make_pair(boost::optional<Identifier>(), Value());
+    expected["b"]["foo"] = std::make_pair(Identifier("1"), string("barB"));
+    expected["b"]["baz"] = std::make_pair(Identifier("2"), string("idB"));
+    expected["b"]["int"] = std::make_pair(Identifier("22"), 20);
+    expected["b"]["template"] = std::make_pair(Identifier("b"), string("22"));
+    expected["b"]["anotherKind"] = std::make_pair(Identifier("b"), string("b"));
+    expected["b"]["smrt"] = std::make_pair(boost::optional<Identifier>(), Value());
+    map<Identifier, map<Identifier, std::pair<boost::optional<Identifier>, Value> > > res = j->multipleResolvedObjectDataWithOrigin("kk", Filter(AttributeExpression(FILTER_COLUMN_NE, "kind1", "int", Value(666))));
     BOOST_CHECK(std::equal(res.begin(), res.end(), expected.begin()));
     expectEmpty();
 }

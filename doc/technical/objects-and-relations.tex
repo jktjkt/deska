@@ -15,34 +15,34 @@ basic building blocks of the Deska database, the {\em kinds}, {\em objects} and 
 
 Deska does not try to deny its background in relation databases, and therefore it comes at no surprise that the basic
 building blocks, the Deska {\em objects}, {\em kinds} and {\em relations}, all have their well-known parallels in the
-relation database world.
+world of relational databases and object-oriented programming.
 
 Anything which is stored in the Deska database is an {\em object}. An object can be thought of as a row in a DB table ---
-all objects of the same type, or {\em kind} as we call that in the Deska jargon, live in one table, and they all can
+all objects of the same type, or {\em kind} as we call that in the Deska jargon,\footnote{Unfortunately we were unable
+to call Deska kinds {\em classes}, which would be the best name for them, because a lot of languages use {\tt class} as
+a keyword.  We have chosen to use the slightly unintuitive word {\tt kind} instead of obvious alternatives like {\tt
+class\_}.} live in one table, and they all can
 store the same amount of information in their {\em attributes}, the database columns.  One of the columns is usually a
-primary key, which in the Deska corresponds to a special attribute called {\em name}.  This name is used to uniquely
-identify an {\em object} among all other objects of the same {\em kind}, similarly to how a primary key is a unique
-reference to a single row in a database table.
+primary key, which in the Deska corresponds to a special attribute called {\em name}, and serves as a unique identifier
+of an object.
 
-The primary key on its own is rather meaningless, though --- one has to know what table it belongs to in order to do
-anything useful with that information.  The situation is the same in Deska, where one has to always pass a tuple of
-identifiers when trying to identify an object, the name of the {\em kind} and the identifier of the object's {\em name}.
-
-Similarly to how a typical RDBMS hosts many tables, Deska usually works with many {\em kinds} at once.  All tables are
-born equal, and hence even the Deska kinds all exist on the same level of a virtual hierarchy.  Even though the
-real-world is full of examples where something ``belongs'' to something else, like an {\tt eth0} interface could belong
-to machine called {\tt www}, there's no such thing at this level of the Deska interface --- when you want to work with a
-particular object, perhaps the {\tt www}'s {\tt eth0}, you always have to identify it through a globally unique name.
-Of course, all of this is hidden (and much else provided by) by the upper layers thanks to the concept of {\em
-relations}.
+Two objects from different kinds can have the same name, and unless the scheme defines a special connection between
+these two kinds, the two objects will remain completely isolated from each other.  There is no inherent hierarchy
+between the Deska kinds, all of them exist at the same level.  Even though the real-world is full of examples where
+something ``belongs'' to something else, like an {\tt eth0} interface could belong to machine called {\tt srv06},
+there's no such thing at this level of the Deska interface --- when you want to work with a particular object, perhaps
+the {\tt srv06}'s {\tt eth0}, you always have to identify it through a globally unique name.  Of course, all of this is
+hidden (and much else provided) by the upper layers thanks to the concept of {\em relations}.
 
 \section{Relations}
 \label{sec:objects-and-relations-relations}
 
 A {\em relation} is something which might exist between two {\em kinds} and can be used to model wildly differing
-scenarios.  A relation is defined by the left and right {\em kinds} to which it refers and of the associated {\em type}
-of the relation.\footnote{This is further augmented by auxiliary information of which object attribute is used by the
-relation, but all of that can be safely ignored for now.  Don't worry, we'll get back to that later.}
+scenarios.\footnote{These relations do {\em not} refer to relations from relational algebra, the name is again a result
+of a limited set of words usable as identifiers.}  A relation is defined by the left and right {\em kinds} to which it
+refers and by the associated {\em type} of the relation.\footnote{This is further augmented by auxiliary information of
+which object attribute is used by the relation, but all of that can be safely ignored for now.  Don't worry, we'll get
+back to that later.}
 
 The relations serve different purposes, all of which are described in this section.  Some of them are suitable for
 maintaining referential integrity, others serve as ``context helpers'' for humans to work with, yet others can be used
@@ -99,7 +99,7 @@ REFERS\_TO} relation.  In our example, the {\tt role} is a standalone kind, and 
 {\tt services} of type {\tt identifier\_set}.  Where the RDBMS equivalent of tagging would involve dealing with an
 auxiliary table just for the mapping, the Deska DBAPI provides an abstraction without any extra kinds.
 
-\subsection{Templates and Default Value Inheritance}
+\subsection{Templates: Default Value Inheritance}
 
 There are certain cases where many objects have certain shared properties.  As an example, imagine a situation where you
 order a delivery of 50 new, identical servers.  A lot of their properties is going to be the same, or almost the same,
@@ -119,8 +119,8 @@ object are inherited from the associated template.
 This default value substitution can be overridden at any time by setting an explicit non-null value at the level of the
 leaf object.  Resetting the attribute value back to {\tt null} later effectively restores the inherited default.  It is
 not possible to override an inherited attribute value by {\tt null}; doing that requires explicitly cancelling the
-relation for that particular object.  In our case, the inheritance can be stopped by setting the {\tt hardware}'s
-attribute {\tt template} to {\tt null}.
+relation for that particular object (in our case, the inheritance is stopped by setting the {\tt hardware}'s attribute
+{\tt template} to {\tt null}).
 
 Users should be careful to not abuse the template relation where composition would be more appropriate.  As a rule of
 thumb, if it makes sense to deal with a subset of object's attributes as a different entity (maybe distinguishing

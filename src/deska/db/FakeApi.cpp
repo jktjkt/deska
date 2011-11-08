@@ -111,17 +111,17 @@ std::map<Identifier, std::map<Identifier, Value> > FakeApi::multipleResolvedObje
     return map<Identifier, map<Identifier, Value> >();
 }
 
-map<Identifier, pair<Identifier, Value> > FakeApi::resolvedObjectDataWithOrigin(const Identifier &kindName,
+map<Identifier, pair<boost::optional<Identifier>, Value> > FakeApi::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
-    map<Identifier, pair<Identifier, Value> > empty;
+    map<Identifier, pair<boost::optional<Identifier>, Value> > empty;
     return empty;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > FakeApi::multipleResolvedObjectDataWithOrigin(
+std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > FakeApi::multipleResolvedObjectDataWithOrigin(
     const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
-    return map<Identifier, map<Identifier, pair<Identifier, Value> > >();
+    return map<Identifier, map<Identifier, pair<boost::optional<Identifier>, Value> > >();
 }
 
 

@@ -120,13 +120,21 @@ class DB:
 				return self.errorJson(name,tag,"Missing command.")
 			name = command["command"]
 			del command["command"]
+			#add tag into the command for propper db call
+			command["tag"] = tag
 			try:
 				# just run, no responce
-				self.runDBFunction(name,command,tag)
+				data = self.runDBFunction(name,command,tag)
 			except Exception, e:
 				# abort if error here
 				self.db.rollback()
 				return self.errorJson(name, tag, str(e))
+			if "dbException" in data:
+				'''abort db transaction if exception occured'''
+				self.db.rollback()
+				# return data with dbException
+				return data
+
 
 		self.endTransaction()
 		return self.responseJson("applyBatchedChanges",tag)

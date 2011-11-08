@@ -208,7 +208,7 @@ std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleResolv
     return res.objects;
 }
 
-map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
+map<Identifier, pair<boost::optional<Identifier>, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     JsonCommandContext c1("resolvedObjectDataWithOrigin");
@@ -224,7 +224,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithO
     return res.attributes;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectDataWithOrigin(
+std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > JsonApiParser::multipleResolvedObjectDataWithOrigin(
     const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     JsonCommandContext c1("multipleResolvedObjectDataWithOrigin");

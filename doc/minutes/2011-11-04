@@ -1,0 +1,20 @@
+Schuze Deska, 2011-11-04 MFF
+----------------------------
+
+Pritomni: Zavoral, Martina, Honza
+Nepritomni: Tomas (meeting v praci), Lukas (neco s autem?)
+
+- rekli jsme, jak jsme na tom, ze "schema je skoro hotove"
+- nejvetsi problem je v tuto chvili s CLI (diffovani, merge)
+- diskuze o dokumentaci
+    - predelat uvod, je tam velky skok od nicnerikajicich uvodnich zvastu k
+    designu Desky
+    - mozna by to mohl napsat nekdo jiny nez Honza ("jste do toho moc zazrany")
+- vysvetlit, co je "kind", "object", "relation" atd
+    - proc nepouzivame standardni "class"? napsat tam, ze je to keyword
+- pochvalit se za cokoli, co jsme udelali hezky
+- v dokumentaci lip popsat motivaci a celkovy design Desky
+- klicovy je uvod, musi oponenta zaujmout a vysvetlit mu, co je to Deska
+
+- Smerujeme na dokonceny projekt k 1. prosinci
+

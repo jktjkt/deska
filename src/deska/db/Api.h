@@ -176,13 +176,18 @@ public:
      * Requesting data for the "hw DL360":
      *      power_consumption: (DL360, 500W)
      *      height: (template-1U, 1)
+     *      note: (null, null)
      *      ...
+     *
+     * A null identifier of an object which "provides" the attribute value is acceptable and simply means that the null value is
+     * the default and no object in the hierarchy has overloaded it with any value.
+     *
      * */
-    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectDataWithOrigin(
+    virtual std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > resolvedObjectDataWithOrigin(
         const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     /** @short Version of resolvedObjectDataWithOrigin that returns multiple objects of the same kind at once */
-    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
+    virtual std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > multipleResolvedObjectDataWithOrigin(
         const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>()) = 0;
 
     // Manipulating objects
