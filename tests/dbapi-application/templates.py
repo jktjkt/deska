@@ -154,6 +154,18 @@ def imperative(r):
     hw3_4["template_hardware"] = "t2"
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.c(commitChangeset("test2"))
+    # and test after a commit again
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_4["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_4["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+
 
 
     # Let's play with a chain of inheritance
