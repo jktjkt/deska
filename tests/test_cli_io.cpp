@@ -98,26 +98,7 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     returnReadLine(std::make_pair<std::string, bool>("hardware hpv2", false));
     expectReadLine("hardware hpv2");
     returnReadLine(std::make_pair<std::string, bool>("show", false));
-    std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrs;
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("cpu_ht", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("cpu_num", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("host", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("note_hardware", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("purchase", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("ram", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("template_hardware", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("vendor", Deska::Db::Value()), Deska::Db::Identifier()));
-    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
-        Deska::Cli::AttributeDefinition("warranty", Deska::Db::Value()), Deska::Db::Identifier()));
-    expectPrintAttributesWithOrigin(attrs, 0, std::cout);
+    expectPrintObject(Deska::Cli::ObjectDefinition("hardware", "hpv2"), 0, true, std::cout);
     expectReadLine("hardware hpv2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
     startTest();
