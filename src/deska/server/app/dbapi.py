@@ -261,8 +261,12 @@ class DB:
 		if not self.changesetHasFreshConfig():
 			self.cfgRegenerate()
 			self.markChangesetFresh()
-		self.cfgPushToScm(args["commitMessage"])
-		res = self.standaloneRunDbFunction(name, args, tag)
+		try:
+			res = self.runDBFunction(name,args,tag)
+			self.cfgPushToScm(args["commitMessage"])
+		except Exception, e:
+			self.db.rollback()
+		self.db.commit()
 		self.unlockChangeset()
 		return res
 
@@ -282,10 +286,6 @@ class DB:
 			if args.has_key("forceRegen") and args["forceRegen"] == True:
 				forceRegen = True
 			return self.showConfigDiff(name, tag, forceRegen)
-
-		if name == "commitChangeset":
-			# this one is special, it has to commit to the DB *and* push to SCM
-			return self.commitConfig(name, args, tag)
 
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
