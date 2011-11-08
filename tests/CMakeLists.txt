@@ -135,6 +135,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(multipleObjectData)
     deska_dbapi_test(createDelRestore)
     deska_dbapi_test(rebaseChangeset)
+    deska_dbapi_test(templates)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
