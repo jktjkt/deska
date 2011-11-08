@@ -277,11 +277,10 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefini
 {
     std::vector<ObjectDefinition> kinds;
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
-        // FIXME: Db::FilterError: "Item 'column' is missing in condition."
-        /*std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
+        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
             Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
         for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite)
-            kinds.push_back(ObjectDefinition(*it, *ite));*/
+            kinds.push_back(ObjectDefinition(*it, *ite));
     }
     return kinds;
 }
