@@ -32,7 +32,7 @@ hw3_1 = {
 }
 
 def strip_origin(x):
-    # FIXME: simplify this to a one-liner when #295 is fixed
+    # FIXME: simplify this to a one-liner when #294 is fixed
     res = {}
     for k,v in x.iteritems():
         if v is None:
