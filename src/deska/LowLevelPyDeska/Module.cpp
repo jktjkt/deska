@@ -126,18 +126,18 @@ void exportNastyMaps()
             .def(map_indexing_suite<map_Identifier_Value>());
 
     // this one is the inner type inside the multipleResolvedObjectDataWithOrigin return type
-    typedef std::pair<Identifier, Value> pair_Identifier_Value;
-    to_python_converter<pair_Identifier_Value, PairToTupleConverter<Identifier, Value> >();
+    typedef std::pair<boost::optional<Identifier>, Value> pair_optionalIdentifier_Value;
+    to_python_converter<pair_optionalIdentifier_Value, PairToTupleConverter<boost::optional<Identifier>, Value> >();
 
     // ...the middle one...
-    typedef std::map<Identifier, pair_Identifier_Value> map_Identifier_pair_Identifier_Value;
-    class_<map_Identifier_pair_Identifier_Value>("std_map_Identifier_pair_Identifier_Value")
-            .def(map_indexing_suite<map_Identifier_pair_Identifier_Value>());
+    typedef std::map<Identifier, pair_optionalIdentifier_Value> map_Identifier_pair_optionalIdentifier_Value;
+    class_<map_Identifier_pair_optionalIdentifier_Value>("std_map_Identifier_pair_optionalIdentifier_Value")
+            .def(map_indexing_suite<map_Identifier_pair_optionalIdentifier_Value>());
 
     // ...and even the outer one :)
-    typedef std::map<Identifier, map_Identifier_pair_Identifier_Value> map_Identifier_map_Identifier_pair_Identifier_Value;
-    class_<map_Identifier_map_Identifier_pair_Identifier_Value>("std_map_Identifier_std_map_Identifier_pair_Identifier_Value")
-            .def(map_indexing_suite<map_Identifier_map_Identifier_pair_Identifier_Value>());
+    typedef std::map<Identifier, map_Identifier_pair_optionalIdentifier_Value> map_Identifier_map_Identifier_pair_optionalIdentifier_Value;
+    class_<map_Identifier_map_Identifier_pair_optionalIdentifier_Value>("std_map_Identifier_std_map_Identifier_pair_optionalIdentifier_Value")
+            .def(map_indexing_suite<map_Identifier_map_Identifier_pair_optionalIdentifier_Value>());
 
     // also define a proper type for the multipleObjectData
     typedef std::map<Identifier, std::map<Identifier, Value> > map_Identifier_map_Identifier_Value;
