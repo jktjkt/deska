@@ -1,5 +1,6 @@
 '''Test multipleObjectData with revisions with pre-existing data'''
 
+import copy
 from apiUtils import *
 
 expectedHardwareData2 = {
@@ -77,7 +78,7 @@ def imperative(r):
     r.cvoid(setAttribute("hardware_template", "t1", "ram", 333))
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
-    hw3_2 = hw3_1
+    hw3_2 = copy.deepcopy(hw3_1)
     hw3_2["template_hardware"] = "t1"
     hw3_2["cpu_num"] = ["t1", 666]
     hw3_2["cpu_ht"] = ["t1", True]
@@ -108,29 +109,29 @@ def imperative(r):
     # Let's see what happens when we override an inherited attribute
     r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw3", "cpu_ht", False))
-    hw3_3 = hw3_1
+    hw3_3 = copy.deepcopy(hw3_2)
     hw3_3["cpu_ht"] = ["hw3", False]
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_2["template_hardware"] = 1
+    hw3_3["template_hardware"] = 1
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_2["template_hardware"] = "t1"
+    hw3_3["template_hardware"] = "t1"
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
     r.c(commitChangeset("test2"))
     # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_2["template_hardware"] = 1
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
+    hw3_3["template_hardware"] = 1
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_2["template_hardware"] = "t1"
+    hw3_3["template_hardware"] = "t1"
     # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
 
     # See what happens when we switch it to derive from another template
@@ -139,17 +140,18 @@ def imperative(r):
     r.cvoid(setAttribute("hardware_template", "t2", "cpu_num", 4))
     r.cvoid(setAttribute("hardware_template", "t2", "ram", 1024))
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t2"))
-    hw3_4 = hw3_1
-    hw3_3["cpu_num"] = ["t2", 4]
-    hw3_3["ram"] = ["t2", 1024]
-    hw3_2["template_hardware"] = "t2"
+    hw3_4 = copy.deepcopy(hw3_1)
+    hw3_4["cpu_ht"] = ["hw3", False]
+    hw3_4["cpu_num"] = ["t2", 4]
+    hw3_4["ram"] = ["t2", 1024]
+    hw3_4["template_hardware"] = "t2"
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_2["template_hardware"] = 2
+    hw3_4["template_hardware"] = 2
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_2["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = "t2"
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
