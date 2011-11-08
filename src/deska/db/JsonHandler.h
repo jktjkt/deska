@@ -78,10 +78,10 @@ struct JsonWrappedAttribute
 };
 
 /** @short Helper class extending the JsonWrappedAttribute with information about the origin of the attribute value */
-struct JsonWrappedAttributeWithOptionalOrigin: public JsonWrappedAttribute
+struct JsonWrappedAttributeWithOrigin: public JsonWrappedAttribute
 {
     boost::optional<Identifier> origin;
-    JsonWrappedAttributeWithOptionalOrigin(const Type dataType_, const Identifier &attrName_);
+    JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_);
 };
 
 /** @short Helper class for adding attribute datatype information into object modification record */

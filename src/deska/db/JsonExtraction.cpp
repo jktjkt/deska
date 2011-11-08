@@ -864,7 +864,7 @@ supported attributes.
 @see SpecializedExtractor<JsonWrappedAttribute>::extract
 */
 template<>
-void SpecializedExtractor<JsonWrappedAttributeWithOptionalOrigin>::extract(const json_spirit::Value &value)
+void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attribute " + target->attrName + " with origin information");
@@ -962,11 +962,11 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attributes");
     JsonHandler h;
-    std::vector<JsonWrappedAttributeWithOptionalOrigin> wrappedAttrs;
+    std::vector<JsonWrappedAttributeWithOrigin> wrappedAttrs;
 
     // For details about how this function works, please see SpecializedExtractor<JsonWrappedAttributeMap>::extract
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
-        wrappedAttrs.push_back(JsonWrappedAttributeWithOptionalOrigin(attr.type, attr.name));
+        wrappedAttrs.push_back(JsonWrappedAttributeWithOrigin(attr.type, attr.name));
     }
 
     int i = 0;

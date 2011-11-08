@@ -292,7 +292,7 @@ JsonWrappedAttribute::JsonWrappedAttribute(const Type dataType_, const Identifie
 {
 }
 
-JsonWrappedAttributeWithOptionalOrigin::JsonWrappedAttributeWithOptionalOrigin(const Type dataType_, const Identifier &attrName_):
+JsonWrappedAttributeWithOrigin::JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_):
     JsonWrappedAttribute(dataType_, attrName_)
 {
 }
