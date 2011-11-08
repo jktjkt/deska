@@ -69,6 +69,23 @@ def imperative(r):
 
     # now let's see how templates come into play here
 
+    r.c(startChangeset())
+    r.assertEqual(r.c(createObject("hardware_template", "t1")), "t1")
+    r.cvoid(setAttribute("hardware_template", "t1", "cpu_num", 666))
+    r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
+
+    hw3_2 = hw3_1
+    hw3_2["template_hardware"] = "t1"
+    hw3_2["cpu_num"] = ["t1", 666]
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_2["template_hardware"] = 1
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+
+
     # FIXME: write more code
 
 
