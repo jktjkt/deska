@@ -195,8 +195,29 @@ def imperative(r):
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
 
-    # FIXME: write more code
-
+    # See what happens when we break the chain -- that should be the same as hw3_4
+    r.c(startChangeset())
+    r.cvoid(setAttribute("hardware_template", "t2", "template_hardware", None))
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_4["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_4["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.c(commitChangeset("test2"))
+    # and test after a commit again
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hw3_4["template_hardware"] = 2
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_4["template_hardware"] = "t2"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
 def doStuff_embed(r):
     hostNames = set(["host1", "host2"])
