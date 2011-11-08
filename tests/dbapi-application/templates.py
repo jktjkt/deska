@@ -96,8 +96,11 @@ def imperative(r):
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
     hw3_2["template_hardware"] = 1
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
+    # FIXME: Redmine #296, got to restore it back
+    hw3_2["template_hardware"] = "t1"
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+
 
 
     # FIXME: write more code
