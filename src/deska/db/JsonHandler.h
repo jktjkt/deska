@@ -56,7 +56,7 @@ struct JsonWrappedAttributeMapList
 struct JsonWrappedAttributeMapWithOrigin
 {
     std::vector<KindAttributeDataType> dataTypes;
-    std::map<Identifier, std::pair<Identifier, Value> > attributes;
+    std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > attributes;
     JsonWrappedAttributeMapWithOrigin(const std::vector<KindAttributeDataType> dataTypes);
 };
 
@@ -64,7 +64,7 @@ struct JsonWrappedAttributeMapWithOrigin
 struct JsonWrappedAttributeMapWithOriginList
 {
     std::vector<KindAttributeDataType> dataTypes;
-    std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > objects;
+    std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > objects;
     JsonWrappedAttributeMapWithOriginList(const std::vector<KindAttributeDataType> dataTypes);
 };
 
@@ -78,10 +78,10 @@ struct JsonWrappedAttribute
 };
 
 /** @short Helper class extending the JsonWrappedAttribute with information about the origin of the attribute value */
-struct JsonWrappedAttributeWithOrigin: public JsonWrappedAttribute
+struct JsonWrappedAttributeWithOptionalOrigin: public JsonWrappedAttribute
 {
-    Identifier origin;
-    JsonWrappedAttributeWithOrigin(const Type dataType_, const Identifier &attrName_);
+    boost::optional<Identifier> origin;
+    JsonWrappedAttributeWithOptionalOrigin(const Type dataType_, const Identifier &attrName_);
 };
 
 /** @short Helper class for adding attribute datatype information into object modification record */

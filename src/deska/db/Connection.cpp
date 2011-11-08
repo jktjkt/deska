@@ -77,12 +77,12 @@ std::map<Identifier, std::map<Identifier, Value> > Connection::multipleResolvedO
     return p->multipleResolvedObjectData(kindName, filter, revision);
 }
 
-std::map<Identifier, std::pair<Identifier, Value> > Connection::resolvedObjectDataWithOrigin(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
+std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > Connection::resolvedObjectDataWithOrigin(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     return p->resolvedObjectDataWithOrigin(kindName, objectName, revision);
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > Connection::multipleResolvedObjectDataWithOrigin(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
+std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > Connection::multipleResolvedObjectDataWithOrigin(const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     return p->multipleResolvedObjectDataWithOrigin(kindName, filter, revision);
 }

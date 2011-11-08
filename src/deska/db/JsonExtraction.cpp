@@ -864,7 +864,7 @@ supported attributes.
 @see SpecializedExtractor<JsonWrappedAttribute>::extract
 */
 template<>
-void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_spirit::Value &value)
+void SpecializedExtractor<JsonWrappedAttributeWithOptionalOrigin>::extract(const json_spirit::Value &value)
 {
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attribute " + target->attrName + " with origin information");
@@ -879,7 +879,14 @@ void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_sp
     helperExtractor.extract(a[1]);
 
     // Now file in the origin information
-    target->origin = a[0].get_str();
+    if (a[0].type() == json_spirit::null_type) {
+        // null is also acceptable, just make sure we explicitly "store" it
+        target->origin.reset();
+    } else {
+        // if it isn't null, then it must be a string
+        checkJsonValueType(a[0], json_spirit::str_type);
+        target->origin = a[0].get_str();
+    }
 }
 
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
@@ -955,11 +962,11 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     BOOST_ASSERT(target);
     JsonContext c1("When extracting attributes");
     JsonHandler h;
-    std::vector<JsonWrappedAttributeWithOrigin> wrappedAttrs;
+    std::vector<JsonWrappedAttributeWithOptionalOrigin> wrappedAttrs;
 
     // For details about how this function works, please see SpecializedExtractor<JsonWrappedAttributeMap>::extract
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
-        wrappedAttrs.push_back(JsonWrappedAttributeWithOrigin(attr.type, attr.name));
+        wrappedAttrs.push_back(JsonWrappedAttributeWithOptionalOrigin(attr.type, attr.name));
     }
 
     int i = 0;
@@ -975,7 +982,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         // This is slightly different than the SpecializedExtractor<JsonWrappedAttributeMap>::extract
         // in order to accomodate the difference in object layout
-        target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
+        target->attributes[attr.name] = std::make_pair<boost::optional<Identifier>, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
         ++i;
     }
 }
