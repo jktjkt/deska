@@ -392,10 +392,10 @@ template<>
 PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
     JsonHandler h;
-    TemporaryChangesetId changeset(0);
+    boost::optional<TemporaryChangesetId> changeset;
     std::string author;
     boost::posix_time::ptime timestamp;
-    RevisionId parentRevision(0);
+    boost::optional<RevisionId> parentRevision;
     std::string message;
     PendingChangeset::AttachStatus attachStatus;
     boost::optional<std::string> activeConnectionInfo;
@@ -410,8 +410,10 @@ PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spir
 
     // This is guaranteed by the extractor
     BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
+    BOOST_ASSERT(changeset);
+    BOOST_ASSERT(parentRevision);
 
-    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
+    return PendingChangeset(*changeset, author, timestamp, *parentRevision, message, attachStatus, activeConnectionInfo);
 }
 
 /** @short Specialization for extracting ObjectRelation into a C++ class from JSON */
@@ -449,7 +451,7 @@ template<>
 RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
     JsonHandler h;
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     std::string author;
     boost::posix_time::ptime timestamp;
     std::string commitMessage;
@@ -459,7 +461,8 @@ RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spir
     h.read("commitMessage").extract(&commitMessage);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
-    return RevisionMetadata(revision, author, timestamp, commitMessage);
+    BOOST_ASSERT(revision);
+    return RevisionMetadata(*revision, author, timestamp, commitMessage);
 }
 
 template<typename T> T extractRevisionFromJson(const std::string &prefix, const std::string &name, const std::string &jsonStr)
@@ -1040,7 +1043,9 @@ JsonField &JsonField::extract(T *where)
 
 // Template instances for the linker
 template JsonField& JsonField::extract(RevisionId*);
+template JsonField& JsonField::extract(boost::optional<RevisionId>*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);
+template JsonField& JsonField::extract(boost::optional<TemporaryChangesetId>*);
 template JsonField& JsonField::extract(std::vector<Identifier>*);
 template JsonField& JsonField::extract(std::vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(std::vector<ObjectRelation>*);

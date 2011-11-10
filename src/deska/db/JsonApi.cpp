@@ -334,23 +334,25 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 {
     JsonCommandContext c1("startChanges");
 
-    TemporaryChangesetId revision(0);
+    boost::optional<TemporaryChangesetId> revision;
     JsonHandlerApiWrapper h(this, "startChangeset");
     h.read("startChangeset").extract(&revision);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     JsonCommandContext c1("commitChangeset");
 
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);
     h.argument("commitMessage", commitMessage);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<Filter> &filter)
@@ -428,14 +430,15 @@ RevisionId JsonApiParser::restoringCommit(const std::string &commitMessage, cons
 {
     JsonCommandContext c1("restoringCommit");
 
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     JsonHandlerApiWrapper h(this, "restoringCommit");
     h.read("restoringCommit").extract(&revision);
     h.argument("commitMessage", commitMessage);
     h.argument("author", author);
     h.argument("timestamp", timestamp);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
