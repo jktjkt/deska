@@ -230,7 +230,7 @@ def do_host(r):
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
     hdata["template_host"] = 1
-    # FIXME: Redmine #297, identifier_values are not propagated at all
+    # FIXME: Redmine #297, identifier_set values are not propagated at all
     # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     # FIXME: Redmine #296, change it back
     hdata["template_host"] = "t1"
