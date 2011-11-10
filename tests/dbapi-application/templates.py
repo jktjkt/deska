@@ -46,8 +46,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
     r.c(commitChangeset("test2"))
 
@@ -55,8 +54,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
 
     # Now let's see how templates come into play. Let's inherit three attributes.
     r.c(startChangeset())
@@ -75,16 +73,14 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
     r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
     # Let's see what happens when we override an inherited attribute
     r.c(startChangeset())
@@ -94,17 +90,14 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
     r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
-    # FIXME: fails, Redmine #295
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
 
     # See what happens when we switch it to derive from another template
@@ -129,8 +122,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
     # Let's play with a chain of inheritance
     r.c(startChangeset())
@@ -142,15 +134,13 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
     r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
 
     # See what happens when we break the chain -- that should be the same as hw3_4
     r.c(startChangeset())
@@ -158,15 +148,13 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
     r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
 def do_host(r):
     r.c(startChangeset())
@@ -189,13 +177,11 @@ def do_host(r):
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
     # FIXed: Redmine #297, identifier_set values are not propagated at all
     r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
     # test after a commit
     r.c(commitChangeset("."))
     r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
     # FIXed: Redmine #297, identifier_set values are not propagated at all
     r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
