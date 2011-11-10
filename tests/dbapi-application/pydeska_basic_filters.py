@@ -121,3 +121,9 @@ def doTests(r):
     # FIXME: fails, Redmine #298
     #matching = deska.vendor._all()
     #r.assertEqual(sorted(matchig.keys()), sorted(["HP", "IBM", "SGI"]))
+
+    # Now try to perform that we can search from the other way round
+    # FIXME: fails, Redmine #298
+    #matching = deska.vendor[deska.hardware.ram == 3]
+    #r.assertEqual(sorted(matching.keys()),
+    #              sorted([v["vendor"] for (k, v) in myHw.iteritems() if v["ram"] == "3"]))
