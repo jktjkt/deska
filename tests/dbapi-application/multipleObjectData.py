@@ -85,9 +85,8 @@ def doStuff(r):
         'note_hardware': [None, None],
         'purchase': ['hw3', '2010-10-10'],
         'ram': [None, None],
-        # FIXME: Redmine #294
-        #'template_hardware': [None, None],
-        'template_hardware': None,
+        # FIXed: Redmine #294
+        'template_hardware': [None, None],
         'vendor': ['hw3', 'vendor2'],
         'warranty': ['hw3', '2012-10-10']
     })
