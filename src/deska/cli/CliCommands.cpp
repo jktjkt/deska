@@ -171,8 +171,8 @@ void Resume::operator()(const std::string &params)
 
         boost::optional<Db::TemporaryChangesetId> tmpId;
         try {
-            tmpId = stringToTemporaryChangesetId(paramsList[0]);
-        } catch (std::domain_error &e) {
+            tmpId = Db::TemporaryChangesetId::fromString(paramsList[0]);
+        } catch (std::runtime_error &e) {
             std::ostringstream ss;
             ss << "Invalid parameters: " << e.what();
             ui->io->reportError(ss.str());
@@ -204,27 +204,6 @@ void Resume::operator()(const std::string &params)
         ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
         ui->io->printMessage(ostr.str());
     }
-}
-
-
-
-Db::TemporaryChangesetId Resume::stringToTemporaryChangesetId(const std::string &tempChangesetId)
-{
-    if ((tempChangesetId.size() < 3) || (std::string(tempChangesetId.begin(), tempChangesetId.begin() + 3) != "tmp")) {
-        std::ostringstream ss;
-        ss << "String \"" << tempChangesetId << "\" is not a valid temporary changeset ID.";
-        throw std::domain_error(ss.str());
-    }
-    std::string tidStr(tempChangesetId.begin() + 3, tempChangesetId.end());
-    unsigned int tmpInt;
-    std::istringstream iss(tidStr);
-    iss >> tmpInt;
-    if (iss.fail()) {
-        std::ostringstream ss;
-        ss << "String \"" << tempChangesetId << "\" is not a valid temporary changeset ID.";
-        throw std::domain_error(ss.str());
-    }
-    return Db::TemporaryChangesetId(tmpInt);
 }
 
 
@@ -414,9 +393,9 @@ void Diff::operator()(const std::string &params)
 
     boost::optional<Db::RevisionId> revA, revB;
     try {
-        revA = stringToRevision(paramsList[0]);
-        revB = stringToRevision(paramsList[1]);
-    } catch (std::domain_error &e) {
+        revA = Deska::Db::RevisionId::fromString(paramsList[0]);
+        revB = Deska::Db::RevisionId::fromString(paramsList[1]);
+    } catch (std::runtime_error &e) {
         std::ostringstream ss;
         ss << "Invalid parameters: " << e.what();
         ui->io->reportError(ss.str());
@@ -429,27 +408,6 @@ void Diff::operator()(const std::string &params)
         ui->io->reportError("Revision range does not make a sense.");
     }
 
-}
-
-
-
-Db::RevisionId Diff::stringToRevision(const std::string &rev)
-{
-    if ((rev.size() < 2) || (rev[0] != 'r')) {
-        std::ostringstream ss;
-        ss << "String \"" << rev << "\" is not a valid revision.";
-        throw std::domain_error(ss.str());
-    }
-    std::string revStr(rev.begin() + 1, rev.end());
-    unsigned int revInt;
-    std::istringstream iss(revStr);
-    iss >> revInt;
-    if (iss.fail()) {
-        std::ostringstream ss;
-        ss << "String \"" << rev << "\" is not a valid revision.";
-        throw std::domain_error(ss.str());
-    }
-    return Db::RevisionId(revInt);
 }
 
 

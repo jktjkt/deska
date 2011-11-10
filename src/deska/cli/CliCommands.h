@@ -146,14 +146,6 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
-
-private:
-    /** @short Converts string to Db::TemporaryChangesetId.
-    *
-    *   @param tempChangesetId String in format tmp123.
-    *   @return Temporary changeset id
-    */
-    Db::TemporaryChangesetId stringToTemporaryChangesetId(const std::string &tempChangesetId);
 };
 
 
@@ -283,15 +275,6 @@ public:
     *   @param params Unused here.
     */
     virtual void operator()(const std::string &params);
-
-private:
-
-    /** @short Converts string to Db::RevisionId.
-    *
-    *   @param rev String in format r123.
-    *   @return Revision id.
-    */
-    Db::RevisionId stringToRevision(const std::string &rev);
 };
 
 
