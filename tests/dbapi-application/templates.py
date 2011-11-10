@@ -234,4 +234,17 @@ def do_host(r):
     # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     # FIXME: Redmine #296, change it back
     hdata["template_host"] = "t1"
+    # FIXME: fails, Redmine #295
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
+    # test after a commit
+    r.c(commitChangeset("."))
+    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hdata["template_host"] = 1
+    # FIXME: Redmine #297, identifier_set values are not propagated at all
+    # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
+    # FIXME: Redmine #296, change it back
+    hdata["template_host"] = "t1"
+    # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
