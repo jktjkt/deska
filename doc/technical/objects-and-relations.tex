@@ -37,12 +37,14 @@ hidden (and much else provided) by the upper layers thanks to the concept of {\e
 \section{Relations}
 \label{sec:objects-and-relations-relations}
 
-A {\em relation} is something which might exist between two {\em kinds} and can be used to model wildly differing
-scenarios.\footnote{These relations do {\em not} refer to relations from relational algebra, the name is again a result
-of a limited set of words usable as identifiers.}  A relation is defined by the left and right {\em kinds} to which it
-refers and by the associated {\em type} of the relation.\footnote{This is further augmented by auxiliary information of
-which object attribute is used by the relation, but all of that can be safely ignored for now.  Don't worry, we'll get
-back to that later.}
+A {\em relation}~\footnote{These relations do {\em not} refer to relations from relational algebra, the name is again a
+result of a limited set of words usable as identifiers.  We have deemed the word ``relation'' to be more accurate than
+the alternatives like ``association'' or ``connection'', which all have well-defined meaning in certain programming
+frameworks.} is an extra association between two individual object instances which can be used to model wildly differing
+connections between real-world objects.  A relation is defined by the left and right {\em kinds} to which it refers and
+by the associated {\em type} of the relation.\footnote{This is further augmented by auxiliary information of which
+object attribute is used to determine the target object of the relation, but all of that can be safely ignored for now.
+Don't worry, we'll get back to that later.}
 
 The relations serve different purposes, all of which are described in this section.  Some of them are suitable for
 maintaining referential integrity, others serve as ``context helpers'' for humans to work with, yet others can be used
