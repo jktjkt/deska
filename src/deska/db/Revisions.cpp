@@ -20,7 +20,9 @@
 * */
 
 #include <iostream>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
 #include "Revisions.h"
 
 namespace Deska {
@@ -124,6 +126,36 @@ std::ostream& operator<<(std::ostream &stream, const RevisionMetadata &a)
 {
     return stream << "RevisionMetadata(" << a.revision << ", " << a.author << ", " << a.timestamp << ", " << a.commitMessage << ")";
 }
+
+
+template<typename T> T extractRevisionFromJson(const std::string &prefix, const std::string &name, const std::string &str)
+{
+    if (boost::starts_with(str, prefix)) {
+        try {
+            return T(boost::lexical_cast<unsigned int>(str.substr(prefix.size())));
+        } catch (const boost::bad_lexical_cast &) {
+            std::ostringstream s;
+            s << "Value \"" << str << "\" can't be interpreted as a " << name << ".";
+            throw std::runtime_error(s.str());
+        }
+    } else {
+        std::ostringstream s;
+        s << "Value \"" << str << "\" does not look like a valid " << name << ".";
+        throw std::runtime_error(s.str());
+    }
+
+}
+
+RevisionId RevisionId::fromString(const std::string &s)
+{
+    return extractRevisionFromJson<RevisionId>("r", "RevisionId", s);
+}
+
+TemporaryChangesetId TemporaryChangesetId::fromString(const std::string &s)
+{
+    return extractRevisionFromJson<TemporaryChangesetId>("tmp", "TemporaryChangesetId", s);
+}
+
 
 }
 }

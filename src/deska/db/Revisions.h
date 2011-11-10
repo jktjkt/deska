@@ -32,6 +32,8 @@ namespace Db {
 /** @short An identification of a persistent revision in the DB */
 struct RevisionId {
     explicit RevisionId(const unsigned int revision);
+    /** @short Construct a RevisionId from a properly formatted string */
+    static RevisionId fromString(const std::string &s);
     unsigned int r;
 };
 
@@ -42,6 +44,8 @@ std::ostream& operator<<(std::ostream &stream, const RevisionId r);
 /** @short An identification of a temporary changeset in the DB */
 struct TemporaryChangesetId {
     explicit TemporaryChangesetId(const unsigned int tmp);
+    /** @short Construct a TemporaryChangesetId from a properly formatted string */
+    static TemporaryChangesetId fromString(const std::string &s);
     unsigned int t;
 };
 
