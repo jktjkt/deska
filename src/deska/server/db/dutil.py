@@ -132,6 +132,10 @@ def collectOriginColumns(columns):
 	for col in columns:
 		if re.match('.*_templ$',col):
 			origin[col[0:len(col)-6]] = columns[col]
+		# add also template origin, that is None, all the time
+		elif re.match('^template_.*',col):
+			origin[col] = None
+			data[col] = columns[col]
 		else:
 			data[col] = columns[col]
 	for col in origin:
