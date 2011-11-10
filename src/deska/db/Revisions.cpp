@@ -30,6 +30,9 @@ namespace Db {
 
 RevisionId::RevisionId(const unsigned int revision): r(revision)
 {
+    if (revision == 0) {
+        throw std::runtime_error("Revision r0 is invalid");
+    }
 }
 
 bool operator==(const RevisionId a, const RevisionId b)
@@ -50,6 +53,9 @@ std::ostream& operator<<(std::ostream &stream, const RevisionId r)
 
 TemporaryChangesetId::TemporaryChangesetId(const unsigned int revision): t(revision)
 {
+    if (revision == 0) {
+        throw std::runtime_error("Changeset tmp0 is invalid");
+    }
 }
 
 bool operator==(const TemporaryChangesetId a, const TemporaryChangesetId b)
