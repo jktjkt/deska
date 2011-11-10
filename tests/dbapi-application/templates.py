@@ -28,6 +28,10 @@ def strip_origin(x):
     return res
 
 def imperative(r):
+    do_hardware(r)
+    do_host(r)
+
+def do_hardware(r):
     # Start with creating some objects
     r.c(startChangeset())
     for obj in ["vendor1", "vendor2"]:
@@ -203,3 +207,31 @@ def imperative(r):
     hw3_4["template_hardware"] = "t2"
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+
+def do_host(r):
+    r.c(startChangeset())
+    for service in ["a", "b", "c"]:
+        r.assertEqual(r.c(createObject("service", service)), service)
+    r.c(createObject("host", "h"))
+    r.c(createObject("host_template", "t1"))
+    r.cvoid(setAttribute("host", "h", "template_host", "t1"))
+    r.cvoid(setAttribute("host_template", "t1", "service", ["a"]))
+
+    hdata = {
+        "hardware": [None, None],
+        "note_host": [None, None],
+        # FIXME: Redmine #294
+        #"template_host": ["h", "t1"],
+        "template_host": "t1",
+        "service": ["t1", ["a"]],
+    }
+
+    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
+    # FIXME: Redmine #296, the value is reported as an integer, not as a full name
+    hdata["template_host"] = 1
+    # FIXME: Redmine #297, identifier_values are not propagated at all
+    # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
+    # FIXME: Redmine #296, change it back
+    hdata["template_host"] = "t1"
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
