@@ -24,7 +24,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -34,15 +36,16 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
+			if dutil.generated.atts(kindName)[refCol] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
 				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
 			else:
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			dutil.Postgres.NOTICE("{0}_get_name({1},$1)".format(refTbl,refCol))
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -105,7 +108,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -115,11 +120,11 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] != "identifier_set":
+			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# no action for identifier_set - getting it from data function
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
 				atts[refCol] = coldef
@@ -190,7 +195,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -200,11 +207,11 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] != "identifier_set":
+			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# No action for identifier_set required, getting from data function
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
 				atts[refCol] = coldef
