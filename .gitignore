@@ -1,9 +1,9 @@
 # vim
 .*.swp
 # build directory
-_build
+/_build
 # QtCreator's stuff
-CMakeLists.txt.*
+/CMakeLists.txt.*
 # Python
 *.pyc
 *.pyo
