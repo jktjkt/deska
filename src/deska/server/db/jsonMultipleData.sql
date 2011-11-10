@@ -119,12 +119,10 @@ def main(tag,kindName,revision,filter):
 		if refs[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
-				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
-			else:
+			if dutil.generated.atts(kindName)[refTbl] != "identifier_set":
+				# no action for identifier_set - getting it from data function
 				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
-			atts[refCol] = coldef
+				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
@@ -206,12 +204,14 @@ def main(tag,kindName,revision,filter):
 		if refs[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
-				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
-			else:
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
-			atts[refCol] = coldef
+			#if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
+			#	#"inner_host_service_multiRef_get_set"
+			#	coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
+			#else:
+			#	coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+			#	coldef = atts[refCol]
+			#atts[refCol] = coldef
+			# No action here is now required, but filter will fail with this data function
 
 	columns = ",".join(atts.values())
 

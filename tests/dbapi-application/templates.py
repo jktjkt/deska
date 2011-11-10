@@ -10,9 +10,8 @@ hw3_1 = {
     'note_hardware': [None, None],
     'purchase': ['hw3', '2010-10-10'],
     'ram': [None, None],
-    # FIXME: Redmine #294
-    #'template_hardware': [None, None],
-    'template_hardware': None,
+    # FIXed: Redmine #294
+    'template_hardware': [None, None],
     'vendor': ['hw3', 'vendor2'],
     'warranty': ['hw3', '2012-10-10']
 }
@@ -68,7 +67,7 @@ def do_hardware(r):
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
     hw3_2 = copy.deepcopy(hw3_1)
-    hw3_2["template_hardware"] = "t1"
+    hw3_2["template_hardware"] = [None,"t1"]
     hw3_2["cpu_num"] = ["t1", 666]
     hw3_2["cpu_ht"] = ["t1", True]
     hw3_2["ram"] = ["t1", 333]
@@ -76,10 +75,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_2["template_hardware"] = 1
+    hw3_2["template_hardware"] = [None,1]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_2["template_hardware"] = "t1"
+    hw3_2["template_hardware"] = [None,"t1"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
@@ -88,10 +87,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_2["template_hardware"] = 1
+    hw3_2["template_hardware"] = [None,1]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_2["template_hardware"] = "t1"
+    hw3_2["template_hardware"] = [None,"t1"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
 
@@ -103,10 +102,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_3["template_hardware"] = 1
+    hw3_3["template_hardware"] = [None,1]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_3["template_hardware"] = "t1"
+    hw3_3["template_hardware"] = [None,"t1"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
@@ -115,10 +114,11 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_3["template_hardware"] = 1
+    hw3_3["template_hardware"] = [None,1]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_3["template_hardware"] = "t1"
+    hw3_3["template_hardware"] = [None,"t1"]
+    # FIXME: fails, Redmine #295
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
 
@@ -134,14 +134,14 @@ def do_hardware(r):
     hw3_4["cpu_ht"] = ["hw3", False]
     hw3_4["cpu_num"] = ["t2", 4]
     hw3_4["ram"] = ["t2", 1024]
-    hw3_4["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = [None,"t2"]
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_4["template_hardware"] = 2
+    hw3_4["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_4["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
     r.c(commitChangeset("test2"))
@@ -149,10 +149,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_4["template_hardware"] = 2
+    hw3_4["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_4["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
@@ -162,14 +162,14 @@ def do_hardware(r):
     hw3_5 = copy.deepcopy(hw3_3)
     hw3_5["cpu_num"] = ["t2", 4]
     hw3_5["ram"] = ["t2", 1024]
-    hw3_5["template_hardware"] = "t2"
+    hw3_5["template_hardware"] = [None,"t2"]
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_5["template_hardware"] = 2
+    hw3_5["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_5["template_hardware"] = "t2"
+    hw3_5["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
     r.c(commitChangeset("test2"))
@@ -177,10 +177,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_5["template_hardware"] = 2
+    hw3_5["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_5["template_hardware"] = "t2"
+    hw3_5["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
 
@@ -190,10 +190,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_4["template_hardware"] = 2
+    hw3_4["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_4["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
     r.c(commitChangeset("test2"))
@@ -201,10 +201,10 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hw3_4["template_hardware"] = 2
+    hw3_4["template_hardware"] = [None,2]
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
     # FIXME: Redmine #296, got to restore it back
-    hw3_4["template_hardware"] = "t2"
+    hw3_4["template_hardware"] = [None,"t2"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
 
@@ -220,20 +220,19 @@ def do_host(r):
     hdata = {
         "hardware": [None, None],
         "note_host": [None, None],
-        # FIXME: Redmine #294
-        #"template_host": ["h", "t1"],
-        "template_host": "t1",
+        # FIXed: Redmine #294
+        "template_host": [None, "t1"],
         "service": ["t1", ["a"]],
     }
 
     r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hdata["template_host"] = 1
-    # FIXME: Redmine #297, identifier_set values are not propagated at all
-    # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
+    hdata["template_host"] = [None,1]
+    # FIXed: Redmine #297, identifier_set values are not propagated at all
+    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     # FIXME: Redmine #296, change it back
-    hdata["template_host"] = "t1"
+    hdata["template_host"] = [None,"t1"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
     # test after a commit
@@ -241,10 +240,10 @@ def do_host(r):
     r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
     # FIXME: Redmine #296, the value is reported as an integer, not as a full name
-    hdata["template_host"] = 1
-    # FIXME: Redmine #297, identifier_set values are not propagated at all
-    # r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
+    hdata["template_host"] = [None,1]
+    # FIXed: Redmine #297, identifier_set values are not propagated at all
+    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     # FIXME: Redmine #296, change it back
-    hdata["template_host"] = "t1"
+    hdata["template_host"] = [None,"t1"]
     # FIXME: fails, Redmine #295
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
