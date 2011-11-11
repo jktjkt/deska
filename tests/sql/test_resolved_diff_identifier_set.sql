@@ -77,7 +77,7 @@ BEGIN
 	PERFORM host_set_template_host('hpv1','host_templ');
 	PERFORM host_template_set_service('host_templ',array['ftp']);
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service WHERE version = 0) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service WHERE version = 1) v2 ON (v1.host = v2.host);
 	PREPARE retservices AS SELECT olddata, newdata FROM host_diff_refs_set_set_attributes();
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'add services to host, add service to template and assign the template to hosts - opened changeset' );
@@ -85,7 +85,7 @@ BEGIN
 	DEALLOCATE expservices;
 	PERFORM host_terminate_diff();
 
-	PERFORM host_template_init_resolved_diff();
+	PERFORM host_template_init_ch_resolved_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service_template WHERE version = 0) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service_template WHERE version = 1) v2 ON (v1.host = v2.host);
 	PREPARE retservices AS SELECT olddata, newdata FROM host_template_diff_refs_set_set_attributes();
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'add service to template - opened changeset' );
@@ -112,7 +112,7 @@ BEGIN
 	PERFORM host_template_set_template_host('host_templ2','host_templ');
 	PERFORM host_template_set_service_remove('host_templ','ftp');
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 1) v1 
@@ -162,7 +162,7 @@ BEGIN
 	PERFORM host_template_set_service_insert('host_templ','ftp');
 	PERFORM host_set_template_host('hpv3','host_templ2');
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 2) v1 
@@ -175,7 +175,7 @@ BEGIN
 	DEALLOCATE expservices;
 	PERFORM host_terminate_diff();
 
-	PERFORM host_template_init_resolved_diff();
+	PERFORM host_template_init_ch_resolved_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service_template WHERE version = 2) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service_template WHERE version = 3) v2 ON (v1.host = v2.host) ORDER BY v2.host;
 	PREPARE retservices AS SELECT olddata, newdata FROM host_template_diff_refs_set_set_attributes() ORDER BY objname;
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'diff of templates - opened changeset' );
@@ -279,7 +279,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM host_set_service('hpv1', NULL);
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 3) v1 
@@ -357,7 +357,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM host_template_set_service('host_templ2', array['dhcp']);
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 4) v1 
@@ -370,7 +370,7 @@ BEGIN
 	DEALLOCATE expservices;
 	PERFORM host_terminate_diff();
 
-	PERFORM host_template_init_resolved_diff();
+	PERFORM host_template_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service_template WHERE version = 4) v1 
@@ -540,7 +540,7 @@ BEGIN
 	PERFORM host_set_service_insert('hpv3','ftp');
 	PERFORM host_template_set_service('host_templ',NULL);
 
-	PERFORM host_init_resolved_diff();
+	PERFORM host_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 5) v1 
@@ -553,7 +553,7 @@ BEGIN
 	DEALLOCATE expservices;
 	PERFORM host_terminate_diff();
 
-	PERFORM host_template_init_resolved_diff();
+	PERFORM host_template_init_ch_resolved_diff();
 	PREPARE expservices  AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service_template WHERE version = 5) v1 
