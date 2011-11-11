@@ -685,7 +685,8 @@ Functions from this group are used for fetching actual data from the database.
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
     {Get all attributes for a particular object instance}
     {This function returns values of all attributes which are defined for the given object, taking templates into
-    account and resolving the effective value of each attribute from templates.
+    account and resolving the effective value of each attribute from templates.  For kinds which are not templated,
+    this function operates exactly as the \deskaFuncRef{objectData}.
 
     The format of the output as well as its guarantees are the same as for the \deskaFuncRef{objectData}.
 
@@ -699,7 +700,8 @@ Functions from this group are used for fetching actual data from the database.
     {Get all attributes for instances matching the specified filter}
     {This is the batched equivalent of \deskaFuncRef{resolvedObjectData}.  Each object which matches the criteria will
     be present in the result, even if it has no attributes.  The amount of data returned is the same as in
-    \deskaFuncRef{resolvedDataDifference} function.
+    \deskaFuncRef{resolvedDataDifference} function, and the behavior for kinds which are not templatized is the same as
+    the \deskaFuncRef{multipleObjectData} function.
 
     \deskaUnsortedRes}
 
@@ -709,8 +711,13 @@ Functions from this group are used for fetching actual data from the database.
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
 
-    When no object in the inheritance hierarchy provides a value for an attribute (like attribute {\tt smrt} in this
-    example, the object name is reported as {\tt null}.
+    For each attribute defined in this kind, the result contains a tuple of two items.  The first one is the name of the
+    object which provides the attribute value, while the second one is the actual attribute data.  When no object in the
+    inheritance hierarchy provides a value for an attribute (like attribute {\tt smrt} in this example, the object name
+    is always reported as {\tt null}.
+
+    For kinds which are not templatized, the origin of the data is either the object name itself (for non-null values),
+    or {\tt null} if the attribute value has not been specified at the object level.
 
     The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
@@ -720,12 +727,14 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectDataWithOrigin}.  The sample return data below means that the
-    result set contains two objects, the "obj1" and "obj2".  The "obj1" has two attributes, "foo" and "baz"; the "foo"
-    is inherited from object with name "obj-defining-this" and its value is "bar"; the value of "baz" is specified at
-    the level of object "obj1" (ie. by the object itself) and the value is 666.
+    {This is the batched version of the \deskaFuncRef{resolvedObjectDataWithOrigin}; the only difference between these
+    two functions is that the this function returns data for multiple objects at once.  The sample return data below
+    means that the result set contains two objects, the "obj1" and "obj2".  The "obj1" has two attributes, "foo" and
+    "baz"; the "foo" is inherited from object with name "obj-defining-this" and its value is "bar"; the value of "baz"
+    is specified at the level of object "obj1" (ie. by the object itself) and the value is 666.
 
-    Similar to \deskaFuncRef{resolvedObjectDataWithOrigin}, the name of an object providing a value can be {\tt null}.
+    Similar to \deskaFuncRef{resolvedObjectDataWithOrigin}, the name of an object providing a value can be {\tt null},
+    and the same rules for non-templatized kinds or output structure apply.
 
     \deskaUnsortedRes}
 
