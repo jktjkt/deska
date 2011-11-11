@@ -57,7 +57,9 @@ def do_hardware(r):
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
     hw3_2 = copy.deepcopy(hw3_1)
-    hw3_2["template_hardware"] = [None,"t1"]
+    # FIXME: Redmine #294
+    #hw3_2["template_hardware"] = ["hw3", "t1"]
+    hw3_2["template_hardware"] = [None, "t1"]
     hw3_2["cpu_num"] = ["t1", 666]
     hw3_2["cpu_ht"] = ["t1", True]
     hw3_2["ram"] = ["t1", 333]
@@ -103,7 +105,9 @@ def do_hardware(r):
     hw3_4["cpu_ht"] = ["hw3", False]
     hw3_4["cpu_num"] = ["t2", 4]
     hw3_4["ram"] = ["t2", 1024]
-    hw3_4["template_hardware"] = [None,"t2"]
+    # FIXME: Redmine #294
+    #hw3_4["template_hardware"] = ["hw3", "t2"]
+    hw3_4["template_hardware"] = [None, "t2"]
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
@@ -122,7 +126,9 @@ def do_hardware(r):
     hw3_5 = copy.deepcopy(hw3_3)
     hw3_5["cpu_num"] = ["t2", 4]
     hw3_5["ram"] = ["t2", 1024]
-    hw3_5["template_hardware"] = [None,"t2"]
+    # FIXME: Redmine #294
+    #hw3_5["template_hardware"] = ["hw3", "t2"]
+    hw3_5["template_hardware"] = [None, "t2"]
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
