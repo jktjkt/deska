@@ -22,11 +22,35 @@ def imperative(r):
     do_hardware(r)
     do_host(r)
 
+def helper_check_non_templated(r):
+    # Check that resolving work even for non-templated kinds
+    r.assertEqual(r.c(objectData("service", "s")), {"note": None})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(resolvedObjectData("service", "s")), {"note": None})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("service", "s")), {"note": None})
+    r.assertEqual(r.c(multipleObjectData("service")), {"s": {"note": None}})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(multipleResolvedObjectData("service")), {"s": {"note": None}})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("service")), {"s": {"note": None}})
+    # ...and also for kinds without any attributes
+    # FIXME Redmine #299, cannot ask for data of kinds with no attributes
+    #r.assertEqual(r.c(objectData("vendor", "vendor1")), {})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(resolvedObjectData("vendor", "vendor1")), {})
+    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("vendor", "vendor1")), {})
+    r.assertEqual(r.c(multipleObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
+    # FIXME Redmine #298
+    #r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
+
 def do_hardware(r):
     # Start with creating some objects
     r.c(startChangeset())
     for obj in ["vendor1", "vendor2"]:
         r.assertEqual(r.c(createObject("vendor", obj)), obj)
+    r.assertEqual(r.c(createObject("service", "s")), "s")
 
     r.assertEqual(r.c(createObject("hardware", "hw3")), "hw3")
     r.cvoid(setAttribute("hardware", "hw3", "vendor", "vendor2"))
@@ -39,6 +63,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    helper_check_non_templated(r)
 
     r.c(commitChangeset("test2"))
 
@@ -47,6 +72,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    helper_check_non_templated(r)
 
     # Now let's see how templates come into play. Let's inherit three attributes.
     r.c(startChangeset())
