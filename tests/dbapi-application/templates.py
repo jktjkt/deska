@@ -111,8 +111,7 @@ def do_hardware(r):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
     r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    # FIXME: fails, Redmine #295
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
     r.c(commitChangeset("test2"))
     # and test after a commit again
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
