@@ -16,14 +16,7 @@ hw3_1 = {
 }
 
 def strip_origin(x):
-    # FIXME: simplify this to a one-liner when #294 is fixed
-    res = {}
-    for k,v in x.iteritems():
-        if not isinstance(v, list):
-            res[k] = v
-        else:
-            res[k] = v[1]
-    return res
+    return dict((k, v[1]) for (k, v) in x.iteritems())
 
 def imperative(r):
     do_hardware(r)
