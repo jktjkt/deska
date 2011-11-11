@@ -31,8 +31,6 @@ How to translate that into Deska:
 - warranty_contract: ?
 - box: physical dimensions, rack location
 
-
-
 A pseudographical scheme representation:
 ----------------------------------------
 
@@ -128,9 +126,7 @@ A pseudographical scheme representation:
 - diskarray
 
 FIXME missing: failures and other events
-FIXME: do we want to separate HDD configuration to be able to reuse it between
-modeldiskarray and modelhw?
-FIXME: networking (Ethernet management) for diskarray!
-FIXME: SAS attachments
-FIXME: FC switches, interfaces and interconnects
-FIXME: virtual switches (bridging for virtual machines)
+FIXME: the concept of networks
+FIXME: all triggers shall include row identification in the error
+FIXME: add a kind for "dummy hw", ie. soemthing which is in a rack, but we don't
+yet have a specialized kind for that

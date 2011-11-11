@@ -1,13 +1,17 @@
 SET search_path TO production,deska;
 
-CREATE SEQUENCE warranty_contact_uid START 1;
+CREATE SEQUENCE warranty_contract_uid START 1;
 
--- contact addresses for warranty service cases
-CREATE TABLE warranty_contact (
-	uid bigint DEFAULT nextval('warranty_contact_uid')
-		CONSTRAINT warranty_contact_pk PRIMARY KEY,
+-- Warranty/support contracts
+CREATE TABLE warranty_contract (
+	uid bigint DEFAULT nextval('warranty_contract_uid')
+		CONSTRAINT warranty_contract_pk PRIMARY KEY,
 	name identifier
-		CONSTRAINT "warranty_contact with this name already exists" UNIQUE NOT NULL,
+		CONSTRAINT "warranty_contract with this name already exists" UNIQUE NOT NULL,
+    purchased date,
+    expires date,
+    contract_no text NOT NULL,
+    vendor bigint CONSTRAINT warranty_contract_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	phone text,
 	supportmail text,
 	supportnote text
