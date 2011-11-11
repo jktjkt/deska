@@ -18,5 +18,8 @@ CREATE TABLE network (
 	cidr6 int,
 	-- the DNS domain name of this network
 	dnsdomain text,
+	-- Identification of a typical VLAN number which is
+	-- usually used for this particular network
+	vlan int CHECK ((vlan < 4096) and (vlan >= 0)),
 	note text
 );

@@ -125,8 +125,5 @@ A pseudographical scheme representation:
 
 - diskarray
 
-FIXME missing: failures and other events
-FIXME: the concept of networks
 FIXME: all triggers shall include row identification in the error
-FIXME: add a kind for "dummy hw", ie. soemthing which is in a rack, but we don't
 yet have a specialized kind for that
