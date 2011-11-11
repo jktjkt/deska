@@ -45,6 +45,18 @@ def helper_check_non_templated(r):
     #r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
 
+def helper_check_hw3(r, expected):
+    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(expected))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), expected)
+    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(expected)})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": expected})
+
+def helper_check_host(r, expected):
+    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(expected))
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), expected)
+    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(expected)})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": expected})
+
 def do_hardware(r):
     # Start with creating some objects
     r.c(startChangeset())
@@ -59,19 +71,11 @@ def do_hardware(r):
 
     # Make sure that their data is correct
     # check it before commit
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    helper_check_hw3(r, hw3_1)
     helper_check_non_templated(r)
-
     r.c(commitChangeset("test2"))
-
     # now repeat the checks after a commit
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_1))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_1)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_1})
+    helper_check_hw3(r, hw3_1)
     helper_check_non_templated(r)
 
     # Now let's see how templates come into play. Let's inherit three attributes.
@@ -90,34 +94,19 @@ def do_hardware(r):
     hw3_2["cpu_ht"] = ["t1", True]
     hw3_2["ram"] = ["t1", 333]
 
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
-
+    helper_check_hw3(r, hw3_2)
     r.c(commitChangeset("test2"))
     # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_2))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_2)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_2)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_2})
+    helper_check_hw3(r, hw3_2)
 
     # Let's see what happens when we override an inherited attribute
     r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw3", "cpu_ht", False))
     hw3_3 = copy.deepcopy(hw3_2)
     hw3_3["cpu_ht"] = ["hw3", False]
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
-
+    helper_check_hw3(r, hw3_3)
     r.c(commitChangeset("test2"))
-    # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_3))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_3)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_3)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_3})
+    helper_check_hw3(r, hw3_3)
 
 
     # See what happens when we switch it to derive from another template
@@ -134,16 +123,9 @@ def do_hardware(r):
     # FIXME: Redmine #294
     #hw3_4["template_hardware"] = ["hw3", "t2"]
     hw3_4["template_hardware"] = [None, "t2"]
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    helper_check_hw3(r, hw3_4)
     r.c(commitChangeset("test2"))
-    # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    helper_check_hw3(r, hw3_4)
 
     # Let's play with a chain of inheritance
     r.c(startChangeset())
@@ -154,30 +136,16 @@ def do_hardware(r):
     # FIXME: Redmine #294
     #hw3_5["template_hardware"] = ["hw3", "t2"]
     hw3_5["template_hardware"] = [None, "t2"]
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
+    helper_check_hw3(r, hw3_5)
     r.c(commitChangeset("test2"))
-    # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_5))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_5)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_5)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_5})
+    helper_check_hw3(r, hw3_5)
 
     # See what happens when we break the chain -- that should be the same as hw3_4
     r.c(startChangeset())
     r.cvoid(setAttribute("hardware_template", "t2", "template_hardware", None))
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    helper_check_hw3(r, hw3_4)
     r.c(commitChangeset("test2"))
-    # and test after a commit again
-    r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(hw3_4))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_4)
-    r.assertEqual(r.c(multipleResolvedObjectData("hardware")), {"hw3": strip_origin(hw3_4)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": hw3_4})
+    helper_check_hw3(r, hw3_4)
 
 def do_host(r):
     r.c(startChangeset())
@@ -195,13 +163,7 @@ def do_host(r):
         "service": ["t1", ["a"]],
     }
 
-    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
-    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
+    helper_check_host(r, hdata)
     # test after a commit
     r.c(commitChangeset("."))
-    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
-    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
+    helper_check_host(r, hdata)
