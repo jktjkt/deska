@@ -171,13 +171,11 @@ def do_host(r):
 
     r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
-    # FIXed: Redmine #297, identifier_set values are not propagated at all
     r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
     # test after a commit
     r.c(commitChangeset("."))
     r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(hdata))
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), hdata)
-    # FIXed: Redmine #297, identifier_set values are not propagated at all
     r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(hdata)})
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": hdata})
