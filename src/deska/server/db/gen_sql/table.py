@@ -266,7 +266,7 @@ class Table(constants.Templates):
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(changeset_id);"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_ch_diff(changeset_id);"
 		inner_init_diff_current_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
