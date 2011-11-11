@@ -123,7 +123,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(pendingChangesets)
     deska_dbapi_test(createObjects)
     deska_dbapi_test(createObjects_autoname)
-    deska_dbapi_test(diffing)
+    deska_dbapi_test(diffing-simple)
     deska_dbapi_test(simple_filtering)
 
     # unit tests which work on any reasonable state of the DB, no matter what
