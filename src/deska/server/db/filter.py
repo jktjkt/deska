@@ -239,12 +239,34 @@ class Filter():
 				for relName in refNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
-					if fromTbl == kind and toTbl == mykind:
-						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
+					fromCol = generated.relFromCol(relName)
+					if generated.atts(fromTbl)[fromCol] == "identifier_set":
+						if fromTbl == kind and toTbl == mykind:
+							# join inner table
+							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
+							ret = ret + " JOIN {tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
+							# and join table of wanted kind
+							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
+							ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond)
+							findJoinable = True
+						elif toTbl == kind and fromTbl == mykind:
+							# join inner table
+							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
+							ret = ret + " JOIN {tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
+							# and join table of wanted kind
+							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
+							ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond)
+							findJoinable = True
+					elif fromTbl == kind and toTbl == mykind:
+						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
 						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
-					if toTbl == kind and fromTbl == mykind:
-						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
+					elif toTbl == kind and fromTbl == mykind:
+						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
 						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 						
