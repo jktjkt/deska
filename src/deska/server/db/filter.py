@@ -246,21 +246,21 @@ class Filter():
 					if generated.atts(fromTbl)[fromCol] == "identifier_set":
 						if fromTbl == kind and toTbl == mykind:
 							# join inner table
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = self.DATA)
 							findJoinable = True
 						elif toTbl == kind and fromTbl == mykind:
 							# join inner table
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = self.DATA)
 							findJoinable = True
