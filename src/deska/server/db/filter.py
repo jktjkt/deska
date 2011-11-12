@@ -178,6 +178,7 @@ class AdditionalEmbedCondition(Condition):
 
 class Filter():
 	'''Class for handling filters'''
+	JOIN = " LEFT OUTER JOIN "
 
 	def __init__(self,filterData,start):
 		'''loads json filter data, start = fisrt number of parameter index'''
@@ -215,8 +216,8 @@ class Filter():
 			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
 			#FIXME: or {1}_{0} - get it from relation info
 			#FIXME: until wait for function, use just the table
-			#ret = ret + " LEFT OUTER JOIN inner_{0}_{1}_data_version($1) AS inner_{1} ON {2} ".format(kind, col, joincond)
-			ret = ret + " LEFT OUTER JOIN inner_{0}_{1}_multiref_history AS inner_{1} ON {2} ".format(kind, col, joincond)
+			#ret = ret + self.JOIN + "inner_{0}_{1}_data_version($1) AS inner_{1} ON {2} ".format(kind, col, joincond)
+			ret = ret + self.JOIN + "inner_{0}_{1}_multiref_history AS inner_{1} ON {2} ".format(kind, col, joincond)
 		return ret
 
 
@@ -227,7 +228,7 @@ class Filter():
 		for kind in self.kinds:
 			if mykind == "metadata":
 				joincond = "{0}.id = {1}.version".format(mykind,kind)
-				ret = ret + " LEFT JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				ret = ret + self.JOIN + "{tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 			else:
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
@@ -245,29 +246,29 @@ class Filter():
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + " JOIN {tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
+							ret = ret + self.JOIN + "{tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond)
+							ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond)
 							findJoinable = True
 						elif toTbl == kind and fromTbl == mykind:
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + " JOIN {tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
+							ret = ret + self.JOIN + "{tbl}_multiref_data_version($1) AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond)
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond)
+							ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond)
 							findJoinable = True
 					elif fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
-						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 					elif toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
-						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 						
 				# find if there is embeding
@@ -277,11 +278,11 @@ class Filter():
 					toTbl = generated.relToTbl(relName)
 					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " LEFT OUTER JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 						findJoinable = True
 						
 				if not findJoinable:
