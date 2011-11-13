@@ -216,10 +216,7 @@ class Filter():
 		for kind in self.idSetInfo:
 			col = self.idSetInfo[kind]
 			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
-			#FIXME: or {1}_{0} - get it from relation info
-			#FIXME: until wait for function, use just the table
-			#ret = ret + self.JOIN + "inner_{0}_{1}_{data} AS inner_{1} ON {2} ".format(kind, col, joincond, data = self.DATA)
-			ret = ret + self.JOIN + "inner_{0}_{1}_multiref_history AS inner_{1} ON {2} ".format(kind, col, joincond)
+			ret = ret + self.JOIN + "inner_{0}_{1}_{data} AS inner_{1} ON {2} ".format(kind, col, joincond, data = self.DATA)
 		return ret
 
 
