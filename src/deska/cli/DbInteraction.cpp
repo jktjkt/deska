@@ -48,7 +48,7 @@ DbInteraction::DbInteraction(Db::Api *api):
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
-                mergedWith[itr->target].push_back(*itk);
+                mergedTo[itr->target].push_back(*itk);
             }
         }
         if (!isEmbedded)
@@ -348,7 +348,7 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
 
     // Kinds containing this kind
     for (std::vector<Db::Identifier>::iterator it =
-        mergedWith[object.kind].begin(); it != mergedWith[object.kind].end(); ++it) {
+        mergedTo[object.kind].begin(); it != mergedTo[object.kind].end(); ++it) {
         std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
             Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
         BOOST_ASSERT(instances.size() <= 1);

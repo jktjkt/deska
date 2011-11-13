@@ -293,7 +293,7 @@ private:
     /** Map of kinds and vector of kinds, that are merged with the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
     /** Map of kinds and vector of kinds, that are merged with the kind. */
-    std::map<Db::Identifier, std::vector<Db::Identifier> > mergedWith;
+    std::map<Db::Identifier, std::vector<Db::Identifier> > mergedTo;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;
