@@ -317,15 +317,19 @@ private:
     /** Identifiers of all kinds. */
     std::vector<Db::Identifier> allKinds;
     /** Map of kind names and kinds, where is the kind embedded. */
-    std::map<Db::Identifier, Db::Identifier> embeddedInto;
+    std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> > embeddedInto;
     /** Map of kind names and kinds, where is the kind embedded including merged kinds. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeddedIntoInclMerge;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
     /** Map of kinds and vector of kinds, that are merged with the kind. */
-    std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
-    /** Map of kinds and that are refferring to another kind. */
+    std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > mergeWith;
+    /** Map of kinds and vector of kinds, that are merged with the kind. */
+    std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > mergedTo;
+    /** Map of kinds and vector of pairs <attribute, kind> that are refferring to another kind. */
     std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > refersTo;
+    /** Map of kinds and vector of kinds that are referred by another kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > referredBy;
 
     /** The parser context is held there. */
     ContextStack contextStack;
