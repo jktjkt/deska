@@ -81,18 +81,23 @@ class Condition():
 				newcond["condition"] = self.op
 				newcond["value"] = mystr(parent)
 				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
-		refNames = generated.refNames()
+		relNames = generated.refNames()
+		# add templates - same as refs for our stuff here
+		relNames.update(generated.templateNames())
+		# add merge/contains - same as refs for our stuff here
+		relNames.update(generated.mergeNames())
 		# find referenced columns
-		for relName in refNames:
+		for relName in relNames:
 			fromTbl = generated.relFromTbl(relName)
 			fromCol = generated.relFromCol(relName)
+			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
 				#FIXME: delete same if-else when not needed
 				if generated.atts(self.kind)[self.col] == "identifier_set":
-					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 				else:
-					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
@@ -232,11 +237,15 @@ class Filter():
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
 
-				# check for refs
-				refNames = generated.refNames()
+				# check for refs and templates
+				relNames = generated.refNames()
+				# add templates - same as refs for our stuff here
+				relNames.update(generated.templateNames())
+				# add merge/contains - same as refs for our stuff here
+				relNames.update(generated.mergeNames())
 				findJoinable = False
 				# find if there is ref relation from mykind to kind or kind to mykind
-				for relName in refNames:
+				for relName in relNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
 					fromCol = generated.relFromCol(relName)
