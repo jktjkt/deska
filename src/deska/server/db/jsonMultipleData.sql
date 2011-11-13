@@ -44,8 +44,7 @@ def main(tag,kindName,revision,filter):
 				#"inner_host_service_multiRef_get_set"
 				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
 			else:
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
-			dutil.Postgres.NOTICE("{0}_get_name({1},$1)".format(refTbl,refCol))
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -126,7 +125,7 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# no action for identifier_set - getting it from data function
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -213,7 +212,7 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# No action for identifier_set required, getting from data function
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())

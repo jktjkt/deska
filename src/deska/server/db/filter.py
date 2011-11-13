@@ -81,18 +81,23 @@ class Condition():
 				newcond["condition"] = self.op
 				newcond["value"] = mystr(parent)
 				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
-		refNames = generated.refNames()
+		relNames = generated.refNames()
+		# add templates - same as refs for our stuff here
+		relNames.update(generated.templateNames())
+		# add merge/contains - same as refs for our stuff here
+		relNames.update(generated.mergeNames())
 		# find referenced columns
-		for relName in refNames:
+		for relName in relNames:
 			fromTbl = generated.relFromTbl(relName)
 			fromCol = generated.relFromCol(relName)
+			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
 				#FIXME: delete same if-else when not needed
 				if generated.atts(self.kind)[self.col] == "identifier_set":
-					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 				else:
-					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
@@ -216,10 +221,7 @@ class Filter():
 		for kind in self.idSetInfo:
 			col = self.idSetInfo[kind]
 			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
-			#FIXME: or {1}_{0} - get it from relation info
-			#FIXME: until wait for function, use just the table
-			#ret = ret + self.JOIN + "inner_{0}_{1}_{data} AS inner_{1} ON {2} ".format(kind, col, joincond, data = self.DATA)
-			ret = ret + self.JOIN + "inner_{0}_{1}_multiref_history AS inner_{1} ON {2} ".format(kind, col, joincond)
+			ret = ret + self.JOIN + "inner_{0}_{1}_{data} AS inner_{1} ON {2} ".format(kind, col, joincond, data = self.DATA)
 		return ret
 
 
@@ -235,32 +237,36 @@ class Filter():
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
 
-				# check for refs
-				refNames = generated.refNames()
+				# check for refs and templates
+				relNames = generated.refNames()
+				# add templates - same as refs for our stuff here
+				relNames.update(generated.templateNames())
+				# add merge/contains - same as refs for our stuff here
+				relNames.update(generated.mergeNames())
 				findJoinable = False
 				# find if there is ref relation from mykind to kind or kind to mykind
-				for relName in refNames:
+				for relName in relNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
 					fromCol = generated.relFromCol(relName)
 					if generated.atts(fromTbl)[fromCol] == "identifier_set":
 						if fromTbl == kind and toTbl == mykind:
 							# join inner table
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = self.DATA)
 							findJoinable = True
 						elif toTbl == kind and fromTbl == mykind:
 							# join inner table
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
-							tbl = "inner_{0}_{1}".format(fromTbl,toTbl)
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
 							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = self.DATA)
 							findJoinable = True
