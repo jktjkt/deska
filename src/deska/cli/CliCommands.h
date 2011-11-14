@@ -28,6 +28,7 @@
 
 #include "CliObjects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 
 
 namespace Deska {
@@ -36,6 +37,23 @@ namespace Cli {
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v);
 
 class UserInterface;
+
+
+/** @short Visitor for printing oject modifications. */
+struct ModificationBackuper: public boost::static_visitor<std::string> {
+    //@{
+    /** @short Function for converting single object modification to string for purposes of backup.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Parser readable string representation of the modification.
+    */
+    std::string operator()(const Db::CreateObjectModification &modification) const;
+    std::string operator()(const Db::DeleteObjectModification &modification) const;
+    std::string operator()(const Db::RenameObjectModification &modification) const;
+    std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
 
 
 /** @short Abstract class for each command.
@@ -398,6 +416,58 @@ private:
 *
 *   @see Command
 */
+class Batch: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Batch(UserInterface *userInterface);
+
+    virtual ~Batch();
+
+    /** @short Runs commands from file.
+    *
+    *   @param params File name where commands are stored.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Backs up the whole DB to a file.
+*
+*   @see Command
+*/
+class Backup: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Backup(UserInterface *userInterface);
+
+    virtual ~Backup();
+
+    /** @short Backs up the whole DB to a file.
+    *
+    *   @param params File name where the backup will be stored.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Restores whole DB from file.
+*
+*   @see Command
+*/
 class Restore: public Command
 {
 public:
@@ -409,9 +479,9 @@ public:
 
     virtual ~Restore();
 
-    /** @short Restores DB from a dump.
+    /** @short Restores whole DB from file.
     *
-    *   @param params File name where the dump is stored.
+    *   @param params File name where the backup is stored.
     */
     virtual void operator()(const std::string &params);
 };

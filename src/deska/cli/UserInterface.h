@@ -145,6 +145,8 @@ private:
     friend class Exit;
     friend class Context;
     friend class Dump;
+    friend class Batch;
+    friend class Backup;
     friend class Restore;
     friend class Help;
 

@@ -151,6 +151,8 @@ void CliTestFixture::startTest()
 void CliTestFixture::expectCliInit()
 {
     expectAddCommandCompletion("abort");
+    expectAddCommandCompletion("backup %file");
+    expectAddCommandCompletion("batch %file");
     expectAddCommandCompletion("commit");
     expectAddCommandCompletion("configdiff regenerate");
     expectAddCommandCompletion("context objects");
@@ -162,6 +164,8 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help kinds");
     expectAddCommandCompletion("help help");
     expectAddCommandCompletion("help abort");
+    expectAddCommandCompletion("help backup");
+    expectAddCommandCompletion("help batch");
     expectAddCommandCompletion("help commit");
     expectAddCommandCompletion("help configdiff");
     expectAddCommandCompletion("help context");

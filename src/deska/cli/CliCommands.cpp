@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "CliCommands_Log.h"
 #include "CliCommands_Rebase.h"
@@ -38,7 +39,7 @@
 namespace Deska {
 namespace Cli {
 
-/** @short Print a well-formatted representation of an attribute value*/
+/** @short Print a well-formatted representation of an attribute value */
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v)
 {
     std::ostringstream ss;
@@ -49,6 +50,48 @@ std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Valu
     }
     return ss.str();
 }
+
+
+
+std::string ModificationBackuper::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "create " << modification.kindName << " " << modification.objectName;
+    return ostr.str();
+}
+
+
+
+std::string ModificationBackuper::operator()(const Db::DeleteObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "delete " << modification.kindName << " " << modification.objectName;
+    return ostr.str();
+}
+
+
+
+std::string ModificationBackuper::operator()(const Db::RenameObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " " << modification.newObjectName;
+    return ostr.str();
+}
+
+
+
+std::string ModificationBackuper::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << modification.kindName << " " << modification.objectName << " ";
+    if (modification.attributeData)
+        ostr << modification.attributeName << " " << *(modification.attributeData);
+    else
+        ostr << "no " << modification.attributeName;
+    return ostr.str();
+}
+
+
 
 Command::Command(UserInterface *userInterface): ui(userInterface)
 {
@@ -374,6 +417,7 @@ Diff::~Diff()
 
 void Diff::operator()(const std::string &params)
 {
+    // FIXME: Allow creating of a patch
     if (params.empty()) {
         if (!ui->currentChangeset) {
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
@@ -594,29 +638,29 @@ void Context::operator()(const std::string &params)
 
 
 
-Restore::Restore(UserInterface *userInterface): Command(userInterface)
+Batch::Batch(UserInterface *userInterface): Command(userInterface)
 {
-    cmdName = "restore";
-    cmdUsage = "Executes commands from a file. Can be used for restoring the DB from a dump. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
-    complPatterns.push_back("restore %file");
+    cmdName = "batch";
+    cmdUsage = "Executes commands from a file. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
+    complPatterns.push_back("batch %file");
 }
 
 
 
-Restore::~Restore()
+Batch::~Batch()
 {
 }
 
 
 
-void Restore::operator()(const std::string &params)
+void Batch::operator()(const std::string &params)
 {
     if (params.empty()) {
         ui->io->reportError("Error: This command requires file name as a parameter.");
         return;
     }
     if (!ui->currentChangeset) {
-        ui->io->reportError("Error: Wou have to be connected to a changeset to perform restoration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        ui->io->reportError("Error: Wou have to be connected to a changeset to perform batched operations. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return;
     }
     std::ifstream ifs(params.c_str());
@@ -627,7 +671,6 @@ void Restore::operator()(const std::string &params)
     
     ui->nonInteractiveMode = true;
     std::string line;
-    ContextStack stackBackup = ui->m_parser->currentContextStack();
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     try {
@@ -650,10 +693,155 @@ void Restore::operator()(const std::string &params)
             ui->io->printMessage("All commands successfully executed.");
         }
     } catch (Db::ChangesetLockingError &e) {
-        ui->io->reportError("Error while locking changeset for restore. Rostoration failed.");
+        ui->io->reportError("Error while locking changeset for batched oparations.");
     }
     ifs.close();
-    ui->m_parser->setContextStack(stackBackup);
+    ui->m_parser->clearContextStack();
+}
+
+
+
+Backup::Backup(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "backup";
+    cmdUsage = "Creates backup of whole DB to a file. Requires file name where to store the backup as a parameter.";
+    complPatterns.push_back("backup %file");
+}
+
+
+
+Backup::~Backup()
+{
+}
+
+
+
+void Backup::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        ui->io->reportError("Error: This command requires file name as a parameter.");
+        return;
+    }
+
+    std::ofstream ofs(params.c_str());
+    if (!ofs) {
+        ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
+        ui->m_dbInteraction->unFreezeView();
+        return;
+    }
+    
+    std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
+    if (revisions.size() < 2)
+        ui->io->reportError("Database empty. Nothing to back up.");
+    // First revision is not a real revision, but head of the list, that is always present even with empty DB
+    for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
+        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference((it - 1)->revision, it->revision);
+        for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
+            ofs << boost::apply_visitor(ModificationBackuper(), *itm) << std::endl;
+        }
+        ofs << "@commit to " << it->revision << std::endl;
+        ofs << it->author << std::endl;
+        ofs << it->commitMessage << std::endl;
+        ofs << it->timestamp << std::endl;
+        ofs << "#commit end" << std::endl;
+    }
+
+    ofs.close();
+    ui->m_dbInteraction->unFreezeView();
+    ui->io->printMessage("DB successfully backed up into file \"" + params + "\".");
+}
+
+
+
+Restore::Restore(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "restore";
+    cmdUsage = "Restores the DB from backup created by command \"backup\". Requires file name with backup as a parameter.";
+    complPatterns.push_back("restore %file");
+}
+
+
+
+Restore::~Restore()
+{
+}
+
+
+
+void Restore::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        ui->io->reportError("Error: This command requires file name as a parameter.");
+        return;
+    }
+    if (ui->currentChangeset) {
+        ui->io->reportError("Error: Wou must not be connected to a changeset to perform restore. Use \"help\" for more info.");
+        return;
+    }
+    std::ifstream ifs(params.c_str());
+    if (!ifs) {
+        ui->io->reportError("Error while opening backup file \"" + params + "\".");
+        return;
+    }
+    
+    ui->nonInteractiveMode = true;
+    std::string line;
+    ui->m_parser->clearContextStack();
+    unsigned int lineNumber = 0;
+    bool restoreError = false;
+
+    // FIXME: Batched operations for restore
+    ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
+    while (!getline(ifs, line).eof()) {
+        ++lineNumber;
+        // Comment
+        if (line.empty() || line[0] == '#')
+            continue;
+        // Commit info
+        if (!line.empty() && line[0] == '@') {
+            std::string author;
+            std::string message;
+            std::string timestamp;
+            getline(ifs, author);
+            if (ifs.fail()) {
+                restoreError = true;
+                break;
+            }
+            ++lineNumber;
+            getline(ifs, message);
+            if (ifs.fail()) {
+                restoreError = true;
+                break;
+            }
+            ++lineNumber;
+            getline(ifs, timestamp);
+            if (ifs.fail()) {
+                restoreError = true;
+                break;
+            }
+            ++lineNumber;
+            ui->m_dbInteraction->restoringCommit(message, author, boost::posix_time::time_from_string(timestamp));
+        // Normal command
+        } else {
+            if (!ui->currentChangeset)
+                ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
+            ui->m_parser->parseLine(line);
+        }
+        if (ui->parsingFailed)
+            break;
+    }
+
+    ui->nonInteractiveMode = false;
+    if (ui->parsingFailed || restoreError) {
+        std::ostringstream ostr;
+        ostr << "Parsing of backup file failed on line " << lineNumber << ".";
+        ui->io->reportError(ostr.str());
+    } else {
+        ui->io->printMessage("DB successfully restored.");
+    }
+
+    ifs.close();
+    ui->m_parser->clearContextStack();
 }
 
 

@@ -64,6 +64,8 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["quit"] = commandsMap["exit"];
     commandsMap["context"] = Ptr(new Context(this));
     commandsMap["dump"] = Ptr(new Dump(this));
+    commandsMap["batch"] = Ptr(new Batch(this));
+    commandsMap["backup"] = Ptr(new Backup(this));
     commandsMap["restore"] = Ptr(new Restore(this));
     // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
