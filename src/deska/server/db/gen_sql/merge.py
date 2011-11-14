@@ -45,7 +45,7 @@ BEGIN
     END;
 
     IF refuid IS NOT NULL THEN
-        PERFORM %(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
+        PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
     END IF;
     RETURN NEW;
 END
@@ -107,9 +107,9 @@ LANGUAGE plpgsql;
             self.constraint_sql.write(self.gen_comp_reference(reftable, table))
             self.trigger_sql.write(self.gen_link_trigger(table, reftable))
             
-            if reftable not in self.composition_touples:
-                self.composition_touples[reftable] = list()
-            self.composition_touples[reftable].append(table)
+            if table not in self.composition_touples:
+                self.composition_touples[table] = list()
+            self.composition_touples[table].append(reftable)
             
         self.constraint_sql.write(self.gen_add_check_constraint())
 
@@ -125,6 +125,7 @@ LANGUAGE plpgsql;
     #generates check constraint and function that is used in this check contraint
     #check consraint checks whether there is not more than one not null column (that is in composition relation with this kind) in row (object)
     def gen_add_check_constraint(self):
+        print self.composition_touples
         check_function_str = ""
         add_constr_string = ""
         for table in self.composition_touples:

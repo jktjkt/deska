@@ -115,7 +115,8 @@ class Table(constants.Templates):
 	def gen_set_ref_uid(self,col_name, reftable):
 		"""Generates the set_attribute stored procedure for those columns in table that references some uid column of some table."""
 		if col_name in self.contains:
-			return self.set_read_only_string % {'tbl': self.name, 'colname': col_name}
+			return self.set_read_only_string % {'tbl': self.name, 'colname': col_name} + \
+				self.inner_set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
 		else:
 			return self.set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
 		
