@@ -704,7 +704,7 @@ void Batch::operator()(const std::string &params)
 Backup::Backup(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "backup";
-    cmdUsage = "Creates backup of whole DB to a file. Requires file name where to store the backup as a parameter.";
+    cmdUsage = "Creates backup of whole DB to a file. Does not backup changesets. Requires file name where to store the backup as a parameter.";
     complPatterns.push_back("backup %file");
 }
 
@@ -728,6 +728,10 @@ void Backup::operator()(const std::string &params)
         ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
         ui->m_dbInteraction->unFreezeView();
         return;
+    }
+
+    if (ui->currentChangeset) {
+        ui->io->printMessage("Notice: Backup function creates backup only for revisions, not changesets.");
     }
     
     std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
