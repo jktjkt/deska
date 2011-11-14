@@ -44,7 +44,7 @@ std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Valu
 {
     std::ostringstream ss;
     if (v) {
-        ss << prefixMessage << " " << *v;
+        ss << prefixMessage << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *v);
     } else {
         ss << " (none)";
     }

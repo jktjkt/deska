@@ -343,8 +343,12 @@ std::string OurModificationConverter::operator()(const Db::SetAttributeModificat
     std::ostringstream ostr;
     ostr << modification.kindName << " " << modification.objectName << std::endl;
     ostr << "#    " << modification.attributeName << " set"
-         << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl
-         << "     " << modification.attributeName << " " << modification.attributeData << std::endl;
+         << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+    if (modification.attributeData) {
+        ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+    } else {
+        ostr << "     no " << modification.attributeName << std::endl;
+    }
     return ostr.str();
 }
 
@@ -392,16 +396,24 @@ std::string OurModificationConverter2::operator()(const Db::SetAttributeModifica
     if ((modification.kindName == lModification.kindName) && (modification.objectName == lModification.objectName)) {
         std::ostringstream ostr;
         ostr << "#    " << modification.attributeName << " set"
-             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl
-             << "     " << modification.attributeName << " " << modification.attributeData << std::endl;
+             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+        if (modification.attributeData) {
+            ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+        } else {
+            ostr << "     no " << modification.attributeName << std::endl;
+        }
         return ostr.str();
     } else {
         std::ostringstream ostr;
         ostr << "end" << std::endl;
         ostr << modification.kindName << " " << modification.objectName << std::endl;
         ostr << "#    " << modification.attributeName << " set"
-             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl
-             << "     " << modification.attributeName << " " << modification.attributeData << std::endl;
+             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+        if (modification.attributeData) {
+            ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+        } else {
+            ostr << "     no " << modification.attributeName << std::endl;
+        }
         return ostr.str();
     }
 }
