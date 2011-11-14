@@ -174,8 +174,8 @@ def pendingChangesets(filter=None):
         args = {"filter": filter}
     return ApiMethod("pendingChangesets", args)
 
-def resumeChangeset(revision):
-    return ApiMethod("resumeChangeset", {"changeset": revision})
+def resumeChangeset(changeset):
+    return ApiMethod("resumeChangeset", {"changeset": changeset})
 
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})
