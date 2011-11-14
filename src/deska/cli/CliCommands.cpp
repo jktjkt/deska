@@ -657,7 +657,7 @@ void Batch::operator()(const std::string &params)
 }
     }
     ifs.close();
-    ui->m_parser->setContextStack(stackBackup);
+    ui->m_parser->clearContextStack();
 }
 
 
