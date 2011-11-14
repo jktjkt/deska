@@ -65,40 +65,6 @@ AttributeDefinition::AttributeDefinition(const Db::Identifier &attributeName, co
 }
 
 
-/** @short Pretty printer for the Deska::Db::NonOptionalValue in the CLI
-
-The pretty printers for dates and timestamps are required ebcause otherwise boost::date_time tries to be clever and messes up our
-dates to an English form.  This is bad, because showing "2010-Nov-09" while accepting only "2010-11-09" sucks.
-
-If you thought for a minute "hey, maybe boost::date_time respects current locale through LC_TIME" -- it doesn't.
-
-These functions are shamelessly copied from JsonConversionTraits<boost::gregorian::date> in src/deska/db/JsonExtraction.cpp.  Yes,
-copy-paste is evil, but depending on functions from the JSON library in this context looks a little more evil to me.
-*/
-struct NonOptionalValuePrettyPrint: public boost::static_visitor<std::string>
-{
-    /** @short Pretty printer for timestamps */
-    result_type operator()(const boost::posix_time::ptime &value) const
-    {
-        return boost::gregorian::to_iso_extended_string(value.date()) + std::string(" ") + boost::posix_time::to_simple_string(value.time_of_day());
-    }
-
-    /** @short Pretty printer for dates that always uses our canonical representation */
-    result_type operator()(const boost::gregorian::date &value) const
-    {
-        return boost::gregorian::to_iso_extended_string(value);
-    }
-
-    /** @short Pretty printer template for everything else -- simply let the operator<< do its job */
-    template<typename T>
-    result_type operator()(const T & value) const
-    {
-        std::ostringstream ss;
-        ss << value;
-        return ss.str();
-    }
-};
-
 
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
 {
@@ -130,6 +96,50 @@ ObjectDefinition stepInContext(const ObjectDefinition &currentObject, const Obje
     Db::Identifier newName = currentObject.name + "->" + nestedObject.name;
     return ObjectDefinition(nestedObject.kind, newName);
 }
+
+
+
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::posix_time::ptime &value) const
+{
+    return boost::gregorian::to_iso_extended_string(value.date()) + std::string(" ") + boost::posix_time::to_simple_string(value.time_of_day());
+}
+
+
+
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::gregorian::date &value) const
+{
+    return boost::gregorian::to_iso_extended_string(value);
+}
+
+
+
+template <typename T>
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const T & value) const
+{
+    std::ostringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+
+
+/////////////////////////Template instances for linker//////////////////////////
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::string & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const double & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const int & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const bool & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::asio::ip::address_v4 & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::asio::ip::address_v6 & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const Db::MacAddress & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::set<Db::Identifier> & value) const;
 
 
 }

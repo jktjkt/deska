@@ -81,6 +81,32 @@ bool operator!=(const AttributeDefinition &a, const AttributeDefinition &b);
 */
 ObjectDefinition stepInContext(const ObjectDefinition &currentObject, const ObjectDefinition &nestedObject);
 
+
+
+/** @short Pretty printer for the Deska::Db::NonOptionalValue in the CLI
+
+The pretty printers for dates and timestamps are required ebcause otherwise boost::date_time tries to be clever and messes up our
+dates to an English form.  This is bad, because showing "2010-Nov-09" while accepting only "2010-11-09" sucks.
+
+If you thought for a minute "hey, maybe boost::date_time respects current locale through LC_TIME" -- it doesn't.
+
+These functions are shamelessly copied from JsonConversionTraits<boost::gregorian::date> in src/deska/db/JsonExtraction.cpp.  Yes,
+copy-paste is evil, but depending on functions from the JSON library in this context looks a little more evil to me.
+*/
+struct NonOptionalValuePrettyPrint: public boost::static_visitor<std::string>
+{
+    /** @short Pretty printer for timestamps */
+    result_type operator()(const boost::posix_time::ptime &value) const;
+
+    /** @short Pretty printer for dates that always uses our canonical representation */
+    result_type operator()(const boost::gregorian::date &value) const;
+
+    /** @short Pretty printer template for everything else -- simply let the operator<< do its job */
+    template <typename T>
+    result_type operator()(const T & value) const;
+};
+
+
 }
 }
 
