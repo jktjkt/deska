@@ -374,6 +374,7 @@ Diff::~Diff()
 
 void Diff::operator()(const std::string &params)
 {
+    // FIXME: Allow creating of a patch
     if (params.empty()) {
         if (!ui->currentChangeset) {
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
