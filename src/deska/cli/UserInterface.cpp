@@ -409,6 +409,7 @@ bool UserInterface::confirmFunctionShow(const ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
+    // FIXME: Delete also nested kinds
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
