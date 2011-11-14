@@ -87,33 +87,156 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 }
 
 
-void ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
+
+struct ModificationInfo
 {
-    std::cout << "created " << modification.kindName << " " << modification.objectName << std::endl;
+    /** @short Type of object modification for printing purposes */
+    typedef enum {
+        /** @short Db::CreateObjectModification */
+        OBJECT_MODIFICATION_TYPE_CREATE,
+        /** @short Db::DeleteObjectModification */
+        OBJECT_MODIFICATION_TYPE_DELETE,
+        /** @short Db::RenameObjectModification */
+        OBJECT_MODIFICATION_TYPE_RENAME,
+        /** @short Db::SetAttributeModification */
+        OBJECT_MODIFICATION_TYPE_SETATTR
+    } ObjectModificationType;
+
+    ModificationInfo(ObjectModificationType type, const ObjectDefinition &object):
+        modificationType(type), modifiedObject(object) {};
+
+    ObjectModificationType modificationType;
+    ObjectDefinition modifiedObject;
+};
+
+
+
+/** @short Visitor for printing object modifications. */
+struct ModificationPrinter: public boost::static_visitor<std::string> {
+
+    ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
+                        const boost::optional<ModificationInfo> &nextObj);
+    //@{
+    /** @short Function for printing single object modification.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    */
+    std::string operator()(const Db::CreateObjectModification &modification) const;
+    std::string operator()(const Db::DeleteObjectModification &modification) const;
+    std::string operator()(const Db::RenameObjectModification &modification) const;
+    std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+
+private:
+    boost::optional<ModificationInfo> prevObject;
+    boost::optional<ModificationInfo> nextObject;
+};
+
+
+
+/** @short Visitor for extracting object from modifications. */
+struct ModificationObjectExtractor: public boost::static_visitor<ModificationInfo> {
+    //@{
+    /** @short Function for extracting object from single object modification.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    */
+    ModificationInfo operator()(const Db::CreateObjectModification &modification) const;
+    ModificationInfo operator()(const Db::DeleteObjectModification &modification) const;
+    ModificationInfo operator()(const Db::RenameObjectModification &modification) const;
+    ModificationInfo operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
+ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
+                                         const boost::optional<ModificationInfo> &nextObj):
+    prevObject(prevObj), nextObject(nextObj)
+{
+};
+
+
+
+std::string ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "\e[32;40m+ created " << modification.kindName << " " << modification.objectName << "\e[0m" << std::endl;
+    return ostr.str();
 }
 
 
 
-void ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
+std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
 {
-    std::cout << "deleted " << modification.kindName << " " << modification.objectName << std::endl;
+    std::ostringstream ostr;
+    ostr << "\e[31;40m- deleted " << modification.kindName << " " << modification.objectName << "\e[0m" << std::endl;
+    return ostr.str();
 }
 
 
 
-void ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
+std::string ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
 {
-    std::cout << "renamed " << modification.kindName << " " << modification.oldObjectName << " to "
-              << modification.newObjectName << std::endl;
+    std::ostringstream ostr;
+    ostr << "\e[31;40m- " << modification.kindName << " " << modification.oldObjectName << "\e[0m" << std::endl;
+    ostr << "\e[32;40m+ " << modification.kindName << " " << modification.newObjectName << "\e[0m" << std::endl;
+    return ostr.str();
 }
 
 
 
-void ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
+std::string ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
 {
-    std::cout << "set attribute " << modification.kindName << " " << modification.objectName << " "
-              << modification.attributeName << readableAttrPrinter(" from", modification.oldAttributeData)
-              << readableAttrPrinter(" to", modification.attributeData) << std::endl;
+    std::ostringstream ostr;
+    if ((prevObject) && (prevObject->modificationType == ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR) &&
+        (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName)))
+        ostr << "end" << std::endl;
+
+    if ((!prevObject) || (prevObject->modificationType != ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR) ||
+        (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
+        ostr << modification.kindName << " " << modification.objectName << std::endl;
+    }
+
+    if (modification.oldAttributeData)
+        ostr << "\e[31;40m-    " << modification.attributeName << " " <<
+        boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.oldAttributeData)) << "\e[0m" << std::endl;
+    if (modification.attributeData)
+        ostr << "\e[32;40m+    " << modification.attributeName << " " <<
+        boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << "\e[0m" << std::endl;
+
+    if ((!nextObject) || (nextObject->modificationType != ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR))
+        ostr << "end" << std::endl;
+
+    return ostr.str();
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::CreateObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_CREATE, ObjectDefinition(modification.kindName, modification.objectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::DeleteObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_DELETE, ObjectDefinition(modification.kindName, modification.objectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::RenameObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_RENAME, ObjectDefinition(modification.kindName, modification.newObjectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::SetAttributeModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR, ObjectDefinition(modification.kindName, modification.objectName));
 }
 
 
@@ -517,9 +640,18 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
     if (modifications.empty()) {
         std::cout << "No difference." << std::endl;
     } else {
+        ModificationObjectExtractor modificationObjectExtractor;
+        boost::optional<ModificationInfo> prevObj;
+        boost::optional<ModificationInfo> nextObj;
         for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
              it != modifications.end(); ++it) {
-            boost::apply_visitor(ModificationPrinter(), *it);
+            if (it != modifications.begin())
+                prevObj = boost::apply_visitor(modificationObjectExtractor, *(it - 1));
+            if ((it + 1) != modifications.end())
+                nextObj = boost::apply_visitor(modificationObjectExtractor, *(it + 1));
+            else
+                nextObj = boost::optional<ModificationInfo>();
+            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj), *it);
         }
     }
 }

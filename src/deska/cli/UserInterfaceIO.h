@@ -86,22 +86,6 @@ private:
 
 
 
-/** @short Visitor for printing oject modifications. */
-struct ModificationPrinter: public boost::static_visitor<void> {
-    //@{
-    /** @short Function for printing single object modification.
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    */
-    void operator()(const Db::CreateObjectModification &modification) const;
-    void operator()(const Db::DeleteObjectModification &modification) const;
-    void operator()(const Db::RenameObjectModification &modification) const;
-    void operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
-
-
-
 /** @short Class for IO operations needed in a command line user interface with a standard iostream implementation. */
 class UserInterfaceIO: public UserInterfaceIOBase
 {
