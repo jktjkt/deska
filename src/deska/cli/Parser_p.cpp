@@ -1196,6 +1196,23 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         }
     }
 
+    // Find out, if the user wants to enter kind name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KINDS_CONSTRUCT) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition() - 1) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
+        }
+    }
+
     // Find out, if the user wants to enter attribute name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
