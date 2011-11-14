@@ -595,29 +595,29 @@ void Context::operator()(const std::string &params)
 
 
 
-Restore::Restore(UserInterface *userInterface): Command(userInterface)
+Batch::Batch(UserInterface *userInterface): Command(userInterface)
 {
-    cmdName = "restore";
-    cmdUsage = "Executes commands from a file. Can be used for restoring the DB from a dump. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
-    complPatterns.push_back("restore %file");
+    cmdName = "batch";
+    cmdUsage = "Executes commands from a file. Requires file name with commands as a parameter. Lines with # at the beginning are comments and will not be parsed.";
+    complPatterns.push_back("batch %file");
 }
 
 
 
-Restore::~Restore()
+Batch::~Batch()
 {
 }
 
 
 
-void Restore::operator()(const std::string &params)
+void Batch::operator()(const std::string &params)
 {
     if (params.empty()) {
         ui->io->reportError("Error: This command requires file name as a parameter.");
         return;
     }
     if (!ui->currentChangeset) {
-        ui->io->reportError("Error: Wou have to be connected to a changeset to perform restoration. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        ui->io->reportError("Error: Wou have to be connected to a changeset to perform batched operations. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return;
     }
     std::ifstream ifs(params.c_str());
@@ -628,7 +628,6 @@ void Restore::operator()(const std::string &params)
     
     ui->nonInteractiveMode = true;
     std::string line;
-    ContextStack stackBackup = ui->m_parser->currentContextStack();
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     try {
@@ -651,7 +650,11 @@ void Restore::operator()(const std::string &params)
             ui->io->printMessage("All commands successfully executed.");
         }
     } catch (Db::ChangesetLockingError &e) {
-        ui->io->reportError("Error while locking changeset for restore. Rostoration failed.");
+        ui->io->reportError("Error while locking changeset for batched oparations.");
+    }
+    ifs.close();
+    ui->m_parser->clearContextStack();
+}
     }
     ifs.close();
     ui->m_parser->setContextStack(stackBackup);
