@@ -174,8 +174,8 @@ def pendingChangesets(filter=None):
         args = {"filter": filter}
     return ApiMethod("pendingChangesets", args)
 
-def resumeChangeset(revision):
-    return ApiMethod("resumeChangeset", {"changeset": revision})
+def resumeChangeset(changeset):
+    return ApiMethod("resumeChangeset", {"changeset": changeset})
 
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})
@@ -269,13 +269,18 @@ def verifyingObjectMultipleData(r, kindName, objectName):
     r.assertTrue(len(multiple), 1)
     r.assertTrue(multiple.has_key(objectName))
     r.assertEqual(one, multiple[objectName])
+    r.assertEqual(r.c(kindInstances(kindName,
+        filter={"condition": "columnEq", "kind": kindName,
+                "attribute":"name", "value": objectName})),
+                  [objectName])
     return one
 
-def kindInstances(kindName, revision=None):
-    # FIXME: filter
+def kindInstances(kindName, revision=None, filter=None):
     args = {"kindName": kindName}
     if revision is not None:
         args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
     return ApiMethod("kindInstances", args)
 
 def listRevisions(filter=None):
@@ -292,3 +297,9 @@ def dataDifference(revisionA, revisionB):
 
 def dataDifferenceInTemporaryChangeset(changeset):
     return ApiMethod("dataDifferenceInTemporaryChangeset", {"changeset": changeset})
+
+def resolvedDataDifference(revisionA, revisionB):
+    return ApiMethod("resolvedDataDifference", {"revisionA": revisionA, "revisionB": revisionB})
+
+def resolvedDataDifferenceInTemporaryChangeset(changeset):
+    return ApiMethod("resolvedDataDifferenceInTemporaryChangeset", {"changeset": changeset})
