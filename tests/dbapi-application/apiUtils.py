@@ -271,11 +271,12 @@ def verifyingObjectMultipleData(r, kindName, objectName):
     r.assertEqual(one, multiple[objectName])
     return one
 
-def kindInstances(kindName, revision=None):
-    # FIXME: filter
+def kindInstances(kindName, revision=None, filter=None):
     args = {"kindName": kindName}
     if revision is not None:
         args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
     return ApiMethod("kindInstances", args)
 
 def listRevisions(filter=None):
