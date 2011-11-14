@@ -292,3 +292,9 @@ def dataDifference(revisionA, revisionB):
 
 def dataDifferenceInTemporaryChangeset(changeset):
     return ApiMethod("dataDifferenceInTemporaryChangeset", {"changeset": changeset})
+
+def resolvedDataDifference(revisionA, revisionB):
+    return ApiMethod("resolvedDataDifference", {"revisionA": revisionA, "revisionB": revisionB})
+
+def resolvedDataDifferenceInTemporaryChangeset(changeset):
+    return ApiMethod("resolvedDataDifferenceInTemporaryChangeset", {"changeset": changeset})
