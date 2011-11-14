@@ -38,7 +38,7 @@
 namespace Deska {
 namespace Cli {
 
-/** @short Print a well-formatted representation of an attribute value*/
+/** @short Print a well-formatted representation of an attribute value */
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v)
 {
     std::ostringstream ss;
