@@ -85,7 +85,7 @@ std::string ModificationBackuper::operator()(const Db::SetAttributeModification 
     std::ostringstream ostr;
     ostr << modification.kindName << " " << modification.objectName << " ";
     if (modification.attributeData)
-        ostr << modification.attributeName << " " << *(modification.attributeData);
+        ostr << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData));
     else
         ostr << "no " << modification.attributeName;
     return ostr.str();
