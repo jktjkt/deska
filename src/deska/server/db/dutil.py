@@ -15,6 +15,7 @@ class DeskaException(Exception):
 		'70021': 'NotFoundError',
 		'70007': 'ObsoleteParentError',
 		'70004': 'ConstraintError',
+		'70005': 'ReadOnlyError',
 		'*': 'ServerError'
 	}
 

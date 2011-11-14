@@ -114,7 +114,10 @@ class Table(constants.Templates):
 
 	def gen_set_ref_uid(self,col_name, reftable):
 		"""Generates the set_attribute stored procedure for those columns in table that references some uid column of some table."""
-		return self.set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
+		if col_name in self.contains:
+			return self.set_read_only_string % {'tbl': self.name, 'colname': col_name}
+		else:
+			return self.set_fk_uid_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'reftbl': reftable, 'columns': self.get_columns()}
 		
 	def gen_set_refuid_set(self, col_name, reftable):
 		"""Generates set function for columns that contains set of identifiers that references."""
@@ -333,7 +336,7 @@ class Table(constants.Templates):
 		rddvcols = collist.keys()
 		rddv_list = list()
 		for col in rddvcols:
-			if (col == self.embed_column) or (col in self.merge_with):
+			if (col == self.embed_column) or (col in self.contains):
 				rddv_list.append( "rd." + col)
 			else:
 				rddv_list.append(("COALESCE(rd.%s, dv.%s) AS %s" % (col, col, col)))
@@ -434,10 +437,10 @@ class Table(constants.Templates):
 		#table which is thatone embed into
 		resolved_object_data_string = self.resolved_object_data_string
 		resolved_object_data_template_info_string = self.resolved_object_data_template_info_string
-		if self.embed_column <> "" or len(self.merge_with) > 0 or len(self.refers_to_set) > 0:
+		if self.embed_column <> "" or len(self.contains) > 0 or len(self.refers_to_set) > 0:
 			multiple_rd_dv_coalesce_list = list()
 			for col in collist:
-				if col == self.embed_column or col in self.merge_with:
+				if col == self.embed_column or col in self.contains:
 					multiple_rd_dv_coalesce_list.append("rd.%s AS %s" % (col, col))
 				else:
 					if col not in self.refers_to_set:
@@ -465,7 +468,7 @@ class Table(constants.Templates):
 		# rd_dv_coalesce =coalesce(rd.vendor,dv.vendor),coalesce(rd.purchase,dv.purchase), ...
 		templated_rddv_collist = list()
 		for col in collist:
-			if col in self.merge_with:
+			if col in self.contains:
 				templated_rddv_collist.append("rd." + col)
 			elif col in self.refers_to_set:
 				templated_rddv_collist.append("%(tbl_template)s_%(refcol)s_ref_set_coal(rd.%(refcol)s,dv.uid,from_version) AS %(refcol)s" % {"tbl_template": templ_table, "refcol": col})
@@ -540,7 +543,7 @@ class Table(constants.Templates):
 		for col in cols_ex_template_dict.keys():
 			if col == self.embed_column:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
-			elif col in self.merge_with:
+			elif col in self.contains:
 				templ_case_list.append("rd.%s_templ AS %s_templ" % (col, col))
 				case_cols_list.append(case_col_string % (col, col))                
 			elif col in self.refers_to_set:
@@ -593,11 +596,11 @@ class Table(constants.Templates):
 		collist.remove('uid')
 		collist.remove('name')
 
-		if self.embed_column <> "" or len(self.merge_with) > 0:
+		if self.embed_column <> "" or len(self.contains) > 0:
 			rd_dv_list = list()
 			for col in collist:
-				#column that refers to embed into parent and merge with columns are not present in template
-				if (col == self.embed_column) or (col in self.merge_with):
+				#column that refers to embed into parent and contains columns are not present in template
+				if (col == self.embed_column) or (col in self.contains):
 					rd_dv_list.append("rd." + col)
 				else:
 					rd_dv_list.append("COALESCE(rd.%s,dv.%s) AS %s" % (col, col, col))

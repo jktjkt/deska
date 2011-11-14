@@ -101,6 +101,21 @@ class Templates:
 
 '''
 
+	#template for seting
+	set_read_only_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(colname)s(IN name_ text,IN value text)
+	RETURNS integer
+	AS
+	$$
+	BEGIN
+		PERFORM get_current_changeset();
+		RAISE 'Column %(colname)s in table %(tbl)s is read only.' USING ERRCODE = '70005';
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+	
+'''	
+
 	# template string for set functions for columns that reference set of identifiers
 	set_refuid_set_string = '''CREATE FUNCTION
 	%(tbl)s_set_%(colname)s(IN name_ text,IN value text[])
