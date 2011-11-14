@@ -157,7 +157,7 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("configdiff regenerate");
     expectAddCommandCompletion("context objects");
     expectAddCommandCompletion("detach");
-    expectAddCommandCompletion("diff");
+    expectAddCommandCompletion("diff %file");
     expectAddCommandCompletion("dump %file");
     expectAddCommandCompletion("exit");
     expectAddCommandCompletion("quit");

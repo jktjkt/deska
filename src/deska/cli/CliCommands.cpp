@@ -403,8 +403,8 @@ void Status::operator()(const std::string &params)
 Diff::Diff(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "diff";
-    cmdUsage = "Command for showing difference between revisions. Without parameters shows diff of current changeset with its parent. With two parameters, revisions IDs shows diff between these revisions.";
-    complPatterns.push_back("diff");
+    cmdUsage = "Command for showing difference between revisions. Without parameters shows diff of current changeset with its parent. With two parameters, revisions IDs shows diff between these revisions. You can give a filename as a first parameter in both cases to produce patch between two revisions or backup of current changeset work.";
+    complPatterns.push_back("diff %file");
 }
 
 
@@ -417,12 +417,12 @@ Diff::~Diff()
 
 void Diff::operator()(const std::string &params)
 {
-    // FIXME: Allow creating of a patch
     if (params.empty()) {
         if (!ui->currentChangeset) {
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
             return;
         }
+        // Show diff with parent
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
         ui->io->printDiff(modifications);
@@ -430,28 +430,72 @@ void Diff::operator()(const std::string &params)
     }
 
     std::vector<std::string> paramsList = extractParams(params);
-    if (paramsList.size() != 2) {
+    if (paramsList.size() > 3) {
         ui->io->reportError("Invalid number of parameters entered!");
         return;
     }
 
-    boost::optional<Db::RevisionId> revA, revB;
-    try {
-        revA = Deska::Db::RevisionId::fromString(paramsList[0]);
-        revB = Deska::Db::RevisionId::fromString(paramsList[1]);
-    } catch (std::runtime_error &e) {
-        std::ostringstream ss;
-        ss << "Invalid parameters: " << e.what();
-        ui->io->reportError(ss.str());
-        return;
-    }
-    try {
-        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
-        ui->io->printDiff(modifications);
-    } catch (Db::RevisionRangeError &e) {
-        ui->io->reportError("Revision range does not make a sense.");
-    }
+    if (paramsList.size() == 1) {
+        // Create patch to current changeset
+        if (!ui->currentChangeset) {
+            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+            return;
+        }
+        std::ofstream ofs(paramsList[0].c_str());
+        if (!ofs) {
+            ui->io->reportError("Error while creating patch to file \"" + params + "\".");
+            return;
+        }
+        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
+            *(ui->currentChangeset));
+        ModificationBackuper modificationBackuper;
+        for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
+            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+        }
+        ofs.close();
+        ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
 
+    } else if (paramsList.size() >= 2) {
+        // Diff between two revisions
+        boost::optional<Db::RevisionId> revA, revB;
+        std::vector<Db::ObjectModificationResult> modifications;
+        try {
+            if (paramsList.size() == 2) {
+                revA = Deska::Db::RevisionId::fromString(paramsList[0]);
+                revB = Deska::Db::RevisionId::fromString(paramsList[1]);
+            } else {
+                revA = Deska::Db::RevisionId::fromString(paramsList[1]);
+                revB = Deska::Db::RevisionId::fromString(paramsList[2]);
+            }
+        } catch (std::runtime_error &e) {
+            std::ostringstream ss;
+            ss << "Invalid parameters: " << e.what();
+            ui->io->reportError(ss.str());
+            return;
+        }
+        try {
+            modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
+        } catch (Db::RevisionRangeError &e) {
+            ui->io->reportError("Revision range does not make a sense.");
+        }
+        if (paramsList.size() == 2) {
+            // Print diff
+            ui->io->printDiff(modifications);
+        } else {
+            // Create patch
+            std::ofstream ofs(paramsList[0].c_str());
+            if (!ofs) {
+                ui->io->reportError("Error while creating patch to file \"" + params + "\".");
+                return;
+            }
+            ModificationBackuper modificationBackuper;
+            for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
+                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+            }
+            ofs.close();
+            ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
+        }
+    }
 }
 
 
