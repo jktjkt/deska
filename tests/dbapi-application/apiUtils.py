@@ -269,6 +269,10 @@ def verifyingObjectMultipleData(r, kindName, objectName):
     r.assertTrue(len(multiple), 1)
     r.assertTrue(multiple.has_key(objectName))
     r.assertEqual(one, multiple[objectName])
+    r.assertEqual(r.c(kindInstances(kindName,
+        filter={"condition": "columnEq", "kind": kindName,
+                "attribute":"name", "value": objectName})),
+                  [objectName])
     return one
 
 def kindInstances(kindName, revision=None, filter=None):
