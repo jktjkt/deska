@@ -782,10 +782,11 @@ void Backup::operator()(const std::string &params)
     if (revisions.size() < 2)
         ui->io->reportError("Database empty. Nothing to back up.");
     // First revision is not a real revision, but head of the list, that is always present even with empty DB
+    ModificationBackuper modificationBackuper;
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference((it - 1)->revision, it->revision);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-            ofs << boost::apply_visitor(ModificationBackuper(), *itm) << std::endl;
+            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
         }
         ofs << "@commit to " << it->revision << std::endl;
         ofs << it->author << std::endl;
