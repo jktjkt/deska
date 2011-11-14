@@ -85,6 +85,7 @@ private:
 };
 
 
+
 /** @short Visitor for printing oject modifications. */
 struct ModificationPrinter: public boost::static_visitor<void> {
     //@{

@@ -420,6 +420,13 @@ void DbInteraction::abortChangeset()
 
 
 
+void DbInteraction::restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp)
+{
+    m_api->restoringCommit(message, author, timestamp);
+}
+
+
+
 std::vector<Db::RevisionMetadata> DbInteraction::allRevisions()
 {
     return m_api->listRevisions();

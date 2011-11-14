@@ -218,6 +218,13 @@ public:
     void detachFromChangeset(const std::string &message);
     /** @short Aborts current changeset. */
     void abortChangeset();
+    /** @short Commits current changeset with additional information for purposes of restore
+    *
+    *   @param message Commit message
+    *   @param author Author
+    *   @param timestamp Timestamp
+    */
+    void restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp);
 
     /** Function for obtaining all revisions.
     *
