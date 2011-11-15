@@ -28,7 +28,7 @@ def doStuff(r):
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "vendor1"))
     r.cvoid(setAttribute("hardware", "hw1", "purchase", "2008-10-10"))
     r.cvoid(setAttribute("hardware", "hw1", "warranty", "2010-10-10"))
-    r.c(commitChangeset("test"))
+    rev2 = r.c(commitChangeset("test"))
 
     hardwareData = r.c(objectData("hardware", "hw1"))
     r.assertEqual(hardwareData, expectedHardwareData)
@@ -40,10 +40,27 @@ def doStuff(r):
     r.cvoid(restoreDeletedObject("hardware", "hw1"))
     hardwareData = r.c(objectData("hardware", "hw1"))
     r.assertEqual(hardwareData, expectedHardwareData)
-    r.c(commitChangeset("test2"))
+    rev3 = r.c(commitChangeset("test2"))
 
     hardwareData = r.c(objectData("hardware", "hw1"))
     r.assertEqual(hardwareData, expectedHardwareData)
+
+    # Check what happens when we try to rename an object to something which got
+    # deleted in the current changeset
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "v2"))
+    r.c(createObject("vendor", "v3"))
+    rev4 = r.c(commitChangeset("."))
+    changeset = r.c(startChangeset())
+    r.cvoid(deleteObject("vendor", "v2"))
+    # FIXME: Redmine #307, wrong exception
+    #r.cfail(renameObject("vendor", "v3", "v2"), exception=ReCreateObjectError())
+    expectedDiff = [
+        {'command': 'deleteObject', 'kindName': 'vendor', 'objectName': 'v2'},
+    ]
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedDiff)
+    rev5 = r.c(commitChangeset("."))
+    r.assertEqual(r.c(dataDifference(rev4, rev5)), expectedDiff)
 
 def doStuff_embed(r):
     hostNames = set(["host1"])
