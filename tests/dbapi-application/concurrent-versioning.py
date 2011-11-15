@@ -39,3 +39,8 @@ def imperative(r):
     # Check that a frozen view and an active changeset are mutually exclusive
     # FIXME: Redmine #305, frozen view cannot start/resume changesets
     #r.cfail(startChangeset(), conn2)
+    changeset = r.c(startChangeset(), conn1)
+    # FIXME: Redmine #305, this shall fail
+    #r.cfail(freezeView(), conn1)
+    #r.cfail(unFreezeView(), conn1)
+    #r.cvoid(resumeChangeset(changeset), conn=conn2)
