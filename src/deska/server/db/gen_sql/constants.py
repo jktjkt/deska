@@ -445,7 +445,7 @@ class Templates:
 				RETURN value;
 			END IF;
 			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(changeset_id));
+			--from_version = id2num(parent(changeset_id));
 		END IF;
 
 		SELECT uid INTO value FROM %(tbl)s_data_version(from_version) WHERE name = name_;
