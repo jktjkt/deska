@@ -39,7 +39,7 @@ std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Valu
 class UserInterface;
 
 
-/** @short Visitor for printing oject modifications. */
+/** @short Visitor for printing object modifications. */
 struct ModificationBackuper: public boost::static_visitor<std::string> {
     //@{
     /** @short Function for converting single object modification to string for purposes of backup.
