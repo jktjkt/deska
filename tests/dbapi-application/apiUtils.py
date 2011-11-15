@@ -303,3 +303,9 @@ def resolvedDataDifference(revisionA, revisionB):
 
 def resolvedDataDifferenceInTemporaryChangeset(changeset):
     return ApiMethod("resolvedDataDifferenceInTemporaryChangeset", {"changeset": changeset})
+
+def freezeView():
+    return ApiMethod("freezeView", None)
+
+def unFreezeView():
+    return ApiMethod("unFreezeView", None)
