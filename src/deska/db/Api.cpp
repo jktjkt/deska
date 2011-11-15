@@ -42,6 +42,8 @@ std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Iden
         case RELATION_REFERS_TO:
         case RELATION_TEMPLATIZED:
         case RELATION_MERGE_WITH:
+        case RELATION_CONTAINS:
+        case RELATION_CONTAINABLE:
             // no special cases
             break;
         case RELATION_INVALID:

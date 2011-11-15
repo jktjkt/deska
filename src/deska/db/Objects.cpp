@@ -111,6 +111,10 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
         return stream << "refersTo(" << o.target << ", " << o.column << ")";
     case RELATION_TEMPLATIZED:
         return stream << "templatized(" << o.target << ", " << o.column << ")";
+    case RELATION_CONTAINS:
+        return stream << "contains(" << o.target << ", " << o.column << ")";
+    case RELATION_CONTAINABLE:
+        return stream << "containable(" << o.target << ", " << o.column << ")";
     case RELATION_INVALID:
         return stream << "RELATION_INVALID";
     }
@@ -140,6 +144,16 @@ ObjectRelation ObjectRelation::refersTo(const Identifier &target, const Identifi
 ObjectRelation ObjectRelation::templatized(const Identifier &target, const Identifier &column)
 {
     return ObjectRelation(RELATION_TEMPLATIZED, target, column);
+}
+
+ObjectRelation ObjectRelation::contains(const Identifier &target, const Identifier &column)
+{
+    return ObjectRelation(RELATION_CONTAINS, target, column);
+}
+
+ObjectRelation ObjectRelation::containable(const Identifier &target, const Identifier &column)
+{
+    return ObjectRelation(RELATION_CONTAINABLE, target, column);
 }
 
 /** @short Variant visitor that returns the type name of a Deska::Db::Value */
