@@ -126,9 +126,6 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(diffing-simple)
     deska_dbapi_test(diffing-embedded)
     deska_dbapi_test(simple_filtering)
-
-    # unit tests which work on any reasonable state of the DB, no matter what
-    # changesets are already present, etc
     deska_dbapi_test(persist_kindInstances)
     deska_dbapi_test(persist_metadata)
     deska_dbapi_test(persist_versioning)
