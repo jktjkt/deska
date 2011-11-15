@@ -271,7 +271,13 @@ ModificationType ModificationTypeGetter::operator()(const Db::SetAttributeModifi
 bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
                                              const Db::CreateObjectModification &b) const
 {
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else {
+        return (a.objectName <= b.objectName);
+    }
 }
 
 
@@ -279,7 +285,13 @@ bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification 
 bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification &a,
                                              const Db::DeleteObjectModification &b) const
 {
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else {
+        return (a.objectName <= b.objectName);
+    }
 }
 
 
@@ -287,7 +299,17 @@ bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification 
 bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification &a,
                                              const Db::RenameObjectModification &b) const
 {
-    return ((a.kindName < b.kindName) && (a.oldObjectName < b.oldObjectName) && (a.newObjectName != b.newObjectName));
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else if (a.oldObjectName < b.oldObjectName) {
+        return true;
+    } else if (a.oldObjectName > b.oldObjectName) {
+        return false;
+    } else {
+        return (a.newObjectName != b.newObjectName);
+    }
 }
 
 
@@ -295,8 +317,21 @@ bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification 
 bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification &a,
                                              const Db::SetAttributeModification &b) const
 {
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName) &&
-            (a.attributeName < b.attributeName) && (a.attributeData != b.attributeData));
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else if (a.objectName < b.objectName) {
+        return true;
+    } else if (a.objectName > b.objectName) {
+        return false;
+    } else if (a.attributeName < b.attributeName) {
+        return true;
+    } else if (a.attributeName > b.attributeName) {
+        return false;
+    } else {
+        return (a.attributeData != b.attributeData);
+    }
 }
 
 
