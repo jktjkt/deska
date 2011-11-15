@@ -8,6 +8,9 @@ def imperative(r):
     revA = r.c(pendingChangesets(filter={"condition": "columnEq", "metadata":
                                          "changeset", "value": changeset})
               )[0]["parentRevision"]
+    r.assertEquals(revA, "r1")
+    # FIXME: Redmine #306
+    #r.cfail(dataDifference("r1", "r666"), exception=RevisionRangeError())
 
     r.c(createObject("vendor", "v1"))
     r.c(createObject("vendor", "v2"))
