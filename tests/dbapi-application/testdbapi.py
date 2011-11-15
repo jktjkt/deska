@@ -31,10 +31,14 @@ def deunicodeify(stuff):
 class Connection(object):
     """Encapsulate communication to the Deska server over JSON"""
 
+    counter = 0
+
     def __init__(self, cmd):
         self.cmd = cmd
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        Connection.counter = Connection.counter + 1
+        self.num = Connection.counter
 
     def runCommandStr(self, writeJson):
         """Handle string IO to the process"""
@@ -66,9 +70,9 @@ class JsonApiTester(unittest.TestCase):
         if conn is None:
             conn = self.conn
         writeJson = json.dumps(cmd)
-        print writeJson
+        print conn.num, writeJson
         readJson = conn.runCommandStr(writeJson)
-        print readJson
+        print conn.num, readJson
         sys.stdout.flush()
         return deunicodeify(json.loads(readJson))
 
