@@ -72,6 +72,14 @@ class RemoteDbException(object):
             raise ValueError, "Message too short: %s" % repr(other["message"])
         return other["type"] == self.name
 
+class InvalidKindError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidKindError")
+
+class InvalidAttributeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidAttributeError")
+
 class NotFoundError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "NotFoundError")
@@ -96,25 +104,37 @@ class ReCreateObjectError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ReCreateObjectError")
 
-class InvalidKindError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "InvalidKindError")
-
-class InvalidAttributeError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "InvalidAttributeError")
-
 class RevisionParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "RevisionParsingError")
+
+class RevisionRangeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "RevisionRangeError")
 
 class ChangesetParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ChangesetParsingError")
 
+class ConstraintError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ConstraintError")
+
 class ObsoleteParentError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ObsoleteParentError")
+
+class NotASetError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "NotASetError")
+
+class ChangesetLockingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ChangesetLockingError")
+
+class CfgGeneratingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "CfgGeneratingError")
 
 class SqlError(RemoteDbException):
     def __init__(self):
@@ -123,10 +143,6 @@ class SqlError(RemoteDbException):
 class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
-
-class ConstraintError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "ConstraintError")
 
 
 def revisionIncrement(revision, change):
