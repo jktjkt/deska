@@ -45,8 +45,8 @@ class DB:
 		"listRevisions": ["tag", "filter"],
 		"dataDifference": ["tag", "revisionA", "revisionB"],
 		"dataDifferenceInTemporaryChangeset": ["tag", "changeset"],
-		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
-		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
+		"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
+		"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		# showConfigDiff is special
 	})
 

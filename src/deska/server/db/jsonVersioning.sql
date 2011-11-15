@@ -266,7 +266,7 @@ def main(tag,a,b):
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName,diffname,a,b))
+			res.extend(oneKindDiff(kindName,diffname,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -294,7 +294,7 @@ def main(tag,changeset):
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName,diffname,changeset))
+			res.extend(oneKindDiff(kindName,diffname,changeset))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
