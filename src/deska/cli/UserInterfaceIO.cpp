@@ -93,13 +93,13 @@ struct ModificationInfo
     /** @short Type of object modification for printing purposes */
     typedef enum {
         /** @short Db::CreateObjectModification */
-        OBJECT_MODIFICATION_TYPE_CREATE,
+        OBJECT_MODIFICATION_TYPE_CREATE = 2,
         /** @short Db::DeleteObjectModification */
-        OBJECT_MODIFICATION_TYPE_DELETE,
+        OBJECT_MODIFICATION_TYPE_DELETE = 0,
         /** @short Db::RenameObjectModification */
-        OBJECT_MODIFICATION_TYPE_RENAME,
+        OBJECT_MODIFICATION_TYPE_RENAME = 1,
         /** @short Db::SetAttributeModification */
-        OBJECT_MODIFICATION_TYPE_SETATTR
+        OBJECT_MODIFICATION_TYPE_SETATTR = 3
     } ObjectModificationType;
 
     ModificationInfo(ObjectModificationType type, const ObjectDefinition &object):
@@ -115,7 +115,8 @@ struct ModificationInfo
 struct ModificationPrinter: public boost::static_visitor<std::string> {
 
     ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
-                        const boost::optional<ModificationInfo> &nextObj);
+                        const boost::optional<ModificationInfo> &nextObj,
+                        bool &created, unsigned int &depth);
     //@{
     /** @short Function for printing single object modification.
     *
@@ -130,6 +131,8 @@ struct ModificationPrinter: public boost::static_visitor<std::string> {
 private:
     boost::optional<ModificationInfo> prevObject;
     boost::optional<ModificationInfo> nextObject;
+    bool &createdObj;
+    unsigned int &printDepth;
 };
 
 
@@ -150,9 +153,30 @@ struct ModificationObjectExtractor: public boost::static_visitor<ModificationInf
 
 
 
+/** @short Function for comparing two modification for purposes of sorting modifications list for diff output. */
+bool modificationDiffComparatorLess(const Db::ObjectModificationResult &ma, const Db::ObjectModificationResult &mb)
+{
+    ModificationInfo a = boost::apply_visitor(ModificationObjectExtractor(), ma);
+    ModificationInfo b = boost::apply_visitor(ModificationObjectExtractor(), mb);
+    if (a.modifiedObject.kind < b.modifiedObject.kind) {
+        return true;
+    } else if (a.modifiedObject.kind > b.modifiedObject.kind) {
+        return false;
+    } else if (a.modifiedObject.name < b.modifiedObject.name) {
+        return true;
+    } else if (a.modifiedObject.name > b.modifiedObject.name) {
+        return false;
+    } else {
+        return (a.modificationType <= b.modificationType);
+    }
+}
+
+
+
 ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
-                                         const boost::optional<ModificationInfo> &nextObj):
-    prevObject(prevObj), nextObject(nextObj)
+                                         const boost::optional<ModificationInfo> &nextObj,
+                                         bool &created, unsigned int &depth):
+    prevObject(prevObj), nextObject(nextObj), createdObj(created), printDepth(depth)
 {
 };
 
@@ -207,7 +231,6 @@ std::string ModificationPrinter::operator()(const Db::SetAttributeModification &
 
     if ((!nextObject) || (nextObject->modificationType != ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR))
         ostr << "end" << std::endl;
-
     return ostr.str();
 }
 
@@ -640,9 +663,13 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
     if (modifications.empty()) {
         std::cout << "No difference." << std::endl;
     } else {
+        std::vector<Db::ObjectModificationResult> sortedModifications = modifications;
+        std::sort(sortedModifications.begin(), sortedModifications.end(), modificationDiffComparatorLess);
         ModificationObjectExtractor modificationObjectExtractor;
         boost::optional<ModificationInfo> prevObj;
         boost::optional<ModificationInfo> nextObj;
+        bool created = false;
+        unsigned int depth = 0;
         for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
              it != modifications.end(); ++it) {
             if (it != modifications.begin())
@@ -651,7 +678,7 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
                 nextObj = boost::apply_visitor(modificationObjectExtractor, *(it + 1));
             else
                 nextObj = boost::optional<ModificationInfo>();
-            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj), *it);
+            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj, created, depth), *it);
         }
     }
 }
