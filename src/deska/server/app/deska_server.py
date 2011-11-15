@@ -5,6 +5,7 @@ from dbapi import DB
 import os
 import sys
 import logging
+import errno
 from optparse import OptionParser
 try:
     import json
@@ -60,9 +61,16 @@ if options.database:
 if options.username:
     dbargs["user"] = options.username
 
-# Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
-# we don't have to deal with KeyboardInterrupt exception
-os.setsid()
+try:
+    # Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
+    # we don't have to deal with KeyboardInterrupt exception
+    os.setsid()
+except OSError, e:
+    if e.errno == errno.EPERM:
+        # we're already a session leader -> do nothing
+        pass
+    else:
+        raise
 
 cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
                  "cfggenGitRepo": options.cfggenGitRepo,
