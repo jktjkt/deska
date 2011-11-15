@@ -33,7 +33,7 @@ BEGIN
 	PERFORM service_add('dhcp');
 	PERFORM host_add('hpv1');
 
-	PERFORM host_init_diff();
+	PERFORM host_init_ch_diff();
 	PREPARE retservices AS SELECT olddata, newdata FROM host_diff_refs_set_set_attributes();
 	RETURN NEXT is_empty( 'retservices', 'a new host was inserted, in inner table is no modification - current changeset' );
 	DEALLOCATE retservices;
@@ -44,7 +44,7 @@ BEGIN
 	PERFORM startChangeset();
 	PERFORM host_set_service('hpv1', cast(array[] as text[]));
 
-	PERFORM host_init_diff();
+	PERFORM host_init_ch_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service WHERE version = 1) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service WHERE version = 2) v2 ON (v1.host = v2.host);
 	PREPARE retservices AS SELECT olddata, newdata FROM host_diff_refs_set_set_attributes();
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'set hosts services from NULL to empty set' );
@@ -69,7 +69,7 @@ BEGIN
 	PERFORM host_set_service_insert('hpv1', 'www');
 	PERFORM host_set_service_insert('hpv1', 'dhcp');
 
-	PERFORM host_init_diff();
+	PERFORM host_init_ch_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service WHERE version = 2) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service WHERE version = 31) v2 ON (v1.host = v2.host);
 	PREPARE retservices AS SELECT olddata, newdata FROM host_diff_refs_set_set_attributes();
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'set hosts inserted services' );
@@ -79,7 +79,7 @@ BEGIN
 
 	PERFORM host_set_service_remove('hpv1', 'www');
 
-	PERFORM host_init_diff();
+	PERFORM host_init_ch_diff();
 	PREPARE expservices  AS SELECT v1.service AS olddata, v2.service AS newdata FROM (SELECT * FROM pgtap.test_host_service WHERE version = 2) v1 FULL OUTER JOIN (SELECT * FROM pgtap.test_host_service WHERE version = 3) v2 ON (v1.host = v2.host);
 	PREPARE retservices AS SELECT olddata, newdata FROM host_diff_refs_set_set_attributes();
 	RETURN NEXT results_eq( 'retservices', 'expservices', 'set hosts removed service - in current changeset' );
@@ -109,7 +109,7 @@ BEGIN
 	PERFORM host_set_service_insert('hpv2', 'dhcp');
 	PERFORM host_set_service_insert('hpv3', 'www');
 
-	PERFORM host_init_diff();
+	PERFORM host_init_ch_diff();
 	PREPARE expservices AS 
 		SELECT v1.service AS olddata, v2.service AS newdata 
 		FROM (SELECT * FROM pgtap.test_host_service WHERE version = 3) v1 
