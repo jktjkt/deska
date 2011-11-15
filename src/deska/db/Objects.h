@@ -151,6 +151,12 @@ typedef enum {
      * */
     RELATION_TEMPLATIZED,
 
+    /** @short This object can "include" the referenced instance as a part in the composition pattern */
+    RELATION_CONTAINS,
+
+    /** @short This object is embeddable into another object */
+    RELATION_CONTAINABLE,
+
     RELATION_INVALID /**< Last, invalid item */
 } ObjectRelationKind;
 
@@ -189,6 +195,12 @@ struct ObjectRelation
 
     /** @short Construct a RELATION_TEMPLATIZED */
     static ObjectRelation templatized(const Identifier &target, const Identifier &column);
+
+    /** @short Construct a RELATION_CONTAINS */
+    static ObjectRelation contains(const Identifier &target, const Identifier &column);
+
+    /** @short Construct a RELATION_CONTAINABLE */
+    static ObjectRelation containable(const Identifier &target, const Identifier &column);
 
     /** @short Kind of relation */
     ObjectRelationKind kind;
