@@ -28,7 +28,7 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_before_%(tbl)s_%(comp_tbl)s_link BEFORE INSERT ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(comp_tbl)s_link_before();
+CREATE TRIGGER trg_before_%(tbl)s_%(comp_tbl)s_link BEFORE INSERT ON %(tbl)s_history FOR EACH ROW WHEN (NEW.%(comp_tbl)s IS NULL) EXECUTE PROCEDURE %(tbl)s_%(comp_tbl)s_link_before();
 
 CREATE OR REPLACE FUNCTION history.%(tbl)s_%(comp_tbl)s_link_after()
 RETURNS trigger
@@ -46,12 +46,74 @@ BEGIN
 
     IF refuid IS NOT NULL THEN
         PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
+        NEW.%(comp_tbl)s = refuid;
     END IF;
     RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
 CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(comp_tbl)s_link_after();
+'''
+
+    before_update_trigger_comp_obj_part = '''
+    refuid = NULL;
+    BEGIN
+        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+    EXCEPTION
+        WHEN SQLSTATE '70021' THEN
+            --nothing
+    END;
+
+    NEW.%(comp_tbl)s = refuid;
+'''
+
+    after_update_trigger_comp_obj_part = '''
+    refuid = NULL;
+    BEGIN
+        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+    EXCEPTION
+        WHEN SQLSTATE '70021' THEN
+            --nothing
+    END;
+
+    IF OLD.%(comp_tbl)s IS NOT NULL THEN
+        PERFORM inner_%(comp_tbl)s_set_%(tbl)s(OLD.name, NULL);
+    END IF;
+
+    IF refuid IS NOT NULL THEN
+        PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
+    END IF;
+'''
+
+    rename_trigger_link_comp_objects = '''
+CREATE OR REPLACE FUNCTION history.%(tbl)s_link_before_update()
+RETURNS trigger
+AS
+$$
+DECLARE 
+    refuid bigint;
+BEGIN
+    %(before_comp_obj_parts)s
+    RETURN NEW;
+END 
+$$
+LANGUAGE plpgsql;
+CREATE TRIGGER trg_before_update_%(tbl)s_link BEFORE UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_link_before_update();
+
+CREATE OR REPLACE FUNCTION history.%(tbl)s_link_after_update()
+RETURNS trigger
+AS
+$$
+DECLARE 
+    refuid bigint;
+BEGIN
+    %(after_comp_obj_parts)s    
+    RETURN NEW;
+END 
+$$
+LANGUAGE plpgsql;
+CREATE TRIGGER trg_after_update_%(tbl)s_link AFTER UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_link_after_update();
+
 '''
 
     nn_inc_count_str = '''
@@ -112,6 +174,7 @@ LANGUAGE plpgsql;
             self.composition_touples[table].append(reftable)
             
         self.constraint_sql.write(self.gen_add_check_constraint())
+        self.trigger_sql.write(self.gen_rename_trigger())
 
         self.constraint_sql.close()
         self.trigger_sql.close()
@@ -121,11 +184,23 @@ LANGUAGE plpgsql;
 
     def gen_link_trigger(self, table, reftable):
         return self.trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftable} + '\n' + self.trigger_link_comp_objects % {'tbl': reftable, 'comp_tbl': table}
+    
+    def gen_rename_trigger(self):
+        triggers = ""
+        for table in self.composition_touples:
+            compos_cols = self.composition_touples[table]
+            before_trg_obj_part = ""
+            after_trg_obj_part = ""
+            for reftbl in compos_cols:
+                before_trg_obj_part = before_trg_obj_part + self.before_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
+                after_trg_obj_part = after_trg_obj_part + self.after_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
+            triggers = triggers + self.rename_trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftbl, 'before_comp_obj_parts' : before_trg_obj_part, 'after_comp_obj_parts' : after_trg_obj_part}
+        return triggers
+        
 
     #generates check constraint and function that is used in this check contraint
     #check consraint checks whether there is not more than one not null column (that is in composition relation with this kind) in row (object)
     def gen_add_check_constraint(self):
-        print self.composition_touples
         check_function_str = ""
         add_constr_string = ""
         for table in self.composition_touples:
