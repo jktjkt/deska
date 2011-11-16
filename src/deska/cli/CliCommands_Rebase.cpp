@@ -683,10 +683,8 @@ void Rebase::operator()(const std::string &params)
             std::ostringstream ostr;
             ostr << "Parsing of resolved conflicts file failed on line " << lineNumber << ".";
             ui->io->reportError(ostr.str());
-            // FIXME: What to do in non-interactive mode? Rebase in non-interactive mode seems weird.
-            // FIXME: Problem with next atemp is, that rebase is not atomical. Is there some way to "undo" all changes
-            //        in all current changeset?
-            if (!ui->io->askForConfirmation("Try to resolve conflict again?")) {
+            // FIXME: Make all changes batched in order to be atomical and new attemp could be done
+            //if (!ui->io->askForConfirmation("Try to resolve conflict again?")) {
                 remove(tempFile);
                 ui->m_dbInteraction->abortChangeset();
                 ui->m_dbInteraction->resumeChangeset(oldChangeset);
@@ -696,7 +694,7 @@ void Rebase::operator()(const std::string &params)
                     ui->io->reportError("Error while unlocking old changeset after rebase failure.");
                 }
                 return;
-            }
+            //}
         } else {
             conflictResolved = true;
         }

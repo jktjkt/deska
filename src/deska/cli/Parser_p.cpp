@@ -564,8 +564,6 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
     // Adding kinds from directly merged kinds
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
         for (std::vector<Db::Identifier>::iterator it = embeds[itm->second].begin(); it != embeds[itm->second].end(); ++it) {
-            // FIXME: Can DB handle such filters? I do not think so.
-            //kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
             kindsConstructParser->addKind(*it);
         }
     }
