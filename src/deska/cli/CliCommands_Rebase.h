@@ -62,7 +62,7 @@ public:
 private:
     /** @short Function for sorting object modifications.
     *
-    *   Sorting at first by kind, then by name, then by modification type.
+    *   Sorting at first by modification type, then by kind, by name, and lastly by attribute name.
     *
     *   @param a First object modification
     *   @param b Second object modification

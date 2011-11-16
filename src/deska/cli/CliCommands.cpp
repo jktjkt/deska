@@ -26,6 +26,8 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
 
 #include "CliCommands_Log.h"
 #include "CliCommands_Rebase.h"
@@ -39,6 +41,8 @@
 namespace Deska {
 namespace Cli {
 
+
+
 /** @short Print a well-formatted representation of an attribute value */
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v)
 {
@@ -50,6 +54,128 @@ std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Valu
     }
     return ss.str();
 }
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::CreateObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_CREATE;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::DeleteObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_DELETE;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::RenameObjectModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_RENAME;
+}
+
+
+
+ModificationType ModificationTypeGetter::operator()(const Db::SetAttributeModification &modification) const
+{
+    return OBJECT_MODIFICATION_TYPE_SETATTR;
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
+                                             const Db::CreateObjectModification &b) const
+{
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else {
+        return (a.objectName <= b.objectName);
+    }
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification &a,
+                                             const Db::DeleteObjectModification &b) const
+{
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else {
+        return (a.objectName <= b.objectName);
+    }
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification &a,
+                                             const Db::RenameObjectModification &b) const
+{
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else if (a.oldObjectName < b.oldObjectName) {
+        return true;
+    } else if (a.oldObjectName > b.oldObjectName) {
+        return false;
+    } else {
+        return (a.newObjectName != b.newObjectName);
+    }
+}
+
+
+
+bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification &a,
+                                             const Db::SetAttributeModification &b) const
+{
+    if (a.kindName < b.kindName) {
+        return true;
+    } else if (a.kindName > b.kindName) {
+        return false;
+    } else if (a.objectName < b.objectName) {
+        return true;
+    } else if (a.objectName > b.objectName) {
+        return false;
+    } else if (a.attributeName < b.attributeName) {
+        return true;
+    } else if (a.attributeName > b.attributeName) {
+        return false;
+    } else {
+        return (a.attributeData != b.attributeData);
+    }
+}
+
+
+
+template <typename MA, typename MB>
+bool ModificationComparatorLesss::operator()(const MA &a, const MB &b) const
+{
+    throw std::invalid_argument("Deska::Cli::ModificationComparatorLesss::operator(): Comparator called to two different types of ObjectModificationResult.");
+    return false;
+}
+
+
+
+/** @short Visitor for printing object modifications. */
+struct ModificationBackuper: public boost::static_visitor<std::string> {
+    //@{
+    /** @short Function for converting single object modification to string for purposes of backup.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Parser readable string representation of the modification.
+    */
+    std::string operator()(const Db::CreateObjectModification &modification) const;
+    std::string operator()(const Db::DeleteObjectModification &modification) const;
+    std::string operator()(const Db::RenameObjectModification &modification) const;
+    std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
 
 
 
@@ -448,6 +574,9 @@ void Diff::operator()(const std::string &params)
         }
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
+        using namespace boost::phoenix::arg_names;
+        std::sort(modifications.begin(), modifications.end(),
+            boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
         ModificationBackuper modificationBackuper;
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
             ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
@@ -477,12 +606,16 @@ void Diff::operator()(const std::string &params)
             modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
         } catch (Db::RevisionRangeError &e) {
             ui->io->reportError("Revision range does not make a sense.");
+            return;
         }
         if (paramsList.size() == 2) {
             // Print diff
             ui->io->printDiff(modifications);
         } else {
             // Create patch
+            using namespace boost::phoenix::arg_names;
+            std::sort(modifications.begin(), modifications.end(),
+                boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
             std::ofstream ofs(paramsList[0].c_str());
             if (!ofs) {
                 ui->io->reportError("Error while creating patch to file \"" + params + "\".");
@@ -495,6 +628,21 @@ void Diff::operator()(const std::string &params)
             ofs.close();
             ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
         }
+    }
+}
+
+
+
+bool Diff::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
+{
+    ModificationTypeGetter modificationTypeGetter;
+    ModificationComparatorLesss modificationComparatorLesss;
+    if (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b)) {
+        return true;
+    } else if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
+        return false;
+    } else {
+        return (boost::apply_visitor(modificationComparatorLesss, a, b));
     }
 }
 
@@ -779,6 +927,9 @@ void Backup::operator()(const std::string &params)
     ModificationBackuper modificationBackuper;
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference((it - 1)->revision, it->revision);
+        using namespace boost::phoenix::arg_names;
+        std::sort(modifications.begin(), modifications.end(),
+            boost::phoenix::bind(&Backup::objectModificationResultLess, this, arg1, arg2));
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
             ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
         }
@@ -792,6 +943,18 @@ void Backup::operator()(const std::string &params)
     ofs.close();
     ui->m_dbInteraction->unFreezeView();
     ui->io->printMessage("DB successfully backed up into file \"" + params + "\".");
+}
+
+
+
+bool Backup::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
+{
+    ModificationTypeGetter modificationTypeGetter;
+    if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 
