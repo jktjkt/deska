@@ -31,5 +31,6 @@ file(GLOB deska_doc_images RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} img-*.pdf)
 add_latex_document(deska.tex
     INPUTS ${deska_doc_tex}
     IMAGES ${deska_doc_images}
+    BIBFILES references.bib
     MANGLE_TARGET_NAMES
     DEFAULT_PDF)
