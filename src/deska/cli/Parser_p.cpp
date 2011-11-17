@@ -399,7 +399,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &kind, const Db::Id
     if (!dryRun)
         m_parser->attributeSet(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << kind << " - " << name << "=" << boost::apply_visitor(NonOptionalValuePrettyPrint(), *value) << std::endl;
+    std::cout << "Set attribute: " << kind << " - " << name << "=" << *value << std::endl;
 #endif
 }
 
