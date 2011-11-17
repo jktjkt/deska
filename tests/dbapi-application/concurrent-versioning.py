@@ -11,7 +11,7 @@ def imperative(r):
     r.assertEqual(r.c(pendingChangesets(), conn2), [])
 
     # The newly created one shall be immediately visible from both connections
-    changeset = r.c(startChangeset())
+    changeset = r.c(startChangeset(), conn1)
     r.assertEqual(len(r.c(pendingChangesets(), conn1)), 1)
     r.assertEqual(len(r.c(pendingChangesets(), conn2)), 1)
 
