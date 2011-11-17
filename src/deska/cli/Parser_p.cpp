@@ -70,7 +70,9 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
-                mergedTo[itr->target].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->target, *itk));
+                mergedTo[itr->target].push_back(std::make_pair<Db::Identifier, Db::Identifier>(*itk, *itk));
+                roAttributes[*itk].push_back(itr->column);
+                roAttributes[itr->target].push_back(*itk);
             }
             if (itr->kind == Db::RELATION_REFERS_TO) {
                 refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
@@ -226,7 +228,12 @@ std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<Iterator>::parse
     std::vector<std::pair<Db::Identifier, std::string> > attrs;
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
-        attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name()));
+        std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[kindName].begin(),
+            roAttributes[kindName].end(), ita->name);
+        if (itroat != roAttributes[kindName].end())
+            attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name() + " - read only"));
+        else
+            attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name()));
     }
     return attrs;
 }
@@ -519,8 +526,12 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
     // Adding own attributes
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
-        attributeRemovalsParser->addAtrribute(kindName, it->name);
+        std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[kindName].begin(),
+            roAttributes[kindName].end(), it->name);
+        if (itroat == roAttributes[kindName].end()) {
+            attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
+            attributeRemovalsParser->addAtrribute(kindName, it->name);
+        }
         filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         if (it->type == Db::TYPE_IDENTIFIER_SET) {
             identifiersSetsParser->addIdentifiersSet(kindName, it->name, predefinedRules->getObjectIdentifier());
@@ -531,8 +542,12 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
         std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
         for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
-            attributeRemovalsParser->addAtrribute(itm->second, it->name);
+            std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[itm->second].begin(),
+                roAttributes[itm->second].end(), it->name);
+            if (itroat == roAttributes[itm->second].end()) {
+                attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
+                attributeRemovalsParser->addAtrribute(itm->second, it->name);
+            } 
             filterExpressionsParser->addAtrributeToFilter(itm->second, it->name, predefinedRules->getRule(it->type));
             if (it->type == Db::TYPE_IDENTIFIER_SET) {
                 identifiersSetsParser->addIdentifiersSet(itm->second, it->name, predefinedRules->getObjectIdentifier());

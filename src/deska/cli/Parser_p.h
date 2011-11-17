@@ -330,6 +330,8 @@ private:
     std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > refersTo;
     /** Map of kinds and vector of kinds that are referred by another kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > referredBy;
+    /** List of read-only attributes for each kind */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > roAttributes;
 
     /** The parser context is held there. */
     ContextStack contextStack;
