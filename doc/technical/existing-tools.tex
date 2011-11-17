@@ -3,7 +3,7 @@
 
 \begin{document}
 
-%FIXME: change to appendix
+\appendix
 \chapter{Existing Tools}
 \label{sec:evaluating-existing-tools}
 
@@ -13,56 +13,55 @@ to mass management of the individual nodes.  However, having full support for wo
 manufacturers is not usual.}  We have nonetheless evaluated a number of open-source tools, both from the general IT
 industry, as well as those which were developed at other WLCG sites.
 
-FIXME: references
-
 \section{Industry-standard Tools}
 
 \subsection{OCS Inventory NG}
 
-The OCS Inventory NG is perhaps the most well-known information system used in the context of hardware management.  The
-biggest selling point of the OCS Inventory is its ability to {\em enumerate} the whole network and automatically
-discover all of the connected devices, and with the help of locally-installed agents monitor various aspects of each
-host's operation.  On the other hand, it does not appear to be designed for the Institute's use case, which is {\em
-providing} an authoritative answer based on policy decisions instead of an transient snapshot of a datacenter state.
+The OCS~Inventory~NG~\cite{ocs-inventory} is perhaps the most well-known information system used in the context of
+hardware management.  The biggest selling point of the OCS Inventory is its ability to {\em enumerate} the whole network
+and automatically discover all of the connected devices, and with the help of locally-installed agents monitor various
+aspects of each host's operation.  On the other hand, it does not appear to be designed for the Institute's use case,
+which is {\em providing} an authoritative answer based on policy decisions instead of an transient snapshot of a
+datacenter state.
 
 \subsection{Rackmonkey}
 
-The Rackmonkey is an opensource project whose main goal is to make hardware management easy.  Unfortunately, at the time
-we were evaluating the existing tools, the Rackmonkey had no support for machines with a different form factor than
-``pizza boxes'', like blades or the twin servers, and no features which could be used for managing other kinds of
-equipment.
+The Rackmonkey~\cite{rackmonkey} is an opensource project whose main goal is to make hardware management easy.
+Unfortunately, at the time we were evaluating the existing tools, the Rackmonkey had no support for machines with a
+different form factor than ``pizza boxes'', like blades or the twin servers, and no features which could be used for
+managing other kinds of equipment.
 
 \subsection{IBM xCat}
 
-IBM xCat, the ``Extreme Cluster Administration Tool'',\footnote{The current meaning of the abbreviation is ``Extreme
-{\em Cloud} Administration Tool, apparently to better match current buzzwords in the industry.} is a promising project
-with a philosophy which is very close to the traditional, old-school Unix system administrator.  At the same time, it is
-optimized for central {\em deployment} and {\em management} of the individual nodes, which are tasks that are already
-well handled at the Institute.
+IBM xCat~\cite{xcat}, the ``Extreme Cluster Administration Tool'',\footnote{The current meaning of the abbreviation is
+``Extreme {\em Cloud} Administration Tool, apparently to better match current buzzwords in the industry.} is a promising
+project with a philosophy which is very close to the traditional, old-school Unix system administrator.  At the same
+time, it is optimized for central {\em deployment} and {\em management} of the individual nodes, which are tasks that
+are already well handled at the Institute.
 
 
 \section{WLCG-specific Alternatives}
 
 \subsection{Quattor}
 
-Quattor is an opensource project with roots in the WLCG grid community.  The biggest advantage of this tool is its
-diverse community which nowadays include developers from other industries, including several financial institutions.
-However, the project has rather wide scope and --- similarly to the xCat --- delivers a complete, integrated solution
-for multiple tasks, including fabric management.
+Quattor~\cite{quattor} is an opensource project with roots in the WLCG grid community.  The biggest advantage of this
+tool is its diverse community which nowadays include developers from other industries, including several financial
+institutions.  However, the project has rather wide scope and --- similarly to the xCat --- delivers a complete,
+integrated solution for multiple tasks, including fabric management.
 
 \subsection{Smurf}
 
-The Smurf project is another tool which is produced by the WLCG community.  Developed in the CC-IN2P3 in Lyon, France,
-it sports a modular architecture and appears to be well thought-through.  Unfortunately, at the time we were evaluating
-the existing rojects, the Smurf project has been undergoing a major overhaul and there were essentially no
-documentation.
+The Smurf project~\cite{smurf} is another tool which is produced by the WLCG community.  Developed in the CC-IN2P3 in
+Lyon, France, it sports a modular architecture and appears to be well thought-through.  Unfortunately, at the time we
+were evaluating the existing rojects, the Smurf project has been undergoing a major overhaul and there were essentially
+no documentation.
 
 \section{Augmenting What Works Well: Nagios, Ganglia, Cfengine, Puppet,\ldots}
 
 There are many existing opensource tools which assist in the day to day operation of a massive computing infrastructure;
-some of them are intended as monitoring appliances, others aim to streamline the propagation of changes from a central
-place to individual nodes.  Deska does not plan to replace these tools, but to {\em leverage} their power and use them,
-instead of reinventing the wheel.
+some of them are intended as monitoring appliances \cite{munin} \cite{ganglia} \cite{nagios} \cite{mrtg}, others aim to
+streamline the propagation of changes from a central place to individual nodes \cite{cfengine} \cite{puppet}.  Deska
+does not plan to replace these tools, but to {\em leverage} their power and use them, instead of reinventing the wheel.
 
 
 \end{document}

@@ -11,16 +11,15 @@ def imperative(r):
     r.assertEqual(r.c(pendingChangesets(), conn2), [])
 
     # The newly created one shall be immediately visible from both connections
-    changeset = r.c(startChangeset())
+    changeset = r.c(startChangeset(), conn1)
     r.assertEqual(len(r.c(pendingChangesets(), conn1)), 1)
     r.assertEqual(len(r.c(pendingChangesets(), conn2)), 1)
 
     # Calling freezeView() doesn't affect the view of the pending changesets
     r.cvoid(freezeView(), conn2)
-    # FIXME: Redmine #305, conn1 suddenly doesn't have its changeset
-    #r.cvoid(abortCurrentChangeset(), conn1)
-    #r.assertEqual(r.c(pendingChangesets(), conn1), [])
-    #r.assertEqual(r.c(pendingChangesets(), conn2), [])
+    r.cvoid(abortCurrentChangeset(), conn1)
+    r.assertEqual(r.c(pendingChangesets(), conn1), [])
+    r.assertEqual(r.c(pendingChangesets(), conn2), [])
 
     # Objects created in a changeset shall not be visible in other sessions
     changeset = r.c(startChangeset(), conn1)
