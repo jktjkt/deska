@@ -409,6 +409,7 @@ bool UserInterface::confirmFunctionShow(const ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
+    // FIXME: Delete also nested kinds
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
@@ -491,7 +492,28 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
     std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
-    io->printAttributesWithOrigin(attributes, depth);
+    // FIXME: Wait for contains/containable implementation without cycles
+    /*std::vector<ObjectDefinition> mergedObjs = m_dbInteraction->mergedObjects(object);
+    unsigned int mergedObjsSize = 0;
+    if (mergedObjs.empty()) {*/
+        io->printAttributesWithOrigin(attributes, depth);
+    /*} else {
+        for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
+             it != attributes.end(); ++it) {
+            io->printAttributeWithOrigin(it->first, it->second, depth);
+            Db::Identifier contains = m_dbInteraction->referredKind(object.kind, it->first.attribute);
+            if (!contains.empty()) {
+                std::vector<ObjectDefinition>::iterator itmo = std::find(mergedObjs.begin(), mergedObjs.end(),
+                    ObjectDefinition(contains, object.name));
+                if (itmo != mergedObjs.end()) {
+                    ++mergedObjsSize;
+                    showObjectRecursive(*itmo, depth);
+                }
+            }
+        }
+    }
+    // All merged objects has to be printed via attribute references
+    BOOST_ASSERT(mergedObjsSize == mergedObjs.size());*/
     std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
     for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {

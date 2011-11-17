@@ -40,64 +40,6 @@ namespace Cli {
 
 
 
-/** @short Type of object modification for sorting purposes */
-typedef enum {
-    /** @short Db::DeleteObjectModification */
-    OBJECT_MODIFICATION_TYPE_DELETE = 0,
-    /** @short Db::RenameObjectModification */
-    OBJECT_MODIFICATION_TYPE_RENAME = 1,
-    /** @short Db::CreateObjectModification */
-    OBJECT_MODIFICATION_TYPE_CREATE = 2,
-    /** @short Db::SetAttributeModification */
-    OBJECT_MODIFICATION_TYPE_SETATTR = 3
-} ModificationType;
-
- 
-
-/** @short Visitor for obtaining type of each object modification */
-struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
-{
-    //@{
-    /** @short Function for obtaining ModificationType for each modification
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    *   @return Type of the modification
-    */
-    ModificationType operator()(const Db::CreateObjectModification &modification) const;
-    ModificationType operator()(const Db::DeleteObjectModification &modification) const;
-    ModificationType operator()(const Db::RenameObjectModification &modification) const;
-    ModificationType operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
-
-
-
-/** @short Visitor for comparing two modification of the same type */
-struct ModificationComparatorLesss: public boost::static_visitor<bool>
-{
-    //@{
-    /** @short Function for comparing two modifications of the same type
-    *
-    *   @param a Instance of modifications from Db::ObjectModification variant.
-    *   @param b Instance of modifications from Db::ObjectModification variant.
-    *   @return True if the first modification is "less" than the second. Comparing kinds and object names.
-    */
-    bool operator()(const Db::CreateObjectModification &a, const Db::CreateObjectModification &b) const;
-    bool operator()(const Db::DeleteObjectModification &a, const Db::DeleteObjectModification &b) const;
-    bool operator()(const Db::RenameObjectModification &a, const Db::RenameObjectModification &b) const;
-    /** When comparing SetAttribute modifications, that are on the same attribute of the same kind, but the
-    *   values differ, first modification is always "less". This ensures stable sorting.
-    */
-    bool operator()(const Db::SetAttributeModification &a, const Db::SetAttributeModification &b) const;
-    //@}
-
-    /** @short Function for enabling this comparator work. This function should not be called.
-    */
-    template <typename MA, typename MB>
-    bool operator()(const MA &a, const MB &b) const;
-};
-
-
 /** @short Visitor for converting ObjectModification made by un in the changeset to user readable format
 *          for purposes of rebase.
 */
@@ -118,6 +60,33 @@ struct OurModificationConverter: public boost::static_visitor<std::string>
 
 
 
+/** @short Visitor for converting ObjectModification made by un in the changeset to user readable format
+*          for purposes of rebase.
+*/
+struct OurModificationConverter2: public boost::static_visitor<std::string>
+{
+    //@{
+    /** @short Function for converting single object modification.
+    *
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that we made it
+    */
+    template <typename LM>
+    std::string operator()(const Db::CreateObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::RenameObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::SetAttributeModification &modification, const LM &lModification) const;
+    std::string operator()(const Db::SetAttributeModification &modification,
+                           const Db::SetAttributeModification &lModification) const;
+    //@}
+};
+
+
+
+
 /** @short Visitor for converting ObjectModification made by someone else in newer revision to user readable format
 *          for purposes of rebase.
 */
@@ -133,6 +102,32 @@ struct ExternModificationConverter: public boost::static_visitor<std::string>
     std::string operator()(const Db::DeleteObjectModification &modification) const;
     std::string operator()(const Db::RenameObjectModification &modification) const;
     std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
+/** @short Visitor for converting ObjectModification made by someone else in newer revision to user readable format
+*          for purposes of rebase.
+*/
+struct ExternModificationConverter2: public boost::static_visitor<std::string>
+{
+    //@{
+    /** @short Function for converting single object modification.
+    *
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that somebody else made it
+    */
+    template <typename LM>
+    std::string operator()(const Db::CreateObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::RenameObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::SetAttributeModification &modification, const LM &lModification) const;
+    std::string operator()(const Db::SetAttributeModification &modification,
+                           const Db::SetAttributeModification &lModification) const;
     //@}
 };
 
@@ -159,80 +154,37 @@ struct BothModificationConverter: public boost::static_visitor<std::string>
 
 
 
-ModificationType ModificationTypeGetter::operator()(const Db::CreateObjectModification &modification) const
+/** @short Visitor for converting ObjectModification made in both newer revision and the changeset
+*          to user readable format for purposes of rebase.
+*/
+struct BothModificationConverter2: public boost::static_visitor<std::string>
 {
-    return OBJECT_MODIFICATION_TYPE_CREATE;
-}
-
-
-
-ModificationType ModificationTypeGetter::operator()(const Db::DeleteObjectModification &modification) const
-{
-    return OBJECT_MODIFICATION_TYPE_DELETE;
-}
-
-
-
-ModificationType ModificationTypeGetter::operator()(const Db::RenameObjectModification &modification) const
-{
-    return OBJECT_MODIFICATION_TYPE_RENAME;
-}
-
-
-
-ModificationType ModificationTypeGetter::operator()(const Db::SetAttributeModification &modification) const
-{
-    return OBJECT_MODIFICATION_TYPE_SETATTR;
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
-                                             const Db::CreateObjectModification &b) const
-{
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification &a,
-                                             const Db::DeleteObjectModification &b) const
-{
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName));
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification &a,
-                                             const Db::RenameObjectModification &b) const
-{
-    return ((a.kindName < b.kindName) && (a.oldObjectName < b.oldObjectName) && (a.newObjectName != b.newObjectName));
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification &a,
-                                             const Db::SetAttributeModification &b) const
-{
-    return ((a.kindName < b.kindName) && (a.objectName < b.objectName) &&
-            (a.attributeName < b.attributeName) && (a.attributeData != b.attributeData));
-}
-
-
-
-template <typename MA, typename MB>
-bool ModificationComparatorLesss::operator()(const MA &a, const MB &b) const
-{
-    throw std::invalid_argument("Deska::Cli::ModificationComparatorLesss::operator(): Comparator called to two different types of ObjectModificationResult.");
-    return false;
-}
+    //@{
+    /** @short Function for converting single object modification.
+    *
+    *   @param  modification Instance of modifications from Db::ObjectModification variant.
+    *   @return string representation of each modification saying, that it was made in both our and
+    *           somebody else
+    */
+    template <typename LM>
+    std::string operator()(const Db::CreateObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::RenameObjectModification &modification, const LM &lModification) const;
+    template <typename LM>
+    std::string operator()(const Db::SetAttributeModification &modification, const LM &lModification) const;
+    std::string operator()(const Db::SetAttributeModification &modification,
+                           const Db::SetAttributeModification &lModification) const;
+    //@}
+};
 
 
 
 std::string OurModificationConverter::operator()(const Db::CreateObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "create " << modification.kindName << " " << modification.objectName;
+    ostr << "create " << modification.kindName << " " << modification.objectName << std::endl;
     return ostr.str();
 }
 
@@ -241,7 +193,7 @@ std::string OurModificationConverter::operator()(const Db::CreateObjectModificat
 std::string OurModificationConverter::operator()(const Db::DeleteObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "delete " << modification.kindName << " " << modification.objectName;
+    ostr << "delete " << modification.kindName << " " << modification.objectName << std::endl;
     return ostr.str();
 }
 
@@ -250,7 +202,8 @@ std::string OurModificationConverter::operator()(const Db::DeleteObjectModificat
 std::string OurModificationConverter::operator()(const Db::RenameObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " " << modification.newObjectName;
+    ostr << "rename " << modification.kindName << " " << modification.oldObjectName << " "
+         << modification.newObjectName << std::endl;
     return ostr.str();
 }
 
@@ -259,11 +212,81 @@ std::string OurModificationConverter::operator()(const Db::RenameObjectModificat
 std::string OurModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "# set attribute " << modification.attributeName <<
-            readableAttrPrinter(" from", modification.oldAttributeData) << std::endl <<
-            modification.kindName << " " << modification.objectName << " " << modification.attributeName <<
-            " " << modification.attributeData;
+    ostr << modification.kindName << " " << modification.objectName << std::endl;
+    ostr << "#    " << modification.attributeName << " set"
+         << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+    if (modification.attributeData) {
+        ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+    } else {
+        ostr << "     no " << modification.attributeName << std::endl;
+    }
     return ostr.str();
+}
+
+
+
+template <typename LM>
+std::string OurModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
+{
+    OurModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string OurModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
+{
+    OurModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string OurModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
+{
+    OurModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string OurModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
+{
+    OurModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+std::string OurModificationConverter2::operator()(const Db::SetAttributeModification &modification,
+                                                  const Db::SetAttributeModification &lModification) const
+{
+    if ((modification.kindName == lModification.kindName) && (modification.objectName == lModification.objectName)) {
+        std::ostringstream ostr;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+        if (modification.attributeData) {
+            ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+        } else {
+            ostr << "     no " << modification.attributeName << std::endl;
+        }
+        return ostr.str();
+    } else {
+        std::ostringstream ostr;
+        ostr << "end" << std::endl;
+        ostr << modification.kindName << " " << modification.objectName << std::endl;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData) << std::endl;
+        if (modification.attributeData) {
+            ostr << "     " << modification.attributeName << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << std::endl;
+        } else {
+            ostr << "     no " << modification.attributeName << std::endl;
+        }
+        return ostr.str();
+    }
 }
 
 
@@ -271,7 +294,7 @@ std::string OurModificationConverter::operator()(const Db::SetAttributeModificat
 std::string ExternModificationConverter::operator()(const Db::CreateObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "# created " << modification.kindName << " " << modification.objectName << " in newer revision";
+    ostr << "# created " << modification.kindName << " " << modification.objectName << " in newer revision" << std::endl;
     return ostr.str();
 }
 
@@ -280,7 +303,7 @@ std::string ExternModificationConverter::operator()(const Db::CreateObjectModifi
 std::string ExternModificationConverter::operator()(const Db::DeleteObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "# deleted " << modification.kindName << " " << modification.objectName << " in newer revision";
+    ostr << "# deleted " << modification.kindName << " " << modification.objectName << " in newer revision" << std::endl;
     return ostr.str();
 }
 
@@ -290,7 +313,7 @@ std::string ExternModificationConverter::operator()(const Db::RenameObjectModifi
 {
     std::ostringstream ostr;
     ostr << "# renamed " << modification.kindName << " " << modification.oldObjectName << " to "
-         << modification.newObjectName << " in newer revision";
+         << modification.newObjectName << " in newer revision" << std::endl;
     return ostr.str();
 }
 
@@ -299,11 +322,69 @@ std::string ExternModificationConverter::operator()(const Db::RenameObjectModifi
 std::string ExternModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "# attribute " << modification.kindName << " " << modification.objectName << " "
-         << modification.attributeName << "set"
+    ostr << modification.kindName << " " << modification.objectName << std::endl;
+    ostr << "#    " << modification.attributeName << " set"
          << readableAttrPrinter(" from", modification.oldAttributeData)
-         << readableAttrPrinter(" to", modification.attributeData) << " in newer revision";
+         << readableAttrPrinter(" to", modification.attributeData) << " in newer revision" << std::endl;
     return ostr.str();
+}
+
+
+
+template <typename LM>
+std::string ExternModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
+{
+    ExternModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string ExternModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
+{
+    ExternModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string ExternModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
+{
+    ExternModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string ExternModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
+{
+    ExternModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+std::string ExternModificationConverter2::operator()(const Db::SetAttributeModification &modification,
+                                                     const Db::SetAttributeModification &lModification) const
+{
+    if ((modification.kindName == lModification.kindName) && (modification.objectName == lModification.objectName)) {
+        std::ostringstream ostr;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData)
+             << readableAttrPrinter(" to", modification.attributeData) << " in newer revision" << std::endl;
+        return ostr.str();
+    } else {
+        std::ostringstream ostr;
+        ostr << "end" << std::endl;
+        ostr << modification.kindName << " " << modification.objectName << std::endl;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData)
+             << readableAttrPrinter(" to", modification.attributeData) << " in newer revision" << std::endl;
+        return ostr.str();
+    }
 }
 
 
@@ -312,7 +393,7 @@ std::string BothModificationConverter::operator()(const Db::CreateObjectModifica
 {
     std::ostringstream ostr;
     ostr << "# created " << modification.kindName << " " << modification.objectName
-         << " in both newer revision and our changeset";
+         << " in both newer revision and our changeset" << std::endl;
     return ostr.str();
 }
 
@@ -322,7 +403,7 @@ std::string BothModificationConverter::operator()(const Db::DeleteObjectModifica
 {
     std::ostringstream ostr;
     ostr << "# deleted " << modification.kindName << " " << modification.objectName
-         << " in both newer revision and our changeset";
+         << " in both newer revision and our changeset" << std::endl;
     return ostr.str();
 }
 
@@ -332,7 +413,7 @@ std::string BothModificationConverter::operator()(const Db::RenameObjectModifica
 {
     std::ostringstream ostr;
     ostr << "# renamed " << modification.kindName << " " << modification.oldObjectName << " to "
-         << modification.newObjectName << " in both newer revision and our changeset";
+        << modification.newObjectName << " in both newer revision and our changeset" << std::endl;
     return ostr.str();
 }
 
@@ -341,13 +422,75 @@ std::string BothModificationConverter::operator()(const Db::RenameObjectModifica
 std::string BothModificationConverter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "# attribute " << modification.kindName << " " << modification.objectName << " "
-         << modification.attributeName << "set"
+    ostr << modification.kindName << " " << modification.objectName << std::endl;
+    ostr << "#    " << modification.attributeName << " set"
          << readableAttrPrinter(" from", modification.oldAttributeData)
          << readableAttrPrinter(" to", modification.attributeData)
-         << " in both newer revision and our changeset";
+         << " in both newer revision and our changeset" << std::endl;
     return ostr.str();
 }
+
+
+
+template <typename LM>
+std::string BothModificationConverter2::operator()(const Db::CreateObjectModification &modification, const LM &lModification) const
+{
+    BothModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string BothModificationConverter2::operator()(const Db::DeleteObjectModification &modification, const LM &lModification) const
+{
+    BothModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string BothModificationConverter2::operator()(const Db::RenameObjectModification &modification, const LM &lModification) const
+{
+    BothModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+template <typename LM>
+std::string BothModificationConverter2::operator()(const Db::SetAttributeModification &modification, const LM &lModification) const
+{
+    BothModificationConverter conv;
+    return conv(modification);
+}
+
+
+
+std::string BothModificationConverter2::operator()(const Db::SetAttributeModification &modification,
+                                                   const Db::SetAttributeModification &lModification) const
+{
+    if ((modification.kindName == lModification.kindName) && (modification.objectName == lModification.objectName)) {
+        std::ostringstream ostr;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData)
+             << readableAttrPrinter(" to", modification.attributeData)
+             << " in both newer revision and our changeset" << std::endl;
+    return ostr.str();
+    } else {
+        std::ostringstream ostr;
+        ostr << "end" << std::endl;
+        ostr << modification.kindName << " " << modification.objectName << std::endl;
+        ostr << "#    " << modification.attributeName << " set"
+             << readableAttrPrinter(" from", modification.oldAttributeData)
+             << readableAttrPrinter(" to", modification.attributeData)
+             << " in both newer revision and our changeset" << std::endl;
+        return ostr.str();
+    }
+}
+
+
 
 Rebase::Rebase(UserInterface *userInterface): Command(userInterface)
 {
@@ -451,25 +594,49 @@ void Rebase::operator()(const std::string &params)
     ExternModificationConverter externModificationConverter;
     BothModificationConverter bothModificationConverter;
     OurModificationConverter ourModificationConverter;
+    ExternModificationConverter2 externModificationConverter2;
+    BothModificationConverter2 bothModificationConverter2;
+    OurModificationConverter2 ourModificationConverter2;
+    std::vector<Db::ObjectModificationResult>::iterator lastModif;
     while ((ite != externModifications.end()) && (ito != ourModifications.end())) {
         if (objectModificationResultLess(*ite, *ito)) {
-            ofs << boost::apply_visitor(externModificationConverter, *ite) << std::endl;
+            if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
+                ofs << boost::apply_visitor(externModificationConverter2, *ite, *lastModif);
+            else
+                ofs << boost::apply_visitor(externModificationConverter, *ite);
+            lastModif = ite;
             ++ite;
         } else if (*ite == *ito) {
-            ofs << boost::apply_visitor(bothModificationConverter, *ite) << std::endl;
+            if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
+                ofs << boost::apply_visitor(bothModificationConverter2, *ite, *lastModif);
+            else
+                ofs << boost::apply_visitor(externModificationConverter, *ite);
+            lastModif = ite;
             ++ite;
             ++ito;
         } else {
-            ofs << boost::apply_visitor(ourModificationConverter, *ito) << std::endl;
+            if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
+                ofs << boost::apply_visitor(ourModificationConverter2, *ito, *lastModif);
+            else
+                ofs << boost::apply_visitor(externModificationConverter, *ito);
+            lastModif = ito;
             ++ito;
         }
     }
     while (ite != externModifications.end()) {
-        ofs << boost::apply_visitor(externModificationConverter, *ite) << std::endl;
+        if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
+            ofs << boost::apply_visitor(externModificationConverter2, *ite, *lastModif);
+        else
+            ofs << boost::apply_visitor(externModificationConverter, *ite);
+        lastModif = ite;
         ++ite;
     }
     while (ito != ourModifications.end()) {
-        ofs << boost::apply_visitor(ourModificationConverter, *ito) << std::endl;
+        if ((ite != externModifications.begin()) || (ito != ourModifications.begin()))
+            ofs << boost::apply_visitor(ourModificationConverter2, *ito, *lastModif);
+        else
+            ofs << boost::apply_visitor(externModificationConverter, *ito);
+        lastModif = ito;
         ++ito;
     }
 
@@ -516,10 +683,8 @@ void Rebase::operator()(const std::string &params)
             std::ostringstream ostr;
             ostr << "Parsing of resolved conflicts file failed on line " << lineNumber << ".";
             ui->io->reportError(ostr.str());
-            // FIXME: What to do in non-interactive mode? Rebase in non-interactive mode seems weird.
-            // FIXME: Problem with next atemp is, that rebase is not atomical. Is there some way to "undo" all changes
-            //        in all current changeset?
-            if (!ui->io->askForConfirmation("Try to resolve conflict again?")) {
+            // FIXME: Make all changes batched in order to be atomical and new attemp could be done
+            //if (!ui->io->askForConfirmation("Try to resolve conflict again?")) {
                 remove(tempFile);
                 ui->m_dbInteraction->abortChangeset();
                 ui->m_dbInteraction->resumeChangeset(oldChangeset);
@@ -529,7 +694,7 @@ void Rebase::operator()(const std::string &params)
                     ui->io->reportError("Error while unlocking old changeset after rebase failure.");
                 }
                 return;
-            }
+            //}
         } else {
             conflictResolved = true;
         }

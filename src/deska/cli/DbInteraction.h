@@ -191,6 +191,14 @@ public:
     */
     std::vector<ObjectDefinition> mergedObjects(const ContextStack &context);
 
+    /** @short Function for obtaining kind names referred by some attribute in some kind.
+    *   
+    *   @param kind Kind name containing referring attribute
+    *   @param attribute Referring attribute
+    *   @return referred kind or empty identifier if no kind referred
+    */
+    Db::Identifier referredKind(const Db::Identifier &kind, const Db::Identifier &attribute);
+
     /** @short Function for obtaining all pending chandesets.
     *
     *   @return Vector of all pending changesets
@@ -301,6 +309,8 @@ private:
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
     /** Map of kinds and vector of kinds, that are merged with the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergedTo;
+    /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;

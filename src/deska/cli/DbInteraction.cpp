@@ -48,6 +48,7 @@ DbInteraction::DbInteraction(Db::Api *api):
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
+                referringAttrs[*itk][itr->column] = itr->target;
                 mergedTo[itr->target].push_back(*itk);
             }
         }
@@ -374,6 +375,20 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ContextStack &c
     }
 
     return mergedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+}
+
+
+
+Db::Identifier DbInteraction::referredKind(const Db::Identifier &kind, const Db::Identifier &attribute)
+{
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> >::const_iterator it = referringAttrs.find(kind);
+    if (it == referringAttrs.end())
+        return Db::Identifier();
+    std::map<Db::Identifier, Db::Identifier>::const_iterator it2 = it->second.find(attribute);
+    if (it2 == it->second.end())
+        return Db::Identifier();
+    else
+        return it2->second;
 }
 
 

@@ -72,6 +72,14 @@ class RemoteDbException(object):
             raise ValueError, "Message too short: %s" % repr(other["message"])
         return other["type"] == self.name
 
+class InvalidKindError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidKindError")
+
+class InvalidAttributeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "InvalidAttributeError")
+
 class NotFoundError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "NotFoundError")
@@ -96,25 +104,37 @@ class ReCreateObjectError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ReCreateObjectError")
 
-class InvalidKindError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "InvalidKindError")
-
-class InvalidAttributeError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "InvalidAttributeError")
-
 class RevisionParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "RevisionParsingError")
+
+class RevisionRangeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "RevisionRangeError")
 
 class ChangesetParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ChangesetParsingError")
 
+class ConstraintError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ConstraintError")
+
 class ObsoleteParentError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ObsoleteParentError")
+
+class NotASetError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "NotASetError")
+
+class ChangesetLockingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ChangesetLockingError")
+
+class CfgGeneratingError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "CfgGeneratingError")
 
 class SqlError(RemoteDbException):
     def __init__(self):
@@ -123,10 +143,6 @@ class SqlError(RemoteDbException):
 class ServerError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ServerError")
-
-class ConstraintError(RemoteDbException):
-    def __init__(self):
-        RemoteDbException.__init__(self, "ConstraintError")
 
 
 def revisionIncrement(revision, change):
@@ -174,8 +190,8 @@ def pendingChangesets(filter=None):
         args = {"filter": filter}
     return ApiMethod("pendingChangesets", args)
 
-def resumeChangeset(revision):
-    return ApiMethod("resumeChangeset", {"changeset": revision})
+def resumeChangeset(changeset):
+    return ApiMethod("resumeChangeset", {"changeset": changeset})
 
 def detachFromCurrentChangeset(message):
     return ApiMethod("detachFromCurrentChangeset", {"message": message})
@@ -269,13 +285,18 @@ def verifyingObjectMultipleData(r, kindName, objectName):
     r.assertTrue(len(multiple), 1)
     r.assertTrue(multiple.has_key(objectName))
     r.assertEqual(one, multiple[objectName])
+    r.assertEqual(r.c(kindInstances(kindName,
+        filter={"condition": "columnEq", "kind": kindName,
+                "attribute":"name", "value": objectName})),
+                  [objectName])
     return one
 
-def kindInstances(kindName, revision=None):
-    # FIXME: filter
+def kindInstances(kindName, revision=None, filter=None):
     args = {"kindName": kindName}
     if revision is not None:
         args["revision"] = revision
+    if filter is not None:
+        args["filter"] = filter
     return ApiMethod("kindInstances", args)
 
 def listRevisions(filter=None):
@@ -292,3 +313,15 @@ def dataDifference(revisionA, revisionB):
 
 def dataDifferenceInTemporaryChangeset(changeset):
     return ApiMethod("dataDifferenceInTemporaryChangeset", {"changeset": changeset})
+
+def resolvedDataDifference(revisionA, revisionB):
+    return ApiMethod("resolvedDataDifference", {"revisionA": revisionA, "revisionB": revisionB})
+
+def resolvedDataDifferenceInTemporaryChangeset(changeset):
+    return ApiMethod("resolvedDataDifferenceInTemporaryChangeset", {"changeset": changeset})
+
+def freezeView():
+    return ApiMethod("freezeView", None)
+
+def unFreezeView():
+    return ApiMethod("unFreezeView", None)

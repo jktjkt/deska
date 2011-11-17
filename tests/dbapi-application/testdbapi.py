@@ -28,28 +28,17 @@ def deunicodeify(stuff):
     else:
         return stuff
 
-class JsonApiTester(unittest.TestCase):
-    """Verify that the interaction with the Deska server over JSON works as expected"""
+class Connection(object):
+    """Encapsulate communication to the Deska server over JSON"""
 
-    def setUp(self):
-        """Start the process"""
-        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER, "--cfggen-backend",
-                   CFGGEN_METHOD] + CFGGEN_EXTRA_OPTIONS
+    counter = 0
+
+    def __init__(self, cmd):
+        self.cmd = cmd
         self.p = subprocess.Popen(self.cmd, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    def imperativeCommands(self):
-        """Run the test function which gets access to the whole environment"""
-        imperative(self)
-
-    def runJSON(self, cmd):
-        """Send a JSON string and return the parsed result"""
-        writeJson = json.dumps(cmd)
-        print writeJson
-        readJson = self.runCommandStr(writeJson)
-        print readJson
-        sys.stdout.flush()
-        return deunicodeify(json.loads(readJson))
+        Connection.counter = Connection.counter + 1
+        self.num = Connection.counter
 
     def runCommandStr(self, writeJson):
         """Handle string IO to the process"""
@@ -62,26 +51,51 @@ class JsonApiTester(unittest.TestCase):
             print err
         return self.p.stdout.readline()
 
-    def c(self, command):
+
+class JsonApiTester(unittest.TestCase):
+    """Verify that the interaction with the Deska server over JSON works as expected"""
+
+    def setUp(self):
+        """Start the process"""
+        self.cmd = [SERVER_PATH, "-d", DBNAME, "-U", DBUSER, "--cfggen-backend",
+                   CFGGEN_METHOD] + CFGGEN_EXTRA_OPTIONS
+        self.conn = Connection(self.cmd)
+
+    def imperativeCommands(self):
+        """Run the test function which gets access to the whole environment"""
+        imperative(self)
+
+    def runJSON(self, cmd, conn):
+        """Send a JSON string and return the parsed result"""
+        if conn is None:
+            conn = self.conn
+        writeJson = json.dumps(cmd)
+        print conn.num, writeJson
+        readJson = conn.runCommandStr(writeJson)
+        print conn.num, readJson
+        sys.stdout.flush()
+        return deunicodeify(json.loads(readJson))
+
+    def c(self, command, conn=None):
         """Access the result of a command"""
-        res = self.runJSON(command.command)
+        res = self.runJSON(command.command, conn)
         self.assertTrue("response" in res)
         self.assertTrue("tag" in res)
         self.assertTrue("dbException" not in res)
         self.assertTrue(command.name in res)
         return res[command.name]
 
-    def cvoid(self, command):
+    def cvoid(self, command, conn=None):
         """Execute a command, but scream loudly when no result is returned"""
-        res = self.runJSON(command.command)
+        res = self.runJSON(command.command, conn)
         self.assertTrue("response" in res)
         self.assertTrue("tag" in res)
         self.assertTrue("dbException" not in res)
         self.assertTrue(command.name not in res)
 
-    def cfail(self, command, exception=None):
+    def cfail(self, command, exception=None, conn=None):
         """Make sure that the commands fails"""
-        res = self.runJSON(command.command)
+        res = self.runJSON(command.command, conn)
         self.assertTrue("response" in res)
         self.assertTrue("tag" in res)
         self.assertTrue("dbException" in res)

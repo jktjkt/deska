@@ -68,7 +68,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     tHour %= qi::raw[qi::lexeme[(qi::char_("0-1") >> qi::digit) | (qi::char_("2") >> qi::char_("0-3"))]];
     tMinOrSec %= qi::raw[qi::lexeme[qi::char_("0-5") >> qi::digit]];
     tTimeStamp %= qi::raw[qi::lexeme[tYear >> qi::lit("-") >> tMonth >> qi::lit("-") >> tDay >> qi::lit(" ") >>
-                                     tHour >> qi::lit(":") >> tMinOrSec >> qi::lit(":") >> tMinOrSec]];
+        tHour >> qi::lit(":") >> tMinOrSec >> qi::lit(":") >> tMinOrSec >> -("." >> +qi::digit)]];
 
     rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];

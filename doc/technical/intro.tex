@@ -53,6 +53,12 @@ to the database, and if she is happy with the result, approve the resulting conf
 database data.  When approved, the system pushes the generated configuration files to the existing infrastructure for
 fabric management, which takes care of distributing the updated data to the individual services.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[trim=28mm 33mm 30mm 28mm, clip=true, width=75mm]{img-deska-workflow.pdf}
+    \caption{Deska Workflow}
+\end{figure}
+
 In contrast to many existing tools, the Deska database scheme is not set in stone.  Experience at various sites
 throughout the WLCG shows that each site prefers to stick with their own particular workflow.  Therefore, if the Deska
 database imposed a fixed database layout, it would face rather strong opposition when pushed for adoption.  We
@@ -75,6 +81,12 @@ day-to-day work, from modifying the database to simple reporting.  The CLI conso
 of the Boost libraries and is capable of discovering the database scheme on the fly, without any code changes.  It talks
 to the Deska server over an SSH connection, using traditional Unix methods for authentication and authorization, through
 a domain-specific JSON-based wire protocol (the Deska DBAPI, as described in~\secref{sec:dbapi-protocol}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[trim=28mm 134mm 28mm 25mm, clip=true, width=140mm]{img-deska-components.pdf}
+    \caption{Structure of a Deska System}
+\end{figure}
 
 Second part, the database server, translates the Deska DBAPI commands into calls to stored procedures in the PostgreSQL
 server, which in turn performs any required actions.  The database server is implemented in a mixture of Python and

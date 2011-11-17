@@ -1,0 +1,112 @@
+Schuze Deska, 2011-11-15 FZU
+----------------------------
+
+Pritomni: Tomas, Honza, Martina, Lukas
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- testy a bugreporty pro templates
+- testy pro vendor[host.color = red]
+- RevisionId::fromString (+ changesety)
+- dokonceni me casti FZU schematu
+- spec: prejmenovavani objektu a contains
+- testy pro paralelni pristup k changesetum
+- hromada dalsich testu, viz git
+- 13.83 hodin
+
+Tomas:
+- barevny diff (rozpracovano, ale uz je barevny)
+- vylepseni rebase
+- bugfixy CLI
+- diffovani
+- backup/restore: hotovo az na jednoradkove commit message
+- prepisovani filtru
+- cca. 14 - 15 hodin
+
+Lukas:
+- dopisovani si s Honzou
+- bugfixy
+- filtrovani pres identifier_set
+- filtry by mely umet i contains
+- 18 - 19 hodin
+
+Martina:
+- resolvovani jmen u templatu
+- limity pro delku identifikatoru v Postgres (C define)
+- contains: read-only sloupce, spravna jmena relaci, triggery pro rename
+- 8 hodin
+
+
+Diskuse:
+--------
+
+Tomasovo pohled na dokumentaci:
+- neni z toho uplne jasne, jak vlastne relace fungujou, ze je to pres nejaky
+atribut
+- psano "ctive", ne "exaktne", je otazka, co na to reknou na MFF
+
+Lukas a Martina tuto verzi necetli.
+
+Tomas: jak je to s rename u containable? viz dokumentace, prejmenovana Tomas.
+Mazani to same.
+
+Mazani a relace -- nastavitelne na urovni definice SQL tabulek, jak se to ma
+chovat. Melo by to byt zdokumentovane.
+
+Doresit vyjimku pro read-only atributy (cizi klice u contains/containable) -> InvalidAttributeError
+
+Probrat:
+--------
+
+- templates, ...WithOrigin a tvar vracenych hodnot (#294, #298)
+    - i u atributu "template" bude origin bud null (=> prave kdyz template je null),
+      nebo jmeno koncoveho objektu (prave kdyz template neni null)
+    - dlouha diskuse o spravnem reseni
+    - obavy o vykon
+    - Tomas navrhnul odlozit rozhodnuti, nikdo dalsi se nepridal
+    - implementuje Lukas ifem v Pythonu
+- embedded objekty v diffu maji blba jmena (#300, #303)
+    - Tomas: ten samy problem je i u originu
+    - Martina opravi
+- paralelni pristup k DB (#305)
+    - ze freeze nevynucuje read-only transakce, to je problem v psycopg, vyresi
+    Lukas aplikacne
+    - Lukas se podiva na failure testu
+- ruzne chyby od serveru (#301)
+    - Martina zkrati funkce
+- je mozne vytvorit prazdny commit (#244)
+    - z testovacich duvodu, do odevzdani bude odstraneno
+- resolved diffy uplne chybi (#304)
+    - neni, protoze chybi par funkci, jinak interne hotovo
+    - u netemplatovanych objektu se Lukas ifem podiva, kterou funkci zavolat
+- objectData("vendor",...) nefunguje (#299)
+    - Lukas da if
+- neimplementovane zamykani changesetu (#308)
+    - udela Lukas
+- neimplementovane dalsi funkce pro commit/cfg generatory (#308)
+    - udela Lukas
+- neexistujici revize (#306)
+    - Lukas vymysli, Martina opravi
+- maji se povolit dataDifferenceInTemporaryChangeset(already_committed)?
+    - FIXME nenapsano
+- dokumentace obecne
+    - Lukas: "az bude cas"
+- dokumentace povolenych veci ve schematu
+    - Lukas: "az bude cas"
+- A, B, pak del A, rename A -> B ma mit ReCreate... exception (Redmine #307)
+    - Martina
+- branche
+    - newrelations: ladici vypisy, interni potreba Lukase
+    - changeset_init_diff: mergnuto, nepushnuto (Lukas pushne)
+    - composition: rozpracovano (Martina), snad do konce tydne mergnutelne
+        - Honza prida C++ kod pro relace contains/cble
+        - Tomas pote upravi CLI a smaze MERGE_WITH
+- FZU schema
+    - Honza: upresnit, ktery argument dela regexp
+    - nejvic brzdi blba jmena jmen embedovanych (Redmine #303), pak chybejici
+    contains/containable
+
+Pristi schuzka: streda 23., 18.00 FZU
+Schuzka trvala 2:40.

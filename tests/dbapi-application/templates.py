@@ -148,7 +148,7 @@ def do_hardware(r):
     helper_check_hw3(r, hw3_4)
 
 def do_host(r):
-    r.c(startChangeset())
+    changeset = r.c(startChangeset())
     for service in ["a", "b", "c"]:
         r.assertEqual(r.c(createObject("service", service)), service)
     r.c(createObject("host", "h"))
@@ -164,6 +164,11 @@ def do_host(r):
     }
 
     helper_check_host(r, hdata)
+    # Redmine#304, there's no support for these functions
+    #rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
+    #rdiff = r.c(resolvedDataDifference("r1", "r2"))
+    # FIXME: write that when #304 is fixed
+    #r.assertEqual(rdiff, [])
     # test after a commit
     r.c(commitChangeset("."))
     helper_check_host(r, hdata)

@@ -392,7 +392,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &kind, const Db::Id
     if (!dryRun)
         m_parser->attributeSet(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << kind << " - " << name << "=" << *value << std::endl;
+    std::cout << "Set attribute: " << kind << " - " << name << "=" << boost::apply_visitor(NonOptionalValuePrettyPrint(), *value) << std::endl;
 #endif
 }
 
@@ -564,8 +564,6 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, KindsO
     // Adding kinds from directly merged kinds
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
         for (std::vector<Db::Identifier>::iterator it = embeds[itm->second].begin(); it != embeds[itm->second].end(); ++it) {
-            // FIXME: Can DB handle such filters? I do not think so.
-            //kindsFiltersParser->addKindFilter(*it, filtersParsers[*it]);
             kindsConstructParser->addKind(*it);
         }
     }
@@ -1189,6 +1187,23 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
 #endif
         // Error have to occur at the end of the line
         if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                possibilities.push_back(line + *iti);
+            }
+        }
+    }
+
+    // Find out, if the user wants to enter kind name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
+    if (it != parseErrors.end()) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KINDS_CONSTRUCT) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition() - 1) == 0) {
             std::vector<std::string> expectations = it->expectedKeywords();
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
