@@ -17,10 +17,9 @@ def imperative(r):
 
     # Calling freezeView() doesn't affect the view of the pending changesets
     r.cvoid(freezeView(), conn2)
-    # FIXME: Redmine #305, conn1 suddenly doesn't have its changeset
-    #r.cvoid(abortCurrentChangeset(), conn1)
-    #r.assertEqual(r.c(pendingChangesets(), conn1), [])
-    #r.assertEqual(r.c(pendingChangesets(), conn2), [])
+    r.cvoid(abortCurrentChangeset(), conn1)
+    r.assertEqual(r.c(pendingChangesets(), conn1), [])
+    r.assertEqual(r.c(pendingChangesets(), conn2), [])
 
     # Objects created in a changeset shall not be visible in other sessions
     changeset = r.c(startChangeset(), conn1)
