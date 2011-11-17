@@ -21,16 +21,15 @@
 
 include(../../UseLATEX.cmake)
 
-file(GLOB texfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "*.tex" "img-*.pdf"
-)
-foreach(fname ${texfiles})
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/${fname}
-        ${CMAKE_CURRENT_BINARY_DIR}/${fname}
-        COPYONLY
-    )
-endforeach()
-
 set(PDFLATEX_COMPILER_FLAGS "-shell-escape" "${PDFLATEX_COMPILER_FLAGS}")
-add_latex_document(deska.tex MANGLE_TARGET_NAMES DEFAULT_PDF)
+
+file(GLOB deska_doc_tex
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.tex"
+)
+file(GLOB deska_doc_images RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} img-*.pdf)
+add_latex_document(deska.tex
+    INPUTS ${deska_doc_tex}
+    IMAGES ${deska_doc_images}
+    MANGLE_TARGET_NAMES
+    DEFAULT_PDF)
