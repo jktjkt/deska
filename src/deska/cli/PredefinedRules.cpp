@@ -76,7 +76,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 
     rulesMap[Db::TYPE_IDENTIFIER_SET] = tIdentifierSet
         [qi::_val = phoenix::bind(&PredefinedRules::vectorToSet, this, qi::_1)];
-    rulesMap[Db::TYPE_IDENTIFIER_SET].name("identifiers set (identifiers in [ ] separated by ,");
+    rulesMap[Db::TYPE_IDENTIFIER_SET].name("identifiers set (identifiers in [ ] separated by ,)");
 
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
