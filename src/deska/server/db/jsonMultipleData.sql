@@ -221,8 +221,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_resolved_data_template_info($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 

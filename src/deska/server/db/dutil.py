@@ -125,6 +125,23 @@ def params(argString):
 	'''Get python structure from string'''
 	return json.loads(argString)
 
+def getDataFunction(name):
+	'''get name of the data function'''
+	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
+	nameDict = {
+		"kindInstances": "_data_version($1)",
+		"multipleObjectData": "_data_version($1)",
+		"multipleResolvedObjectData": "_resolved_data($1)",
+		"multipleResolvedObjectDataWithOrigin": "_resolved_data_template_info($1)",
+		"objectData": "_get_data($1,$2)",
+		"resolvedObjectData": "_resolved_object_data($1,$2)",
+		"resolvedObjectDataWithOrigin": "_resolved_object_data_template_info($1,$2)"
+	}
+	return nameDict[name]
+
+def getSelect(kindName, functionName, columns, join, where):
+	return 'SELECT {0} FROM {1}{2} AS {1} {3} {4}'.format(columns, kindName, getDataFunction(functionName), join, where)
+
 def collectOriginColumns(columns,objectName):
 	'''collect data into small arrays of [origin,value]'''
 	origin = dict()
@@ -134,8 +151,8 @@ def collectOriginColumns(columns,objectName):
 			origin[col[0:len(col)-6]] = columns[col]
 		# add also template origin, that is None, all the time
 		elif re.match('^template_.*',col):
-			if columns[col] = None:
-			'''Caused by api, we cannot read this data from db, we must fake it'''
+			if columns[col] == None:
+				'''Caused by api, we cannot read this data from db, we must fake it'''
 				origin[col] = None
 			else:
 				origin[col] = objectName
