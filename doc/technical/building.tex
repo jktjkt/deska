@@ -99,13 +99,14 @@ Resolving deltas: 100% (14099/14099), done.
 After the sources are obtained and the source tree is ready, use the following command to perform the build.  The build
 process is controlled by standard CMake options (like the {\tt -DCMAKE\_INSTALL\_PREFIX} for target path) and a few
 custom ones.  Be sure to pass on the {\tt -DRUN\_SQL\_TESTS=1} statement to include complex test cases which involve
-interaction with a remote PostgreSQL database:
+interaction with a remote PostgreSQL database.  If you would like to build the documentation as well, use the {\tt
+-DBUILD\_DOCS=1} option.
 
 \begin{minted}{console}
 $ cd deska/
 $ mkdir _build
 $ cd _build/
-$ cmake -DCMAKE_INSTALL_PREFIX=/opt -DRUN_SQL_TESTS=1 ..
+$ cmake -DCMAKE_INSTALL_PREFIX=/opt -DRUN_SQL_TESTS=1 -DBUILD_DOCS=1 ..
 -- The C compiler identification is GNU
 -- The CXX compiler identification is GNU
 -- Check for working C compiler: /usr/bin/gcc
