@@ -125,7 +125,7 @@ def params(argString):
 	'''Get python structure from string'''
 	return json.loads(argString)
 
-def collectOriginColumns(columns):
+def collectOriginColumns(columns,objectName):
 	'''collect data into small arrays of [origin,value]'''
 	origin = dict()
 	data = dict()
@@ -134,7 +134,11 @@ def collectOriginColumns(columns):
 			origin[col[0:len(col)-6]] = columns[col]
 		# add also template origin, that is None, all the time
 		elif re.match('^template_.*',col):
-			origin[col] = None
+			if columns[col] = None:
+			'''Caused by api, we cannot read this data from db, we must fake it'''
+				origin[col] = None
+			else:
+				origin[col] = objectName
 			data[col] = columns[col]
 		else:
 			data[col] = columns[col]

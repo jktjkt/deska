@@ -241,7 +241,7 @@ def main(tag,kindName,revision,filter):
 		#FIXME? this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
-		data = dutil.collectOriginColumns(data)
+		data = dutil.collectOriginColumns(data,objectName)
 		res[objectName] = data
 
 

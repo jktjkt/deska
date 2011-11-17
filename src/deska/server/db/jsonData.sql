@@ -140,7 +140,7 @@ def main(tag,kindName,objectName,revision):
 
 	data = [dutil.mystr(x) for x in data[0]]
 	res = dict(zip(colnames,data))
-	res = dutil.collectOriginColumns(res)
+	res = dutil.collectOriginColumns(res,objectName)
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
