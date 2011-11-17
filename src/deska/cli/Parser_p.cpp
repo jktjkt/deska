@@ -555,6 +555,8 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
             }
         }
     }
+    // Adding attribute "name" for filters
+    filterExpressionsParser->addAtrributeToFilter(kindName, "name", predefinedRules->getRule(Db::TYPE_IDENTIFIER));
 }
 
 
