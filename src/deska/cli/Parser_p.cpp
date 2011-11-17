@@ -1262,6 +1262,32 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
         }
     }
 
+    // Find out, if the user wants to enter attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    typename std::vector<ParseError<Iterator> >::iterator itobj =
+        std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+            phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
+    // This error could occur also while parsing object name, but we do not want to suggest completions here
+    if ((it != parseErrors.end()) || (itobj == parseErrors.end())) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND_FILTER) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*iti);
+                for (std::vector<Db::KindAttributeDataType>::iterator itat = attributes.begin();
+                     itat != attributes.end(); ++itat) {
+                    //possibilities.push_back(line + *iti + "." + itat->name);
+                }
+                //possibilities.push_back(line + *iti + ".name");
+            }
+        }
+    }
+
     // Find out, if the user wants to enter object name
     it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
