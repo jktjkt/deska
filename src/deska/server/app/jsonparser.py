@@ -25,9 +25,9 @@ def perform_io(db, stdin, stdout):
 		raise
 	except Exception, e:
 		exc_type, exc_value, exc_traceback = sys.exc_info()
-		jsonErr = { "dbException": "ServerError", "message": repr(
+		jsonErr = { "dbException": {"type": "ServerError", "message": repr(
 			traceback.format_exception(exc_type, exc_value, exc_traceback)
-		) }
+		) } }
 		stdout.write(json.dumps(jsonErr) + "\n")
 		stdout.flush()
 		raise
