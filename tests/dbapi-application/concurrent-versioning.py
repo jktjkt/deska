@@ -37,8 +37,7 @@ def imperative(r):
     r.assertEqual(r.c(kindInstances("vendor"), conn3), ["v1"])
 
     # Check that a frozen view and an active changeset are mutually exclusive
-    # FIXME: Redmine #305, frozen view cannot start/resume changesets
-    #r.cfail(startChangeset(), conn=conn2, exception=FreezingError())
+    r.cfail(startChangeset(), conn=conn2, exception=FreezingError())
     changeset = r.c(startChangeset(), conn1)
     # FIXME: Redmine #305, this shall fail
     #r.cfail(freezeView(), conn=conn1, exception=FreezingError())

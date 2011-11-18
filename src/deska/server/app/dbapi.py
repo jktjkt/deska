@@ -12,6 +12,9 @@ except ImportError:
     import simplejson as json
 from jsonparser import perform_io
 
+class FreezingError(Exception):
+    pass
+
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
@@ -79,9 +82,9 @@ class DB:
 		else:
 			return str(data)
 
-	def errorJson(self,command,tag,message):
+	def errorJson(self,command,tag,message,type="ServerError"):
 		jsn = dict({"response": command,
-			"dbException": {"type": "ServerError", "message": message}
+			"dbException": {"type": type, "message": message}
 		})
 		if tag is not None:
 			jsn["tag"] = tag
@@ -320,11 +323,14 @@ class DB:
 	def standaloneRunDbFunction(self, name, args, tag):
 		'''Run stored procedure'''
 		try:
-			data = self.runDBFunction(name,args,tag)
-			self.endTransaction()
+			try:
+				data = self.runDBFunction(name,args,tag)
+			finally:
+				self.endTransaction()
 			return data
+		except FreezingError, e:
+			return self.errorJson(name, tag, str(e), type="FreezingError")
 		except Exception, e:
-			self.endTransaction()
 			return self.errorJson(name, tag, str(e))
 
 	def checkFunctionArguments(self, name, args, tag):
@@ -369,7 +375,7 @@ class DB:
 			'''check function is read only'''
 			if name in self.writeFunctions:
 				logging.debug("Exception when call db function in freeze view: %s" % name)
-				raise Exception("Cannot run '%s' function, while you are in freeze (read only) mode." % name)
+				raise FreezingError("Cannot run '%s' function, while you are in freeze (read only) mode." % name)
 		try:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
