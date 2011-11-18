@@ -97,6 +97,9 @@ class DB:
 	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
 			# set isolation level serializable, and read only transaction
+			changeset = self.callProc("get_current_changeset_or_null",{})
+			if changeset is not None:
+				raise FreezingError("Cannot run freezeView function, while have attached changeset 'tmp%s'." % changeset)
 			# FIXME: better solution needs psycopg2.4.2
 			# self.db.set_session(SERIALIZABLE,True)
 			self.db.set_isolation_level(2)
@@ -300,7 +303,10 @@ class DB:
 
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):
-			return self.freezeUnfreeze(name,tag)
+			try:
+				return self.freezeUnfreeze(name,tag)
+			except FreezingError, e:
+				return self.errorJson(name, tag, str(e), type="FreezingError")
 
 		if name == "showConfigDiff":
 			forceRegen = False
