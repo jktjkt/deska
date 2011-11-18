@@ -27,14 +27,13 @@ def main(tag,kindName,revision,filter):
 				refCol = dutil.generated.relFromCol(relName)
 				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->')".format(ref = refTbl, kind = kindName, col = refCol)
 	else:
-		columns = "{0}.name"
+		columns = "{0}.name".format(kindName)
 
 	try:
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -70,7 +69,7 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = "SELECT * FROM {0}_get_data($1,$2)".format(kindName)
+	select = dutil.getSelect(kindName, name)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -100,7 +99,7 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = "SELECT * FROM {0}_resolved_object_data($1,$2)".format(kindName)
+	select = dutil.getSelect(kindName, name)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -131,7 +130,7 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = "SELECT * FROM {0}_resolved_object_data_template_info($1,$2)".format(kindName)
+	select = dutil.getSelect(kindName, name)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -139,9 +138,14 @@ def main(tag,kindName,objectName,revision):
 		return dberr.json(name,jsn)
 
 	data = [dutil.mystr(x) for x in data[0]]
-	res = dict(zip(colnames,data))
-	res = dutil.collectOriginColumns(res)
-	jsn[name] = res
+	data = dict(zip(colnames,data))
+	if dutil.hasTemplate(kindName):
+		'''Only if kindName has template'''
+		data = dutil.collectOriginColumns(data,objectName)
+	else:
+		'''Fake origin columns'''
+		data = dutil.fakeOriginColumns(data,objectName)
+	jsn[name] = data
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;

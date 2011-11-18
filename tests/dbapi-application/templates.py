@@ -25,25 +25,20 @@ def imperative(r):
 def helper_check_non_templated(r):
     # Check that resolving work even for non-templated kinds
     r.assertEqual(r.c(objectData("service", "s")), {"note": None})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(resolvedObjectData("service", "s")), {"note": None})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("service", "s")), {"note": None})
+    r.assertEqual(r.c(resolvedObjectData("service", "s")), {"note": None})
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("service", "s")), {"note": [None,None]})
     r.assertEqual(r.c(multipleObjectData("service")), {"s": {"note": None}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectData("service")), {"s": {"note": None}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("service")), {"s": {"note": None}})
+    r.assertEqual(r.c(multipleResolvedObjectData("service")), {"s": {"note": None}})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("service")), {"s": {"note": [None,None]}})
     # ...and also for kinds without any attributes
     # FIXME Redmine #299, cannot ask for data of kinds with no attributes
     #r.assertEqual(r.c(objectData("vendor", "vendor1")), {})
-    # FIXME Redmine #298
+    # FIXME Redmine #299
     #r.assertEqual(r.c(resolvedObjectData("vendor", "vendor1")), {})
     #r.assertEqual(r.c(resolvedObjectDataWithOrigin("vendor", "vendor1")), {})
     r.assertEqual(r.c(multipleObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
+    r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
 
 def helper_check_hw3(r, expected):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(expected))
@@ -87,9 +82,7 @@ def do_hardware(r):
     r.cvoid(setAttribute("hardware", "hw3", "template_hardware", "t1"))
 
     hw3_2 = copy.deepcopy(hw3_1)
-    # FIXME: Redmine #294
-    #hw3_2["template_hardware"] = ["hw3", "t1"]
-    hw3_2["template_hardware"] = [None, "t1"]
+    hw3_2["template_hardware"] = ["hw3", "t1"]
     hw3_2["cpu_num"] = ["t1", 666]
     hw3_2["cpu_ht"] = ["t1", True]
     hw3_2["ram"] = ["t1", 333]
@@ -120,9 +113,7 @@ def do_hardware(r):
     hw3_4["cpu_ht"] = ["hw3", False]
     hw3_4["cpu_num"] = ["t2", 4]
     hw3_4["ram"] = ["t2", 1024]
-    # FIXME: Redmine #294
-    #hw3_4["template_hardware"] = ["hw3", "t2"]
-    hw3_4["template_hardware"] = [None, "t2"]
+    hw3_4["template_hardware"] = ["hw3", "t2"]
     helper_check_hw3(r, hw3_4)
     r.c(commitChangeset("test2"))
     helper_check_hw3(r, hw3_4)
@@ -133,9 +124,7 @@ def do_hardware(r):
     hw3_5 = copy.deepcopy(hw3_3)
     hw3_5["cpu_num"] = ["t2", 4]
     hw3_5["ram"] = ["t2", 1024]
-    # FIXME: Redmine #294
-    #hw3_5["template_hardware"] = ["hw3", "t2"]
-    hw3_5["template_hardware"] = [None, "t2"]
+    hw3_5["template_hardware"] = ["hw3", "t2"]
     helper_check_hw3(r, hw3_5)
     r.c(commitChangeset("test2"))
     helper_check_hw3(r, hw3_5)
@@ -159,7 +148,7 @@ def do_host(r):
     hdata = {
         "hardware": [None, None],
         "note_host": [None, None],
-        "template_host": [None, "t1"],
+        "template_host": ["h", "t1"],
         "service": ["t1", ["a"]],
     }
 

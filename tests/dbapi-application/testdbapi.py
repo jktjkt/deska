@@ -13,7 +13,7 @@ import apiUtils
 path_libLowLevelPyDeska = os.path.abspath(os.getcwd() + "../../..")
 sys.path.append(path_libLowLevelPyDeska)
 # enable "import deska"
-path_deska = os.path.abspath(os.environ["DESKA_SOURCES"] + "/src/deska/LowLevelPyDeska")
+path_deska = os.path.abspath(os.environ["DESKA_SOURCES"] + "/src/deska/python")
 sys.path.append(path_deska)
 
 def deunicodeify(stuff):

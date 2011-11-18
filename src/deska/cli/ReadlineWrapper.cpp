@@ -26,6 +26,8 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/tokenizer.hpp>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "ReadlineWrapper.h"
 

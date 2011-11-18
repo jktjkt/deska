@@ -31,9 +31,6 @@
 #include <fstream>
 #include <vector>
 
-#include <readline/readline.h>
-#include <readline/history.h>
-
 namespace Deska
 {
 namespace ReadlineWrapper

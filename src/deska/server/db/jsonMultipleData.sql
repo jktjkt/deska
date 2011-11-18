@@ -53,8 +53,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -134,8 +133,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_resolved_data($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -183,8 +181,10 @@ def main(tag,kindName,revision,filter):
 	attributes = dutil.generated.atts(kindName)
 	atts = dict()
 	for att in attributes:
-		if not re.match("template_",att):
-			atts[att+"_templ"] = attributes[att]
+		if dutil.hasTemplate(kindName):
+			'''Only if kindName has template'''
+			if not re.match("template_",att):
+				atts[att+"_templ"] = attributes[att]
 		atts[att] = attributes[att]
 	atts["name"] = "identifier"
 	# dot the atts with kindName
@@ -221,8 +221,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_resolved_data_template_info($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -241,7 +240,12 @@ def main(tag,kindName,revision,filter):
 		#FIXME? this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
-		data = dutil.collectOriginColumns(data)
+		if dutil.hasTemplate(kindName):
+			'''Only if kindName has template'''
+			data = dutil.collectOriginColumns(data,objectName)
+		else:
+			'''Fake origin columns'''
+			data = dutil.fakeOriginColumns(data,objectName)
 		res[objectName] = data
 
 

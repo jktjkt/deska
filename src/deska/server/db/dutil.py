@@ -31,6 +31,7 @@ class DeskaException(Exception):
 		'''Parse Postgres.dberr into variables used for json dump'''
 		self.type = self.getType(self.code)
 		if self.code == '42601':
+			'''bad sql syntax'''
 			self.message = "Syntax error, something strange happend."
 		#if self.code == '42883':
 		#	self.message = "Either kindName or attribute does not exists."
@@ -125,7 +126,52 @@ def params(argString):
 	'''Get python structure from string'''
 	return json.loads(argString)
 
-def collectOriginColumns(columns):
+def hasTemplate(kindName):
+	'''Test if given kind is templated'''
+	if "template_"+kindName in generated.atts(kindName):
+		return True
+	else:
+		return False
+
+def getDataFunction(funcName,kindName):
+	'''get name of the data function'''
+	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
+	resolvedDict = {
+		"multipleResolvedObjectData": "_resolved_data($1)",
+		"multipleResolvedObjectDataWithOrigin": "_resolved_data_template_info($1)",
+		"resolvedObjectData": "_resolved_object_data($1,$2)",
+		"resolvedObjectDataWithOrigin": "_resolved_object_data_template_info($1,$2)"
+	}
+	nameDict = {
+		"kindInstances": "_data_version($1)",
+		"multipleObjectData": "_data_version($1)",
+		"multipleResolvedObjectData": "_data_version($1)",
+		"multipleResolvedObjectDataWithOrigin": "_data_version($1)",
+		"objectData": "_get_data($1,$2)",
+		"resolvedObjectData": "_get_data($1,$2)",
+		"resolvedObjectDataWithOrigin": "_get_data($1,$2)"
+	}
+	if funcName in resolved:
+		'''check if it is templated and if not, fake resolved data by unresolved function, that give same results'''
+		if hasTemplate(kindName):
+			'''return resolved version'''
+			return resolvedDict[funcName]
+	return nameDict[funcName]
+
+def getSelect(kindName, functionName, columns = "*", join = "", where = ""):
+	return 'SELECT {0} FROM {1}{2} AS {1} {3}{4}'.format(columns, kindName, getDataFunction(functionName,kindName), join, where)
+
+def fakeOriginColumns(columns,objectName):
+	'''fake data into small arrays of [origin,value]'''
+	data = dict()
+	for col in columns:
+		if columns[col] == None:
+			data[col] = [None,None]
+		else:
+			data[col] = [objectName,columns[col]]
+	return data
+
+def collectOriginColumns(columns,objectName):
 	'''collect data into small arrays of [origin,value]'''
 	origin = dict()
 	data = dict()
@@ -134,7 +180,11 @@ def collectOriginColumns(columns):
 			origin[col[0:len(col)-6]] = columns[col]
 		# add also template origin, that is None, all the time
 		elif re.match('^template_.*',col):
-			origin[col] = None
+			if columns[col] == None:
+				'''Caused by api, we cannot read this data from db, we must fake it'''
+				origin[col] = None
+			else:
+				origin[col] = objectName
 			data[col] = columns[col]
 		else:
 			data[col] = columns[col]
@@ -145,19 +195,24 @@ def collectOriginColumns(columns):
 def oneKindDiff(kindName,diffname,a = None,b = None):
 	'''get diff for one kind'''
 	if diffname == "resolved":
-		diffname = "_init_resolved_diff"
+		if hasTemplate(kindName):
+			diffname = "_resolved_diff"
+		else:
+			diffname = "_diff"
 	else:
-		diffname = "_init_diff"
+		diffname = "_diff"
 	with xact():
 		Postgres.NOTICE("Running diff: {0}{1}({2},{3})".format(kindName,diffname,a,b))
 		if (a is None) and (b is None):
 			# diff for temporaryChangeset
+			diffname = "_init_ch" + diffname
 			init = proc(kindName + diffname + "(bigint)")
 			#send proper values for diff_set_attr... (#292)
 			a, b = 0, 0
-			init(None)
+			init(a)
 		elif (b is None):
 			# diff for temporaryChangeset with changeset parameter
+			diffname = "_init_ch" + diffname
 			init = proc(kindName + diffname + "(bigint)")
 			#get changeset ids first
 			changeset2id = proc("changeset2id(text)")
@@ -167,6 +222,7 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			init(a)
 		else:
 			# diff for 2 revisions
+			diffname = "_init" + diffname
 			init = proc(kindName + diffname + "(bigint,bigint)")
 			#get changeset ids first
 			revision2num = proc("revision2num(text)")
