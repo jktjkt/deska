@@ -25,25 +25,20 @@ def imperative(r):
 def helper_check_non_templated(r):
     # Check that resolving work even for non-templated kinds
     r.assertEqual(r.c(objectData("service", "s")), {"note": None})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(resolvedObjectData("service", "s")), {"note": None})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("service", "s")), {"note": None})
+    r.assertEqual(r.c(resolvedObjectData("service", "s")), {"note": None})
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("service", "s")), {"note": [None,None]})
     r.assertEqual(r.c(multipleObjectData("service")), {"s": {"note": None}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectData("service")), {"s": {"note": None}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("service")), {"s": {"note": None}})
+    r.assertEqual(r.c(multipleResolvedObjectData("service")), {"s": {"note": None}})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("service")), {"s": {"note": [None,None]}})
     # ...and also for kinds without any attributes
     # FIXME Redmine #299, cannot ask for data of kinds with no attributes
     #r.assertEqual(r.c(objectData("vendor", "vendor1")), {})
-    # FIXME Redmine #298
+    # FIXME Redmine #299
     #r.assertEqual(r.c(resolvedObjectData("vendor", "vendor1")), {})
     #r.assertEqual(r.c(resolvedObjectDataWithOrigin("vendor", "vendor1")), {})
     r.assertEqual(r.c(multipleObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
-    # FIXME Redmine #298
-    #r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
+    r.assertEqual(r.c(multipleResolvedObjectData("vendor")), {"vendor1": {}, "vendor2": {}})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("vendor")), {"vendor1": {}, "vendor2": {}})
 
 def helper_check_hw3(r, expected):
     r.assertEqual(r.c(resolvedObjectData("hardware", "hw3")), strip_origin(expected))
