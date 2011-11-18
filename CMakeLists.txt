@@ -86,6 +86,9 @@ if(EXTRA_READLINE_LIBRARY)
     # https://bugzilla.redhat.com/show_bug.cgi?id=499837
     set(READLINE_LIBRARY ${READLINE_LIBRARY} ${EXTRA_READLINE_LIBRARY})
 endif()
+if(READLINE_FOUND)
+    include_directories(${READLINE_INCLUDE_DIR})
+endif()
 
 # We have to bring in Python explicitly
 find_package(PythonLibs REQUIRED)
