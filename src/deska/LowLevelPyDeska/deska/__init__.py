@@ -13,7 +13,6 @@ def init(conn=None):
     _kinds = {}
     if conn is None:
         conn = _l.Connection()
-        conn.freezeView()
     _discoverScheme(conn, _kinds)
     for k, v in _kinds.iteritems():
         globals()[k] = v

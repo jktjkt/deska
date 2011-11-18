@@ -209,6 +209,9 @@ class DB:
 		logging.debug(" opening repository")
 		self.cfgGenerator.openRepo()
 		logging.debug(" calling cfgGenerator.generate")
+		# The generators require a consistent state of the database. We are
+		# supposed to be attached to an active changeset which is furthermore
+		# locked. Let's hope this is really the case.
 		self.cfgGenerator.generate(self)
 		logging.debug("cfgRegenerate: done")
 
