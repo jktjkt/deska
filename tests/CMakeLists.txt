@@ -157,7 +157,7 @@ if(RUN_SQL_TESTS)
         run ${CMAKE_CURRENT_SOURCE_DIR}/test_cfggen_git_simple)
 
     # Tests for generating the config files
-    #deska_dbapi_test_with_git(config_generators)
+    deska_dbapi_test_with_git(config_generators)
 endif()
 
 # Copy files from source directory to destination directory, substituting any
