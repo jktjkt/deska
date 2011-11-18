@@ -65,12 +65,23 @@ public:
     *   @param context Path and object definition to delete
     */
     void deleteObject(const ContextStack &context);
+    /** @short Deletes objects.
+    *
+    *   @param objects Object definitions to delete
+    */
+    void deleteObjects(const std::vector<ObjectDefinition> &objects);
     /** @short Renames object.
     *
     *   @param context Path and object definition to delete
     *   @param newName New name of the object
     */
     void renameObject(const ContextStack &context, const Db::Identifier &newName);
+    /** @short Renames objects.
+    *
+    *   @param objects Object definitions to delete
+    *   @param newName New name of the objects
+    */
+    void renameObjects(const std::vector<ObjectDefinition> &objects, const Db::Identifier &newName);
     /** @short Sets attribute value in the object.
     *
     *   @param context Path to the object which attribute will be changed

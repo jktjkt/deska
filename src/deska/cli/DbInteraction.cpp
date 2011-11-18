@@ -115,12 +115,20 @@ void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    deleteObjects(objects);
+}
+
+
+
+void DbInteraction::deleteObjects(const std::vector<ObjectDefinition> &objects)
+{
     std::vector<Db::ObjectModificationCommand> modifications;
-    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (objectExists(*it))
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (objectExists(*it)) {
             modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
             if (stableView)
                 objectExistsCache[*it] = false;
+        }
     }
     m_api->applyBatchedChanges(modifications);
 }
@@ -131,8 +139,15 @@ void DbInteraction::renameObject(const ContextStack &context, const Db::Identifi
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
+    renameObjects(objects, newName);
+}
+
+
+
+void DbInteraction::renameObjects(const std::vector<ObjectDefinition> &objects, const Db::Identifier &newName)
+{
     std::vector<Db::ObjectModificationCommand> modifications;
-    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         std::vector<Db::Identifier> newObjName = pathToVector(it->name);
         newObjName.back() = newName;
         modifications.push_back(Db::RenameObjectModification(it->kind, it->name, vectorToPath(newObjName)));
