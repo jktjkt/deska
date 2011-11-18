@@ -118,9 +118,8 @@ def doTests(r):
                   sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
 
     # Just enumerate all of the HW
-    # FIXME: fails, Redmine #298
-    #matching = deska.vendor._all()
-    #r.assertEqual(sorted(matchig.keys()), sorted(["HP", "IBM", "SGI"]))
+    matching = deska.vendor._all()
+    r.assertEqual(sorted(matching.keys()), sorted(["HP", "IBM", "SGI"]))
 
     # Now try to perform that we can search from the other way round
     # FIXME: fails, Redmine #298
