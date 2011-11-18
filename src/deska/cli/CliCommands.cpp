@@ -93,7 +93,7 @@ bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification 
     } else if (a.kindName > b.kindName) {
         return false;
     } else {
-        return (a.objectName <= b.objectName);
+        return (a.objectName < b.objectName);
     }
 }
 
@@ -107,7 +107,7 @@ bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification 
     } else if (a.kindName > b.kindName) {
         return false;
     } else {
-        return (a.objectName <= b.objectName);
+        return (a.objectName < b.objectName);
     }
 }
 
@@ -125,7 +125,7 @@ bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification 
     } else if (a.oldObjectName > b.oldObjectName) {
         return false;
     } else {
-        return (a.newObjectName != b.newObjectName);
+        return (a.newObjectName < b.newObjectName);
     }
 }
 
@@ -142,13 +142,9 @@ bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification 
         return true;
     } else if (a.objectName > b.objectName) {
         return false;
-    } else if (a.attributeName < b.attributeName) {
-        return true;
-    } else if (a.attributeName > b.attributeName) {
-        return false;
     } else {
-        return (a.attributeData != b.attributeData);
-    }
+        return (a.attributeName < b.attributeName);
+    } 
 }
 
 
