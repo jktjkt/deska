@@ -188,19 +188,34 @@ public:
     */
     bool objectExists(const ContextStack &context);
 
-    /** @short Gets all objects, that are merged with this one
+    /** @short Gets all objects, that are contained in this one
+    *
+    *   @param object The object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
+    */
+    std::vector<ObjectDefinition> containedObjects(const ObjectDefinition &object);
+
+
+    /** @short Gets all objects, that are contained in this one
+    *
+    *   @param context Path to the object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
+    */
+    std::vector<ObjectDefinition> containedObjects(const ContextStack &context);
+
+    /** @short Gets all objects, that are merged with this one also transitively
     *
     *   @param object The object which merged objects to find
     *   @return Vector of all objects merged with one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjects(const ObjectDefinition &object);
+    std::vector<ObjectDefinition> mergedObjectsTransitively(const ObjectDefinition &object);
 
-    /** @short Gets all objects, that are merged with this one
+    /** @short Gets all objects, that are merged with this one also transitively
     *
     *   @param context Path to the object which merged objects to find
     *   @return Vector of all objects merged with one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjects(const ContextStack &context);
+    std::vector<ObjectDefinition> mergedObjectsTransitively(const ContextStack &context);
 
     /** @short Function for obtaining kind names referred by some attribute in some kind.
     *   
@@ -310,6 +325,14 @@ public:
     void clearCache();
 
 private:
+
+    /** @short Helping function for mergedObjectsTransitively() for obtaining merged objects recursively
+    *
+    *   @param object Object which merged objects to find
+    *   @param mergedObjects Vector of all objects merged already found
+    */
+    void mergedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                      std::vector<ObjectDefinition> &mergedObjects);
 
     /** Identifiers of top level kinds. */
     std::vector<Db::Identifier> pureTopLevelKinds;

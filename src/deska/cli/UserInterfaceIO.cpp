@@ -329,6 +329,36 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 
 
 
+bool UserInterfaceIO::confirmDeletionContained(const std::vector<ObjectDefinition> &mergedObjects)
+{
+    std::ostringstream ss;
+    ss << "Do you wand to delete also connected object(s) ";
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
+    ss << "?";
+    return askForConfirmationImpl(ss.str());
+}
+
+
+
+bool UserInterfaceIO::confirmRenameContained(const std::vector<ObjectDefinition> &mergedObjects)
+{
+    std::ostringstream ss;
+    ss << "Do you wand to rename also connected object(s) ";
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
+    ss << "?";
+    return askForConfirmationImpl(ss.str());
+}
+
+
+
 bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
@@ -352,11 +382,11 @@ bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object,
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create and link to ";
-        for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
-            if (it != mergedObjects.begin())
-                ss << ", ";
-            ss << *it;
-        }
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
     ss << "?";
     return askForConfirmationImpl(ss.str());
 }
