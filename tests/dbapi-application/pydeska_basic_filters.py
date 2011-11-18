@@ -122,7 +122,11 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()), sorted(["HP", "IBM", "SGI"]))
 
     # Now try to perform that we can search from the other way round
-    # FIXME: fails, Redmine #298
-    #matching = deska.vendor[deska.hardware.ram == 3]
-    #r.assertEqual(sorted(matching.keys()),
-    #              sorted([v["vendor"] for (k, v) in myHw.iteritems() if v["ram"] == "3"]))
+    matching = deska.vendor[deska.hardware.ram == 3]
+    # The Python code has to eliminate None objects from the list, though,
+    # because from the DBAPI point of view it arguably doesn't make sense to
+    # return null objects in this context.  There is simply no allowed way for
+    # the DBAPI protocol to return nulls in this context.
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([v["vendor"] for (k, v) in myHw.iteritems()
+                          if v["ram"] == "3" and v["vendor"] is not None]))
