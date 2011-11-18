@@ -281,7 +281,8 @@ class DB:
 			self.db.rollback()
 			return res
 		self.db.commit()
-		self.unlockChangeset()
+		#this is done by commitChangeset function
+		#self.unlockChangeset()
 		return res
 
 	def run(self,name,args):
