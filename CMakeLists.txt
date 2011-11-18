@@ -197,3 +197,7 @@ target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON
 
 include(CTest)
 add_subdirectory(tests)
+
+if(BUILD_DOCS)
+    add_subdirectory(doc/technical)
+endif(BUILD_DOCS)

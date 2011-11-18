@@ -11,7 +11,7 @@ The first chapter explains what Deska is, and what it tries to achieve.
 
 \section{Motivation}
 
-The Deska started as an internal project at the Institute of Physics of the AS CR, v.v.i., out of a desire to make the
+The Deska started as an internal project at the Institute of Physics of the~AS~CR,~v.v.i.~\cite{fzu}, out of a desire to make the
 everyday operation of the regional grid computing centre smoother and reduce the set of tedious tasks that the staffers
 had to perform during their regular maintenance.
 
@@ -21,18 +21,18 @@ spread out into configuration files of many services and in-house databases.  Bi
 between the DNS names and IP addresses, the configuration of the DHCP server listed pairs of the Ethernet MAC addresses
 and IP addresses, names of switch ports were assigned by hand.  Various monitoring services had to include low-level
 hardware information like the available disk size in order to be able to warn when the space begun to run out.  Roles of
-machines, i.e. the desired purpose of each server, was mentioned in Cfengine's configuration, in the Nagios database and
-in many other places.  Adding new machines, retiring the old ones or even just performing basic queries led to a rather
-tedious process where people had to consult each of the individual data sources by hand and retrieve the desired piece
-of information.  Needless to say, this complicated workflow often led to working with stale data or time wasted when
-troubleshooting an outdated network daemon configuration, and --- in the end --- administrators who were unhappy with
-the process.
+machines, i.e. the desired purpose of each server, was mentioned in Cfengine's~\cite{cfengine} configuration, in the
+Nagios~\cite{nagios} database and in many other places.  Adding new machines, retiring the old ones or even just
+performing basic queries led to a rather tedious process where people had to consult each of the individual data sources
+by hand and retrieve the desired piece of information.  Needless to say, this complicated workflow often led to working
+with stale data or time wasted when troubleshooting an outdated network daemon configuration, and --- in the end ---
+administrators who were unhappy with the process.
 
 It was therefore decided that the Institute shall find a tool that can store all the information about the whole data
 center, from hardware configuration and rack layout to network topology and provided application services, at a single,
 authoritative place, and have a mechanism to {\em push} this data to various places which make use of it.  The Deska
-project was formed to evaluate various existing tools which were available on the market in late 2009 and propose a
-system which would fit this goal.
+project~\cite{deska-project} was formed to evaluate various existing tools which were available on the market in late
+2009 and propose a system which would fit this goal.
 
 Before we begun the initial design of the Deska project, we had evaluated various existing tools which were available
 on the market at that time (see \secref{sec:evaluating-existing-tools} for details).  We came to the conclusion that
@@ -60,8 +60,8 @@ fabric management, which takes care of distributing the updated data to the indi
 \end{figure}
 
 In contrast to many existing tools, the Deska database scheme is not set in stone.  Experience at various sites
-throughout the WLCG shows that each site prefers to stick with their own particular workflow.  Therefore, if the Deska
-database imposed a fixed database layout, it would face rather strong opposition when pushed for adoption.  We
+throughout the WLCG~\cite{wlcg} shows that each site prefers to stick with their own particular workflow.  Therefore, if
+the Deska database imposed a fixed database layout, it would face rather strong opposition when pushed for adoption.  We
 acknowledge that this is a political problem, not a technical one, but we have nonetheless chosen to design Deska as a
 {\em generic} database.  Most of the code which ships with Deska is agnostic to the database layout the administrators
 choose to use.  It is expected that installations of Deska at individual sites will differ only in the DB scheme and the

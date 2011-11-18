@@ -2020,7 +2020,7 @@ BOOST_FIXTURE_TEST_CASE(error_filter_attribute_name, ParserTestFixture)
     const std::string::const_iterator it = line.begin() + line.find("blabla");
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"price\" \"role\" \"hardware\" \"host\" \"interface\" ].", line, it));
+    expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name or nested kind name for host. Expected one of [ \"hardware_id\" \"hardware_name\" \"host_name\" \"id\" \"name\" \"price\" \"role\" \"hardware\" \"host\" \"interface\" ].", line, it));
     verifyEmptyStack();
     expectNothingElse();
 }

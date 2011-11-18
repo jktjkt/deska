@@ -70,7 +70,9 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
-                mergedTo[itr->target].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->target, *itk));
+                mergedTo[itr->target].push_back(std::make_pair<Db::Identifier, Db::Identifier>(*itk, *itk));
+                roAttributes[*itk].push_back(itr->column);
+                roAttributes[itr->target].push_back(*itk);
             }
             if (itr->kind == Db::RELATION_REFERS_TO) {
                 refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
@@ -226,7 +228,12 @@ std::vector<std::pair<Db::Identifier, std::string> > ParserImpl<Iterator>::parse
     std::vector<std::pair<Db::Identifier, std::string> > attrs;
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator ita = attributes.begin(); ita != attributes.end(); ++ita) {
-        attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name()));
+        std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[kindName].begin(),
+            roAttributes[kindName].end(), ita->name);
+        if (itroat != roAttributes[kindName].end())
+            attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name() + " - read only"));
+        else
+            attrs.push_back(std::make_pair<Db::Identifier, std::string>(ita->name, predefinedRules->getRule(ita->type).name()));
     }
     return attrs;
 }
@@ -392,7 +399,7 @@ void ParserImpl<Iterator>::attributeSet(const Db::Identifier &kind, const Db::Id
     if (!dryRun)
         m_parser->attributeSet(kind, name, value);
 #ifdef PARSER_DEBUG
-    std::cout << "Set attribute: " << kind << " - " << name << "=" << boost::apply_visitor(NonOptionalValuePrettyPrint(), *value) << std::endl;
+    std::cout << "Set attribute: " << kind << " - " << name << "=" << *value << std::endl;
 #endif
 }
 
@@ -519,8 +526,12 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
     // Adding own attributes
     std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(kindName);
     for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-        attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
-        attributeRemovalsParser->addAtrribute(kindName, it->name);
+        std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[kindName].begin(),
+            roAttributes[kindName].end(), it->name);
+        if (itroat == roAttributes[kindName].end()) {
+            attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
+            attributeRemovalsParser->addAtrribute(kindName, it->name);
+        }
         filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         if (it->type == Db::TYPE_IDENTIFIER_SET) {
             identifiersSetsParser->addIdentifiersSet(kindName, it->name, predefinedRules->getObjectIdentifier());
@@ -531,8 +542,12 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
     for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator itm = mergeWith[kindName].begin(); itm != mergeWith[kindName].end(); ++itm) {
         std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(itm->second);
         for (std::vector<Db::KindAttributeDataType>::iterator it = attributes.begin(); it != attributes.end(); ++it) {
-            attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
-            attributeRemovalsParser->addAtrribute(itm->second, it->name);
+            std::vector<Db::Identifier>::iterator itroat = std::find(roAttributes[itm->second].begin(),
+                roAttributes[itm->second].end(), it->name);
+            if (itroat == roAttributes[itm->second].end()) {
+                attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
+                attributeRemovalsParser->addAtrribute(itm->second, it->name);
+            } 
             filterExpressionsParser->addAtrributeToFilter(itm->second, it->name, predefinedRules->getRule(it->type));
             if (it->type == Db::TYPE_IDENTIFIER_SET) {
                 identifiersSetsParser->addIdentifiersSet(itm->second, it->name, predefinedRules->getObjectIdentifier());
@@ -540,6 +555,8 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
             }
         }
     }
+    // Adding attribute "name" for filters
+    filterExpressionsParser->addAtrributeToFilter(kindName, "name", predefinedRules->getRule(Db::TYPE_IDENTIFIER));
 }
 
 
@@ -1241,6 +1258,32 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
             std::vector<std::string> expectations = it->expectedKeywords();
             for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
                 possibilities.push_back(line + *iti);
+            }
+        }
+    }
+
+    // Find out, if the user wants to enter attribute name
+    it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+                      phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_FILTER);
+    typename std::vector<ParseError<Iterator> >::iterator itobj =
+        std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&ParseError<Iterator>::errorType,
+            phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
+    // This error could occur also while parsing object name, but we do not want to suggest completions here
+    if ((it != parseErrors.end()) || (itobj == parseErrors.end())) {
+#ifdef PARSER_DEBUG
+        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND_FILTER) << std::endl;
+        std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
+#endif
+        // Error have to occur at the end of the line
+        if ((realEnd - it->errorPosition()) == 0) {
+            std::vector<std::string> expectations = it->expectedKeywords();
+            for (std::vector<std::string>::iterator iti = expectations.begin(); iti != expectations.end(); ++iti) {
+                std::vector<Db::KindAttributeDataType> attributes = m_parser->m_dbApi->kindAttributes(*iti);
+                for (std::vector<Db::KindAttributeDataType>::iterator itat = attributes.begin();
+                     itat != attributes.end(); ++itat) {
+                    //possibilities.push_back(line + *iti + "." + itat->name);
+                }
+                //possibilities.push_back(line + *iti + ".name");
             }
         }
     }
