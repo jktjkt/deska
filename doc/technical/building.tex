@@ -25,7 +25,7 @@ supported:
     \item Gentoo Linux~\cite{gentoo}
 \end{itemize}
 
-\subsection{Building}
+\subsection{Prerequisites}
 
 All platforms require a C++ compiler with decent support for templates.  Please be advised that compilation of the CLI
 involves instantiation of rather complicated template structures which might require unusual amounts of RAM.  We have
@@ -85,7 +85,7 @@ Finally, in order to build the documentation from source, the following packages
     \item The {\tt subfiles} \LaTeX~package (optional, shipped with Deska)~\cite{latex-subfiles}
 \end{itemize}
 
-\subsubsection{Getting the Sources}
+\subsection{Getting the Sources}
 
 Apart from the stable releases available from the project homepage~\cite{deska-project}, the sources are also available
 from an anonymous Git repository~\cite{deska-git}:
@@ -99,6 +99,8 @@ remote: Total 23348 (delta 14099), reused 23208 (delta 14001)
 Receiving objects: 100% (23348/23348), 5.12 MiB | 183 KiB/s, done.
 Resolving deltas: 100% (14099/14099), done.
 \end{minted}
+
+\subsection{Compilation}
 
 After the sources are obtained and the source tree is ready, use the following command to perform the build.  The build
 process is controlled by standard CMake options (like the {\tt -DCMAKE\_INSTALL\_PREFIX} for target path) and a few
@@ -144,6 +146,8 @@ $ time make -j4
 # ...
 \end{minted}
 
+\subsection{Test Invocation}
+
 After the sources have been built, it is highly recommended to run the automated test suite.  No extra configuration is
 required, apart from an available PostgreSQL server binary.  The test case will configure and start its own PostgreSQL
 server instance, using the {\tt /dev/shm} {\tt shmfs} in-memory filesystem as the backing store, and will use just the
@@ -156,8 +160,12 @@ $ time ../run-standalone-tests.sh
 100% tests passed, 0 tests failed out of 48
 \end{minted}
 
+\subsection{Installation}
+
 When the tests have finished correctly, the client tools can be installed by running {\tt make install}.  The server,
 however, requires more complex procedure to set up.
+
+FIXME: describe installation of the "deska" Python module
 
 \section{Setup and Configuration}
 
