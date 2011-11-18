@@ -102,7 +102,11 @@ Resolving deltas: 100% (14099/14099), done.
 
 \subsection{Compilation}
 
-After the sources are obtained and the source tree is ready, use the following command to perform the build.  The build
+After the sources are obtained and the source tree is ready, use the following command to perform the
+build.\footnote{Some ssytems, most notably the RHEL5, suffer from a suboptimally built {\tt libreadline} which fails to
+specify all of the required library dependencies.\cite{rhel5-readline-bug}.  The Deska build system includes special
+tweaks for building on such systems through the {\tt -DEXTRA\_READLINE\_LIBRARY} option which shall point to a .so
+library providing missing symbols.  Typical names are {\tt libtinfo.so.5} or {\tt libtermcap.so.2}.}  The build
 process is controlled by standard CMake options (like the {\tt -DCMAKE\_INSTALL\_PREFIX} for target path) and a few
 custom ones.  Be sure to pass on the {\tt -DRUN\_SQL\_TESTS=1} statement to include complex test cases which involve
 interaction with a remote PostgreSQL database.  If you would like to build the documentation as well, use the {\tt
