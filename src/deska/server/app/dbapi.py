@@ -49,6 +49,10 @@ class DB:
 		"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		# showConfigDiff is special
 	})
+	writeFunctions = ["startChangeset", "commitChangeset", "resumeChangeset", "abortCurrentChangeset",
+		"detachFromCurrentChangeset", "lockCurrentChangeset", "unlockCurrentChangeset",
+		"deleteObject", "createObject", "restoreDeletedObject", "renameObject", "setAttribute",
+		"setAttributeInsert", "setAttributeRemove"]
 
 	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
 		self.db = psycopg2.connect(**dbOptions);
@@ -144,24 +148,28 @@ class DB:
 			self.db.commit()
 
 	def lockChangeset(self):
-		# FIXME: implement me by calling a DB function
+		'''Lock changeset by db lock'''
+		self.callProc("lockChangeset",{})
 		pass
 
 	def unlockChangeset(self):
-		# FIXME: implement me by calling a DB function
+		'''Unlock changeset'''
+		self.callProc("releaseAndMarkAsOK",{})
 		pass
 
 	def changesetHasFreshConfig(self):
 		# FIXME: implement me by calling a DB function
+		#self.callProc("...NO FUNCTION NOW...",{})
 		return False
 
 	def markChangesetFresh(self):
 		# FIXME: implement me by calling a DB function
+		#self.callProc("releaseAndMarkAsOK",{})
 		pass
 
 	def currentChangeset(self):
-		# FIXME: get name of the current changeset from the DB
-		return "unnamed"
+		'''get name of the current changeset from the DB'''
+		return "tmp" + str(self.callProc("get_current_changeset",{}))
 
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
@@ -306,6 +314,7 @@ class DB:
 		return self.standaloneRunDbFunction(name, args, tag)
 
 	def standaloneRunDbFunction(self, name, args, tag):
+		'''Run stored procedure'''
 		try:
 			data = self.runDBFunction(name,args,tag)
 			self.endTransaction()
@@ -336,6 +345,7 @@ class DB:
 				raise Exception("Extra arguments: %s" % extra_args)
 
 	def runDBFunction(self,name,args,tag):
+		'''Check args, sort them and call db proc'''
 		self.checkFunctionArguments(name, args, tag)
 		needed_args = self.methods[name]
 
@@ -347,7 +357,15 @@ class DB:
 		for i in range(len(args)):
 			if type(args[i]) == dict:
 				args[i] = json.dumps(args[i])
+		return self.callProc(name,args)
 
+	def callProc(self,name,args):
+		'''Call the db function'''
+		if self.freeze:
+			'''check function is read only'''
+			if name in self.writeFunctions:
+				logging.debug("Exception when call db function in freeze view: %s" % name)
+				raise Exception("Cannot run '%s' function, while you are in freeze (read only) mode." % name)
 		try:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
@@ -355,7 +373,7 @@ class DB:
 			logging.debug("Exception when call db function: %s)" % str(e))
 			raise Exception("Missing arguments: %s" % str(e).split("\n")[0])
 
-		logging.debug("fetchall returning: %s)" % data)
+		logging.debug("fetchall returning: %s" % data)
 		return data
 
 
