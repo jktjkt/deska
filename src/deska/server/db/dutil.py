@@ -31,6 +31,7 @@ class DeskaException(Exception):
 		'''Parse Postgres.dberr into variables used for json dump'''
 		self.type = self.getType(self.code)
 		if self.code == '42601':
+			'''bad sql syntax'''
 			self.message = "Syntax error, something strange happend."
 		#if self.code == '42883':
 		#	self.message = "Either kindName or attribute does not exists."
@@ -125,22 +126,50 @@ def params(argString):
 	'''Get python structure from string'''
 	return json.loads(argString)
 
-def getDataFunction(name):
+def hasTemplate(kindName):
+	'''Test if given kind is templated'''
+	if "template_"+kindName in generated.atts(kindName):
+		return True
+	else:
+		return False
+
+def getDataFunction(funcName,kindName):
 	'''get name of the data function'''
 	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
-	nameDict = {
-		"kindInstances": "_data_version($1)",
-		"multipleObjectData": "_data_version($1)",
+	resolvedDict = {
 		"multipleResolvedObjectData": "_resolved_data($1)",
 		"multipleResolvedObjectDataWithOrigin": "_resolved_data_template_info($1)",
-		"objectData": "_get_data($1,$2)",
 		"resolvedObjectData": "_resolved_object_data($1,$2)",
 		"resolvedObjectDataWithOrigin": "_resolved_object_data_template_info($1,$2)"
 	}
-	return nameDict[name]
+	nameDict = {
+		"kindInstances": "_data_version($1)",
+		"multipleObjectData": "_data_version($1)",
+		"multipleResolvedObjectData": "_data_version($1)",
+		"multipleResolvedObjectDataWithOrigin": "_data_version($1)",
+		"objectData": "_get_data($1,$2)",
+		"resolvedObjectData": "_get_data($1,$2)",
+		"resolvedObjectDataWithOrigin": "_get_data($1,$2)"
+	}
+	if funcName in resolved:
+		'''check if it is templated and if not, fake resolved data by unresolved function, that give same results'''
+		if hasTemplate(kindName):
+			'''return resolved version'''
+			return resolvedDict[funcName]
+	return nameDict[funcName]
 
-def getSelect(kindName, functionName, columns, join, where):
-	return 'SELECT {0} FROM {1}{2} AS {1} {3} {4}'.format(columns, kindName, getDataFunction(functionName), join, where)
+def getSelect(kindName, functionName, columns = "*", join = "", where = ""):
+	return 'SELECT {0} FROM {1}{2} AS {1} {3}{4}'.format(columns, kindName, getDataFunction(functionName,kindName), join, where)
+
+def fakeOriginColumns(columns,objectName):
+	'''fake data into small arrays of [origin,value]'''
+	data = dict()
+	for col in columns:
+		if columns[col] == None:
+			data[col] = [None,None]
+		else:
+			data[col] = [objectName,columns[col]]
+	return data
 
 def collectOriginColumns(columns,objectName):
 	'''collect data into small arrays of [origin,value]'''
@@ -166,7 +195,10 @@ def collectOriginColumns(columns,objectName):
 def oneKindDiff(kindName,diffname,a = None,b = None):
 	'''get diff for one kind'''
 	if diffname == "resolved":
-		diffname = "_resolved_diff"
+		if hasTemplate(kindName):
+			diffname = "_resolved_diff"
+		else:
+			diffname = "_diff"
 	else:
 		diffname = "_diff"
 	with xact():
