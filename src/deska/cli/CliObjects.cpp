@@ -59,6 +59,19 @@ bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
 
 
 
+bool operator<(const ObjectDefinition &a, const ObjectDefinition &b)
+{
+    if (a.kind < b.kind) {
+        return true;
+    } else if (a.kind > b.kind) {
+        return false;
+    } else {
+        return (a.name < b.name);
+    }
+}
+
+
+
 AttributeDefinition::AttributeDefinition(const Db::Identifier &attributeName, const Db::Value &assignedValue):
     attribute(attributeName), value(assignedValue)
 {

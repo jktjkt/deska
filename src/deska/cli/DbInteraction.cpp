@@ -69,6 +69,8 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     if (objects.size() == 1) {
         BOOST_ASSERT(!objectExists(objects.front()));
         Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
+        if (stableView)
+            objectExistsCache[objects.front()] = true;
         // If the name of new object is specified, returned name should be the same
         if (!(pathToVector(objects.front().name).back().empty()))
             BOOST_ASSERT(newObjectName == objects.front().name);
@@ -77,8 +79,11 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
 
     std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (!objectExists(*it))
+        if (!objectExists(*it)) {
             modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
+            if (stableView)
+                objectExistsCache[*it] = true;
+        }
     }
     m_api->applyBatchedChanges(modifications);
 
@@ -96,8 +101,11 @@ void DbInteraction::restoreDeletedObject(const ContextStack &context)
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (!objectExists(*it))
+        if (!objectExists(*it)) {
             m_api->restoreDeletedObject(it->kind, it->name);
+            if (stableView)
+                objectExistsCache[*it] = true;
+        }
     }
 }
 
@@ -111,6 +119,8 @@ void DbInteraction::deleteObject(const ContextStack &context)
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
         if (objectExists(*it))
             modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
+            if (stableView)
+                objectExistsCache[*it] = false;
     }
     m_api->applyBatchedChanges(modifications);
 }
@@ -126,6 +136,10 @@ void DbInteraction::renameObject(const ContextStack &context, const Db::Identifi
         std::vector<Db::Identifier> newObjName = pathToVector(it->name);
         newObjName.back() = newName;
         modifications.push_back(Db::RenameObjectModification(it->kind, it->name, vectorToPath(newObjName)));
+        if (stableView) {
+            objectExistsCache[*it] = false;
+            objectExistsCache[ObjectDefinition(it->kind, vectorToPath(newObjName))] = true;
+        }
     }
     m_api->applyBatchedChanges(modifications);
 }
@@ -210,6 +224,8 @@ std::vector<ObjectDefinition> DbInteraction::kindInstances(const Db::Identifier 
     std::vector<ObjectDefinition> objects;
     BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
         objects.push_back(ObjectDefinition(kindName, objectName));
+        if (stableView)
+            objectExistsCache[ObjectDefinition(kindName, objectName)] = true;
     }
     return objects;
 }
@@ -280,8 +296,11 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefini
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
         std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
             Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
-        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite)
+        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite) {
             kinds.push_back(ObjectDefinition(*it, *ite));
+            if (stableView)
+                objectExistsCache[ObjectDefinition(*it, *ite)] = true;
+        }
     }
     return kinds;
 }
@@ -303,8 +322,18 @@ bool DbInteraction::objectExists(const ObjectDefinition &object)
     if (object.name.empty())
         return false;
 
+    if (stableView) {
+        std::map<ObjectDefinition, bool>::iterator it = objectExistsCache.find(object);
+        if (it != objectExistsCache.end()) {
+            return it->second;
+        }
+    }
+
     std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind,
         Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+    if (stableView) {
+        objectExistsCache[object] = !instances.empty();
+    }
     return (!instances.empty());
 }
 
@@ -342,8 +371,10 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
             ObjectDefinition mObj(*it, object.name);
+            if (stableView)
+                objectExistsCache[mObj] = true;
             if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
-                mergedObjects.push_back(ObjectDefinition(*it, object.name));
+                mergedObjects.push_back(mObj);
         }
     }
 
@@ -356,8 +387,10 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
             ObjectDefinition mObj(*it, object.name);
+            if (stableView)
+                objectExistsCache[mObj] = true;
             if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
-                mergedObjects.push_back(ObjectDefinition(*it, object.name));
+                mergedObjects.push_back(mObj);
         }
     }
 
@@ -402,13 +435,17 @@ std::vector<Db::PendingChangeset> DbInteraction::allPendingChangesets()
 
 Db::TemporaryChangesetId DbInteraction::createNewChangeset()
 {
-    return m_api->startChangeset();
+    clearCache();
+    stableView = true;
+    return m_api->startChangeset();   
 }
 
 
 
 void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 {
+    clearCache();
+    stableView = true;
     m_api->resumeChangeset(changesetId);
 }
 
@@ -416,6 +453,8 @@ void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 
 void DbInteraction::commitChangeset(const std::string &message)
 {
+    clearCache();
+    stableView = false;
     m_api->commitChangeset(message);
 }
 
@@ -423,6 +462,8 @@ void DbInteraction::commitChangeset(const std::string &message)
 
 void DbInteraction::detachFromChangeset(const std::string &message)
 {
+    clearCache();
+    stableView = false;
     m_api->detachFromCurrentChangeset(message);
 }
 
@@ -430,6 +471,8 @@ void DbInteraction::detachFromChangeset(const std::string &message)
 
 void DbInteraction::abortChangeset()
 {
+    clearCache();
+    stableView = false;
     m_api->abortCurrentChangeset();
 }
 
@@ -437,6 +480,8 @@ void DbInteraction::abortChangeset()
 
 void DbInteraction::restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp)
 {
+    clearCache();
+    stableView = false;
     m_api->restoringCommit(message, author, timestamp);
 }
 
@@ -567,6 +612,9 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                 }
             }
         }
+        if (stableView)
+            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it)
+                objectExistsCache[*it] = true;
     }
 
     return objects;
@@ -590,6 +638,8 @@ void DbInteraction::unlockCurrentChangeset()
 
 void DbInteraction::freezeView()
 {
+    stableView = true;
+    clearCache();
     m_api->freezeView();
 }
 
@@ -597,7 +647,16 @@ void DbInteraction::freezeView()
 
 void DbInteraction::unFreezeView()
 {
+    stableView = false;
+    clearCache();
     m_api->unFreezeView();
+}
+
+
+
+void DbInteraction::clearCache()
+{
+    objectExistsCache.clear();
 }
 
 

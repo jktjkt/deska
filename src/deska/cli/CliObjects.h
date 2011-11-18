@@ -49,6 +49,7 @@ struct ObjectDefinition
 std::ostream& operator<<(std::ostream &stream, const ObjectDefinition &o);
 bool operator==(const ObjectDefinition &a, const ObjectDefinition &b);
 bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b);
+bool operator<(const ObjectDefinition &a, const ObjectDefinition &b);
 
 
 /** @short Structure for pairs attribute name - attribute value. */

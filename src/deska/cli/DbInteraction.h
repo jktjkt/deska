@@ -295,6 +295,9 @@ public:
     /** @short Unfreeze the client's view on the persistent revisions */
     void unFreezeView();
 
+    /** @short Function for clearing queries cache */
+    void clearCache();
+
 private:
 
     /** Identifiers of top level kinds. */
@@ -311,6 +314,10 @@ private:
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergedTo;
     /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
     std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
+    /** Flag if we are connected to any changeset, or not */
+    bool stableView;
+    /** Cache of queries for object existance check */
+    std::map<ObjectDefinition, bool> objectExistsCache;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;
