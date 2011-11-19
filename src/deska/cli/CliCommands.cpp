@@ -909,20 +909,22 @@ void Backup::operator()(const std::string &params)
         return;
     }
 
-    std::ofstream ofs(params.c_str());
-    if (!ofs) {
-        ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
-        ui->m_dbInteraction->unFreezeView();
-        return;
-    }
-
     if (ui->currentChangeset) {
         ui->io->printMessage("Notice: Backup function creates backup only for revisions, not changesets.");
     }
-    
+
     std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
-    if (revisions.size() < 2)
+    if (revisions.size() < 2) {
         ui->io->reportError("Database empty. Nothing to back up.");
+        return;
+    }
+
+    std::ofstream ofs(params.c_str());
+    if (!ofs) {
+        ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
+        return;
+    }
+
     // First revision is not a real revision, but head of the list, that is always present even with empty DB
     ModificationBackuper modificationBackuper;
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
@@ -941,7 +943,6 @@ void Backup::operator()(const std::string &params)
     }
 
     ofs.close();
-    ui->m_dbInteraction->unFreezeView();
     ui->io->printMessage("DB successfully backed up into file \"" + params + "\".");
 }
 
