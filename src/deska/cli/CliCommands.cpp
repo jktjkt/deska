@@ -731,7 +731,8 @@ Dump::~Dump()
 void Dump::operator()(const std::string &params)
 {
     try {
-        ui->m_dbInteraction->freezeView();
+        if (!ui->currentChangeset)
+            ui->m_dbInteraction->freezeView();
         if (params.empty()) {
             BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
                 BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
@@ -739,12 +740,14 @@ void Dump::operator()(const std::string &params)
                     dumpObjectRecursive(object, 1);
                 }
             }
-            ui->m_dbInteraction->unFreezeView();
+            if (!ui->currentChangeset)
+                ui->m_dbInteraction->unFreezeView();
         } else {
             std::ofstream ofs(params.c_str());
             if (!ofs) {
                 ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
-                ui->m_dbInteraction->unFreezeView();
+                if (!ui->currentChangeset)
+                    ui->m_dbInteraction->unFreezeView();
                 return;
             }
             BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
@@ -754,7 +757,8 @@ void Dump::operator()(const std::string &params)
                 }
             }
             ofs.close();
-            ui->m_dbInteraction->unFreezeView();
+            if (!ui->currentChangeset)
+                ui->m_dbInteraction->unFreezeView();
             ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
         }
     } catch (Db::FreezingError &e) {
