@@ -25,7 +25,7 @@ CREATE TABLE interface (
 		CONSTRAINT "interface port cannot be empty string"
         -- FIXME: relax this constraint; we can't enforce it right now
         -- (think virtual machines or anything else without a real, physical switch interconnect)
-		CHECK (char_length(port) > 0),
+		CHECK (port != ''),
 	note text,
 	template bigint,
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
