@@ -45,9 +45,9 @@ BEGIN
 		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
 	END IF;
 
-	SELECT ports INTO ports_regexp FROM switch WHERE uid = NEW.switch;
+	SELECT port_validity_regexp INTO ports_regexp FROM switch JOIN modelswitch ON (modelswitch.uid = switch.modelswitch) WHERE switch.uid = NEW.switch;
 	IF NEW.switch_pos !~ ports_regexp THEN
-		RAISE EXCEPTION 'Switch_pos % does not match port regexp "%"!', NEW.switch_pos, ports_regexp;
+		RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', NEW.switch_pos, ports_regexp;
 	END IF;
 	RETURN NEW;
 END

@@ -19,13 +19,8 @@ CREATE TABLE box (
 	-- Our "parent"
 	inside bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
-	-- position
-	x int
-		CONSTRAINT "'x' cannot be negative number" CHECK (x >= 0),
-	y int
-		CONSTRAINT "'y' cannot be negative number" CHECK (y >= 0),
-	z int
-		CONSTRAINT "'z' cannot be negative number" CHECK (z >= 0),
+	-- position, checked by trigger
+	position text,
 	note text
 );
 
@@ -34,28 +29,17 @@ CREATE FUNCTION box_check()
 RETURNS TRIGGER
 AS
 $$
-DECLARE parentX int;
-	parentY int;
-	parentZ int;
-	nextX int;
-	nextY int;
-	nextZ int;
-	prevX int;
-	prevY int;
-	prevZ int;
-	sizeX int;
-	sizeY int;
-	sizeZ int;
+DECLARE pos_regexp text;
 BEGIN
-        -- FIXME: this is broken; there's no "box.box" at all. Also we have to
-        -- use the CONTAINABLE relation, find our matching modelbox from there
-        -- and work on that values.
-
-		-- FIXME: also change this to support the inner_bay_regexp
-        RETURN NEW;
+	SELECT bay_validity_regexp INTO pos_regexp FROM modelbox WHERE modelbox.uid = NEW.inside;
+	IF NEW.position !~ pos_regexp THEN
+		RAISE EXCEPTION 'Box position % does not match bay_validity_regexp "%"!', NEW.position, pos_regexp;
+	END IF;
+	RETURN NEW;
 END
 $$
 LANGUAGE plpgsql;
 
--- CREATE TRIGGER box_trigger BEFORE INSERT OR UPDATE ON box FOR EACH ROW
---        EXECUTE PROCEDURE box_check()
+CREATE TRIGGER box_trigger BEFORE INSERT OR UPDATE ON box FOR EACH ROW
+	EXECUTE PROCEDURE box_check()
+
