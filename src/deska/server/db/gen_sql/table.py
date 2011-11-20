@@ -179,6 +179,16 @@ class Table(constants.Templates):
 		
 		return get_identifier_set_fns + "\n" + type_def + "\n" + cols_def
 
+	def gen_diff_data_type(self):
+		att_name_type = list()
+		collist = self.col.keys()
+		collist.remove('name')
+		for col in collist:
+			att_name_type.append("%s %s" % (col, self.col[col]))
+		columns_types = ",\n".join(att_name_type)
+		
+		return self.diff_data_type_str % {'tbl': self.name, 'col_types': columns_types}
+
 	#generates function that returns all changes of columns between two versions
 	def gen_diff_set_attribute(self):
 		"""Generates function that returns all changes of all columns in this table between two versions."""
@@ -245,12 +255,19 @@ class Table(constants.Templates):
 			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_sets, 'select_old_new_list': select_old_new_sets, 'set_variables': var_set}            
 
 		#for all remaining columns we generate if clause to find possible changes
+		if self.embed_column in collist :
+			del collist[self.embed_column]
 		for col in collist:
 			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
 
+		if self.embed_column <> "":
+			diff_rename_string = self.diff_rename_embed_string
+		else:
+			diff_rename_string = self.diff_rename_string
+
 		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
             refers_set_set_fn + \
-            self.diff_rename_string % {'tbl': self.name}
+            diff_rename_string % {'tbl': self.name}
 
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions
@@ -265,13 +282,22 @@ class Table(constants.Templates):
 			pos = get_name_collist.index("name")
 			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in get_name_collist]
 			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]
+			select_old_attributes_ch = ["dv.%s AS old_%s" % (col, col) for col in get_name_collist]
+			select_new_attributes_ch = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]			
 			select_old_attributes[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
 			select_new_attributes[pos] = ("%s_get_name(chv.uid, to_version) AS new_name" % (self.name))
+			select_old_attributes_ch[pos] = ("%s_get_name(dv.uid) AS old_name" % (self.name))
+			select_new_attributes_ch[pos] = ("%s_get_name(chv.uid) AS new_name" % (self.name))
+
 		else:
 			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
 			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
+			select_old_attributes_ch = select_old_attributes
+			select_new_attributes_ch = select_new_attributes
+
 
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+		select_old_new_objects_attributes_ch = ",".join(select_old_attributes_ch) + "," + ",".join(select_new_attributes_ch)
 
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
@@ -284,7 +310,7 @@ class Table(constants.Templates):
 			inner_init_diff_current_changeset = inner_init_diff_current_changeset + inner_init_diff_current_changeset_str % {'tbl': self.name, 'refcol': col}
 		
 		return  self.diff_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff} + \
-				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'inner_tables_diff': inner_init_diff_current_changeset}
+				self.diff_changeset_init_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes_ch, 'inner_tables_diff': inner_init_diff_current_changeset}
 
 	#generates function terminate_diff which is oposite of init_diff
 	#drops diff_data table
@@ -622,7 +648,6 @@ class Table(constants.Templates):
 		columns_types = ",\n".join(att_name_type)
 		#this definition should contain ","
 		template_col = "%s bigint," % (templ_col)
-		diff_type = self.diff_data_type_str % {'tbl': self.name, 'col_types': columns_types, 'template_column': template_col}
 		changeses_function = self.data_resolved_changes_function_string % {'tbl': self.name, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'columns_ex_templ': columns, 'template_column': templ_col}
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
@@ -643,7 +668,7 @@ class Table(constants.Templates):
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff}
 		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff_changeset}
-		return diff_type + '\n' + changeses_function + '\n' + init_function + '\n' + current_changeset_diff
+		return changeses_function + '\n' + init_function + '\n' + current_changeset_diff
 
 	def gen_refs_set_coal(self):
 		"""gen_refs_set_coal is function for generating functions that works like coalesce function.

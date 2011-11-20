@@ -969,6 +969,20 @@ $$
 LANGUAGE plpgsql;
 '''
 
+#template for function that finds all rename changes
+	diff_rename_embed_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+RETURNS SETOF deska.diff_rename_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name, new_name
+	FROM %(tbl)s_diff_data
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND local_name_differs(new_name,old_name);
+END;
+$$
+LANGUAGE plpgsql;
+'''
+
 #template for if constructs in diff_set_attribute
 	one_column_change_string = '''
 	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
@@ -1016,8 +1030,8 @@ LANGUAGE plpgsql;
 	 AS
 	 $$
 	 DECLARE
-		old_data %(tbl)s_history%%rowtype;
-		new_data %(tbl)s_history%%rowtype;
+		old_data %(tbl)s_diff_data_type;
+		new_data %(tbl)s_diff_data_type;
 		result diff_set_attribute_type;
 		current_changeset bigint;
 	 BEGIN
@@ -1187,11 +1201,8 @@ LANGUAGE plpgsql;
 '''
 
 	diff_data_type_str = '''CREATE TYPE %(tbl)s_diff_data_type AS(
-	uid bigint,
-	name identifier,
+	name text,
 	%(col_types)s,
---template column is not in all tables, definition should contain ","
-	%(template_column)s
 	dest_bit bit(1)
 );
 '''

@@ -20,6 +20,34 @@ def main(name,delimiter):
 $$
 LANGUAGE python;
 
+CREATE OR REPLACE FUNCTION local_name_differs(name1 text, name2 text, delimiter text)
+RETURNS boolean
+AS
+$$
+DECLARE
+	namearr1 text[];
+	namearr2 text[];
+	local_name1 text;
+	local_name2 text;
+BEGIN
+	IF name1 = name2 THEN
+		RETURN FALSE;
+	END IF;
+	
+	namearr1 = embed_name(name1, delimiter);
+	namearr2 = embed_name(name2, delimiter);
+	local_name1 = namearr1[2];
+	local_name2 = namearr2[2];
+
+	IF local_name1 = local_name2 THEN 
+		RETURN FALSE;
+	ELSE
+		RETURN TRUE;
+	END IF;
+END
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION join_with_delim(str1 text, str2 text, delimiter text)
 RETURNS text
 AS
