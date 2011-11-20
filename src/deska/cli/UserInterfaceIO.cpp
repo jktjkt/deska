@@ -116,7 +116,7 @@ struct ModificationPrinter: public boost::static_visitor<std::string> {
 
     ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
                         const boost::optional<ModificationInfo> &nextObj,
-                        bool &created, unsigned int &depth);
+                        bool &created, unsigned int &depth, unsigned int tab);
     //@{
     /** @short Function for printing single object modification.
     *
@@ -129,10 +129,19 @@ struct ModificationPrinter: public boost::static_visitor<std::string> {
     //@}
 
 private:
+
+    /** @short Constructs string for indenting an output.
+    *
+    *   @param indentLevel Level of indentation (number of "tabs")
+    *   @return String constructed from spaces for indenting
+    */
+    std::string indent(unsigned int indentLevel) const;
+
     boost::optional<ModificationInfo> prevObject;
     boost::optional<ModificationInfo> nextObject;
     bool &createdObj;
     unsigned int &printDepth;
+    unsigned int tabSize;
 };
 
 
@@ -175,8 +184,8 @@ bool modificationDiffComparatorLess(const Db::ObjectModificationResult &ma, cons
 
 ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
                                          const boost::optional<ModificationInfo> &nextObj,
-                                         bool &created, unsigned int &depth):
-    prevObject(prevObj), nextObject(nextObj), createdObj(created), printDepth(depth)
+                                         bool &created, unsigned int &depth, unsigned int tab):
+    prevObject(prevObj), nextObject(nextObj), createdObj(created), printDepth(depth), tabSize(tab)
 {
 };
 
@@ -185,7 +194,15 @@ ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo>
 std::string ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[32;40m+ created " << modification.kindName << " " << modification.objectName << "\e[0m" << std::endl;
+    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.objectName
+         << "\e[0m" << std::endl;
+    if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.objectName))) {
+        ++printDepth;
+        createdObj = true;
+    } else {
+        ostr << "\e[32;40m+ " << indent(printDepth) << "end" << std::endl;
+        createdObj = false;
+    }
     return ostr.str();
 }
 
@@ -194,7 +211,10 @@ std::string ModificationPrinter::operator()(const Db::CreateObjectModification &
 std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[31;40m- deleted " << modification.kindName << " " << modification.objectName << "\e[0m" << std::endl;
+    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.objectName
+         << "\e[0m" << std::endl;
+    ostr << "\e[31;40m- " << indent(printDepth) << "end\e[0m" << std::endl;
+    createdObj = false;
     return ostr.str();
 }
 
@@ -203,8 +223,15 @@ std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &
 std::string ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[31;40m- " << modification.kindName << " " << modification.oldObjectName << "\e[0m" << std::endl;
-    ostr << "\e[32;40m+ " << modification.kindName << " " << modification.newObjectName << "\e[0m" << std::endl;
+    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.oldObjectName
+         << "\e[0m" << std::endl;
+    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.newObjectName
+         << "\e[0m" << std::endl;
+    if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.newObjectName)))
+        ++printDepth;
+    else
+        ostr << indent(printDepth) << "end" << std::endl;
+    createdObj = false;
     return ostr.str();
 }
 
@@ -213,25 +240,42 @@ std::string ModificationPrinter::operator()(const Db::RenameObjectModification &
 std::string ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
 {
     std::ostringstream ostr;
-    if ((prevObject) && (prevObject->modificationType == ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR) &&
-        (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName)))
-        ostr << "end" << std::endl;
-
-    if ((!prevObject) || (prevObject->modificationType != ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR) ||
-        (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
-        ostr << modification.kindName << " " << modification.objectName << std::endl;
+    if ((!prevObject) || (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
+        ostr << indent(printDepth) << modification.kindName << " " << modification.objectName << std::endl;
+        ++printDepth;
     }
 
     if (modification.oldAttributeData)
-        ostr << "\e[31;40m-    " << modification.attributeName << " " <<
-        boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.oldAttributeData)) << "\e[0m" << std::endl;
+        ostr << "\e[31;40m- " << indent(printDepth) << modification.attributeName << " "
+             << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.oldAttributeData))
+             << "\e[0m" << std::endl;
     if (modification.attributeData)
-        ostr << "\e[32;40m+    " << modification.attributeName << " " <<
-        boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData)) << "\e[0m" << std::endl;
+        ostr << "\e[32;40m+ " << indent(printDepth) << modification.attributeName << " "
+             << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData))
+             << "\e[0m" << std::endl;
 
-    if ((!nextObject) || (nextObject->modificationType != ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR))
-        ostr << "end" << std::endl;
+    if ((!nextObject) || (nextObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
+        --printDepth;
+        if (createdObj)
+            ostr << "\e[32;40m+ ";
+        ostr << indent(printDepth) << "end";
+        if (createdObj)
+            ostr << "\e[0m";
+        ostr << std::endl;
+        createdObj = false;
+    }
     return ostr.str();
+}
+
+
+
+std::string ModificationPrinter::indent(unsigned int indentLevel) const
+{
+    std::ostringstream ss;
+    for (unsigned int i = 0; i < (indentLevel * tabSize); ++i) {
+        ss << " ";
+    }
+    return ss.str();
 }
 
 
@@ -708,7 +752,7 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
                 nextObj = boost::apply_visitor(modificationObjectExtractor, *(it + 1));
             else
                 nextObj = boost::optional<ModificationInfo>();
-            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj, created, depth), *it);
+            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj, created, depth, tabSize), *it);
         }
     }
 }
