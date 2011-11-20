@@ -258,15 +258,24 @@ class Table(constants.Templates):
 		"""Generates function which prepairs temp table with diff data for this table"""
 		#dv.uid AS old_uid,dv.name AS old_name, dv.vendor AS old_vendor ..., chv.uid AS new_uid,chv.name AS new_name,chv.vendor AS new_vendor ...
 		#with dv (diff version), chv(changes between versions) prefix
-		collist = self.col.copy()
-		collist['dest_bit'] = 'bit(1)'
-		select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
-		select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
+		collist = self.col.keys()
+		collist.append('dest_bit')
+		if self.embed_column <> "":
+			get_name_collist = list(collist)
+			pos = get_name_collist.index("name")
+			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in get_name_collist]
+			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]
+			select_old_attributes[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
+			select_new_attributes[pos] = ("%s_get_name(dv.uid, to_version) AS new_name" % (self.name))
+		else:
+			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
+			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
+
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
-		
+
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_ch_diff(changeset_id);"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(changeset_id);"
 		inner_init_diff_current_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
@@ -618,7 +627,7 @@ class Table(constants.Templates):
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_ch_resolved_diff(changeset_id);"
+		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(changeset_id);"
 		inner_init_diff_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff

@@ -456,7 +456,7 @@ class Templates:
 				SELECT join_with_delim(%(reftbl)s_get_name(%(column)s, from_version), name, '%(delim)s') INTO value FROM production.%(tbl)s
 					WHERE uid = %(tbl)s_uid;
 				IF NOT FOUND THEN
-					RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+                    RETURN NULL;
 				END IF;
 				RETURN value;
 			END IF;
@@ -1275,7 +1275,7 @@ LANGUAGE plpgsql;
 
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
-	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_ch_diff(changeset_id bigint = 0)
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
@@ -1308,7 +1308,7 @@ $$
 '''
 
 #template for function that prepairs temp table for diff functions, which selects diffs between changeset and its parent
-	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_ch_resolved_diff(changeset_id bigint = 0)
+	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_resolved_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
