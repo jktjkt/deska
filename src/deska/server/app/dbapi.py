@@ -389,7 +389,7 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			raise Exception("Missing arguments: %s" % str(e).split("\n")[0])
+			raise
 
 		logging.debug("fetchall returning: %s" % data)
 		return data
