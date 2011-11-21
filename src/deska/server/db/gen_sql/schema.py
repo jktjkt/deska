@@ -306,7 +306,7 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_get_uid())
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
-			self.fn_sql.write(table.gen_set('name'))
+			self.fn_sql.write(table.gen_set_name())
 
 
 		self.fn_sql.write(table.gen_del())

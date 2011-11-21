@@ -185,6 +185,50 @@ class Templates:
 
 '''
 
+	# template string for set functions
+	set_name_string = '''CREATE FUNCTION
+	%(tbl)s_set_name(IN name_ text,IN new_name text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		rowuid bigint;
+		tmp bigint;
+	BEGIN
+		--for modifications we need to have opened changeset, this function raises exception in case we don't have
+		SELECT get_current_changeset() INTO ver;
+		SELECT %(tbl)s_get_uid(name_) INTO rowuid;
+		--not found in case there is no object with name name_ in history
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+		END IF;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM %(tbl)s_history
+			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version
+		IF NOT FOUND THEN
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+		END IF;
+		
+		BEGIN
+			UPDATE %(tbl)s_history SET name = new_name, version = ver
+				WHERE uid = rowuid AND version = ver;
+		EXCEPTION
+			WHEN unique_violation THEN
+				RAISE EXCEPTION 'object with name %% was deleted, ...', new_name USING ERRCODE = '70010';
+		END;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
 	RETURNS integer
@@ -213,9 +257,13 @@ class Templates:
 		--set column to refuid - uid of referenced object
 		SELECT embed_name[1], embed_name[2] FROM embed_name(new_name,'%(delim)s') INTO refname, local_name;
 		refuid = %(reftbl)s_get_uid(refname);
-		UPDATE %(tbl)s_history SET %(refcolumn)s = refuid, name = local_name, version = ver
-			WHERE uid = rowuid AND version = ver;
-		
+		BEGIN
+			UPDATE %(tbl)s_history SET %(refcolumn)s = refuid, name = local_name, version = ver
+				WHERE uid = rowuid AND version = ver;
+		EXCEPTION
+			WHEN unique_violation THEN
+				RAISE EXCEPTION 'object with name %% was deleted, ...', new_name USING ERRCODE = '70010';
+		END;
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -1430,7 +1478,7 @@ BEGIN
 			SELECT %(columns_ex_templ_id_set_res_name)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE name = name_;
 			IF NOT FOUND THEN
-				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
+				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
 			END IF;
 			RETURN data;
 		END IF;
@@ -1484,7 +1532,7 @@ BEGIN
 			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE uid = obj_uid;
 			IF NOT FOUND THEN
-				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
+				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
 			END IF;
 			RETURN data;
 		END IF;
@@ -1706,3 +1754,4 @@ $$
 LANGUAGE plpgsql;
 
 '''
+ 
