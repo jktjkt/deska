@@ -10,6 +10,9 @@ import Postgres
 @pytypes
 def main(name,delimiter):
 	ret = list()
+	if (name is None):
+		return [None, None]
+
 	str_array = name.split(delimiter)
 	if (len(str_array) < 2):
 		raise Postgres.ERROR('Name "{0}" is not fully qualified (does not contain "{1}").'.format(name,delimiter),code = 10123)
@@ -39,7 +42,7 @@ BEGIN
 	local_name1 = namearr1[2];
 	local_name2 = namearr2[2];
 
-	IF local_name1 = local_name2 THEN 
+	IF local_name1 IS NULL OR local_name2 IS NULL OR local_name1 = local_name2 THEN 
 		RETURN FALSE;
 	ELSE
 		RETURN TRUE;
