@@ -108,6 +108,8 @@ class DB:
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
+			if not self.freeze:
+				raise FreezingError("Cannot call unFreezeView, view is not frozen")
 			# set isolation level readCommited
 			# FIXME: better solution needs psycopg2.4.2
 			#self.db.set_session(DEFAULT,False)
