@@ -220,18 +220,15 @@ class Table(constants.Templates):
 		cols_changes = ""
 		#we would like to find all columns that references uid of some kind
 		#we find them in foreign keys
-		for refs in self.fks.att:
-			tbl = self.fks.tbl[refs]
+		for refcol in self.refuid_columns:
+			reftbl = self.refuid_columns[refcol]
 			#value of every column that refer to uid should be replaced by name of object with given uid
-			for i in range(len(self.fks.att[refs])):
-				if self.fks.ratt[refs][i] == 'uid':
-					col = self.fks.att[refs][i]
-					if col in collist:
-						del collist[col]
-						#columns that references uid
-						if col not in self.refers_to_set:
-							#set comparison is in another function
-							cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': tbl, 'column': col}
+			if refcol in collist:
+				del collist[refcol]
+				#columns that references uid
+				if (refcol not in self.refers_to_set) and (refcol <> self.embed_column):
+					#set comparison is in another function
+					cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': reftbl, 'column': col}
 
 		refers_set_set_fn = ""
 		if len(self.refers_to_set) > 0:
@@ -254,9 +251,7 @@ class Table(constants.Templates):
 			select_old_new_sets = ",".join(select_old_new_sets_list)
 			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_sets, 'select_old_new_list': select_old_new_sets, 'set_variables': var_set}            
 
-		#for all remaining columns we generate if clause to find possible changes
-		if self.embed_column in collist :
-			del collist[self.embed_column]
+		#for all remaining columns we generate if clause to find possible changes		
 		for col in collist:
 			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
 
@@ -267,7 +262,7 @@ class Table(constants.Templates):
 
 		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
             refers_set_set_fn + \
-            diff_rename_string % {'tbl': self.name}
+            diff_rename_string % {'tbl': self.name, 'delim': constants.DELIMITER}
 
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions

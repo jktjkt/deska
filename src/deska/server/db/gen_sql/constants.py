@@ -977,7 +977,7 @@ $$
 BEGIN
 	RETURN QUERY SELECT old_name, new_name
 	FROM %(tbl)s_diff_data
-	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND local_name_differs(new_name,old_name);
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND local_name_differs(new_name,old_name,'%(delim)s');
 END;
 $$
 LANGUAGE plpgsql;
