@@ -928,12 +928,12 @@ class Templates:
 #template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION
 %(tbl)s_diff_deleted()
-RETURNS SETOF identifier
+RETURNS SETOF text
 AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_name IS NOT NULL;
+	RETURN QUERY SELECT cast(old_name as text) FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_name IS NOT NULL;
 END;
 $$
 LANGUAGE plpgsql;
@@ -943,12 +943,12 @@ LANGUAGE plpgsql;
  #template for getting created objects between two versions
 	diff_created_string = '''CREATE FUNCTION
 %(tbl)s_diff_created()
-RETURNS SETOF identifier
+RETURNS SETOF text
 AS
 $$
 BEGIN
 	--created were objects which are in new data and not deleted and are not in old data
-	RETURN QUERY SELECT new_name FROM %(tbl)s_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
+	RETURN QUERY SELECT cast(new_name as text) FROM %(tbl)s_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
 END;
 $$
 LANGUAGE plpgsql;
@@ -961,7 +961,7 @@ RETURNS SETOF deska.diff_rename_type
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT old_name, new_name
+	RETURN QUERY SELECT cast(old_name as text), cast(new_name as text)
 	FROM %(tbl)s_diff_data
 	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND new_name <> old_name;
 END;

@@ -52,6 +52,16 @@ class Table(constants.Templates):
 		# comma separated list of values
 		return ",".join(self.col.keys())
 
+	def get_template_table(self):
+		#table tbl is templated by table tbl_template
+		#table tbl_template is templated by tbl_template
+		if self.name.endswith("_template"):
+			template_table = self.name
+		else:
+			template_table = self.name
+		
+		return template_table
+
 	def gen_pk_constraint(self,con):
 		"""Generates unique constraint for the history table, analogue of the unique contraint in the production."""
 		# add version column into key constraint
@@ -228,7 +238,7 @@ class Table(constants.Templates):
 				#columns that references uid
 				if (refcol not in self.refers_to_set) and (refcol <> self.embed_column):
 					#set comparison is in another function
-					cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': reftbl, 'column': col}
+					cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': reftbl, 'column': refcol}
 
 		refers_set_set_fn = ""
 		if len(self.refers_to_set) > 0:
@@ -251,7 +261,7 @@ class Table(constants.Templates):
 			select_old_new_sets = ",".join(select_old_new_sets_list)
 			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_sets, 'select_old_new_list': select_old_new_sets, 'set_variables': var_set}            
 
-		#for all remaining columns we generate if clause to find possible changes		
+		#for all remaining columns we generate if clause to find possible changes
 		for col in collist:
 			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
 
@@ -439,7 +449,7 @@ class Table(constants.Templates):
 		if self.templates == "":
 			templ_col = 'template_' + self.name
 		else:
-			templ_col = 'template_' + self.templates			
+			templ_col = 'template_' + self.templates
 		del cols_ex_template_dict[templ_col]
 		
 		for col in self.refers_to_set:
@@ -459,6 +469,9 @@ class Table(constants.Templates):
 			templ_table = self.name
 		else:
 			templ_table = self.name + "_template"
+
+		multiple_collist_id_set_list = cols_ex_template_dict.keys()
+		multiple_collist_res_id_set_list = cols_ex_template_dict.keys()
 
 		#in case of multiple data we would like to select all columns in table
 		multiple_columns = ",".join(collist)
@@ -510,8 +523,6 @@ class Table(constants.Templates):
 		collist_id_set_res_names_list = list(collist)
 		# replace uid of referenced object its name
 		#columns in collist has resolved names after this loop 
-		multiple_collist_id_set_list = cols_ex_template_dict.keys()
-		multiple_collist_res_id_set_list = cols_ex_template_dict.keys()
 		for col in self.refuid_columns:
 			if col in collist:
 				pos = collist.index(col)
@@ -601,8 +612,7 @@ class Table(constants.Templates):
 		multiple_data_type = self.multiple_resolved_data_type_string % {'tbl': self.name, 'columns': multiple_ticols, 'template_column': templ_col}
 		resolve_data_fce = self.resolved_data_string % {'tbl': self.name, 'templ_tbl': templ_table, 'columns': multiple_columns, 'rd_dv_coalesce': multiple_rd_dv_coalesce, 'columns_ex_templ': multiple_columns, 'template_column': templ_col, 'columns_ex_templ_id_set': multiple_collist_id_set, 'columns_ex_templ_res_id_set': multiple_collist_res_id_set}
 		return  templ_info_type + '\n' + multiple_data_type + '\n' + multiple_object_data_templ_info_type + '\n' + resolve_object_data_fce  + '\n' + resolve_data_fce + '\n' + resolve_data_template_info_fce + '\n' + resolve_object_data_template_info
-
-
+		
 	def gen_resolved_data_diff(self):
 		"""gen_resolved_data_diff is function for generating functions that init_resolved_diff function.
 
@@ -643,7 +653,7 @@ class Table(constants.Templates):
 		columns_types = ",\n".join(att_name_type)
 		#this definition should contain ","
 		template_col = "%s bigint," % (templ_col)
-		changeses_function = self.data_resolved_changes_function_string % {'tbl': self.name, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'columns_ex_templ': columns, 'template_column': templ_col}
+		changeset_function = self.data_resolved_changes_function_string % {'tbl': self.name, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'columns_ex_templ': columns, 'template_column': templ_col}
 		
 		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
 		inner_init_diff = ""
@@ -660,10 +670,15 @@ class Table(constants.Templates):
 		select_new_attributes = ["chv.%s AS new_%s" % (x, x) for x in collist]
 		#dest_bit from resolved data is allways 0
 		select_old_attributes = ["dv.%s AS old_%s" % (x, x) for x in collist]
+		if self.embed_column <> "":
+			pos = collist.index('name')
+			select_new_attributes[pos] = '%(tbl)s_get_name(chv.uid, to_version) AS new_name' % {'tbl': self.name}
+			select_old_attributes[pos] = '%(tbl)s_get_name(dv.uid, from_version) AS old_name' % {'tbl': self.name}
+			
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff}
 		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff_changeset}
-		return changeses_function + '\n' + init_function + '\n' + current_changeset_diff
+		return changeset_function + '\n' + init_function + '\n' + current_changeset_diff
 
 	def gen_refs_set_coal(self):
 		"""gen_refs_set_coal is function for generating functions that works like coalesce function.
@@ -671,12 +686,8 @@ class Table(constants.Templates):
 		This function is called only for tables that are templated and have column that refers to set of identifiers (has column template and column of type identifier set, that refers to some table).
 		Generated functions work like coalsce, have parameters array of text and uid of template object. First not null object or null is returned. If array is null, than array for template object is generated.
 		"""
-		if self.name.endswith("_template"):
-			templ_table = self.name
-		else:
-			templ_table = self.name + "_template"
 		
 		refs_set_coal_fns = ""
 		for col in self.refers_to_set:
-			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": templ_table, 'refcol': col}
+			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": self.get_template_table(), 'refcol': col}
 		return refs_set_coal_fns
