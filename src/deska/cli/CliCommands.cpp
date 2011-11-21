@@ -93,7 +93,7 @@ bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification 
     } else if (a.kindName > b.kindName) {
         return false;
     } else {
-        return (a.objectName <= b.objectName);
+        return (a.objectName < b.objectName);
     }
 }
 
@@ -107,7 +107,7 @@ bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification 
     } else if (a.kindName > b.kindName) {
         return false;
     } else {
-        return (a.objectName <= b.objectName);
+        return (a.objectName < b.objectName);
     }
 }
 
@@ -125,7 +125,7 @@ bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification 
     } else if (a.oldObjectName > b.oldObjectName) {
         return false;
     } else {
-        return (a.newObjectName != b.newObjectName);
+        return (a.newObjectName < b.newObjectName);
     }
 }
 
@@ -142,13 +142,9 @@ bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification 
         return true;
     } else if (a.objectName > b.objectName) {
         return false;
-    } else if (a.attributeName < b.attributeName) {
-        return true;
-    } else if (a.attributeName > b.attributeName) {
-        return false;
     } else {
-        return (a.attributeData != b.attributeData);
-    }
+        return (a.attributeName < b.attributeName);
+    } 
 }
 
 
@@ -735,7 +731,8 @@ Dump::~Dump()
 void Dump::operator()(const std::string &params)
 {
     try {
-        ui->m_dbInteraction->freezeView();
+        if (!ui->currentChangeset)
+            ui->m_dbInteraction->freezeView();
         if (params.empty()) {
             BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
                 BOOST_FOREACH(const Deska::Cli::ObjectDefinition &object, ui->m_dbInteraction->kindInstances(kindName)) {
@@ -743,12 +740,14 @@ void Dump::operator()(const std::string &params)
                     dumpObjectRecursive(object, 1);
                 }
             }
-            ui->m_dbInteraction->unFreezeView();
+            if (!ui->currentChangeset)
+                ui->m_dbInteraction->unFreezeView();
         } else {
             std::ofstream ofs(params.c_str());
             if (!ofs) {
                 ui->io->reportError("Error while dumping DB to file \"" + params + "\".");
-                ui->m_dbInteraction->unFreezeView();
+                if (!ui->currentChangeset)
+                    ui->m_dbInteraction->unFreezeView();
                 return;
             }
             BOOST_FOREACH(const Deska::Db::Identifier &kindName, ui->m_dbInteraction->topLevelKinds()) {
@@ -758,7 +757,8 @@ void Dump::operator()(const std::string &params)
                 }
             }
             ofs.close();
-            ui->m_dbInteraction->unFreezeView();
+            if (!ui->currentChangeset)
+                ui->m_dbInteraction->unFreezeView();
             ui->io->printMessage("DB successfully dumped into file \"" + params + "\".");
         }
     } catch (Db::FreezingError &e) {
@@ -909,20 +909,22 @@ void Backup::operator()(const std::string &params)
         return;
     }
 
-    std::ofstream ofs(params.c_str());
-    if (!ofs) {
-        ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
-        ui->m_dbInteraction->unFreezeView();
-        return;
-    }
-
     if (ui->currentChangeset) {
         ui->io->printMessage("Notice: Backup function creates backup only for revisions, not changesets.");
     }
-    
+
     std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
-    if (revisions.size() < 2)
+    if (revisions.size() < 2) {
         ui->io->reportError("Database empty. Nothing to back up.");
+        return;
+    }
+
+    std::ofstream ofs(params.c_str());
+    if (!ofs) {
+        ui->io->reportError("Error while backing up the DB to file \"" + params + "\".");
+        return;
+    }
+
     // First revision is not a real revision, but head of the list, that is always present even with empty DB
     ModificationBackuper modificationBackuper;
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
@@ -941,7 +943,6 @@ void Backup::operator()(const std::string &params)
     }
 
     ofs.close();
-    ui->m_dbInteraction->unFreezeView();
     ui->io->printMessage("DB successfully backed up into file \"" + params + "\".");
 }
 

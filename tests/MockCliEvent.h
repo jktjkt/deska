@@ -81,6 +81,14 @@ struct MockCliEvent
         EVENT_CONFIRM_DELETION,
         /** @short The confirmDeletion() return */
         RETURN_CONFIRM_DELETION,
+        /** @short The confirmDeletionContained() event */
+        EVENT_CONFIRM_DELETION_CONTAINED,
+        /** @short The confirmDeletionContained() return */
+        RETURN_CONFIRM_DELETION_CONTAINED,
+        /** @short The confirmRenameContained() event */
+        EVENT_CONFIRM_RENAME_CONTAINED,
+        /** @short The confirmRenameContained() return */
+        RETURN_CONFIRM_RENAME_CONTAINED,
         /** @short The confirmCreation() event */
         EVENT_CONFIRM_CREATION,
         /** @short The confirmCreation() return */

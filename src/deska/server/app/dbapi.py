@@ -99,7 +99,7 @@ class DB:
 			# set isolation level serializable, and read only transaction
 			changeset = self.callProc("get_current_changeset_or_null",{})
 			if changeset is not None:
-				raise FreezingError("Cannot run freezeView function, while have attached changeset 'tmp%s'." % changeset)
+				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
 			# FIXME: better solution needs psycopg2.4.2
 			# self.db.set_session(SERIALIZABLE,True)
 			self.db.set_isolation_level(2)
@@ -108,6 +108,8 @@ class DB:
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
+			if not self.freeze:
+				raise FreezingError("Cannot call unFreezeView, view is not frozen")
 			# set isolation level readCommited
 			# FIXME: better solution needs psycopg2.4.2
 			#self.db.set_session(DEFAULT,False)
@@ -387,7 +389,7 @@ class DB:
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			raise Exception("Missing arguments: %s" % str(e).split("\n")[0])
+			raise
 
 		logging.debug("fetchall returning: %s" % data)
 		return data

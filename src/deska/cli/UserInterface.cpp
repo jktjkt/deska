@@ -231,7 +231,19 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 
 bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
-    m_dbInteraction->deleteObject(context);
+    std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
+    if (mergedObjects.empty()) {
+        m_dbInteraction->deleteObject(context);
+    } else {
+        if (io->confirmDeletionContained(mergedObjects)) {
+            std::vector<ObjectDefinition> toDelete = m_dbInteraction->expandContextStack(context);
+            toDelete.insert(toDelete.end(), mergedObjects.begin(), mergedObjects.end());
+            m_dbInteraction->deleteObjects(toDelete);
+        } else {
+            m_dbInteraction->deleteObject(context);
+        }
+    }
+
     return true;
 }
 
@@ -239,7 +251,19 @@ bool UserInterface::applyFunctionDelete(const ContextStack &context)
 
 bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
-    m_dbInteraction->renameObject(context, newName);
+    std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
+    if (mergedObjects.empty()) {
+        m_dbInteraction->renameObject(context, newName);
+    } else {
+        if (io->confirmRenameContained(mergedObjects)) {
+            std::vector<ObjectDefinition> toRename = m_dbInteraction->expandContextStack(context);
+            toRename.insert(toRename.end(), mergedObjects.begin(), mergedObjects.end());
+            m_dbInteraction->renameObjects(toRename, newName);
+        } else {
+            m_dbInteraction->renameObject(context, newName);
+        }
+    }
+
     return true;
 }
 
@@ -283,7 +307,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 
     // Object does not exist -> ask the user here
     try {
-        std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(context);
+        std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
         if (mergedObjects.empty())
             autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
         else
@@ -311,7 +335,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(adjustedContext);
             if (mergedObjects.empty())
                 mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
@@ -338,7 +362,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjects(adjustedContext);
+            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(adjustedContext);
             if (mergedObjects.empty())
                 mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
@@ -471,7 +495,11 @@ void UserInterface::run()
         try {
             if (commandsMap.find(parsedCommand) == commandsMap.end()) {
                 // Command not found -> use CLI parser
+                if (!currentChangeset)
+                    m_dbInteraction->freezeView();
                 m_parser->parseLine(line.first);
+                if (!currentChangeset)
+                    m_dbInteraction->unFreezeView();
             } else {
                 // Command found -> run it
                 (*(commandsMap[parsedCommand]))(parsedArguments);
@@ -480,6 +508,8 @@ void UserInterface::run()
             std::ostringstream ostr;
             ostr << "Unexpected server error:\n" << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
         }
     }
 }
@@ -493,7 +523,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
     // FIXME: Wait for contains/containable implementation without cycles
-    /*std::vector<ObjectDefinition> mergedObjs = m_dbInteraction->mergedObjects(object);
+    /*std::vector<ObjectDefinition> mergedObjs = m_dbInteraction->containedObjects(object);
     unsigned int mergedObjsSize = 0;
     if (mergedObjs.empty()) {*/
         io->printAttributesWithOrigin(attributes, depth);
