@@ -99,7 +99,7 @@ class DB:
 			# set isolation level serializable, and read only transaction
 			changeset = self.callProc("get_current_changeset_or_null",{})
 			if changeset is not None:
-				raise FreezingError("Cannot run freezeView function, while have attached changeset 'tmp%s'." % changeset)
+				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
 			# FIXME: better solution needs psycopg2.4.2
 			# self.db.set_session(SERIALIZABLE,True)
 			self.db.set_isolation_level(2)
