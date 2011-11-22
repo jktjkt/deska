@@ -176,7 +176,7 @@ bool modificationDiffComparatorLess(const Db::ObjectModificationResult &ma, cons
     } else if (a.modifiedObject.name > b.modifiedObject.name) {
         return false;
     } else {
-        return (a.modificationType <= b.modificationType);
+        return (a.modificationType < b.modificationType);
     }
 }
 
@@ -194,13 +194,13 @@ ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo>
 std::string ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.objectName
+    ostr << "\e[32m+ " << indent(printDepth) << modification.kindName << " " << modification.objectName
          << "\e[0m" << std::endl;
     if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.objectName))) {
         ++printDepth;
         createdObj = true;
     } else {
-        ostr << "\e[32;40m+ " << indent(printDepth) << "end" << std::endl;
+        ostr << "\e[32m+ " << indent(printDepth) << "end\e[0m" << std::endl;
         createdObj = false;
     }
     return ostr.str();
@@ -211,9 +211,9 @@ std::string ModificationPrinter::operator()(const Db::CreateObjectModification &
 std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.objectName
+    ostr << "\e[31m- " << indent(printDepth) << modification.kindName << " " << modification.objectName
          << "\e[0m" << std::endl;
-    ostr << "\e[31;40m- " << indent(printDepth) << "end\e[0m" << std::endl;
+    ostr << "\e[31m- " << indent(printDepth) << "end\e[0m" << std::endl;
     createdObj = false;
     return ostr.str();
 }
@@ -223,9 +223,9 @@ std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &
 std::string ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
 {
     std::ostringstream ostr;
-    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.oldObjectName
+    ostr << "\e[31m- " << indent(printDepth) << modification.kindName << " " << modification.oldObjectName
          << "\e[0m" << std::endl;
-    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.newObjectName
+    ostr << "\e[32m+ " << indent(printDepth) << modification.kindName << " " << modification.newObjectName
          << "\e[0m" << std::endl;
     if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.newObjectName)))
         ++printDepth;
@@ -246,22 +246,20 @@ std::string ModificationPrinter::operator()(const Db::SetAttributeModification &
     }
 
     if (modification.oldAttributeData)
-        ostr << "\e[31;40m- " << indent(printDepth) << modification.attributeName << " "
+        ostr << "\e[31m- " << indent(printDepth) << modification.attributeName << " "
              << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.oldAttributeData))
              << "\e[0m" << std::endl;
     if (modification.attributeData)
-        ostr << "\e[32;40m+ " << indent(printDepth) << modification.attributeName << " "
+        ostr << "\e[32m+ " << indent(printDepth) << modification.attributeName << " "
              << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData))
              << "\e[0m" << std::endl;
 
     if ((!nextObject) || (nextObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
         --printDepth;
         if (createdObj)
-            ostr << "\e[32;40m+ ";
-        ostr << indent(printDepth) << "end";
-        if (createdObj)
-            ostr << "\e[0m";
-        ostr << std::endl;
+            ostr << "\e[32m+ " << indent(printDepth) << "end\e[0m" << std::endl;
+        else
+            ostr << indent(printDepth) << "end" << std::endl;
         createdObj = false;
     }
     return ostr.str();
