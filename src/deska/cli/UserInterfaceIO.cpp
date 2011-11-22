@@ -742,11 +742,11 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
         boost::optional<ModificationInfo> nextObj;
         bool created = false;
         unsigned int depth = 0;
-        for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
-             it != modifications.end(); ++it) {
-            if (it != modifications.begin())
+        for (std::vector<Db::ObjectModificationResult>::const_iterator it = sortedModifications.begin();
+             it != sortedModifications.end(); ++it) {
+            if (it != sortedModifications.begin())
                 prevObj = boost::apply_visitor(modificationObjectExtractor, *(it - 1));
-            if ((it + 1) != modifications.end())
+            if ((it + 1) != sortedModifications.end())
                 nextObj = boost::apply_visitor(modificationObjectExtractor, *(it + 1));
             else
                 nextObj = boost::optional<ModificationInfo>();
