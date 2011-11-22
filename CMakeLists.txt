@@ -96,15 +96,19 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
 #link_directories(${PYTHON_LIBRARIES})
 
-# We also require the interpreter to be able to tell the PYTHONPATH
-find_package(PythonInterp REQUIRED)
-if(PYTHONINTERP_FOUND)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
-        "import distutils.sysconfig; import sys; sys.stdout.write(distutils.sysconfig.get_python_lib())"
-        OUTPUT_VARIABLE PYTHON_SITE_PACKAGES)
-    message(STATUS "Python site-packages target: ${PYTHON_SITE_PACKAGES}")
+if(PYTHON_SITE_PACKAGES)
+    message(STATUS "Python site-packages specified by hand: ${PYTHON_SITE_PACKAGES}")
 else()
-    message(FATAL "Couldn't determine the PYTHON_SITE_PACKAGES directory")
+    # We also require the interpreter to be able to tell the PYTHONPATH
+    find_package(PythonInterp REQUIRED)
+    if(PYTHONINTERP_FOUND)
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
+            "import distutils.sysconfig; import sys; sys.stdout.write(distutils.sysconfig.get_python_lib())"
+            OUTPUT_VARIABLE PYTHON_SITE_PACKAGES)
+        message(STATUS "Python site-packages target: ${PYTHON_SITE_PACKAGES}")
+    else()
+        message(FATAL "Couldn't determine the PYTHON_SITE_PACKAGES directory")
+    endif()
 endif()
 
 INCLUDE_DIRECTORIES(
