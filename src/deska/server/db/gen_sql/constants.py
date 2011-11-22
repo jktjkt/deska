@@ -322,7 +322,7 @@ class Templates:
 
 '''
 
-	# template string for get data functionsfor objetcs taht has no additional data (has only name, uid and dest_bit)
+	# template string for get data functionsfor objetcs that has no additional data (has only name, uid and dest_bit)
 	# get data of object name_ in given version
 	get_data_empty_kind_string = '''CREATE FUNCTION
 	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
@@ -332,12 +332,13 @@ class Templates:
 	DECLARE
 		current_changeset bigint;
 		dbit bit(1);
+		tmp text;
 	BEGIN
 		IF from_version = 0 THEN
 			current_changeset = get_current_changeset_or_null();
 			IF current_changeset IS NULL THEN
 				--user wants last data
-				SELECT MAX(num) INTO  from_version FROM version;
+				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
 				SELECT dest_bit INTO dbit FROM %(tbl)s_history WHERE name = name_ AND version = current_changeset;
 				IF FOUND THEN
@@ -352,7 +353,7 @@ class Templates:
 			END IF;
 		END IF;
 
-		SELECT * FROM %(tbl)s_data_version(from_version)
+		SELECT name INTO tmp FROM %(tbl)s_data_version(from_version)
 			WHERE name = name_;
 		IF NOT FOUND THEN
 			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
