@@ -511,6 +511,12 @@ void UserInterface::run()
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
+        } catch (Db::JsonParseError &e) {
+            std::ostringstream ostr;
+            ostr << "Unexpected JSON error:\n" << e.whatWithBacktrace() << std::endl;
+            io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
         }
     }
 }

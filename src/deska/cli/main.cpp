@@ -42,11 +42,6 @@ int main(int argc, char **argv)
     Deska::Cli::UserInterfaceIO io(&parser, &config);
     Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
     Deska::Cli::SignalsHandler(&parser, &ui);
-    try {
-        ui.run();
-    } catch (Deska::Db::JsonParseError &e) {
-        std::cerr << "Unhandled exception:\n " << e.whatWithBacktrace() << std::endl;
-        return 1;
-    }
+    ui.run();
     return 0;
 }
