@@ -17,8 +17,6 @@ def imperative(r):
         {'command': 'createObject', 'kindName': 'interface', 'objectName': 'a->i0'}
     ]
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
-    r.cfail(commitChangeset("will fail"), exception=ObsoleteParentError())
-    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
 
     r.cvoid(detachFromCurrentChangeset("will rebase"))
     # FIXME: this one fails
