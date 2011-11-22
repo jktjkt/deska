@@ -98,7 +98,8 @@ CREATE FUNCTION commit_all(message text)
 		self.embedNames = dict()
 		# dict of composition
 		self.composition = dict()
-		self.compositionNames = dict()
+		self.containsNames = dict()
+		self.containableNames = dict()
 		# dict of templated tables
 		#keys are template tables, values are tables templated by them
 		self.template = dict()
@@ -182,7 +183,8 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.composition)}
 		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
 		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
-		print self.py_fn_str % {'name': "mergeNames", 'args': '', 'result': str(self.compositionNames)}
+		print self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)}
+		print self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)}
 		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
 		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
 		print self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"}
@@ -242,10 +244,11 @@ CREATE FUNCTION commit_all(message text)
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
 				self.embedNames[relName] = tbl
-			#FIXME: this is not right, only for remember, merge has to be defined in another way
 			elif prefix == "rcnta_":
 				self.composition[tbl] = col[1]
-				self.compositionNames[relName] = tbl
+				self.containsNames[relName] = tbl
+			elif prefix == "rcble_":
+				self.containableNames[relName] = tbl
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 				self.templateNames[relName] = tbl
