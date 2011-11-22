@@ -124,7 +124,7 @@ class Templates:
 			WHEN unique_violation THEN
 			-- do nothing
 		END;
-		RETURN genproc.inner_%(tbl)s_%(colname)s_multiref_set_%(colname)s(name_, value);
+		RETURN genproc.inner_%(tbl)s_%(colname)s_set_%(colname)s(name_, value);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -380,7 +380,7 @@ class Templates:
 	AS
 	$$
 	BEGIN
-		RETURN genproc.inner_%(tbl)s_%(refcol)s_multiref_get_set(obj_uid, from_version);
+		RETURN genproc.inner_%(tbl)s_%(refcol)s_get_set(obj_uid, from_version);
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -396,7 +396,7 @@ class Templates:
 	DECLARE
 		result text[];
 	BEGIN
-		result =  ARRAY(SELECT CAST(dv.name AS text) FROM genproc.inner_%(tbl)s_%(refcol)s_multiref_get_object_resolved_set(obj_uid, from_version) uids LEFT OUTER JOIN %(refcol)s_data_version(from_version) dv ON (uids = dv.uid));
+		result =  ARRAY(SELECT CAST(dv.name AS text) FROM genproc.inner_%(tbl)s_%(refcol)s_get_object_resolved_set(obj_uid, from_version) uids LEFT OUTER JOIN %(refcol)s_data_version(from_version) dv ON (uids = dv.uid));
 		RETURN deska.ret_id_set(result);
 	END
 	$$
@@ -1059,11 +1059,11 @@ LANGUAGE plpgsql;
 
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
-	IF NOT inner_%(tbl)s_%(refcol)s_multiRef_sets_equal(newuid) 
+	IF NOT inner_%(tbl)s_%(refcol)s_sets_equal(newuid) 
 	THEN
 		result.attribute = '%(column)s';
-		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_old_set(newuid));
-		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_multiRef_get_new_set(newuid));
+		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_old_set(newuid));
+		result.newdata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_new_set(newuid));
 		RETURN NEXT result;
 	END IF;
 
@@ -1454,7 +1454,7 @@ RETURNS void
 AS
 $$
 BEGIN
-	PERFORM inner_%(tbl)s_%(refcol)s_multiref_terminate_diff();
+	PERFORM inner_%(tbl)s_%(refcol)s_terminate_diff();
 END;
 $$
 LANGUAGE plpgsql;

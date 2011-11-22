@@ -368,10 +368,10 @@ CREATE FUNCTION commit_all(message text)
 					if table in self.template_relations:
 						#table is templated but is not template
 						template_table = self.template_relations[table]
-						table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : template_table, 'ref_tbl' : reftable}
+						table_name = "inner_%(tbl)s_%(ref_tbl)s" % {'tbl' : template_table, 'ref_tbl' : reftable}
 						commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
 
-					table_name = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
+					table_name = "inner_%(tbl)s_%(ref_tbl)s" % {'tbl' : table, 'ref_tbl' : reftable}
 					commit_tables = commit_tables + commit_table_template % {'tbl': table_name}
 
 

@@ -4,13 +4,13 @@ class MultiRef:
     tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
     template_column_str = "SELECT attname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'TEMPLATIZED';"
     
-    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_col)s_multiRef(
+    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_col)s(
 %(tbl)s bigint
     CONSTRAINT inner_%(tbl)s_fk_%(ref_col)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
     CONSTRAINT inner_%(ref_col)s_fk_%(tbl)s REFERENCES %(ref_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE,
 flag bit(1) DEFAULT '1', 
-CONSTRAINT inner_%(tbl)s_%(ref_col)s_multiRef_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
+CONSTRAINT inner_%(tbl)s_%(ref_col)s_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
 );
 
 '''
@@ -769,13 +769,13 @@ LANGUAGE plpgsql;
 
     def gen_tables(self, table, reftable, attname):
         self.tab_sql.write(self.gen_inner_table_references(table, reftable, attname))
-        #inner table name is inner_tablename_idsetattname_multiref, where idset attname is name of column that references to set of identifiers
-        join_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl': table, 'ref_col': attname}
+        #inner table name is inner_tablename_idsetattname, where idset attname is name of column that references to set of identifiers
+        join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl': table, 'ref_col': attname}
         self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
 
 
     def gen_functions(self, table, reftable, attname, refattname):
-        join_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl' : table, 'ref_col' : attname}
+        join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl' : table, 'ref_col' : attname}
         self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.del_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
@@ -792,7 +792,7 @@ LANGUAGE plpgsql;
         if table in self.template_tables:
             #this table is template of another table, join_base_tab is name of inner table that is templated
             base_table = self.template_tables[table]
-            join_base_tab = "inner_%(tbl)s_%(ref_col)s_multiRef" % {'tbl' : base_table, 'ref_col' : attname}
+            join_base_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl' : base_table, 'ref_col' : attname}
             record = self.plpy.execute(self.template_column_str % {'tbl': table})
             if len(record) != 1:
                 raise ValueError, 'template is badly defined'
@@ -805,8 +805,8 @@ LANGUAGE plpgsql;
         
         if table in self.templated_tables:
             template_table = self.templated_tables[table]
-            join_base_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : table, 'ref_tbl' : reftable}
-            join_template_tab = "inner_%(tbl)s_%(ref_tbl)s_multiRef" % {'tbl' : template_table, 'ref_tbl' : reftable}
+            join_base_tab = "inner_%(tbl)s_%(ref_tbl)s" % {'tbl' : table, 'ref_tbl' : reftable}
+            join_template_tab = "inner_%(tbl)s_%(ref_tbl)s" % {'tbl' : template_table, 'ref_tbl' : reftable}
             record = self.plpy.execute(self.template_column_str % {'tbl': table})
             if len(record) != 1:
                 raise ValueError, 'template is badly defined'
