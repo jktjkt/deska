@@ -227,5 +227,8 @@ include(CTest)
 add_subdirectory(tests)
 
 if(BUILD_DOCS)
+    message(STATUS "Will build PDF documentation")
     add_subdirectory(doc/technical)
+else()
+    message(STATUS "Will not build PDF documentation")
 endif(BUILD_DOCS)
