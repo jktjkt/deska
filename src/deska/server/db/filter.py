@@ -254,7 +254,7 @@ class Filter():
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
@@ -264,7 +264,7 @@ class Filter():
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)

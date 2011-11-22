@@ -309,9 +309,9 @@ class Table(constants.Templates):
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		select_old_new_objects_attributes_ch = ",".join(select_old_attributes_ch) + "," + ",".join(select_new_attributes_ch)
 
-		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_diff(from_version, to_version);"
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_init_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_ch_diff(changeset_id);"
+		inner_init_diff_current_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_init_ch_diff(changeset_id);"
 		inner_init_diff_current_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
@@ -660,9 +660,9 @@ class Table(constants.Templates):
 		template_col = "%s bigint," % (templ_col)
 		changeset_function = self.data_resolved_changes_function_string % {'tbl': self.name, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'columns_ex_templ': columns, 'template_column': templ_col}
 		
-		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_resolved_diff(from_version, to_version);"
+		inner_init_diff_str = "PERFORM inner_%(tbl)s_%(refcol)s_init_resolved_diff(from_version, to_version);"
 		inner_init_diff = ""
-		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_multiref_init_ch_resolved_diff(changeset_id);"
+		inner_init_diff_changeset_str = "PERFORM inner_%(tbl)s_%(refcol)s_init_ch_resolved_diff(changeset_id);"
 		inner_init_diff_changeset = ""
 		for col in self.refers_to_set:
             #funtions that are tbl_reftbl_init diff
