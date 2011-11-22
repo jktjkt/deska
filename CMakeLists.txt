@@ -100,7 +100,7 @@ include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
 find_package(PythonInterp REQUIRED)
 if(PYTHONINTERP_FOUND)
     execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
-        "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(),"
+        "import distutils.sysconfig; import sys; sys.stdout.write(distutils.sysconfig.get_python_lib())"
         OUTPUT_VARIABLE PYTHON_SITE_PACKAGES)
     message(STATUS "Python site-packages target: ${PYTHON_SITE_PACKAGES}")
 else()
