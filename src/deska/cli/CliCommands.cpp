@@ -740,6 +740,11 @@ void Dump::operator()(const std::string &params)
                     dumpObjectRecursive(object, 1);
                 }
             }
+            std::vector<ObjectDefinition> orphans = ui->m_dbInteraction->allOrphanObjects();
+            for (std::vector<ObjectDefinition>::iterator it = orphans.begin(); it != orphans.end(); ++it) {
+                ui->io->printObject(*it, 0, true);
+                dumpObjectRecursive(*it, 1);
+            }
             if (!ui->currentChangeset)
                 ui->m_dbInteraction->unFreezeView();
         } else {
@@ -755,6 +760,11 @@ void Dump::operator()(const std::string &params)
                     ui->io->printObject(object, 0, false, ofs);
                     dumpObjectRecursive(object, 1, ofs);
                 }
+            }
+            std::vector<ObjectDefinition> orphans = ui->m_dbInteraction->allOrphanObjects();
+            for (std::vector<ObjectDefinition>::iterator it = orphans.begin(); it != orphans.end(); ++it) {
+                ui->io->printObject(*it, 0, true);
+                dumpObjectRecursive(*it, 1);
             }
             ofs.close();
             if (!ui->currentChangeset)

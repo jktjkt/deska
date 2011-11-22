@@ -149,7 +149,8 @@ class Table(constants.Templates):
 		del collist['uid']
 		del collist['name']
 		if len(collist) == 0:
-			return ""
+			#for kinds that has not additional data attributes (has only name, uid) generates another function
+			return self.get_data_empty_kind_string % {'tbl': self.name}
 
 		if self.embed_column <> "":
 			get_data_string = self.get_embed_data_string

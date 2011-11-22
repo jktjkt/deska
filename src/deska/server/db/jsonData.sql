@@ -76,8 +76,11 @@ def main(tag,kindName,objectName,revision):
 	except dutil.DeskaException as dberr:
 		return dberr.json(name,jsn)
 
-	data = [dutil.mystr(x) for x in data[0]]
-	res = dict(zip(colnames,data))
+	if dutil.generated.atts(kindName) == {}:
+		res = {}
+	else:
+		data = [dutil.mystr(x) for x in data[0]]
+		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
@@ -106,8 +109,11 @@ def main(tag,kindName,objectName,revision):
 	except dutil.DeskaException as dberr:
 		return dberr.json(name,jsn)
 
-	data = [dutil.mystr(x) for x in data[0]]
-	res = dict(zip(colnames,data))
+	if dutil.generated.atts(kindName) == {}:
+		res = {}
+	else:
+		data = [dutil.mystr(x) for x in data[0]]
+		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
 $$
@@ -137,14 +143,17 @@ def main(tag,kindName,objectName,revision):
 	except dutil.DeskaException as dberr:
 		return dberr.json(name,jsn)
 
-	data = [dutil.mystr(x) for x in data[0]]
-	data = dict(zip(colnames,data))
-	if dutil.hasTemplate(kindName):
-		'''Only if kindName has template'''
-		data = dutil.collectOriginColumns(data,objectName)
+	if dutil.generated.atts(kindName) == {}:
+		data = {}
 	else:
-		'''Fake origin columns'''
-		data = dutil.fakeOriginColumns(data,objectName)
+		data = [dutil.mystr(x) for x in data[0]]
+		data = dict(zip(colnames,data))
+		if dutil.hasTemplate(kindName):
+			'''Only if kindName has template'''
+			data = dutil.collectOriginColumns(data,objectName)
+		else:
+			'''Fake origin columns'''
+			data = dutil.fakeOriginColumns(data,objectName)
 	jsn[name] = data
 	return json.dumps(jsn)
 $$
