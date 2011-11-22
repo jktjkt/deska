@@ -322,6 +322,50 @@ class Templates:
 
 '''
 
+	# template string for get data functionsfor objetcs that has no additional data (has only name, uid and dest_bit)
+	# get data of object name_ in given version
+	get_data_empty_kind_string = '''CREATE FUNCTION
+	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
+	RETURNS void
+	AS
+	$$
+	DECLARE
+		current_changeset bigint;
+		dbit bit(1);
+		tmp text;
+	BEGIN
+		IF from_version = 0 THEN
+			current_changeset = get_current_changeset_or_null();
+			IF current_changeset IS NULL THEN
+				--user wants last data
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				SELECT dest_bit INTO dbit FROM %(tbl)s_history WHERE name = name_ AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
+					RETURN;
+				END IF;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
+			END IF;
+		END IF;
+
+		SELECT name INTO tmp FROM %(tbl)s_data_version(from_version)
+			WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+		END IF;
+
+		RETURN;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
 	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
