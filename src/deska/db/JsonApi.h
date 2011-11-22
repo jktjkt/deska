@@ -121,4 +121,4 @@ private:
 }
 }
 
-#endif // DESKA_FAKEAPI_H
+#endif // DESKA_JSONAPI_H
