@@ -19,9 +19,6 @@ CREATE TABLE box (
 	-- box can be another whbox
 	parent bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
-	-- containable hw
-	hw bigint
-		CONSTRAINT rcble_box_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 	-- position
 	posX int
 		CONSTRAINT "posx cannot be negative number" CHECK (posX >= 0),

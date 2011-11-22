@@ -1,9 +1,9 @@
 class Composition:
-    comp_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rcnta_%';"
+    comp_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rconta_%';"
     kind_attributes_query_str = "SELECT attname FROM kindAttributes('%(tbl)s')"
 
     add_constraint_str = '''
-ALTER TABLE %(tbl)s ADD CONSTRAINT rcble_%(tbl)s_%(comp_tbl)s FOREIGN KEY (%(comp_tbl)s) REFERENCES %(comp_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE %(tbl)s ADD CONSTRAINT rcoble_%(tbl)s_%(comp_tbl)s FOREIGN KEY (%(comp_tbl)s) REFERENCES %(comp_tbl)s(uid) DEFERRABLE INITIALLY IMMEDIATE;
 '''
 
     trigger_link_comp_objects = '''

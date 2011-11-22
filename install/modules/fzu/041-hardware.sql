@@ -23,7 +23,7 @@ CREATE TABLE hardware (
 	-- box (contains)
 	box bigint NOT NULL
 		-- merge / contains
-		CONSTRAINT rcnta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
 	--hardware is containable host
 	host bigint,

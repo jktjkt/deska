@@ -244,10 +244,10 @@ CREATE FUNCTION commit_all(message text)
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
 				self.embedNames[relName] = tbl
-			elif prefix == "rcnta_":
+			elif prefix == "rconta_":
 				self.composition[tbl] = col[1]
 				self.containsNames[relName] = tbl
-			elif prefix == "rcble_":
+			elif prefix == "rcoble_":
 				self.containableNames[relName] = tbl
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
