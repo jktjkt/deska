@@ -22,8 +22,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
 	-- box (contains)
 	box bigint NOT NULL
-	-- merge / contains
-	CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
 	--hardware is containable host
 	host bigint,
