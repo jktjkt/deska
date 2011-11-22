@@ -212,6 +212,7 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
+        io->printObjects(m_dbInteraction->allOrphanObjects(), 0, true);
     } else {
         // If we are in some context, print all attributes and kind names
         try {
