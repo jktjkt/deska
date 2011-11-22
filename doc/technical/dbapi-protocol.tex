@@ -25,7 +25,7 @@ easier and safer to use, compared to the raw SQL usage.
 \section{Protocol Overview}
 
 The Deska Database API is modelled after a traditional RPC interface where user invokes a procedure on the remote host
-and waits for its result.  This in turn determines the mode of operation, which happens in {\em command} -- {\em
+and waits for its result.  This in turn determines the mode of operation, which happens in {\em command} --- {\em
 response} cycles.  That is, after a client issues a particular command, it will block and wait for the server's
 response.  No form of command pipelining is available at this point, but certain provisions are in place which will
 allow future extensions towards non-blocking operation.
@@ -39,9 +39,9 @@ or frameworks.  There is also quite a number of ready-made libraries for JSON pa
 ubiquitous as, say, the XML.
 
 Even though the JSON standard itself is well-established, we still had to establish a common way of converting our RPC
-requests to a particular JSON form. To that end, we have chosen to use JSON {\em objects}\footnote{The reader should get
+requests to a particular JSON form. To that end, we have chosen to use JSON {\em objects},\footnote{The reader should get
 herself familiar with the notion of JSON before continuing with the rest of this document, as we will not go into much
-detail explaining how low-level JSON works.}, which are merely a sequence of key-value pairs, with key being a string
+detail explaining how low-level JSON works.} which are merely a sequence of key-value pairs, with key being a string
 identifier and value an arbitrary JSON object.  
 
 Due to certain technical limitations, a simple stream of JSON objects is rather impractical to parse.  In fact, none of
@@ -138,7 +138,7 @@ this matter.  For a quick reference, please check the overview tables in \secref
 
 There are four basic data types in JSON, a {\tt string}, an {\tt integer}, a {\tt float} and a {\tt boolean}.  These
 values are directly used for transport of the corresponding C++ data types.  However, this mapping is not fully
-bidirectional for practical reasons -- one cannot look at the serialized JSON value and deduce what the original data
+bidirectional for practical reasons --- one cannot look at the serialized JSON value and deduce what the original data
 type was; a context is required for that operation.  This allows us to ``overload'' these JSON data types and serialize
 multiple source types using a single JSON type.  A typical example of this is any particular C++'s {\tt enum}, whose
 symbolic name is transmitted as a string literal with the matching name.
@@ -205,7 +205,7 @@ We can modify our example command {\tt foo} to accept an instance of class {\tt 
 \end{minted}
 
 Again, the user of the Deska DBAPI cannot infer the class name from this value without knowing an extra bit of
-information about the syntax of the command {\tt foo} -- without that knowledge, we are typically not aware of the
+information about the syntax of the command {\tt foo} --- without that knowledge, we are typically not aware of the
 existence of class {\tt Foo} at all.  That crucial information is, as usual, determined from the current context in a
 command or response.
 
@@ -263,32 +263,32 @@ This is the list of currently defined exceptions, along with their other argumen
     Exception Name & Meaning & Additional arguments \\
     \hline
     \endhead
-    {\tt InvalidKindError} & The specified kind is not valid & -- \\
-    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & -- \\
+    {\tt InvalidKindError} & The specified kind is not valid & --- \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & --- \\
     {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
     better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
-    InvalidKindError}, etc. & -- \\
+    InvalidKindError}, etc. & --- \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
-        without one & -- \\
-    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & -- \\
+        without one & --- \\
+    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & --- \\
     {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
-    manipulation & -- \\
-    {\tt FilterError} & The specified filter is not valid & -- \\
+    manipulation & --- \\
+    {\tt FilterError} & The specified filter is not valid & --- \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
-    \deskaFuncRef{restoreDeletedObject}. & -- \\
-    {\tt RevisionParsingError} & Failed to parse the revision ID & -- \\
-    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & -- \\
-    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & -- \\
-    {\tt ConstraintError} & The executed action violates an integrity constraint & -- \\
+    \deskaFuncRef{restoreDeletedObject}. & --- \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID & --- \\
+    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & --- \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & --- \\
+    {\tt ConstraintError} & The executed action violates an integrity constraint & --- \\
     {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
-    latest revision in the history & -- \\
+    latest revision in the history & --- \\
     {\tt NotASetError} & The attribute data type is not an {\tt identifier\_set}, and hence the operation does not make
-    sense & -- \\
+    sense & --- \\
     {\tt ChangesetLockingError} & Attempted to access a locked changeset or execute an invalid operation related to
-    changeset locking & -- \\
-    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & -- \\
-    {\tt SqlError} & Execution of SQL statements resulted in an error & -- \\
-    {\tt ServerError} & The server has encountered an internal error & -- \\
+    changeset locking & --- \\
+    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & --- \\
+    {\tt SqlError} & Execution of SQL statements resulted in an error & --- \\
+    {\tt ServerError} & The server has encountered an internal error & --- \\
 \end{longtable}
 
 FIXME: more filter exceptions with fine-grained semantics
@@ -389,10 +389,10 @@ relation information etc.  The following types are defined:
         }Identifier{\tt, "attributeData": }Value{\tt \}}, \newline
         or \newline
         {\tt \{"command": "setAttribute", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
-        }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}}\footnote{Both forms of the
+        }Identifier{\tt, ``attributeData'': }Value{\tt, ``oldAttributeData'': }Value{\tt \}},\footnote{Both forms of the
         {\tt setAttribute} are acceptable.  During regular use, the form without the {\tt oldAttributeData} shall be
         used.  The longer form is accepted in order to enable simply feeding a result of a diff back into the Deska
-        server for further application.}, \newline
+        server for further application.} \newline
         or \newline
         {\tt \{"command": "setAttributeInsert", "kindName": }Identifier{\tt, "objectName": }Identifier{\tt, "attributeName":
         }Identifier{\tt, "attributeData": }Identifier{\tt \}}, \newline
@@ -542,8 +542,8 @@ acceptable in the context of a Deska attribute value, a revision identification,
 or any similar revision (or changeset) metadata.  For filters against an {\tt identifier\_set} data type, only the
 existing {\tt columnEq} and {\tt columnNe} and new {\tt columnContains} and {\tt columnNotContains} comparison operators
 are allowed.  The greater/lesser operators are not allowed in expressions which reference identifier
-sets\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
-supported.}.
+sets.\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
+supported.}
 
 In the last case concerning the special filters, the filter condition does not operate on regular object properties, but
 rather on some ``magic'' value.  At this time, only one filter type is implemented, which matches an object which has
@@ -636,7 +636,7 @@ and the defined object relations.
             \{"relation": "TEMPLATIZED", "target": "by-which-kind", "column": "template"\} \\
             ]}
     {Retrieve relations between different Kinds}
-    {This function returns a list of relations for the specified kinds of entities -- for more details and examples, see
+    {This function returns a list of relations for the specified kinds of entities --- for more details and examples, see
     the ObjectRelation struct.  \deskaUnsortedRes}
 
 \subsubsection{Retrieving Object Data}
@@ -649,7 +649,7 @@ Functions from this group are used for fetching actual data from the database.
     {Returns identifiers of all objects of a given kind}
     {This function returns a list of identifiers describing all objects of a specified kind which are present in the
     database in the specified revision.  The {\tt revision} argument is optional, and if missing, its assumed value
-    depends on the usual rules -- see \secref{sec:api-revision-semantics} for details.  Another optional argument, {\tt
+    depends on the usual rules --- see \secref{sec:api-revision-semantics} for details.  Another optional argument, {\tt
     filter}, can be used to select a subset of objects to operate on.  The filter expressions can reference not only the
     immediate attributes of the selected object kind, but can also follow defined object relations to create more
     complex queries.  \deskaUnsortedRes}
@@ -685,7 +685,8 @@ Functions from this group are used for fetching actual data from the database.
     {\{"foo": "bar", "baz": "id", "int": 10, "real": 100.666, "price": 666\}}
     {Get all attributes for a particular object instance}
     {This function returns values of all attributes which are defined for the given object, taking templates into
-    account and resolving the effective value of each attribute from templates.
+    account and resolving the effective value of each attribute from templates.  For kinds which are not templated,
+    this function operates exactly as the \deskaFuncRef{objectData}.
 
     The format of the output as well as its guarantees are the same as for the \deskaFuncRef{objectData}.
 
@@ -699,15 +700,24 @@ Functions from this group are used for fetching actual data from the database.
     {Get all attributes for instances matching the specified filter}
     {This is the batched equivalent of \deskaFuncRef{resolvedObjectData}.  Each object which matches the criteria will
     be present in the result, even if it has no attributes.  The amount of data returned is the same as in
-    \deskaFuncRef{resolvedDataDifference} function.
+    \deskaFuncRef{resolvedDataDifference} function, and the behavior for kinds which are not templatized is the same as
+    the \deskaFuncRef{multipleObjectData} function.
 
     \deskaUnsortedRes}
 
 \deskaFunc{resolvedObjectDataWithOrigin}{, "kindName": "kind", "objectName": "object", "revision": "r123"}
-    {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666]\}}
+    {\\ \{"foo": ["obj-defining-this", "bar"], "baz": ["this-obj", 666], "smrt": [null, null]\}}
     {Get effective values for all attributes for a particular object instance, taking templates into account}
     {This function returns effective values of all attributes defined for a particular object or inherited from its
     template parent along with the identifier of the object at which level the value is specified.
+
+    For each attribute defined in this kind, the result contains a tuple of two items.  The first one is the name of the
+    object which provides the attribute value, while the second one is the actual attribute data.  When no object in the
+    inheritance hierarchy provides a value for an attribute (like attribute {\tt smrt} in this example, the object name
+    is always reported as {\tt null}.
+
+    For kinds which are not templatized, the origin of the data is either the object name itself (for non-null values),
+    or {\tt null} if the attribute value has not been specified at the object level.
 
     The amount of returned data is always the same as the \deskaFuncRef{objectData} result.  \deskaUnsortedRes}
 
@@ -717,10 +727,14 @@ Functions from this group are used for fetching actual data from the database.
         "obj2": \{"foo": ["obj-defining-this", "bar"], "baz": ["obj2", 333]\} \\ 
       \} }
     {Gets effective values for all attributes of a matching set of objects, taking templates into account}
-    {This is the batched version of the \deskaFuncRef{resolvedObjectDataWithOrigin}.  The sample return data below means that the
-    result set contains two objects, the "obj1" and "obj2".  The "obj1" has two attributes, "foo" and "baz"; the "foo"
-    is inherited from object with name "obj-defining-this" and its value is "bar"; the value of "baz" is specified at
-    the level of object "obj1" (ie. by the object itself) and the value is 666.
+    {This is the batched version of the \deskaFuncRef{resolvedObjectDataWithOrigin}; the only difference between these
+    two functions is that the this function returns data for multiple objects at once.  The sample return data below
+    means that the result set contains two objects, the "obj1" and "obj2".  The "obj1" has two attributes, "foo" and
+    "baz"; the "foo" is inherited from object with name "obj-defining-this" and its value is "bar"; the value of "baz"
+    is specified at the level of object "obj1" (ie. by the object itself) and the value is 666.
+
+    Similar to \deskaFuncRef{resolvedObjectDataWithOrigin}, the name of an object providing a value can be {\tt null},
+    and the same rules for non-templatized kinds or output structure apply.
 
     \deskaUnsortedRes}
 

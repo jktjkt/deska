@@ -87,33 +87,223 @@ void CliCompleter::addCommandCompletion(const std::string &completion)
 }
 
 
-void ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
+
+struct ModificationInfo
 {
-    std::cout << "created " << modification.kindName << " " << modification.objectName << std::endl;
+    /** @short Type of object modification for printing purposes */
+    typedef enum {
+        /** @short Db::CreateObjectModification */
+        OBJECT_MODIFICATION_TYPE_CREATE = 2,
+        /** @short Db::DeleteObjectModification */
+        OBJECT_MODIFICATION_TYPE_DELETE = 0,
+        /** @short Db::RenameObjectModification */
+        OBJECT_MODIFICATION_TYPE_RENAME = 1,
+        /** @short Db::SetAttributeModification */
+        OBJECT_MODIFICATION_TYPE_SETATTR = 3
+    } ObjectModificationType;
+
+    ModificationInfo(ObjectModificationType type, const ObjectDefinition &object):
+        modificationType(type), modifiedObject(object) {};
+
+    ObjectModificationType modificationType;
+    ObjectDefinition modifiedObject;
+};
+
+
+
+/** @short Visitor for printing object modifications. */
+struct ModificationPrinter: public boost::static_visitor<std::string> {
+
+    ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
+                        const boost::optional<ModificationInfo> &nextObj,
+                        bool &created, unsigned int &depth, unsigned int tab);
+    //@{
+    /** @short Function for printing single object modification.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    */
+    std::string operator()(const Db::CreateObjectModification &modification) const;
+    std::string operator()(const Db::DeleteObjectModification &modification) const;
+    std::string operator()(const Db::RenameObjectModification &modification) const;
+    std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+
+private:
+
+    /** @short Constructs string for indenting an output.
+    *
+    *   @param indentLevel Level of indentation (number of "tabs")
+    *   @return String constructed from spaces for indenting
+    */
+    std::string indent(unsigned int indentLevel) const;
+
+    boost::optional<ModificationInfo> prevObject;
+    boost::optional<ModificationInfo> nextObject;
+    bool &createdObj;
+    unsigned int &printDepth;
+    unsigned int tabSize;
+};
+
+
+
+/** @short Visitor for extracting object from modifications. */
+struct ModificationObjectExtractor: public boost::static_visitor<ModificationInfo> {
+    //@{
+    /** @short Function for extracting object from single object modification.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    */
+    ModificationInfo operator()(const Db::CreateObjectModification &modification) const;
+    ModificationInfo operator()(const Db::DeleteObjectModification &modification) const;
+    ModificationInfo operator()(const Db::RenameObjectModification &modification) const;
+    ModificationInfo operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
+/** @short Function for comparing two modification for purposes of sorting modifications list for diff output. */
+bool modificationDiffComparatorLess(const Db::ObjectModificationResult &ma, const Db::ObjectModificationResult &mb)
+{
+    ModificationInfo a = boost::apply_visitor(ModificationObjectExtractor(), ma);
+    ModificationInfo b = boost::apply_visitor(ModificationObjectExtractor(), mb);
+    if (a.modifiedObject.kind < b.modifiedObject.kind) {
+        return true;
+    } else if (a.modifiedObject.kind > b.modifiedObject.kind) {
+        return false;
+    } else if (a.modifiedObject.name < b.modifiedObject.name) {
+        return true;
+    } else if (a.modifiedObject.name > b.modifiedObject.name) {
+        return false;
+    } else {
+        return (a.modificationType <= b.modificationType);
+    }
 }
 
 
 
-void ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
+ModificationPrinter::ModificationPrinter(const boost::optional<ModificationInfo> &prevObj,
+                                         const boost::optional<ModificationInfo> &nextObj,
+                                         bool &created, unsigned int &depth, unsigned int tab):
+    prevObject(prevObj), nextObject(nextObj), createdObj(created), printDepth(depth), tabSize(tab)
 {
-    std::cout << "deleted " << modification.kindName << " " << modification.objectName << std::endl;
+};
+
+
+
+std::string ModificationPrinter::operator()(const Db::CreateObjectModification &modification) const
+{
+    std::ostringstream ostr;
+    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.objectName
+         << "\e[0m" << std::endl;
+    if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.objectName))) {
+        ++printDepth;
+        createdObj = true;
+    } else {
+        ostr << "\e[32;40m+ " << indent(printDepth) << "end" << std::endl;
+        createdObj = false;
+    }
+    return ostr.str();
 }
 
 
 
-void ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
+std::string ModificationPrinter::operator()(const Db::DeleteObjectModification &modification) const
 {
-    std::cout << "renamed " << modification.kindName << " " << modification.oldObjectName << " to "
-              << modification.newObjectName << std::endl;
+    std::ostringstream ostr;
+    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.objectName
+         << "\e[0m" << std::endl;
+    ostr << "\e[31;40m- " << indent(printDepth) << "end\e[0m" << std::endl;
+    createdObj = false;
+    return ostr.str();
 }
 
 
 
-void ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
+std::string ModificationPrinter::operator()(const Db::RenameObjectModification &modification) const
 {
-    std::cout << "set attribute " << modification.kindName << " " << modification.objectName << " "
-              << modification.attributeName << readableAttrPrinter(" from", modification.oldAttributeData)
-              << readableAttrPrinter(" to", modification.attributeData) << std::endl;
+    std::ostringstream ostr;
+    ostr << "\e[31;40m- " << indent(printDepth) << modification.kindName << " " << modification.oldObjectName
+         << "\e[0m" << std::endl;
+    ostr << "\e[32;40m+ " << indent(printDepth) << modification.kindName << " " << modification.newObjectName
+         << "\e[0m" << std::endl;
+    if ((nextObject) && (nextObject->modifiedObject == ObjectDefinition(modification.kindName, modification.newObjectName)))
+        ++printDepth;
+    else
+        ostr << indent(printDepth) << "end" << std::endl;
+    createdObj = false;
+    return ostr.str();
+}
+
+
+
+std::string ModificationPrinter::operator()(const Db::SetAttributeModification &modification) const
+{
+    std::ostringstream ostr;
+    if ((!prevObject) || (prevObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
+        ostr << indent(printDepth) << modification.kindName << " " << modification.objectName << std::endl;
+        ++printDepth;
+    }
+
+    if (modification.oldAttributeData)
+        ostr << "\e[31;40m- " << indent(printDepth) << modification.attributeName << " "
+             << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.oldAttributeData))
+             << "\e[0m" << std::endl;
+    if (modification.attributeData)
+        ostr << "\e[32;40m+ " << indent(printDepth) << modification.attributeName << " "
+             << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(modification.attributeData))
+             << "\e[0m" << std::endl;
+
+    if ((!nextObject) || (nextObject->modifiedObject != ObjectDefinition(modification.kindName, modification.objectName))) {
+        --printDepth;
+        if (createdObj)
+            ostr << "\e[32;40m+ ";
+        ostr << indent(printDepth) << "end";
+        if (createdObj)
+            ostr << "\e[0m";
+        ostr << std::endl;
+        createdObj = false;
+    }
+    return ostr.str();
+}
+
+
+
+std::string ModificationPrinter::indent(unsigned int indentLevel) const
+{
+    std::ostringstream ss;
+    for (unsigned int i = 0; i < (indentLevel * tabSize); ++i) {
+        ss << " ";
+    }
+    return ss.str();
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::CreateObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_CREATE, ObjectDefinition(modification.kindName, modification.objectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::DeleteObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_DELETE, ObjectDefinition(modification.kindName, modification.objectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::RenameObjectModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_RENAME, ObjectDefinition(modification.kindName, modification.newObjectName));
+}
+
+
+
+ModificationInfo ModificationObjectExtractor::operator()(const Db::SetAttributeModification &modification) const
+{
+    return ModificationInfo(ModificationInfo::OBJECT_MODIFICATION_TYPE_SETATTR, ObjectDefinition(modification.kindName, modification.objectName));
 }
 
 
@@ -125,11 +315,11 @@ UserInterfaceIO::UserInterfaceIO()
 
 
 UserInterfaceIO::UserInterfaceIO(Parser* parser, CliConfig* _config):
-    tabSize(4), promptEnd("> "), config(_config)
+    tabSize(4), promptEnd("> "), config(_config), lineWidth(config->getVar<unsigned int>(CLI_LineWidth))
 {
     completer = new CliCompleter(parser);
     reader = new ReadlineWrapper::Readline(config->getVar<std::string>(CLI_HistoryFilename),
-                                           config->getVar<int>(CLI_HistoryLimit), completer);
+                                           config->getVar<unsigned int>(CLI_HistoryLimit), completer);
 }
 
 
@@ -144,7 +334,7 @@ UserInterfaceIO::~UserInterfaceIO()
 
 void UserInterfaceIO::reportError(const std::string &errorMessage)
 {
-    std::vector<std::string> lines = wrap(errorMessage, 80);
+    std::vector<std::string> lines = wrap(errorMessage, 0);
     for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
         std::cerr << *it << std::endl;
 }
@@ -153,7 +343,9 @@ void UserInterfaceIO::reportError(const std::string &errorMessage)
 
 void UserInterfaceIO::printMessage(const std::string &message)
 {
-    std::cout << message << std::endl;
+    std::vector<std::string> lines = wrap(message, 0);
+    for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); ++it)
+        std::cout << *it << std::endl;
 }
 
 
@@ -176,7 +368,37 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Are you sure you want to delete object(s) " << object << "?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
+}
+
+
+
+bool UserInterfaceIO::confirmDeletionContained(const std::vector<ObjectDefinition> &mergedObjects)
+{
+    std::ostringstream ss;
+    ss << "Do you wand to delete also connected object(s) ";
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
+    ss << "?";
+    return askForConfirmationImpl(ss.str());
+}
+
+
+
+bool UserInterfaceIO::confirmRenameContained(const std::vector<ObjectDefinition> &mergedObjects)
+{
+    std::ostringstream ss;
+    ss << "Do you wand to rename also connected object(s) ";
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
+    ss << "?";
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -185,7 +407,7 @@ bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -194,7 +416,7 @@ bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create and link?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -204,13 +426,13 @@ bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object,
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " do(es) not exist. Create and link to ";
-        for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
-            if (it != mergedObjects.begin())
-                ss << ", ";
-            ss << *it;
-        }
+    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
+        if (it != mergedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
     ss << "?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
@@ -219,18 +441,14 @@ bool UserInterfaceIO::confirmRestoration(const ObjectDefinition &object)
 {
     std::ostringstream ss;
     ss << "Object(s) " << object << " was/were deleted in current changeset. Restore?";
-    return askForConfirmation(ss.str());
+    return askForConfirmationImpl(ss.str());
 }
 
 
 
 bool UserInterfaceIO::askForConfirmation(const std::string &prompt)
 {
-    std::cout << prompt << " ";
-    std::string answer;
-    getline(std::cin, answer);
-    boost::algorithm::to_lower(answer);
-    return answer == "yes" || answer == "y";
+    return askForConfirmationImpl(prompt);
 }
 
 
@@ -267,7 +485,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
     std::cout << "CLI commands:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = cliCommands.begin(); it != cliCommands.end(); ++it) {
         std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        std::vector<std::string> wrappedDscr = wrap(it->second, (maxWordWidth + 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
                 std::cout << indent(maxWordWidth + 3, 1);
@@ -278,7 +496,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
     std::cout << "Parser keywords:" << std::endl;
     for (std::map<std::string, std::string>::const_iterator it = parserKeywords.begin(); it != parserKeywords.end(); ++it) {
         std::cout << std::left << std::setw(maxWordWidth) << it->first << " - ";
-        std::vector<std::string> wrappedDscr = wrap(it->second, (80 - maxWordWidth - 3));
+        std::vector<std::string> wrappedDscr = wrap(it->second, (maxWordWidth + 3));
         for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
             if (itd != wrappedDscr.begin())
                 std::cout << indent(maxWordWidth + 3, 1);
@@ -292,7 +510,7 @@ void UserInterfaceIO::printHelp(const std::map<std::string, std::string> &cliCom
 void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::string &cmdDscr)
 {
     std::cout << "Help for CLI command " << cmdName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 78);
+    std::vector<std::string> wrappedDscr = wrap(cmdDscr, 2);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
@@ -303,7 +521,7 @@ void UserInterfaceIO::printHelpCommand(const std::string &cmdName, const std::st
 void UserInterfaceIO::printHelpKeyword(const std::string &keywordName, const std::string &keywordDscr)
 {
     std::cout << "Help for Parser keyword " << keywordName << ":" << std::endl;
-    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 78);
+    std::vector<std::string> wrappedDscr = wrap(keywordDscr, 2);
     for (std::vector<std::string>::iterator itd = wrappedDscr.begin(); itd != wrappedDscr.end(); ++itd) {
         std::cout << indent(2, 1) << *itd << std::endl;
     }
@@ -519,9 +737,22 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
     if (modifications.empty()) {
         std::cout << "No difference." << std::endl;
     } else {
+        std::vector<Db::ObjectModificationResult> sortedModifications = modifications;
+        std::sort(sortedModifications.begin(), sortedModifications.end(), modificationDiffComparatorLess);
+        ModificationObjectExtractor modificationObjectExtractor;
+        boost::optional<ModificationInfo> prevObj;
+        boost::optional<ModificationInfo> nextObj;
+        bool created = false;
+        unsigned int depth = 0;
         for (std::vector<Db::ObjectModificationResult>::const_iterator it = modifications.begin();
              it != modifications.end(); ++it) {
-            boost::apply_visitor(ModificationPrinter(), *it);
+            if (it != modifications.begin())
+                prevObj = boost::apply_visitor(modificationObjectExtractor, *(it - 1));
+            if ((it + 1) != modifications.end())
+                nextObj = boost::apply_visitor(modificationObjectExtractor, *(it + 1));
+            else
+                nextObj = boost::optional<ModificationInfo>();
+            std::cout << boost::apply_visitor(ModificationPrinter(prevObj, nextObj, created, depth, tabSize), *it);
         }
     }
 }
@@ -531,6 +762,17 @@ void UserInterfaceIO::printDiff(const std::vector<Db::ObjectModificationResult> 
 void UserInterfaceIO::addCommandCompletion(const std::string &completion)
 {
     completer->addCommandCompletion(completion);
+}
+
+
+
+bool UserInterfaceIO::askForConfirmationImpl(const std::string &prompt)
+{
+    std::cout << prompt << " ";
+    std::string answer;
+    getline(std::cin, answer);
+    boost::algorithm::to_lower(answer);
+    return answer == "yes" || answer == "y";
 }
 
 
@@ -557,9 +799,15 @@ unsigned int UserInterfaceIO::digits(unsigned int n)
 
 
 
-std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int width)
+std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned int full)
 {
     std::vector<std::string> lines;
+
+    if (lineWidth == 0) {
+        lines.push_back(text);
+        return lines;
+    }
+
     boost::char_separator<char> separators(" \t");
     boost::char_separator<char> lineSeparators("\n");
     boost::tokenizer<boost::char_separator<char> > lineTokenizer(text, lineSeparators);
@@ -578,9 +826,12 @@ std::vector<std::string> UserInterfaceIO::wrap(const std::string &text, unsigned
              it != tokenizer.end(); ++it) {
             word = *it;
             boost::algorithm::trim(word);
-            if ((line.length() + word.length() + 1) > width) {
+            if ((line.length() + word.length() + 1) > (lineWidth - full)) {
                 lines.push_back(line);
                 line.clear();
+            } else if (line.empty() && (word.length() >= (lineWidth - full))) {
+                lines.push_back(word);
+                continue;
             }
             if (!line.empty())
                 line += " ";

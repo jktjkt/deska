@@ -24,7 +24,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -34,15 +36,15 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
+			if dutil.generated.atts(kindName)[refCol] == "identifier_set":
 				#"inner_host_service_multiRef_get_set"
 				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
 			else:
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -51,8 +53,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_data_version($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -105,7 +106,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -115,16 +118,14 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
-				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
-			else:
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
-			atts[refCol] = coldef
+			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
+				# no action for identifier_set - getting it from data function
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
+				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
@@ -132,8 +133,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_resolved_data($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -181,8 +181,10 @@ def main(tag,kindName,revision,filter):
 	attributes = dutil.generated.atts(kindName)
 	atts = dict()
 	for att in attributes:
-		if not re.match("template_",att):
-			atts[att+"_templ"] = attributes[att]
+		if dutil.hasTemplate(kindName):
+			'''Only if kindName has template'''
+			if not re.match("template_",att):
+				atts[att+"_templ"] = attributes[att]
 		atts[att] = attributes[att]
 	atts["name"] = "identifier"
 	# dot the atts with kindName
@@ -192,7 +194,9 @@ def main(tag,kindName,revision,filter):
 	atts = new_atts
 
 	embed = dutil.generated.embedNames()
-	refs = dutil.generated.refNames()
+	rels = dutil.generated.refNames()
+	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
 			#FIXME: propagate delimiter constant here,or drop this argument
@@ -202,16 +206,14 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-	for relName in refs:
-		if refs[relName] == kindName:
+	for relName in rels:
+		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			if dutil.generated.atts(kindName)[refTbl] == "identifier_set":
-				#"inner_host_service_multiRef_get_set"
-				coldef = "inner_{0}_{1}_multiRef_get_set({0}.uid, $1)".format(kindName, refTbl)
-			else:
-				coldef = "{0}_get_name({1},$1)".format(refTbl,refCol)
-			atts[refCol] = coldef
+			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
+				# No action for identifier_set required, getting from data function
+				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
+				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
@@ -219,8 +221,7 @@ def main(tag,kindName,revision,filter):
 		# set start to 2, $1 - version is set
 		filter = Filter(filter,2)
 		where, values = filter.getWhere()
-		select = 'SELECT '+ columns +' FROM {0}_resolved_data_template_info($1) AS {0} ' + filter.getJoin(kindName) + where
-		select = select.format(kindName)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -239,7 +240,12 @@ def main(tag,kindName,revision,filter):
 		#FIXME? this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
-		data = dutil.collectOriginColumns(data)
+		if dutil.hasTemplate(kindName):
+			'''Only if kindName has template'''
+			data = dutil.collectOriginColumns(data,objectName)
+		else:
+			'''Fake origin columns'''
+			data = dutil.fakeOriginColumns(data,objectName)
 		res[objectName] = data
 
 

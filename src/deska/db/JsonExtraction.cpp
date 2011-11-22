@@ -19,10 +19,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 #include "JsonExtraction.h"
 #include "JsonHandler.h"
@@ -392,10 +390,10 @@ template<>
 PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::PendingChangeset");
     JsonHandler h;
-    TemporaryChangesetId changeset(0);
+    boost::optional<TemporaryChangesetId> changeset;
     std::string author;
     boost::posix_time::ptime timestamp;
-    RevisionId parentRevision(0);
+    boost::optional<RevisionId> parentRevision;
     std::string message;
     PendingChangeset::AttachStatus attachStatus;
     boost::optional<std::string> activeConnectionInfo;
@@ -410,8 +408,10 @@ PendingChangeset JsonConversionTraits<PendingChangeset>::extract(const json_spir
 
     // This is guaranteed by the extractor
     BOOST_ASSERT(attachStatus == PendingChangeset::ATTACH_DETACHED || attachStatus == PendingChangeset::ATTACH_IN_PROGRESS);
+    BOOST_ASSERT(changeset);
+    BOOST_ASSERT(parentRevision);
 
-    return PendingChangeset(changeset, author, timestamp, parentRevision, message, attachStatus, activeConnectionInfo);
+    return PendingChangeset(*changeset, author, timestamp, *parentRevision, message, attachStatus, activeConnectionInfo);
 }
 
 /** @short Specialization for extracting ObjectRelation into a C++ class from JSON */
@@ -453,7 +453,7 @@ template<>
 RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spirit::Value &v) {
     JsonContext c1("When converting a JSON Value into a Deska::Db::RevisionMetadata");
     JsonHandler h;
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     std::string author;
     boost::posix_time::ptime timestamp;
     std::string commitMessage;
@@ -463,25 +463,8 @@ RevisionMetadata JsonConversionTraits<RevisionMetadata>::extract(const json_spir
     h.read("commitMessage").extract(&commitMessage);
     checkJsonValueType(v, json_spirit::obj_type);
     h.parseJsonObject(v.get_obj());
-    return RevisionMetadata(revision, author, timestamp, commitMessage);
-}
-
-template<typename T> T extractRevisionFromJson(const std::string &prefix, const std::string &name, const std::string &jsonStr)
-{
-    if (boost::starts_with(jsonStr, prefix)) {
-        try {
-            return T(boost::lexical_cast<unsigned int>(jsonStr.substr(prefix.size())));
-        } catch (const boost::bad_lexical_cast &) {
-            std::ostringstream s;
-            s << "Value \"" << jsonStr << "\" can't be interpreted as a " << name << ".";
-            throw JsonStructureError(s.str());
-        }
-    } else {
-        std::ostringstream s;
-        s << "Value \"" << jsonStr << "\" does not look like a valid " << name << ".";
-        throw JsonStructureError(s.str());
-    }
-
+    BOOST_ASSERT(revision);
+    return RevisionMetadata(*revision, author, timestamp, commitMessage);
 }
 
 /** @short Extract a RevisionId from JSON */
@@ -489,7 +472,11 @@ template<>
 RevisionId JsonConversionTraits<RevisionId>::extract(const json_spirit::Value &v) {
     JsonContext c1("When extracting RevisionId");
     checkJsonValueType(v, json_spirit::str_type);
-    return extractRevisionFromJson<RevisionId>("r", "RevisionId", v.get_str());
+    try {
+        return RevisionId::fromString(v.get_str());
+    } catch (std::runtime_error &e) {
+        throw JsonStructureError(e.what());
+    }
 }
 
 /** @short Extract a TemporaryChangesetId form JSON */
@@ -498,7 +485,11 @@ TemporaryChangesetId JsonConversionTraits<TemporaryChangesetId>::extract(const j
 {
     JsonContext c1("When extracting TemporaryChangesetId");
     checkJsonValueType(v, json_spirit::str_type);
-    return extractRevisionFromJson<TemporaryChangesetId>("tmp", "TemporaryChangesetId", v.get_str());
+    try {
+        return TemporaryChangesetId::fromString(v.get_str());
+    } catch (std::runtime_error &e) {
+        throw JsonStructureError(e.what());
+    }
 }
 
 /** @short Extract timestamp from JSON */
@@ -803,6 +794,16 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_INT:
     {
         JsonContext c2("When extracting TYPE_INT");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: Redmine#312, we've got to accept strings here
+            JsonContext c3("When extracting TYPE_INT passed as string");
+            try {
+                target->value = boost::lexical_cast<int>(value.get_str());
+            } catch (const boost::bad_lexical_cast& e) {
+                throw JsonStructureError(e.what());
+            }
+            return;
+        }
         checkJsonValueType(value, json_spirit::int_type);
         target->value = value.get_int();
         return;
@@ -810,6 +811,16 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_DOUBLE:
     {
         JsonContext c2("When extracting TYPE_DOUBLE");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: Redmine#312, we've got to accept strings here
+            JsonContext c3("When extracting TYPE_DOUBLE passed as string");
+            try {
+                target->value = boost::lexical_cast<double>(value.get_str());
+            } catch (const boost::bad_lexical_cast& e) {
+                throw JsonStructureError(e.what());
+            }
+            return;
+        }
         // got to preserve our special case for checking for both possibilities
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");
@@ -883,7 +894,14 @@ void SpecializedExtractor<JsonWrappedAttributeWithOrigin>::extract(const json_sp
     helperExtractor.extract(a[1]);
 
     // Now file in the origin information
-    target->origin = a[0].get_str();
+    if (a[0].type() == json_spirit::null_type) {
+        // null is also acceptable, just make sure we explicitly "store" it
+        target->origin.reset();
+    } else {
+        // if it isn't null, then it must be a string
+        checkJsonValueType(a[0], json_spirit::str_type);
+        target->origin = a[0].get_str();
+    }
 }
 
 /** @short Convert JSON into a wrapped, type-checked vector of attributes
@@ -979,7 +997,7 @@ void SpecializedExtractor<JsonWrappedAttributeMapWithOrigin>::extract(const json
     BOOST_FOREACH(const KindAttributeDataType &attr, target->dataTypes) {
         // This is slightly different than the SpecializedExtractor<JsonWrappedAttributeMap>::extract
         // in order to accomodate the difference in object layout
-        target->attributes[attr.name] = std::make_pair<Identifier, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
+        target->attributes[attr.name] = std::make_pair<boost::optional<Identifier>, Value>(wrappedAttrs[i].origin, wrappedAttrs[i].value);
         ++i;
     }
 }
@@ -1037,7 +1055,9 @@ JsonField &JsonField::extract(T *where)
 
 // Template instances for the linker
 template JsonField& JsonField::extract(RevisionId*);
+template JsonField& JsonField::extract(boost::optional<RevisionId>*);
 template JsonField& JsonField::extract(TemporaryChangesetId*);
+template JsonField& JsonField::extract(boost::optional<TemporaryChangesetId>*);
 template JsonField& JsonField::extract(std::vector<Identifier>*);
 template JsonField& JsonField::extract(std::vector<KindAttributeDataType>*);
 template JsonField& JsonField::extract(std::vector<ObjectRelation>*);

@@ -22,9 +22,7 @@ class Condition():
 	}
 	# operators for sets
 	opSetMap = {
-		"columnEq": "=",
-		"columnNe": "!=",
-		"columnContains": "= ANY"
+		"columnContains": "="
 	}
 
 	def __init__(self,data,condId):
@@ -40,6 +38,7 @@ class Condition():
 		self.counter = condId
 		self.id = "${0}".format(condId)
 		self.metadata = False
+		self.idSet = False
 		if "metadata" in data:
 			self.kind = "metadata"
 			self.metadata = True
@@ -57,6 +56,9 @@ class Condition():
 			# add also name
 			if self.col not in generated.atts(self.kind) and self.col != "name":
 				raise DutilException("FilterError","Attribute {0} does not exists.".format(self.col))
+
+			if self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
+				self.idSet = True
 		else:
 			raise DutilException("FilterError","Item 'kind' or 'metadata' must be in condition.")
 		self.parse()
@@ -79,22 +81,28 @@ class Condition():
 				newcond["condition"] = self.op
 				newcond["value"] = mystr(parent)
 				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
-		refNames = generated.refNames()
+		relNames = generated.refNames()
+		# add templates - same as refs for our stuff here
+		relNames.update(generated.templateNames())
+		# add merge/contains - same as refs for our stuff here
+		relNames.update(generated.mergeNames())
 		# find referenced columns
-		for relName in refNames:
+		for relName in relNames:
 			fromTbl = generated.relFromTbl(relName)
 			fromCol = generated.relFromCol(relName)
+			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
+				#FIXME: delete same if-else when not needed
 				if generated.atts(self.kind)[self.col] == "identifier_set":
-					self.id = self.id
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 				else:
-					self.id = "{0}_get_uid({1},$1)".format(generated.relToTbl(relName),self.id)
+					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
 		# check contains operator, not for metadata or col = name
-		if not self.metadata and self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
+		if self.idSet:
 			if self.op not in self.opSetMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
 			self.op = self.opSetMap[self.op]
@@ -134,10 +142,10 @@ class Condition():
 
 	def get(self):
 		'''Return deska SQL condition'''
+		if self.idSet:
+			'''Change kind to inner_'''
+			self.kind = "inner_"+self.col
 		if self.newcond is None:
-			if self.op == "= ANY":
-				'''ANY has special syntax'''
-				return ("{3} {2} ({0}.{1})"+self.nullCompensation).format(self.kind,self.col,self.op,self.id), [self.val]
 			if self.val is None:
 				'''do not return none'''
 				return "{0}.{1} {2}".format(self.kind,self.col,self.op,self.id), []
@@ -155,6 +163,13 @@ class Condition():
 				cond2, val2 = self.newcond.get()
 				return "( ({0}) AND ({1}) )".format(cond1,cond2), [self.val]+val2
 
+	def getIdSetInfo(self):
+		'''Return kind,col if there is identifier_set condition'''
+		if self.idSet:
+			return self.kind, self.col
+		else:
+			return None, None
+
 	def getAffectedKind(self):
 		'''Return kind in condition'''
 		return self.kind
@@ -168,6 +183,9 @@ class AdditionalEmbedCondition(Condition):
 
 class Filter():
 	'''Class for handling filters'''
+	JOIN = " LEFT OUTER JOIN "
+	#FIXME: may be resolved
+	DATA = "data_version($1)"
 
 	def __init__(self,filterData,start):
 		'''loads json filter data, start = fisrt number of parameter index'''
@@ -177,6 +195,8 @@ class Filter():
 		self.values = list()
 		# set of kinds
 		self.kinds = set()
+		# dict for identifier_set info kind:column
+		self.idSetInfo = dict()
 		self.where = ''
 		if filterData is None:
 			self.data = None
@@ -195,6 +215,16 @@ class Filter():
 			return '',[]
 		return "WHERE " + self.where, self.values
 
+	def getIdSetJoin(self):
+		'''Return join part for identifier_set joining'''
+		ret = ''
+		for kind in self.idSetInfo:
+			col = self.idSetInfo[kind]
+			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
+			ret = ret + self.JOIN + "inner_{0}_{1}_{data} AS inner_{1} ON {2} ".format(kind, col, joincond, data = self.DATA)
+		return ret
+
+
 	def getJoin(self,mykind):
 		'''Return join part of sql statement'''
 		ret = ''
@@ -202,25 +232,51 @@ class Filter():
 		for kind in self.kinds:
 			if mykind == "metadata":
 				joincond = "{0}.id = {1}.version".format(mykind,kind)
-				ret = ret + " JOIN {tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+				ret = ret + self.JOIN + "{tbl}_history AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
 			else:
 				if kind not in generated.kinds():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
 
-				# check for refs
-				refNames = generated.refNames()
+				# check for refs and templates
+				relNames = generated.refNames()
+				# add templates - same as refs for our stuff here
+				relNames.update(generated.templateNames())
+				# add merge/contains - same as refs for our stuff here
+				relNames.update(generated.mergeNames())
 				findJoinable = False
 				# find if there is ref relation from mykind to kind or kind to mykind
-				for relName in refNames:
+				for relName in relNames:
 					fromTbl = generated.relFromTbl(relName)
 					toTbl = generated.relToTbl(relName)
-					if fromTbl == kind and toTbl == mykind:
-						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+					fromCol = generated.relFromCol(relName)
+					if generated.atts(fromTbl)[fromCol] == "identifier_set":
+						if fromTbl == kind and toTbl == mykind:
+							# join inner table
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
+							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
+							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
+							# and join table of wanted kind
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
+							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = self.DATA)
+							findJoinable = True
+						elif toTbl == kind and fromTbl == mykind:
+							# join inner table
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
+							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
+							ret = ret + self.JOIN + "{tbl}_multiref_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = self.DATA)
+							# and join table of wanted kind
+							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
+							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = self.DATA)
+							findJoinable = True
+					elif fromTbl == kind and toTbl == mykind:
+						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
-					if toTbl == kind and fromTbl == mykind:
-						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+					elif toTbl == kind and fromTbl == mykind:
+						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
 						
 				# find if there is embeding
@@ -230,17 +286,17 @@ class Filter():
 					toTbl = generated.relToTbl(relName)
 					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
 					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + " JOIN {tbl}_data_version($1) AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond)
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
 						
 				if not findJoinable:
 					raise DutilException("FilterError","Kind {0} cannot be joined with kind {1}.".format(kind,mykind))
 				#TODO: merge, template relations
-		return ret
+		return ret + self.getIdSetJoin()
 
 	def parse(self,data):
 		'''Parse filter data and create SQL WHERE part'''
@@ -266,6 +322,10 @@ class Filter():
 		cond = Condition(data,self.counter)
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
+		# also add identifier_set information for joining
+		idSetKind, idSetColumn = cond.getIdSetInfo()
+		if idSetKind is not None and idSetColumn is not None:
+			self.idSetInfo[idSetKind] = idSetColumn
 		ret, newValues = cond.get()
 		self.counter = self.counter + len(newValues)
 		#add values into list

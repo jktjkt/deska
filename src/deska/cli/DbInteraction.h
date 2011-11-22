@@ -65,12 +65,23 @@ public:
     *   @param context Path and object definition to delete
     */
     void deleteObject(const ContextStack &context);
+    /** @short Deletes objects.
+    *
+    *   @param objects Object definitions to delete
+    */
+    void deleteObjects(const std::vector<ObjectDefinition> &objects);
     /** @short Renames object.
     *
     *   @param context Path and object definition to delete
     *   @param newName New name of the object
     */
     void renameObject(const ContextStack &context, const Db::Identifier &newName);
+    /** @short Renames objects.
+    *
+    *   @param objects Object definitions to delete
+    *   @param newName New name of the objects
+    */
+    void renameObjects(const std::vector<ObjectDefinition> &objects, const Db::Identifier &newName);
     /** @short Sets attribute value in the object.
     *
     *   @param context Path to the object which attribute will be changed
@@ -177,19 +188,42 @@ public:
     */
     bool objectExists(const ContextStack &context);
 
-    /** @short Gets all objects, that are merged with this one
+    /** @short Gets all objects, that are contained in this one
+    *
+    *   @param object The object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
+    */
+    std::vector<ObjectDefinition> containedObjects(const ObjectDefinition &object);
+
+
+    /** @short Gets all objects, that are contained in this one
+    *
+    *   @param context Path to the object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
+    */
+    std::vector<ObjectDefinition> containedObjects(const ContextStack &context);
+
+    /** @short Gets all objects, that are merged with this one also transitively
     *
     *   @param object The object which merged objects to find
     *   @return Vector of all objects merged with one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjects(const ObjectDefinition &object);
+    std::vector<ObjectDefinition> mergedObjectsTransitively(const ObjectDefinition &object);
 
-    /** @short Gets all objects, that are merged with this one
+    /** @short Gets all objects, that are merged with this one also transitively
     *
     *   @param context Path to the object which merged objects to find
     *   @return Vector of all objects merged with one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjects(const ContextStack &context);
+    std::vector<ObjectDefinition> mergedObjectsTransitively(const ContextStack &context);
+
+    /** @short Function for obtaining kind names referred by some attribute in some kind.
+    *   
+    *   @param kind Kind name containing referring attribute
+    *   @param attribute Referring attribute
+    *   @return referred kind or empty identifier if no kind referred
+    */
+    Db::Identifier referredKind(const Db::Identifier &kind, const Db::Identifier &attribute);
 
     /** @short Function for obtaining all pending chandesets.
     *
@@ -218,6 +252,13 @@ public:
     void detachFromChangeset(const std::string &message);
     /** @short Aborts current changeset. */
     void abortChangeset();
+    /** @short Commits current changeset with additional information for purposes of restore
+    *
+    *   @param message Commit message
+    *   @param author Author
+    *   @param timestamp Timestamp
+    */
+    void restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp);
 
     /** Function for obtaining all revisions.
     *
@@ -280,7 +321,18 @@ public:
     /** @short Unfreeze the client's view on the persistent revisions */
     void unFreezeView();
 
+    /** @short Function for clearing queries cache */
+    void clearCache();
+
 private:
+
+    /** @short Helping function for mergedObjectsTransitively() for obtaining merged objects recursively
+    *
+    *   @param object Object which merged objects to find
+    *   @param mergedObjects Vector of all objects merged already found
+    */
+    void mergedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                      std::vector<ObjectDefinition> &mergedObjects);
 
     /** Identifiers of top level kinds. */
     std::vector<Db::Identifier> pureTopLevelKinds;
@@ -293,7 +345,13 @@ private:
     /** Map of kinds and vector of kinds, that are merged with the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
     /** Map of kinds and vector of kinds, that are merged with the kind. */
-    std::map<Db::Identifier, std::vector<Db::Identifier> > mergedWith;
+    std::map<Db::Identifier, std::vector<Db::Identifier> > mergedTo;
+    /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
+    /** Flag if we are connected to any changeset, or not */
+    bool stableView;
+    /** Cache of queries for object existance check */
+    std::map<ObjectDefinition, bool> objectExistsCache;
 
     /** Pointer to the api for communication with the DB. */
     Db::Api *m_api;

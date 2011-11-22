@@ -77,6 +77,19 @@ def doStuff(r):
     r.cvoid(setAttribute("hardware", "hw4", "warranty", "2012-10-10"))
     r.c(commitChangeset("test2"))
 
+    resolvedDataWithOrigin = r.c(resolvedObjectDataWithOrigin("hardware", "hw3"))
+    r.assertEqual(resolvedDataWithOrigin, {
+        'cpu_ht': [None, None],
+        'cpu_num': [None, None],
+        'host': [None, None],
+        'note_hardware': [None, None],
+        'purchase': ['hw3', '2010-10-10'],
+        'ram': [None, None],
+        'template_hardware': [None, None],
+        'vendor': ['hw3', 'vendor2'],
+        'warranty': ['hw3', '2012-10-10']
+    })
+
 def doStuff_embed(r):
     hostNames = set(["host1", "host2"])
     presentHosts = set(r.c(kindInstances("host")))

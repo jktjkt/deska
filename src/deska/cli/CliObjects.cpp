@@ -59,6 +59,19 @@ bool operator!=(const ObjectDefinition &a, const ObjectDefinition &b)
 
 
 
+bool operator<(const ObjectDefinition &a, const ObjectDefinition &b)
+{
+    if (a.kind < b.kind) {
+        return true;
+    } else if (a.kind > b.kind) {
+        return false;
+    } else {
+        return (a.name < b.name);
+    }
+}
+
+
+
 AttributeDefinition::AttributeDefinition(const Db::Identifier &attributeName, const Db::Value &assignedValue):
     attribute(attributeName), value(assignedValue)
 {
@@ -69,7 +82,7 @@ AttributeDefinition::AttributeDefinition(const Db::Identifier &attributeName, co
 std::ostream& operator<<(std::ostream &stream, const AttributeDefinition &a)
 {
     if (a.value) {
-        return stream << a.attribute << " " << *(a.value);
+        return stream << a.attribute << " " << boost::apply_visitor(NonOptionalValuePrettyPrint(), *(a.value));
     } else {
         return stream << "no " << a.attribute;
     }
@@ -96,6 +109,50 @@ ObjectDefinition stepInContext(const ObjectDefinition &currentObject, const Obje
     Db::Identifier newName = currentObject.name + "->" + nestedObject.name;
     return ObjectDefinition(nestedObject.kind, newName);
 }
+
+
+
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::posix_time::ptime &value) const
+{
+    return boost::gregorian::to_iso_extended_string(value.date()) + std::string(" ") + boost::posix_time::to_simple_string(value.time_of_day());
+}
+
+
+
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::gregorian::date &value) const
+{
+    return boost::gregorian::to_iso_extended_string(value);
+}
+
+
+
+template <typename T>
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const T & value) const
+{
+    std::ostringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+
+
+/////////////////////////Template instances for linker//////////////////////////
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::string & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const double & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const int & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const bool & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::asio::ip::address_v4 & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const boost::asio::ip::address_v6 & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const Db::MacAddress & value) const;
+
+template NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::set<Db::Identifier> & value) const;
 
 
 }

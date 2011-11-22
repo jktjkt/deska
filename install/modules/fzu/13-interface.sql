@@ -25,7 +25,7 @@ CREATE TABLE interface (
 		CONSTRAINT "interface port cannot be empty string"
         -- FIXME: relax this constraint; we can't enforce it right now
         -- (think virtual machines or anything else without a real, physical switch interconnect)
-		CHECK (char_length(port) > 0),
+		CHECK (port != ''),
 	note text,
 	template bigint,
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
@@ -45,9 +45,9 @@ BEGIN
 		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
 	END IF;
 
-	SELECT ports INTO ports_regexp FROM switch WHERE uid = NEW.switch;
+	SELECT port_validity_regexp INTO ports_regexp FROM switch JOIN modelswitch ON (modelswitch.uid = switch.modelswitch) WHERE switch.uid = NEW.switch;
 	IF NEW.switch_pos !~ ports_regexp THEN
-		RAISE EXCEPTION 'Switch_pos % does not match port regexp "%"!', NEW.switch_pos, ports_regexp;
+		RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', NEW.switch_pos, ports_regexp;
 	END IF;
 	RETURN NEW;
 END

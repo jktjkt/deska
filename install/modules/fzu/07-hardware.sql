@@ -15,15 +15,15 @@ CREATE TABLE hardware (
 		CONSTRAINT "hardware with this name already exists" UNIQUE NOT NULL,
 	-- model of hardware
 	modelhardware bigint 
-		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE,
-	purchase date NOT NULL,
+		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE NOT NULL,
+	purchase date,
 	-- reference for the warranty information
-	warranty_contact bigint
-		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contact(uid) DEFERRABLE,
+	warranty_contract bigint
+		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
 	-- box (contains)
 	box bigint NOT NULL
-		-- merge / contains
-		CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
+	-- merge / contains
+	CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
 
 	--hardware is containable host
 	host bigint,
@@ -32,13 +32,10 @@ CREATE TABLE hardware (
 	-- Serial number two, in vendor's preferred form
 	serial_2 text,
 
-	-- Warranty contract ID, in vendor's preferred form
-	warranty_no text,
-	-- Optional reference to a warranty vendor for contact information
 	warranty_vendor bigint,
 	-- Internal inventory number at FZU, format: dddddd-d
 	inventory_no text,
 
-	template bigint
+	template_hardware bigint
 );
 

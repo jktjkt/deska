@@ -95,10 +95,9 @@ def doTests(r):
                   sorted([k for (k, v) in myHw.iteritems() if v["vendor"] != "IBM"]))
 
     # ask for a different vendor indirectly
-    # FAILS, Redmine#268
-    #matching = deska.hardware[deska.vendor.name != "IBM"]
-    #r.assertEqual(sorted(matching.keys()),
-    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] != "IBM"]))
+    matching = deska.hardware[deska.vendor.name != "IBM"]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["vendor"] != "IBM"]))
 
     # ask for HW with known vendor
     matching = deska.hardware[deska.hardware.vendor != None]
@@ -114,7 +113,20 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()),
                   sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
     # Now the same, but indirectly
-    # FAILS, Redmine#268
-    #matching = deska.hardware[deska.vendor.name == None]
-    #r.assertEqual(sorted(matching.keys()),
-    #              sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
+    matching = deska.hardware[deska.vendor.name == None]
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([k for (k, v) in myHw.iteritems() if v["vendor"] is None]))
+
+    # Just enumerate all of the HW
+    matching = deska.vendor._all()
+    r.assertEqual(sorted(matching.keys()), sorted(["HP", "IBM", "SGI"]))
+
+    # Now try to perform that we can search from the other way round
+    matching = deska.vendor[deska.hardware.ram == 3]
+    # The Python code has to eliminate None objects from the list, though,
+    # because from the DBAPI point of view it arguably doesn't make sense to
+    # return null objects in this context.  There is simply no allowed way for
+    # the DBAPI protocol to return nulls in this context.
+    r.assertEqual(sorted(matching.keys()),
+                  sorted([v["vendor"] for (k, v) in myHw.iteritems()
+                          if v["ram"] == "3" and v["vendor"] is not None]))

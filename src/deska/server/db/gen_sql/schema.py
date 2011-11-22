@@ -178,10 +178,6 @@ CREATE FUNCTION commit_all(message text)
 		# create some python helper functions
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
 		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
-		print self.py_fn_str % {'name': "embed", 'args': '', 'result': str(self.embed)}
-		print self.py_fn_str % {'name': "template", 'args': '', 'result': str(self.template_relations)}
-		print self.py_fn_str % {'name': "merge", 'args': '', 'result': str(self.composition)}
-		print self.py_fn_str % {'name': "refs", 'args': '', 'result': str(self.refs)}
 		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
 		print self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)}
 		print self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)}
@@ -313,12 +309,13 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_get_uid())
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
-			self.fn_sql.write(table.gen_set('name'))
+			self.fn_sql.write(table.gen_set_name())
 
 
 		self.fn_sql.write(table.gen_del())
 		self.fn_sql.write(table.gen_undel())
 		self.fn_sql.write(table.gen_get_object_data())
+		self.fn_sql.write(table.gen_diff_data_type())
 		self.fn_sql.write(table.gen_diff_deleted())
 		self.fn_sql.write(table.gen_diff_created())
 		self.fn_sql.write(table.gen_diff_set_attribute())

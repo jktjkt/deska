@@ -59,6 +59,24 @@ macro(deska_cli_test fname)
         run ${CMAKE_CURRENT_BINARY_DIR}/test_cli_${fname})
 endmacro(deska_cli_test)
 
+# Copy files from source directory to destination directory, substituting any
+# variables.  Create destination directory if it does not exist.
+macro(deska_copy_files srcDir destDir)
+    message(STATUS "Copying directory ${destDir}")
+    make_directory(${destDir})
+
+    file(GLOB templateFiles RELATIVE ${srcDir} ${srcDir}/*)
+    foreach(templateFile ${templateFiles})
+        set(srcTemplatePath ${srcDir}/${templateFile})
+        if(NOT IS_DIRECTORY ${srcTemplatePath})
+            configure_file(
+                    ${srcTemplatePath}
+                    ${destDir}/${templateFile}
+                    @ONLY)
+        endif(NOT IS_DIRECTORY ${srcTemplatePath})
+    endforeach(templateFile)
+endmacro(deska_copy_files)
+
 set(ParserTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockParserEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserTestFixture.cpp
@@ -85,7 +103,7 @@ deska_test(json_api_parser)
 deska_test(json_caching_api)
 
 if(RUN_SQL_TESTS)
-    message(STATUS "Will run SQL database tests upon each `make test` run.")
+    message(STATUS "Will run integration tests upon each `make test` run.")
     if( DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC)
         message(STATUS "The database re-initialization will not be repeated")
         # careful here, got to use *another* variable name
@@ -123,11 +141,9 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(pendingChangesets)
     deska_dbapi_test(createObjects)
     deska_dbapi_test(createObjects_autoname)
-    deska_dbapi_test(diffing)
+    deska_dbapi_test(diffing-simple)
+    deska_dbapi_test(diffing-embedded)
     deska_dbapi_test(simple_filtering)
-
-    # unit tests which work on any reasonable state of the DB, no matter what
-    # changesets are already present, etc
     deska_dbapi_test(persist_kindInstances)
     deska_dbapi_test(persist_metadata)
     deska_dbapi_test(persist_versioning)
@@ -135,6 +151,8 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(multipleObjectData)
     deska_dbapi_test(createDelRestore)
     deska_dbapi_test(rebaseChangeset)
+    deska_dbapi_test(templates)
+    deska_dbapi_test(concurrent-versioning)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
@@ -158,30 +176,14 @@ if(RUN_SQL_TESTS)
 
     # Tests for generating the config files
     deska_dbapi_test_with_git(config_generators)
+
+    deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
+    message(STATUS "Writing out test configuration")
+
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-cmake-options-template.sh
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-cmake-options.sh
+    )
+else()
+    message(STATUS "Skipping automated integration tests")
 endif()
-
-# Copy files from source directory to destination directory, substituting any
-# variables.  Create destination directory if it does not exist.
-macro(deska_copy_files srcDir destDir)
-    message(STATUS "Copying directory ${destDir}")
-    make_directory(${destDir})
-
-    file(GLOB templateFiles RELATIVE ${srcDir} ${srcDir}/*)
-    foreach(templateFile ${templateFiles})
-        set(srcTemplatePath ${srcDir}/${templateFile})
-        if(NOT IS_DIRECTORY ${srcTemplatePath})
-            configure_file(
-                    ${srcTemplatePath}
-                    ${destDir}/${templateFile}
-                    @ONLY)
-        endif(NOT IS_DIRECTORY ${srcTemplatePath})
-    endforeach(templateFile)
-endmacro(deska_copy_files)
-
-deska_copy_files( ${CMAKE_CURRENT_SOURCE_DIR}/sql/ ${CMAKE_CURRENT_BINARY_DIR}/sql )
-message(STATUS "Writing out test configuration")
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/sql/util-cmake-options-template.sh
-    ${CMAKE_CURRENT_BINARY_DIR}/sql/util-cmake-options.sh
-)

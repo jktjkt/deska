@@ -82,6 +82,20 @@ public:
     */
     virtual bool confirmDeletion(const ObjectDefinition &object) = 0;
 
+    /** @short Displays confirmation message for deletion of contained objects and returns users choice.
+    *
+    *   @param objects Objects to be deleted
+    *   @return True if the deletion was confirmed, else false
+    */
+    virtual bool confirmDeletionContained(const std::vector<ObjectDefinition> &mergedObjects) = 0;
+
+    /** @short Displays confirmation message for rename of contained objects and returns users choice.
+    *
+    *   @param objects Objects to be renamed
+    *   @return True if the rename was confirmed, else false
+    */
+    virtual bool confirmRenameContained(const std::vector<ObjectDefinition> &mergedObjects) = 0;
+
     /** @short Displays confirmation message for creation of a object and returns users choice.
     *
     *   @param object Object to be created
@@ -113,6 +127,13 @@ public:
     *   @return True if the restoration was confirmed, else false
     */
     virtual bool confirmRestoration(const ObjectDefinition &object) = 0;
+
+    /** @short Displays confirmation message and returns users choice.
+    *
+    *   @param prompt Message to confirm
+    *   @return True if the message was confirmed, else false
+    */
+    virtual bool askForConfirmation(const std::string &prompt) = 0;
 
     /** @short Asks user to enter a commit message.
     *

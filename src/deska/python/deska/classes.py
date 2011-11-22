@@ -57,8 +57,7 @@ class _Kind(object):
         if not self.conn:
             raise ValueError, "No active session"
 
-        # FIXME: change this to multipleResolvedObjectData when it gets supported by the server side
-        ret_map = self.conn.multipleObjectData(self.kind, condition)
+        ret_map = self.conn.multipleResolvedObjectData(self.kind, condition)
         return dict((x.key(), _map_to_class_with_values(x.data())) for x in ret_map)
 
     def _all(self):

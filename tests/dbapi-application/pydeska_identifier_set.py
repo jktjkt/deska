@@ -59,7 +59,7 @@ def imperative(r):
     r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www", "imap"]))
 
     # test filtering
-    # FAIL #280: filtering via identifier_set is not supported yet
+    # FAIL #301: filtering via identifier_set is not supported yet
     #r.assertEqual(sorted(deska.host[deska.host.service.contains("www")].keys()),
     #              ["x%d" % i for i in range(3)])
     #r.assertEqual(sorted(deska.host[deska.host.service.notContains("www")].keys()),

@@ -1,0 +1,118 @@
+Schuze Deska, 2011-11-08 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- dokumentace operatoru a id_set
+- FZU schema: prosel jsem, viz diskuse v ML
+    - formfactor
+    - modelbox
+    - cekam na reakci ohledne failures
+- dokumentace
+- prace na CLI
+- bugfixy, testy
+- upravy a testy pro ...WithOrigin, resolvedObjectData, multipleResolved...
+- testy pro templaty
+- PgSQL a hlaseni, ktery radek zpusobuje problem pri hromadnych modifikacich
+- FIXME: doplnit hodiny podle webu
+- 17.32 hodin
+
+Tomas:
+- rebase: rozpracovano, neotestovano
+- neinteraktivni mod
+- zalamovani
+- parsovani stringu: nestandardni
+- 18 hodin
+
+Lukas:
+- poradi v diffech
+- filtry a identifier_set
+- filtry na identifier_set jeste vubec neresi verze (kouka na celou tabulku)
+- bugy
+- filtry co joinuji, joinuji blbe: host.color == red || host.service.contains(x)
+    - byl tam blby join, predelal na outer
+- debugging v SQL pres notices
+- 25+
+
+Martina:
+- zvlast rename pro diffovani
+- diff v changesetu
+- podpora pro contains/containable
+- 25 hodin
+
+Diskuse:
+--------
+
+Diskuse o schuzce se Zavoralem.
+
+Dokumentace:
+- kind vs. class
+- shodli jsme se na tom, ze je po Honzovi potreba precist dokumentaci -- bude
+provedeno do priste nejpozdeji.
+
+Martina - Lukas: Pretizene funkce pro diffovani a defaultni hodnoty, nejak to zlobi.
+
+CLI musi stale jeste sortovat vystup diffu a bude muset i dal; DB to neumi
+snadno poslat dobre serazene (zejmena kvuli vykonu).
+
+Honza -> Lukas: "ten velky fail o chybejici specifikaci je muj?" - "ano"
+(zkracena verze)
+
+Alternativy pro has_failure:
+1) has_failure, failure EMBED_INTO has_failure
+2) * REFERS_TO identifier_set failure
+3) failure EMBED_INTO box
+4) hwfailure, switchfailure,...
+5) v Desce to nebude
+
+Rozhodnuto pro 3).
+
+Martina: rename a contains/containable:
+
+Rozhodli jsme se, ze atributy cizich klicu pro CONTAINS/CONTAINABLE jsou read
+only, prejmenovani jednoho objektu vede na explicitni nastaveni cizich klicu na
+spravne hodnoty na obou stranach relaci.
+
+Relace contains/containable: prefixy FK budou "cnta" a "cble".
+
+Diskuze o atomicite commitu do DB. Problem s tim, ze je potreba oddelit commit
+do DB, transakci a push do gitu. Mozna pres nested transactions? Lukas zjisti.
+
+Lukas: kdo ma naimplementovat fce lockChangeset, unlockChangeset,
+    changesetHasFreshConfig, markChangesetFresh, currentChangeset? Lukas.
+
+Tomas: udelat backup & restore z CLI.
+
+Kterak highlightovat diff:
+
+- host blabla
++ host blabla2
+-   note 333
++   note 666
+-   pwn you
+end
+
+-delete host blabla
+
++ host blabla2
++   note 666
++   pwn me
+end
+
+Honza: projit schema, opravit, co je na nej, po dokonceni napsat mail, ze zbytek
+je na Lukase.
+
+Usilujeme o to, aby schema bylo finalni na pristi schuzce.
+
+Chceme mit hotovo do konce listopadu.
+
+Pristi schuzka:
+---------------
+
+Zapomnel jsem zminit. Pristi utery, 17.30?
+
+Schuzka trvala 2 hodiny 20 minut.

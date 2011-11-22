@@ -26,59 +26,12 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/signals2/last_value.hpp>
 #include "Api.h"
+#include "JsonException.h"
 #include "json_spirit/json_spirit_value.h"
 #include "libebt/libebt_backtraceable.hh"
 
 namespace Deska {
 namespace Db {
-
-/** @short INTERNAL: tag for the libebt */
-struct JsonExceptionTag {};
-
-/** @short INTERNAL: convenience typedef for exception reporting */
-typedef libebt::BacktraceContext<JsonExceptionTag> JsonContext;
-
-/** @short INTERNAL: convenience class for marking context relevant to both API and JSON */
-class JsonCommandContext
-{
-public:
-    JsonCommandContext(const std::string &ctx);
-private:
-    ApiContext m_apiContext;
-    JsonContext m_jsonContext;
-};
-
-/** @short An error occured during parsing of the server's response */
-class JsonParseError: public std::runtime_error, public libebt::Backtraceable<JsonExceptionTag>
-{
-    std::string m_completeError;
-protected:
-    JsonParseError(const std::string &message);
-public:
-    virtual ~JsonParseError() throw ();
-    virtual const char* what() const throw();
-    virtual std::string whatWithBacktrace() const throw();
-    void addRawJsonData(const std::string &data);
-};
-
-/** @short The received data cannot be converted to JSON
-
-This exception indicates that the data we received are not syntacticaly valid JSON data.
-*/
-class JsonSyntaxError: public JsonParseError
-{
-public:
-    JsonSyntaxError(const std::string &message);
-    virtual ~JsonSyntaxError() throw ();
-};
-
-/** @short The received JSON data does not conform to the Deska DBAPI specification */
-class JsonStructureError: public JsonParseError
-{
-public:
-    JsonStructureError(const std::string &message);
-    virtual ~JsonStructureError() throw ();
-};
 
 /** @short Database API implemented through the JSON */
 class JsonApiParser: public Api
@@ -103,9 +56,9 @@ public:
         const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
     virtual std::map<Identifier, std::map<Identifier, Value> > multipleResolvedObjectData(
         const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
-    virtual std::map<Identifier, std::pair<Identifier, Value> > resolvedObjectDataWithOrigin(
+    virtual std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > resolvedObjectDataWithOrigin(
             const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
-    virtual std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > multipleResolvedObjectDataWithOrigin(
+    virtual std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > multipleResolvedObjectDataWithOrigin(
         const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision = boost::optional<RevisionId>());
 
     // Manipulating objects
@@ -168,4 +121,4 @@ private:
 }
 }
 
-#endif // DESKA_FAKEAPI_H
+#endif // DESKA_JSONAPI_H

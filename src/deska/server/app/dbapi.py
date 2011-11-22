@@ -12,6 +12,9 @@ except ImportError:
     import simplejson as json
 from jsonparser import perform_io
 
+class FreezingError(Exception):
+    pass
+
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
@@ -21,9 +24,9 @@ class DB:
 		"objectData": ["tag", "kindName", "objectName", "revision"],
 		"multipleObjectData": ["tag", "kindName", "revision", "filter"],
 		"resolvedObjectData": ["tag", "kindName", "objectName","revision"],
-		#"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
-		#"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
-		#"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
+		"multipleResolvedObjectData": ["tag", "kindName", "revision","filter"],
+		"resolvedObjectDataWithOrigin": ["tag", "kindName", "objectName","revision"],
+		"multipleResolvedObjectDataWithOrigin": ["tag", "kindName", "revision", "filter"],
 		"deleteObject": ["tag", "kindName", "objectName"],
 		"createObject": ["tag", "kindName", "objectName"],
 		"restoreDeletedObject": ["tag", "kindName","objectName"],
@@ -45,10 +48,14 @@ class DB:
 		"listRevisions": ["tag", "filter"],
 		"dataDifference": ["tag", "revisionA", "revisionB"],
 		"dataDifferenceInTemporaryChangeset": ["tag", "changeset"],
-		#"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
-		#"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
+		"resolvedDataDifference": ["tag", "revisionA", "revisionB"],
+		"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		# showConfigDiff is special
 	})
+	writeFunctions = ["startChangeset", "commitChangeset", "resumeChangeset", "abortCurrentChangeset",
+		"detachFromCurrentChangeset", "lockCurrentChangeset", "unlockCurrentChangeset",
+		"deleteObject", "createObject", "restoreDeletedObject", "renameObject", "setAttribute",
+		"setAttributeInsert", "setAttributeRemove"]
 
 	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
 		self.db = psycopg2.connect(**dbOptions);
@@ -75,9 +82,9 @@ class DB:
 		else:
 			return str(data)
 
-	def errorJson(self,command,tag,message):
+	def errorJson(self,command,tag,message,type="ServerError"):
 		jsn = dict({"response": command,
-			"dbException": {"type": "ServerError", "message": message}
+			"dbException": {"type": type, "message": message}
 		})
 		if tag is not None:
 			jsn["tag"] = tag
@@ -90,6 +97,9 @@ class DB:
 	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
 			# set isolation level serializable, and read only transaction
+			changeset = self.callProc("get_current_changeset_or_null",{})
+			if changeset is not None:
+				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
 			# FIXME: better solution needs psycopg2.4.2
 			# self.db.set_session(SERIALIZABLE,True)
 			self.db.set_isolation_level(2)
@@ -98,6 +108,8 @@ class DB:
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
+			if not self.freeze:
+				raise FreezingError("Cannot call unFreezeView, view is not frozen")
 			# set isolation level readCommited
 			# FIXME: better solution needs psycopg2.4.2
 			#self.db.set_session(DEFAULT,False)
@@ -120,13 +132,21 @@ class DB:
 				return self.errorJson(name,tag,"Missing command.")
 			name = command["command"]
 			del command["command"]
+			#add tag into the command for propper db call
+			command["tag"] = tag
 			try:
 				# just run, no responce
-				self.runDBFunction(name,command,tag)
+				data = self.runDBFunction(name,command,tag)
 			except Exception, e:
 				# abort if error here
 				self.db.rollback()
 				return self.errorJson(name, tag, str(e))
+			if "dbException" in data:
+				'''abort db transaction if exception occured'''
+				self.db.rollback()
+				# return data with dbException
+				return data
+
 
 		self.endTransaction()
 		return self.responseJson("applyBatchedChanges",tag)
@@ -136,30 +156,34 @@ class DB:
 			self.db.commit()
 
 	def lockChangeset(self):
-		# FIXME: implement me by calling a DB function
+		'''Lock changeset by db lock'''
+		self.callProc("lockChangeset",{})
 		pass
 
 	def unlockChangeset(self):
-		# FIXME: implement me by calling a DB function
+		'''Unlock changeset'''
+		self.callProc("releaseAndMarkAsOK",{})
 		pass
 
 	def changesetHasFreshConfig(self):
 		# FIXME: implement me by calling a DB function
+		#self.callProc("...NO FUNCTION NOW...",{})
 		return False
 
 	def markChangesetFresh(self):
 		# FIXME: implement me by calling a DB function
+		#self.callProc("releaseAndMarkAsOK",{})
 		pass
 
 	def currentChangeset(self):
-		# FIXME: get name of the current changeset from the DB
-		return "unnamed"
+		'''get name of the current changeset from the DB'''
+		return "tmp" + str(self.callProc("get_current_changeset",{}))
 
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
 		# We really do want to re-init the config generator each and every time
 		oldpath = sys.path
-		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../LowLevelPyDeska/generators"))
+		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../config-generators"))
 		sys.path = [mypath] + sys.path
 		logging.debug("sys.path prepended by %s" % mypath)
 		if self.cfggenBackend == "git":
@@ -193,6 +217,9 @@ class DB:
 		logging.debug(" opening repository")
 		self.cfgGenerator.openRepo()
 		logging.debug(" calling cfgGenerator.generate")
+		# The generators require a consistent state of the database. We are
+		# supposed to be attached to an active changeset which is furthermore
+		# locked. Let's hope this is really the case.
 		self.cfgGenerator.generate(self)
 		logging.debug("cfgRegenerate: done")
 
@@ -253,9 +280,20 @@ class DB:
 		if not self.changesetHasFreshConfig():
 			self.cfgRegenerate()
 			self.markChangesetFresh()
-		self.cfgPushToScm(args["commitMessage"])
-		res = self.standaloneRunDbFunction(name, args, tag)
-		self.unlockChangeset()
+		try:
+			res = self.runDBFunction(name,args,tag)
+			self.cfgPushToScm(args["commitMessage"])
+		except Exception, e:
+			'''Unexpected error in db or cfgPushToScm...'''
+			self.db.rollback()
+			return self.errorJson(name, tag, str(e))
+		if "dbException" in res:
+			'''Or regular error in db response'''
+			self.db.rollback()
+			return res
+		self.db.commit()
+		#this is done by commitChangeset function
+		#self.unlockChangeset()
 		return res
 
 	def run(self,name,args):
@@ -267,7 +305,10 @@ class DB:
 
 		# this two spectial commands handle db transactions
 		if name in set(["freezeView","unFreezeView"]):
-			return self.freezeUnfreeze(name,tag)
+			try:
+				return self.freezeUnfreeze(name,tag)
+			except FreezingError, e:
+				return self.errorJson(name, tag, str(e), type="FreezingError")
 
 		if name == "showConfigDiff":
 			forceRegen = False
@@ -275,25 +316,29 @@ class DB:
 				forceRegen = True
 			return self.showConfigDiff(name, tag, forceRegen)
 
-		if name == "commitChangeset":
-			# this one is special, it has to commit to the DB *and* push to SCM
-			return self.commitConfig(name, args, tag)
-
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
 			if "modifications" not in args:
 				return self.errorJson(name, tag, "Missing 'modifications'!")
 			return self.applyBatchedChanges(args["modifications"],tag)
 
+		if name == "commitChangeset":
+			# this one is special, it has to commit to the DB *and* push to SCM
+			return self.commitConfig(name, args, tag)
+
 		return self.standaloneRunDbFunction(name, args, tag)
 
 	def standaloneRunDbFunction(self, name, args, tag):
+		'''Run stored procedure'''
 		try:
-			data = self.runDBFunction(name,args,tag)
-			self.endTransaction()
+			try:
+				data = self.runDBFunction(name,args,tag)
+			finally:
+				self.endTransaction()
 			return data
+		except FreezingError, e:
+			return self.errorJson(name, tag, str(e), type="FreezingError")
 		except Exception, e:
-			self.endTransaction()
 			return self.errorJson(name, tag, str(e))
 
 	def checkFunctionArguments(self, name, args, tag):
@@ -318,6 +363,7 @@ class DB:
 				raise Exception("Extra arguments: %s" % extra_args)
 
 	def runDBFunction(self,name,args,tag):
+		'''Check args, sort them and call db proc'''
 		self.checkFunctionArguments(name, args, tag)
 		needed_args = self.methods[name]
 
@@ -329,15 +375,23 @@ class DB:
 		for i in range(len(args)):
 			if type(args[i]) == dict:
 				args[i] = json.dumps(args[i])
+		return self.callProc(name,args)
 
+	def callProc(self,name,args):
+		'''Call the db function'''
+		if self.freeze:
+			'''check function is read only'''
+			if name in self.writeFunctions:
+				logging.debug("Exception when call db function in freeze view: %s" % name)
+				raise FreezingError("Cannot run '%s' function, while you are in freeze (read only) mode." % name)
 		try:
 			self.mark.callproc(name,args)
 			data = self.mark.fetchall()[0][0]
 		except Exception, e:
 			logging.debug("Exception when call db function: %s)" % str(e))
-			raise Exception("Missing arguments: %s" % str(e).split("\n")[0])
+			raise
 
-		logging.debug("fetchall returning: %s)" % data)
+		logging.debug("fetchall returning: %s" % data)
 		return data
 
 

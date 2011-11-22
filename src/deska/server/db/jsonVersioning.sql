@@ -204,12 +204,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag,a,b):
 	name = "dataDifference"
+	diffname = "normal"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneKindDiff(kindName,a,b))
+			res.extend(oneKindDiff(kindName,diffname,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -219,7 +220,7 @@ def main(tag,a,b):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text)
+CREATE OR REPLACE FUNCTION jsn.dataDifferenceInTemporaryChangeset(tag text, changeset text = NULL)
 RETURNS text
 AS
 $$
@@ -229,14 +230,15 @@ import dutil
 from dutil import oneKindDiff
 
 @pytypes
-def main(tag):
+def main(tag,changeset):
 	name = "dataDifferenceInTemporaryChangeset"
+	diffname = "normal"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneKindDiff(kindName))
+			res.extend(oneKindDiff(kindName,diffname,changeset))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -258,12 +260,13 @@ from dutil import oneKindDiff
 @pytypes
 def main(tag,a,b):
 	name = "resolvedDataDifference"
+	diffname = "resolved"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName,a,b))
+			res.extend(oneKindDiff(kindName,diffname,a,b))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)
@@ -273,7 +276,7 @@ def main(tag,a,b):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.resolvedDataDifferenceInTemporaryChangeset(tag text)
+CREATE OR REPLACE FUNCTION jsn.resolvedDataDifferenceInTemporaryChangeset(tag text, changeset text = NULL)
 RETURNS text
 AS
 $$
@@ -283,14 +286,15 @@ import dutil
 from dutil import oneKindDiff
 
 @pytypes
-def main(tag):
+def main(tag,changeset):
 	name = "resolvedDataDifferenceInTemporaryChangeset"
+	diffname = "resolved"
 	jsn = dutil.jsn(name,tag)
 
 	res = list()
 	try:
 		for kindName in dutil.generated.kinds():
-			res.extend(oneResolvedKindDiff(kindName))
+			res.extend(oneKindDiff(kindName,diffname,changeset))
 	except Postgres.Exception as dberr:
 		err = dutil.DeskaException(dberr)
 		return err.json(name,jsn)

@@ -244,6 +244,50 @@ class Templates:
 
 '''
 
+	# template string for set functions
+	set_name_string = '''CREATE FUNCTION
+	%(tbl)s_set_name(IN name_ text,IN new_name text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		rowuid bigint;
+		tmp bigint;
+	BEGIN
+		--for modifications we need to have opened changeset, this function raises exception in case we don't have
+		SELECT get_current_changeset() INTO ver;
+		SELECT %(tbl)s_get_uid(name_) INTO rowuid;
+		--not found in case there is no object with name name_ in history
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+		END IF;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM %(tbl)s_history
+			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version
+		IF NOT FOUND THEN
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+		END IF;
+		
+		BEGIN
+			UPDATE %(tbl)s_history SET name = new_name, version = ver
+				WHERE uid = rowuid AND version = ver;
+		EXCEPTION
+			WHEN unique_violation THEN
+				RAISE EXCEPTION 'object with name %% was deleted, ...', new_name USING ERRCODE = '70010';
+		END;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	set_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_set_name(IN name_ text,IN new_name text)
 	RETURNS integer
@@ -272,9 +316,13 @@ class Templates:
 		--set column to refuid - uid of referenced object
 		SELECT embed_name[1], embed_name[2] FROM embed_name(new_name,'%(delim)s') INTO refname, local_name;
 		refuid = %(reftbl)s_get_uid(refname);
-		UPDATE %(tbl)s_history SET %(refcolumn)s = refuid, name = local_name, version = ver
-			WHERE uid = rowuid AND version = ver;
-		
+		BEGIN
+			UPDATE %(tbl)s_history SET %(refcolumn)s = refuid, name = local_name, version = ver
+				WHERE uid = rowuid AND version = ver;
+		EXCEPTION
+			WHEN unique_violation THEN
+				RAISE EXCEPTION 'object with name %% was deleted, ...', new_name USING ERRCODE = '70010';
+		END;
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -327,6 +375,50 @@ class Templates:
 		END IF;
 
 		RETURN data;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	# template string for get data functionsfor objetcs that has no additional data (has only name, uid and dest_bit)
+	# get data of object name_ in given version
+	get_data_empty_kind_string = '''CREATE FUNCTION
+	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
+	RETURNS void
+	AS
+	$$
+	DECLARE
+		current_changeset bigint;
+		dbit bit(1);
+		tmp text;
+	BEGIN
+		IF from_version = 0 THEN
+			current_changeset = get_current_changeset_or_null();
+			IF current_changeset IS NULL THEN
+				--user wants last data
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				SELECT dest_bit INTO dbit FROM %(tbl)s_history WHERE name = name_ AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
+					RETURN;
+				END IF;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
+			END IF;
+		END IF;
+
+		SELECT name INTO tmp FROM %(tbl)s_data_version(from_version)
+			WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+		END IF;
+
+		RETURN;
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
@@ -515,7 +607,7 @@ class Templates:
 				SELECT join_with_delim(%(reftbl)s_get_name(%(column)s, from_version), name, '%(delim)s') INTO value FROM production.%(tbl)s
 					WHERE uid = %(tbl)s_uid;
 				IF NOT FOUND THEN
-					RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+                    RETURN NULL;
 				END IF;
 				RETURN value;
 			END IF;
@@ -987,12 +1079,12 @@ class Templates:
 #template for getting deleted objects between two versions
 	diff_deleted_string = '''CREATE FUNCTION
 %(tbl)s_diff_deleted()
-RETURNS SETOF identifier
+RETURNS SETOF text
 AS
 $$
 BEGIN
 	--deleted were between two versions objects that have set dest_bit in new data
-	RETURN QUERY SELECT old_name FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_name IS NOT NULL;
+	RETURN QUERY SELECT cast(old_name as text) FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_name IS NOT NULL;
 END;
 $$
 LANGUAGE plpgsql;
@@ -1002,16 +1094,44 @@ LANGUAGE plpgsql;
  #template for getting created objects between two versions
 	diff_created_string = '''CREATE FUNCTION
 %(tbl)s_diff_created()
-RETURNS SETOF identifier
+RETURNS SETOF text
 AS
 $$
 BEGIN
 	--created were objects which are in new data and not deleted and are not in old data
-	RETURN QUERY SELECT new_name FROM %(tbl)s_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
+	RETURN QUERY SELECT cast(new_name as text) FROM %(tbl)s_diff_data WHERE old_name IS NULL AND new_dest_bit = '0';
 END;
 $$
 LANGUAGE plpgsql;
 
+'''
+
+#template for function that finds all rename changes
+	diff_rename_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+RETURNS SETOF deska.diff_rename_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT cast(old_name as text), cast(new_name as text)
+	FROM %(tbl)s_diff_data
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND new_name <> old_name;
+END;
+$$
+LANGUAGE plpgsql;
+'''
+
+#template for function that finds all rename changes
+	diff_rename_embed_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+RETURNS SETOF deska.diff_rename_type
+AS
+$$
+BEGIN
+	RETURN QUERY SELECT old_name, new_name
+	FROM %(tbl)s_diff_data
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND local_name_differs(new_name,old_name,'%(delim)s');
+END;
+$$
+LANGUAGE plpgsql;
 '''
 
 #template for if constructs in diff_set_attribute
@@ -1061,8 +1181,8 @@ LANGUAGE plpgsql;
 	 AS
 	 $$
 	 DECLARE
-		old_data %(tbl)s_history%%rowtype;
-		new_data %(tbl)s_history%%rowtype;
+		old_data %(tbl)s_diff_data_type;
+		new_data %(tbl)s_diff_data_type;
 		result diff_set_attribute_type;
 		current_changeset bigint;
 	 BEGIN
@@ -1079,16 +1199,7 @@ LANGUAGE plpgsql;
 			FROM %(tbl)s_diff_data
 			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
 		LOOP
-			--if name was changed, then this modification would be mentioned with old object name
-			--all other changes are mentioned with new name
-			IF (old_data.name IS NOT NULL) AND (old_data.name <> new_data.name) THEN
-					--first change is changed name
-					result.objname = old_data.name;
-					result.attribute = 'name';
-					result.olddata = old_data.name;
-					result.newdata = new_data.name;
-					RETURN NEXT result;
-			END IF;
+			--all changes are mentioned with new name
 			result.objname = new_data.name;
 			--check if the column was changed
 			%(columns_changes)s
@@ -1241,11 +1352,8 @@ LANGUAGE plpgsql;
 '''
 
 	diff_data_type_str = '''CREATE TYPE %(tbl)s_diff_data_type AS(
-	uid bigint,
-	name identifier,
+	name text,
 	%(col_types)s,
---template column is not in all tables, definition should contain ","
-	%(template_column)s
 	dest_bit bit(1)
 );
 '''
@@ -1329,7 +1437,7 @@ LANGUAGE plpgsql;
 
 
 #template for function that prepairs temp table for diff functions, which selects diffs between opened changeset and its parent
-	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_diff(changeset_id bigint = 0)
+	diff_changeset_init_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_ch_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
@@ -1362,7 +1470,7 @@ $$
 '''
 
 #template for function that prepairs temp table for diff functions, which selects diffs between changeset and its parent
-	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_resolved_diff(changeset_id bigint = 0)
+	diff_changeset_init_resolved_function_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_init_ch_resolved_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
@@ -1473,7 +1581,7 @@ BEGIN
 			SELECT %(columns_ex_templ_id_set_res_name)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE name = name_;
 			IF NOT FOUND THEN
-				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
+				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
 			END IF;
 			RETURN data;
 		END IF;
@@ -1527,7 +1635,7 @@ BEGIN
 			SELECT %(columns_ex_templ)s, %(templ_tbl)s_get_name(%(template_column)s) INTO %(data_columns)s
 			FROM production.%(tbl)s WHERE uid = obj_uid;
 			IF NOT FOUND THEN
-				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '10021';
+				RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
 			END IF;
 			RETURN data;
 		END IF;
@@ -1749,3 +1857,4 @@ $$
 LANGUAGE plpgsql;
 
 '''
+ 

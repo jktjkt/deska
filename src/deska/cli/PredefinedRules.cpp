@@ -35,8 +35,9 @@ namespace Cli
 template <typename Iterator>
 PredefinedRules<Iterator>::PredefinedRules()
 {
-    tQuotedString %= qi::lexeme['"' >> +(ascii::char_ - '"') >> '"'];
-    tSimpleString %= qi::lexeme[+(ascii::char_ - ('"' | ascii::space))];
+    tQuotedString %= (qi::lit('"') >> qi::lexeme[+(ascii::char_ - ascii::char_('"'))] >> qi::lit('"')) |
+                     (qi::lit('\'') >> qi::lexeme[+(ascii::char_ - ascii::char_('\''))] >> qi::lit('\''));
+    tSimpleString %= qi::lexeme[+(ascii::char_ - ascii::space)];
     tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(ascii::alnum | '_') % "->") >> -qi::lit("->")]];
     tIdentifierSet %= qi::lit("[") > (tIdentifier % ",") > qi::lit("]");
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
@@ -67,7 +68,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     tHour %= qi::raw[qi::lexeme[(qi::char_("0-1") >> qi::digit) | (qi::char_("2") >> qi::char_("0-3"))]];
     tMinOrSec %= qi::raw[qi::lexeme[qi::char_("0-5") >> qi::digit]];
     tTimeStamp %= qi::raw[qi::lexeme[tYear >> qi::lit("-") >> tMonth >> qi::lit("-") >> tDay >> qi::lit(" ") >>
-                                     tHour >> qi::lit(":") >> tMinOrSec >> qi::lit(":") >> tMinOrSec]];
+        tHour >> qi::lit(":") >> tMinOrSec >> qi::lit(":") >> tMinOrSec >> -("." >> +qi::digit)]];
 
     rulesMap[Db::TYPE_IDENTIFIER] = tIdentifier
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];
@@ -75,7 +76,7 @@ PredefinedRules<Iterator>::PredefinedRules()
 
     rulesMap[Db::TYPE_IDENTIFIER_SET] = tIdentifierSet
         [qi::_val = phoenix::bind(&PredefinedRules::vectorToSet, this, qi::_1)];
-    rulesMap[Db::TYPE_IDENTIFIER_SET].name("identifiers set (identifiers in [ ] separated by ,");
+    rulesMap[Db::TYPE_IDENTIFIER_SET].name("identifiers set (identifiers in [ ] separated by ,)");
 
     rulesMap[Db::TYPE_STRING] = (tQuotedString | tSimpleString)
         [qi::_val = phoenix::static_cast_<std::string>(qi::_1)];

@@ -13,8 +13,8 @@ CREATE TABLE modelswitch (
 	modelbox bigint
 		CONSTRAINT modelswitch_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
 	--FIXME: TODO port_validity_regexp
-	ports text NOT NULL
+	port_validity_regexp text NOT NULL
 		CONSTRAINT "switch ports cannot be empty string"
-		CHECK (char_length(ports) > 0)
+		CHECK (port_validity_regexp != '')
 );
 

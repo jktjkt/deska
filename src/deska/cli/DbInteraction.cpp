@@ -48,7 +48,8 @@ DbInteraction::DbInteraction(Db::Api *api):
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
-                mergedWith[itr->target].push_back(*itk);
+                referringAttrs[*itk][itr->column] = itr->target;
+                mergedTo[itr->target].push_back(*itk);
             }
         }
         if (!isEmbedded)
@@ -68,20 +69,23 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     if (objects.size() == 1) {
         BOOST_ASSERT(!objectExists(objects.front()));
         Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
+        if (stableView)
+            objectExistsCache[objects.front()] = true;
         // If the name of new object is specified, returned name should be the same
         if (!(pathToVector(objects.front().name).back().empty()))
             BOOST_ASSERT(newObjectName == objects.front().name);
         return ContextStackItem(objects.front().kind, pathToVector(newObjectName).back());
     }
 
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
+    std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (!objectExists(*it))
-            //modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
-            m_api->createObject(it->kind, it->name);
+        if (!objectExists(*it)) {
+            modifications.push_back(Db::CreateObjectModification(it->kind, it->name));
+            if (stableView)
+                objectExistsCache[*it] = true;
+        }
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 
     if (context.back().name.empty())
         return ContextStackItem(context.back().kind, Db::Filter(
@@ -97,8 +101,11 @@ void DbInteraction::restoreDeletedObject(const ContextStack &context)
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (!objectExists(*it))
+        if (!objectExists(*it)) {
             m_api->restoreDeletedObject(it->kind, it->name);
+            if (stableView)
+                objectExistsCache[*it] = true;
+        }
     }
 }
 
@@ -108,14 +115,22 @@ void DbInteraction::deleteObject(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
-    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        if (objectExists(*it))
-            //modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
-            m_api->deleteObject(it->kind, it->name);
+    deleteObjects(objects);
+}
+
+
+
+void DbInteraction::deleteObjects(const std::vector<ObjectDefinition> &objects)
+{
+    std::vector<Db::ObjectModificationCommand> modifications;
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
+        if (objectExists(*it)) {
+            modifications.push_back(Db::DeleteObjectModification(it->kind, it->name));
+            if (stableView)
+                objectExistsCache[*it] = false;
+        }
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -124,15 +139,24 @@ void DbInteraction::renameObject(const ContextStack &context, const Db::Identifi
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
-    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+    renameObjects(objects, newName);
+}
+
+
+
+void DbInteraction::renameObjects(const std::vector<ObjectDefinition> &objects, const Db::Identifier &newName)
+{
+    std::vector<Db::ObjectModificationCommand> modifications;
+    for (std::vector<ObjectDefinition>::const_iterator it = objects.begin(); it != objects.end(); ++it) {
         std::vector<Db::Identifier> newObjName = pathToVector(it->name);
         newObjName.back() = newName;
-        //modifications.push_back(Db::RenameObjectModification(it->kind, it->name, vectorToPath(newObjName)));
-        m_api->renameObject(it->kind, it->name, vectorToPath(newObjName));
+        modifications.push_back(Db::RenameObjectModification(it->kind, it->name, vectorToPath(newObjName)));
+        if (stableView) {
+            objectExistsCache[*it] = false;
+            objectExistsCache[ObjectDefinition(it->kind, vectorToPath(newObjName))] = true;
+        }
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -142,14 +166,12 @@ void DbInteraction::setAttribute(const ContextStack &context,
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
+    std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        //modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute.attribute,
-        //                                                     attribute.value));
-        m_api->setAttribute(it->kind, it->name, attribute.attribute, attribute.value);
+        modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute.attribute,
+                                                             attribute.value));
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -159,14 +181,12 @@ void DbInteraction::setAttributeInsert(const ContextStack &context, const Db::Id
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
+    std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        //modifications.push_back(Db::SetAttributeInsertModification(it->kind, it->name, set,
-        //                                                           identifier));
-        m_api->setAttributeInsert(it->kind, it->name, set, identifier);
+        modifications.push_back(Db::SetAttributeInsertModification(it->kind, it->name, set,
+                                                                   identifier));
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -176,14 +196,12 @@ void DbInteraction::setAttributeRemove(const ContextStack &context, const Db::Id
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
+    std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        //modifications.push_back(Db::SetAttributeRemoveModification(it->kind, it->name, set,
-        //                                                           identifier));
-        m_api->setAttributeRemove(it->kind, it->name, set, identifier);
+        modifications.push_back(Db::SetAttributeRemoveModification(it->kind, it->name, set,
+                                                                   identifier));
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -193,13 +211,11 @@ void DbInteraction::removeAttribute(const ContextStack &context,
 {
     BOOST_ASSERT(!context.empty());
     std::vector<ObjectDefinition> objects = expandContextStack(context);
-    // FIXME: Wait for implementation of batched changes on server side.
-    //std::vector<Db::ObjectModification> modifications;
+    std::vector<Db::ObjectModificationCommand> modifications;
     for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        //modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute, Deska::Db::Value()));
-        m_api->setAttribute(it->kind, it->name, attribute, Deska::Db::Value());
+        modifications.push_back(Db::SetAttributeModification(it->kind, it->name, attribute, Deska::Db::Value()));
     }
-    //m_api->applyBatchedChanges(modifications);
+    m_api->applyBatchedChanges(modifications);
 }
 
 
@@ -223,6 +239,8 @@ std::vector<ObjectDefinition> DbInteraction::kindInstances(const Db::Identifier 
     std::vector<ObjectDefinition> objects;
     BOOST_FOREACH(const Deska::Db::Identifier &objectName, m_api->kindInstances(kindName)) {
         objects.push_back(ObjectDefinition(kindName, objectName));
+        if (stableView)
+            objectExistsCache[ObjectDefinition(kindName, objectName)] = true;
     }
     return objects;
 }
@@ -265,15 +283,11 @@ std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allA
     if (m_api->kindAttributes(object.kind).empty())
         return attributes;
 
-    // FIXME: Allow obtaining really resolved data.
-    /*typedef std::map<Db::Identifier, std::pair<Db::Identifier, Db::Value> > ObjectDataMap;
+    typedef std::map<Db::Identifier, std::pair<boost::optional<Db::Identifier>, Db::Value> > ObjectDataMap;
     BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->resolvedObjectDataWithOrigin(object.kind, object.name)) {
         attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
-            AttributeDefinition(x.first, x.second.second), (x.second.first == object.name ? "" : x.second.first)));*/
-    typedef std::map<Db::Identifier, Db::Value> ObjectDataMap;
-    BOOST_FOREACH(const ObjectDataMap::value_type &x, m_api->objectData(object.kind, object.name)) {
-        attributes.push_back(std::make_pair<AttributeDefinition, Db::Identifier>(
-            AttributeDefinition(x.first, x.second), ""));
+            AttributeDefinition(x.first, x.second.second),
+                                 (!x.second.first || *(x.second.first) == object.name ? "" : *(x.second.first))));
     }
     return attributes;
 }
@@ -295,11 +309,13 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefini
 {
     std::vector<ObjectDefinition> kinds;
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
-        // FIXME: Db::FilterError: "Item 'column' is missing in condition."
-        /*std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
+        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
             Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
-        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite)
-            kinds.push_back(ObjectDefinition(*it, *ite));*/
+        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite) {
+            kinds.push_back(ObjectDefinition(*it, *ite));
+            if (stableView)
+                objectExistsCache[ObjectDefinition(*it, *ite)] = true;
+        }
     }
     return kinds;
 }
@@ -321,8 +337,18 @@ bool DbInteraction::objectExists(const ObjectDefinition &object)
     if (object.name.empty())
         return false;
 
+    if (stableView) {
+        std::map<ObjectDefinition, bool>::iterator it = objectExistsCache.find(object);
+        if (it != objectExistsCache.end()) {
+            return it->second;
+        }
+    }
+
     std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind,
         Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+    if (stableView) {
+        objectExistsCache[object] = !instances.empty();
+    }
     return (!instances.empty());
 }
 
@@ -345,13 +371,13 @@ bool DbInteraction::objectExists(const ContextStack &context)
 
 
 
-std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinition &object)
+std::vector<ObjectDefinition> DbInteraction::containedObjects(const ObjectDefinition &object)
 {
     if (object.name.empty())
-        throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+        throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find merged objects for context stack with filters or kinds without names.");
 
     // Kinds, that this kind contains
-    std::vector<ObjectDefinition> mergedObjects;
+    std::vector<ObjectDefinition> containedObjects;
     for (std::vector<Db::Identifier>::iterator it =
         mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
         std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
@@ -360,39 +386,67 @@ std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ObjectDefinitio
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
             ObjectDefinition mObj(*it, object.name);
-            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
-                mergedObjects.push_back(ObjectDefinition(*it, object.name));
+            if (stableView)
+                objectExistsCache[mObj] = true;
+            if (std::find(containedObjects.begin(), containedObjects.end(), mObj) == containedObjects.end())
+                containedObjects.push_back(mObj);
         }
     }
 
-    // Kinds containing this kind
-    for (std::vector<Db::Identifier>::iterator it =
-        mergedWith[object.kind].begin(); it != mergedWith[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
-            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
-        BOOST_ASSERT(instances.size() <= 1);
-        if (!instances.empty()) {
-            BOOST_ASSERT(instances.front() == object.name);
-            ObjectDefinition mObj(*it, object.name);
-            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end())
-                mergedObjects.push_back(ObjectDefinition(*it, object.name));
-        }
+    return containedObjects;
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::containedObjects(const ContextStack &context)
+{
+    BOOST_ASSERT(!context.empty());
+    for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
+        if (it->filter || it->name.empty())
+            throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find merged objects for context stack with filters or kinds without names.");
     }
+
+    return containedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::mergedObjectsTransitively(const ObjectDefinition &object)
+{
+    if (object.name.empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::mergedObjectsTransitively: Can not find merged objects for context stack with filters or kinds without names.");
+
+    std::vector<ObjectDefinition> mergedObjects;
+    mergedObjectsTransitivelyRec(object, mergedObjects);
 
     return mergedObjects;
 }
 
 
 
-std::vector<ObjectDefinition> DbInteraction::mergedObjects(const ContextStack &context)
+std::vector<ObjectDefinition> DbInteraction::mergedObjectsTransitively(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
         if (it->filter || it->name.empty())
-            throw std::logic_error("Deska::Cli::DbInteraction::mergedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+            throw std::logic_error("Deska::Cli::DbInteraction::mergedObjectsTransitively: Can not find merged objects for context stack with filters or kinds without names.");
     }
 
-    return mergedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    return mergedObjectsTransitively(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+}
+
+
+
+Db::Identifier DbInteraction::referredKind(const Db::Identifier &kind, const Db::Identifier &attribute)
+{
+    std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> >::const_iterator it = referringAttrs.find(kind);
+    if (it == referringAttrs.end())
+        return Db::Identifier();
+    std::map<Db::Identifier, Db::Identifier>::const_iterator it2 = it->second.find(attribute);
+    if (it2 == it->second.end())
+        return Db::Identifier();
+    else
+        return it2->second;
 }
 
 
@@ -406,13 +460,17 @@ std::vector<Db::PendingChangeset> DbInteraction::allPendingChangesets()
 
 Db::TemporaryChangesetId DbInteraction::createNewChangeset()
 {
-    return m_api->startChangeset();
+    clearCache();
+    stableView = true;
+    return m_api->startChangeset();   
 }
 
 
 
 void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 {
+    clearCache();
+    stableView = true;
     m_api->resumeChangeset(changesetId);
 }
 
@@ -420,6 +478,8 @@ void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 
 void DbInteraction::commitChangeset(const std::string &message)
 {
+    clearCache();
+    stableView = false;
     m_api->commitChangeset(message);
 }
 
@@ -427,6 +487,8 @@ void DbInteraction::commitChangeset(const std::string &message)
 
 void DbInteraction::detachFromChangeset(const std::string &message)
 {
+    clearCache();
+    stableView = false;
     m_api->detachFromCurrentChangeset(message);
 }
 
@@ -434,7 +496,18 @@ void DbInteraction::detachFromChangeset(const std::string &message)
 
 void DbInteraction::abortChangeset()
 {
+    clearCache();
+    stableView = false;
     m_api->abortCurrentChangeset();
+}
+
+
+
+void DbInteraction::restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp)
+{
+    clearCache();
+    stableView = false;
+    m_api->restoringCommit(message, author, timestamp);
 }
 
 
@@ -564,6 +637,9 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                 }
             }
         }
+        if (stableView)
+            for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it)
+                objectExistsCache[*it] = true;
     }
 
     return objects;
@@ -587,6 +663,8 @@ void DbInteraction::unlockCurrentChangeset()
 
 void DbInteraction::freezeView()
 {
+    stableView = true;
+    clearCache();
     m_api->freezeView();
 }
 
@@ -594,7 +672,58 @@ void DbInteraction::freezeView()
 
 void DbInteraction::unFreezeView()
 {
+    stableView = false;
+    clearCache();
     m_api->unFreezeView();
+}
+
+
+
+void DbInteraction::clearCache()
+{
+    objectExistsCache.clear();
+}
+
+
+
+void DbInteraction::mergedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                                 std::vector<ObjectDefinition> &mergedObjects)
+{
+    // Kinds, that this kind contains
+    for (std::vector<Db::Identifier>::iterator it =
+        mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
+            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        BOOST_ASSERT(instances.size() <= 1);
+        if (!instances.empty()) {
+            BOOST_ASSERT(instances.front() == object.name);
+            ObjectDefinition mObj(*it, object.name);
+            if (stableView)
+                objectExistsCache[mObj] = true;
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end()) {
+                mergedObjects.push_back(mObj);
+                mergedObjectsTransitivelyRec(mObj, mergedObjects);
+            }
+        }
+    }
+
+    // Kinds containing this kind
+    for (std::vector<Db::Identifier>::iterator it =
+        mergedTo[object.kind].begin(); it != mergedTo[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
+            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        BOOST_ASSERT(instances.size() <= 1);
+        if (!instances.empty()) {
+            BOOST_ASSERT(instances.front() == object.name);
+            ObjectDefinition mObj(*it, object.name);
+            if (stableView)
+                objectExistsCache[mObj] = true;
+            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end()) {
+                mergedObjects.push_back(mObj);
+                mergedObjectsTransitivelyRec(mObj, mergedObjects);
+            }
+        }
+    }
 }
 
 

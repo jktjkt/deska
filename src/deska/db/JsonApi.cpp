@@ -208,7 +208,7 @@ std::map<Identifier, std::map<Identifier, Value> > JsonApiParser::multipleResolv
     return res.objects;
 }
 
-map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
+map<Identifier, pair<boost::optional<Identifier>, Value> > JsonApiParser::resolvedObjectDataWithOrigin(const Identifier &kindName,
                                                                       const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
     JsonCommandContext c1("resolvedObjectDataWithOrigin");
@@ -224,7 +224,7 @@ map<Identifier, pair<Identifier, Value> > JsonApiParser::resolvedObjectDataWithO
     return res.attributes;
 }
 
-std::map<Identifier, std::map<Identifier, std::pair<Identifier, Value> > > JsonApiParser::multipleResolvedObjectDataWithOrigin(
+std::map<Identifier, std::map<Identifier, std::pair<boost::optional<Identifier>, Value> > > JsonApiParser::multipleResolvedObjectDataWithOrigin(
     const Identifier &kindName, const boost::optional<Filter> &filter, const boost::optional<RevisionId> &revision)
 {
     JsonCommandContext c1("multipleResolvedObjectDataWithOrigin");
@@ -334,23 +334,25 @@ TemporaryChangesetId JsonApiParser::startChangeset()
 {
     JsonCommandContext c1("startChanges");
 
-    TemporaryChangesetId revision(0);
+    boost::optional<TemporaryChangesetId> revision;
     JsonHandlerApiWrapper h(this, "startChangeset");
     h.read("startChangeset").extract(&revision);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 RevisionId JsonApiParser::commitChangeset(const std::string &commitMessage)
 {
     JsonCommandContext c1("commitChangeset");
 
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     JsonHandlerApiWrapper h(this, "commitChangeset");
     h.read("commitChangeset").extract(&revision);
     h.argument("commitMessage", commitMessage);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 vector<PendingChangeset> JsonApiParser::pendingChangesets(const boost::optional<Filter> &filter)
@@ -428,14 +430,15 @@ RevisionId JsonApiParser::restoringCommit(const std::string &commitMessage, cons
 {
     JsonCommandContext c1("restoringCommit");
 
-    RevisionId revision(0);
+    boost::optional<RevisionId> revision;
     JsonHandlerApiWrapper h(this, "restoringCommit");
     h.read("restoringCommit").extract(&revision);
     h.argument("commitMessage", commitMessage);
     h.argument("author", author);
     h.argument("timestamp", timestamp);
     h.work();
-    return revision;
+    BOOST_ASSERT(revision);
+    return *revision;
 }
 
 std::vector<RevisionMetadata> JsonApiParser::listRevisions(const boost::optional<Filter> &filter) const
@@ -516,61 +519,6 @@ std::string JsonApiParser::showConfigDiff(const ConfigGeneratingMode forceRegene
     h.read("showConfigDiff").extract(&res);
     h.work();
     return res;
-}
-
-JsonParseError::JsonParseError(const std::string &message): std::runtime_error(message)
-{
-}
-
-JsonParseError::~JsonParseError() throw ()
-{
-}
-
-void JsonParseError::addRawJsonData(const std::string &data)
-{
-    std::ostringstream ss;
-    ss << std::runtime_error::what() << std::endl << "Raw JSON data read from the process: '" << data << "'";
-    m_completeError = ss.str();
-}
-
-const char* JsonParseError::what() const throw()
-{
-    return m_completeError.empty() ? std::runtime_error::what() : m_completeError.c_str();
-}
-
-std::string JsonParseError::whatWithBacktrace() const throw()
-{
-    // We're required not to throw, so we have to use a generic catch-all block here
-    try {
-        std::ostringstream ss;
-        ss << "* " << backtrace("\n * ") << what() << std::endl;
-        return ss.str();
-    } catch (...) {
-        return what();
-    }
-}
-
-JsonSyntaxError::JsonSyntaxError(const std::string &message): JsonParseError(message)
-{
-}
-
-JsonSyntaxError::~JsonSyntaxError() throw ()
-{
-}
-
-JsonStructureError::JsonStructureError(const std::string &message): JsonParseError(message)
-{
-}
-
-JsonStructureError::~JsonStructureError() throw ()
-{
-}
-
-
-JsonCommandContext::JsonCommandContext(const std::string &ctx):
-    m_apiContext(std::string("In ") + ctx + " API method"),
-    m_jsonContext(std::string("In ") + ctx + " API method")
-{
 }
 
 }

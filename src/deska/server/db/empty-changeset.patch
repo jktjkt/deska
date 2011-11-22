@@ -1,0 +1,70 @@
+diff --git a/src/deska/server/db/gen_sql/constants.py b/src/deska/server/db/gen_sql/constants.py
+index 267367a..cbdeae8 100755
+--- a/src/deska/server/db/gen_sql/constants.py
++++ b/src/deska/server/db/gen_sql/constants.py
+@@ -668,17 +668,30 @@ class Templates:
+ 	AS
+ 	$$
+ 	DECLARE	ver bigint;
++		object_name text;
+ 	BEGIN
+ 		SELECT get_current_changeset() INTO ver;
++		FOR object_name IN
+ 		UPDATE %(tbl)s as tbl SET %(assign)s
+ 			FROM %(tbl)s_history as new
+-				WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0';
++				WHERE new.version = ver AND tbl.uid = new.uid AND dest_bit = '0'
++					RETURNING tbl.name LOOP
++		INSERT INTO commited VALUES('%(tbl)s',object_name,'set');
++		END LOOP;
++		FOR object_name IN
+ 		INSERT INTO %(tbl)s (%(columns)s)
+ 			SELECT %(columns)s FROM %(tbl)s_history
+-				WHERE version = ver AND uid NOT IN ( SELECT uid FROM %(tbl)s ) AND dest_bit = '0';
++				WHERE version = ver AND uid NOT IN ( SELECT uid FROM %(tbl)s ) AND dest_bit = '0'
++					RETURNING %(tbl)s.name LOOP
++		INSERT INTO commited VALUES('%(tbl)s',object_name,'add');
++		END LOOP;
++		FOR object_name IN
+ 		DELETE FROM %(tbl)s
+ 			WHERE uid IN (SELECT uid FROM %(tbl)s_history
+-				WHERE version = ver AND dest_bit = '1');
++				WHERE version = ver AND dest_bit = '1')
++					RETURNING %(tbl)s.name LOOP
++		INSERT INTO commited VALUES('%(tbl)s',object_name,'del');
++		END LOOP;
+ 		RETURN 1;
+ 	END
+ 	$$
+diff --git a/src/deska/server/db/gen_sql/schema.py b/src/deska/server/db/gen_sql/schema.py
+index b072936..8076b25 100755
+--- a/src/deska/server/db/gen_sql/schema.py
++++ b/src/deska/server/db/gen_sql/schema.py
+@@ -53,12 +53,14 @@ CREATE FUNCTION commit_all(message text)
+ 	DECLARE rev bigint;
+ 		last_rev bigint;
+ 		parent bigint;
++		change_count bigint;
+ 	BEGIN
+ 		SELECT max(id) INTO last_rev FROM version;
+ 		parent = parent(get_current_changeset());
+ 		IF parent != last_rev THEN
+ 			RAISE SQLSTATE '70007' USING MESSAGE = 'You must run rebase before commit.';
+ 		END IF;
++		CREATE TEMP TABLE commited (kind name, name text, type text);
+ 		SET CONSTRAINTS ALL DEFERRED;
+ 		%(commit_tables)s
+ 		-- should we check constraint before version_commit?
+@@ -67,6 +69,12 @@ CREATE FUNCTION commit_all(message text)
+ 
+ 		SET CONSTRAINTS ALL IMMEDIATE;
+ 
++		SELECT count(*) INTO change_count FROM commited;
++		IF change_count = 0 THEN
++			RAISE SQLSTATE '70077' USING MESSAGE = 'Empty changeset, cannot commit.';
++		END IF;
++		DROP TABLE commited;
++
+ 		RETURN rev;
+ 	END
+ 	$$

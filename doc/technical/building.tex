@@ -9,6 +9,170 @@
 This chapter guides the reader through the installation process of the Deska application suite.
 \end{abstract}
 
-FIXME
+\section{Packages}
+
+FIXME: write something when we actually have any packages
+
+\section{Manual Building}
+
+The Deska system can be built on any reasonably modern Linux system.  The following platforms are equally tested and
+supported:
+
+\begin{itemize}
+    \item Red Hat Enterprise Linux \cite{rhel} 5 (release 5.6 or newer, including derivatives like Scientific
+        Linux~\cite{scientific-linux})
+    \item Red Hat Enterprise Linux 6 (release 6.1 or newer, including derivatives like Scientific Linux)
+    \item Gentoo Linux~\cite{gentoo}
+\end{itemize}
+
+\subsection{Prerequisites}
+
+All platforms require a C++ compiler with decent support for templates.  Please be advised that compilation of the CLI
+involves instantiation of rather complicated template structures which might require unusual amounts of RAM.  We have
+observed a real memory consumption of up to 1.5~GB of RAM for each compile job.
+
+The build process requires the following packages as an absolute minimum on a RHEL5 machine:
+
+\begin{itemize}
+    \item CMake (2.6 or later)~\cite{cmake}
+    \item Boost Date Time (1.41 or newer)~\cite{boost}
+    \item Boost Program Options (1.41 or newer)
+    \item Boost Python (1.41 or newer)
+    \item Boost System (1.41 or newer)
+    \item Boost Unit Test Framework (1.41 or newer)
+    \item GNU Readline (5.1 or newer; in case of RHEL5, we also require the {\tt termcap} library version 2.0.8 or
+        newer)~\cite{gnu-readline}
+    \item The {\tt libebt} library (optional, shipped in the sources)~\cite{libebt}
+    \item The {\tt json\_spirit} library (optional, shipped in the sources)~\cite{json-spirit}
+    \item The non-standard Boost Process library (patched version which is required for the tests is shipped in the
+        sources)~\cite{boost-process}
+\end{itemize}
+
+The set of libraries listed above is enough to build the CLI of the Deska system.  However, in order to be able to
+deploy the Deska server, the following packages are required to be present on the target server system, in addition to
+the former list:
+
+\begin{itemize}
+    \item PostgreSQL (9.0 or newer)~\cite{postgresql}
+    \item Python (2.6, or Python 2.4 with the {\tt simplejson}~\cite{simplejson} module version 2.1.0)~\cite{python}
+    \item PsycoPg2 (2.0.14 or newer)~\cite{psycopg}
+    \item The {\tt pg-python} procedural language (1.0.0 or later; not to be confused with the PlPython
+        package)~\cite{pg-python}
+    \item GitPython (the 0.1 branch; tested with 0.1.7, later branches have changed the API in an incompatible
+        way)~\cite{git-python}
+\end{itemize}
+
+Although not strictly compulsory for regular builds, the following packages are required for the unit tests.  Running
+unit tests after each manual build is highly suggested:
+
+\begin{itemize}
+    \item PgTAP unit test framework for Postgres (0.25 or later)~\cite{pgtap}
+\end{itemize}
+
+Fully automated test runs might require the following packages to be present and configured:
+
+\begin{itemize}
+    \item CMake (2.8 or later provides proper Git integration for nightly builds~\cite{deska-dashboard})
+    \item Git (1.6.6 or later)
+\end{itemize}
+
+Finally, in order to build the documentation from source, the following packages will have to be present:
+
+\begin{itemize}
+    \item The {\tt pdflatex} \LaTeX~PDF compiler
+    \item The {\tt minted} \LaTeX~package~\cite{latex-minted}
+    \item The {\tt pygments} Python package~\cite{pygments}
+    \item The {\tt subfiles} \LaTeX~package (optional, shipped with Deska)~\cite{latex-subfiles}
+\end{itemize}
+
+\subsection{Getting the Sources}
+
+Apart from the stable releases available from the project homepage~\cite{deska-project}, the sources are also available
+from an anonymous Git repository~\cite{deska-git}:
+
+\begin{minted}{console}
+$ git clone git://repo.or.cz/deska.git
+Cloning into deska...
+remote: Counting objects: 23348, done.
+remote: Compressing objects: 100% (9151/9151), done.
+remote: Total 23348 (delta 14099), reused 23208 (delta 14001)
+Receiving objects: 100% (23348/23348), 5.12 MiB | 183 KiB/s, done.
+Resolving deltas: 100% (14099/14099), done.
+\end{minted}
+
+\subsection{Compilation}
+
+After the sources are obtained and the source tree is ready, use the following command to perform the
+build.\footnote{Some ssytems, most notably the RHEL5, suffer from a suboptimally built {\tt libreadline} which fails to
+specify all of the required library dependencies.\cite{rhel5-readline-bug}.  The Deska build system includes special
+tweaks for building on such systems through the {\tt -DEXTRA\_READLINE\_LIBRARY} option which shall point to a .so
+library providing missing symbols.  Typical names are {\tt libtinfo.so.5} or {\tt libtermcap.so.2}.}  The build
+process is controlled by standard CMake options (like the {\tt -DCMAKE\_INSTALL\_PREFIX} for target path) and a few
+custom ones.  Be sure to pass on the {\tt -DRUN\_SQL\_TESTS=1} statement to include complex test cases which involve
+interaction with a remote PostgreSQL database.  If you would like to build the documentation as well, use the {\tt
+-DBUILD\_DOCS=1} option.
+
+\begin{minted}{console}
+$ cd deska/
+$ mkdir _build
+$ cd _build/
+$ cmake -DCMAKE_INSTALL_PREFIX=/opt -DRUN_SQL_TESTS=1 -DBUILD_DOCS=1 ..
+-- The C compiler identification is GNU
+-- The CXX compiler identification is GNU
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Boost version: 1.46.1
+-- Found the following Boost libraries:
+--   system
+--   date_time
+--   unit_test_framework
+--   python
+--   program_options
+-- Using libebt from /home/jkt/deska/src/3rd-party/libebt-1.3.0
+-- Using json_spirit from /home/jkt/deska/src/3rd-party/json_spirit_4.04
+-- Using boost::process from /home/jkt/deska/src/3rd-party/process
+-- Found GNU readline: /usr/lib64/libreadline.so
+-- Found PythonLibs: /usr/lib64/libpython2.7.so
+-- Will run SQL database tests upon each `make test` run.
+-- Will re-initialize the database before each test
+-- Copying directory /home/jkt/deska/_build/tests/sql
+-- Writing out test configuration
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/jkt/deska/_build
+$ time make -j4
+# ...
+\end{minted}
+
+\subsection{Test Invocation}
+
+After the sources have been built, it is highly recommended to run the automated test suite.  No extra configuration is
+required, apart from an available PostgreSQL server binary.  The test case will configure and start its own PostgreSQL
+server instance, using the {\tt /dev/shm} {\tt shmfs} in-memory filesystem as the backing store, and will use just the
+Unix socket for communication.  This test assumes that the PostgreSQL administration tools, like the {\tt initdb} and
+the {\tt postgres} binary, are available to the current user.
+
+\begin{minted}{console}
+$ time ../run-standalone-tests.sh
+# This step might take several minutes to complete.
+100% tests passed, 0 tests failed out of 48
+\end{minted}
+
+\subsection{Installation}
+
+When the tests have finished correctly, the client tools can be installed by running {\tt make install}.  The server,
+however, requires more complex procedure to set up.
+
+FIXME: describe installation of the "deska" Python module
+
+\section{Setup and Configuration}
+
+FIXME: describe the database setup here
 
 \end{document}

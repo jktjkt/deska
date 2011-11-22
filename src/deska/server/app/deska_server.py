@@ -2,8 +2,10 @@
 
 from jsonparser import perform_io
 from dbapi import DB
+import os
 import sys
 import logging
+import errno
 from optparse import OptionParser
 try:
     import json
@@ -44,12 +46,13 @@ if (options.log_stderr and options.logfile):
 if options.cfggenBackend not in ("error", "fake", "git"):
     parser.error("Unsupported backend for configuration generators")
 
+logformat_pid = "%(levelname)s:%(name)s:%(process)s:%(message)s"
 if options.logfile:
-    logging.basicConfig(filename = options.logfile, level=logging.DEBUG)
+    logging.basicConfig(filename = options.logfile, level=logging.DEBUG, format=logformat_pid)
 elif options.log_stderr:
-    logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream = sys.stderr, level=logging.DEBUG, format=logformat_pid)
 else:
-    logging.basicConfig(stream = sys.stderr, level=logging.CRITICAL)
+    logging.basicConfig(stream = sys.stderr, level=logging.CRITICAL, format=logformat_pid)
 
 logging.debug("starting deska server")
 
@@ -58,6 +61,17 @@ if options.database:
     dbargs["database"] = options.database
 if options.username:
     dbargs["user"] = options.username
+
+try:
+    # Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
+    # we don't have to deal with KeyboardInterrupt exception
+    os.setsid()
+except OSError, e:
+    if e.errno == errno.EPERM:
+        # we're already a session leader -> do nothing
+        pass
+    else:
+        raise
 
 cfggenOptions = {"cfggenScriptPath": options.cfggenScriptPath,
                  "cfggenGitRepo": options.cfggenGitRepo,

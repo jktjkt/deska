@@ -28,6 +28,7 @@
 
 #include "CliObjects.h"
 #include "deska/db/Revisions.h"
+#include "deska/db/ObjectModification.h"
 
 
 namespace Deska {
@@ -36,6 +37,65 @@ namespace Cli {
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v);
 
 class UserInterface;
+
+
+/** @short Type of object modification for sorting purposes */
+typedef enum {
+    /** @short Db::DeleteObjectModification */
+    OBJECT_MODIFICATION_TYPE_DELETE = 0,
+    /** @short Db::RenameObjectModification */
+    OBJECT_MODIFICATION_TYPE_RENAME = 1,
+    /** @short Db::CreateObjectModification */
+    OBJECT_MODIFICATION_TYPE_CREATE = 2,
+    /** @short Db::SetAttributeModification */
+    OBJECT_MODIFICATION_TYPE_SETATTR = 3
+} ModificationType;
+
+ 
+
+/** @short Visitor for obtaining type of each object modification */
+struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
+{
+    //@{
+    /** @short Function for obtaining ModificationType for each modification
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Type of the modification
+    */
+    ModificationType operator()(const Db::CreateObjectModification &modification) const;
+    ModificationType operator()(const Db::DeleteObjectModification &modification) const;
+    ModificationType operator()(const Db::RenameObjectModification &modification) const;
+    ModificationType operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
+
+
+
+/** @short Visitor for comparing two modification of the same type */
+struct ModificationComparatorLesss: public boost::static_visitor<bool>
+{
+    //@{
+    /** @short Function for comparing two modifications of the same type
+    *
+    *   @param a Instance of modifications from Db::ObjectModification variant.
+    *   @param b Instance of modifications from Db::ObjectModification variant.
+    *   @return True if the first modification is "less" than the second. Comparing kinds and object names.
+    */
+    bool operator()(const Db::CreateObjectModification &a, const Db::CreateObjectModification &b) const;
+    bool operator()(const Db::DeleteObjectModification &a, const Db::DeleteObjectModification &b) const;
+    bool operator()(const Db::RenameObjectModification &a, const Db::RenameObjectModification &b) const;
+    /** When comparing SetAttribute modifications, that are on the same attribute of the same kind, but the
+    *   values differ, first modification is always "less". This ensures stable sorting.
+    */
+    bool operator()(const Db::SetAttributeModification &a, const Db::SetAttributeModification &b) const;
+    //@}
+
+    /** @short Function for enabling this comparator work. This function should not be called.
+    */
+    template <typename MA, typename MB>
+    bool operator()(const MA &a, const MB &b) const;
+};
+
 
 
 /** @short Abstract class for each command.
@@ -277,13 +337,15 @@ public:
     virtual void operator()(const std::string &params);
 
 private:
-
-    /** Converts string to Db::RevisionId.
+    /** @short Function for sorting object modifications.
     *
-    *   @param rev String in format r123.
-    *   @return Revision id.
+    *   Sorting at first by modification type, then by kind, by name, and lastly by attribute name.
+    *
+    *   @param a First object modification
+    *   @param b Second object modification
+    *   @return True if b is greater than a, else false
     */
-    Db::RevisionId stringToRevision(const std::string &rev);
+    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
 
@@ -407,6 +469,69 @@ private:
 *
 *   @see Command
 */
+class Batch: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Batch(UserInterface *userInterface);
+
+    virtual ~Batch();
+
+    /** @short Runs commands from file.
+    *
+    *   @param params File name where commands are stored.
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Backs up the whole DB to a file.
+*
+*   @see Command
+*/
+class Backup: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Backup(UserInterface *userInterface);
+
+    virtual ~Backup();
+
+    /** @short Backs up the whole DB to a file.
+    *
+    *   @param params File name where the backup will be stored.
+    */
+    virtual void operator()(const std::string &params);
+
+private:
+    /** @short Function for sorting object modifications.
+    *
+    *   Sorting by modification type.
+    *
+    *   @param a First object modification
+    *   @param b Second object modification
+    *   @return True if b is greater than a, else false
+    */
+    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
+};
+
+
+
+/** @short Cli command.
+*
+*   Restores whole DB from file.
+*
+*   @see Command
+*/
 class Restore: public Command
 {
 public:
@@ -418,9 +543,9 @@ public:
 
     virtual ~Restore();
 
-    /** @short Restores DB from a dump.
+    /** @short Restores whole DB from file.
     *
-    *   @param params File name where the dump is stored.
+    *   @param params File name where the backup is stored.
     */
     virtual void operator()(const std::string &params);
 };

@@ -24,6 +24,7 @@
 #include <boost/test/test_tools.hpp>
 #include <boost/assert.hpp>
 #include "CliTestFixture.h"
+#include "deska/cli/CliConfig.h"
 
 // At first, define a few macros which specify how the code shall be generated
 
@@ -102,7 +103,7 @@ TestUserInterfaceIO::~TestUserInterfaceIO()
 }
 
 CliTestFixture::CliTestFixture():
-    conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
+    conf(0), conn(0), parser(0), db(0), io(0), ui(0), sh(0), testStarted(false)
 {
 }
 
@@ -114,6 +115,7 @@ CliTestFixture::~CliTestFixture()
     delete db;
     delete parser;
     delete conn;
+    delete conf;
 }
 
 
@@ -131,14 +133,80 @@ void CliTestFixture::verifyEnd()
 void CliTestFixture::startTest()
 {
     BOOST_ASSERT(!testStarted);
+    int argc = 0;
+    char **argv = 0;
     testStarted = true;
+    conf = new Deska::Cli::CliConfig("deska.ini", argc, argv);
     conn = new Deska::Db::Connection();
     parser = new Deska::Cli::Parser(conn);
     db = new Deska::Cli::DbInteraction(conn);
     io = new TestUserInterfaceIO(this);
-    ui = new Deska::Cli::UserInterface(db, parser, io);
+    ui = new Deska::Cli::UserInterface(db, parser, io, conf);
     sh = new Deska::Cli::SignalsHandler(parser, ui);
     ui->run();
+}
+
+
+
+void CliTestFixture::expectCliInit()
+{
+    expectAddCommandCompletion("abort");
+    expectAddCommandCompletion("backup %file");
+    expectAddCommandCompletion("batch %file");
+    expectAddCommandCompletion("commit");
+    expectAddCommandCompletion("configdiff regenerate");
+    expectAddCommandCompletion("context objects");
+    expectAddCommandCompletion("detach");
+    expectAddCommandCompletion("diff %file");
+    expectAddCommandCompletion("dump %file");
+    expectAddCommandCompletion("exit");
+    expectAddCommandCompletion("quit");
+    expectAddCommandCompletion("help kinds");
+    expectAddCommandCompletion("help help");
+    expectAddCommandCompletion("help abort");
+    expectAddCommandCompletion("help backup");
+    expectAddCommandCompletion("help batch");
+    expectAddCommandCompletion("help commit");
+    expectAddCommandCompletion("help configdiff");
+    expectAddCommandCompletion("help context");
+    expectAddCommandCompletion("help detach");
+    expectAddCommandCompletion("help diff");
+    expectAddCommandCompletion("help dump");
+    expectAddCommandCompletion("help exit");
+    expectAddCommandCompletion("help log");
+    expectAddCommandCompletion("help quit");
+    expectAddCommandCompletion("help rebase");
+    expectAddCommandCompletion("help restore");
+    expectAddCommandCompletion("help resume");
+    expectAddCommandCompletion("help start");
+    expectAddCommandCompletion("help status");
+    expectAddCommandCompletion("help hardware");
+    expectAddCommandCompletion("help hardware_template");
+    expectAddCommandCompletion("help host");
+    expectAddCommandCompletion("help host_template");
+    expectAddCommandCompletion("help interface");
+    expectAddCommandCompletion("help interface_template");
+    expectAddCommandCompletion("help service");
+    expectAddCommandCompletion("help vendor");
+    expectAddCommandCompletion("help add");
+    expectAddCommandCompletion("help all");
+    expectAddCommandCompletion("help create");
+    expectAddCommandCompletion("help delete");
+    expectAddCommandCompletion("help end");
+    expectAddCommandCompletion("help last");
+    expectAddCommandCompletion("help new");
+    expectAddCommandCompletion("help no");
+    expectAddCommandCompletion("help remove");
+    expectAddCommandCompletion("help show");
+    expectAddCommandCompletion("log");
+    expectAddCommandCompletion("exit");
+    expectAddCommandCompletion("quit");
+    expectAddCommandCompletion("rebase");
+    expectAddCommandCompletion("restore %file");
+    expectAddCommandCompletion("resume");
+    expectAddCommandCompletion("start");
+    expectAddCommandCompletion("status");
+    expectPrintMessage("Deska CLI started. For usage info try typing \"help\".");
 }
 
 

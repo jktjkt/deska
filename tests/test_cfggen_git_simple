@@ -19,7 +19,7 @@ MY_WC="${DESKA_CFGGEN_GIT_WC}/default"
 
 function generate() {
     #GIT_PYTHON_TRACE=full
-    python ${DESKA_SOURCES}/src/deska/LowLevelPyDeska/generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${MY_WC} ${DESKA_CFGGEN_SCRIPTS} $* || die "Test failed"
+    python ${DESKA_SOURCES}/src/deska/server/config-generators/gitgenerator.py ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ${MY_WC} ${DESKA_CFGGEN_SCRIPTS} $* || die "Test failed"
 }
 
 function verify-same() {

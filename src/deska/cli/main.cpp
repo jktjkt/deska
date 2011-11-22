@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include "deska/db/Connection.h"
+#include "deska/db/JsonException.h"
 #include "DbInteraction.h"
 #include "ParserSignals.h"
 #include "UserInterface.h"
@@ -39,8 +40,13 @@ int main(int argc, char **argv)
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
     Deska::Cli::UserInterfaceIO io(&parser, &config);
-    Deska::Cli::UserInterface ui(&db, &parser, &io);
+    Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
     Deska::Cli::SignalsHandler(&parser, &ui);
-    ui.run();
+    try {
+        ui.run();
+    } catch (Deska::Db::JsonParseError &e) {
+        std::cerr << "Unhandled exception:\n " << e.whatWithBacktrace() << std::endl;
+        return 1;
+    }
     return 0;
 }

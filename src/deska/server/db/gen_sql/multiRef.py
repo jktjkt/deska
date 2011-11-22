@@ -547,7 +547,7 @@ LANGUAGE plpgsql;
 
 
 
-    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_diff(changeset_id bigint = 0)
+    diff_changeset_init_function_str = '''CREATE FUNCTION %(tbl)s_init_ch_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$
@@ -575,7 +575,7 @@ LANGUAGE plpgsql;
 
 '''
 
-    diff_changeset_init_resolved_function_str = '''CREATE FUNCTION %(tbl)s_init_resolved_diff(changeset_id bigint = 0)
+    diff_changeset_init_resolved_function_str = '''CREATE FUNCTION %(tbl)s_init_ch_resolved_diff(changeset_id bigint = 0)
 RETURNS void
 AS
 $$

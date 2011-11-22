@@ -16,7 +16,8 @@ CREATE TABLE modelhardware (
 	-- vendor of the hardware
 	vendor bigint 
 		CONSTRAINT modelhardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
-	-- FIXME: clear reason for this
+	-- The "type of box" is specific to the model of hardware, which is why it
+	-- goes here
 	modelbox bigint 
 		CONSTRAINT modelhardware_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
 	-- MB of RAM
@@ -33,10 +34,15 @@ CREATE TABLE modelhardware (
 	cpu_cores int
 		CONSTRAINT "cpu_cores should be positive number"
 		CHECK (cpu_cores > 0),
+	-- is the HypoerThreading on?
 	cpu_ht bool,
 	-- performance of the box
 	hepspec real,
 	-- size of one disk drive
+	-- FIXME: add a constraint saying "either hdd_drive_capacity and
+	-- hdd_drive_count are both non-NULL and positive, or the hdd_note is
+	-- not-NULL.  All of these two posibilities shall be allowed also at the
+	-- same time.
 	hdd_drive_capacity int
 		CONSTRAINT "modelhardware hdd_drive_capacity should be positive number"
 		CHECK (hdd_drive_capacity > 0),
@@ -47,7 +53,7 @@ CREATE TABLE modelhardware (
 	-- an unspecified note for the disk
 	hdd_note text,
 
-	-- maximal power consumption of a box
+	-- maximal power consumption of a box, in Watts
 	power_max int,
 	-- how many power supplies does it have?
 	-- note that it is completely acceptable to have zero here (like for blades)
