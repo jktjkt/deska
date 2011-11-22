@@ -133,6 +133,12 @@ def hasTemplate(kindName):
 	else:
 		return False
 
+def getData(kindName):
+	'''get name of the data function'''
+	if hasTemplate(kindName):
+		return "resolved_data($1)"
+	return "data_version($1)"
+
 def getDataFunction(funcName,kindName):
 	'''get name of the data function'''
 	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
