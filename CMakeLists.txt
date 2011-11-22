@@ -227,6 +227,11 @@ install(FILES
 install(TARGETS DeskaDb DESTINATION lib)
 install(TARGETS deska-cli DESTINATION bin)
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/python/deska
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
+install(TARGETS LowLevelPyDeska
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
+
 include(CTest)
 add_subdirectory(tests)
 
