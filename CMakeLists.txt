@@ -219,6 +219,7 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/AdditionalValueStreamOperators.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Filter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonExceptions.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ObjectModification.h
