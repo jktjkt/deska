@@ -167,7 +167,13 @@ public:
     */
     std::vector<ObjectDefinition> allNestedObjects(const ObjectDefinition &object);
 
-    /** @short Obtains all attributes of given object.
+    /** @short Obtains list of all objects, that could be nested, but their parent does not exist
+    *
+    *   @return Vector of all orphans
+    */
+    std::vector<ObjectDefinition> allOrphanObjects();
+
+    /** @short Obtains all nested objects in given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
@@ -339,7 +345,7 @@ private:
     /** Identifiers of all kinds. */
     std::vector<Db::Identifier> allKinds;
     /** Map of kind names and kinds, where is the kind embedded. */
-    std::map<Db::Identifier, Db::Identifier> embeddedInto;
+    std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> > embeddedInto;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
     /** Map of kinds and vector of kinds, that are merged with the kind. */

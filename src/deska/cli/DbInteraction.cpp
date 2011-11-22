@@ -44,7 +44,7 @@ DbInteraction::DbInteraction(Db::Api *api):
             if (itr->kind == Db::RELATION_EMBED_INTO) {
                 isEmbedded = true;
                 embeds[itr->target].push_back(*itk);
-                embeddedInto[*itk] = itr->target;
+                embeddedInto[*itk] = std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target);
             }
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
@@ -301,6 +301,24 @@ std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allA
         return allAttributesResolvedWithOrigin(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     else
         return std::vector<std::pair<AttributeDefinition, Db::Identifier> >();
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::allOrphanObjects()
+{
+    std::vector<ObjectDefinition> kinds;
+    for (std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::iterator it = embeddedInto.begin();
+         it != embeddedInto.end(); ++it) {
+        std::vector<Db::Identifier> orphs = m_api->kindInstances(it->first, Db::Filter(
+            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, it->first, it->second.first, 0)));
+        for (std::vector<Db::Identifier>::iterator ite = orphs.begin(); ite != orphs.end(); ++ite) {
+            kinds.push_back(ObjectDefinition(it->first, *ite));
+            if (stableView)
+                objectExistsCache[ObjectDefinition(it->first, *ite)] = true;
+        }
+    }
+    return kinds;
 }
 
 

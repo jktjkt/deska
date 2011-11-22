@@ -212,6 +212,7 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
+        io->printObjects(m_dbInteraction->allOrphanObjects(), 0, true);
     } else {
         // If we are in some context, print all attributes and kind names
         try {
@@ -507,6 +508,12 @@ void UserInterface::run()
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected server error:\n" << e.whatWithBacktrace() << std::endl;
+            io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
+        } catch (Db::JsonParseError &e) {
+            std::ostringstream ostr;
+            ostr << "Unexpected JSON error:\n" << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
