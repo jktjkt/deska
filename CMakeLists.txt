@@ -96,6 +96,21 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
 #link_directories(${PYTHON_LIBRARIES})
 
+if(PYTHON_SITE_PACKAGES)
+    message(STATUS "Python site-packages specified by hand: ${PYTHON_SITE_PACKAGES}")
+else()
+    # We also require the interpreter to be able to tell the PYTHONPATH
+    find_package(PythonInterp REQUIRED)
+    if(PYTHONINTERP_FOUND)
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
+            "import distutils.sysconfig; import sys; sys.stdout.write(distutils.sysconfig.get_python_lib())"
+            OUTPUT_VARIABLE PYTHON_SITE_PACKAGES)
+        message(STATUS "Python site-packages target: ${PYTHON_SITE_PACKAGES}")
+    else()
+        message(FATAL "Couldn't determine the PYTHON_SITE_PACKAGES directory")
+    endif()
+endif()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -114,6 +129,7 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/FakeApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonHandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonException.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonExtraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/CachingJsonApi.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/IOSocket.cpp
@@ -198,9 +214,32 @@ target_link_libraries(deska-cli DeskaCli)
 add_library(LowLevelPyDeska SHARED ${libLowLevelPyDeska_SRCS})
 target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
 
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Api.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/AdditionalValueStreamOperators.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Filter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/JsonExceptions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/MacAddress.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/ObjectModification.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.h
+    DESTINATION include/deska/db
+)
+install(TARGETS DeskaDb DESTINATION lib)
+install(TARGETS deska-cli DESTINATION bin)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/python/deska
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
+install(TARGETS LowLevelPyDeska
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
+
 include(CTest)
 add_subdirectory(tests)
 
 if(BUILD_DOCS)
+    message(STATUS "Will build PDF documentation")
     add_subdirectory(doc/technical)
+else()
+    message(STATUS "Will not build PDF documentation")
 endif(BUILD_DOCS)

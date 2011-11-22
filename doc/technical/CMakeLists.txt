@@ -18,7 +18,7 @@
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-
+project(deska)
 include(../../UseLATEX.cmake)
 
 set(PDFLATEX_COMPILER_FLAGS "-shell-escape" "${PDFLATEX_COMPILER_FLAGS}")
@@ -34,3 +34,7 @@ add_latex_document(deska.tex
     BIBFILES references.bib
     MANGLE_TARGET_NAMES
     DEFAULT_PDF)
+
+set(DOCDIR share/doc)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/deska.pdf
+    DESTINATION ${DOCDIR}/${PROJECT_NAME})

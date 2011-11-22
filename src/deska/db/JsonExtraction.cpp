@@ -790,6 +790,16 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_INT:
     {
         JsonContext c2("When extracting TYPE_INT");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: Redmine#312, we've got to accept strings here
+            JsonContext c3("When extracting TYPE_INT passed as string");
+            try {
+                target->value = boost::lexical_cast<int>(value.get_str());
+            } catch (const boost::bad_lexical_cast& e) {
+                throw JsonStructureError(e.what());
+            }
+            return;
+        }
         checkJsonValueType(value, json_spirit::int_type);
         target->value = value.get_int();
         return;
@@ -797,6 +807,16 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_DOUBLE:
     {
         JsonContext c2("When extracting TYPE_DOUBLE");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: Redmine#312, we've got to accept strings here
+            JsonContext c3("When extracting TYPE_DOUBLE passed as string");
+            try {
+                target->value = boost::lexical_cast<double>(value.get_str());
+            } catch (const boost::bad_lexical_cast& e) {
+                throw JsonStructureError(e.what());
+            }
+            return;
+        }
         // got to preserve our special case for checking for both possibilities
         if (value.type() != json_spirit::real_type && value.type() != json_spirit::int_type)
             throw JsonStructureError("Attribute value is not a real");

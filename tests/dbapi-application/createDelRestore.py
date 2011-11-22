@@ -53,8 +53,7 @@ def doStuff(r):
     rev4 = r.c(commitChangeset("."))
     changeset = r.c(startChangeset())
     r.cvoid(deleteObject("vendor", "v2"))
-    # FIXME: Redmine #307, wrong exception
-    #r.cfail(renameObject("vendor", "v3", "v2"), exception=ReCreateObjectError())
+    r.cfail(renameObject("vendor", "v3", "v2"), exception=ReCreateObjectError())
     expectedDiff = [
         {'command': 'deleteObject', 'kindName': 'vendor', 'objectName': 'v2'},
     ]

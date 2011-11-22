@@ -117,6 +117,10 @@ class Table(constants.Templates):
 	def gen_set(self,col_name):
 		"""Generates the stored procedure that sets value of attribute named col_name."""
 		return self.set_string % {'tbl': self.name, 'colname': col_name, 'coltype': self.col[col_name], 'columns': self.get_columns()}
+	
+	def gen_set_name(self):
+		"""Generates the set_name stored procedure for setting name of unembed kinds."""
+		return self.set_name_string % {'tbl': self.name, 'columns': self.get_columns()}
 
 	def gen_set_name_embed(self, col_name, reftable):
 		"""Generates the set_name stored procedure for setting name of embed kinds."""
@@ -145,7 +149,8 @@ class Table(constants.Templates):
 		del collist['uid']
 		del collist['name']
 		if len(collist) == 0:
-			return ""
+			#for kinds that has not additional data attributes (has only name, uid) generates another function
+			return self.get_data_empty_kind_string % {'tbl': self.name}
 
 		if self.embed_column <> "":
 			get_data_string = self.get_embed_data_string
@@ -668,16 +673,25 @@ class Table(constants.Templates):
 		collist = self.col.keys()
 		collist.append('dest_bit')
 		select_new_attributes = ["chv.%s AS new_%s" % (x, x) for x in collist]
+		select_new_attributes_ch = ["chv.%s AS new_%s" % (x, x) for x in collist]
 		#dest_bit from resolved data is allways 0
 		select_old_attributes = ["dv.%s AS old_%s" % (x, x) for x in collist]
+		select_old_attributes_ch = ["dv.%s AS old_%s" % (x, x) for x in collist]
+		
 		if self.embed_column <> "":
 			pos = collist.index('name')
 			select_new_attributes[pos] = '%(tbl)s_get_name(chv.uid, to_version) AS new_name' % {'tbl': self.name}
 			select_old_attributes[pos] = '%(tbl)s_get_name(dv.uid, from_version) AS old_name' % {'tbl': self.name}
-			
-		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+			select_new_attributes_ch[pos] = '%(tbl)s_get_name(chv.uid) AS new_name' % {'tbl': self.name}
+			select_old_attributes_ch[pos] = '%(tbl)s_get_name(dv.uid, from_version) AS old_name' % {'tbl': self.name}
+			select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+			select_old_new_objects_attributes_ch = ",".join(select_old_attributes_ch) + "," + ",".join(select_new_attributes_ch)
+		else:
+			select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+			select_old_new_objects_attributes_ch = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
+		
 		init_function = self.diff_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff}
-		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff_changeset}
+		current_changeset_diff = self.diff_changeset_init_resolved_function_string % {'tbl': self.name, 'diff_columns': select_old_new_objects_attributes_ch, 'columns_ex_templ': columns, 'templ_tbl': templ_table, 'rd_dv_coalesce': rd_dv_coal, 'template_column': templ_col, 'inner_tables_diff': inner_init_diff_changeset}
 		return changeset_function + '\n' + init_function + '\n' + current_changeset_diff
 
 	def gen_refs_set_coal(self):
