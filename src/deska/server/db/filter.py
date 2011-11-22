@@ -238,6 +238,7 @@ class Filter():
 					raise DutilException("FilterError","Kind {0} does not exists.".format(kind))
 
 				# check for refs and templates
+				refNames = generated.refNames()
 				relNames = generated.refNames()
 				# add templates - same as refs for our stuff here
 				relNames.update(generated.templateNames())
@@ -274,7 +275,8 @@ class Filter():
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
 						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
-					elif toTbl == kind and fromTbl == mykind:
+					# back relation only for refs
+					elif relName in refNames and toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
 						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = self.DATA)
 						findJoinable = True
