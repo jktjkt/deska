@@ -237,7 +237,7 @@ LANGUAGE plpgsql;
 '''
 
 
-    resolved_data = '''CREATE FUNCTION %(tbl)s_resolved_data_version(data_version bigint = 0)
+    resolved_data = '''CREATE FUNCTION %(tbl)s_resolved_data(data_version bigint = 0)
 RETURNS SETOF %(tbl)s
 AS
 $$
@@ -537,8 +537,8 @@ BEGIN
     --full outer join of data in from_version and list of changes made between from_version and to_version
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
-    FROM %(tbl)s_resolved_data_version(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_resolved_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    FROM %(tbl)s_resolved_data(from_version) inner1
+    FULL OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -596,8 +596,8 @@ BEGIN
             from_version = to_version - 1;
             CREATE TEMP TABLE %(tbl)s_diff_data AS
                 SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
-                    FROM %(tbl)s_resolved_data_version(from_version) inner1
-                    FULL OUTER JOIN %(tbl)s_resolved_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
+                    FROM %(tbl)s_resolved_data(from_version) inner1
+                    FULL OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
             RETURN;
     END;
     
@@ -621,7 +621,7 @@ BEGIN
     
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
-    FROM %(tbl)s_resolved_data_version(from_version) inner1
+    FROM %(tbl)s_resolved_data(from_version) inner1
     FULL OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
     
     DROP TABLE resolved_changeset;
