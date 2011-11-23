@@ -170,30 +170,3 @@ def _addExpressionOperators():
     _l.Expression.__nonzero__ = _op_nonzero
     _l.AndFilter.__nonzero__ = _op_nonzero
     _l.OrFilter.__nonzero__ = _op_nonzero
-
-if __name__ == "__main__":
-    conn = _l.Connection()
-    _discoverScheme(conn)
-    _addExpressionOperators()
-    #print dict(globals())
-    #print host
-    #print vendor
-
-    print hardware.vendor == "ahoj"
-    #print host.note_host == "bleh"
-    #print host.pwn == "bleh"
-    op1 = hardware.vendor == "ahoj"
-    op2 = host.note_host == "foo"
-    op3 = host.note_host != None
-    print op1 & op2
-    print op1 & op2 & op3
-    print host[_l.AndFilter(_l.std_vector_Filter())]
-    # Fails, redmine#266
-    #print host[host.hardware != None]
-    # Fails (empty result), redmine#264
-    print host[host.name != None]
-    print host[host.name == "a"]
-    print host[host.name == "b"]
-    print host[host.note_host == "foo"]
-    print hardware[op1]
-    #print hardware[op1 & op2 & op3]
