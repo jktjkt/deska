@@ -1,0 +1,110 @@
+Schuze Deska, 2011-11-23 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Honza:
+- DeskaDb: CONTAINS/CONTAINABLE
+- dokumentace
+- obrazky do dokumentace
+- LaTeX integrovany do build systemu
+- experimenty se SL6 buildem: builduje, zdokumentovano
+- psycopg2: v RHEL6 je defaultne ve stare verzi, pgrpms.org ma balicky (ktere
+  stejne chceme kvuli serveru)
+- bugfix do testu na paralelni pristup k DB
+- bugfixy, testy
+- server: FreezingError
+- DeskaDb: parsovani konfigurace mimo DeskaDb
+- prekopani adresarove struktury, ucesani sys.path
+- instalovatelnost, buildovani
+- 16.75 hodin
+
+Tomas:
+- barevne diffovani
+- bugreporty
+- rebase
+- resty z minula
+- cache objectExists + hadani se s Honzou
+- "bylo toho fakt hodne"
+- tab completion
+- 35 - 40 hodin
+
+Lukas:
+- branch contains, podpora pro filtry
+- implementace resolved... pro netemplatovane veci
+- bugfixy
+- opravy bugreportu nezachycenych testy (viz dal)
+- "dal viz maily"
+- constraint checky pro FZU schema
+- min 27 hodin
+
+Martina:
+- triggery pro kompozici
+- zatim bez testu
+- bugfixy (diff pro embeddovane,...)
+- dogenerovani funkci pro kindy, co maji jenom name & uid
+- prejmenovani funkci, "aby to ten Lukas bral"
+- bugy
+- 21.25
+
+Diskuse:
+--------
+- Lukas: narazil na ruzne bugy, ktere nezachytily testy, doporucuje vetsi
+    coverage. Honza rika, at takove pripady posila jako bugreport, idealne opravu do
+    extra branche, at se to da dobre ladit.
+- Lukas: posle mailem/redmine konkretni pripad, kdy failovalo filtrovani pres
+  reference
+- Tomas: bude kaskadovite mazat i embedovane objekty, pokud se maze jejich rodic
+- columnNotContains: pujde to "za 5 minut"
+    - Lukas udela
+- columnEq/columnNe na identifier_set: Lukas: problem implementovat
+ -> zaver: nebudeme to umet (zmena DBAPI)
+    - Honza zmeni DBAPI spec
+    - Tomas zmeni CLI
+- relace contains/cble
+    - Lukas overi a mergne, idealne dnes
+- Martina: moznost koukat na obsolete changesety
+    - Martina opravi
+- Lukas: uzivatelske role
+    - Honza udela bugreport
+- Tomas: jak s interfaces, co maji smazaneho parenta? co dump?
+    - rozhodnuto, viz vyse
+- Lukas: zamykani changesetu (pro DBAPI a pro generatory)
+    - Martina popise chovani pouzitych Pg zamku
+    - Honza ho popise do DBAPI specifikace
+    - Honza napise testy
+    - Lukas si rika o implementaci funkci changesetHasFreshConfig a
+      markChangesetFresh
+    - Martina je naimplementuje
+- cas v redmine
+    - vsichni vykazi
+- Lukas: revision2num
+    - Martina udela tak, aby se kontrolovalo, ze revize/changeset existuje
+- Lukas: psycopg2
+    - Honza se podiva, kolik prace je upgrade na novou verzi psycopg2 na RHEL5
+- Tomas: DbInteraction.cpp:594 proc runtime_error?
+    - Tomas pouzije jinou exception
+- Lukas: zkontrolovat, jestli jsou jeste FIXME ve FZU schematu
+- Martina: doplni podminky pro uzivatelovo schema
+- kdy budem psat dokumentaci?
+    - Tomas: doufa, ze se k tomu dostane pristi tyden
+    - Lukas: tento tyden snad dodela funkcnost, pak snad zacne psat dokumentaci
+    - Martina: take by rada zacala co nejdriv
+    - Honza: z velke casti hotovo
+- Lukas: co se stane, kdyz uzivatel napise do schematu "on delete cascade"?
+    - Martina zajisti napsani kontroly DB schematu zadaneho uzivatelem na
+      podobne problemy (zacykleni relaci, chybejici/divne atributy,...)
+- licencovani
+    - dual licencovani pod GPLv2 a GPLv3
+    - doporuceni viz http://www.gnu.org/licenses/gpl-howto.html
+
+Pristi schuzka:
+---------------
+
+Utery 29. listopadu 2011, 18.00 FZU.
+Lukas napise, zda bude moct.
+
+Schuzka trvala 1h50min.
