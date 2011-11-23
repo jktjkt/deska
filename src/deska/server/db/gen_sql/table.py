@@ -214,14 +214,18 @@ class Table(constants.Templates):
 
 		#all attributes of old_data and new_data object (attributes are in collist), used in for clause
 		#old_data.name, old_data.vendor, ..., new_data.name, new_data.vendor, ...
-		old_new_attributes = ["old_data.%s" % col for col in collist]
-		old_new_attributes.extend(["new_data.%s" % col for col in collist])
+		cols_except_idsets = collist.keys()
+		for col in self.refers_to_set:
+			if col in cols_except_idsets:
+				cols_except_idsets.remove(col)
+		old_new_attributes = ["old_data.%s" % col for col in cols_except_idsets]
+		old_new_attributes.extend(["new_data.%s" % col for col in cols_except_idsets])
 		old_new_attributes_string = ",".join(old_new_attributes)
 
 		#data which we would like to select from diff_data table into old_data and new_data
 		#old_name, old_vendor, ..., old_note, new_name, new_vendor, ...
-		select_old_new_attributes = ["old_%s" % col for col in collist]
-		select_old_new_attributes.extend(["new_%s" % col for col in collist])
+		select_old_new_attributes = ["old_%s" % col for col in cols_except_idsets]
+		select_old_new_attributes.extend(["new_%s" % col for col in cols_except_idsets])
 		select_old_new_attributes_string = ",".join(select_old_new_attributes)
 
 		#we dont want to check changes of name and dest_bit attributes
