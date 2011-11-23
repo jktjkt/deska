@@ -1,5 +1,3 @@
-import sys
-sys.path.append(".")
 import libLowLevelPyDeska as _l
 
 class _KindInstanceInResult(object):
