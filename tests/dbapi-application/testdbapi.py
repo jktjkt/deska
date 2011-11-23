@@ -15,6 +15,8 @@ sys.path.append(path_libLowLevelPyDeska)
 # enable "import deska"
 path_deska = os.path.abspath(os.environ["DESKA_SOURCES"] + "/src/deska/python")
 sys.path.append(path_deska)
+path_deska_server_py = os.path.abspath(os.environ["DESKA_SOURCES"] +
+                                       "/src/deska/server/app/deska_server.py")
 
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
@@ -122,6 +124,7 @@ if __name__ == "__main__":
         os.environ["PYTHONPATH"] = ":".join([path_libLowLevelPyDeska, path_deska])
     else:
         os.environ["PYTHONPATH"] = ":".join([os.environ["PYTHONPATH"], path_libLowLevelPyDeska, path_deska])
+    JsonApiTester.path_deska_server_py = path_deska_server_py
     module = __import__(TESTCASE)
     if "imperative" in dir(module):
         imperative = module.imperative
