@@ -185,7 +185,7 @@ class Table(constants.Templates):
 					attributes[pos] = "%(tbl)s_get_%(col)s(uid, from_version) AS %(col)s" % \
 						{'tbl': self.name, 'col': col}
 				else:
-					attributes[pos] = "%(refuid)s_get_name(%(col)s) AS %(col)s" % \
+					attributes[pos] = "%(refuid)s_get_name(%(col)s, from_version) AS %(col)s" % \
 						{'col': col, 'refuid': self.refuid_columns[col]}
 
 		cols = ",".join(attributes)
@@ -214,14 +214,18 @@ class Table(constants.Templates):
 
 		#all attributes of old_data and new_data object (attributes are in collist), used in for clause
 		#old_data.name, old_data.vendor, ..., new_data.name, new_data.vendor, ...
-		old_new_attributes = ["old_data.%s" % col for col in collist]
-		old_new_attributes.extend(["new_data.%s" % col for col in collist])
+		cols_except_idsets = collist.keys()
+		for col in self.refers_to_set:
+			if col in cols_except_idsets:
+				cols_except_idsets.remove(col)
+		old_new_attributes = ["old_data.%s" % col for col in cols_except_idsets]
+		old_new_attributes.extend(["new_data.%s" % col for col in cols_except_idsets])
 		old_new_attributes_string = ",".join(old_new_attributes)
 
 		#data which we would like to select from diff_data table into old_data and new_data
 		#old_name, old_vendor, ..., old_note, new_name, new_vendor, ...
-		select_old_new_attributes = ["old_%s" % col for col in collist]
-		select_old_new_attributes.extend(["new_%s" % col for col in collist])
+		select_old_new_attributes = ["old_%s" % col for col in cols_except_idsets]
+		select_old_new_attributes.extend(["new_%s" % col for col in cols_except_idsets])
 		select_old_new_attributes_string = ",".join(select_old_new_attributes)
 
 		#we dont want to check changes of name and dest_bit attributes
@@ -296,8 +300,8 @@ class Table(constants.Templates):
 			select_new_attributes_ch = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]			
 			select_old_attributes[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
 			select_new_attributes[pos] = ("%s_get_name(chv.uid, to_version) AS new_name" % (self.name))
-			select_old_attributes_ch[pos] = ("%s_get_name(dv.uid) AS old_name" % (self.name))
-			select_new_attributes_ch[pos] = ("%s_get_name(chv.uid) AS new_name" % (self.name))
+			select_old_attributes_ch[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
+			select_new_attributes_ch[pos] = ("%s_get_name_ch(chv.uid, changeset_id) AS new_name" % (self.name))
 
 		else:
 			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
@@ -346,6 +350,12 @@ class Table(constants.Templates):
 		This function is used for the tables that are embed into another.
 		"""
 		return self.get_name_embed_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
+		
+	def gen_get_name_changeset(self):
+		return self.get_name_changeset_string % {'tbl': self.name}
+
+	def gen_get_name_changeset_embed(self, refcolumn, reftable):
+		return self.get_name_embed_changeset_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
 
 	def gen_get_uid(self):
 		"""Generates stored function that returns the uid of the object with the given name."""
@@ -682,7 +692,7 @@ class Table(constants.Templates):
 			pos = collist.index('name')
 			select_new_attributes[pos] = '%(tbl)s_get_name(chv.uid, to_version) AS new_name' % {'tbl': self.name}
 			select_old_attributes[pos] = '%(tbl)s_get_name(dv.uid, from_version) AS old_name' % {'tbl': self.name}
-			select_new_attributes_ch[pos] = '%(tbl)s_get_name(chv.uid) AS new_name' % {'tbl': self.name}
+			select_new_attributes_ch[pos] = '%(tbl)s_get_name_ch(chv.uid, changeset_id) AS new_name' % {'tbl': self.name}
 			select_old_attributes_ch[pos] = '%(tbl)s_get_name(dv.uid, from_version) AS old_name' % {'tbl': self.name}
 			select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 			select_old_new_objects_attributes_ch = ",".join(select_old_attributes_ch) + "," + ",".join(select_new_attributes_ch)
