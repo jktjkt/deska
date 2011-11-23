@@ -4,8 +4,6 @@ from apiUtils import *
 
 def imperative(r):
 
-    import sys
-    sys.path = ["../.."] + sys.path
     import libLowLevelPyDeska as _l
 
     objectNames = ["a", "b", "c"]

@@ -5,8 +5,6 @@ import datetime
 
 def imperative(r):
 
-    import sys
-    sys.path = ["../.."] + sys.path
     import libLowLevelPyDeska as _l
 
     variants = ("ahoj", 3, 333.666, None, _l.IPv4Address("127.0.0.1"),
