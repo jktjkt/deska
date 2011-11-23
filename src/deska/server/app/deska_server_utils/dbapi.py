@@ -181,14 +181,9 @@ class DB:
 
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
-		# We really do want to re-init the config generator each and every time
-		oldpath = sys.path
-		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../config-generators"))
-		sys.path = [mypath] + sys.path
-		logging.debug("sys.path prepended by %s" % mypath)
 		if self.cfggenBackend == "git":
 			logging.debug("Initializing git generator")
-			from gitgenerator import GitGenerator
+			from deska_server_utils.config_generators import GitGenerator
 			repodir = self.cfggenOptions["cfggenGitRepo"]
 			if repodir is None:
 				raise ValueError, "cfggenGitRepo is None"
@@ -202,15 +197,14 @@ class DB:
 			scriptdir = self.cfggenOptions["cfggenScriptPath"]
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
 		elif self.cfggenBackend == "fake":
-			from nullgenerator import NullGenerator
+			from deska_server_utils.config_generators import NullGenerator
 			self.cfgGenerator = NullGenerator(behavior=None)
 			logging.debug("No generators configured, will silently do nothing upon request")
 		else:
 			# no configuration generator has been configured
-			from nullgenerator import NullGenerator
+			from deska_server_utils.config_generators import NullGenerator
 			self.cfgGenerator = NullGenerator(behavior=NotImplementedError("Attempted to access configuration generators which haven't been configured yet"))
 			logging.debug("No generators configured, will raise error upon use")
-		sys.path = oldpath
 
 	def cfgRegenerate(self):
 		logging.debug("cfgRegenerate")
