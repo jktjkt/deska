@@ -33,7 +33,7 @@
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
 #include "CliConfig.h"
-#include "deska/db/JsonApi.h"
+#include "deska/db/JsonException.h"
 
 
 
