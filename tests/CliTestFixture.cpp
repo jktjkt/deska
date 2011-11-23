@@ -137,7 +137,9 @@ void CliTestFixture::startTest()
     char **argv = 0;
     testStarted = true;
     conf = new Deska::Cli::CliConfig("deska.ini", argc, argv);
-    conn = new Deska::Db::Connection();
+    std::vector<std::string> args;
+    args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska_server.py");
+    conn = new Deska::Db::Connection(args);
     parser = new Deska::Cli::Parser(conn);
     db = new Deska::Cli::DbInteraction(conn);
     io = new TestUserInterfaceIO(this);

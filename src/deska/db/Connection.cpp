@@ -27,9 +27,13 @@
 namespace Deska {
 namespace Db {
 
-Connection::Connection()
+
+Connection::Connection(const int rfd, const int wfd): p(new Connection_p(rfd, wfd))
 {
-    p = new Connection_p();
+}
+
+Connection::Connection(const std::vector<std::string> &args): p(new Connection_p(args))
+{
 }
 
 Connection::~Connection()

@@ -3,8 +3,11 @@
 from apiUtils import *
 import datetime
 import deska
+import libLowLevelPyDeska as _l
 
 def imperative(r):
+    args = _l.std_vector_string()
+    args.append(r.path_deska_server_py)
     services = ["www", "ftp", "ui", "dpm", "imap"]
     r.c(startChangeset())
     for x in range(10):
@@ -21,7 +24,7 @@ def imperative(r):
     r.c(commitChangeset("set host x0 service www"))
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x0")["service"], ["www"])
-    deska.init()
+    deska.init(_l.Connection(args))
     r.assertEqual(deska.host[deska.host.name == "x0"]["x0"].service, ["www"])
 
     # set to a two-value list through an absolute name
@@ -31,7 +34,7 @@ def imperative(r):
     r.c(commitChangeset("set host x1 service www & imap"))
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x1")["service"], AnyOrderList(["www", "imap"]))
-    deska.init()
+    deska.init(_l.Connection(args))
     r.assertEqual(deska.host[deska.host.name == "x1"]["x1"].service, AnyOrderList(["www", "imap"]))
 
     # use incremental operations
@@ -45,7 +48,7 @@ def imperative(r):
     r.c(commitChangeset("set host x2 service www (incremental)"))
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x2")["service"], AnyOrderList(["www"]))
-    deska.init()
+    deska.init(_l.Connection(args))
     r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www"]))
 
     # now add the imap role back in
@@ -55,7 +58,7 @@ def imperative(r):
     r.c(commitChangeset("set host x2 service www and imap (incremental)"))
 
     r.assertEqual(verifyingObjectMultipleData(r, "host", "x2")["service"], AnyOrderList(["www", "imap"]))
-    deska.init()
+    deska.init(_l.Connection(args))
     r.assertEqual(deska.host[deska.host.name == "x2"]["x2"].service, AnyOrderList(["www", "imap"]))
 
     # test filtering

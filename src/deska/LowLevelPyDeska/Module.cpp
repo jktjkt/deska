@@ -170,7 +170,8 @@ BOOST_PYTHON_MODULE(libLowLevelPyDeska)
             .def("__repr__", repr_vect<std::string>);
 
     // DBAPI connection implementation
-    class_<Connection, boost::noncopyable>("Connection")
+    class_<Connection, boost::noncopyable>("Connection", init<int,int>())
+            .def(init<const std::vector<std::string>&>())
             .def("kindNames", &Connection::kindNames)
             .def("kindRelations", &Connection::kindRelations)
             .def("kindAttributes", &Connection::kindAttributes)

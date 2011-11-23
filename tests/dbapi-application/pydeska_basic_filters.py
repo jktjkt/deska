@@ -41,7 +41,10 @@ def prepareObjects(r):
 def doTests(r):
     '''Test that we get reasonable data back'''
     import deska
-    deska.init()
+    import libLowLevelPyDeska as _l
+    args = _l.std_vector_string()
+    args.append(r.path_deska_server_py)
+    deska.init(_l.Connection(args))
 
     expectedNames = ["x%d" % x for x in range(10)]
     r.assertEqual(sorted(r.c(kindInstances("host"))), expectedNames)
