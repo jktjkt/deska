@@ -19,11 +19,9 @@ def imperative(r):
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
 
     r.cvoid(detachFromCurrentChangeset("will rebase"))
-    # FIXME: this one fails
-    #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
     tmp3 = r.c(startChangeset())
-    # FIXME: this one fails
-    #r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
+    r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
     r.cvoid(detachFromCurrentChangeset("temporarily going away"))
     r.cvoid(resumeChangeset(tmp1))
     r.assertEquals(r.c(dataDifferenceInTemporaryChangeset(tmp1)), expectedDiff)
