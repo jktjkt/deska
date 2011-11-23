@@ -328,7 +328,8 @@ API function.
     \hline
     \endhead
     {\tt string} & VARCHAR & {\tt std::string} & {\tt "example text"} \\
-    {\tt int} & INT & {\tt int} & {\tt 123} \\
+    {\tt int} & INT & {\tt int} & {\tt 123}\footnote{Due to technical limits, integers, floats and booleans are
+    sometimes transferred as strings.  See the bugreport~312~\cite{redmine-312} for details.}\\
     {\tt bool} & BOOL & {\tt bool} & {\tt true} \\
     {\tt identifier} & VARCHAR & {\tt Deska::Db::Identifier} & {\tt "id-no-spaces"} \\
     {\tt identifier\_set} & (extra table) & {\tt std::set<std::string>} & {\tt ["id1", "id2"]} \\
