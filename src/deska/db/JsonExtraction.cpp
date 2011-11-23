@@ -826,6 +826,19 @@ void SpecializedExtractor<JsonWrappedAttribute>::extract(const json_spirit::Valu
     case TYPE_BOOL:
     {
         JsonContext c2("When extracting TYPE_BOOL");
+        if (value.type() == json_spirit::str_type) {
+            // FIXME: Redmine#312, bool is sometimes transferred as string as well
+            JsonContext c3("When extracting TYPE_BOOL passed as string");
+            checkJsonValueType(value, json_spirit::str_type);
+            if (value.get_str() == "t") {
+                target->value = true;
+            } else if (value.get_str() == "f") {
+                target->value = false;
+            } else {
+                throw JsonStructureError("Value of a TYPE_BOOL passed as string is invalid");
+            }
+            return;
+        }
         checkJsonValueType(value, json_spirit::bool_type);
         target->value = value.get_bool();
         return;
