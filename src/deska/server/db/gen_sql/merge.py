@@ -7,6 +7,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rcoble_%(tbl)s_%(comp_tbl)s FOREIGN KEY (%(co
 '''
 
     trigger_link_comp_objects = '''
+--trigger to link existing %(comp_tbl)s object with newly inserted one, NEW.%(comp_tbl)s is set
 CREATE OR REPLACE FUNCTION history.%(tbl)s_%(comp_tbl)s_link_before()
 RETURNS trigger
 AS
@@ -30,6 +31,7 @@ $$
 LANGUAGE plpgsql;
 CREATE TRIGGER trg_before_%(tbl)s_%(comp_tbl)s_link BEFORE INSERT ON %(tbl)s_history FOR EACH ROW WHEN (NEW.%(comp_tbl)s IS NULL) EXECUTE PROCEDURE %(tbl)s_%(comp_tbl)s_link_before();
 
+--trigger to link existing %(comp_tbl)s object with newly inserted one, %(tbl)s attribute is set in appropriate %(comp_tbl)s object
 CREATE OR REPLACE FUNCTION history.%(tbl)s_%(comp_tbl)s_link_after()
 RETURNS trigger
 AS
@@ -86,7 +88,8 @@ CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_histo
 '''
 
     rename_trigger_link_comp_objects = '''
-CREATE OR REPLACE FUNCTION history.%(tbl)s_link_before_update()
+--links just renamed object to object in composition relation with same name, sets NEW.comp_kind
+CREATE OR REPLACE FUNCTION history.%(tbl)s_%(dir)s_%(comp_tbl)s_lbup()
 RETURNS trigger
 AS
 $$
@@ -98,9 +101,10 @@ BEGIN
 END 
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_before_update_%(tbl)s_link BEFORE UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_link_before_update();
+CREATE TRIGGER trg_bup_%(tbl)s_%(dir)s_%(comp_tbl)s_link BEFORE UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_lbup();
 
-CREATE OR REPLACE FUNCTION history.%(tbl)s_link_after_update()
+--links just renamed object to in composition relation, sets comp_kind.tbl attribute to refs just renamed object
+CREATE OR REPLACE FUNCTION history.%(tbl)s_%(dir)s_%(comp_tbl)s_laup()
 RETURNS trigger
 AS
 $$
@@ -112,7 +116,7 @@ BEGIN
 END 
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_after_update_%(tbl)s_link AFTER UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_link_after_update();
+CREATE TRIGGER trg_aup_%(tbl)s_%(dir)s_%(comp_tbl)s_link AFTER UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_laup();
 
 '''
 
@@ -199,7 +203,7 @@ LANGUAGE plpgsql;
             for reftbl in compos_cols:
                 before_trg_obj_part = before_trg_obj_part + self.before_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
                 after_trg_obj_part = after_trg_obj_part + self.after_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
-            triggers = triggers + self.rename_trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftbl, 'before_comp_obj_parts' : before_trg_obj_part, 'after_comp_obj_parts' : after_trg_obj_part}
+            triggers = triggers + self.rename_trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftbl, 'before_comp_obj_parts' : before_trg_obj_part, 'after_comp_obj_parts' : after_trg_obj_part, 'dir' : 'cnta'}
             
         for table in self.cble_touples:
             before_trg_obj_part = ""
@@ -208,7 +212,7 @@ LANGUAGE plpgsql;
             for reftbl in cble_cols:
                 before_trg_obj_part = before_trg_obj_part + self.before_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
                 after_trg_obj_part = after_trg_obj_part + self.after_update_trigger_comp_obj_part % {'tbl': table, 'comp_tbl': reftbl}
-            triggers = triggers + self.rename_trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftbl, 'before_comp_obj_parts' : before_trg_obj_part, 'after_comp_obj_parts' : after_trg_obj_part}
+            triggers = triggers + self.rename_trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftbl, 'before_comp_obj_parts' : before_trg_obj_part, 'after_comp_obj_parts' : after_trg_obj_part, 'dir': 'cble'}
 
         return triggers
         
