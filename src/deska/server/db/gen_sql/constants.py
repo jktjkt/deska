@@ -524,6 +524,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	#template string for get functions
 	get_name_embed_string = '''CREATE FUNCTION
 	%(tbl)s_get_name(IN %(tbl)s_uid bigint, from_version bigint = 0)
@@ -573,6 +574,67 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
+	#template string for get name functionsthat find name of object in given changeset
+	#works only for existing changeset
+	get_name_changeset_string = '''CREATE FUNCTION
+	%(tbl)s_get_name_ch(IN %(tbl)s_uid bigint, changeset_id bigint = 0)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		from_version bigint;
+		value text;
+	BEGIN
+		IF changeset_id = 0 THEN
+			--it's necessary to have opened changeset in witch we would like to see diff
+			changeset_id = get_current_changeset();
+		END IF;
+
+		--in case changeset_id changeset does not exist exception is raised
+		from_version = id2num(parent(changeset_id));
+
+		SELECT name INTO value FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = changeset_id;
+		IF NOT FOUND THEN
+			SELECT name INTO value FROM %(tbl)s_data_version(from_version) WHERE uid = %(tbl)s_uid;
+		END IF;
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	#template string for get name functionsthat find name of object in given changeset, for embed kinds
+	#works only for existing changeset
+	get_name_embed_changeset_string = '''CREATE FUNCTION
+	%(tbl)s_get_name_ch(IN %(tbl)s_uid bigint, changeset_id bigint = 0)
+	RETURNS text
+	AS
+	$$
+	DECLARE
+		from_version bigint;
+		value text;
+	BEGIN
+		IF changeset_id = 0 THEN
+			--it's necessary to have opened changeset in witch we would like to see diff
+			changeset_id = get_current_changeset();
+		END IF;
+
+		--in case changeset_id changeset does not exist exception is raised
+		from_version = id2num(parent(changeset_id));
+
+		SELECT join_with_delim(%(reftbl)s_get_name_ch(%(column)s, changeset_id), name, '%(delim)s') INTO value FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = changeset_id;
+		IF NOT FOUND THEN
+			SELECT join_with_delim(%(reftbl)s_get_name_ch(%(column)s, changeset_id), name, '%(delim)s') INTO value FROM %(tbl)s_data_version(from_version) WHERE uid = %(tbl)s_uid;
+		END IF;
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 
 	#template for function getting uid of object embed into another
 	get_uid_embed_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_get_uid(full_name text, from_version bigint = 0)

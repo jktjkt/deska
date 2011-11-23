@@ -301,12 +301,14 @@ CREATE FUNCTION commit_all(message text)
 			self.fn_sql.write(table.gen_get_name_embed(embed_column,reftable))
 			self.fn_sql.write(table.gen_names_embed(embed_column,reftable))
 			self.fn_sql.write(table.gen_set_name_embed(embed_column, reftable))
+			self.fn_sql.write(table.gen_get_name_changeset_embed(embed_column, reftable))
 		else:
 			self.fn_sql.write(table.gen_add())
 			self.fn_sql.write(table.gen_get_uid())
 			self.fn_sql.write(table.gen_get_name())
 			self.fn_sql.write(table.gen_names())
 			self.fn_sql.write(table.gen_set_name())
+			self.fn_sql.write(table.gen_get_name_changeset())
 
 
 		self.fn_sql.write(table.gen_del())
