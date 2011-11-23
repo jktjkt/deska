@@ -246,7 +246,7 @@ DECLARE
 BEGIN
     changeset_id = get_current_changeset_or_null();
     IF data_version = 0 AND changeset_id IS NULL THEN
-        RETURN QUERY SELECT %(reftbl_name)s FROM %(tbl)s;
+        RETURN QUERY SELECT %(tbl_name)s, %(reftbl_name)s, flag FROM %(tbl)s;
     ELSE
         CREATE TEMP TABLE template_data_version AS SELECT * FROM %(tbl_template_name)s_data_version(data_version);
         CREATE TEMP TABLE inner_template_data_version AS SELECT * FROM %(tbl_template)s_data_version(data_version);
