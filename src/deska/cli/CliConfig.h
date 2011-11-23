@@ -34,8 +34,6 @@ namespace Cli {
 //@{
 /** Definitions of variables parsed from config file or command line */
 static const std::string DBConnection_Server = "DBConnection.Server";
-static const std::string DBConnection_User = "DBConnection.User";
-static const std::string DBConnection_DB = "DBConnection.DB";
 static const std::string CLI_HistoryFilename = "CLI.HistoryFilename";
 static const std::string CLI_HistoryLimit = "CLI.HistoryLimit";
 static const std::string CLI_LineWidth = "CLI.LineWidth";
