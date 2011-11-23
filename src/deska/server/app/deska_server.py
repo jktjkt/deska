@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
-from jsonparser import perform_io
-from dbapi import DB
-import os
 import sys
+import os
 import logging
 import errno
 from optparse import OptionParser
@@ -11,6 +9,8 @@ try:
     import json
 except ImportError:
     import simplejson as json
+from deska_server_utils.jsonparser import perform_io
+from deska_server_utils.dbapi import DB
 
 parser = OptionParser()
 parser.add_option("-d", "--database", dest="database", default="deska_dev",

@@ -183,7 +183,7 @@ class DB:
 		logging.debug("initCfgGenerator")
 		# We really do want to re-init the config generator each and every time
 		oldpath = sys.path
-		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../config-generators"))
+		mypath = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../config-generators"))
 		sys.path = [mypath] + sys.path
 		logging.debug("sys.path prepended by %s" % mypath)
 		if self.cfggenBackend == "git":
