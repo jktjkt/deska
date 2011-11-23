@@ -29,16 +29,13 @@
 namespace Deska {
 namespace Db {
 
-#define DESKA_VIA_FD_R "DESKA_VIA_FD_R"
-#define DESKA_VIA_FD_W "DESKA_VIA_FD_W"
-
 Connection_p::Connection_p(const int rfd, const int wfd)
 {
     if (rfd < 0) {
-        throw std::runtime_error("Deska::Db::Connection_p: environment: illegal " DESKA_VIA_FD_R);
+        throw std::runtime_error("Deska::Db::Connection_p: environment: invalid reading file descriptor");
     }
     if (wfd < 0) {
-        throw std::runtime_error("Deska::Db::Connection_p: environment: illegal " DESKA_VIA_FD_W);
+        throw std::runtime_error("Deska::Db::Connection_p: environment: invalid writing file descriptor");
     }
     io = new UnixFdIO(rfd, wfd);
     willRead.connect(boost::phoenix::bind(&IOSocket::readStream, *io));
