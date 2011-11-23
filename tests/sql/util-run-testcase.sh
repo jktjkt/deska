@@ -99,13 +99,13 @@ case "${TESTMODE}" in
     dbapi)
         export DESKA_USER
         export DESKA_DB
-        python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
+        python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska-server \
             $TESTCASE || die "Test"
         ;;
     persist)
         export DESKA_USER
         export DESKA_DB
-        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska_server.py \
+        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska-server \
             $TESTCASE || die "Test"
         ;;
     run)

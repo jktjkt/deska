@@ -15,8 +15,8 @@ sys.path.append(path_libLowLevelPyDeska)
 # enable "import deska"
 path_deska = os.path.abspath(os.environ["DESKA_SOURCES"] + "/src/deska/python")
 sys.path.append(path_deska)
-path_deska_server_py = os.path.abspath(os.environ["DESKA_SOURCES"] +
-                                       "/src/deska/server/app/deska_server.py")
+path_deska_server_bin = os.path.abspath(os.environ["DESKA_SOURCES"] +
+                                       "/src/deska/server/app/deska-server")
 
 def deunicodeify(stuff):
     """Convert a dict or stuff like that into a dict with all strings changed into unicode"""
@@ -105,7 +105,7 @@ class JsonApiTester(unittest.TestCase):
             self.assertEqual(res["dbException"], exception)
 
 if __name__ == "__main__":
-    # usage: testdbapi.py /path/to/deska_server.py testcase
+    # usage: testdbapi.py /path/to/deska-server testcase
     SERVER_PATH = sys.argv[1]
     DBNAME = os.environ["DESKA_DB"]
     DBUSER = os.environ["DESKA_USER"]
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         os.environ["PYTHONPATH"] = ":".join([path_libLowLevelPyDeska, path_deska])
     else:
         os.environ["PYTHONPATH"] = ":".join([os.environ["PYTHONPATH"], path_libLowLevelPyDeska, path_deska])
-    JsonApiTester.path_deska_server_py = path_deska_server_py
+    JsonApiTester.path_deska_server_bin = path_deska_server_bin
     module = __import__(TESTCASE)
     if "imperative" in dir(module):
         imperative = module.imperative

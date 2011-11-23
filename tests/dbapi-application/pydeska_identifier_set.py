@@ -7,7 +7,7 @@ import libLowLevelPyDeska as _l
 
 def imperative(r):
     args = _l.std_vector_string()
-    args.append(r.path_deska_server_py)
+    args.append(r.path_deska_server_bin)
     services = ["www", "ftp", "ui", "dpm", "imap"]
     r.c(startChangeset())
     for x in range(10):

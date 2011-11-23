@@ -18,7 +18,7 @@ def imperative(r):
 
     # let's actually test the bindings now
     args = _l.std_vector_string()
-    args.append(r.path_deska_server_py)
+    args.append(r.path_deska_server_bin)
     c = _l.Connection(args)
     # start with kindNames
     kindNames = c.kindNames()

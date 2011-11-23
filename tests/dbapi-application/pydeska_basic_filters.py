@@ -43,7 +43,7 @@ def doTests(r):
     import deska
     import libLowLevelPyDeska as _l
     args = _l.std_vector_string()
-    args.append(r.path_deska_server_py)
+    args.append(r.path_deska_server_bin)
     deska.init(_l.Connection(args))
 
     expectedNames = ["x%d" % x for x in range(10)]
