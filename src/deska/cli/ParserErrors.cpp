@@ -195,23 +195,6 @@ void ObjectNameErrorHandler<Iterator>::operator()(Iterator start, Iterator end, 
 
 
 
-InfoExtractor::InfoExtractor(std::vector<Db::Identifier> *keywordsList, std::vector<std::string> *typesList):
-    kList(keywordsList), tList(typesList)
-{
-}
-
-
-
-void InfoExtractor::element(spirit::utf8_string const& tag, spirit::utf8_string const& value, int) const
-{
-    if (!value.empty())
-        kList->push_back(value);
-    else
-        tList->push_back(tag);
-}
-
-
-
 std::string parseErrorTypeToString(const ParseErrorType errorType)
 {
     switch (errorType) {

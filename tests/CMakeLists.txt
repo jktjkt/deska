@@ -88,11 +88,11 @@ set(CliTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
 )
 
-add_library(ParserTestHelpers ${ParserTestHelpers_SRCS})
-target_link_libraries(ParserTestHelpers DeskaCliParser DeskaDb)
+add_library(ParserTestHelpers SHARED ${ParserTestHelpers_SRCS})
+target_link_libraries(ParserTestHelpers DeskaCli DeskaDb)
 
-add_library(CliTestHelpers ${CliTestHelpers_SRCS})
-target_link_libraries(CliTestHelpers DeskaCli DeskaCliParser DeskaCliParserSupport DeskaDb)
+add_library(CliTestHelpers SHARED ${CliTestHelpers_SRCS})
+target_link_libraries(CliTestHelpers DeskaCli DeskaDb)
 
 
 deska_test(parser_mock_objects)

@@ -115,9 +115,6 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-set(libDeskaConfig_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
-)
 
 set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Objects.cpp
@@ -139,12 +136,9 @@ set(libDeskaDb_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Connection_p.cpp
 )
 
-set(libDeskaCliParserSupport_SRCS
+set(libDeskaCli_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/PredefinedRules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/InfoExtractor.cpp
-)
-
-set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ContextStack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p.cpp
@@ -163,9 +157,7 @@ set(libDeskaCliParser_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_TopLevelParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
-)
-
-set(libDeskaCli_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliObjects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
@@ -189,12 +181,6 @@ set(libLowLevelPyDeska_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/LowLevelPyDeska/DateTimeConversions.cpp
 )
 
-add_library(DeskaCliParserSupport SHARED ${libDeskaCliParserSupport_SRCS})
-target_link_libraries(DeskaCliParserSupport ${DESKA_BOOST_LIBS})
-
-add_library(DeskaConfig SHARED ${libDeskaConfig_SRCS})
-target_link_libraries(DeskaConfig ${DESKA_BOOST_LIBS})
-
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 set_target_properties(DeskaDb PROPERTIES
@@ -202,11 +188,12 @@ set_target_properties(DeskaDb PROPERTIES
     SOVERSION 0.10
 )
 
-add_library(DeskaCliParser ${libDeskaCliParser_SRCS})
-target_link_libraries(DeskaCliParser DeskaCliParserSupport)
-
-add_library(DeskaCli ${libDeskaCli_SRCS})
-target_link_libraries(DeskaCli DeskaCliParser DeskaCliParserSupport DeskaDb DeskaConfig ${READLINE_LIBRARY})
+add_library(DeskaCli SHARED ${libDeskaCli_SRCS})
+target_link_libraries(DeskaCli DeskaDb ${READLINE_LIBRARY})
+set_target_properties(DeskaCli PROPERTIES
+    VERSION 0.10
+    SOVERSION 0.10
+)
 
 add_executable(deska-cli ${deskaCliApp_SRCS})
 target_link_libraries(deska-cli DeskaCli)
@@ -226,7 +213,7 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.h
     DESTINATION include/deska/db
 )
-install(TARGETS DeskaDb DESTINATION lib)
+install(TARGETS DeskaDb DeskaCli DESTINATION lib)
 install(TARGETS deska-cli DESTINATION bin)
 install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/app/deska-server
