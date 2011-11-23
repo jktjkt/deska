@@ -151,9 +151,8 @@ def do_host(r):
     }
 
     helper_check_host(r, hdata)
-    # Redmine#304, there's no support for these functions
-    #rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
-    #rdiff = r.c(resolvedDataDifference("r1", "r2"))
+    rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
+    rdiff = r.c(resolvedDataDifference("r1", "r2"))
     # FIXME: write that when #304 is fixed
     #r.assertEqual(rdiff, [])
     # test after a commit
