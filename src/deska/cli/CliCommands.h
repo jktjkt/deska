@@ -51,7 +51,20 @@ typedef enum {
     OBJECT_MODIFICATION_TYPE_SETATTR = 3
 } ModificationType;
 
- 
+/** @short Visitor for printing object modifications. */
+struct ModificationBackuper: public boost::static_visitor<std::string> {
+    //@{
+    /** @short Function for converting single object modification to string for purposes of backup.
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Parser readable string representation of the modification.
+    */
+    std::string operator()(const Db::CreateObjectModification &modification) const;
+    std::string operator()(const Db::DeleteObjectModification &modification) const;
+    std::string operator()(const Db::RenameObjectModification &modification) const;
+    std::string operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+};
 
 /** @short Visitor for obtaining type of each object modification */
 struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
@@ -67,33 +80,6 @@ struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
     ModificationType operator()(const Db::RenameObjectModification &modification) const;
     ModificationType operator()(const Db::SetAttributeModification &modification) const;
     //@}
-};
-
-
-
-/** @short Visitor for comparing two modification of the same type */
-struct ModificationComparatorLesss: public boost::static_visitor<bool>
-{
-    //@{
-    /** @short Function for comparing two modifications of the same type
-    *
-    *   @param a Instance of modifications from Db::ObjectModification variant.
-    *   @param b Instance of modifications from Db::ObjectModification variant.
-    *   @return True if the first modification is "less" than the second. Comparing kinds and object names.
-    */
-    bool operator()(const Db::CreateObjectModification &a, const Db::CreateObjectModification &b) const;
-    bool operator()(const Db::DeleteObjectModification &a, const Db::DeleteObjectModification &b) const;
-    bool operator()(const Db::RenameObjectModification &a, const Db::RenameObjectModification &b) const;
-    /** When comparing SetAttribute modifications, that are on the same attribute of the same kind, but the
-    *   values differ, first modification is always "less". This ensures stable sorting.
-    */
-    bool operator()(const Db::SetAttributeModification &a, const Db::SetAttributeModification &b) const;
-    //@}
-
-    /** @short Function for enabling this comparator work. This function should not be called.
-    */
-    template <typename MA, typename MB>
-    bool operator()(const MA &a, const MB &b) const;
 };
 
 
@@ -311,43 +297,6 @@ public:
     */
     virtual void operator()(const std::string &params);
 };
-
-
-/** @short Cli command.
-*
-*   Command for showing differences between revisions.
-*
-*   @see Command
-*/
-class Diff: public Command
-{
-public:
-    /** @short Constructor sets command name and completion pattern.
-    *
-    *   @param userInterface Pointer to the UserInterface
-    */
-    Diff(UserInterface *userInterface);
-
-    virtual ~Diff();
-
-    /** @short Function for showing diffs between revisions.
-    *
-    *   @param params Unused here.
-    */
-    virtual void operator()(const std::string &params);
-
-private:
-    /** @short Function for sorting object modifications.
-    *
-    *   Sorting at first by modification type, then by kind, by name, and lastly by attribute name.
-    *
-    *   @param a First object modification
-    *   @param b Second object modification
-    *   @return True if b is greater than a, else false
-    */
-    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
-};
-
 
 
 /** @short Cli command.

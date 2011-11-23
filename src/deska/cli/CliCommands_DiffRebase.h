@@ -71,6 +71,42 @@ private:
     bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
+/** @short Cli command.
+*
+*   Command for showing differences between revisions.
+*
+*   @see Command
+*/
+class Diff: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Diff(UserInterface *userInterface);
+
+    virtual ~Diff();
+
+    /** @short Function for showing diffs between revisions.
+    *
+    *   @param params Unused here.
+    */
+    virtual void operator()(const std::string &params);
+
+private:
+    /** @short Function for sorting object modifications.
+    *
+    *   Sorting at first by modification type, then by kind, by name, and lastly by attribute name.
+    *
+    *   @param a First object modification
+    *   @param b Second object modification
+    *   @return True if b is greater than a, else false
+    */
+    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
+};
+
+
 
 }
 }

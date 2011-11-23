@@ -30,7 +30,7 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 
 #include "CliCommands_Log.h"
-#include "CliCommands_Rebase.h"
+#include "CliCommands_DiffRebase.h"
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
 #include "DbInteraction.h"
@@ -82,96 +82,6 @@ ModificationType ModificationTypeGetter::operator()(const Db::SetAttributeModifi
 {
     return OBJECT_MODIFICATION_TYPE_SETATTR;
 }
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::CreateObjectModification &a,
-                                             const Db::CreateObjectModification &b) const
-{
-    if (a.kindName < b.kindName) {
-        return true;
-    } else if (a.kindName > b.kindName) {
-        return false;
-    } else {
-        return (a.objectName < b.objectName);
-    }
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::DeleteObjectModification &a,
-                                             const Db::DeleteObjectModification &b) const
-{
-    if (a.kindName < b.kindName) {
-        return true;
-    } else if (a.kindName > b.kindName) {
-        return false;
-    } else {
-        return (a.objectName < b.objectName);
-    }
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::RenameObjectModification &a,
-                                             const Db::RenameObjectModification &b) const
-{
-    if (a.kindName < b.kindName) {
-        return true;
-    } else if (a.kindName > b.kindName) {
-        return false;
-    } else if (a.oldObjectName < b.oldObjectName) {
-        return true;
-    } else if (a.oldObjectName > b.oldObjectName) {
-        return false;
-    } else {
-        return (a.newObjectName < b.newObjectName);
-    }
-}
-
-
-
-bool ModificationComparatorLesss::operator()(const Db::SetAttributeModification &a,
-                                             const Db::SetAttributeModification &b) const
-{
-    if (a.kindName < b.kindName) {
-        return true;
-    } else if (a.kindName > b.kindName) {
-        return false;
-    } else if (a.objectName < b.objectName) {
-        return true;
-    } else if (a.objectName > b.objectName) {
-        return false;
-    } else {
-        return (a.attributeName < b.attributeName);
-    } 
-}
-
-
-
-template <typename MA, typename MB>
-bool ModificationComparatorLesss::operator()(const MA &a, const MB &b) const
-{
-    throw std::invalid_argument("Deska::Cli::ModificationComparatorLesss::operator(): Comparator called to two different types of ObjectModificationResult.");
-    return false;
-}
-
-
-
-/** @short Visitor for printing object modifications. */
-struct ModificationBackuper: public boost::static_visitor<std::string> {
-    //@{
-    /** @short Function for converting single object modification to string for purposes of backup.
-    *
-    *   @param modification Instance of modifications from Db::ObjectModification variant.
-    *   @return Parser readable string representation of the modification.
-    */
-    std::string operator()(const Db::CreateObjectModification &modification) const;
-    std::string operator()(const Db::DeleteObjectModification &modification) const;
-    std::string operator()(const Db::RenameObjectModification &modification) const;
-    std::string operator()(const Db::SetAttributeModification &modification) const;
-    //@}
-};
 
 
 
@@ -522,125 +432,7 @@ void Status::operator()(const std::string &params)
 
 
 
-Diff::Diff(UserInterface *userInterface): Command(userInterface)
-{
-    cmdName = "diff";
-    cmdUsage = "Command for showing difference between revisions. Without parameters shows diff of current changeset with its parent. With two parameters, revisions IDs shows diff between these revisions. You can give a filename as a first parameter in both cases to produce patch between two revisions or backup of current changeset work.";
-    complPatterns.push_back("diff %file");
-}
 
-
-
-Diff::~Diff()
-{
-}
-
-
-
-void Diff::operator()(const std::string &params)
-{
-    if (params.empty()) {
-        if (!ui->currentChangeset) {
-            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
-            return;
-        }
-        // Show diff with parent
-        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
-            *(ui->currentChangeset));
-        ui->io->printDiff(modifications);
-        return;
-    }
-
-    std::vector<std::string> paramsList = extractParams(params);
-    if (paramsList.size() > 3) {
-        ui->io->reportError("Invalid number of parameters entered!");
-        return;
-    }
-
-    if (paramsList.size() == 1) {
-        // Create patch to current changeset
-        if (!ui->currentChangeset) {
-            ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
-            return;
-        }
-        std::ofstream ofs(paramsList[0].c_str());
-        if (!ofs) {
-            ui->io->reportError("Error while creating patch to file \"" + params + "\".");
-            return;
-        }
-        std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
-            *(ui->currentChangeset));
-        using namespace boost::phoenix::arg_names;
-        std::sort(modifications.begin(), modifications.end(),
-            boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
-        ModificationBackuper modificationBackuper;
-        for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
-        }
-        ofs.close();
-        ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
-
-    } else if (paramsList.size() >= 2) {
-        // Diff between two revisions
-        boost::optional<Db::RevisionId> revA, revB;
-        std::vector<Db::ObjectModificationResult> modifications;
-        try {
-            if (paramsList.size() == 2) {
-                revA = Deska::Db::RevisionId::fromString(paramsList[0]);
-                revB = Deska::Db::RevisionId::fromString(paramsList[1]);
-            } else {
-                revA = Deska::Db::RevisionId::fromString(paramsList[1]);
-                revB = Deska::Db::RevisionId::fromString(paramsList[2]);
-            }
-        } catch (std::runtime_error &e) {
-            std::ostringstream ss;
-            ss << "Invalid parameters: " << e.what();
-            ui->io->reportError(ss.str());
-            return;
-        }
-        try {
-            modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
-        } catch (Db::RevisionRangeError &e) {
-            ui->io->reportError("Revision range does not make a sense.");
-            return;
-        }
-        if (paramsList.size() == 2) {
-            // Print diff
-            ui->io->printDiff(modifications);
-        } else {
-            // Create patch
-            using namespace boost::phoenix::arg_names;
-            std::sort(modifications.begin(), modifications.end(),
-                boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
-            std::ofstream ofs(paramsList[0].c_str());
-            if (!ofs) {
-                ui->io->reportError("Error while creating patch to file \"" + params + "\".");
-                return;
-            }
-            ModificationBackuper modificationBackuper;
-            for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
-            }
-            ofs.close();
-            ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
-        }
-    }
-}
-
-
-
-bool Diff::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
-{
-    ModificationTypeGetter modificationTypeGetter;
-    ModificationComparatorLesss modificationComparatorLesss;
-    if (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b)) {
-        return true;
-    } else if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
-        return false;
-    } else {
-        return (boost::apply_visitor(modificationComparatorLesss, a, b));
-    }
-}
 
 
 
@@ -725,7 +517,6 @@ Dump::Dump(UserInterface *userInterface): Command(userInterface)
 Dump::~Dump()
 {
 }
-
 
 
 void Dump::operator()(const std::string &params)
