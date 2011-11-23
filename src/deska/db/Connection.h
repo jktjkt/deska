@@ -42,7 +42,12 @@ implementation of the Deska::Db::Api interface.
 class Connection: public Api, private boost::noncopyable
 {
 public:
-    Connection();
+    /** @short Instantiate a Connection that communicated over a pair of existing file descriptors */
+    explicit Connection(const int rfd, const int wfd);
+
+    /** @short Instantiate a Connection that communicates over a child process */
+    explicit Connection(const std::vector<std::string> &args);
+
     virtual ~Connection();
 
     // Querying schema definition

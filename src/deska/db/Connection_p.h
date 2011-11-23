@@ -33,7 +33,12 @@ class IOSocket;
 class Connection_p: public CachingJsonApi
 {
 public:
-    Connection_p();
+    /** @short Instantiate a Connection that communicated over a pair of existing file descriptors */
+    Connection_p(const int rfd, const int wfd);
+
+    /** @short Instantiate a Connection that communicates over a child process */
+    Connection_p(const std::vector<std::string> &argv);
+
     virtual ~Connection_p();
 private:
      IOSocket *io;

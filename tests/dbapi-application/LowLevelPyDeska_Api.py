@@ -19,7 +19,9 @@ def imperative(r):
     revisionNum = int(revision[1:])
 
     # let's actually test the bindings now
-    c = _l.Connection()
+    args = _l.std_vector_string()
+    args.append(r.path_deska_server_py)
+    c = _l.Connection(args)
     # start with kindNames
     kindNames = c.kindNames()
     r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "host_template", "vendor",

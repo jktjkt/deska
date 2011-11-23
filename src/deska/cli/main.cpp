@@ -36,7 +36,10 @@
 int main(int argc, char **argv)
 {
     Deska::Cli::CliConfig config("deska.ini", argc, argv);
-    Deska::Db::Connection conn;
+    std::vector<std::string> args;
+    args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska_server.py");
+    // FIXME: switch to boost::program_options, see redmine #179
+    Deska::Db::Connection conn(args);
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
     Deska::Cli::UserInterfaceIO io(&parser, &config);

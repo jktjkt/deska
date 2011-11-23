@@ -40,6 +40,19 @@ parser.add_option("--cfggen-git-workdir", dest="cfggenGitWorkdir", default=None,
                     "directories for each changeset")
 
 (options, args) = parser.parse_args()
+# file the variables from environment
+if not parser.has_option("database") and os.environ.has_key("DESKA_DB"):
+    options.database = os.environ["DESKA_DB"]
+if not parser.has_option("username") and os.environ.has_key("DESKA_USER"):
+    options.username = os.environ["DESKA_USER"]
+if not parser.has_option("cfggenBackend") and os.environ.has_key("DESKA_CFGGEN_BACKEND"):
+    options.cfggenBackend = os.environ["DESKA_CFGGEN_BACKEND"]
+if not parser.has_option("cfggenScriptPath") and os.environ.has_key("DESKA_CFGGEN_SCRIPTS"):
+    options.cfggenScriptPath = os.environ["DESKA_CFGGEN_SCRIPTS"]
+if not parser.has_option("cfggenGitRepo") and os.environ.has_key("DESKA_CFGGEN_GIT_PRIMARY_CLONE"):
+    options.cfggenGitRepo = os.environ["DESKA_CFGGEN_GIT_PRIMARY_CLONE"]
+if not parser.has_option("cfggenGitWorkdir") and os.environ.has_key("DESKA_CFGGEN_GIT_WC"):
+    options.cfggenGitWorkdir = os.environ["DESKA_CFGGEN_GIT_WC"]
 if (options.log_stderr and options.logfile):
     # basicConfig() won't add duplicate loggers
     parser.error("Cannot log to both file and stderr -- too lazy")
