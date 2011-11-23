@@ -37,8 +37,8 @@ int main(int argc, char **argv)
 {
     Deska::Cli::CliConfig config("deska.ini", argc, argv);
     std::vector<std::string> args;
-    args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska-server");
-    // FIXME: switch to boost::program_options, see redmine #179
+    // FIXME: support space-delimited values
+    args.push_back(config.getVar<std::string>(Deska::Cli::DBConnection_Server));
     Deska::Db::Connection conn(args);
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
