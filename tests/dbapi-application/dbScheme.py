@@ -74,3 +74,4 @@ def imperative(r):
     )
     r.assertEqual(r.c(kindRelations("vendor")), [])
     r.assertEqual(r.c(kindRelations("service")), [])
+    # FIXME: write tests for the new kinds
