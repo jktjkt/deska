@@ -24,7 +24,7 @@ def imperative(r):
     kindNames = c.kindNames()
     r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "host_template", "vendor",
                                               "interface", "interface_template", "service",
-                                              "hardware_template"]))
+                                              "hardware_template", "virtual_hardware"]))
 
     # continue with kindRelations
     expectedRelations = {
@@ -37,6 +37,7 @@ def imperative(r):
         "hardware_template": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
         # the embedInto is *not* present in this case, as templates cannot define this attribute
         "interface_template": "[templatized(interface_template, template_interface)]",
+        "virtual_hardware": "[]",
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
