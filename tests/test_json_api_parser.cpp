@@ -289,7 +289,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"defaults\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
+               "{\"relation\": \"CONTAINS\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
@@ -369,7 +369,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleObjectData, JsonApiTestFixtureFailOnStreamT
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"baz\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"template\"}"
+               "{\"relation\": \"CONTAINS\", \"target\": \"anotherKind\", \"column\": \"template\"}"
                "],\"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind\",\"attribute\":\"int\",\"value\":666}}\n");
@@ -431,7 +431,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectDataWithOrigin, JsonApiTestFi
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"template\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
+               "{\"relation\": \"CONTAINS\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleResolvedObjectDataWithOrigin\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
@@ -469,7 +469,7 @@ BOOST_FIXTURE_TEST_CASE(json_multipleResolvedObjectData, JsonApiTestFixtureFailO
     expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindRelations\": ["
                "{\"relation\": \"TEMPLATIZED\", \"target\": \"by-which-kind\", \"column\": \"template\"}, "
-               "{\"relation\": \"MERGE_WITH\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
+               "{\"relation\": \"CONTAINS\", \"target\": \"anotherKind\", \"column\": \"anotherKind\"}"
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"multipleResolvedObjectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"filter\":{\"condition\":\"columnNe\",\"kind\":\"kind1\",\"attribute\":\"int\",\"value\":666}}\n");
