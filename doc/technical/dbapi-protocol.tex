@@ -291,8 +291,6 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt ServerError} & The server has encountered an internal error & --- \\
 \end{longtable}
 
-FIXME: more filter exceptions with fine-grained semantics
-
 \subsection{Adding Low-Level Data Types}
 \label{sec:json-extending}
 
@@ -571,8 +569,6 @@ corresponding tables to each other via correct relation.  Using these ``foreign'
 that both kinds are connected via a compatible relation.  If there is no such relation, the Deska server returns the
 {\tt FilterError} exception.  At this time, the Deska server does not support transitive relation traversal, so only
 those kinds which are joined by an immediate relation can be processed in this way.
-
-FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
 \subsubsection{Output Ordering}
 
