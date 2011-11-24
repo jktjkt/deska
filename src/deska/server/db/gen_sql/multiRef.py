@@ -562,7 +562,7 @@ BEGIN
         from_version = id2num(parent(changeset_id));
     EXCEPTION
         WHEN SQLSTATE '70001' THEN
-            SELECT num - 1 INTO from_version FROM version WHERE id = changeset_id;
+            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
     END;
 
     CREATE TEMP TABLE %(tbl)s_diff_data
@@ -591,14 +591,7 @@ BEGIN
         from_version = id2num(parent(changeset_id));
     EXCEPTION
         WHEN SQLSTATE '70001' THEN
-            --changeset with id changeset_id was already commited, exists version with this id
-            SELECT num INTO to_version FROM version WHERE id = changeset_id;
-            from_version = to_version - 1;
-            CREATE TEMP TABLE %(tbl)s_diff_data AS
-                SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
-                    FROM %(tbl)s_resolved_data(from_version) inner1
-                    FULL OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
-            RETURN;
+            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
     END;
     
     CREATE TEMP TABLE template_data_changeset AS SELECT * FROM %(tbl_template_name)s_data_changeset(changeset_id);
