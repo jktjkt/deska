@@ -47,7 +47,7 @@ def imperative(r):
     # check kindAttributes
     expectedAttrs = {
         "hardware": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        # FIXME: Redmine #320, extra attribute for "host"
+        # FIXME: Redmine #319, extra attribute for "host"
         "hardware_template": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
         "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER, virtual_hardware: TYPE_IDENTIFIER]",
         # FIXME: Redmine #319, the template table contains references to containable items
