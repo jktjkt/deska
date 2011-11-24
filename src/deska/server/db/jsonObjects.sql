@@ -189,7 +189,7 @@ def main(tag,kindName,objectName):
 	try:
 		dutil.fcall(fname,objectName)
 	except dutil.DeskaException as err:
-		return err.json(name)
+		return err.json(name, jsn)
 
 	return json.dumps(jsn)
 $$
