@@ -1514,10 +1514,10 @@ BEGIN
 	BEGIN
 		from_version = id2num(parent(changeset_id));
 	EXCEPTION
-		--parent version was not found in table with opened changesets, given changeset was already closed
 		WHEN SQLSTATE '70001' THEN
-			SELECT num -1 INTO from_version FROM version WHERE id = changeset_id;
+			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
 	END;
+
 	--full outer join of data in parent revision and changes made in opened changeset
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS  SELECT %(diff_columns)s
@@ -1545,21 +1545,11 @@ BEGIN
 		--it's necessary to have opened changeset in witch we would like to see diff
 		changeset_id = get_current_changeset();
 	END IF;
-	
 	BEGIN
 		from_version = id2num(parent(changeset_id));
 	EXCEPTION
-		--parent version was not found in table with opened changesets, given changeset was already closed
 		WHEN SQLSTATE '70001' THEN
-			SELECT num INTO to_version FROM version WHERE id = changeset_id;
-			from_version = to_version - 1;
-			CREATE TEMP TABLE %(tbl)s_diff_data AS 
-				SELECT %(diff_columns)s FROM %(tbl)s_resolved_data(to_version) chv
-					LEFT OUTER JOIN %(tbl)s_resolved_data(from_version) dv ON (dv.uid = chv.uid);
-			
-			%(inner_tables_diff)s
-			
-			RETURN;
+			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
 	END;
 	
 	--data valid in changeset_id are the newest data present in the from_version and in the changeset with the changeset_id

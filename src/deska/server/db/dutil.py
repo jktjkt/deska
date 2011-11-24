@@ -134,8 +134,8 @@ def hasTemplate(kindName):
 	else:
 		return False
 
-def getData(kindName):
-	'''get name of the data function'''
+def getDataSuffix(kindName):
+	'''get suffix of name of the data function'''
 	if hasTemplate(kindName):
 		return "resolved_data($1)"
 	return "data_version($1)"
