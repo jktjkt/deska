@@ -49,14 +49,20 @@ def imperative(r):
 
     # check kindAttributes
     expectedAttrs = {
-        "hardware": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "hardware_template": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
-        "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
-        "host_template": "[note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
+        # FIXME: Redmine #320, wrong attribute data type for "host"
+        "hardware": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, host: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        # FIXME: Redmine #320, wrong attribute data type for "host"
+        "hardware_template": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, host: TYPE_INT, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
+        "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER, virtual_hardware: TYPE_IDENTIFIER]",
+        # FIXME: Redmine #319, the template table contains references to containable items
+        #"host_template": "[note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
+        "host_template": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER, virtual_hardware: TYPE_IDENTIFIER]",
         "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "vendor": "[]",
-        "service": "[note: TYPE_STRING]"
+        "service": "[note: TYPE_STRING]",
+        # FIXME: Redmine #320, wrong attribute data type for "host"
+        "virtual_hardware": "[cpu_num: TYPE_INT, host: TYPE_INT, ram: TYPE_INT]"
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
