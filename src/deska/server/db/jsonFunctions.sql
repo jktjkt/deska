@@ -86,9 +86,10 @@ def main(tag,kindName):
 
 	res = RelationList()
 	res.addRelation("EMBED_INTO",kindName,dutil.generated.embedNames())
-	res.addRelation("MERGE_WITH",kindName,dutil.generated.mergeNames())
 	res.addRelation("TEMPLATIZED",kindName,dutil.generated.templateNames())
 	res.addRelation("REFERS_TO",kindName,dutil.generated.refNames())
+	res.addRelation("CONTAINS",kindName,dutil.generated.containsNames())
+	res.addRelation("CONTAINABLE",kindName,dutil.generated.containableNames())
 	
 	jsn[name] = res
 	return json.dumps(jsn)

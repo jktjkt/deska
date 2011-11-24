@@ -36,7 +36,7 @@ CREATE TABLE modelbox (
 
     -- Which types of hardware we can accomodate?
     accepts_inside identifier_set
-       CONSTRAINT rset_modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
+	CONSTRAINT rset_modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
 
     note text
 );

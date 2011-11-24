@@ -41,8 +41,8 @@ def %(name)s(%(args)s):
 	Refuid reference is reference to some table's uid column.
 	Gets name of column from which is uid referenced and the name of the table table that is referenced,
 	"""
-	merge_with_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'MERGE';"
-	"""Query to get names of tables which are merged with this table."""
+	composition_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'CONTAINS' OR relation = 'CONTAINABLE';"
+	"""Query to get names of tables which are in composition with this table."""
 	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
 	"""Query to get info about all relations refers_to_set."""
 	commit_string = '''
@@ -96,9 +96,10 @@ CREATE FUNCTION commit_all(message text)
 		# dict of embeded
 		self.embed = dict()
 		self.embedNames = dict()
-		# dict of merged
-		self.merge = dict()
-		self.mergeNames = dict()
+		# dict of composition
+		self.composition = dict()
+		self.containsNames = dict()
+		self.containableNames = dict()
 		# dict of templated tables
 		#keys are template tables, values are tables templated by them
 		self.template = dict()
@@ -178,7 +179,8 @@ CREATE FUNCTION commit_all(message text)
 		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
 		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
 		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
-		print self.py_fn_str % {'name': "mergeNames", 'args': '', 'result': str(self.mergeNames)}
+		print self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)}
+		print self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)}
 		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
 		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
 		print self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"}
@@ -238,10 +240,11 @@ CREATE FUNCTION commit_all(message text)
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
 				self.embedNames[relName] = tbl
-			#FIXME: this is not right, only for remember, merge has to be defined in another way
-			elif prefix == "rmerge_":
-				self.merge[tbl] = col[1]
-				self.mergeNames[relName] = tbl
+			elif prefix == "rconta_":
+				self.composition[tbl] = col[1]
+				self.containsNames[relName] = tbl
+			elif prefix == "rcoble_":
+				self.containableNames[relName] = tbl
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 				self.templateNames[relName] = tbl
@@ -259,10 +262,10 @@ CREATE FUNCTION commit_all(message text)
 		for row in refuid_rec:
 			table.refuid_columns[row[0]] = row[1]
 
-		record = self.plpy.execute(self.merge_with_str % tbl)
-		table.merge_with = list()
+		record = self.plpy.execute(self.composition_str % tbl)
+		table.contains = list()
 		for row in record:
-			table.merge_with.append(row[0])
+			table.contains.append(row[0])
 
 		if tbl in self.templates:
 			templated_table = self.templates[tbl]

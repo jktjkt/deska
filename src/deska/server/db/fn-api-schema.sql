@@ -255,7 +255,8 @@ DECLARE
 BEGIN
 	RETURN QUERY SELECT 
 			CASE 
-				WHEN conname LIKE 'rmerge_%' THEN 'MERGE'
+				WHEN conname LIKE 'rconta_%' THEN 'CONTAINS'
+				WHEN conname LIKE 'rcoble_%' THEN 'CONTAINABLE'
 				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATIZED'
 				WHEN conname LIKE 'rembed_%' THEN 'EMBED_INTO'
 				WHEN ((SELECT typ.typname FROM pg_attribute AS att 

@@ -25,7 +25,8 @@ def main(tag,kindName,revision,filter):
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
-	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.containsNames())
+	rels.update(dutil.generated.containableNames())
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
@@ -107,7 +108,8 @@ def main(tag,kindName,revision,filter):
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
-	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.containsNames())
+	rels.update(dutil.generated.containableNames())
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
@@ -195,7 +197,8 @@ def main(tag,kindName,revision,filter):
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
-	rels.update(dutil.generated.mergeNames())
+	rels.update(dutil.generated.containsNames())
+	rels.update(dutil.generated.containableNames())
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:

@@ -437,6 +437,10 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
         return ObjectRelation::refersTo(target, column);
     } else if (relationKind == "TEMPLATIZED") {
         return ObjectRelation::templatized(target, column);
+    } else if (relationKind == "CONTAINS") {
+        return ObjectRelation::contains(target, column);
+    } else if (relationKind == "CONTAINABLE") {
+        return ObjectRelation::containable(target, column);
     } else {
         std::ostringstream s;
         s << "Invalid relation kind '" << relationKind << "'";

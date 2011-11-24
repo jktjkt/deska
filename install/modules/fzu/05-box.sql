@@ -19,6 +19,10 @@ CREATE TABLE box (
 	-- Our "parent"
 	inside bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
+	-- switch coble
+	switch bigint,
+	-- hardware coble
+	hardware bigint,
 	-- position, checked by trigger
 	position text,
 	note text

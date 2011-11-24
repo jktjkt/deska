@@ -101,6 +101,65 @@ class Templates:
 
 '''
 
+	#template for setting uid of referenced row that has name attribute value
+	#value could be composed of names that are in embed into chain
+	inner_set_fk_uid_string = '''CREATE FUNCTION
+	inner_%(tbl)s_set_%(colname)s(IN name_ text,IN value text)
+	RETURNS integer
+	AS
+	$$
+	DECLARE	ver bigint;
+		refuid bigint;
+		rowuid bigint;
+		tmp bigint;
+	BEGIN
+		SELECT get_current_changeset() INTO ver;
+		--value is name of object in reftable
+		--we need to know uid of referenced object instead of its name
+		IF value IS NULL THEN
+			refuid = NULL;
+		ELSE
+			SELECT %(reftbl)s_get_uid(value) INTO refuid;
+		END IF;
+
+		SELECT %(tbl)s_get_uid(name_) INTO rowuid;
+		-- try if there is already line for current version
+		SELECT uid INTO tmp FROM %(tbl)s_history
+			WHERE uid = rowuid AND version = ver;
+		--object with given name was not modified in this version
+		--we need to get its current data to this version
+		IF NOT FOUND THEN
+			INSERT INTO %(tbl)s_history (%(columns)s,version)
+				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
+		END IF;
+		--set column to refuid - uid of referenced object
+		UPDATE %(tbl)s_history SET %(colname)s = refuid, version = ver
+			WHERE uid = rowuid AND version = ver;
+		
+		--flag is_generated set to false
+		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
+		RETURN 1;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	#template for seting
+	set_read_only_string = '''CREATE FUNCTION
+	%(tbl)s_set_%(colname)s(IN name_ text,IN value text)
+	RETURNS integer
+	AS
+	$$
+	BEGIN
+		PERFORM get_current_changeset();
+		RAISE 'Column %(colname)s in table %(tbl)s is read only.' USING ERRCODE = '70005';
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+	
+'''	
+
 	# template string for set functions for columns that reference set of identifiers
 	set_refuid_set_string = '''CREATE FUNCTION
 	%(tbl)s_set_%(colname)s(IN name_ text,IN value text[])
@@ -478,7 +537,7 @@ class Templates:
 				RETURN value;
 			END IF;
 			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
-			from_version = id2num(parent(changeset_id));
+			--from_version = id2num(parent(changeset_id));
 		END IF;
 
 		SELECT uid INTO value FROM %(tbl)s_data_version(from_version) WHERE name = name_;

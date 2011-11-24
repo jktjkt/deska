@@ -63,7 +63,9 @@ void exportObjectRelations()
             .value("MERGE_WITH", RELATION_MERGE_WITH)
             .value("EMBED_INTO", RELATION_EMBED_INTO)
             .value("REFERS_TO", RELATION_REFERS_TO)
-            .value("TEMPLATIZED", RELATION_TEMPLATIZED);
+            .value("TEMPLATIZED", RELATION_TEMPLATIZED)
+            .value("CONTAINS", RELATION_CONTAINS)
+            .value("CONTAINABLE", RELATION_CONTAINABLE);
 
     class_<ObjectRelation>("ObjectRelation", no_init)
             .def_readonly("kind", &ObjectRelation::kind)

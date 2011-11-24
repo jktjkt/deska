@@ -85,8 +85,9 @@ class Condition():
 		relNames = generated.refNames()
 		# add templates - same as refs for our stuff here
 		relNames.update(generated.templateNames())
-		# add merge/contains - same as refs for our stuff here
-		relNames.update(generated.mergeNames())
+		# add contains/containable - same as refs for our stuff here
+		relNames.update(generated.containsNames())
+		relNames.update(generated.containableNames())
 		# find referenced columns
 		for relName in relNames:
 			fromTbl = generated.relFromTbl(relName)
@@ -241,8 +242,9 @@ class Filter():
 				relNames = generated.refNames()
 				# add templates - same as refs for our stuff here
 				relNames.update(generated.templateNames())
-				# add merge/contains - same as refs for our stuff here
-				relNames.update(generated.mergeNames())
+				# add contains/containable - same as refs for our stuff here
+				relNames.update(generated.containsNames())
+				relNames.update(generated.containableNames())
 				findJoinable = False
 				# find if there is ref relation from mykind to kind or kind to mykind
 				for relName in relNames:
