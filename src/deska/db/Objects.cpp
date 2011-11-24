@@ -103,8 +103,6 @@ bool operator<(const ObjectRelation &a, const ObjectRelation &b)
 std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 {
     switch (o.kind) {
-    case RELATION_MERGE_WITH:
-        return stream << "mergeWith(" << o.target << ", " << o.column << ")";
     case RELATION_EMBED_INTO:
         return stream << "embedInto(" << o.target << ", " << o.column << ")";
     case RELATION_REFERS_TO:
@@ -124,11 +122,6 @@ std::ostream& operator<<(std::ostream &stream, const ObjectRelation& o)
 ObjectRelation::ObjectRelation(const ObjectRelationKind _kind, const Identifier &_target, const Identifier &_column):
     kind(_kind), target(_target), column(_column)
 {
-}
-
-ObjectRelation ObjectRelation::mergeWith(const Identifier &target, const Identifier &column)
-{
-    return ObjectRelation(RELATION_MERGE_WITH, target, column);
 }
 
 ObjectRelation ObjectRelation::embedInto(const Identifier &target, const Identifier &column)

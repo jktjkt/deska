@@ -118,17 +118,6 @@ std::ostream& operator<<(std::ostream &stream, const KindAttributeDataType &k);
 
 /** @short Table relations -- are these objects somehow related, and should their representation be merged in the CLI? */
 typedef enum {
-    /** @short This object should be merged with the other one, if one exists
-     *
-     * This object and the one referred are closely related, and would typically have a {0,1}:{0,1}
-     * mapping, and therefore it makes sense to deal with both of them as if they were just one, at
-     * least from the CLI.
-     *
-     * An example of such objects is "host" and "hw" -- on most machines, there would be a 1:1
-     * mapping, and it makes much sense to group them together in the CLI.
-     * */
-    RELATION_MERGE_WITH,
-
     /** @short This object should be embeddable into the other one
      *
      * This object doesn't make much sense alone, it really has to "belong" into another one, but
@@ -163,15 +152,6 @@ typedef enum {
 
 /** @short A tuple of (kind-of-relation, table, column)
  *
- * Examples for a "host" would be:
- * (RELATION_MERGE_WITH, "hw", "hw")
- * ...which means that the "host" records shall contain a reference to the "hw" table, and the reference shall be formed by a
- * column named "hw" which points to the name of the object in the "hw" table. We do not define the name of the target column,
- * simply because we always point to its identifier.
- *
- * In this situation, the record will be accompanied by the corresponding relation for the "hw" object kind:
- * (RELATION_MERGE_WITH, "host", "host")
- *
  * This is how templates work:
  * (RELATION_TEMPLATIZED, "hw-template", "template") -- for the "hw" kind
  *
@@ -184,9 +164,6 @@ typedef enum {
  * */
 struct ObjectRelation
 {
-    /** @short Construct a RELATION_MERGE_WITH */
-    static ObjectRelation mergeWith(const Identifier &target, const Identifier &column);
-
     /** @short Construct a RELATION_EMBED_INTO */
     static ObjectRelation embedInto(const Identifier &target, const Identifier &column);
 

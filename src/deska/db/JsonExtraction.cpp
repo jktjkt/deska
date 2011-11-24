@@ -431,8 +431,6 @@ ObjectRelation JsonConversionTraits<ObjectRelation>::extract(const json_spirit::
     // Now process the actual data
     if (relationKind == "EMBED_INTO") {
         return ObjectRelation::embedInto(target, column);
-    } else if (relationKind == "MERGE_WITH") {
-        return ObjectRelation::mergeWith(target, column);
     } else if (relationKind == "REFERS_TO") {
         return ObjectRelation::refersTo(target, column);
     } else if (relationKind == "TEMPLATIZED") {

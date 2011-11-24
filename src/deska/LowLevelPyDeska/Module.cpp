@@ -60,7 +60,6 @@ void exportObjectRelations()
             .def("__repr__", repr_vect<ObjectRelation>);
 
     enum_<ObjectRelationKind>("ObjectRelationKind")
-            .value("MERGE_WITH", RELATION_MERGE_WITH)
             .value("EMBED_INTO", RELATION_EMBED_INTO)
             .value("REFERS_TO", RELATION_REFERS_TO)
             .value("TEMPLATIZED", RELATION_TEMPLATIZED)
