@@ -7,7 +7,7 @@ import generated
 from dutil import DutilException
 from dutil import mystr
 from dutil import fcall
-from dutil import getData
+from dutil import getDataSuffix
 
 class Condition():
 	'''Class to store and handle column/value/operator data'''
