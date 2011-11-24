@@ -9,9 +9,7 @@ helper_interface_attrs = {
 helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier", "cpu_ht": "bool",
     "template_hardware": "identifier", "cpu_num": "int", "ram": "int", "note_hardware": "string",
-    # FIXME: Redmine #320
-    #"host" : "identifier"
-    "host" : "int"
+    "host" : "identifier"
 }
 helper_host_attrs = {
     "hardware": "identifier", "virtual_hardware": "identifier", "note_host": "string",
@@ -50,11 +48,8 @@ def imperative(r):
         {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'}]))
     r.assertEqual(r.c(kindRelations("host")),
         AnyOrderList([
-            # FIXME: Redmine #319
-            #{'relation': 'CONTAINS', 'target': 'hardware', 'column': 'hardware'},
-            #{'relation': 'CONTAINS', 'target': 'virtual_hardware', 'column': 'virtual_hardware'},
-            {'relation': 'REFERS_TO', 'target': 'hardware', 'column': 'hardware'},
-            {'relation': 'REFERS_TO', 'target': 'virtual_hardware', 'column': 'virtual_hardware'},
+            {'relation': 'CONTAINS', 'target': 'hardware', 'column': 'hardware'},
+            {'relation': 'CONTAINS', 'target': 'virtual_hardware', 'column': 'virtual_hardware'},
             {'relation': 'TEMPLATIZED', 'target': 'host_template', 'column': 'template_host'},
             {'relation': 'REFERS_TO', 'target': 'service', 'column': 'service'}
         ])
@@ -62,8 +57,7 @@ def imperative(r):
     r.assertEqual(r.c(kindRelations("hardware")),
         AnyOrderList([
             {'relation': 'REFERS_TO', 'target': 'vendor', 'column': 'vendor'},
-            # FIXME: Redmine #319
-            #{'relation': 'CONTAINABLE', 'target': 'host', 'column': 'host'},
+            {'relation': 'CONTAINABLE', 'target': 'host', 'column': 'host'},
             {'relation': 'TEMPLATIZED', 'target': 'hardware_template', 'column': 'template_hardware'}])
     )
     r.assertEqual(r.c(kindRelations("hardware_template")),
