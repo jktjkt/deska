@@ -142,7 +142,7 @@ class Condition():
 		self.relationParse()
 		self.operatorParse()
 		if self.idSet and self.op == "NOT IN":
-			self.id = "(SELECT {0} FROM inner_{0}_{1}_{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getData(self.kind))
+			self.id = "(SELECT {0} FROM inner_{0}_{1}_{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getDataSuffix(self.kind))
 			self.col = "uid"
 
 	def get(self):
@@ -225,7 +225,7 @@ class Filter():
 		for kind in self.idSetInfo:
 			col = self.idSetInfo[kind]
 			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
-			ret = ret + self.JOIN + "inner_{0}_{1}_{3} AS inner_{1} ON {2} ".format(kind, col, joincond, getData(kind))
+			ret = ret + self.JOIN + "inner_{0}_{1}_{3} AS inner_{1} ON {2} ".format(kind, col, joincond, getDataSuffix(kind))
 		return ret
 
 
@@ -259,30 +259,30 @@ class Filter():
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getData(tbl))
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(tbl))
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = getData(fromTbl))
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = getDataSuffix(fromTbl))
 							findJoinable = True
 						elif toTbl == kind and fromTbl == mykind:
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getData(tbl))
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(tbl))
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = getData(toTbl))
+							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = getDataSuffix(toTbl))
 							findJoinable = True
 					elif fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getData(kind))
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
 						findJoinable = True
 					# back relation only for refs
 					elif relName in refNames and toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getData(kind))
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
 						findJoinable = True
 						
 				# find if there is embeding
@@ -292,11 +292,11 @@ class Filter():
 					toTbl = generated.relToTbl(relName)
 					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getData(kind))
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
 						findJoinable = True
 					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getData(kind))
+						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
 						findJoinable = True
 						
 				if not findJoinable:
