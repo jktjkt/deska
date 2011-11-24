@@ -37,6 +37,7 @@ class DB:
 		# applyBatchedChanges is somewhere else
 		"startChangeset": ["tag"],
 		"commitChangeset": ["tag", "commitMessage"],
+		"restoringCommit": ["tag", "commitMessage", "author", "timestamp"],
 		"pendingChangesets": ["tag", "filter"],
 		"resumeChangeset": ["tag", "changeset"],
 		"detachFromCurrentChangeset": ["tag", "message"],
@@ -52,7 +53,7 @@ class DB:
 		"resolvedDataDifferenceInTemporaryChangeset": ["tag", "changeset"],
 		# showConfigDiff is special
 	})
-	writeFunctions = ["startChangeset", "commitChangeset", "resumeChangeset", "abortCurrentChangeset",
+	writeFunctions = ["startChangeset", "commitChangeset", "restoringCommit", "resumeChangeset", "abortCurrentChangeset",
 		"detachFromCurrentChangeset", "lockCurrentChangeset", "unlockCurrentChangeset",
 		"deleteObject", "createObject", "restoreDeletedObject", "renameObject", "setAttribute",
 		"setAttributeInsert", "setAttributeRemove"]
