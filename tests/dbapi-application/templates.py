@@ -148,6 +148,7 @@ def do_host(r):
         "note_host": [None, None],
         "template_host": ["h", "t1"],
         "service": ["t1", ["a"]],
+        "virtual_hardware": [None, None],
     }
 
     helper_check_host(r, hdata)
