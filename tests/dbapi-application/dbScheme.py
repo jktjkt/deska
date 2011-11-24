@@ -8,7 +8,10 @@ helper_interface_attrs = {
 }
 helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier", "cpu_ht": "bool",
-    "template_hardware": "identifier", "cpu_num": "int", "ram": "int", "note_hardware": "string", "host" : "identifier"
+    "template_hardware": "identifier", "cpu_num": "int", "ram": "int", "note_hardware": "string",
+    # FIXME: Redmine #320
+    #"host" : "identifier"
+    "host" : "int"
 }
 helper_host_attrs = {
     "hardware": "identifier", "note_host": "string",
