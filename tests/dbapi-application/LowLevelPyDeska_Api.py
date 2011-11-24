@@ -27,11 +27,15 @@ def imperative(r):
                                               "hardware_template", "virtual_hardware"]))
 
     # continue with kindRelations
+    # FIXME: Redmine #319, contains/containable and relations
     expectedRelations = {
         "interface": "[embedInto(host, host), templatized(interface_template, template_interface)]",
-        "hardware": "[mergeWith(host, host), refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
-        "host": "[mergeWith(hardware, hardware), refersTo(service, service), templatized(host_template, template_host)]",
-        "host_template": "[refersTo(service, service), templatized(host_template, template_host)]",
+        # #319, wrong relation
+        "hardware": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
+        # #319, wrong relation
+        "host": "[refersTo(hardware, hardware), refersTo(service, service), refersTo(virtual_hardware, virtual_hardware), templatized(host_template, template_host)]",
+        # #319, wrong relation
+        "host_template": "[refersTo(hardware, hardware), refersTo(service, service), refersTo(virtual_hardware, virtual_hardware), templatized(host_template, template_host)]",
         "vendor": "[]",
         "service": "[]",
         "hardware_template": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
