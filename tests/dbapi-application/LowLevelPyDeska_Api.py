@@ -27,7 +27,6 @@ def imperative(r):
                                               "hardware_template", "virtual_hardware"]))
 
     # continue with kindRelations
-    # FIXME: Redmine #319, contains/containable and relations
     expectedRelations = {
         "interface": "[embedInto(host, host), templatized(interface_template, template_interface)]",
         "hardware": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware), containable(host, host)]",
