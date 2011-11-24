@@ -68,12 +68,14 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target);
             }
+#if 0
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
                 mergedTo[itr->target].push_back(std::make_pair<Db::Identifier, Db::Identifier>(*itk, *itk));
                 roAttributes[*itk].push_back(itr->column);
                 roAttributes[itr->target].push_back(*itk);
             }
+#endif
             if (itr->kind == Db::RELATION_REFERS_TO) {
                 refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
                 referredBy[itr->target].push_back(*itk);

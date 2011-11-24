@@ -46,11 +46,13 @@ DbInteraction::DbInteraction(Db::Api *api):
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target);
             }
+#if 0
             if (itr->kind == Db::RELATION_MERGE_WITH) {
                 mergeWith[*itk].push_back(itr->target);
                 referringAttrs[*itk][itr->column] = itr->target;
                 mergedTo[itr->target].push_back(*itk);
             }
+#endif
         }
         if (!isEmbedded)
             pureTopLevelKinds.push_back(*itk);
