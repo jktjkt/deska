@@ -19,7 +19,7 @@ CREATE TABLE version(
 	timestamp timestamp without time zone NOT NULL DEFAULT now(),
 	-- commit message text
 	--FIXME: is better "" instead of NULL - see #191, fix to "" for now
-	message text
+	message text NOT NULL
 );
 
 -- INPROGRESS and DETACHED changesets

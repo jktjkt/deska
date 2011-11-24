@@ -38,6 +38,9 @@ $$
 DECLARE ver integer;
 	ret integer;
 BEGIN
+	IF message_ = '' THEN
+		RAISE SQLSTATE '70004' USING MESSAGE = 'commitMessage cannot be empty string';
+	END IF;	
 	SELECT get_current_changeset() INTO ver;
 	-- FIXME: add commit message here
 	INSERT INTO version (id,author)
