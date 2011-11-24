@@ -45,7 +45,7 @@ def imperative(r):
     }
     for kind in kindNames:
         kindRelations = c.kindRelations(kind)
-        r.assertEquals(repr(sorted(kindRelations)), expectedRelations[kind])
+        r.assertEquals(kind + repr(sorted(kindRelations)), kind + expectedRelations[kind])
 
     # check kindAttributes
     expectedAttrs = {
@@ -60,7 +60,7 @@ def imperative(r):
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
-        r.assertEquals(repr(sorted(kindAttributes)), expectedAttrs[kind])
+        r.assertEquals(kind + repr(sorted(kindAttributes)), kind + expectedAttrs[kind])
 
     print revision
 
