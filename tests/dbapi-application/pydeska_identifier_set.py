@@ -64,9 +64,8 @@ def imperative(r):
     # test filtering
     r.assertEqual(sorted(deska.host[deska.host.service.contains("www")].keys()),
                   ["x%d" % i for i in range(3)])
-    # FAIL Redmine#318: negative filtering via identifier_set is not supported yet
-    #r.assertEqual(sorted(deska.host[deska.host.service.notContains("www")].keys()),
-    #              ["x%d" % i for i in range(3, 10)])
+    r.assertEqual(sorted(deska.host[deska.host.service.notContains("www")].keys()),
+                  ["x%d" % i for i in range(3, 10)])
 
     # FIXME: more filters for set-specific stuff
     # FIXME: compound filters

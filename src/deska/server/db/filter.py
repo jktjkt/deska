@@ -23,7 +23,8 @@ class Condition():
 	}
 	# operators for sets
 	opSetMap = {
-		"columnContains": "="
+		"columnContains": "=",
+		"columnNotContains": "NOT IN"
 	}
 
 	def __init__(self,data,condId):
@@ -140,12 +141,16 @@ class Condition():
 			self.id = "revision2num({0})".format(self.id)
 		self.relationParse()
 		self.operatorParse()
+		if self.idSet and self.op == "NOT IN":
+			self.id = "(SELECT {0} FROM inner_{0}_{1}_{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getData(self.kind))
+			self.col = "uid"
 
 	def get(self):
 		'''Return deska SQL condition'''
 		if self.idSet:
-			'''Change kind to inner_'''
-			self.kind = "inner_"+self.col
+			if self.op == "=":
+				'''Change kind to inner_'''
+				self.kind = "inner_"+self.col
 		if self.newcond is None:
 			if self.val is None:
 				'''do not return none'''
@@ -166,7 +171,7 @@ class Condition():
 
 	def getIdSetInfo(self):
 		'''Return kind,col if there is identifier_set condition'''
-		if self.idSet:
+		if self.idSet and self.op == "=":
 			return self.kind, self.col
 		else:
 			return None, None
