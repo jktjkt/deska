@@ -78,9 +78,11 @@ BEGIN
 	PERFORM hardware_set_purchase('HPhw', '02-01-2010');
 	PERFORM hardware_set_warranty('HPhw', '02-01-2014');
 	PERFORM host_add('hosthp1');
-	PERFORM host_set_hardware('hosthp1','HPhw');
+    -- FIXME: Redmine #321
+	-- PERFORM host_set_hardware('hosthp1','HPhw');
 	PERFORM host_add('hosthp2');
-	PERFORM host_set_hardware('hosthp2','HPhw');
+    -- FIXME: Redmine #321
+	-- PERFORM host_set_hardware('hosthp2','HPhw');
 	PERFORM interface_add('hosthp1->eth0');
 	
 	PREPARE retnames AS SELECT interface_names();
