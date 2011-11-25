@@ -241,6 +241,11 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
 		renamed = prepare("SELECT * FROM " + kindName + "_diff_rename()")
 		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		if "identifier_set" in generated.atts(kindName).values():
+			'''for identifier_set'''
+			setattr2 = prepare("SELECT * FROM " + kindName + "_diff_refs_set_set_attributes($1,$2)")
+		else:
+			setattr2 = None
 		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
 
 		res = list()
@@ -263,7 +268,10 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			obj["kindName"] = kindName
 			obj["objectName"] = mystr(line[0])
 			res.append(obj)
-		for line in setattr(a,b):
+		setattrRes = setattr(a,b)
+		if setattr2 is not None:
+			setattrRes = setattrRes + setattr2(a,b)
+		for line in setattrRes:
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
