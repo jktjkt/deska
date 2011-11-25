@@ -291,8 +291,6 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt ServerError} & The server has encountered an internal error & --- \\
 \end{longtable}
 
-FIXME: more filter exceptions with fine-grained semantics
-
 \subsection{Adding Low-Level Data Types}
 \label{sec:json-extending}
 
@@ -540,11 +538,11 @@ In the first two cases, the comparison is performed using defined comparison ope
 At this time, the defined comparison operators are equality, non-equality, being greater/lesser than, and
 greater-or-equal and less-or-equal.  The constant value against which a property is compared can be anything which is
 acceptable in the context of a Deska attribute value, a revision identification, a temporary changeset identification,
-or any similar revision (or changeset) metadata.  For filters against an {\tt identifier\_set} data type, only the
-existing {\tt columnEq} and {\tt columnNe} and new {\tt columnContains} and {\tt columnNotContains} comparison operators
-are allowed.  The greater/lesser operators are not allowed in expressions which reference identifier
-sets.\footnote{Mixing these operators in a compound filter, as described later in this section, is completely valid and
-supported.}
+or any similar revision (or changeset) metadata.  For filters against an {\tt identifier\_set} data type, the set of
+accepted comparison operators is different, and only the new {\tt columnContains} and {\tt columnNotContains} comparison
+operators are allowed.  Other operators, like the equality/inequality/greater/lesser ones, are not allowed in
+expressions which reference identifier sets.\footnote{Mixing these operators in a compound filter, as described later in
+this section, is completely valid and supported.}
 
 In the last case concerning the special filters, the filter condition does not operate on regular object properties, but
 rather on some ``magic'' value.  At this time, only one filter type is implemented, which matches an object which has
@@ -571,8 +569,6 @@ corresponding tables to each other via correct relation.  Using these ``foreign'
 that both kinds are connected via a compatible relation.  If there is no such relation, the Deska server returns the
 {\tt FilterError} exception.  At this time, the Deska server does not support transitive relation traversal, so only
 those kinds which are joined by an immediate relation can be processed in this way.
-
-FIXME: change the sentence above when fine-grained filter exceptions are introduced
 
 \subsubsection{Output Ordering}
 

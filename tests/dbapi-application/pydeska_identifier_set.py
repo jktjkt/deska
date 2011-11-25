@@ -67,5 +67,12 @@ def imperative(r):
     r.assertEqual(sorted(deska.host[deska.host.service.notContains("www")].keys()),
                   ["x%d" % i for i in range(3, 10)])
 
+    try:
+        deska.host[deska.host.service == ["www"]]
+        r.assertFalse("FIltering by == on identifier_set should be unsupported")
+    except RuntimeError:
+        # this is what we expect
+        pass
+
     # FIXME: more filters for set-specific stuff
     # FIXME: compound filters

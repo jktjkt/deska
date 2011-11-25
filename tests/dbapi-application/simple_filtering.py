@@ -25,7 +25,9 @@ def imperative(r):
 			]
         },
         {"condition": "columnGe", "metadata": "revision", "value": "r1"},
-#        {"condition": "columnLt", "metadata": "revision", "value": "r666"},
+        # Cannot use non-existing revision here (Redmine #306), so let's check
+        # against a date instead.
+        {"condition": "columnLt", "metadata": "timestamp", "value": "3333-12-31 23:59:59"},
         {"operator": "and", "operands": [
 			{"condition": "columnGe", "metadata": "revision", "value": "r1"},
 			{"condition": "columnLe", "metadata": "revision", "value": "r3"},
