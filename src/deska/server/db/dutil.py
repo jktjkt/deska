@@ -16,9 +16,14 @@ class DeskaException(Exception):
 		'70007': 'ObsoleteParentError',
 		'70004': 'ConstraintError',
 		'70005': 'ReadOnlyError',
-		'70006': 'RevisionRangeError',
+		'70011': 'ChangesetParsingError',
+		'70012': 'RevisionParsingError',
+		'70013': 'RevisionRangeError',
+		'70014': 'RevisionRangeError',
+		#'70014': 'ChangesetRangeError',
 		'23502': 'ConstraintError',#NOT NULL
 		'23514': 'ConstraintError',#check_positive
+		'10111': 'SqLError',#check_positive
 		'*': 'ServerError'
 	}
 

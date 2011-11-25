@@ -19,7 +19,7 @@ def call(fname,atr1,atr2):
 		else:
 			raise
 	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = '10111')
 
 @pytypes
 def main(kindname,objectname,attributename,value):
@@ -48,7 +48,7 @@ def call(fname,atr1):
 		else:
 			raise
 	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = '10111')
 
 @pytypes
 def main(kindname,objectname,attributename):
@@ -77,7 +77,7 @@ def call(fname,atr1,atr2):
 		else:
 			raise
 	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = '10111')
 
 @pytypes
 def main(kindname,oldname,newname):
@@ -105,7 +105,7 @@ def call(fname,atr1):
 		else:
 			raise
 	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = '10111')
 
 @pytypes
 def main(kindname,objectname):
@@ -133,7 +133,7 @@ def call(fname,atr1):
 		else:
 			raise
 	# we cannot raise exception from except part, so wait for here
-	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = 10111)
+	raise Postgres.ERROR('Kind "{kind}" does not exists.'.format(kind = kindname),code = '10111')
 
 @pytypes
 def main(kindname,objectname):

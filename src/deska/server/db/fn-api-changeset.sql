@@ -179,7 +179,7 @@ BEGIN
 		WHERE id = chid; 
 	IF NOT FOUND THEN
 		-- no changeset of this name
-		RAISE SQLSTATE '70006' USING MESSAGE = 'No changeset of this name.';
+		RAISE SQLSTATE '70014' USING MESSAGE = 'No changeset of this name.';
 	END IF;
 
 	PERFORM pg_advisory_unlock(id) FROM changeset WHERE id = chid FOR UPDATE;

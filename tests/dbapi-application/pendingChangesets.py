@@ -51,6 +51,6 @@ def imperative(r):
     # clean the state
     r.cvoid(detachFromCurrentChangeset("foo"))
     # try attaching a persistent revision; this should fail
-    r.cfail(resumeChangeset("r0"), ServerError())
+    r.cfail(resumeChangeset("r0"), ChangesetParsingError())
     # try the same with a non-existing permanent changeset
-    r.cfail(resumeChangeset("r123"), ServerError())
+    r.cfail(resumeChangeset("r123"), ChangesetParsingError())

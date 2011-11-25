@@ -72,9 +72,7 @@ def imperative(r):
 
     r.cvoid(abortCurrentChangeset())
     for x in nastyNames:
-        # FIXME: Redmine#322, wrong exception
-        #r.cfail(resumeChangeset(x), ChangesetParsingError())
-        r.cfail(resumeChangeset(x), ServerError())
+        r.cfail(resumeChangeset(x), ChangesetParsingError())
         changeset = r.c(startChangeset())
         if x == "":
             # FIXME: better exception?

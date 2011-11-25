@@ -18,8 +18,7 @@ def imperative(r):
     changeset = r.c(startChangeset())
     r.cvoid(detachFromCurrentChangeset("detaching"))
     r.cfail(detachFromCurrentChangeset("detaching once again"), NoChangesetError())
-    # FIXME: resumeChangeset("xyz"), ChangesetParsingError()),
-    r.cfail(resumeChangeset("xyz"), ServerError())
+    r.cfail(resumeChangeset("xyz"), ChangesetParsingError())
     r.assertEqual(r.c(pendingChangesets()),
         ListEnd([
             {"status": "DETACHED", "changeset": changeset,
