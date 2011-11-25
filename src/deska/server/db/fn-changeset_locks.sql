@@ -10,7 +10,20 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION deska.lockIfDiffObsolete()
+CREATE FUNCTION deska.unlockChangeset()
+RETURNS void
+AS
+$$
+BEGIN
+	SELECT pg_advisory_unlock(id) INTO is_locked FROM changeset WHERE id = get_current_changeset();
+	IF NOT is_locked THEN
+		RAISE EXCEPTION 'current changeset is not locked';
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION deska.changesetHasFreshConfig()
 RETURNS boolean
 AS
 $$
@@ -18,24 +31,18 @@ DECLARE
 	is_up_to_date boolean;
 BEGIN
 	SELECT is_generated INTO is_up_to_date FROM changeset WHERE id = get_current_changeset();
-	PERFORM pg_advisory_lock(id) FROM changeset WHERE id = get_current_changeset();
-	RETURN NOT is_up_to_date;
+	RETURN is_up_to_date;
 END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION deska.releaseAndMarkAsOK()
+--this function marks current changeset as having freshly generated configuration
+CREATE FUNCTION deska.markChangesetFresh()
 RETURNS void
 AS
 $$
-DECLARE
-	is_locked boolean;
 BEGIN
 	UPDATE changeset SET is_generated = TRUE WHERE id = get_current_changeset();
-	SELECT pg_advisory_unlock(id) INTO is_locked FROM changeset WHERE id = get_current_changeset();
-	IF NOT is_locked THEN
-		RAISE EXCEPTION 'current changeset is not locked';
-	END IF;
 END;
 $$
 LANGUAGE plpgsql;
