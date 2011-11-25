@@ -25,7 +25,7 @@ def imperative(r):
 			]
         },
         {"condition": "columnGe", "metadata": "revision", "value": "r1"},
-        {"condition": "columnLt", "metadata": "revision", "value": "r666"},
+#        {"condition": "columnLt", "metadata": "revision", "value": "r666"},
         {"operator": "and", "operands": [
 			{"condition": "columnGe", "metadata": "revision", "value": "r1"},
 			{"condition": "columnLe", "metadata": "revision", "value": "r3"},

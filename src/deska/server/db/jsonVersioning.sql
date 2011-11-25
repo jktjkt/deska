@@ -89,6 +89,28 @@ def main(tag,commitMessage):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.restoringCommit(tag text, commitMessage text, author text, timestamp_ timestamp without time zone)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,commitMessage,author,timestamp):
+	name = "restoringCommit"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'api.'+ name + "(text,text,timestamp)"
+	try:
+		ver = dutil.fcall(fname,commitMessage,author,timestamp)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	jsn[name] = dutil.mystr(ver)
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION jsn.detachFromCurrentChangeset(tag text, message text)
 RETURNS text
 AS

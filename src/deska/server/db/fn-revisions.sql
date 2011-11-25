@@ -53,20 +53,27 @@ CREATE OR REPLACE FUNCTION revision2num(rev text)
 RETURNS bigint
 AS
 $$
-import re
-import Postgres
+DECLARE
+	revnum bigint;
+BEGIN
+	IF rev IS NULL THEN
+		RETURN 0;
+	END IF;
 
-@pytypes
-def main(rev):
-	# if NULL on input, it means revision with id 0 (current)
-	if rev is None:
-		return 0
-	if not re.match('r\d',rev):
-		Postgres.ERROR('"{rev}" is not valid revision id.'.format(rev = rev),code = 70012)
-
-	return rev[1:len(rev)]
+	IF rev !~ E'^r\\d+$' THEN
+		RAISE '% is not valid version id.', rev USING ERRCODE = '70011';
+	END IF;
+	
+	revnum = CAST (substr(rev,2) as bigint);
+	
+	IF NOT EXISTS (SELECT * FROM version WHERE num = revnum) THEN
+		RAISE 'Version % does not exist.', rev USING ERRCODE = '70006';
+	END IF;
+	
+	RETURN revnum;
+END;
 $$
-LANGUAGE python SECURITY DEFINER;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- get number from revision id

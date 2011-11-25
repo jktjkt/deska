@@ -41,7 +41,7 @@ BEGIN
 	DEALLOCATE expnames;
 	DEALLOCATE not_in_expnames;
 
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT hardware_names();
 	PREPARE expnames AS SELECT name FROM test_hardware WHERE version = 2;
@@ -78,11 +78,9 @@ BEGIN
 	PERFORM hardware_set_purchase('HPhw', '02-01-2010');
 	PERFORM hardware_set_warranty('HPhw', '02-01-2014');
 	PERFORM host_add('hosthp1');
-    -- FIXME: Redmine #321
-	-- PERFORM host_set_hardware('hosthp1','HPhw');
+	RETURN NEXT throws_ilike('SELECT host_set_hardware(''hosthp1'',''HPhw'')', 'Column hardware in table host is read only.', 'Set on read-only column raises appropriate error.');
 	PERFORM host_add('hosthp2');
-    -- FIXME: Redmine #321
-	-- PERFORM host_set_hardware('hosthp2','HPhw');
+	RETURN NEXT throws_ilike('SELECT  host_set_hardware(''hosthp2'',''HPhw'')', 'Column hardware in table host is read only.', 'Set on read-only column raises appropriate error.');
 	PERFORM interface_add('hosthp1->eth0');
 	
 	PREPARE retnames AS SELECT interface_names();
@@ -103,7 +101,7 @@ BEGIN
 	DEALLOCATE expnames;
 	DEALLOCATE not_in_expnames;
 
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 2;
@@ -134,7 +132,7 @@ BEGIN
 	PERFORM host_add('hosthp1');
 	PERFORM host_add('hosthp2');
 	PERFORM interface_add('hosthp1->eth0');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 1;
@@ -145,7 +143,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM interface_set_name('hosthp1->eth0', 'hosthp1->eth4');
 	PERFORM interface_set_host('hosthp1->eth4', 'hosthp2');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 2;
@@ -156,7 +154,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM interface_set_host('hosthp2->eth4', 'hosthp1');
 	PERFORM interface_set_name('hosthp1->eth4', 'hosthp1->eth0');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 3;
