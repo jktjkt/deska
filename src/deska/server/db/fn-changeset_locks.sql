@@ -4,8 +4,13 @@ CREATE FUNCTION deska.lockChangeset()
 RETURNS void
 AS
 $$
+DECLARE
+	is_locked boolean;
 BEGIN
-	PERFORM pg_advisory_lock(id) FROM changeset WHERE id = get_current_changeset();
+	SELECT pg_try_advisory_lock(id) INTO is_locked FROM changeset WHERE id = get_current_changeset();
+	IF NOT is_locked THEN
+		RAISE SQLSTATE '70015' USING MESSAGE = 'Current changeset can not be locked at the moment.';
+	END IF;
 END;
 $$
 LANGUAGE plpgsql;
@@ -14,10 +19,12 @@ CREATE FUNCTION deska.unlockChangeset()
 RETURNS void
 AS
 $$
+DECLARE
+	is_locked boolean;
 BEGIN
 	SELECT pg_advisory_unlock(id) INTO is_locked FROM changeset WHERE id = get_current_changeset();
 	IF NOT is_locked THEN
-		RAISE EXCEPTION 'current changeset is not locked';
+		RAISE SQLSTATE '70015' USING MESSAGE = 'Current changeset was not locked.';
 	END IF;
 END;
 $$
