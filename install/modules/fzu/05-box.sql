@@ -35,9 +35,9 @@ AS
 $$
 DECLARE pos_regexp text;
 BEGIN
-	SELECT bay_validity_regexp INTO pos_regexp FROM modelbox WHERE modelbox.uid = NEW.inside;
+	SELECT bays_validity_regexp INTO pos_regexp FROM modelbox WHERE modelbox.uid = NEW.inside;
 	IF NEW.position !~ pos_regexp THEN
-		RAISE EXCEPTION 'Box position % does not match bay_validity_regexp "%"!', NEW.position, pos_regexp;
+		RAISE EXCEPTION 'Box position % does not match bays_validity_regexp "%"!', NEW.position, pos_regexp;
 	END IF;
 	RETURN NEW;
 END

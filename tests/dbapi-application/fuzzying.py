@@ -81,10 +81,8 @@ def imperative(r):
             r.cfail(detachFromCurrentChangeset(x), ConstraintError())
             r.cvoid(detachFromCurrentChangeset("blah"))
             r.cvoid(resumeChangeset(changeset))
-            # FIXME: Redmine#323, empty commit message shall not be allowed
-            #r.cfail(commitChangeset(x), ConstraintError())
-            #r.c(commitChangeset("blah"))
-            r.c(commitChangeset(x))
+            r.cfail(commitChangeset(x), ConstraintError())
+            r.c(commitChangeset("blah"))
         else:
             r.cvoid(detachFromCurrentChangeset(x))
             r.cvoid(resumeChangeset(changeset))

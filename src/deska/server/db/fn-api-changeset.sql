@@ -38,6 +38,9 @@ $$
 DECLARE ver integer;
 	ret integer;
 BEGIN
+	IF message_ IS NULL OR message_ = '' THEN
+		RAISE SQLSTATE '70004' USING MESSAGE = 'commitMessage must be nonempty string.';
+	END IF;	
 	SELECT get_current_changeset() INTO ver;
 	-- FIXME: add commit message here
 	INSERT INTO version (id,author)
@@ -264,7 +267,7 @@ $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
 --
--- Commit changeset - just run genproc.commit
+-- Commit changeset - just run genproc.commit_all
 --
 CREATE FUNCTION commitChangeset(commitMessage_ text)
 RETURNS text
@@ -272,6 +275,23 @@ AS
 $$
 BEGIN
         RETURN num2revision(genproc.commit_all(commitMessage_));
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- restore commit changeset - same as normal commit + set old data
+--
+CREATE FUNCTION restoringCommit(commitMessage_ text, author_ text, timestamp_ timestamp without time zone)
+RETURNS text
+AS
+$$
+DECLARE ver integer;
+BEGIN
+        ver = genproc.commit_all(commitMessage_);
+	UPDATE version SET author = author_, timestamp = timestamp_
+		WHERE num = ver;
+        RETURN num2revision(ver);
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

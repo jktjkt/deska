@@ -41,7 +41,7 @@ BEGIN
 	DEALLOCATE expnames;
 	DEALLOCATE not_in_expnames;
 
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT hardware_names();
 	PREPARE expnames AS SELECT name FROM test_hardware WHERE version = 2;
@@ -101,7 +101,7 @@ BEGIN
 	DEALLOCATE expnames;
 	DEALLOCATE not_in_expnames;
 
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 2;
@@ -132,7 +132,7 @@ BEGIN
 	PERFORM host_add('hosthp1');
 	PERFORM host_add('hosthp2');
 	PERFORM interface_add('hosthp1->eth0');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 1;
@@ -143,7 +143,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM interface_set_name('hosthp1->eth0', 'hosthp1->eth4');
 	PERFORM interface_set_host('hosthp1->eth4', 'hosthp2');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 2;
@@ -154,7 +154,7 @@ BEGIN
 	PERFORM startchangeset();
 	PERFORM interface_set_host('hosthp2->eth4', 'hosthp1');
 	PERFORM interface_set_name('hosthp1->eth4', 'hosthp1->eth0');
-	PERFORM commitchangeset('');
+	PERFORM commitchangeset('x');
 
 	PREPARE retnames AS SELECT interface_names();
 	PREPARE expnames AS SELECT name FROM test_interface WHERE version = 3;
