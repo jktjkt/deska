@@ -3,7 +3,7 @@ deska_git_die() {
     exit 3
 }
 
-function deska_init_git()
+deska_init_git()
 {
     MY_PREFIX="${1}"
     if [[ -z "${MY_PREFIX}" ]]; then
