@@ -298,8 +298,12 @@ class DB:
 		self.db.commit()
 		# The lock is still held even after a commit. No other sessions is
 		# usually expected to try to obtain it, but it still won't hurt to
-		# release the lock explicitly.
-		self.unlockCurrentChangeset()
+		# release the lock explicitly. However, the DB code tries to determine
+		# the current changeset from the DB after we've commited the changeset,
+		# and therefore correctly reports back that "there's no current
+		# changeset". This unfortunately leads to leaving dangling locks behind.
+		# A correct fix would be to explicitly unlock stuff from inside the DB
+		# when commiting.
 		return res
 
 	def run(self,name,args):
