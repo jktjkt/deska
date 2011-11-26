@@ -156,12 +156,12 @@ class DB:
 		if not self.freeze:
 			self.db.commit()
 
-	def lockChangeset(self):
+	def lockCurrentChangeset(self):
 		'''Lock changeset by db lock'''
 		self.callProc("lockChangeset",{})
 		pass
 
-	def unlockChangeset(self):
+	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
 		self.callProc("releaseAndMarkAsOK",{})
 		pass
@@ -258,19 +258,19 @@ class DB:
 	def showConfigDiff(self, name, tag, forceRegen):
 		logging.debug("showConfigDiff")
 		response = {"response": name, "tag": tag}
-		self.lockChangeset()
+		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		if forceRegen or not self.changesetHasFreshConfig():
 			logging.debug("about to regenerate config")
 			self.cfgRegenerate()
 			self.markChangesetFresh()
 		response[name] = self.cfgGetDiff()
-		self.unlockChangeset()
+		self.unlockCurrentChangeset()
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
 		self.checkFunctionArguments(name, args, tag)
-		self.lockChangeset()
+		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		if not self.changesetHasFreshConfig():
 			self.cfgRegenerate()
@@ -288,7 +288,7 @@ class DB:
 			return res
 		self.db.commit()
 		#this is done by commitChangeset function
-		#self.unlockChangeset()
+		#self.unlockCurrentChangeset()
 		return res
 
 	def run(self,name,args):
