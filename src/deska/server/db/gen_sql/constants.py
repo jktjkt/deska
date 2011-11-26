@@ -48,7 +48,7 @@ class Templates:
 		--set new value in %(colname)s column
 		UPDATE %(tbl)s_history SET %(colname)s = CAST (value AS %(coltype)s), version = ver
 			WHERE uid = rowuid AND version = ver;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -91,7 +91,7 @@ class Templates:
 		--set column to refuid - uid of referenced object
 		UPDATE %(tbl)s_history SET %(colname)s = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -135,7 +135,7 @@ class Templates:
 		--set column to refuid - uid of referenced object
 		UPDATE %(tbl)s_history SET %(colname)s = refuid, version = ver
 			WHERE uid = rowuid AND version = ver;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -157,8 +157,8 @@ class Templates:
 	END
 	$$
 	LANGUAGE plpgsql SECURITY DEFINER;
-	
-'''	
+
+'''
 
 	# template string for set functions for columns that reference set of identifiers
 	set_refuid_set_string = '''CREATE FUNCTION
@@ -170,16 +170,16 @@ class Templates:
 		ver bigint;
 	BEGIN
 		ver = get_current_changeset();
-	
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
-		
+
 		BEGIN
 			--row is inserted because of diff and changes between versions
 			--this means object was modified
 			INSERT INTO %(tbl)s_history (%(columns)s,version)
 				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE name = name_;
-		EXCEPTION 
+		EXCEPTION
 			WHEN unique_violation THEN
 			-- do nothing
 		END;
@@ -199,7 +199,7 @@ class Templates:
 		ver bigint;
 	BEGIN
 		ver = get_current_changeset();
-	
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		BEGIN
@@ -226,7 +226,7 @@ class Templates:
 		ver bigint;
 	BEGIN
 		ver = get_current_changeset();
-    
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		BEGIN
@@ -270,7 +270,7 @@ class Templates:
 			INSERT INTO %(tbl)s_history (%(columns)s,version)
 				SELECT %(columns)s,ver FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
-		
+
 		BEGIN
 			UPDATE %(tbl)s_history SET name = new_name, version = ver
 				WHERE uid = rowuid AND version = ver;
@@ -278,7 +278,7 @@ class Templates:
 			WHEN unique_violation THEN
 				RAISE EXCEPTION 'object with name %% was deleted, ...', new_name USING ERRCODE = '70010';
 		END;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -762,7 +762,7 @@ class Templates:
 			WHEN check_violation THEN
 				RAISE 'Object %% violates check constraint.', name_ USING ERRCODE = '70004';
 		END;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN name_;
@@ -787,7 +787,7 @@ class Templates:
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
 		SELECT %(reftbl)s_get_uid(rest_of_name) INTO %(reftbl)s_uid;
-		
+
 		--if name is not given then it would be generated
 		--this works only for embed objects
 		IF %(tbl)s_name = '' THEN
@@ -802,14 +802,14 @@ class Templates:
 			%(tbl)s_name = '%(tbl)s_' || new_name_num;
 			full_name = full_name || '%(tbl)s_' || new_name_num;
 		END IF;
-		
+
 		SELECT get_current_changeset() INTO ver;
 		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name AND dest_bit = '1';
 		IF FOUND THEN
 			RAISE EXCEPTION 'object with name %% was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
 		INSERT INTO %(tbl)s_history(name, %(column)s, version) VALUES (%(tbl)s_name, %(reftbl)s_uid, ver);
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN full_name;
@@ -864,7 +864,7 @@ class Templates:
 			INSERT INTO %(tbl)s_history (%(columns)s, version, dest_bit)
 				SELECT %(columns)s, ver, '1' FROM %(tbl)s_data_version(id2num(parent(ver))) WHERE uid = rowuid;
 		END IF;
-		
+
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
 		RETURN 1;
@@ -1224,7 +1224,7 @@ LANGUAGE plpgsql;
 
 #template for if constructs in diff_set_attribute, this version is for refuid columns
 	one_column_change_ref_set_string = '''
-	IF NOT inner_%(tbl)s_%(refcol)s_sets_equal(newuid) 
+	IF NOT inner_%(tbl)s_%(refcol)s_sets_equal(newuid)
 	THEN
 		result.attribute = '%(column)s';
 		result.olddata = deska.ret_id_set(inner_%(tbl)s_%(refcol)s_get_old_set(newuid));
@@ -1376,7 +1376,7 @@ BEGIN
 			RETURN;
 	END;
 
-	RETURN QUERY 
+	RETURN QUERY
 	SELECT par.* FROM %(tbl)s_data_version(parent_version) par
 		LEFT OUTER JOIN %(tbl)s_history curr ON (par.uid = curr.uid AND curr.version = changeset_id)
 	WHERE curr.uid IS NULL
@@ -1470,7 +1470,7 @@ BEGIN
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
 		FROM %(tbl)s_data_version(from_version) dv FULL OUTER JOIN %(tbl)s_changes_between_versions(from_version,to_version) chv ON (dv.uid = chv.uid);
-	
+
 	%(inner_tables_diff)s
 END
 $$
@@ -1489,7 +1489,7 @@ BEGIN
 	CREATE TEMP TABLE %(tbl)s_diff_data
 	AS SELECT %(diff_columns)s
 		FROM %(tbl)s_resolved_data(from_version) dv FULL OUTER JOIN %(tbl)s_resolved_data(to_version) chv ON (dv.uid = chv.uid);
-		
+
 	%(inner_tables_diff)s
 END
 $$
@@ -1510,7 +1510,7 @@ BEGIN
 		--it's necessary to have opened changeset in witch we would like to see diff
 		changeset_id = get_current_changeset();
 	END IF;
-	
+
 	BEGIN
 		from_version = id2num(parent(changeset_id));
 	EXCEPTION
@@ -1523,7 +1523,7 @@ BEGIN
 	AS  SELECT %(diff_columns)s
 		FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
 			FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.uid = chv.uid);
-	
+
 	%(inner_tables_diff)s
 END
 $$
@@ -1551,10 +1551,10 @@ BEGIN
 		WHEN SQLSTATE '70001' THEN
 			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
 	END;
-	
+
 	--data valid in changeset_id are the newest data present in the from_version and in the changeset with the changeset_id
 	CREATE TEMP TABLE local_template_data_version AS SELECT * FROM %(templ_tbl)s_data_changeset(changeset_id);
-	
+
 	CREATE TEMP TABLE current_changeset_resolved_data AS (
 		WITH RECURSIVE resolved_data AS(
 		--it is necessary to resolve all data in current version, resolved changes from changeset could not find inherited changes from templates
@@ -1579,7 +1579,7 @@ BEGIN
 
 	DROP TABLE current_changeset_resolved_data;
 	DROP TABLE local_template_data_version;
-	
+
 	%(inner_tables_diff)s
 END
 $$
@@ -1887,7 +1887,7 @@ BEGIN
 		CREATE TEMP TABLE rd_template_data_version AS SELECT * FROM %(templ_tbl)s_data_version(from_version);
 
 		RETURN QUERY WITH recursive resolved_data AS (
-		--id_set in is get 
+		--id_set in is get
 			SELECT uid,name,version,%(columns_ex_templ_id_set)s, %(template_column)s, %(template_column)s as orig_template, dest_bit
 			FROM %(tbl)s_data_version(from_version)
 			UNION ALL
@@ -1909,4 +1909,4 @@ $$
 LANGUAGE plpgsql;
 
 '''
- 
+
