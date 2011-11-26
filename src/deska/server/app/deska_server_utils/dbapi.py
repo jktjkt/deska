@@ -290,10 +290,12 @@ class DB:
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
+			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e))
 		if "dbException" in res:
 			'''Or regular error in db response'''
 			self.db.rollback()
+			self.unlockCurrentChangeset()
 			return res
 		self.db.commit()
 		# The lock is still held even after a commit. No other sessions is
