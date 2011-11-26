@@ -194,8 +194,10 @@ class DB:
 			workdir = workdir + "/" + self.currentChangeset()
 			if os.path.exists(workdir):
 				# got to clean it up
+				logging.debug("cfggen: cleaning up %s" % workdir)
 				shutil.rmtree(workdir)
 			scriptdir = self.cfggenOptions["cfggenScriptPath"]
+			logging.debug("cfggen: initializing Gitgenerator(%s, %s, %s)" % (repodir, workdir, scriptdir))
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
 		elif self.cfggenBackend == "fake":
 			from deska_server_utils.config_generators import NullGenerator
@@ -228,6 +230,7 @@ class DB:
 		env["DESKA_VIA_FD_W"] = str(remote_writing)
 
 		# launch the process
+		logging.debug("executeScript: starting %s (cwd=%s)" % (script, workdir))
 		proc = subprocess.Popen([script], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=workdir, env=env)
 
 		# close our end of the pipes
@@ -240,6 +243,7 @@ class DB:
 		# communicate
 		while True:
 			try:
+				logging.debug("executeScript: iteration of the DBAPI loop")
 				perform_io(self, rfile, wfile)
 			except StopIteration:
 				break
