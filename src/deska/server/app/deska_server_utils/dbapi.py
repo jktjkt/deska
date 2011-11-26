@@ -167,13 +167,12 @@ class DB:
 		pass
 
 	def changesetHasFreshConfig(self):
-		# FIXME: implement me by calling a DB function
-		#self.callProc("...NO FUNCTION NOW...",{})
-		return False
+		'''return true if changeset has fresh configuration generated'''
+		return self.callProc("changesetHasFreshConfig",{})
 
 	def markChangesetFresh(self):
-		# FIXME: implement me by calling a DB function
-		#self.callProc("releaseAndMarkAsOK",{})
+		'''mark changeset as fresh (has fresh configuration generated'''
+		self.callProc("markChangesetFresh",{})
 		pass
 
 	def currentChangeset(self):
