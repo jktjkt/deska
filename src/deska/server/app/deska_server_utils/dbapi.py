@@ -158,13 +158,21 @@ class DB:
 
 	def lockCurrentChangeset(self):
 		'''Lock changeset by db lock'''
-		self.callProc("lockChangeset",{})
-		pass
+		# This function is accessed from the DBAPI and also directly from the
+		# Python code. The Python code expects to get an exception when locking
+		# fails, while the DBAPI usage wants to get it conveyed through JSON.
+		# This function shall therefore throw exceptions when it didn't get the
+		# lock and the DBAPI wrapper shall convert it to a JSON-based error
+		# report.
+		# FIXME: implement me
+		return
+		self.callProc("lockCurrentChangeset",{})
 
 	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
-		self.callProc("releaseAndMarkAsOK",{})
-		pass
+		# FIXME: see lockCurrentChangeset for what needs to be done
+		return
+		self.callProc("unlockCurrentChangeset",{})
 
 	def changesetHasFreshConfig(self):
 		# FIXME: implement me by calling a DB function
