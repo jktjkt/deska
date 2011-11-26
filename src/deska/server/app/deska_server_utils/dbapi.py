@@ -165,13 +165,11 @@ class DB:
 		# lock and the DBAPI wrapper shall convert it to a JSON-based error
 		# report.
 		# FIXME: implement me
-		return
 		self.callProc("lockCurrentChangeset",{})
 
 	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
 		# FIXME: see lockCurrentChangeset for what needs to be done
-		return
 		self.callProc("unlockCurrentChangeset",{})
 
 	def changesetHasFreshConfig(self):
