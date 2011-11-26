@@ -20,19 +20,25 @@ if [[ -n $(ls "${1}") ]]; then
     exit 33
 fi
 
+ABSPATH_TARGET=$(cd "${1}"; pwd)
+
 source ./tests/sql/util-manage-git.sh
-deska_init_git "${1}" || die "FAIL: cannot prepare git generators"
+deska_init_git "${ABSPATH_TARGET}" || die "FAIL: cannot prepare git generators"
 
 SAMPLESCRIPT="${DESKA_CFGGEN_SCRIPTS}/01-demo"
+DESKA_BUILD_DIR=$(pwd)
+DESKA_SOURCES_DIR=$(cd ..; pwd)
 cat > "${SAMPLESCRIPT}" << EOF
 #!/usr/bin/python
+import sys
+sys.path = ["${DESKA_SOURCES_DIR}/src/deska/python", "${DESKA_BUILD_DIR}"] + sys.path
 import deska
 
 deska.init()
 
 output = file("all-hosts", "wb")
-for hostname, data in deska.host._all().iteritems:
-    output.write("%s: %s\\n" % (hostname, data["service"]))
+for hostname, data in deska.host._all().iteritems():
+    output.write("%s: %s\\n" % (hostname, data.service))
 EOF
 
 chmod +x "${SAMPLESCRIPT}"
