@@ -65,18 +65,18 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s
 	def gen_relation_modif(self, table_name):
 		record = self.plpy.execute(self.relations_str % table_name)
 		embed_column = ""
-		merge_with_columns = list()
+		contained_columns = list()
 		refers_to_set = dict()
 		for row in record:
 			if row[0] == "EMBED_INTO":
 				embed_column = row[1]
-			elif row[0] == "MERGE":
-				merge_with_columns.append(row[1])
+			elif row[0] == "CONTAINS" or row[0] == "CONTAINABLE":
+				contained_columns.append(row[1])
 			elif row[0] == "REFERS_TO_SET":
 				refers_to_set[row[1]] = row[2]
 		
 		self.sql.write(self.gen_drop_embed_parent_column(table_name, embed_column))
-		self.sql.write(self.gen_drop_merge_with_column(table_name, merge_with_columns))
+		self.sql.write(self.gen_drop_contained_column(table_name, contained_columns))
 		self.sql.write(self.gen_refers_to_set(table_name, refers_to_set))
 
 
@@ -86,12 +86,12 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s
 		else:
 			return ""
 
-	def gen_drop_merge_with_column(self, table_name, merge_with_columns):
-		drop_merge_columns = ""
-		for column in merge_with_columns:
-			drop_merge_columns = drop_merge_columns + '\n' + self.drop_column_str % (table_name, column)
+	def gen_drop_contained_column(self, table_name, contained_columns):
+		drop_contained_columns = ""
+		for column in contained_columns:
+			drop_contained_columns = drop_contained_columns + '\n' + self.drop_column_str % (table_name, column)
 			
-		return drop_merge_columns
+		return drop_contained_columns
 
 	def gen_refers_to_set(self, table_name, refers_to_set):
 		add_multiref_fk = ""
