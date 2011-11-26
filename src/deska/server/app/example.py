@@ -24,6 +24,8 @@ data = list([
 	'{"command": "resolvedObjectDataWithOrigin", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
 	'{"command": "multipleObjectData", "kindName": "host", "tag":"TAG"}',
 	'{"command": "multipleResolvedObjectData", "kindName": "host", "tag":"TAG"}',
+	'{"command": "lockCurrentChangeset", "tag":"TAG"}',
+	'{"command": "unlockCurrentChangeset", "tag":"TAG"}',
 	'{"command": "multipleResolvedObjectDataWithOrigin", "kindName": "host", "tag":"TAG"}'
 ])
 

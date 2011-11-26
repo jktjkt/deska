@@ -1,3 +1,5 @@
+--FIXME: SET search_path 
+
 /** This type is returning type of function pk_constraints_on_table.
    * consists of constraint name conname and atribute name attname
    * @type pk_constraints_on_table_type

@@ -29,7 +29,7 @@ RETURNS SETOF TEXT AS
 $$
 BEGIN
 	PREPARE expkinds  AS SELECT kindName FROM pgtap.results_kindName;
-	PREPARE retkinds AS SELECT * FROM api.kindNames();
+	PREPARE retkinds AS SELECT * FROM kindNames();
 	RETURN NEXT set_has( 'retkinds', 'expkinds', 'created kinds are present' );	
 END;
 $$
@@ -106,11 +106,11 @@ DECLARE
   exptype name;
 BEGIN
 	PREPARE expatts  AS SELECT attname FROM pgtap.results_kindAttributes;
-	PREPARE retatts AS SELECT attname FROM api.kindattributes('testkindatttab');
+	PREPARE retatts AS SELECT attname FROM kindattributes('testkindatttab');
 	RETURN NEXT set_eq( 'retatts', 'expatts', 'all attributes are present' );	
 
 	FOR rel IN SELECT attname, typename FROM results_kindAttributes LOOP	  				
-		EXECUTE 'SELECT typename FROM api.kindattributes(''testkindatttab'') WHERE attname = $1'
+		EXECUTE 'SELECT typename FROM kindattributes(''testkindatttab'') WHERE attname = $1'
 		INTO exptype
 		USING rel.attname;
 		RETURN NEXT matches(rel.typename,exptype,'attribute type is ok');

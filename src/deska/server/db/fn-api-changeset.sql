@@ -135,8 +135,6 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
--- API part here
-SET search_path TO api,deska,versioning;
 --
 -- start changeset
 --
@@ -234,6 +232,39 @@ status changeset_status,
 timestamp timestamp,
 message text
 );
+
+--
+-- Commit changeset - just run genproc.commit_all
+--
+CREATE FUNCTION commitChangeset(commitMessage_ text)
+RETURNS text
+AS
+$$
+BEGIN
+        RETURN num2revision(genproc.commit_all(commitMessage_));
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+--
+-- restore commit changeset - same as normal commit + set old data
+--
+CREATE FUNCTION restoringCommit(commitMessage_ text, author_ text, timestamp_ timestamp without time zone)
+RETURNS text
+AS
+$$
+DECLARE ver integer;
+BEGIN
+        ver = genproc.commit_all(commitMessage_);
+	UPDATE version SET author = author_, timestamp = timestamp_
+		WHERE num = ver;
+        RETURN num2revision(ver);
+END
+$$
+LANGUAGE plpgsql SECURITY DEFINER;
+
+-- this is only for testing
+SET search_path TO test,deska,versioning;
 --
 -- Return info about not commited changesets
 --
@@ -266,32 +297,4 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
---
--- Commit changeset - just run genproc.commit_all
---
-CREATE FUNCTION commitChangeset(commitMessage_ text)
-RETURNS text
-AS
-$$
-BEGIN
-        RETURN num2revision(genproc.commit_all(commitMessage_));
-END
-$$
-LANGUAGE plpgsql SECURITY DEFINER;
 
---
--- restore commit changeset - same as normal commit + set old data
---
-CREATE FUNCTION restoringCommit(commitMessage_ text, author_ text, timestamp_ timestamp without time zone)
-RETURNS text
-AS
-$$
-DECLARE ver integer;
-BEGIN
-        ver = genproc.commit_all(commitMessage_);
-	UPDATE version SET author = author_, timestamp = timestamp_
-		WHERE num = ver;
-        RETURN num2revision(ver);
-END
-$$
-LANGUAGE plpgsql SECURITY DEFINER;

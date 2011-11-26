@@ -5,6 +5,8 @@
 -- here should be all hand writed functions, views, types etc.
 --
 CREATE SCHEMA deska;
+-- for some functions used for running tests
+CREATE SCHEMA test;
 
 --
 -- schemas for api functions

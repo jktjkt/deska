@@ -44,6 +44,7 @@ GRANT USAGE ON SCHEMA jsn TO deska_user;
 GRANT CREATE ON DATABASE :dbname TO deska_admin;
 -- use deska functions
 GRANT USAGE ON SCHEMA deska TO deska_admin;
+GRANT USAGE ON SCHEMA test TO deska_admin;
 -- have rigths to all tables
 GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;

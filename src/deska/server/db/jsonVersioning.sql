@@ -12,7 +12,7 @@ def main(tag):
 	name = "startChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -35,7 +35,7 @@ def main(tag):
 	name = "abortCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -57,7 +57,7 @@ def main(tag,revision):
 	name = "resumeChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "(text)"
+	fname = 'deska.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,revision)
 	except dutil.DeskaException as err:
@@ -79,7 +79,7 @@ def main(tag,commitMessage):
 	name = "commitChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "(text)"
+	fname = 'deska.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,commitMessage)
 	except dutil.DeskaException as err:
@@ -101,7 +101,7 @@ def main(tag,commitMessage,author,timestamp):
 	name = "restoringCommit"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "(text,text,timestamp)"
+	fname = 'deska.'+ name + "(text,text,timestamp)"
 	try:
 		ver = dutil.fcall(fname,commitMessage,author,timestamp)
 	except dutil.DeskaException as err:
@@ -123,7 +123,7 @@ def main(tag,message):
 	name = "detachFromCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "(text)"
+	fname = 'deska.'+ name + "(text)"
 	try:
 		ver = dutil.fcall(fname,message)
 	except dutil.DeskaException as err:
@@ -326,3 +326,44 @@ def main(tag,changeset):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION jsn.lockCurrentChangeset(tag text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag):
+	name = "lockCurrentChangeset"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'deska.'+ name + "()"
+	try:
+		dutil.fcall(fname)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.unlockCurrentChangeset(tag text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag):
+	name = "unlockCurrentChangeset"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'deska.'+ name + "()"
+	try:
+		dutil.fcall(fname)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;

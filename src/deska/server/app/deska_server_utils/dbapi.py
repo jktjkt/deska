@@ -42,8 +42,8 @@ class DB:
 		"resumeChangeset": ["tag", "changeset"],
 		"detachFromCurrentChangeset": ["tag", "message"],
 		"abortCurrentChangeset": ["tag"],
-		# lockCurrentChangeset is special
-		# unlockCurrentChangeset is special
+		"lockCurrentChangeset": ["tag"],
+		"unlockCurrentChangeset": ["tag"],
 		# freezeView is special
 		# unfreezeView is special
 		"listRevisions": ["tag", "filter"],
@@ -158,12 +158,12 @@ class DB:
 
 	def lockChangeset(self):
 		'''Lock changeset by db lock'''
-		self.callProc("lockChangeset",{})
+		self.callProc("lockCurrentChangeset",{})
 		pass
 
 	def unlockChangeset(self):
 		'''Unlock changeset'''
-		self.callProc("releaseAndMarkAsOK",{})
+		self.callProc("unlockCurrentChangeset",{})
 		pass
 
 	def changesetHasFreshConfig(self):

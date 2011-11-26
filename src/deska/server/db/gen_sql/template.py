@@ -2,7 +2,7 @@
 class Template:
 	table_query_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	not_null_query_str = "SELECT n_constraints_on_table('%(tbl)s');"
-	relations_str = "SELECT relation, attname, refkind FROM api.kindrelations_full_info('%s');"
+	relations_str = "SELECT relation, attname, refkind FROM kindrelations_full_info('%s');"
 	"""Query to get names of tables which are merged with this table."""
 
 

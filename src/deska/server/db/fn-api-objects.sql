@@ -1,4 +1,4 @@
-SET search_path TO api,deska;
+SET search_path TO test,deska;
 
 CREATE FUNCTION setAttribute(kindname text, objectname text, attributename text, value text)
 RETURNS integer

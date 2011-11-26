@@ -41,7 +41,7 @@ def %(name)s(%(args)s):
 	Refuid reference is reference to some table's uid column.
 	Gets name of column from which is uid referenced and the name of the table table that is referenced,
 	"""
-	composition_str = "SELECT refkind FROM api.kindRelations('%s') WHERE relation = 'CONTAINS' OR relation = 'CONTAINABLE';"
+	composition_str = "SELECT refkind FROM kindRelations('%s') WHERE relation = 'CONTAINS' OR relation = 'CONTAINABLE';"
 	"""Query to get names of tables which are in composition with this table."""
 	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
 	"""Query to get info about all relations refers_to_set."""

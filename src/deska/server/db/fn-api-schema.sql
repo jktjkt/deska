@@ -161,7 +161,6 @@ END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
 
-SET search_path TO api,deska,versioning;
 --
 -- function returns list of names of tables from production = Top-level Kinds like enclosure etc
 --
