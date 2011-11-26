@@ -20,6 +20,7 @@ class DeskaException(Exception):
 		'70012': 'RevisionParsingError',
 		'70013': 'RevisionRangeError',
 		'70014': 'RevisionRangeError',
+		#'70014': 'ChangesetRangeError',
 		'70015': 'ChangesetLockingError',
 		'23502': 'ConstraintError',#NOT NULL
 		'23514': 'ConstraintError',#check_positive
