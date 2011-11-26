@@ -277,8 +277,9 @@ This is the list of currently defined exceptions, along with their other argumen
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
     \deskaFuncRef{restoreDeletedObject}. & --- \\
     {\tt RevisionParsingError} & Failed to parse the revision ID & --- \\
-    {\tt RevisionRangeError} & The range of revisions/changesets does not make sense & --- \\
+    {\tt RevisionRangeError} & Tried to reference a revision which does not exist & --- \\
     {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & --- \\
+    {\tt ChangesetRangeError} & Tried to reference a changeset which does not exist & --- \\
     {\tt ConstraintError} & The executed action violates an integrity constraint & --- \\
     {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
     latest revision in the history & --- \\
