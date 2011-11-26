@@ -293,8 +293,10 @@ class DB:
 			self.db.rollback()
 			return res
 		self.db.commit()
-		#this is done by commitChangeset function
-		#self.unlockCurrentChangeset()
+		# The lock is still held even after a commit. No other sessions is
+		# usually expected to try to obtain it, but it still won't hurt to
+		# release the lock explicitly.
+		self.unlockCurrentChangeset()
 		return res
 
 	def run(self,name,args):
