@@ -893,19 +893,23 @@ Querying History}, \secref{sec:api-group-history}.
 \deskaFunc{lockCurrentChangeset}{}{}
     {Lock the current changeset}
     {This function will lock the current changeset.  A locked changeset can only be manipulated by a session which
-    created the lock.  Other sessions can not perform any modifications of that particular changeset, including attching
+    created the lock.  Other sessions can not perform any modifications of that particular changeset, including attaching
     a locked changeset.  The lock remains in effect until either the session terminates, or
     \deskaFuncRef{unlockCurrentChangeset} on the same changeset is called, or the changeset ceases to exist (via either
-    \deskaFuncRef{abortCurrentChangeset} or a successful call to \deskaFuncRef{commitChangeset}).
+    \deskaFuncRef{abortCurrentChangeset} or a successful call to \deskaFuncRef{commitChangeset}).  The locks are
+    reentrant, and in order to make sure the changeset is unlocked, the number of calls to
+    \deskaFuncRef{unlockCurrentChangeset} and to this function have to match.
 
-    The lock operation can fail if the changeset is already locked by current session, or if another session has
-    attached the ``current'' changeset, effectively detaching this session.
-    }
+    This function is not blocking and will immediately return the {\tt ChangesetLockingError} exception if the locking
+    operation failed for some reason.  A typical reason is that a parallel session has attached the ``current''
+    changeset and this session has therefore lost its reference.}
 
 \deskaFunc{unlockCurrentChangeset}{}{}
     {Unlock current changeset}
-    {This function marks the current changeset as unlocked.  It is an error to attempt to unlock a changeset which has
-    not been locked.}
+    {This function decreases the number of exclusive locks held by the current session on its active changeset.  When
+    the lock count goes to zero, the changeset will be unlocked and other sessions can ``steal'' it from the original
+    session. It is an error to attempt decreasing the lock count below zero; in such cases, this function will return
+    the {\tt ChangesetLockingError} exception.}
 
 \deskaFunc{freezeView}{}{}
     {Freeze the view of the revisions}
