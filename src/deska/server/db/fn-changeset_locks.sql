@@ -1,6 +1,6 @@
 SET search_path TO deska,versioning;
 
-CREATE FUNCTION deska.lockChangeset()
+CREATE FUNCTION deska.lockCurrentChangeset()
 RETURNS void
 AS
 $$
@@ -15,7 +15,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION deska.unlockChangeset()
+CREATE FUNCTION deska.unlockCurrentChangeset()
 RETURNS void
 AS
 $$
