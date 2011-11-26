@@ -24,7 +24,7 @@ class DeskaException(Exception):
 		'70015': 'ChangesetLockingError',
 		'23502': 'ConstraintError',#NOT NULL
 		'23514': 'ConstraintError',#check_positive
-		'10111': 'SqLError',#check_positive
+		'10111': 'SqlError',#check_positive
 		'*': 'ServerError'
 	}
 
