@@ -156,12 +156,12 @@ class DB:
 		if not self.freeze:
 			self.db.commit()
 
-	def lockChangeset(self):
+	def lockCurrentChangeset(self):
 		'''Lock changeset by db lock'''
 		self.callProc("lockCurrentChangeset",{})
 		pass
 
-	def unlockChangeset(self):
+	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
 		self.callProc("unlockCurrentChangeset",{})
 		pass
@@ -258,19 +258,19 @@ class DB:
 	def showConfigDiff(self, name, tag, forceRegen):
 		logging.debug("showConfigDiff")
 		response = {"response": name, "tag": tag}
-		self.lockChangeset()
+		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		if forceRegen or not self.changesetHasFreshConfig():
 			logging.debug("about to regenerate config")
 			self.cfgRegenerate()
 			self.markChangesetFresh()
 		response[name] = self.cfgGetDiff()
-		self.unlockChangeset()
+		self.unlockCurrentChangeset()
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
 		self.checkFunctionArguments(name, args, tag)
-		self.lockChangeset()
+		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		if not self.changesetHasFreshConfig():
 			self.cfgRegenerate()
@@ -281,14 +281,22 @@ class DB:
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
+			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e))
 		if "dbException" in res:
 			'''Or regular error in db response'''
 			self.db.rollback()
+			self.unlockCurrentChangeset()
 			return res
 		self.db.commit()
-		#this is done by commitChangeset function
-		#self.unlockChangeset()
+		# The lock is still held even after a commit. No other sessions is
+		# usually expected to try to obtain it, but it still won't hurt to
+		# release the lock explicitly. However, the DB code tries to determine
+		# the current changeset from the DB after we've commited the changeset,
+		# and therefore correctly reports back that "there's no current
+		# changeset". This unfortunately leads to leaving dangling locks behind.
+		# A correct fix would be to explicitly unlock stuff from inside the DB
+		# when commiting.
 		return res
 
 	def run(self,name,args):

@@ -325,3 +325,9 @@ def freezeView():
 
 def unFreezeView():
     return ApiMethod("unFreezeView", None)
+
+def lockCurrentChangeset():
+    return ApiMethod("lockCurrentChangeset", None)
+
+def unlockCurrentChangeset():
+    return ApiMethod("unlockCurrentChangeset", None)

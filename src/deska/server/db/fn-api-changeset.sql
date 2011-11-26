@@ -169,7 +169,7 @@ BEGIN
 	SELECT pg_try_advisory_lock(id) INTO lock_is_available FROM changeset;
 	IF NOT lock_is_available THEN
 		--TODO needs right sqlstate
-		RAISE SQLSTATE '70077' USING MESSAGE = 'This changeset is locked, you can not resume it.';
+		RAISE SQLSTATE '70015' USING MESSAGE = 'This changeset is locked, you can not resume it.';
 	END IF;
 
 	UPDATE changeset SET status = 'INPROGRESS',

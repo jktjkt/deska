@@ -42,3 +42,19 @@ def imperative(r):
     r.cfail(freezeView(), conn=conn1, exception=FreezingError())
     r.cfail(unFreezeView(), conn=conn1, exception=FreezingError())
     r.cfail(resumeChangeset(changeset), conn=conn2, exception=FreezingError())
+
+    # A locked changeset cannot be stolen by another session
+    r.cvoid(lockCurrentChangeset(), conn1)
+    r.cfail(resumeChangeset(changeset), conn=conn3, exception=ChangesetLockingError())
+    # Try to lock it once more from the original session.  This should work.
+    r.cvoid(lockCurrentChangeset(), conn1)
+    r.cfail(resumeChangeset(changeset), conn=conn3, exception=ChangesetLockingError())
+    # Now get the lock count back to one. It shall remain locked.
+    r.cvoid(unlockCurrentChangeset(), conn1)
+    r.cfail(resumeChangeset(changeset), conn=conn3, exception=ChangesetLockingError())
+    # Unlock the changeset and steal it
+    r.cvoid(unlockCurrentChangeset(), conn1)
+    r.cvoid(resumeChangeset(changeset), conn=conn3)
+    # Now the first session shall not be able to commit the changeset
+    # FIXME: Redmine #308
+    #r.cfail(commitChangeset("."), conn=conn1, exception=ChangesetLockingError())

@@ -19,7 +19,7 @@ data = list([
 	'{"command": "setAttributeInsert", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":["dhcp"], "tag":"TAG"}',
 	'{"command": "setAttribute", "kindName":"host", "objectName":"test_host2", "attributeName": "service", "attributeData":"dhcp", "tag":"TAG"}',
 	'{"command": "objectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
-#	'{"command": "commitChangeset", "tag":"TAG", "commitMessage":"test"}',
+	#'{"command": "commitChangeset", "tag":"TAG", "commitMessage":"test"}',
 	'{"command": "resolvedObjectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
 	'{"command": "resolvedObjectDataWithOrigin", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
 	'{"command": "multipleObjectData", "kindName": "host", "tag":"TAG"}',

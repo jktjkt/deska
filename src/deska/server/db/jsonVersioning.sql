@@ -338,7 +338,7 @@ def main(tag):
 	name = "lockCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'deska.'+ name + "()"
+	fname = 'api.'+ name + "()"
 	try:
 		dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -359,7 +359,7 @@ def main(tag):
 	name = "unlockCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'deska.'+ name + "()"
+	fname = 'api.'+ name + "()"
 	try:
 		dutil.fcall(fname)
 	except dutil.DeskaException as err:
