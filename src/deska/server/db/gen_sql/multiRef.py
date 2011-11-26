@@ -562,7 +562,7 @@ BEGIN
         from_version = id2num(parent(changeset_id));
     EXCEPTION
         WHEN SQLSTATE '70001' THEN
-            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
+            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70014';
     END;
 
     CREATE TEMP TABLE %(tbl)s_diff_data
@@ -591,7 +591,7 @@ BEGIN
         from_version = id2num(parent(changeset_id));
     EXCEPTION
         WHEN SQLSTATE '70001' THEN
-            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
+            RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70014';
     END;
 
     CREATE TEMP TABLE template_data_changeset AS SELECT * FROM %(tbl_template_name)s_data_changeset(changeset_id);

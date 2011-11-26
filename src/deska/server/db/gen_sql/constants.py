@@ -1515,7 +1515,7 @@ BEGIN
 		from_version = id2num(parent(changeset_id));
 	EXCEPTION
 		WHEN SQLSTATE '70001' THEN
-			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
+			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70014';
 	END;
 
 	--full outer join of data in parent revision and changes made in opened changeset
@@ -1549,7 +1549,7 @@ BEGIN
 		from_version = id2num(parent(changeset_id));
 	EXCEPTION
 		WHEN SQLSTATE '70001' THEN
-			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70003';
+			RAISE 'No changeset with id tmp%% exists.', changeset_id USING ERRCODE = '70014';
 	END;
 
 	--data valid in changeset_id are the newest data present in the from_version and in the changeset with the changeset_id
