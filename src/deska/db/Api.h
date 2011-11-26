@@ -79,10 +79,12 @@ REMOTEDBEXCEPTION(InvalidKindError)
 REMOTEDBEXCEPTION(InvalidAttributeError)
 /** @short Failed to parse a RevisionId */
 REMOTEDBEXCEPTION(RevisionParsingError)
-/** @short The range of revisions/changesets does not make sense */
+/** @short Tried to reference a revision which does not exist */
 REMOTEDBEXCEPTION(RevisionRangeError)
 /** @short Failed to parse a TemporaryChangesetId */
 REMOTEDBEXCEPTION(ChangesetParsingError)
+/** @short Tried to reference a changeset which does not exist */
+REMOTEDBEXCEPTION(ChangesetRangeError)
 /** @short The executed action violates an integrity constraint */
 REMOTEDBEXCEPTION(ConstraintError)
 /** @short Attempted to commit a changeset whose parent is too old */
@@ -93,6 +95,8 @@ REMOTEDBEXCEPTION(NotASetError)
 REMOTEDBEXCEPTION(ChangesetLockingError)
 /** @short An error has occurred when generating configuration files */
 REMOTEDBEXCEPTION(CfgGeneratingError)
+/** @short Attempted to modify a special, read-only attribute */
+REMOTEDBEXCEPTION(SpecialReadOnlyAttributeError)
 /** @short Execution of SQL statements resulted in an error */
 REMOTEDBEXCEPTION(SqlError)
 /** @short The server has experienced an internal error */
