@@ -19,6 +19,21 @@ def imperative(r):
     r.cvoid(setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
     diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
+    # FIXME: Redmine #343
+    #r.cfail(dataDifferenceInTemporaryChangeset("tmp0"), ChangesetParsingError())
+    r.cfail(dataDifferenceInTemporaryChangeset("tmp123"), ChangesetRangeError())
+    r.cfail(dataDifferenceInTemporaryChangeset("r0"), ChangesetParsingError())
+    r.cfail(dataDifferenceInTemporaryChangeset("r123"), ChangesetParsingError())
+    r.cfail(dataDifference("r333", "r666"), RevisionRangeError())
+    r.cfail(dataDifference("r0", "r666"), RevisionRangeError())
+    r.cfail(dataDifference("tmp1", "r666"), RevisionParsingError())
+    r.cfail(dataDifference("tmp1", "r1"), RevisionParsingError())
+    r.cfail(dataDifference("tmp1", "r666"), RevisionParsingError())
+    r.cfail(dataDifference("r1", "tmp1"), RevisionParsingError())
+    # The following can either complain that the first revision is out-of-range,
+    # or that the second argument is not a revision at all. Both are OK.
+    r.cfail(dataDifference("r666", "tmp1"), exception=(RevisionRangeError(),
+                                                       RevisionParsingError()))
 
     revB = r.c(commitChangeset("test diff"))
     r.assertTrue(revA < revB)
