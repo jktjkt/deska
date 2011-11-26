@@ -116,6 +116,10 @@ class ChangesetParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ChangesetParsingError")
 
+class ChangesetRangeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "ChangesetRangeError")
+
 class ConstraintError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ConstraintError")
@@ -135,6 +139,10 @@ class ChangesetLockingError(RemoteDbException):
 class CfgGeneratingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "CfgGeneratingError")
+
+class SpecialReadOnlyAttributeError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "SpecialReadOnlyAttributeError")
 
 class SqlError(RemoteDbException):
     def __init__(self):
