@@ -28,14 +28,11 @@ def imperative(r):
     r.assertEqual(r.c(kindAttributes("vendor")), {})
     r.assertEqual(r.c(kindAttributes("service")), {"note": "string"})
     r.assertEqual(r.c(kindAttributes("host")), helper_host_attrs)
-    # FIXME: Redmine #319
-    #r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, ("hardware",)))
-    r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, ()))
+    r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, ("hardware","virtual_hardware")))
+    #r.assertEqual(r.c(kindAttributes("host_template")), helper_split_templated_args(helper_host_attrs, ()))
     r.assertEqual(r.c(kindAttributes("hardware")), helper_hardware_attrs)
-    # FIXME: Redmine #319
-    #r.assertEqual(r.c(kindAttributes("hardware_template")), helper_split_templated_args(helper_hardware_attrs, ("hardware","host")))
-    r.assertEqual(r.c(kindAttributes("hardware_template")), helper_split_templated_args(helper_hardware_attrs, ()))
-
+    r.assertEqual(r.c(kindAttributes("hardware_template")), helper_split_templated_args(helper_hardware_attrs, ("hardware","host")))
+ 
     # try to ask for a non-existing object
     r.cfail(kindAttributes("pwnpwn"), InvalidKindError())
 
