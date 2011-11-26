@@ -62,6 +62,17 @@ def doStuff(r):
     r.assertEqual(hardwareData, expectedHardwareData2)
     r.cfail(objectData("hardware", "hw1"), NotFoundError())
 
+    r.c(startChangeset())
+    r.c(createObject("host", "dummy"))
+    r.cfail(setAttribute("host", "dummy", "service", 123), NotASetError())
+    r.cfail(setAttribute("host", "dummy", "note_host", [123]), NotASetError())
+    # FIXME: Redmine #344
+    #r.cfail(setAttributeInsert("host", "dummy", "note_host", [123]), NotASetError())
+    #r.cfail(setAttributeRemove("host", "dummy", "note_host", [123]), NotASetError())
+    #r.cfail(setAttributeInsert("host", "dummy", "service", [123]), NotASetError())
+    #r.cfail(setAttributeRemove("host", "dummy", "service", [123]), NotASetError())
+    r.cvoid(abortCurrentChangeset())
+
 
 
 def doStuff_embed(r):
