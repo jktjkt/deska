@@ -42,3 +42,7 @@ def imperative(r):
     r.cfail(freezeView(), conn=conn1, exception=FreezingError())
     r.cfail(unFreezeView(), conn=conn1, exception=FreezingError())
     r.cfail(resumeChangeset(changeset), conn=conn2, exception=FreezingError())
+
+    # A locked changeset cannot be stolen by another session
+    r.cvoid(lockCurrentChangeset(), conn1)
+    r.cfail(resumeChangeset(changeset), conn=conn3, exception=ChangesetLockingError())
