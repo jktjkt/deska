@@ -164,7 +164,10 @@ class DB:
 		# This function shall therefore throw exceptions when it didn't get the
 		# lock and the DBAPI wrapper shall convert it to a JSON-based error
 		# report.
-		# FIXME: implement me
+		# FIXME: make sure that this somehow raises an exception which will:
+		#	1) cause commitConfig to fail,
+		#	2) be always correctly reported as the ChangesetLockingError to the
+		#	DBAPI when called from there
 		self.callProc("lockCurrentChangeset",{})
 
 	def unlockCurrentChangeset(self):
