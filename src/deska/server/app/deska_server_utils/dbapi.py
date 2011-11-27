@@ -193,10 +193,6 @@ class DB:
 			if workdir is None:
 				raise ValueError, "cfggenGitWorkdir is None"
 			workdir = workdir + "/" + self.currentChangeset()
-			if os.path.exists(workdir):
-				# got to clean it up
-				logging.debug(" cfggen: cleaning up %s" % workdir)
-				shutil.rmtree(workdir)
 			scriptdir = self.cfggenOptions["cfggenScriptPath"]
 			logging.debug(" cfggen: initializing Gitgenerator(%s, %s, %s)" % (repodir, workdir, scriptdir))
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
