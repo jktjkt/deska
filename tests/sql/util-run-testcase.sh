@@ -61,32 +61,41 @@ fi
 
 export DESKA_SOURCES
 
+# clean the deska_server.log
+> deska_server.log
+
 case "${TESTMODE}" in
     sql)
         if [[ ! -f $TESTCASE ]]; then
             die "Locating SQL testcase"
         fi
 
-        pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE || die "Test"
+        pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE
+        TEST_RESULT=$?
         ;;
     dbapi)
         export DESKA_USER
         export DESKA_DB
-        python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska-server \
-            $TESTCASE || die "Test"
+        python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska-server $TESTCASE
+        TEST_RESULT=$?
         ;;
     persist)
         export DESKA_USER
         export DESKA_DB
-        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska-server \
-            $TESTCASE || die "Test"
+        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska-server $TESTCASE
+        TEST_RESULT=$?
         ;;
     run)
         export DESKA_USER
         export DESKA_DB
-        ${TESTCASE} || die "Test"
+        ${TESTCASE}
+        TEST_RESULT=$?
         ;;
     *)
         die "Unknown test"
 esac
 
+if [[ ${TEST_RESULT} -ne 0 ]]; then
+    cat deska_server.log
+    die "Test failed"
+fi
