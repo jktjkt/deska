@@ -260,8 +260,8 @@ class DB:
 		logging.debug("showConfigDiff")
 		response = {"response": name, "tag": tag}
 		self.lockCurrentChangeset()
+		self.initCfgGenerator()
 		if forceRegen or not self.changesetHasFreshConfig():
-			self.initCfgGenerator()
 			logging.debug(" about to regenerate config")
 			self.cfgRegenerate()
 			self.markChangesetFresh()
@@ -274,8 +274,8 @@ class DB:
 	def commitConfig(self, name, args, tag):
 		self.checkFunctionArguments(name, args, tag)
 		self.lockCurrentChangeset()
+		self.initCfgGenerator()
 		if not self.changesetHasFreshConfig():
-			self.initCfgGenerator()
 			self.cfgRegenerate()
 			self.markChangesetFresh()
 		try:
