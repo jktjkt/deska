@@ -56,5 +56,5 @@ def imperative(r):
     r.cvoid(unlockCurrentChangeset(), conn1)
     r.cvoid(resumeChangeset(changeset), conn=conn3)
     # Now the first session shall not be able to commit the changeset
-    # FIXME: Redmine #308
+    # FIXME: Redmine #346
     #r.cfail(commitChangeset("."), conn=conn1, exception=ChangesetLockingError())
