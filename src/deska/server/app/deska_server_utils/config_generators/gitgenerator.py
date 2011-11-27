@@ -47,7 +47,11 @@ class GitGenerator(object):
     def apiSave(self, message):
         '''Commit and push the changes into a persistent location'''
         self.git.add("-A")
-        self.git.commit("-m", message)
+        if self.git.status("--porcelain") == "":
+            # no changes to commit
+            pass
+        else:
+            self.git.commit("-m", message)
         self.git.push()
 
     def generate(self, executor):
