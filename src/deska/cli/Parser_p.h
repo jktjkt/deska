@@ -330,6 +330,10 @@ private:
     std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > refersTo;
     /** Map of kinds and vector of kinds that are referred by another kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > referredBy;
+    /** Map of kinds and vector of pairs <attribute, kind> that are templatized by another kind (template). */
+    std::map<Db::Identifier, std::vector<std::pair<Db::Identifier, Db::Identifier> > > templatized;
+    /** Map of kinds (templates) and kinds, that by templatized by this template. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > templateFor;
     /** List of read-only attributes for each kind */
     std::map<Db::Identifier, std::vector<Db::Identifier> > roAttributes;
 

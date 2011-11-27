@@ -83,6 +83,11 @@ ParserImpl<Iterator>::ParserImpl(Parser *parent): m_parser(parent)
                 refersTo[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
                 referredBy[itr->target].push_back(*itk);
             }
+
+            if (itr->kind == Db::RELATION_TEMPLATIZED) {
+                templatized[*itk].push_back(std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target));
+                templateFor[itr->target].push_back(*itk);
+            }
         }
         if (!isEmbedded)
             topLevelKindsIds.push_back(*itk);
@@ -634,6 +639,16 @@ void ParserImpl<Iterator>::addNestedKinds(const Db::Identifier &kindName, Filter
     // Adding referred kinds
     for (std::vector<Db::Identifier>::iterator it = referredBy[kindName].begin(); it != referredBy[kindName].end(); ++it) {
         filtersParser->addNestedKindExpressionsParser(*it, filterExpressionsParsers[*it]);
+    }
+
+    // Adding templating kinds
+    for (std::vector<Db::Identifier>::iterator it = templateFor[kindName].begin(); it != templateFor[kindName].end(); ++it) {
+        filtersParser->addNestedKindExpressionsParser(*it, filterExpressionsParsers[*it]);
+    }
+
+    // Adding templated kinds
+    for (std::vector<std::pair<Db::Identifier, Db::Identifier> >::iterator it = templatized[kindName].begin(); it != templatized[kindName].end(); ++it) {
+        filtersParser->addNestedKindExpressionsParser(it->second, filterExpressionsParsers[it->second]);
     }
 }
 
@@ -1347,6 +1362,12 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                         possibilities.push_back(line + *iti);
                     }
                 }
+
+                for (itr = templatized[contextStack.back().kind].begin();
+                     itr != templatized[contextStack.back().kind].end(); ++itr)
+                         if (itr->first == it->context())
+                             break;
+                if (itr != templatized[contextStack.back().kind].end()) {
                     std::vector<Db::Identifier> objects = m_parser->m_dbApi->kindInstances(itr->second);
                     for (std::vector<Db::Identifier>::iterator iti = objects.begin(); iti != objects.end(); ++iti) {
                         possibilities.push_back(line + *iti);
