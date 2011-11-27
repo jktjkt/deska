@@ -53,8 +53,7 @@ class GitGenerator(object):
             gitstatus = self.git.status("--porcelain")
         except git.errors.GitCommandError, e:
             if e.status == 129:
-                gitstatus = self.git.execute(
-                    ["git", "ls-files", "-t", "--deleted", "--modified", "--others", "--killed"])
+                gitstatus = self.git.diff("--cached", "--name-only")
             else:
                 raise
         if gitstatus == "":
