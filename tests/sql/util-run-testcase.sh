@@ -56,6 +56,7 @@ fi
 if [[ -n "${DESKA_WITH_GIT}" ]]; then
     . ./util-manage-git.sh || die "git stuff"
     deska_init_git "${DESKA_GENERATED_FILES}"
+    export GIT_PYTHON_TRACE=full
 fi
 
 export DESKA_SOURCES
