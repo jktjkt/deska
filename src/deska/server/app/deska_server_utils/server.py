@@ -10,6 +10,12 @@ except ImportError:
 from deska_server_utils.jsonparser import perform_io
 from deska_server_utils.dbapi import DB
 
+class StreamLogger(object):
+    """Fake the stream interface and write stuff into the logging module instead"""
+
+    def write(self, s):
+        logging.debug(s)
+
 def run():
     parser = OptionParser()
     parser.add_option("-d", "--database", dest="database", default="deska_dev",
@@ -77,8 +83,9 @@ def run():
     # Redirecting the stdout to stderr. This is required in order to support the
     # GIT_PYTHON_TRACE which blindly uses `print` for its debug output (and
     # clobbers our precious DBAPI communication that way).
+    # Do NOT ever try to capture stderr this way, this will lead to infinite loops.
     orig_stdout = sys.stdout
-    sys.stdout = sys.stderr
+    sys.stdout = StreamLogger()
 
     try:
         # Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
