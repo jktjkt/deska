@@ -182,9 +182,9 @@ BOOST_FIXTURE_TEST_CASE(objects_connecting, CliTestFixture)
     expectPrintMessage("Changeset tmp2 resumed.");
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("host hpv2", false));
-    std::vector<Deska::Cli::ObjectDefinition> merged;
-    merged.push_back(Deska::Cli::ObjectDefinition("hardware", "hpv2"));
-    expectConfirmCreationConnection2(Deska::Cli::ObjectDefinition("host", "hpv2"), merged);
+    std::vector<Deska::Cli::ObjectDefinition> connected;
+    connected.push_back(Deska::Cli::ObjectDefinition("hardware", "hpv2"));
+    expectConfirmCreationConnection2(Deska::Cli::ObjectDefinition("host", "hpv2"), connected);
     returnConfirmCreationConnection2(true);
     expectReadLine("host hpv2");
     returnReadLine(std::make_pair<std::string, bool>("quit", false));
@@ -226,6 +226,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     attrs2.push_back(Deska::Cli::AttributeDefinition("note_host", Deska::Db::Value()));
     attrs2.push_back(Deska::Cli::AttributeDefinition("service", Deska::Db::Value()));
     attrs2.push_back(Deska::Cli::AttributeDefinition("template_host", Deska::Db::Value()));
+    attrs2.push_back(Deska::Cli::AttributeDefinition("virtual_hardware", Deska::Db::Value()));
     expectPrintAttributes(attrs2, 1, std::cout);
     expectPrintEnd(0, std::cout);
     expectReadLine("");

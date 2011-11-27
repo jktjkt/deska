@@ -601,7 +601,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_toplevel, ParserTestFixt
     expectParsingStarted();
     expectCategoryEntered("hardware", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for hardware. Expected one of [ \"hardware_name\" \"id\" \"price\" ].", line, it));
-    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _ or -)> ].", line, it));
+    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -613,7 +613,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_begin_toplevel, ParserTe
     const std::string::const_iterator it = line.begin() + line.find("*bar");
     parser->parseLine(line);
     expectParsingStarted();
-    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware. Expected one of [ <identifier (alphanumerical letters and _ or -)> ].", line, it));
+    expectParseError(Deska::Cli::MalformedIdentifier("Error while parsing object name for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
@@ -628,7 +628,7 @@ BOOST_FIXTURE_TEST_CASE(error_invalid_object_identifier_nested, ParserTestFixtur
     expectCategoryEntered("host", "hpv2");
     expectCategoryEntered("interface", "foo");
     expectParseError(Deska::Cli::UndefinedAttributeError("Error while parsing attribute name for interface. Expected one of [ \"ip\" \"mac\" ].", line, it));
-    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _ or -)> ].", line, it));
+    //expectParseError(Deska::Cli::InvalidAttributeDataTypeError("Error while parsing argument value for hardware. Expected one of [ <identifier (alphanumerical letters and _)> ].", line, it));
     expectNothingElse();
     verifyEmptyStack();
 }
