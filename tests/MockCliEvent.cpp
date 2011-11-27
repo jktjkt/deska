@@ -95,35 +95,35 @@ MockCliEvent MockCliEvent::returnConfirmDeletion(bool confirm)
 }
 
 
-MockCliEvent MockCliEvent::confirmDeletionContained(const std::vector<Deska::Cli::ObjectDefinition> &mergedObjects)
+MockCliEvent MockCliEvent::confirmDeletionConnected(const std::vector<Deska::Cli::ObjectDefinition> &connectedObjects)
 {
-    MockCliEvent res(EVENT_CONFIRM_DELETION_CONTAINED);
-    res.objects = mergedObjects;
+    MockCliEvent res(EVENT_CONFIRM_DELETION_CONNECTED);
+    res.objects = connectedObjects;
     return res;
 }
 
 
 
-MockCliEvent MockCliEvent::returnConfirmDeletionContained(bool confirm)
+MockCliEvent MockCliEvent::returnconfirmDeletionConnected(bool confirm)
 {
-    MockCliEvent res(RETURN_CONFIRM_DELETION_CONTAINED);
+    MockCliEvent res(RETURN_CONFIRM_DELETION_CONNECTED);
     res.boolean = confirm;
     return res;
 }
 
 
-MockCliEvent MockCliEvent::confirmRenameContained(const std::vector<Deska::Cli::ObjectDefinition> &mergedObjects)
+MockCliEvent MockCliEvent::confirmRenameConnected(const std::vector<Deska::Cli::ObjectDefinition> &connectedObjects)
 {
-    MockCliEvent res(EVENT_CONFIRM_RENAME_CONTAINED);
-    res.objects = mergedObjects;
+    MockCliEvent res(EVENT_CONFIRM_RENAME_CONNECTED);
+    res.objects = connectedObjects;
     return res;
 }
 
 
 
-MockCliEvent MockCliEvent::returnConfirmRenameContained(bool confirm)
+MockCliEvent MockCliEvent::returnconfirmRenameConnected(bool confirm)
 {
-    MockCliEvent res(RETURN_CONFIRM_RENAME_CONTAINED);
+    MockCliEvent res(RETURN_CONFIRM_RENAME_CONNECTED);
     res.boolean = confirm;
     return res;
 }
@@ -166,10 +166,10 @@ MockCliEvent MockCliEvent::returnConfirmCreationConnection1(bool confirm)
 
 
 
-MockCliEvent MockCliEvent::confirmCreationConnection(const Deska::Cli::ObjectDefinition &object, const std::vector<Deska::Cli::ObjectDefinition> &mergedObjects)
+MockCliEvent MockCliEvent::confirmCreationConnection(const Deska::Cli::ObjectDefinition &object, const std::vector<Deska::Cli::ObjectDefinition> &connectedObjects)
 {
     MockCliEvent res(EVENT_CONFIRM_CREATION_CONNECTION_2);
-    res.objects = mergedObjects;
+    res.objects = connectedObjects;
     res.object = object;
     return res;
 }
@@ -456,8 +456,8 @@ MockCliEvent MockCliEvent::invalid()
 
 bool MockCliEvent::inputEvent(const MockCliEvent &m) const
 {
-    return ((m.eventKind == RETURN_CONFIRM_DELETION) || (m.eventKind == RETURN_CONFIRM_DELETION_CONTAINED) ||
-            (m.eventKind == RETURN_CONFIRM_RENAME_CONTAINED) || (m.eventKind == RETURN_CONFIRM_CREATION) ||
+    return ((m.eventKind == RETURN_CONFIRM_DELETION) || (m.eventKind == RETURN_CONFIRM_DELETION_CONNECTED) ||
+            (m.eventKind == RETURN_CONFIRM_RENAME_CONNECTED) || (m.eventKind == RETURN_CONFIRM_CREATION) ||
             (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_1) || (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2) ||
             (m.eventKind == RETURN_CONFIRM_RESTORATION) || (m.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE) ||
             (m.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE) || (m.eventKind == RETURN_CHOOSE_CHANGESET) ||
@@ -479,10 +479,10 @@ bool MockCliEvent::myReturn(const MockCliEvent &other) const
     switch (eventKind) {
     case EVENT_CONFIRM_DELETION:
         return other.eventKind == RETURN_CONFIRM_DELETION;
-    case EVENT_CONFIRM_DELETION_CONTAINED:
-        return other.eventKind == RETURN_CONFIRM_DELETION_CONTAINED;
-    case EVENT_CONFIRM_RENAME_CONTAINED:
-        return other.eventKind == RETURN_CONFIRM_RENAME_CONTAINED;
+    case EVENT_CONFIRM_DELETION_CONNECTED:
+        return other.eventKind == RETURN_CONFIRM_DELETION_CONNECTED;
+    case EVENT_CONFIRM_RENAME_CONNECTED:
+        return other.eventKind == RETURN_CONFIRM_RENAME_CONNECTED;
     case EVENT_CONFIRM_CREATION:
         return other.eventKind == RETURN_CONFIRM_CREATION;
     case EVENT_CONFIRM_CREATION_CONNECTION_1:
@@ -630,17 +630,17 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
     case MockCliEvent::RETURN_CONFIRM_DELETION:
         out << "returnConfirmDeletion( " << m.boolean << " )";
         break;
-    case MockCliEvent::EVENT_CONFIRM_DELETION_CONTAINED:
-        out << "confirmDeletionContained( " << m.objects << " )";
+    case MockCliEvent::EVENT_CONFIRM_DELETION_CONNECTED:
+        out << "confirmDeletionConnected( " << m.objects << " )";
         break;
-    case MockCliEvent::RETURN_CONFIRM_DELETION_CONTAINED:
-        out << "returnConfirmDeletionContained( " << m.boolean << " )";
+    case MockCliEvent::RETURN_CONFIRM_DELETION_CONNECTED:
+        out << "returnconfirmDeletionConnected( " << m.boolean << " )";
         break;
-    case MockCliEvent::EVENT_CONFIRM_RENAME_CONTAINED:
-        out << "confirmRenameContained( " << m.objects << " )";
+    case MockCliEvent::EVENT_CONFIRM_RENAME_CONNECTED:
+        out << "confirmRenameConnected( " << m.objects << " )";
         break;
-    case MockCliEvent::RETURN_CONFIRM_RENAME_CONTAINED:
-        out << "returnConfirmRenameContained( " << m.boolean << " )";
+    case MockCliEvent::RETURN_CONFIRM_RENAME_CONNECTED:
+        out << "returnconfirmRenameConnected( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_CONFIRM_CREATION:
         out << "confirmCreation( " << *(m.object) << " )";

@@ -46,6 +46,8 @@ ParserTestFixture::ParserTestFixture()
     fake->attrs["host"].push_back( KindAttributeDataType( "role", TYPE_IDENTIFIER_SET ) );
 
     fake->relations["interface"].push_back( ObjectRelation::embedInto("host", "pocitac") );
+    fake->relations["host"].push_back( ObjectRelation::contains("hardware", "hardware") );
+    fake->relations["hardware"].push_back( ObjectRelation::containable("host", "host") );
     db = fake;
 
     parser = new Deska::Cli::Parser(db);

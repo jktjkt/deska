@@ -232,13 +232,13 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 
 bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
-    std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
-    if (mergedObjects.empty()) {
+    std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(context);
+    if (connectedObjects.empty()) {
         m_dbInteraction->deleteObject(context);
     } else {
-        if (io->confirmDeletionContained(mergedObjects)) {
+        if (io->confirmDeletionConnected(connectedObjects)) {
             std::vector<ObjectDefinition> toDelete = m_dbInteraction->expandContextStack(context);
-            toDelete.insert(toDelete.end(), mergedObjects.begin(), mergedObjects.end());
+            toDelete.insert(toDelete.end(), connectedObjects.begin(), connectedObjects.end());
             m_dbInteraction->deleteObjects(toDelete);
         } else {
             m_dbInteraction->deleteObject(context);
@@ -252,13 +252,13 @@ bool UserInterface::applyFunctionDelete(const ContextStack &context)
 
 bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::Identifier &newName)
 {
-    std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
-    if (mergedObjects.empty()) {
+    std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(context);
+    if (connectedObjects.empty()) {
         m_dbInteraction->renameObject(context, newName);
     } else {
-        if (io->confirmRenameContained(mergedObjects)) {
+        if (io->confirmRenameConnected(connectedObjects)) {
             std::vector<ObjectDefinition> toRename = m_dbInteraction->expandContextStack(context);
-            toRename.insert(toRename.end(), mergedObjects.begin(), mergedObjects.end());
+            toRename.insert(toRename.end(), connectedObjects.begin(), connectedObjects.end());
             m_dbInteraction->renameObjects(toRename, newName);
         } else {
             m_dbInteraction->renameObject(context, newName);
@@ -308,11 +308,11 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 
     // Object does not exist -> ask the user here
     try {
-        std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(context);
-        if (mergedObjects.empty())
+        std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(context);
+        if (connectedObjects.empty())
             autoCreate = io->confirmCreation(ObjectDefinition(kind,object));
         else
-            autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object), mergedObjects);
+            autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object), connectedObjects);
     } catch (std::logic_error &e) {
         autoCreate = io->confirmCreationConnection(ObjectDefinition(kind, object));
     }
@@ -336,10 +336,10 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(adjustedContext);
-            if (mergedObjects.empty())
-                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+            std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
+            if (connectedObjects.empty())
+                connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
         } catch (std::logic_error &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
         }
@@ -363,10 +363,10 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
     adjustedContext.back().kind = kind;
     if (!nonInteractiveMode && !forceNonInteractive && !m_dbInteraction->objectExists(adjustedContext)) {
         try {
-            std::vector<ObjectDefinition> mergedObjects = m_dbInteraction->mergedObjectsTransitively(adjustedContext);
-            if (mergedObjects.empty())
-                mergedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), mergedObjects);
+            std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(adjustedContext);
+            if (connectedObjects.empty())
+                connectedObjects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+            return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name), connectedObjects);
         } catch (std::logic_error &e) {
             return io->confirmCreationConnection(ObjectDefinition(kind, context.back().name));
         }
@@ -530,9 +530,9 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
     // FIXME: Wait for contains/containable implementation without cycles
-    /*std::vector<ObjectDefinition> mergedObjs = m_dbInteraction->containedObjects(object);
-    unsigned int mergedObjsSize = 0;
-    if (mergedObjs.empty()) {*/
+    /*std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
+    unsigned int containedObjsSize = 0;
+    if (containedObjs.empty()) {*/
         io->printAttributesWithOrigin(attributes, depth);
     /*} else {
         for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
@@ -540,17 +540,17 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
             io->printAttributeWithOrigin(it->first, it->second, depth);
             Db::Identifier contains = m_dbInteraction->referredKind(object.kind, it->first.attribute);
             if (!contains.empty()) {
-                std::vector<ObjectDefinition>::iterator itmo = std::find(mergedObjs.begin(), mergedObjs.end(),
+                std::vector<ObjectDefinition>::iterator itmo = std::find(containedObjs.begin(), containedObjs.end(),
                     ObjectDefinition(contains, object.name));
-                if (itmo != mergedObjs.end()) {
-                    ++mergedObjsSize;
+                if (itmo != containedObjs.end()) {
+                    ++containedObjsSize;
                     showObjectRecursive(*itmo, depth);
                 }
             }
         }
     }
-    // All merged objects has to be printed via attribute references
-    BOOST_ASSERT(mergedObjsSize == mergedObjs.size());*/
+    // All contained objects has to be printed via attribute references
+    BOOST_ASSERT(containedObjsSize == containedObjs.size());*/
     std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
     for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {

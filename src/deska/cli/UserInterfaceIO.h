@@ -141,14 +141,14 @@ public:
     *   @param objects Objects to be deleted
     *   @return True if the deletion was confirmed, else false
     */
-    virtual bool confirmDeletionContained(const std::vector<ObjectDefinition> &mergedObjects);
+    virtual bool confirmDeletionConnected(const std::vector<ObjectDefinition> &connectedObjects);
 
     /** @short Displays confirmation message for rename of contained objects and returns users choice.
     *
     *   @param objects Objects to be renamed
     *   @return True if the rename was confirmed, else false
     */
-    virtual bool confirmRenameContained(const std::vector<ObjectDefinition> &mergedObjects);
+    virtual bool confirmRenameConnected(const std::vector<ObjectDefinition> &connectedObjects);
 
     /** @short Displays confirmation message for creation of a object and returns users choice.
     *
@@ -157,7 +157,7 @@ public:
     */
     virtual bool confirmCreation(const ObjectDefinition &object);
 
-    /** @short Displays confirmation message for creation of a object when the object will be merged with another
+    /** @short Displays confirmation message for creation of a object when the object will be connected with another
     *          and returns users choice.
     *
     *   @param object Object to be created
@@ -165,15 +165,15 @@ public:
     */
     virtual bool confirmCreationConnection(const ObjectDefinition &object);
 
-    /** @short Displays confirmation message for creation of a object when the object will be merged with another
+    /** @short Displays confirmation message for creation of a object when the object will be connected with another
     *          and returns users choice.
     *
     *   @param object Object to be created
-    *   @param mergedObjects Objects, that will be merged with one being created
+    *   @param connectedObjects Objects, that will be connected with one being created
     *   @return True if the creation was confirmed, else false
     */
     virtual bool confirmCreationConnection(const ObjectDefinition &object,
-                                           const std::vector<ObjectDefinition> &mergedObjects);
+                                           const std::vector<ObjectDefinition> &connectedObjects);
 
     /** @short Displays confirmation message for restoration of a deleted object and returns users choice.
     *

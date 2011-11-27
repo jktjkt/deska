@@ -209,19 +209,19 @@ public:
     */
     std::vector<ObjectDefinition> containedObjects(const ContextStack &context);
 
-    /** @short Gets all objects, that are merged with this one also transitively
+    /** @short Gets all objects, that are contained with this one also transitively
     *
-    *   @param object The object which merged objects to find
-    *   @return Vector of all objects merged with one given as parameter
+    *   @param object The object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjectsTransitively(const ObjectDefinition &object);
+    std::vector<ObjectDefinition> connectedObjectsTransitively(const ObjectDefinition &object);
 
-    /** @short Gets all objects, that are merged with this one also transitively
+    /** @short Gets all objects, that are contained with this one also transitively
     *
-    *   @param context Path to the object which merged objects to find
-    *   @return Vector of all objects merged with one given as parameter
+    *   @param context Path to the object which contained objects to find
+    *   @return Vector of all objects contained in one given as parameter
     */
-    std::vector<ObjectDefinition> mergedObjectsTransitively(const ContextStack &context);
+    std::vector<ObjectDefinition> connectedObjectsTransitively(const ContextStack &context);
 
     /** @short Function for obtaining kind names referred by some attribute in some kind.
     *   
@@ -332,13 +332,13 @@ public:
 
 private:
 
-    /** @short Helping function for mergedObjectsTransitively() for obtaining merged objects recursively
+    /** @short Helping function for connectedObjectsTransitively() for obtaining contained objects recursively
     *
-    *   @param object Object which merged objects to find
-    *   @param mergedObjects Vector of all objects merged already found
+    *   @param object Object which contained objects to find
+    *   @param containedObjects Vector of all objects contained already found
     */
-    void mergedObjectsTransitivelyRec(const ObjectDefinition &object,
-                                      std::vector<ObjectDefinition> &mergedObjects);
+    void connectedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                      std::vector<ObjectDefinition> &containedObjects);
 
     /** Identifiers of top level kinds. */
     std::vector<Db::Identifier> pureTopLevelKinds;
@@ -348,10 +348,10 @@ private:
     std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> > embeddedInto;
     /** Map of kinds and vector of kinds, that are embedded in the kind. */
     std::map<Db::Identifier, std::vector<Db::Identifier> > embeds;
-    /** Map of kinds and vector of kinds, that are merged with the kind. */
-    std::map<Db::Identifier, std::vector<Db::Identifier> > mergeWith;
-    /** Map of kinds and vector of kinds, that are merged with the kind. */
-    std::map<Db::Identifier, std::vector<Db::Identifier> > mergedTo;
+    /** Map of kinds and vector of kinds, that are contained with the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > contains;
+    /** Map of kinds and vector of kinds, that are contained with the kind. */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > containable;
     /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
     std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
     /** Flag if we are connected to any changeset, or not */

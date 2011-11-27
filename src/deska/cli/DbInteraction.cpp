@@ -46,13 +46,17 @@ DbInteraction::DbInteraction(Db::Api *api):
                 embeds[itr->target].push_back(*itk);
                 embeddedInto[*itk] = std::make_pair<Db::Identifier, Db::Identifier>(itr->column, itr->target);
             }
-#if 0
-            if (itr->kind == Db::RELATION_MERGE_WITH) {
-                mergeWith[*itk].push_back(itr->target);
+
+            if (itr->kind == Db::RELATION_CONTAINABLE) {
+                containable[*itk].push_back(itr->target);
                 referringAttrs[*itk][itr->column] = itr->target;
-                mergedTo[itr->target].push_back(*itk);
             }
-#endif
+
+            if (itr->kind == Db::RELATION_CONTAINS) {
+                contains[*itk].push_back(itr->target);
+                referringAttrs[*itk][itr->column] = itr->target;
+            }
+
         }
         if (!isEmbedded)
             pureTopLevelKinds.push_back(*itk);
@@ -394,12 +398,12 @@ bool DbInteraction::objectExists(const ContextStack &context)
 std::vector<ObjectDefinition> DbInteraction::containedObjects(const ObjectDefinition &object)
 {
     if (object.name.empty())
-        throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+        throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find contained objects for context stack with filters or kinds without names.");
 
     // Kinds, that this kind contains
     std::vector<ObjectDefinition> containedObjects;
     for (std::vector<Db::Identifier>::iterator it =
-        mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
+        contains[object.kind].begin(); it != contains[object.kind].end(); ++it) {
         std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
             Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
         BOOST_ASSERT(instances.size() <= 1);
@@ -423,7 +427,7 @@ std::vector<ObjectDefinition> DbInteraction::containedObjects(const ContextStack
     BOOST_ASSERT(!context.empty());
     for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
         if (it->filter || it->name.empty())
-            throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find merged objects for context stack with filters or kinds without names.");
+            throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find contained objects for context stack with filters or kinds without names.");
     }
 
     return containedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
@@ -431,28 +435,28 @@ std::vector<ObjectDefinition> DbInteraction::containedObjects(const ContextStack
 
 
 
-std::vector<ObjectDefinition> DbInteraction::mergedObjectsTransitively(const ObjectDefinition &object)
+std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const ObjectDefinition &object)
 {
     if (object.name.empty())
-        throw std::logic_error("Deska::Cli::DbInteraction::mergedObjectsTransitively: Can not find merged objects for context stack with filters or kinds without names.");
+        throw std::logic_error("Deska::Cli::DbInteraction::connectedObjectsTransitively: Can not find contained objects for context stack with filters or kinds without names.");
 
-    std::vector<ObjectDefinition> mergedObjects;
-    mergedObjectsTransitivelyRec(object, mergedObjects);
+    std::vector<ObjectDefinition> containedObjects;
+    connectedObjectsTransitivelyRec(object, containedObjects);
 
-    return mergedObjects;
+    return containedObjects;
 }
 
 
 
-std::vector<ObjectDefinition> DbInteraction::mergedObjectsTransitively(const ContextStack &context)
+std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const ContextStack &context)
 {
     BOOST_ASSERT(!context.empty());
     for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
         if (it->filter || it->name.empty())
-            throw std::logic_error("Deska::Cli::DbInteraction::mergedObjectsTransitively: Can not find merged objects for context stack with filters or kinds without names.");
+            throw std::logic_error("Deska::Cli::DbInteraction::connectedObjectsTransitively: Can not find contained objects for context stack with filters or kinds without names.");
     }
 
-    return mergedObjectsTransitively(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    return connectedObjectsTransitively(ObjectDefinition(context.back().kind, contextStackToPath(context)));
 }
 
 
@@ -708,12 +712,12 @@ void DbInteraction::clearCache()
 
 
 
-void DbInteraction::mergedObjectsTransitivelyRec(const ObjectDefinition &object,
-                                                 std::vector<ObjectDefinition> &mergedObjects)
+void DbInteraction::connectedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                                 std::vector<ObjectDefinition> &containedObjects)
 {
     // Kinds, that this kind contains
     for (std::vector<Db::Identifier>::iterator it =
-        mergeWith[object.kind].begin(); it != mergeWith[object.kind].end(); ++it) {
+        contains[object.kind].begin(); it != contains[object.kind].end(); ++it) {
         std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
             Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
         BOOST_ASSERT(instances.size() <= 1);
@@ -722,16 +726,16 @@ void DbInteraction::mergedObjectsTransitivelyRec(const ObjectDefinition &object,
             ObjectDefinition mObj(*it, object.name);
             if (stableView)
                 objectExistsCache[mObj] = true;
-            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end()) {
-                mergedObjects.push_back(mObj);
-                mergedObjectsTransitivelyRec(mObj, mergedObjects);
+            if (std::find(containedObjects.begin(), containedObjects.end(), mObj) == containedObjects.end()) {
+                containedObjects.push_back(mObj);
+                connectedObjectsTransitivelyRec(mObj, containedObjects);
             }
         }
     }
 
-    // Kinds containing this kind
+    // Kinds containined by this kind
     for (std::vector<Db::Identifier>::iterator it =
-        mergedTo[object.kind].begin(); it != mergedTo[object.kind].end(); ++it) {
+        containable[object.kind].begin(); it != containable[object.kind].end(); ++it) {
         std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
             Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
         BOOST_ASSERT(instances.size() <= 1);
@@ -740,9 +744,9 @@ void DbInteraction::mergedObjectsTransitivelyRec(const ObjectDefinition &object,
             ObjectDefinition mObj(*it, object.name);
             if (stableView)
                 objectExistsCache[mObj] = true;
-            if (std::find(mergedObjects.begin(), mergedObjects.end(), mObj) == mergedObjects.end()) {
-                mergedObjects.push_back(mObj);
-                mergedObjectsTransitivelyRec(mObj, mergedObjects);
+            if (std::find(containedObjects.begin(), containedObjects.end(), mObj) == containedObjects.end()) {
+                containedObjects.push_back(mObj);
+                connectedObjectsTransitivelyRec(mObj, containedObjects);
             }
         }
     }

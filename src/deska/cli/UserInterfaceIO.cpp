@@ -371,12 +371,12 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 
 
 
-bool UserInterfaceIO::confirmDeletionContained(const std::vector<ObjectDefinition> &mergedObjects)
+bool UserInterfaceIO::confirmDeletionConnected(const std::vector<ObjectDefinition> &connectedObjects)
 {
     std::ostringstream ss;
     ss << "Do you wand to delete also connected object(s) ";
-    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
-        if (it != mergedObjects.begin())
+    for (std::vector<ObjectDefinition>::const_iterator it = connectedObjects.begin(); it != connectedObjects.end(); ++it) {
+        if (it != connectedObjects.begin())
             ss << ", ";
         ss << *it;
     }
@@ -386,12 +386,12 @@ bool UserInterfaceIO::confirmDeletionContained(const std::vector<ObjectDefinitio
 
 
 
-bool UserInterfaceIO::confirmRenameContained(const std::vector<ObjectDefinition> &mergedObjects)
+bool UserInterfaceIO::confirmRenameConnected(const std::vector<ObjectDefinition> &connectedObjects)
 {
     std::ostringstream ss;
     ss << "Do you wand to rename also connected object(s) ";
-    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
-        if (it != mergedObjects.begin())
+    for (std::vector<ObjectDefinition>::const_iterator it = connectedObjects.begin(); it != connectedObjects.end(); ++it) {
+        if (it != connectedObjects.begin())
             ss << ", ";
         ss << *it;
     }
@@ -413,19 +413,19 @@ bool UserInterfaceIO::confirmCreation(const ObjectDefinition &object)
 bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object)
 {
     std::ostringstream ss;
-    ss << "Object(s) " << object << " do(es) not exist. Create and link?";
+    ss << "Object(s) " << object << " do(es) not exist. Create and connect?";
     return askForConfirmationImpl(ss.str());
 }
 
 
 
 bool UserInterfaceIO::confirmCreationConnection(const ObjectDefinition &object,
-                                                const std::vector<ObjectDefinition> &mergedObjects)
+                                                const std::vector<ObjectDefinition> &connectedObjects)
 {
     std::ostringstream ss;
-    ss << "Object(s) " << object << " do(es) not exist. Create and link to ";
-    for (std::vector<ObjectDefinition>::const_iterator it = mergedObjects.begin(); it != mergedObjects.end(); ++it) {
-        if (it != mergedObjects.begin())
+    ss << "Object(s) " << object << " do(es) not exist. Create and connect to ";
+    for (std::vector<ObjectDefinition>::const_iterator it = connectedObjects.begin(); it != connectedObjects.end(); ++it) {
+        if (it != connectedObjects.begin())
             ss << ", ";
         ss << *it;
     }
