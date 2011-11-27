@@ -64,6 +64,25 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+-- dummy function for proper returning NotASetError
+CREATE OR REPLACE FUNCTION jsn.setAttributeInsert(tag text, kindName text, objectName text, attributeName text, attributeData text[])
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttributeInsert"
+	jsn = dutil.jsn(name,tag)
+	try:
+		raise dutil.DutilException("NotASetError","Attribute '{0}' type is not identifier_set.".format(attributeName))
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION jsn.setAttributeInsert(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
@@ -93,6 +112,25 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 		return err.json(name,jsn)
 
 	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+-- dummy function for proper returning NotASetError
+CREATE OR REPLACE FUNCTION jsn.setAttributeRemove(tag text, kindName text, objectName text, attributeName text, attributeData text[])
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag,kindName,objectName,attributeName,attributeData):
+	name = "setAttributeRemove"
+	jsn = dutil.jsn(name,tag)
+	try:
+		raise dutil.DutilException("NotASetError","Attribute '{0}' type is not identifier_set.".format(attributeName))
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
 

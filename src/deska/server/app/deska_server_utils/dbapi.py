@@ -167,13 +167,12 @@ class DB:
 		pass
 
 	def changesetHasFreshConfig(self):
-		# FIXME: implement me by calling a DB function
-		#self.callProc("...NO FUNCTION NOW...",{})
-		return False
+		'''return true if changeset has fresh configuration generated'''
+		return self.callProc("changesetHasFreshConfig",{})
 
 	def markChangesetFresh(self):
-		# FIXME: implement me by calling a DB function
-		#self.callProc("releaseAndMarkAsOK",{})
+		'''mark changeset as fresh (has fresh configuration generated'''
+		self.callProc("markChangesetFresh",{})
 		pass
 
 	def currentChangeset(self):
@@ -263,8 +262,8 @@ class DB:
 		logging.debug("showConfigDiff")
 		response = {"response": name, "tag": tag}
 		self.lockCurrentChangeset()
-		self.initCfgGenerator()
 		if forceRegen or not self.changesetHasFreshConfig():
+			self.initCfgGenerator()
 			logging.debug("about to regenerate config")
 			self.cfgRegenerate()
 			self.markChangesetFresh()
@@ -275,8 +274,8 @@ class DB:
 	def commitConfig(self, name, args, tag):
 		self.checkFunctionArguments(name, args, tag)
 		self.lockCurrentChangeset()
-		self.initCfgGenerator()
 		if not self.changesetHasFreshConfig():
+			self.initCfgGenerator()
 			self.cfgRegenerate()
 			self.markChangesetFresh()
 		try:
