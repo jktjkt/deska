@@ -47,7 +47,16 @@ class GitGenerator(object):
     def apiSave(self, message):
         '''Commit and push the changes into a persistent location'''
         self.git.add("-A")
-        if self.git.status("--porcelain") == "":
+        # Git 1.6.6 does not support the `git status --porcelain` output (Redmine #347).
+        # Let's hope this is enough.
+        try:
+            gitstatus = self.git.status("--porcelain")
+        except git.errors.GitCommandError, e:
+            if e.status == 129:
+                gitstatus = self.git.diff("--cached", "--name-only")
+            else:
+                raise
+        if gitstatus == "":
             # no changes to commit
             pass
         else:

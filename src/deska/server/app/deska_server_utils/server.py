@@ -10,6 +10,12 @@ except ImportError:
 from deska_server_utils.jsonparser import perform_io
 from deska_server_utils.dbapi import DB
 
+class StreamLogger(object):
+    """Fake the stream interface and write stuff into the logging module instead"""
+
+    def write(self, s):
+        logging.debug(s)
+
 def run():
     parser = OptionParser()
     parser.add_option("-d", "--database", dest="database", default="deska_dev",
@@ -74,6 +80,13 @@ def run():
     if options.username:
         dbargs["user"] = options.username
 
+    # Redirecting the stdout to stderr. This is required in order to support the
+    # GIT_PYTHON_TRACE which blindly uses `print` for its debug output (and
+    # clobbers our precious DBAPI communication that way).
+    # Do NOT ever try to capture stderr this way, this will lead to infinite loops.
+    orig_stdout = sys.stdout
+    sys.stdout = StreamLogger()
+
     try:
         # Make sure that Ctrl-C on the remote side won't ever propagate to us, so that
         # we don't have to deal with KeyboardInterrupt exception
@@ -95,15 +108,15 @@ def run():
         msg = "Cannot connect to database: %s" % e
         logging.error(msg)
         response = {"dbException": {"type": "ServerError", "message": msg}}
-        sys.stdout.write(json.dumps(response))
-        sys.stdout.write("\n")
-        sys.stdout.flush()
+        orig_stdout.write(json.dumps(response))
+        orig_stdout.write("\n")
+        orig_stdout.flush()
         sys.exit(1)
 
     logging.debug("connected to database")
 
     while True:
         try:
-            perform_io(db, sys.stdin, sys.stdout)
+            perform_io(db, sys.stdin, orig_stdout)
         except StopIteration:
             break

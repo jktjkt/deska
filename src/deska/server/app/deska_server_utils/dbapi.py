@@ -15,6 +15,19 @@ from jsonparser import perform_io
 class FreezingError(Exception):
     pass
 
+class DeskaException(Exception):
+	'''Exception class for deska exceptions from jsn'''
+	def __init__(self, src):
+		self.src = src
+		
+	def json(self,command,tag):
+		jsn = {"response": command,
+			"dbException": self.src,
+			"tag": tag
+		}
+		return json.dumps(jsn)
+
+
 class DB:
 	methods = dict({
 		"kindNames": ["tag"],
@@ -156,30 +169,39 @@ class DB:
 		if not self.freeze:
 			self.db.commit()
 
+	def noJsonCallProc(self,name):
+		'''Run normal json function, but this raises DeskaException and not returns json'''
+		ret = json.loads(self.callProc(name,["TAG"]))
+		if "dbException" in ret:
+			raise DeskaException(ret["dbException"])
+		if ret["response"] in ret:
+			return ret[ret["response"]]
+		pass
+
 	def lockCurrentChangeset(self):
 		'''Lock changeset by db lock'''
-		self.callProc("lockCurrentChangeset",{})
+		self.noJsonCallProc("lockCurrentChangeset")
 		pass
 
 	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
-		self.callProc("unlockCurrentChangeset",{})
+		self.noJsonCallProc("unlockCurrentChangeset")
 		pass
 
 	def changesetHasFreshConfig(self):
 		'''return true if changeset has fresh configuration generated'''
-		res = self.callProc("changesetHasFreshConfig",{})
+		res = self.noJsonCallProc("changesetHasFreshConfig")
 		logging.debug("changesetHasFreshConfig returns %s" % res)
 		return res
 
 	def markChangesetFresh(self):
 		'''mark changeset as fresh (has fresh configuration generated'''
-		self.callProc("markChangesetFresh",{})
+		self.noJsonCallProc("markChangesetFresh")
 		logging.debug("markChangesetFresh")
 
 	def currentChangeset(self):
 		'''get name of the current changeset from the DB'''
-		return "tmp" + str(self.callProc("get_current_changeset",{}))
+		return self.noJsonCallProc("getCurrentChangeset")
 
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
@@ -320,7 +342,10 @@ class DB:
 			forceRegen = False
 			if args.has_key("forceRegen") and args["forceRegen"] == True:
 				forceRegen = True
-			return self.showConfigDiff(name, tag, forceRegen)
+			try:
+				return self.showConfigDiff(name, tag, forceRegen)
+			except DeskaException, e:
+				return e.json(name,tag)
 
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
@@ -330,7 +355,10 @@ class DB:
 
 		if name == "commitChangeset":
 			# this one is special, it has to commit to the DB *and* push to SCM
-			return self.commitConfig(name, args, tag)
+			try:
+				return self.commitConfig(name, args, tag)
+			except DeskaException, e:
+				return e.json(name,tag)
 
 		return self.standaloneRunDbFunction(name, args, tag)
 
