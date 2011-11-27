@@ -144,8 +144,8 @@ std::vector<Db::Identifier> pathToVector(const Db::Identifier &path)
     std::vector<Db::Identifier> identifiers;
 
     bool r = boost::spirit::qi::phrase_parse(first,last,
-                                             +(boost::spirit::ascii::alnum | '_') % "->",
-                                             boost::spirit::ascii::space, identifiers);
+                (boost::spirit::qi::lexeme[+(boost::spirit::ascii::alnum | '_')] % "->"),
+                boost::spirit::ascii::space, identifiers);
     if (!r)
         throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
 
