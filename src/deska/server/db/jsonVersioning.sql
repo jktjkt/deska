@@ -367,3 +367,68 @@ def main(tag):
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.changesetHasFreshConfig(tag text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag):
+	name = "changesetHasFreshConfig"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'api.'+ name + "()"
+	try:
+		ver = dutil.fcall(fname)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	jsn[name] = dutil.mystr(ver)
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.markChangesetFresh(tag text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag):
+	name = "markChangesetFresh"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'api.'+ name + "()"
+	try:
+		dutil.fcall(fname)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION jsn.getCurrentChangeset(tag text)
+RETURNS text
+AS
+$$
+import dutil
+import json
+
+@pytypes
+def main(tag):
+	name = "getCurrentChangeset"
+	jsn = dutil.jsn(name,tag)
+
+	fname = 'deska.get_current_changeset()'
+	try:
+		ver = dutil.fcall(fname)
+	except dutil.DeskaException as err:
+		return err.json(name,jsn)
+	jsn[name] = "tmp{0}".format(dutil.mystr(ver))
+	return json.dumps(jsn)
+$$
+LANGUAGE python SECURITY DEFINER;

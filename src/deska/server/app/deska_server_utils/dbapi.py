@@ -174,7 +174,9 @@ class DB:
 		ret = json.loads(self.callProc(name,["TAG"]))
 		if "dbException" in ret:
 			raise DeskaException(ret["dbException"])
-		return ret["response"]
+		if ret["response"] in ret:
+			return ret[ret["response"]]
+		pass
 
 	def lockCurrentChangeset(self):
 		'''Lock changeset by db lock'''
@@ -183,23 +185,23 @@ class DB:
 
 	def unlockCurrentChangeset(self):
 		'''Unlock changeset'''
-		self.noJsonCallProc("unlockCurrentChangeset",{})
+		self.noJsonCallProc("unlockCurrentChangeset")
 		pass
 
 	def changesetHasFreshConfig(self):
 		'''return true if changeset has fresh configuration generated'''
-		res = self.callProc("changesetHasFreshConfig",{})
+		res = self.noJsonCallProc("changesetHasFreshConfig")
 		logging.debug("changesetHasFreshConfig returns %s" % res)
 		return res
 
 	def markChangesetFresh(self):
 		'''mark changeset as fresh (has fresh configuration generated'''
-		self.callProc("markChangesetFresh",{})
+		self.noJsonCallProc("markChangesetFresh")
 		logging.debug("markChangesetFresh")
 
 	def currentChangeset(self):
 		'''get name of the current changeset from the DB'''
-		return "tmp" + str(self.callProc("get_current_changeset",{}))
+		return self.noJsonCallProc("getCurrentChangeset")
 
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
@@ -342,8 +344,8 @@ class DB:
 				forceRegen = True
 			try:
 				return self.showConfigDiff(name, tag, forceRegen)
-			except Exception, e:
-				return self.errorJson(name, tag, e)
+			except DeskaException, e:
+				return e.json(name,tag)
 
 		# applyBatchedChanges
 		if name == "applyBatchedChanges":
