@@ -168,12 +168,14 @@ class DB:
 
 	def changesetHasFreshConfig(self):
 		'''return true if changeset has fresh configuration generated'''
-		return self.callProc("changesetHasFreshConfig",{})
+		res = self.callProc("changesetHasFreshConfig",{})
+		logging.debug("changesetHasFreshConfig returns %s" % res)
+		return res
 
 	def markChangesetFresh(self):
 		'''mark changeset as fresh (has fresh configuration generated'''
 		self.callProc("markChangesetFresh",{})
-		pass
+		logging.debug("markChangesetFresh")
 
 	def currentChangeset(self):
 		'''get name of the current changeset from the DB'''
@@ -182,7 +184,7 @@ class DB:
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
 		if self.cfggenBackend == "git":
-			logging.debug("Initializing git generator")
+			logging.debug(" Initializing git generator")
 			from deska_server_utils.config_generators import GitGenerator
 			repodir = self.cfggenOptions["cfggenGitRepo"]
 			if repodir is None:
@@ -193,10 +195,10 @@ class DB:
 			workdir = workdir + "/" + self.currentChangeset()
 			if os.path.exists(workdir):
 				# got to clean it up
-				logging.debug("cfggen: cleaning up %s" % workdir)
+				logging.debug(" cfggen: cleaning up %s" % workdir)
 				shutil.rmtree(workdir)
 			scriptdir = self.cfggenOptions["cfggenScriptPath"]
-			logging.debug("cfggen: initializing Gitgenerator(%s, %s, %s)" % (repodir, workdir, scriptdir))
+			logging.debug(" cfggen: initializing Gitgenerator(%s, %s, %s)" % (repodir, workdir, scriptdir))
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
 		elif self.cfggenBackend == "fake":
 			from deska_server_utils.config_generators import NullGenerator
@@ -264,9 +266,11 @@ class DB:
 		self.lockCurrentChangeset()
 		if forceRegen or not self.changesetHasFreshConfig():
 			self.initCfgGenerator()
-			logging.debug("about to regenerate config")
+			logging.debug(" about to regenerate config")
 			self.cfgRegenerate()
 			self.markChangesetFresh()
+		else:
+			logging.debug(" configuration was fresh already")
 		response[name] = self.cfgGetDiff()
 		self.unlockCurrentChangeset()
 		return json.dumps(response)
