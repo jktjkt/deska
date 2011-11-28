@@ -174,6 +174,56 @@ make install}.  The server, however, requires more complex procedure to set up.
 
 \section{Setup and Configuration}
 
-FIXME: describe the database setup here
+After having installed the server utilities by running the {\tt make install} command, it is time to deploy the database
+configuration.
+
+The very first step is to configure a PostgreSQL server.  It is recommended that it runs on the same host as the {\tt
+deska-server} script for security reasons (see the \secref{sec:server-security-model} for details).  The server shall
+accept connections over Unix sockets and use the {\tt ident} scheme for user authentication over these sockets.
+Furthermore, each (physical) user who will have access to the Deska server will have to be present in the PostgreSQL
+database, be the member of the {\tt deska\_user} role, and has a Unix account with properly configured SSH keys for
+automated authentication to the server machine.  After the PostgreSQL server is configured properly, it is time to
+deploy the database scheme.
+
+The utilities shipped with Deska support installation to an {\em empty} PostgreSQL database.  In case of an upgrade or
+an attempt to repair a broken database installation, please make sure to take a proper backup first (see
+\secref{sec:cli-db-backup} for details).
+
+The installation process therefore starts with creating a database and the required user roles:
+
+\begin{minted}{console}
+$ psql -U postgres
+\end{minted}
+\begin{minted}{sql}
+CREATE ROLE deska_admin;
+CREATE ROLE deska_user;
+CREATE USER yourUser;
+GRANT deska_user TO yourUser;
+CREATE DATABASE yourDb OWNER deska_admin;
+\end{minted}
+
+When the database has been created, install the PgPython procedural language in there:
+
+\begin{minted}{console}
+$ psql -U postgres -d yourDb -v ON_ERROR_STOP=1 -f path/to/deska/install/pgpython.sql
+\end{minted}
+
+Now you can proceed to the actual installation of the Deska database, which is performed by the {\tt
+deska-deploy-database.sh} script.  There are three required arguments, the {\tt -U} ({\tt --user}) for specifying a
+PostgreSQL user name, the {\tt -d} ({\tt --database}) for the database name, and finally the {\tt -t} (or {\tt
+--target}) for the name of the directory in which to install additional server-side data (as the Deska server requires
+some generated code tailored to the used database scheme, and these files have to live outside of a PostgreSQL database
+directory hierarchy).  Due to the security model used by Postgres, where a Python-based procedural language module has
+essentially full access to the database and the whole system, using the effective Postgres server UID, it is required to
+perform the installation as the PostgreSQL superuser, which is typically the {\tt postgres}:
+
+\begin{minted}{console}
+$ DESKA_SCHEME=demo ./deska-deploy-database.sh -U postgres -d yourDb -t /path/to/install/server/side/tools
+\end{minted}
+
+Please keep in mind that the directory used for the {\tt -t} option to the {\tt deska-deploy-database.sh} has to be
+exclusively used by exactly {\em one} instance of the Deska database.  It is perfectly acceptable to run several Deska
+databases on one machine and sharing the same PostgreSQL server instance, as long as they use a different path for the
+auxiliary files.
 
 \end{document}
