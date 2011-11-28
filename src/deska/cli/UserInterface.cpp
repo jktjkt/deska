@@ -539,12 +539,11 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
     std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
-    // FIXME: Wait for contains/containable implementation without cycles
-    /*std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
+    std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
     unsigned int containedObjsSize = 0;
-    if (containedObjs.empty()) {*/
+    if (containedObjs.empty()) {
         io->printAttributesWithOrigin(attributes, depth);
-    /*} else {
+    } else {
         for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
              it != attributes.end(); ++it) {
             io->printAttributeWithOrigin(it->first, it->second, depth);
@@ -560,7 +559,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         }
     }
     // All contained objects has to be printed via attribute references
-    BOOST_ASSERT(containedObjsSize == containedObjs.size());*/
+    BOOST_ASSERT(containedObjsSize == containedObjs.size());
     std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
     for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {
