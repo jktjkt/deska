@@ -683,7 +683,8 @@ void Batch::operator()(const std::string &params)
         ui->m_dbInteraction->unlockCurrentChangeset();
         if (ui->parsingFailed) {
             std::ostringstream ostr;
-            ostr << "Parsing of commands file failed on line " << lineNumber << ".";
+            ostr << "Parsing of commands file failed on line " << lineNumber << "." << std::endl;
+            ostr << "Line: \"" << line << "\"";
             ui->io->reportError(ostr.str());
         } else {
             ui->io->printMessage("All commands successfully executed.");
@@ -868,7 +869,8 @@ void Restore::operator()(const std::string &params)
     ui->nonInteractiveMode = false;
     if (ui->parsingFailed || restoreError) {
         std::ostringstream ostr;
-        ostr << "Parsing of backup file failed on line " << lineNumber << ".";
+        ostr << "Parsing of backup file failed on line " << lineNumber << "." << std::endl;
+        ostr << "Line: \"" << line << "\"";
         ui->io->reportError(ostr.str());
     } else {
         ui->io->printMessage("DB successfully restored.");
