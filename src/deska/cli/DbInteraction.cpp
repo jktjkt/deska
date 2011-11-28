@@ -311,17 +311,11 @@ std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allA
 
 
 
-            if (stableView)
-                objectExistsCache[ObjectDefinition(it->first, *ite)] = true;
-        }
-    }
-    return kinds;
-}
-
-
-
 std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefinition &object)
 {
+    if (object.name.empty() || pathToVector(object.name).back().empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::allNestedObjects: Can not find nested objects for context stack without names.");
+
     std::vector<ObjectDefinition> kinds;
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
         std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
@@ -339,10 +333,20 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefini
 
 std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack &context)
 {
-    if (!context.empty())
-        return allNestedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-    else
+    if (context.empty())
         return std::vector<ObjectDefinition>();
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<ObjectDefinition> nestObjects;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        std::vector<ObjectDefinition> tmpObj = allNestedObjects(*it);
+        nestObjects.insert(nestObjects.begin(), tmpObj.begin(), tmpObj.end());
+    }
+
+    return nestObjects;
+}
+
+
+
 std::vector<ObjectDefinition> DbInteraction::allNestedObjectsTransitively(const ObjectDefinition &object)
 {
     if (object.name.empty() || pathToVector(object.name).back().empty())
@@ -440,21 +444,24 @@ std::vector<ObjectDefinition> DbInteraction::containedObjects(const ObjectDefini
 
 std::vector<ObjectDefinition> DbInteraction::containedObjects(const ContextStack &context)
 {
-    BOOST_ASSERT(!context.empty());
-    for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
-        if (it->filter || it->name.empty())
-            throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find contained objects for context stack with filters or kinds without names.");
+    if (context.empty())
+        return std::vector<ObjectDefinition>();
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<ObjectDefinition> contObjects;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        std::vector<ObjectDefinition> tmpObj = containedObjects(*it);
+        contObjects.insert(contObjects.begin(), tmpObj.begin(), tmpObj.end());
     }
 
-    return containedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    return contObjects;
 }
 
 
 
 std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const ObjectDefinition &object)
 {
-    if (object.name.empty())
-        throw std::logic_error("Deska::Cli::DbInteraction::connectedObjectsTransitively: Can not find contained objects for context stack with filters or kinds without names.");
+    if (object.name.empty() || pathToVector(object.name).back().empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::connectedObjectsTransitively: Can not find connected objects for context stack without names.");
 
     std::vector<ObjectDefinition> containedObjects;
     connectedObjectsTransitivelyRec(object, containedObjects);
@@ -466,13 +473,16 @@ std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const 
 
 std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const ContextStack &context)
 {
-    BOOST_ASSERT(!context.empty());
-    for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
-        if (it->filter || it->name.empty())
-            throw std::logic_error("Deska::Cli::DbInteraction::connectedObjectsTransitively: Can not find contained objects for context stack with filters or kinds without names.");
+    if (context.empty())
+        return std::vector<ObjectDefinition>();
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<ObjectDefinition> connObjects;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        std::vector<ObjectDefinition> tmpObj = connectedObjectsTransitively(*it);
+        connObjects.insert(connObjects.begin(), tmpObj.begin(), tmpObj.end());
     }
 
-    return connectedObjectsTransitively(ObjectDefinition(context.back().kind, contextStackToPath(context)));
+    return connObjects;
 }
 
 
