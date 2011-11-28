@@ -36,7 +36,7 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
 
     boost::program_options::options_description options("Deska CLI Options");
     options.add_options()
-        (DBConnection_Server.c_str(), po::value<std::string>(), "path to executable for connection to Deska server")
+        (DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken(), "path to executable for connection to Deska server including arguments")
         (CLI_HistoryFilename.c_str(), po::value<std::string>(), "name of file with history")
         (CLI_HistoryLimit.c_str(), po::value<unsigned int>()->default_value(64), "number of lines stored in history")
         (CLI_LineWidth.c_str(), po::value<unsigned int>()->default_value(0), "width of line for wrapping")
@@ -72,6 +72,8 @@ template unsigned int CliConfig::getVar(const std::string &name);
 template bool CliConfig::getVar(const std::string &name);
 
 template std::string CliConfig::getVar(const std::string &name);
+
+template std::vector<std::string> CliConfig::getVar(const std::string &name);
 
 
 }

@@ -36,10 +36,7 @@
 int main(int argc, char **argv)
 {
     Deska::Cli::CliConfig config("deska.ini", argc, argv);
-    std::vector<std::string> args;
-    // FIXME: Redmine#179, support space-delimited values
-    args.push_back(config.getVar<std::string>(Deska::Cli::DBConnection_Server));
-    Deska::Db::Connection conn(args);
+    Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);
     Deska::Cli::UserInterfaceIO io(&parser, &config);
