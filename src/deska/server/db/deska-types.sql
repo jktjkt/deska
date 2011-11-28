@@ -4,7 +4,11 @@ CREATE DOMAIN identifier AS text
 	CONSTRAINT digit_on_first_place
 		CHECK ( VALUE !~ '^[[:digit:]]' )
 	CONSTRAINT not_alfanumeric_in_name
-		CHECK ( VALUE !~ '[^[:alnum:]_]' )
+		CHECK ( VALUE !~ '[^[:alnum:]_-]' )
+	CONSTRAINT not_begins_with_hyphen
+		CHECK ( VALUE !~ '^-' )
+	CONSTRAINT not_ends_with_hyphen
+		CHECK ( VALUE !~ '-$' )
 	CONSTRAINT length_gt_zero
 		CHECK ( char_length(VALUE) > 0 );
 
