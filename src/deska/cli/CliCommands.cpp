@@ -453,7 +453,7 @@ NonInteractive::~NonInteractive()
 void NonInteractive::operator()(const std::string &params)
 {
     if (params.empty()) {
-        if (ui->nonInteractiveMode)
+        if (ui->forceNonInteractive || ui->nonInteractiveMode)
             ui->io->printMessage("You are in non-interactive mode.");
         else
             ui->io->printMessage("You are not in non-interactive mode.");
@@ -461,15 +461,15 @@ void NonInteractive::operator()(const std::string &params)
     }
 
     if (params == "on") {
-        if (ui->nonInteractiveMode) {
+        if (ui->forceNonInteractive) {
             ui->io->reportError("You already are in non-interactive mode.");
         } else {
-            ui->nonInteractiveMode = true;
+            ui->forceNonInteractive = true;
             ui->io->printMessage("Non-interactive mode turned on.");
         }
     } else if (params == "off") {
-        if (ui->nonInteractiveMode) {
-            ui->nonInteractiveMode = false;
+        if (ui->forceNonInteractive) {
+            ui->forceNonInteractive = false;
             ui->io->printMessage("Non-interactive mode turned off.");
         } else {
             ui->io->reportError("You are not in non-interactive mode.");
