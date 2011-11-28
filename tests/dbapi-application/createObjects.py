@@ -62,6 +62,7 @@ def imperative(r):
                   AnyOrderList(("a", "aa", "blabla")))
 
     tmp4 = r.c(startChangeset())
-    # FIXME: fails, Redmine#351
-    #r.c(createObject("vendor", "a-b"))
+    r.c(createObject("vendor", "a-b"))
+    r.cfail(createObject("vendor", "a-"), exception=ConstraintError())
+    r.cfail(createObject("vendor", "-a"), exception=ConstraintError())
     r.assertEqual(r.c(commitChangeset(".")), "r3")
