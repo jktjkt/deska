@@ -60,3 +60,8 @@ def imperative(r):
     # ...but indeed present when we ask specifically for the current one
     r.assertEqual(r.c(kindInstances("vendor", revision=r2)),
                   AnyOrderList(("a", "aa", "blabla")))
+
+    tmp4 = r.c(startChangeset())
+    # FIXME: fails, Redmine#351
+    #r.c(createObject("vendor", "a-b"))
+    r.assertEqual(r.c(commitChangeset(".")), "r3")
