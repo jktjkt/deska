@@ -37,6 +37,33 @@ class Table(constants.Templates):
 		"""From those columns that references some uid column gets the column that references the uid with embed_into relation"""
 		return self.fks.embed_col()
 
+	def validate(self):
+		"""This function validates if the module meets the all conditions for well defined modules."""
+		
+		if "name" not in self.col:
+			raise ValueError, 'Module %(tbl)s is not valid, it should contain attribute name.' % {'tbl': self.name}
+		
+		if self.col["name"] <> "identifier":
+			raise ValueError, 'Module %(tbl)s is not valid, attribute name should be of type identifier.' % {'tbl': self.name}
+		
+		if self.embed_column is "":
+			if ["name"] not in self.pkset.values():
+				raise ValueError, 'Module %(tbl)s is not valid, attribute name should be unique.' % {'tbl': self.name}
+		else:
+			if ["name", self.embed_column] not in self.pkset.values() and [self.embed_column, "name"] not in self.pkset.values():
+				raise ValueError, 'Module %(tbl)s is not valid, attribute name, %(embed_col)s should be unique.' % {'tbl': self.name, 'embed_col': self.embed_column}
+		
+		if "uid" not in self.col:
+			raise ValueError, 'Module %(tbl)s is not valid, it should contain attribute uid.' % {'tbl': self.name}
+		
+		if self.col["uid"] not in  ("bigint","int8"):
+			raise ValueError, 'Module %(tbl)s is not valid, attribute uid should be of type bigint.' % {'tbl': self.name}
+		
+		if ["uid"] not in self.pkset.values():
+			raise ValueError, 'Module %(tbl)s is not valid, attribute uid should be primary key.' % {'tbl': self.name}
+
+		return;
+
 	def gen_assign(self,colname):
 		"""Generates assignment for the colmn with colname."""
 		return "%(col)s = new.%(col)s" % {'col': colname}

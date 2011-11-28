@@ -274,6 +274,8 @@ CREATE FUNCTION commit_all(message text)
 				if row[0] not in table.refuid_columns:
 					table.refuid_columns[row[0]] = row[1]
 
+		table.validate();
+
 		# generate sql
 		self.table_sql.write(table.gen_hist())
 
