@@ -299,6 +299,34 @@ public:
 };
 
 
+
+/** @short Cli command.
+*
+*   Toggles non-interactive mode
+*
+*   @see Command
+*/
+class NonInteractive: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    NonInteractive(UserInterface *userInterface);
+
+    virtual ~NonInteractive();
+
+    /** @short Shows if you are in non-interactive mode or not and is able to switch it
+    *
+    *   @param params With param "on" switches to non-interactive mode, with param "off" turns
+    *                 non-interactive mode off. Without parameter shows if you are in non-interactive mode or not
+    */
+    virtual void operator()(const std::string &params);
+};
+
+
+
 /** @short Cli command.
 *
 *   Command for showing diff of output from configuration generators.

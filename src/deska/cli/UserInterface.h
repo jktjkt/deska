@@ -139,6 +139,7 @@ private:
     friend class Abort;
     friend class Rebase;
     friend class Status;
+    friend class NonInteractive;
     friend class Log;
     friend class Diff;
     friend class Configdiff;

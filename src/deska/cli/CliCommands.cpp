@@ -434,7 +434,50 @@ void Status::operator()(const std::string &params)
 
 
 
+NonInteractive::NonInteractive(UserInterface *userInterface): Command(userInterface)
+{
+    cmdName = "non-interactive";
+    cmdUsage = "With parameter \"on\" switches to non-interactive mode, with param \"off\" turns non-interactive mode off. Without parameter shows if you are in non-interactive mode or not.";
+    complPatterns.push_back("non-interactive on");
+    complPatterns.push_back("non-interactive off");
+}
 
+
+
+NonInteractive::~NonInteractive()
+{
+}
+
+
+
+void NonInteractive::operator()(const std::string &params)
+{
+    if (params.empty()) {
+        if (ui->nonInteractiveMode)
+            ui->io->printMessage("You are in non-interactive mode.");
+        else
+            ui->io->printMessage("You are not in non-interactive mode.");
+        return;
+    }
+
+    if (params == "on") {
+        if (ui->nonInteractiveMode) {
+            ui->io->reportError("You already are in non-interactive mode.");
+        } else {
+            ui->nonInteractiveMode = true;
+            ui->io->printMessage("Non-interactive mode turned on.");
+        }
+    } else if (params == "off") {
+        if (ui->nonInteractiveMode) {
+            ui->nonInteractiveMode = false;
+            ui->io->printMessage("Non-interactive mode turned off.");
+        } else {
+            ui->io->reportError("You are not in non-interactive mode.");
+        }
+    } else{
+        ui->io->reportError("Error: Invalid parameter entered. Use \"help\" for more info.");
+    }
+}
 
 
 
