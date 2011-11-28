@@ -390,6 +390,8 @@ void Abort::operator()(const std::string &params)
         ui->io->reportError("Error: You are not in any changeset!");
         return;
     }
+    if (!ui->io->askForConfirmation("Really abort current changeset?"))
+        return;
     ui->m_dbInteraction->abortChangeset();
     std::ostringstream ostr;
     ostr << "Changeset " << *(ui->currentChangeset) << " aborted.";
