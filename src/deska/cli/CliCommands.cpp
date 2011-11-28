@@ -549,7 +549,6 @@ void Dump::operator()(const std::string &params)
                     dumpObjectRecursive(object, 1, ofs);
                 }
             }
-            }
             ofs.close();
             if (!ui->currentChangeset)
                 ui->m_dbInteraction->unFreezeView();
@@ -659,7 +658,24 @@ void Batch::operator()(const std::string &params)
             ++lineNumber;
             if (!line.empty() && line[0] == '#')
                 continue;
-            ui->m_parser->parseLine(line);
+            try {
+                ui->m_parser->parseLine(line);
+            } catch (Db::ConstraintError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "DB constraint violation:\n " << e.what() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::RemoteDbError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::JsonParseError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            }
             if (ui->parsingFailed)
                 break;
         }
@@ -826,7 +842,24 @@ void Restore::operator()(const std::string &params)
         } else {
             if (!ui->currentChangeset)
                 ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
-            ui->m_parser->parseLine(line);
+            try {
+                ui->m_parser->parseLine(line);
+            } catch (Db::ConstraintError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "DB constraint violation:\n " << e.what() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::RemoteDbError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::JsonParseError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            }
         }
         if (ui->parsingFailed)
             break;
