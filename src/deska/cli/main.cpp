@@ -34,8 +34,19 @@
 #include "CliConfig.h"
 #include "config.h"
 
+
+void sigpipeHandler(int signum)
+{
+    std::cerr << "Deska server not responding, or dead." << std::endl
+              << "Exitting Deska CLI." << std::endl;
+    exit(2);
+}
+
+
 int main(int argc, char **argv)
 {
+    signal(SIGPIPE, sigpipeHandler);
+
     const char configFile[] = "deska.ini";
     try {
         Deska::Cli::CliConfig config(configFile, argc, argv);
