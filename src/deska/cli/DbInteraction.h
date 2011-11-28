@@ -167,12 +167,6 @@ public:
     */
     std::vector<ObjectDefinition> allNestedObjects(const ObjectDefinition &object);
 
-    /** @short Obtains list of all objects, that could be nested, but their parent does not exist
-    *
-    *   @return Vector of all orphans
-    */
-    std::vector<ObjectDefinition> allOrphanObjects();
-
     /** @short Obtains all nested objects in given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained

@@ -311,15 +311,6 @@ std::vector<std::pair<AttributeDefinition, Db::Identifier> > DbInteraction::allA
 
 
 
-std::vector<ObjectDefinition> DbInteraction::allOrphanObjects()
-{
-    std::vector<ObjectDefinition> kinds;
-    for (std::map<Db::Identifier, std::pair<Db::Identifier, Db::Identifier> >::iterator it = embeddedInto.begin();
-         it != embeddedInto.end(); ++it) {
-        std::vector<Db::Identifier> orphs = m_api->kindInstances(it->first, Db::Filter(
-            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, it->first, it->second.first, 0)));
-        for (std::vector<Db::Identifier>::iterator ite = orphs.begin(); ite != orphs.end(); ++ite) {
-            kinds.push_back(ObjectDefinition(it->first, *ite));
             if (stableView)
                 objectExistsCache[ObjectDefinition(it->first, *ite)] = true;
         }
