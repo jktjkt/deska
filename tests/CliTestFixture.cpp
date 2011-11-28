@@ -176,6 +176,7 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help dump");
     expectAddCommandCompletion("help exit");
     expectAddCommandCompletion("help log");
+    expectAddCommandCompletion("help non-interactive");
     expectAddCommandCompletion("help quit");
     expectAddCommandCompletion("help rebase");
     expectAddCommandCompletion("help restore");
@@ -202,6 +203,8 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help remove");
     expectAddCommandCompletion("help show");
     expectAddCommandCompletion("log");
+    expectAddCommandCompletion("non-interactive on");
+    expectAddCommandCompletion("non-interactive off");
     expectAddCommandCompletion("exit");
     expectAddCommandCompletion("quit");
     expectAddCommandCompletion("rebase");
