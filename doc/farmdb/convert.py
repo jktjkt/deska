@@ -89,6 +89,65 @@ for row in getfile("interfaces"):
 #        histogram[v.parentInterface] = 1
 #print histogram
 
+print "# dumping vendors"
+for x in fd_vendors.itervalues():
+    if x.name != "UNKNOWN":
+        print "vendor %s\nend\n" % x.name
+print
+print "# dumping networks"
+for x in fd_networks.itervalues():
+    print "network %s" % x.name
+    print "  ip4 %s" % x.ip
+    if x.mask == "255.255.255.0":
+        print "  cidr4 24"
+    elif x.mask == "255.255.0.0":
+        print "  cidr4 16"
+    elif x.mask == "255.255.254.0":
+        print "  cidr4 23"
+    else:
+        print "# FIXME unknown cidr4: mask %s" % x.mask
+    print "  vlan %s" % x.vlan
+    if x.note is not None:
+        print "  note \"%s\"" % x.note
+    print "end\n"
+print
+print "# dumping HW models"
+for x in fd_hardware.itervalues():
+    if x.vendorUid == "00000000-0000-0000-0000-000000000001":
+        fullname = "_-%s" % x.typeDesc
+    else:
+        fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
+    print "modelhardware %s" % fullname.replace(" ", "-")
+    if x.cpuCount is not None:
+        print "  cpu_sockets %s" % x.cpuCount
+    if x.cpuCoreCount is not None:
+        print "  cpu_cores %s" % x.cpuCoreCount
+    if x.cpuDesc is not None:
+        print "  cpu_type \"%s\"" % x.cpuDesc
+    if x.cpuHt is not None:
+        print "  cpu_ht %s" % x.cpuHt
+    if x.cpuPerf is not None:
+        print "  hepspec %s" % x.cpuPerf
+    if x.vendorUid != "00000000-0000-0000-0000-000000000001":
+        print "  vendor %s" % fd_vendors[x.vendorUid].name
+    if x.ram is not None:
+        print "  ram %s" % x.ram
+    if x.hddSize is not None:
+        print "  hdd_drive_capacity %s" % x.hddSize
+    if x.hddDesc is not None:
+        print "  hdd_note \"%s\"" % x.hddDesc
+    if x.power is not None:
+        print "  power_max %s" % x.power
+    if x.imageName is not None:
+        print "  # FIXME: imageName %s" % x.imageName
+    if x.note is not None:
+        print "  note_hardware \"%s\"" % x.note
+    # FIXME: weight
+    # FIXME: width, height into a modelbox
+    print "end\n"
+print
+
 import pprint
-for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
-    pprint.pprint(x)
+#pprint.pprint(fd_hardware)
+#for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
+#    pprint.pprint(x)
