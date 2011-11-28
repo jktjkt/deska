@@ -1139,7 +1139,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_NAME);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_OBJECT_NAME) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_OBJECT_NAME" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1164,7 +1164,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_ATTRIBUTE_REMOVAL" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1183,7 +1183,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_OBJECT_DEFINITION_NOT_FOUND" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1200,7 +1200,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_KIND_SPECIAL_FILTER" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1219,7 +1219,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KIND);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_KIND" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1236,7 +1236,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_KINDS_CONSTRUCT);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KINDS_CONSTRUCT) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_KINDS_CONSTRUCT" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1253,7 +1253,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_ATTRIBUTE);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_ATTRIBUTE) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_ATTRIBUTE" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1270,7 +1270,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_IDENTIFIERS_SET);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_IDENTIFIERS_SET) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_IDENTIFIERS_SET" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1291,7 +1291,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
     // This error could occur also while parsing object name, but we do not want to suggest completions here
     if ((it != parseErrors.end()) || (itobj == parseErrors.end())) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_KIND_FILTER) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_KIND_FILTER" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         // Error have to occur at the end of the line
@@ -1313,7 +1313,7 @@ void ParserImpl<Iterator>::insertTabPossibilitiesFromErrors(const std::string &l
                       phoenix::arg_names::_1) == PARSE_ERROR_TYPE_VALUE_TYPE);
     if (it != parseErrors.end()) {
 #ifdef PARSER_DEBUG
-        std::cout << "Tab completion error: " << parseErrorTypeToString(PARSE_ERROR_TYPE_VALUE_TYPE) << std::endl;
+        std::cout << "Tab completion error: PARSE_ERROR_TYPE_VALUE_TYPE" << std::endl;
         std::cout << "Tab completion error offset: " << realEnd - it->errorPosition() << std::endl;
 #endif
         std::vector<std::string> expectedTypes = it->expectedTypes();
