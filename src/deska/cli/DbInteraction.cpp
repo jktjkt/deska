@@ -352,6 +352,31 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ContextStack
         return allNestedObjects(ObjectDefinition(context.back().kind, contextStackToPath(context)));
     else
         return std::vector<ObjectDefinition>();
+std::vector<ObjectDefinition> DbInteraction::allNestedObjectsTransitively(const ObjectDefinition &object)
+{
+    if (object.name.empty() || pathToVector(object.name).back().empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::allNestedObjectsTransitively: Can not find nested objects for context stack without names.");
+
+    std::vector<ObjectDefinition> nestedObjects;
+    allNestedObjectsTransitivelyRec(object, nestedObjects);
+
+    return nestedObjects;
+}
+
+
+
+std::vector<ObjectDefinition> DbInteraction::allNestedObjectsTransitively(const ContextStack &context)
+{
+    if (context.empty())
+        return std::vector<ObjectDefinition>();
+    std::vector<ObjectDefinition> objects = expandContextStack(context);
+    std::vector<ObjectDefinition> nestObjects;
+    for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
+        std::vector<ObjectDefinition> tmpObj = allNestedObjectsTransitively(*it);
+        nestObjects.insert(nestObjects.begin(), tmpObj.begin(), tmpObj.end());
+    }
+
+    return nestObjects;
 }
 
 
@@ -397,8 +422,8 @@ bool DbInteraction::objectExists(const ContextStack &context)
 
 std::vector<ObjectDefinition> DbInteraction::containedObjects(const ObjectDefinition &object)
 {
-    if (object.name.empty())
-        throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find contained objects for context stack with filters or kinds without names.");
+    if (object.name.empty() || pathToVector(object.name).back().empty())
+        throw std::logic_error("Deska::Cli::DbInteraction::containedObjects: Can not find contained objects for context stack without names.");
 
     // Kinds, that this kind contains
     std::vector<ObjectDefinition> containedObjects;
@@ -747,6 +772,26 @@ void DbInteraction::connectedObjectsTransitivelyRec(const ObjectDefinition &obje
             if (std::find(containedObjects.begin(), containedObjects.end(), mObj) == containedObjects.end()) {
                 containedObjects.push_back(mObj);
                 connectedObjectsTransitivelyRec(mObj, containedObjects);
+            }
+        }
+    }
+}
+
+
+
+void DbInteraction::allNestedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                                    std::vector<ObjectDefinition> &nestedObjects)
+{
+    for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
+        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
+            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+        for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite) {
+            ObjectDefinition nObj(*it, *ite);
+            if (stableView)
+                objectExistsCache[nObj] = true;
+            if (std::find(nestedObjects.begin(), nestedObjects.end(), nObj) == nestedObjects.end()) {
+                nestedObjects.push_back(nObj);
+                allNestedObjectsTransitivelyRec(nObj, nestedObjects);
             }
         }
     }

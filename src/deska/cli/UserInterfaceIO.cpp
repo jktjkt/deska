@@ -371,6 +371,21 @@ bool UserInterfaceIO::confirmDeletion(const ObjectDefinition &object)
 
 
 
+bool UserInterfaceIO::confirmDeletionNested(const std::vector<ObjectDefinition> &nestedObjects)
+{
+    std::ostringstream ss;
+    ss << "Object has following nested object(s): ";
+    for (std::vector<ObjectDefinition>::const_iterator it = nestedObjects.begin(); it != nestedObjects.end(); ++it) {
+        if (it != nestedObjects.begin())
+            ss << ", ";
+        ss << *it;
+    }
+    ss << ". Delete anyway?";
+    return askForConfirmationImpl(ss.str());
+}
+
+
+
 bool UserInterfaceIO::confirmDeletionConnected(const std::vector<ObjectDefinition> &connectedObjects)
 {
     std::ostringstream ss;

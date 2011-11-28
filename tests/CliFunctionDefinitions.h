@@ -39,6 +39,7 @@ FORWARD_2(printHelpCommand, PrintHelpCommand, std::string, std::string);
 FORWARD_2(printHelpKeyword, PrintHelpKeyword, std::string, std::string);
 FORWARD_1(printHelpShowKinds, PrintHelpShowKinds, std::vector<std::string>);
 FORWARD_1_RETURN(confirmDeletion, ConfirmDeletion, bool, boolean, Deska::Cli::ObjectDefinition);
+FORWARD_1_RETURN(confirmDeletionNested, ConfirmDeletionNested, bool, boolean, std::vector<Deska::Cli::ObjectDefinition>);
 FORWARD_1_RETURN(confirmDeletionConnected, confirmDeletionConnected, bool, boolean, std::vector<Deska::Cli::ObjectDefinition>);
 FORWARD_1_RETURN(confirmRenameConnected, confirmRenameConnected, bool, boolean, std::vector<Deska::Cli::ObjectDefinition>);
 FORWARD_1_RETURN(confirmCreation, ConfirmCreation, bool, boolean, Deska::Cli::ObjectDefinition);

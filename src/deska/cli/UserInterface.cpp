@@ -212,12 +212,11 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
-        io->printObjects(m_dbInteraction->allOrphanObjects(), 0, true);
     } else {
         // If we are in some context, print all attributes and kind names
         try {
             showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
-        } catch (std::runtime_error &e) {
+        } catch (ContextStackConversionError &e) {
             std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
             for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
                 io->printObject(*it, 0, true);
@@ -232,20 +231,20 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 
 bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
-    std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(context);
-    if (connectedObjects.empty()) {
+    std::vector<ObjectDefinition> nestedObjects = m_dbInteraction->allNestedObjectsTransitively(context);
+    if (nestedObjects.empty()) {
         m_dbInteraction->deleteObject(context);
+        return true;
     } else {
-        if (io->confirmDeletionConnected(connectedObjects)) {
+        if (io->confirmDeletionNested(nestedObjects)) {
             std::vector<ObjectDefinition> toDelete = m_dbInteraction->expandContextStack(context);
-            toDelete.insert(toDelete.end(), connectedObjects.begin(), connectedObjects.end());
+            toDelete.insert(toDelete.end(), nestedObjects.begin(), nestedObjects.end());
             m_dbInteraction->deleteObjects(toDelete);
+            return true;
         } else {
-            m_dbInteraction->deleteObject(context);
+            return false;
         }
     }
-
-    return true;
 }
 
 
@@ -480,8 +479,10 @@ void UserInterface::run()
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::pair<std::string, bool> line;
     exitLoop = false;
+    ContextStack previosContextStack;
     while (!exitLoop) {
         parsingFailed = false;
+        previosContextStack = m_parser->currentContextStack();
         line = io->readLine(contextStackToString(m_parser->currentContextStack()));
         if (line.second)
             (*(commandsMap["quit"]))("");
@@ -505,20 +506,27 @@ void UserInterface::run()
                 // Command found -> run it
                 (*(commandsMap[parsedCommand]))(parsedArguments);
             }
+        } catch (Db::ConstraintError &e) {
+            std::ostringstream ostr;
+            ostr << "DB constraint violation:\n " << e.what() << std::endl;
+            io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
+            m_parser->setContextStack(previosContextStack);
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
-            m_parser->clearContextStack();
+            m_parser->setContextStack(previosContextStack);
         } catch (Db::JsonParseError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
-            m_parser->clearContextStack();
+            m_parser->setContextStack(previosContextStack);
         }
     }
 }

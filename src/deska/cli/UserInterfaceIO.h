@@ -136,6 +136,13 @@ public:
     */
     virtual bool confirmDeletion(const ObjectDefinition &object);
 
+    /** @short Displays confirmation message for deletion of nested objects and returns users choice.
+    *
+    *   @param objects Objects to be deleted
+    *   @return True if the deletion was confirmed, else false
+    */
+    virtual bool confirmDeletionNested(const std::vector<ObjectDefinition> &nestedObjects);
+
     /** @short Displays confirmation message for deletion of contained objects and returns users choice.
     *
     *   @param objects Objects to be deleted

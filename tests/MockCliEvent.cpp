@@ -95,6 +95,25 @@ MockCliEvent MockCliEvent::returnConfirmDeletion(bool confirm)
 }
 
 
+
+MockCliEvent MockCliEvent::confirmDeletionNested(const std::vector<Deska::Cli::ObjectDefinition> &nestedObjects)
+{
+    MockCliEvent res(EVENT_CONFIRM_DELETION_NESTED);
+    res.objects = nestedObjects;
+    return res;
+}
+
+
+
+MockCliEvent MockCliEvent::returnConfirmDeletionNested(bool confirm)
+{
+    MockCliEvent res(RETURN_CONFIRM_DELETION_NESTED);
+    res.boolean = confirm;
+    return res;
+}
+
+
+
 MockCliEvent MockCliEvent::confirmDeletionConnected(const std::vector<Deska::Cli::ObjectDefinition> &connectedObjects)
 {
     MockCliEvent res(EVENT_CONFIRM_DELETION_CONNECTED);
@@ -104,7 +123,7 @@ MockCliEvent MockCliEvent::confirmDeletionConnected(const std::vector<Deska::Cli
 
 
 
-MockCliEvent MockCliEvent::returnconfirmDeletionConnected(bool confirm)
+MockCliEvent MockCliEvent::returnConfirmDeletionConnected(bool confirm)
 {
     MockCliEvent res(RETURN_CONFIRM_DELETION_CONNECTED);
     res.boolean = confirm;
@@ -121,7 +140,7 @@ MockCliEvent MockCliEvent::confirmRenameConnected(const std::vector<Deska::Cli::
 
 
 
-MockCliEvent MockCliEvent::returnconfirmRenameConnected(bool confirm)
+MockCliEvent MockCliEvent::returnConfirmRenameConnected(bool confirm)
 {
     MockCliEvent res(RETURN_CONFIRM_RENAME_CONNECTED);
     res.boolean = confirm;
@@ -456,12 +475,12 @@ MockCliEvent MockCliEvent::invalid()
 
 bool MockCliEvent::inputEvent(const MockCliEvent &m) const
 {
-    return ((m.eventKind == RETURN_CONFIRM_DELETION) || (m.eventKind == RETURN_CONFIRM_DELETION_CONNECTED) ||
-            (m.eventKind == RETURN_CONFIRM_RENAME_CONNECTED) || (m.eventKind == RETURN_CONFIRM_CREATION) ||
-            (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_1) || (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2) ||
-            (m.eventKind == RETURN_CONFIRM_RESTORATION) || (m.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE) ||
-            (m.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE) || (m.eventKind == RETURN_CHOOSE_CHANGESET) ||
-            (m.eventKind == RETURN_READ_LINE));
+    return ((m.eventKind == RETURN_CONFIRM_DELETION) || (m.eventKind == RETURN_CONFIRM_DELETION_NESTED)||
+            (m.eventKind == RETURN_CONFIRM_DELETION_CONNECTED) || (m.eventKind == RETURN_CONFIRM_RENAME_CONNECTED) ||
+            (m.eventKind == RETURN_CONFIRM_CREATION) || (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_1) ||
+            (m.eventKind == RETURN_CONFIRM_CREATION_CONNECTION_2) || (m.eventKind == RETURN_CONFIRM_RESTORATION) ||
+            (m.eventKind == RETURN_ASK_FOR_COMMIT_MESSAGE) || (m.eventKind == RETURN_ASK_FOR_DETACH_MESSAGE) ||
+            (m.eventKind == RETURN_CHOOSE_CHANGESET) || (m.eventKind == RETURN_READ_LINE));
 }
 
 
@@ -479,6 +498,8 @@ bool MockCliEvent::myReturn(const MockCliEvent &other) const
     switch (eventKind) {
     case EVENT_CONFIRM_DELETION:
         return other.eventKind == RETURN_CONFIRM_DELETION;
+    case EVENT_CONFIRM_DELETION_NESTED:
+        return other.eventKind == RETURN_CONFIRM_DELETION_NESTED;
     case EVENT_CONFIRM_DELETION_CONNECTED:
         return other.eventKind == RETURN_CONFIRM_DELETION_CONNECTED;
     case EVENT_CONFIRM_RENAME_CONNECTED:
@@ -629,6 +650,12 @@ std::ostream& operator<<(std::ostream &out, const MockCliEvent &m)
         break;
     case MockCliEvent::RETURN_CONFIRM_DELETION:
         out << "returnConfirmDeletion( " << m.boolean << " )";
+        break;
+    case MockCliEvent::EVENT_CONFIRM_DELETION_NESTED:
+        out << "confirmDeletionNested( " << m.objects << " )";
+        break;
+    case MockCliEvent::RETURN_CONFIRM_DELETION_NESTED:
+        out << "returnconfirmDeletionNested( " << m.boolean << " )";
         break;
     case MockCliEvent::EVENT_CONFIRM_DELETION_CONNECTED:
         out << "confirmDeletionConnected( " << m.objects << " )";
