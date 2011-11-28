@@ -4,6 +4,7 @@ fd_vendors = {}
 fd_networks = {}
 fd_hardware = {}
 fd_machines = {}
+fd_interfaces = {}
 
 class Struct(object):
     def __repr__(self):
@@ -67,6 +68,16 @@ for row in getfile("machines"):
         raise
     fd_machines[uid] = o
 
+for row in getfile("interfaces"):
+    o = Struct()
+    try:
+        (uid, o.parentInterface, o.machine, o.ip, o.mac, o.network, o.dns,
+         o.switchNo, o.switchPos, o.note, o.pref) = row
+    except ValueError:
+        print row
+        raise
+    fd_interfaces[uid] = o
+
 import pprint
-for x in fd_vendors, fd_networks, fd_hardware, fd_machines:
+for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
     pprint.pprint(x)
