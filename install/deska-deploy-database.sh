@@ -26,14 +26,14 @@ function help() {
 
 function stage(){
 	echo "Stage $1 ..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "create_${1}.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "create_${1}.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
 function create_templates(){
 	echo "Creating templates ..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "templates.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "templates.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
@@ -45,14 +45,14 @@ function generate_merge(){
 
 function add_merge_relations(){
 	echo "Generating merge relations ..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "rel_merge.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "rel_merge.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
 function add_merge_link_triggers(){
 	echo "Generating merge link triggers ..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "trg_merge.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "trg_merge.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
@@ -74,14 +74,14 @@ function generate_multiRefs(){
 
 function add_multiRefs(){
 	echo "Creating multi references ..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "tab_multiref.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "tab_multiref.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
 
 function add_multiRefs_functions(){
 	echo "Adding multi references functions..."
-	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "fn_multiref.sql" -v dbname="${DATABASE}" 2>&1 > /dev/null \
+	psql -d "${DATABASE}" -U "${USER}" -v ON_ERROR_STOP=1 -f "fn_multiref.sql" 2>&1 > /dev/null \
 		|| return $? \
 		| grep -v NOTICE | grep -v "current transaction is aborted"
 }
