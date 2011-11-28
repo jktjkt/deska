@@ -218,7 +218,8 @@ essentially full access to the database and the whole system, using the effectiv
 perform the installation as the PostgreSQL superuser, which is typically the {\tt postgres}:
 
 \begin{minted}{console}
-$ DESKA_SCHEME=demo ./deska-deploy-database.sh -U postgres -d yourDb -t /path/to/install/server/side/tools
+$ DESKA_SCHEME=demo ./deska-deploy-database.sh -U postgres -d yourDb \
+    -t /path/to/install/server/side/tools
 \end{minted}
 
 Please keep in mind that the directory used for the {\tt -t} option to the {\tt deska-deploy-database.sh} has to be
