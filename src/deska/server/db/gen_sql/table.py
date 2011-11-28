@@ -51,7 +51,7 @@ class Table(constants.Templates):
 				raise ValueError, 'Module %(tbl)s is not valid, attribute name should be unique.' % {'tbl': self.name}
 		else:
 			if ["name", self.embed_column] not in self.pkset.values() and [self.embed_column, "name"] not in self.pkset.values():
-				raise ValueError, 'Module %(tbl)s is not valid, attribute name, %(embed_col)s should be unique.' % {'tbl': self.name, 'embed_col': self.embed_column}
+				raise ValueError, 'Module %(tbl)s is not valid. Modules that are embed into another should have unique couple. Attribute name, %(embed_col)s should be unique.' % {'tbl': self.name, 'embed_col': self.embed_column}
 		
 		if "uid" not in self.col:
 			raise ValueError, 'Module %(tbl)s is not valid, it should contain attribute uid.' % {'tbl': self.name}
@@ -61,6 +61,9 @@ class Table(constants.Templates):
 		
 		if ["uid"] not in self.pkset.values():
 			raise ValueError, 'Module %(tbl)s is not valid, attribute uid should be primary key.' % {'tbl': self.name}
+		
+		if self.embed_column <> "" and self.embed_column not in self.refuid_columns:
+			raise ValueError, 'Module %(tbl)s is not valid. Modules taht are embed into another. Should refer to uid of referenced table.' % {'tbl': self.name}
 
 		return;
 
