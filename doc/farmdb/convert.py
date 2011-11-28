@@ -2,6 +2,7 @@ import csv
 
 fd_vendors = {}
 fd_networks = {}
+fd_hardware = {}
 
 class Struct(object):
     def __repr__(self):
@@ -35,19 +36,25 @@ for (uid, name) in getfile("vendors"):
     fd_vendors[uid] = o
 
 for row in getfile("networks"):
+    o = Struct()
     try:
-        (uid, name, ip, vlan, mask, note) = row
+        (uid, o.name, o.ip, o.vlan, o.mask, o.note) = row
     except ValueError:
         print row
         raise
-    o = Struct()
-    o.name = name
-    o.ip = ip
-    o.vlan = vlan
-    o.mask = mask
-    o.note = note
     fd_networks[uid] = o
 
+for row in getfile("hardware"):
+    o = Struct()
+    try:
+        (uid, o.vendorUid, o.vendorId, o.typeDesc, o.cpuDesc, o.cpuCount,
+         o.cpuCoreCount, o.cpuHt, o.cpuPerf, o.ram, o.hddSize, o.hddDesc,
+         o.weight, o.height, o.width, o.power, o.note, o.imageName) = row
+    except ValueError:
+        print row
+        raise
+    fd_hardware[uid] = o
+
 import pprint
-for x in fd_vendors, fd_networks:
+for x in fd_vendors, fd_networks, fd_hardware:
     pprint.pprint(x)
