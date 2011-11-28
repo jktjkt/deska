@@ -35,7 +35,32 @@
 
 int main(int argc, char **argv)
 {
-    Deska::Cli::CliConfig config("deska.ini", argc, argv);
+    const char configFile[] = "deska.ini";
+    Deska::Cli::CliConfig config(configFile, argc, argv);
+
+    std::vector<std::string> unregConfFileOpt = config.unregistredConfigFileOptions();
+    std::vector<std::string> unregCmdLineOpt = config.unregistredCommandLineOptions();
+    if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty())
+        std::cerr << "Ignoring unknown options:" << std::endl;
+    if (!unregConfFileOpt.empty())
+        std::cerr << "In config file " << configFile << ":" << std::endl;
+    for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
+        if (it != unregConfFileOpt.begin())
+            std::cerr << ", ";
+        std::cerr << *it;
+    }
+    if (!unregConfFileOpt.empty())
+        std::cerr << std::endl;
+    if (!unregCmdLineOpt.empty())
+        std::cerr << "On command line:" << std::endl;
+    for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
+        if (it != unregCmdLineOpt.begin())
+            std::cerr << ", ";
+        std::cerr << *it;
+    }
+    if (!unregCmdLineOpt.empty())
+        std::cerr << std::endl;
+
     Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
     Deska::Cli::Parser parser(&conn);
     Deska::Cli::DbInteraction db(&conn);

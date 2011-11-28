@@ -43,8 +43,12 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
         (CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
 
     std::ifstream configStream(configFile.c_str());
-    po::store(po::parse_command_line(argc, argv, options), configVars);
-    po::store(po::parse_config_file(configStream, options), configVars);
+    po::parsed_options commandLineOptions = po::command_line_parser(argc, argv).options(options).allow_unregistered().run();
+    po::store(commandLineOptions, configVars);
+    po::parsed_options configFileOptions = po::parse_config_file(configStream, options, true);
+    po::store(configFileOptions, configVars);
+    unregCmdLineOptions = po::collect_unrecognized(commandLineOptions.options, po::include_positional);
+    unregConfigFileOptions = po::collect_unrecognized(configFileOptions.options, po::include_positional);
 }
 
 
@@ -59,6 +63,20 @@ T CliConfig::getVar(const std::string &name)
         ss << "Configuration error: Option '" << name << "' not found neither in config file nor on command line.";
         throw std::runtime_error(ss.str());
     }
+}
+
+
+
+std::vector<std::string> CliConfig::unregistredConfigFileOptions()
+{
+    return unregConfigFileOptions;
+}
+
+
+
+std::vector<std::string> CliConfig::unregistredCommandLineOptions()
+{
+    return unregCmdLineOptions;
 }
 
 

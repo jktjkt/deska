@@ -66,10 +66,22 @@ public:
     template <typename T>
     T getVar(const std::string &name);
 
+    //@{
+    /** @short Functions for obtaining lists of unregistred options. */
+    std::vector<std::string> unregistredConfigFileOptions();
+    std::vector<std::string> unregistredCommandLineOptions();
+    //@}
+
 private:
-    /** Map of parsed variables. */
+    /** Map of parsed registered options. */
     boost::program_options::variables_map configVars;
+    //@{
+    /** Vectors of unregistred options */
+    std::vector<std::string> unregCmdLineOptions;
+    std::vector<std::string> unregConfigFileOptions;
+    //@}
 };
+
 
 
 }
