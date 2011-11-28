@@ -20,6 +20,13 @@ if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
+fi
+
+DESKA_SERVER_SIDE_DESTINATION="${DESKA_GENERATED_FILES}/target"
 
 if [[ -z ${DESKA_SKIP_DB_INIT} ]]; then
     DESKA_DB_STATE_FILE=./.db_initialized
@@ -39,18 +46,12 @@ if [[ -z ${DESKA_SKIP_DB_INIT} ]]; then
         ./util-create-database.sh || die "Preparing the DB environment"
 
         pushd "${DESKA_SOURCES}/install"
-        ./deska_install.sh install -u $DESKA_SU -d $DESKA_DB --all || die "Running deska_install"
+        ./deploy-database.sh -U "${DESKA_SU}" -d "${DESKA_DB}" -t "${DESKA_SERVER_SIDE_DESTINATION}" || die "Running deploy-database"
         popd
         touch $DESKA_DB_STATE_FILE
     fi
 else
     echo "Skipping the DB init altogether"
-fi
-
-if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
-    # do not pollute the source tree with generated files
-    DESKA_GENERATED_FILES=`mktemp -d`
-    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
 fi
 
 if [[ -n "${DESKA_WITH_GIT}" ]]; then
