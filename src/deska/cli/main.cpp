@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
         if (config.defined(Deska::Cli::CmdLine_Help)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
-                      << "Usage: " << DESKA_EXCECUTABLE << " [OPTION]" << std::endl << std::endl
+                      << "Usage: " << DESKA_EXECUTABLE << " [OPTION]" << std::endl << std::endl
                       << config.usage() << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
