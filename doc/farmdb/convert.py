@@ -71,12 +71,23 @@ for row in getfile("machines"):
 for row in getfile("interfaces"):
     o = Struct()
     try:
-        (uid, o.parentInterface, o.machine, o.ip, o.mac, o.network, o.dns,
+        (uid,
+         parentInterface, # appears unused
+         o.machine, o.ip, o.mac, o.network, o.dns,
          o.switchNo, o.switchPos, o.note, o.pref) = row
     except ValueError:
         print row
         raise
     fd_interfaces[uid] = o
+
+
+#histogram = {}
+#for (k, v) in fd_interfaces.iteritems():
+#    if histogram.has_key(v.parentInterface):
+#        histogram[v.parentInterface] = histogram[v.parentInterface] + 1
+#    else:
+#        histogram[v.parentInterface] = 1
+#print histogram
 
 import pprint
 for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
