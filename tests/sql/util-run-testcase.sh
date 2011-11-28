@@ -46,7 +46,7 @@ if [[ -z ${DESKA_SKIP_DB_INIT} ]]; then
         ./util-create-database.sh || die "Preparing the DB environment"
 
         pushd "${DESKA_SOURCES}/install"
-        ./deploy-database.sh -U "${DESKA_SU}" -d "${DESKA_DB}" -t "${DESKA_SERVER_SIDE_DESTINATION}" || die "Running deploy-database"
+        ./deska-deploy-database.sh -U "${DESKA_SU}" -d "${DESKA_DB}" -t "${DESKA_SERVER_SIDE_DESTINATION}" || die "Running deploy-database"
         popd
         touch $DESKA_DB_STATE_FILE
     fi
