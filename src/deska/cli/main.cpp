@@ -32,7 +32,7 @@
 #include "UserInterfaceIO.h"
 #include "Parser.h"
 #include "CliConfig.h"
-#include "config.h"
+//#include "config.h"
 
 int main(int argc, char **argv)
 {
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
         if (config.defined(Deska::Cli::CmdLine_Help)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
-                      << "Usage: " << DESKA_EXECUTABLE << " [OPTION]" << std::endl << std::endl
+                //<< "Usage: " << std::string(DESKA_EXECUTABLE) << " [OPTION]" << std::endl << std::endl
                       << config.usage() << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
         if (config.defined(Deska::Cli::CmdLine_Version)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl
-                      << "Version " << DESKA_VERSION << std::endl << std::endl
+                      //<< "Version " << std::string(DESKA_VERSION) << std::endl << std::endl
                       << "Copyright (C) 2011 Tomas Hubik <hubik.tomas@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Lukas Kerpl <lukas.kerpl@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Martina Krejcova <martinka.krejcova@seznam.cz>" << std::endl
