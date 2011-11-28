@@ -542,10 +542,11 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
             attributesSettingParser->addAtrribute(kindName, it->name, predefinedRules->getRule(it->type));
             attributeRemovalsParser->addAtrribute(kindName, it->name);
         }
-        filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         if (it->type == Db::TYPE_IDENTIFIER_SET) {
             identifiersSetsParser->addIdentifiersSet(kindName, it->name, predefinedRules->getObjectIdentifier());
             filterExpressionsParser->addIdentifiersSetToFilter(kindName, it->name, predefinedRules->getObjectIdentifier());
+        } else {
+            filterExpressionsParser->addAtrributeToFilter(kindName, it->name, predefinedRules->getRule(it->type));
         }
     }
     // Adding attributes from contained kinds
@@ -558,10 +559,11 @@ void ParserImpl<Iterator>::addKindAttributes(const Db::Identifier &kindName,
                 attributesSettingParser->addAtrribute(itm->second, it->name, predefinedRules->getRule(it->type));
                 attributeRemovalsParser->addAtrribute(itm->second, it->name);
             } 
-            filterExpressionsParser->addAtrributeToFilter(itm->second, it->name, predefinedRules->getRule(it->type));
             if (it->type == Db::TYPE_IDENTIFIER_SET) {
                 identifiersSetsParser->addIdentifiersSet(itm->second, it->name, predefinedRules->getObjectIdentifier());
                 filterExpressionsParser->addIdentifiersSetToFilter(itm->second, it->name, predefinedRules->getObjectIdentifier());
+            } else {
+                filterExpressionsParser->addAtrributeToFilter(itm->second, it->name, predefinedRules->getRule(it->type));
             }
         }
     }
