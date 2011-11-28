@@ -26,6 +26,7 @@
 
 #include <string>
 #include <vector>
+#include <exception>
 #include <boost/optional.hpp>
 #include "deska/db/Objects.h"
 #include "deska/db/Filter.h"
@@ -72,6 +73,15 @@ struct ContextStackItem
     /** Type of the context stack item */
     ContextStackItemType itemType;
 };
+
+
+/** @short Exception for errors while converting ContextStack to vectors or paths etc. */
+class ContextStackConversionError: public std::runtime_error
+{
+public:
+    ContextStackConversionError(const std::string &message);
+};
+
 
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i);
 bool operator==(const ContextStackItem &a, const ContextStackItem &b);

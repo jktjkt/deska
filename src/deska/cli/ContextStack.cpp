@@ -52,6 +52,12 @@ ContextStackItem::ContextStackItem(const Db::Identifier &kindName, const boost::
 
 
 
+ContextStackConversionError::ContextStackConversionError(const std::string &message): std::runtime_error(message)
+{
+}
+
+
+
 std::ostream& operator<<(std::ostream &stream, const ContextStackItem &i)
 {
     stream << i.kind;
@@ -100,7 +106,7 @@ Db::Identifier contextStackToPath(const ContextStack &contextStack)
         if (it != contextStack.begin())
             ss << "->";
         if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER)
-            throw std::runtime_error("Deska::Cli::contextStackToPath: Can not convert context stack with filters to path");
+            throw ContextStackConversionError("Deska::Cli::contextStackToPath: Can not convert context stack with filters to path");
         ss << it->name;
     }
     return ss.str();
@@ -152,12 +158,12 @@ std::vector<Db::Identifier> pathToVector(const Db::Identifier &path)
 
     bool r = qi::phrase_parse(first,last, (tIdentifier % "->"),ascii::space, identifiers);
     if (!r)
-        throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
+        throw ContextStackConversionError("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
 
     if (first != last) {
         bool r2 = qi::phrase_parse(first, last, qi::lit("->"), ascii::space);
         if (!r2 || (first != last))
-            throw std::runtime_error("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
+            throw ContextStackConversionError("Deska::Cli::pathToVector: Conversion failed while parsing " + path);
         else
             identifiers.push_back(Db::Identifier());
     }
