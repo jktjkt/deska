@@ -32,41 +32,68 @@
 #include "UserInterfaceIO.h"
 #include "Parser.h"
 #include "CliConfig.h"
+#include "config.h"
 
 int main(int argc, char **argv)
 {
     const char configFile[] = "deska.ini";
-    Deska::Cli::CliConfig config(configFile, argc, argv);
+    try {
+        Deska::Cli::CliConfig config(configFile, argc, argv);
 
-    std::vector<std::string> unregConfFileOpt = config.unregistredConfigFileOptions();
-    std::vector<std::string> unregCmdLineOpt = config.unregistredCommandLineOptions();
-    if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty())
-        std::cerr << "Ignoring unknown options:" << std::endl;
-    if (!unregConfFileOpt.empty())
-        std::cerr << "In config file " << configFile << ":" << std::endl;
-    for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
-        if (it != unregConfFileOpt.begin())
-            std::cerr << ", ";
-        std::cerr << *it;
-    }
-    if (!unregConfFileOpt.empty())
-        std::cerr << std::endl;
-    if (!unregCmdLineOpt.empty())
-        std::cerr << "On command line:" << std::endl;
-    for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
-        if (it != unregCmdLineOpt.begin())
-            std::cerr << ", ";
-        std::cerr << *it;
-    }
-    if (!unregCmdLineOpt.empty())
-        std::cerr << std::endl;
+        std::vector<std::string> unregConfFileOpt = config.unregistredConfigFileOptions();
+        std::vector<std::string> unregCmdLineOpt = config.unregistredCommandLineOptions();
+        if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty())
+            std::cerr << "Ignoring unknown options:" << std::endl;
+        if (!unregConfFileOpt.empty())
+            std::cerr << "In config file " << configFile << ":" << std::endl;
+        for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
+            if (it != unregConfFileOpt.begin())
+                std::cerr << ", ";
+            std::cerr << *it;
+        }
+        if (!unregConfFileOpt.empty())
+            std::cerr << std::endl;
+        if (!unregCmdLineOpt.empty())
+            std::cerr << "On command line:" << std::endl;
+        for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
+            if (it != unregCmdLineOpt.begin())
+                std::cerr << ", ";
+            std::cerr << *it;
+        }
+        if (!unregCmdLineOpt.empty())
+            std::cerr << std::endl;
 
-    Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
-    Deska::Cli::Parser parser(&conn);
-    Deska::Cli::DbInteraction db(&conn);
-    Deska::Cli::UserInterfaceIO io(&parser, &config);
-    Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
-    Deska::Cli::SignalsHandler(&parser, &ui);
-    ui.run();
-    return 0;
+        if (config.defined(Deska::Cli::CmdLine_Help)) {
+            std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
+                      << "Usage: " << DESKA_EXCECUTABLE << " [OPTION]" << std::endl << std::endl
+                      << config.usage() << std::endl
+                      << "Please report all bugs to: deska@lists.flaska.net" << std::endl
+                      << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
+            return 0;
+        }
+
+        if (config.defined(Deska::Cli::CmdLine_Version)) {
+            std::cout << "Deska, a tool for central administration of a grid site" << std::endl
+                      << "Version " << DESKA_VERSION << std::endl << std::endl
+                      << "Copyright (C) 2011 Tomas Hubik <hubik.tomas@gmail.com>" << std::endl
+                      << "Copyright (C) 2011 Lukas Kerpl <lukas.kerpl@gmail.com>" << std::endl
+                      << "Copyright (C) 2011 Martina Krejcova <martinka.krejcova@seznam.cz>" << std::endl
+                      << "Copyright (C) 2011 Jan Kundrat <kundratj@fzu.cz>" << std::endl << std::endl
+                      << "Please report all bugs to: deska@lists.flaska.net" << std::endl
+                      << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
+            return 0;
+        }
+
+        Deska::Db::Connection conn(config.getVar<std::vector<std::string> >(Deska::Cli::DBConnection_Server));
+        Deska::Cli::Parser parser(&conn);
+        Deska::Cli::DbInteraction db(&conn);
+        Deska::Cli::UserInterfaceIO io(&parser, &config);
+        Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
+        Deska::Cli::SignalsHandler(&parser, &ui);
+        ui.run();
+        return 0;
+    } catch (boost::program_options::error &e) {
+        std::cerr << "Error while obtaining program options: " << e.what() << std::endl;
+        return 1;
+    }
 }

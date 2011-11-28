@@ -38,6 +38,9 @@ static const std::string CLI_HistoryFilename = "CLI.HistoryFilename";
 static const std::string CLI_HistoryLimit = "CLI.HistoryLimit";
 static const std::string CLI_LineWidth = "CLI.LineWidth";
 static const std::string CLI_NonInteractive = "CLI.NonInteractive";
+static const std::string CmdLine_NonInteractive = "non-interactive";
+static const std::string CmdLine_Help = "help";
+static const std::string CmdLine_Version = "version";
 //@}
 
 
@@ -61,16 +64,26 @@ public:
     *
     *   @param name Name of the var being obtained.
     *   @tparam T Type of the var being obtained.
-    *   @return Variable value castet to the given type.
+    *   @return Variable value casted to the given type.
     */
     template <typename T>
     T getVar(const std::string &name);
+
+    /** @short Function for checking if some war war defined in config file or on command line.
+    *
+    *   @param name Name of the var being checked.
+    *   @return True if variable was found, else false.
+    */
+    bool defined(const std::string &name);
 
     //@{
     /** @short Functions for obtaining lists of unregistred options. */
     std::vector<std::string> unregistredConfigFileOptions();
     std::vector<std::string> unregistredCommandLineOptions();
     //@}
+
+    /** @short Produces well formated string with list of all parameters */
+    std::string usage();
 
 private:
     /** Map of parsed registered options. */
@@ -80,6 +93,8 @@ private:
     std::vector<std::string> unregCmdLineOptions;
     std::vector<std::string> unregConfigFileOptions;
     //@}
+    /** Well formated string with list of all parameters */
+    std::string configUsage;
 };
 
 

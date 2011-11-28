@@ -46,7 +46,7 @@ namespace Cli
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(),
-    forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive))
+    forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
     // Register all commands
     typedef std::tr1::shared_ptr<Command> Ptr;
