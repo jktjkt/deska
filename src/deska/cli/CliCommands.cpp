@@ -270,7 +270,7 @@ bool Resume::operator()(const std::string &params)
     }
 
     if (ui->nonInteractiveMode || ui->forceNonInteractive) {
-        ui->io->reportError("You can not run this command without parameters in non-interactive mode.");
+        ui->io->reportError("You have to specify changeset ID as a parameter for resume in non-interactive mode.");
         return false;
     }
     
@@ -317,7 +317,7 @@ bool Commit::operator()(const std::string &params)
         commitMessage = params;
     } else {
         if (ui->nonInteractiveMode || ui->forceNonInteractive) {
-            ui->io->reportError("You can not run this command without parameters in non-interactive mode.");
+            ui->io->reportError("You have to provide commit message as parameter for commit in non-interactive mode.");
             return false;
         }
         commitMessage = ui->io->askForCommitMessage();
@@ -369,7 +369,7 @@ bool Detach::operator()(const std::string &params)
         detachMessage = params;
     } else {
         if (ui->nonInteractiveMode || ui->forceNonInteractive) {
-            ui->io->reportError("You can not run this command without parameters in non-interactive mode.");
+            ui->io->reportError("You have to provide detach message as parameter for detach in non-interactive mode.");
             return false;
         }
         detachMessage = ui->io->askForDetachMessage();
