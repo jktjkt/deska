@@ -77,6 +77,14 @@ public:
     virtual ~JsonStructureError() throw ();
 };
 
+/** @short The connection is broken */
+class JsonConnectionError: public JsonParseError
+{
+public:
+    JsonConnectionError(const std::string &message);
+    virtual ~JsonConnectionError() throw ();
+};
+
 }
 }
 

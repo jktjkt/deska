@@ -57,11 +57,11 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
     *writeStream << "\n";
     writeStream->flush();
     if (writeStream->bad())
-        throw JsonSyntaxError("Write error: output stream in 'bad' state");
+        throw JsonConnectionError("Write error: output stream in 'bad' state");
     if (writeStream->fail())
-        throw JsonSyntaxError("Write error: output stream in 'fail' state");
+        throw JsonConnectionError("Write error: output stream in 'fail' state");
     if (writeStream->eof())
-        throw JsonSyntaxError("Write error: EOF");
+        throw JsonConnectionError("Write error: EOF");
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
@@ -87,11 +87,11 @@ json_spirit::Object JsonApiParser::readJsonObject() const
         throw JsonSyntaxError(s.str());
     }
     if (readStream->bad())
-        throw JsonSyntaxError("Read error: input stream in 'bad' state");
+        throw JsonConnectionError("Read error: input stream in 'bad' state");
     if (readStream->fail())
-        throw JsonSyntaxError("Read error: input stream in 'fail' state");
+        throw JsonConnectionError("Read error: input stream in 'fail' state");
     if (readStream->eof())
-        throw JsonSyntaxError("Read error: EOF");
+        throw JsonConnectionError("Read error: EOF");
     return res.get_obj();
 }
 
