@@ -20,6 +20,8 @@
 
 
 project(deska)
+SET(DESKA_VERSION 0.10)
+SET(DESKA_SOVERSION 0.10)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -184,15 +186,15 @@ set(libLowLevelPyDeska_SRCS
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 set_target_properties(DeskaDb PROPERTIES
-    VERSION 0.10
-    SOVERSION 0.10
+    VERSION ${DESKA_SOVERSION}
+    SOVERSION ${DESKA_SOVERSION}
 )
 
 add_library(DeskaCli SHARED ${libDeskaCli_SRCS})
 target_link_libraries(DeskaCli DeskaDb ${READLINE_LIBRARY})
 set_target_properties(DeskaCli PROPERTIES
-    VERSION 0.10
-    SOVERSION 0.10
+    VERSION ${DESKA_SOVERSION}
+    SOVERSION ${DESKA_SOVERSION}
 )
 
 add_executable(deska-cli ${deskaCliApp_SRCS})
@@ -211,7 +213,6 @@ else()
     set(DESKA_HAVE_GITVERSION 0)
 endif()
 
-SET(DESKA_VERSION 0.10)
 SET(DESKA_VERSION_STR "${DESKA_VERSION}")
 SET(DESKA_EXECUTABLE deska-cli)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli)
