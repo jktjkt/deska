@@ -620,6 +620,10 @@ bool Rebase::operator()(const std::string &params)
         ui->io->printMessage("No rebase needed.");
         return true;
     }
+
+    if (ui->nonInteractiveMode || ui->forceNonInteractive) {
+        ui->io->reportError("You can not perform rebase in non-interactive mode.");
+        return false;
     }
     
     try {
