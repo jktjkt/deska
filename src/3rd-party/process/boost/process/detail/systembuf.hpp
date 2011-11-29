@@ -199,7 +199,11 @@ protected:
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ok = ::write(handle_, pbase(), cnt) == cnt;
+        ssize_t ret;
+        do {
+            ret = ::write(handle_, pbase(), cnt);
+        } while ((ret == -1) && (errno == EINTR));
+        ok = ret == cnt;
         if (!event_wrote_data.empty()) {
             std::string buf;
             buf.resize(cnt);
