@@ -623,7 +623,7 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
     try {
         // If the context stack does not contain filters, we can extract the object directly
         objects.push_back(ObjectDefinition(context.back().kind, contextStackToPath(context)));
-    } catch (std::runtime_error &e) {
+    } catch (ContextStackConversionError &e) {
         for (ContextStack::const_iterator it = context.begin(); it != context.end(); ++it) {
             if (objects.empty()) {
                 if (it->itemType == ContextStackItem::CONTEXT_STACK_ITEM_TYPE_FILTER) {
