@@ -197,29 +197,35 @@ protected:
         long cnt = pptr() - pbase(); 
 #endif 
 
-        bool ok; 
 #if defined(BOOST_POSIX_API) 
         ssize_t ret;
         do {
             ret = ::write(handle_, pbase(), cnt);
         } while ((ret == -1) && (errno == EINTR));
-        ok = ret == cnt;
+        if (ret == -1) {
+            last_errno = errno;
+            return -1;
+        }
         if (!event_wrote_data.empty()) {
             std::string buf;
             buf.resize(cnt);
             buf.assign(pbase(), cnt);
             event_wrote_data(buf);
         }
+        pbump(-ret);
+        return 0;
+
 #elif defined(BOOST_WINDOWS_API)
+        bool ok;
         DWORD rcnt; 
         BOOL res = ::WriteFile(handle_, pbase(), cnt, &rcnt, NULL); 
         ok = (res && static_cast<long>(rcnt) == cnt); 
-#endif 
 
-        if (ok) 
-            pbump(-cnt); 
-        return ok ? 0 : -1; 
-    } 
+        if (ok)
+            pbump(-cnt);
+        return ok ? 0 : -1;
+#endif
+    }
 
 private: 
     /** 
