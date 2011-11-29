@@ -182,6 +182,9 @@ LANGUAGE plpgsql;
                 self.cble_touples[reftable] = list()
             self.cble_touples[reftable].append(table)
 
+        for table in self.composition_touples:
+            self.check_composition_cycle(table, [])
+
         self.constraint_sql.write(self.gen_add_check_constraint())
         self.trigger_sql.write(self.gen_rename_trigger())
 
@@ -268,9 +271,6 @@ LANGUAGE plpgsql;
             raise ValueError, ('Composition relation between "%s" and "%s" is badly defined, column sets of composed types should '
                                'be disjoint (got %s and %s)') % (table, reftable, repr(kindattributes1), repr(kindattributes2))
                                
-        #check that there is no cycle in the composition chain
-        for table in self.composition_touples:
-            self.check_composition_cycle(table, list())
 
     #function checks that there is no cycle that could be created by composition relation with table inside
     def check_composition_cycle(self, table, composition_chain):
