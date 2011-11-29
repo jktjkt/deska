@@ -132,6 +132,9 @@ protected:
             event_read_data(buf);
         }
         ok = (cnt != -1 && cnt != 0); 
+        if (!ok) {
+            last_errno = errno;
+        }
 #elif defined(BOOST_WINDOWS_API) 
         DWORD cnt; 
         BOOL res = ::ReadFile(handle_, read_buf_.get(), bufsize_, &cnt, NULL); 
