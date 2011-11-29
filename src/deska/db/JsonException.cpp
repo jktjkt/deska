@@ -78,5 +78,13 @@ JsonStructureError::~JsonStructureError() throw ()
 {
 }
 
+JsonConnectionError::JsonConnectionError(const std::string &message): JsonParseError(message)
+{
+}
+
+JsonConnectionError::~JsonConnectionError() throw ()
+{
+}
+
 }
 }

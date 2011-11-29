@@ -214,6 +214,7 @@ std::map<std::string, std::string> ParserImpl<Iterator>::parserKeywordsUsage()
     usages["no"] = "When entered in front of an attribute name, it removes it's value.";
     usages["add"] = "Inserts an identifier into an identifier set (e.g. insert role www).";
     usages["remove"] = "Removes an identifier from an identifier set (e.g. remove role www).";
+    usages["where"] = "Selects objects satisfying given filter. You can write filter like \"host where (expression)\". Here expression is some comparison of attributes or conjunction or disjunction between two expressions. Note, that each expression must be in braces. You can also access attributes of any connected object using dot. For example \"host where ((host_note == \"something\") & (interface.ip4 == 192.168.1.5))\". There are supported operators <, >, <=, >=, == and != for standard attributes and \"contains\" and \"not_contains\" for sets.";
     return usages;
 }
 

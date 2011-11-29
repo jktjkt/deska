@@ -24,8 +24,6 @@
 #if defined(BOOST_POSIX_API) 
 #  include <sys/types.h> 
 #  include <unistd.h> 
-#elif defined(BOOST_WINDOWS_API) 
-#  include <windows.h> 
 #else 
 #  error "Unsupported platform." 
 #endif 
@@ -90,7 +88,8 @@ public:
         : handle_(h), 
         bufsize_(bufsize), 
         read_buf_(new char[bufsize]), 
-        write_buf_(new char[bufsize]) 
+        write_buf_(new char[bufsize]),
+        last_errno(0)
     { 
 #if defined(BOOST_POSIX_API) 
         BOOST_ASSERT(handle_ >= 0); 
@@ -122,7 +121,10 @@ protected:
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ssize_t cnt = ::read(handle_, read_buf_.get(), bufsize_); 
+        ssize_t cnt;
+        do {
+            cnt = ::read(handle_, read_buf_.get(), bufsize_);
+        } while ((cnt == -1) && (errno == EINTR));
         if (!event_read_data.empty()) {
             std::string buf;
             buf.resize(cnt);
@@ -130,6 +132,9 @@ protected:
             event_read_data(buf);
         }
         ok = (cnt != -1 && cnt != 0); 
+        if (!ok) {
+            last_errno = errno;
+        }
 #elif defined(BOOST_WINDOWS_API) 
         DWORD cnt; 
         BOOL res = ::ReadFile(handle_, read_buf_.get(), bufsize_, &cnt, NULL); 
@@ -195,25 +200,35 @@ protected:
         long cnt = pptr() - pbase(); 
 #endif 
 
-        bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ok = ::write(handle_, pbase(), cnt) == cnt;
+        ssize_t ret;
+        do {
+            ret = ::write(handle_, pbase(), cnt);
+        } while ((ret == -1) && (errno == EINTR));
+        if (ret == -1) {
+            last_errno = errno;
+            return -1;
+        }
         if (!event_wrote_data.empty()) {
             std::string buf;
             buf.resize(cnt);
             buf.assign(pbase(), cnt);
             event_wrote_data(buf);
         }
+        pbump(-ret);
+        return 0;
+
 #elif defined(BOOST_WINDOWS_API)
+        bool ok;
         DWORD rcnt; 
         BOOL res = ::WriteFile(handle_, pbase(), cnt, &rcnt, NULL); 
         ok = (res && static_cast<long>(rcnt) == cnt); 
-#endif 
 
-        if (ok) 
-            pbump(-cnt); 
-        return ok ? 0 : -1; 
-    } 
+        if (ok)
+            pbump(-cnt);
+        return ok ? 0 : -1;
+#endif
+    }
 
 private: 
     /** 
@@ -239,6 +254,7 @@ private:
 public:
     boost::signals2::signal<void (const std::string& data)> event_read_data;
     boost::signals2::signal<void (const std::string& data)> event_wrote_data;
+    int last_errno;
 };
 
 } 

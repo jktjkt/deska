@@ -121,7 +121,7 @@ public:
     void reportParseError(const ParserException &error);
 
     /** @short Function for listening to users input and calling appropriate actions. */
-    void run();
+    int run();
 
     /** @short Function for executing a command while not entering event loop.
     *

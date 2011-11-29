@@ -20,6 +20,8 @@
 
 
 project(deska)
+SET(DESKA_VERSION 0.11)
+SET(DESKA_SOVERSION 0.10)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -184,23 +186,37 @@ set(libLowLevelPyDeska_SRCS
 add_library(DeskaDb SHARED ${libDeskaDb_SRCS})
 target_link_libraries(DeskaDb ${DESKA_BOOST_LIBS})
 set_target_properties(DeskaDb PROPERTIES
-    VERSION 0.10
-    SOVERSION 0.10
+    VERSION ${DESKA_SOVERSION}
+    SOVERSION ${DESKA_SOVERSION}
 )
 
 add_library(DeskaCli SHARED ${libDeskaCli_SRCS})
 target_link_libraries(DeskaCli DeskaDb ${READLINE_LIBRARY})
 set_target_properties(DeskaCli PROPERTIES
-    VERSION 0.10
-    SOVERSION 0.10
+    VERSION ${DESKA_SOVERSION}
+    SOVERSION ${DESKA_SOVERSION}
 )
-
-SET(DESKA_VERSION 0.10)
-SET(DESKA_EXECUTABLE deska-cli)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/config.h.cmake ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/config.h)
 
 add_executable(deska-cli ${deskaCliApp_SRCS})
 target_link_libraries(deska-cli DeskaCli)
+
+find_file(GIT_DOT_GIT_HEAD HEAD PATHS ${CMAKE_CURRENT_SOURCE_DIR}/.git
+    NO_DEFAULT_PATH NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH
+    NO_CMAKE_ENVIRONMENT_PATH NO_SYSTEM_PATH)
+if(GIT_DOT_GIT_HEAD)
+    add_custom_target(gitversion
+        "${CMAKE_CURRENT_SOURCE_DIR}/git-generate-version.sh" "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli/gitversion-include.cpp"
+        )
+    add_dependencies(deska-cli gitversion)
+    set(DESKA_HAVE_GITVERSION 1)
+else()
+    set(DESKA_HAVE_GITVERSION 0)
+endif()
+
+SET(DESKA_VERSION_STR "${DESKA_VERSION}")
+SET(DESKA_EXECUTABLE deska-cli)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/cli-config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli/cli-config.h)
 
 add_library(LowLevelPyDeska SHARED ${libLowLevelPyDeska_SRCS})
 target_link_libraries(LowLevelPyDeska DeskaDb ${DESKA_BOOST_LIBS} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})

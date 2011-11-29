@@ -32,20 +32,20 @@
 #include "UserInterfaceIO.h"
 #include "Parser.h"
 #include "CliConfig.h"
-#include "config.h"
+#include "cli-config.h"
 
-
-void sigpipeHandler(int signum)
-{
-    std::cerr << "Deska server not responding, or dead." << std::endl
-              << "Exitting Deska CLI." << std::endl;
-    exit(2);
-}
+#if DESKA_HAVE_GITVERSION
+#include "gitversion-include.cpp"
+const char *deskaVersion = deskaGitVersion;
+#else
+const char *deskaVersion = DESKA_VERSION_STR;
+#endif
 
 
 int main(int argc, char **argv)
 {
-    signal(SIGPIPE, sigpipeHandler);
+    // Ignore SIGPIPE signal and catch Deska::Db::JsonConnectionError instead
+    signal(SIGPIPE, SIG_IGN);
 
     const char configFile[] = "deska.ini";
     try {
@@ -53,31 +53,35 @@ int main(int argc, char **argv)
 
         std::vector<std::string> unregConfFileOpt = config.unregistredConfigFileOptions();
         std::vector<std::string> unregCmdLineOpt = config.unregistredCommandLineOptions();
-        if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty())
-            std::cerr << "Ignoring unknown options:" << std::endl;
-        if (!unregConfFileOpt.empty())
-            std::cerr << "In config file " << configFile << ":" << std::endl;
-        for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
-            if (it != unregConfFileOpt.begin())
-                std::cerr << ", ";
-            std::cerr << *it;
+        if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty()) {
+            std::cerr << "Uknown options found:" << std::endl;
+            if (!unregConfFileOpt.empty()) {
+                std::cerr << "In config file " << configFile << ":" << std::endl;
+                for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
+                    if (it != unregConfFileOpt.begin())
+                        std::cerr << ", ";
+                    std::cerr << *it;
+                }
+                std::cerr << std::endl;
+            }
+            if (!unregCmdLineOpt.empty()) {
+                std::cerr << "On command line:" << std::endl;
+                for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
+                    if (it != unregCmdLineOpt.begin())
+                        std::cerr << ", ";
+                    std::cerr << *it;
+                }
+                std::cerr << std::endl;
+            }
+            std::cerr << "Use option --help for information about supported options and usage." << std::endl;
+            return 2;
         }
-        if (!unregConfFileOpt.empty())
-            std::cerr << std::endl;
-        if (!unregCmdLineOpt.empty())
-            std::cerr << "On command line:" << std::endl;
-        for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
-            if (it != unregCmdLineOpt.begin())
-                std::cerr << ", ";
-            std::cerr << *it;
-        }
-        if (!unregCmdLineOpt.empty())
-            std::cerr << std::endl;
 
         if (config.defined(Deska::Cli::CmdLine_Help)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
                       << "Usage: " << DESKA_EXECUTABLE << " [OPTION]" << std::endl << std::endl
                       << config.usage() << std::endl
+                      << "This is free software, dual-licensed under the GPLv2 and GPLv3." << std::endl << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
@@ -85,11 +89,12 @@ int main(int argc, char **argv)
 
         if (config.defined(Deska::Cli::CmdLine_Version)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl
-                      << "Version " << DESKA_VERSION << std::endl << std::endl
+                      << "Version " << deskaVersion << std::endl << std::endl
                       << "Copyright (C) 2011 Tomas Hubik <hubik.tomas@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Lukas Kerpl <lukas.kerpl@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Martina Krejcova <martinka.krejcova@seznam.cz>" << std::endl
                       << "Copyright (C) 2011 Jan Kundrat <kundratj@fzu.cz>" << std::endl << std::endl
+                      << "This is free software, dual-licensed under the GPLv2 and GPLv3." << std::endl << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
@@ -102,33 +107,45 @@ int main(int argc, char **argv)
         Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
         Deska::Cli::SignalsHandler(&parser, &ui);
         
-        if (config.defined(Deska::Cli::CmdLine_Dump)) {
-            if (ui.executeCommand(Deska::Cli::CmdLine_Dump, config.getVar<std::string>(Deska::Cli::CmdLine_Dump)))
-                return 0;
-            else
-                return 3;
-        }
-        if (config.defined(Deska::Cli::CmdLine_Backup)) {
-            if (ui.executeCommand(Deska::Cli::CmdLine_Backup, config.getVar<std::string>(Deska::Cli::CmdLine_Backup)))
-                return 0;
-            else
-                return 3;
-        }
-        if (config.defined(Deska::Cli::CmdLine_Restore)) {
-            if (ui.executeCommand(Deska::Cli::CmdLine_Restore, config.getVar<std::string>(Deska::Cli::CmdLine_Restore)))
-                return 0;
-            else
-                return 3;
-        }
-        if (config.defined(Deska::Cli::CmdLine_Execute)) {
-            if (ui.executeCommand(Deska::Cli::CmdLine_Execute, config.getVar<std::string>(Deska::Cli::CmdLine_Execute)))
-                return 0;
-            else
-                return 3;
+        try {
+            if (config.defined(Deska::Cli::CmdLine_Dump)) {
+                if (ui.executeCommand(Deska::Cli::CmdLine_Dump, config.getVar<std::string>(Deska::Cli::CmdLine_Dump)))
+                    return 0;
+                else
+                    return 11;
+            }
+            if (config.defined(Deska::Cli::CmdLine_Backup)) {
+                if (ui.executeCommand(Deska::Cli::CmdLine_Backup, config.getVar<std::string>(Deska::Cli::CmdLine_Backup)))
+                    return 0;
+                else
+                    return 12;
+            }
+            if (config.defined(Deska::Cli::CmdLine_Restore)) {
+                if (ui.executeCommand(Deska::Cli::CmdLine_Restore, config.getVar<std::string>(Deska::Cli::CmdLine_Restore)))
+                    return 0;
+                else
+                    return 13;
+            }
+            if (config.defined(Deska::Cli::CmdLine_Execute)) {
+                if (ui.executeCommand(Deska::Cli::CmdLine_Execute, config.getVar<std::string>(Deska::Cli::CmdLine_Execute)))
+                    return 0;
+                else
+                    return 14;
+            }
+        } catch (Deska::Db::RemoteDbError &e) {
+            std::cerr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+            return 7;           
+        } catch (Deska::Db::JsonConnectionError &e) {
+            // Connection lost
+            std::cerr << "Deska server not responding, or dead." << std::endl
+                      << "Exitting Deska CLI." << std::endl;
+            return 9;
+        } catch (Deska::Db::JsonParseError &e) {
+            std::cerr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+            return 8;
         }
 
-        ui.run();
-        return 0;
+        return ui.run();
     } catch (boost::program_options::error &e) {
         std::cerr << "Error while obtaining program options: " << e.what() << std::endl;
         return 1;

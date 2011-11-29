@@ -699,16 +699,14 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
 
 void DbInteraction::lockCurrentChangeset()
 {
-    // FIXME: Redmine#313, not supported by the server
-    //m_api->lockCurrentChangeset();
+    m_api->lockCurrentChangeset();
 }
 
 
 
 void DbInteraction::unlockCurrentChangeset()
 {
-    // FIXME: Redmine#313, not supported by the server
-    //m_api->unlockCurrentChangeset();
+    m_api->unlockCurrentChangeset();
 }
 
 
