@@ -41,6 +41,10 @@ static const std::string CLI_NonInteractive = "CLI.NonInteractive";
 static const std::string CmdLine_NonInteractive = "non-interactive";
 static const std::string CmdLine_Help = "help";
 static const std::string CmdLine_Version = "version";
+static const std::string CmdLine_Dump = "dump";
+static const std::string CmdLine_Backup = "backup";
+static const std::string CmdLine_Restore = "restore";
+static const std::string CmdLine_Execute = "execute";
 //@}
 
 

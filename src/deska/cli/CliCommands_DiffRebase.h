@@ -57,7 +57,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 
 private:
     /** @short Function for sorting object modifications.
@@ -92,7 +92,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 
 private:
     /** @short Function for sorting object modifications.

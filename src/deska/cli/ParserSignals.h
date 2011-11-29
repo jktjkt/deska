@@ -600,6 +600,9 @@ private:
     /** The context is held there. */
     ContextStack contextStack;
 
+    /** The backup of context from start of the parsing is held there. */
+    ContextStack contextStackBackup;
+
     /** Pointer to the parser for listening to the signals. */
     Parser *m_parser;
     /** Pointer to the user interface for reporting errors and and calling actions for signals. */
@@ -608,6 +611,8 @@ private:
     /** Flag that determines whether user will be asked for confirmation of creating new object or not. */
     bool autoCreate;
 
+    /** Flag if some function word was parsed */
+    bool functionWord;
 };
 
 

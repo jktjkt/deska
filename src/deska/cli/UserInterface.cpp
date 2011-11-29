@@ -45,7 +45,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
-    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(),
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(), exitLoop(false), parsingFailed(false),
     forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
     // Register all commands
@@ -68,6 +68,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["batch"] = Ptr(new Batch(this));
     commandsMap["backup"] = Ptr(new Backup(this));
     commandsMap["restore"] = Ptr(new Restore(this));
+    commandsMap["execute"] = Ptr(new Execute(this));
     // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
 
@@ -434,7 +435,6 @@ bool UserInterface::confirmFunctionShow(const ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
-    // FIXME: Delete also nested kinds
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
@@ -505,7 +505,7 @@ void UserInterface::run()
                     m_dbInteraction->unFreezeView();
             } else {
                 // Command found -> run it
-                (*(commandsMap[parsedCommand]))(parsedArguments);
+                executeCommand(parsedCommand, parsedArguments);
             }
         } catch (Db::ConstraintError &e) {
             std::ostringstream ostr;
@@ -530,6 +530,13 @@ void UserInterface::run()
             m_parser->setContextStack(previosContextStack);
         }
     }
+}
+
+
+
+bool UserInterface::executeCommand(const std::string &cmdName, const std::string &params)
+{
+    return (*(commandsMap[cmdName]))(params);
 }
 
 

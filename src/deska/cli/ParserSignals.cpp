@@ -249,6 +249,7 @@ ParserSignalFunctionShow::ParserSignalFunctionShow(const ContextStack &context):
 
 bool ParserSignalFunctionShow::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->functionWord = true;
     return signalsHandler->userInterface->applyFunctionShow(signalsHandler->contextStack);
 }
 
@@ -270,6 +271,7 @@ ParserSignalFunctionDelete::ParserSignalFunctionDelete(const ContextStack &conte
 
 bool ParserSignalFunctionDelete::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->functionWord = true;
     return signalsHandler->userInterface->applyFunctionDelete(signalsHandler->contextStack);
 }
 
@@ -291,6 +293,7 @@ ParserSignalFunctionRename::ParserSignalFunctionRename(const ContextStack &conte
 
 bool ParserSignalFunctionRename::apply(SignalsHandler *signalsHandler) const
 {
+    signalsHandler->functionWord = true;
     return signalsHandler->userInterface->applyFunctionRename(signalsHandler->contextStack, name);
 }
 
@@ -332,7 +335,7 @@ bool ConfirmParserSignal::operator()(const T &parserSignal) const
 
 
 SignalsHandler::SignalsHandler(Parser *parser, UserInterface *_userInterface):
-    m_parser(parser), userInterface(_userInterface), autoCreate(false)
+    m_parser(parser), userInterface(_userInterface), autoCreate(false), functionWord(false)
 {   
     using boost::phoenix::arg_names::_1;
     using boost::phoenix::arg_names::_2;
@@ -452,15 +455,21 @@ void SignalsHandler::slotParsingFinished()
         }
     }
 
+    bool allPerformed = true;
     if (allConfirmed) {
         for (std::vector<ParserSignal>::iterator it = signalsStack.begin(); it != signalsStack.end(); ++it) {
-            if (!(boost::apply_visitor(applyParserSignal, *it)))
+            if (!(boost::apply_visitor(applyParserSignal, *it))) {
+                allPerformed = false;
                 break;
+            }
         }
     }
 
     // Set context stack of parser. In case we did not confirm creation of an object, parser is nested, but should not.
-    m_parser->setContextStack(contextStack);
+    if (!allPerformed && functionWord)
+        m_parser->setContextStack(contextStackBackup);
+    else
+        m_parser->setContextStack(contextStack);
 }
 
 
@@ -468,8 +477,10 @@ void SignalsHandler::slotParsingFinished()
 void SignalsHandler::slotParsingStarted()
 {
     autoCreate = false;
+    functionWord = false;
     signalsStack.clear();
     contextStack = m_parser->currentContextStack();
+    contextStackBackup = m_parser->currentContextStack();
 }
 
 

@@ -107,6 +107,32 @@ int main(int argc, char **argv)
         Deska::Cli::UserInterfaceIO io(&parser, &config);
         Deska::Cli::UserInterface ui(&db, &parser, &io, &config);
         Deska::Cli::SignalsHandler(&parser, &ui);
+        
+        if (config.defined(Deska::Cli::CmdLine_Dump)) {
+            if (ui.executeCommand(Deska::Cli::CmdLine_Dump, config.getVar<std::string>(Deska::Cli::CmdLine_Dump)))
+                return 0;
+            else
+                return 3;
+        }
+        if (config.defined(Deska::Cli::CmdLine_Backup)) {
+            if (ui.executeCommand(Deska::Cli::CmdLine_Backup, config.getVar<std::string>(Deska::Cli::CmdLine_Backup)))
+                return 0;
+            else
+                return 3;
+        }
+        if (config.defined(Deska::Cli::CmdLine_Restore)) {
+            if (ui.executeCommand(Deska::Cli::CmdLine_Restore, config.getVar<std::string>(Deska::Cli::CmdLine_Restore)))
+                return 0;
+            else
+                return 3;
+        }
+        if (config.defined(Deska::Cli::CmdLine_Execute)) {
+            if (ui.executeCommand(Deska::Cli::CmdLine_Execute, config.getVar<std::string>(Deska::Cli::CmdLine_Execute)))
+                return 0;
+            else
+                return 3;
+        }
+
         ui.run();
         return 0;
     } catch (boost::program_options::error &e) {

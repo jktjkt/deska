@@ -604,28 +604,33 @@ Rebase::~Rebase()
 
 
 
-void Rebase::operator()(const std::string &params)
+bool Rebase::operator()(const std::string &params)
 {
     if (!params.empty()) {
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
-        return;
+        return false;
     }
     if (!(ui->currentChangeset)) {
         ui->io->reportError("Error: You are not in any changeset!");
-        return;
+        return false;
     }
     Db::RevisionId oldParentRevision = ui->m_dbInteraction->changesetParent(*(ui->currentChangeset));
     Db::RevisionId headRevision = ui->m_dbInteraction->allRevisions().back().revision;
     if (headRevision == oldParentRevision) {
         ui->io->printMessage("No rebase needed.");
-        return;
+        return true;
+    }
+
+    if (ui->nonInteractiveMode || ui->forceNonInteractive) {
+        ui->io->reportError("You can not perform rebase in non-interactive mode.");
+        return false;
     }
     
     try {
         ui->m_dbInteraction->lockCurrentChangeset();
     } catch (Db::ChangesetLockingError &e) {
         ui->io->reportError("Error while locking old changeset for rebase.");
-        return;
+        return false;
     }
 
     // Start new changeset for rebase
@@ -643,7 +648,7 @@ void Rebase::operator()(const std::string &params)
         } catch (Db::ChangesetLockingError &e) {
             ui->io->reportError("Error while unlocking old changeset after rebase failure.");
         }
-        return;
+        return false;
     }
     Db::RevisionId newParentRevision = ui->m_dbInteraction->changesetParent(newChangeset);
 
@@ -673,7 +678,7 @@ void Rebase::operator()(const std::string &params)
         } catch (Db::ChangesetLockingError &e) {
             ui->io->reportError("Error while unlocking old changeset after rebase failure.");
         }
-        return;
+        return false;
     }
     std::ofstream ofs(tempFile);
     if (!ofs) {
@@ -686,7 +691,7 @@ void Rebase::operator()(const std::string &params)
         } catch (Db::ChangesetLockingError &e) {
             ui->io->reportError("Error while unlocking old changeset after rebase failure.");
         }
-        return;
+        return false;
     }
     ExternModificationConverter externModificationConverter;
     BothModificationConverter bothModificationConverter;
@@ -757,19 +762,18 @@ void Rebase::operator()(const std::string &params)
             } catch (Db::ChangesetLockingError &e) {
                 ui->io->reportError("Error while unlocking old changeset after rebase failure.");
             }
-            return;
+            return false;
         }
 
         ui->nonInteractiveMode = true;
         std::string line;
-        std::string parserLine;
         ui->m_parser->clearContextStack();
         unsigned int lineNumber = 0;
         while (!getline(ifs, line).eof()) {
             ++lineNumber;
-            if (!parserLine.empty() && parserLine[0] == '#')
+            if (line.empty() || line[0] == '#')
                 continue;
-            ui->m_parser->parseLine(parserLine);
+            ui->m_parser->parseLine(line);
             ui->m_parser->clearContextStack();
             if (ui->parsingFailed)
                 break;
@@ -790,7 +794,7 @@ void Rebase::operator()(const std::string &params)
                 } catch (Db::ChangesetLockingError &e) {
                     ui->io->reportError("Error while unlocking old changeset after rebase failure.");
                 }
-                return;
+                return false;
             //}
         } else {
             conflictResolved = true;
@@ -807,8 +811,10 @@ void Rebase::operator()(const std::string &params)
         ui->m_dbInteraction->unlockCurrentChangeset();
     } catch (Db::ChangesetLockingError &e) {
         ui->io->reportError("Error while unlocking new changeset after rebase.");
+        return false;
     }
     ui->io->printMessage("Rebase successful.");
+    return true;
 }
 
 
@@ -842,36 +848,36 @@ Diff::~Diff()
 
 
 
-void Diff::operator()(const std::string &params)
+bool Diff::operator()(const std::string &params)
 {
     if (params.empty()) {
         if (!ui->currentChangeset) {
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
-            return;
+            return false;
         }
         // Show diff with parent
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
         ui->io->printDiff(modifications);
-        return;
+        return true;
     }
 
     std::vector<std::string> paramsList = extractParams(params);
     if (paramsList.size() > 3) {
         ui->io->reportError("Invalid number of parameters entered!");
-        return;
+        return false;
     }
 
     if (paramsList.size() == 1) {
         // Create patch to current changeset
         if (!ui->currentChangeset) {
             ui->io->reportError("Error: Wou have to be connected to a changeset to perform diff with its parent. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
-            return;
+            return false;
         }
         std::ofstream ofs(paramsList[0].c_str());
         if (!ofs) {
             ui->io->reportError("Error while creating patch to file \"" + params + "\".");
-            return;
+            return false;
         }
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
@@ -884,7 +890,7 @@ void Diff::operator()(const std::string &params)
         }
         ofs.close();
         ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
-
+        return true;
     } else if (paramsList.size() >= 2) {
         // Diff between two revisions
         boost::optional<Db::RevisionId> revA, revB;
@@ -901,17 +907,18 @@ void Diff::operator()(const std::string &params)
             std::ostringstream ss;
             ss << "Invalid parameters: " << e.what();
             ui->io->reportError(ss.str());
-            return;
+            return false;
         }
         try {
             modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
         } catch (Db::RevisionRangeError &e) {
             ui->io->reportError("Revision range does not make a sense.");
-            return;
+            return false;
         }
         if (paramsList.size() == 2) {
             // Print diff
             ui->io->printDiff(modifications);
+            return true;
         } else {
             // Create patch
             using namespace boost::phoenix::arg_names;
@@ -920,7 +927,7 @@ void Diff::operator()(const std::string &params)
             std::ofstream ofs(paramsList[0].c_str());
             if (!ofs) {
                 ui->io->reportError("Error while creating patch to file \"" + params + "\".");
-                return;
+                return false;
             }
             ModificationBackuper modificationBackuper;
             for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
@@ -928,8 +935,10 @@ void Diff::operator()(const std::string &params)
             }
             ofs.close();
             ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
+            return true;
         }
     }
+    return true;
 }
 
 
