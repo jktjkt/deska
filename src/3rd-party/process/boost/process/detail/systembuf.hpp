@@ -121,7 +121,10 @@ protected:
 
         bool ok; 
 #if defined(BOOST_POSIX_API) 
-        ssize_t cnt = ::read(handle_, read_buf_.get(), bufsize_); 
+        ssize_t cnt;
+        do {
+            cnt = ::read(handle_, read_buf_.get(), bufsize_);
+        } while ((cnt == -1) && (errno == EINTR));
         if (!event_read_data.empty()) {
             std::string buf;
             buf.resize(cnt);
