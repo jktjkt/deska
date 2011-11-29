@@ -197,7 +197,8 @@ set_target_properties(DeskaCli PROPERTIES
 
 SET(DESKA_VERSION 0.10)
 SET(DESKA_EXECUTABLE deska-cli)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/config.h.cmake ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/cli-config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli/cli-config.h)
 
 add_executable(deska-cli ${deskaCliApp_SRCS})
 target_link_libraries(deska-cli DeskaCli)

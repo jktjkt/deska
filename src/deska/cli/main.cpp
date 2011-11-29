@@ -32,7 +32,7 @@
 #include "UserInterfaceIO.h"
 #include "Parser.h"
 #include "CliConfig.h"
-#include "config.h"
+#include "cli-config.h"
 
 
 void sigpipeHandler(int signum)
