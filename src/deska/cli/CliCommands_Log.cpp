@@ -258,7 +258,7 @@ void LogFilterParser<Iterator>::addKind(const Db::Identifier &kindName)
 Log::Log(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "log";
-    cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions.";
+    cmdUsage = "Command for operations with revisions and history. Without parameter shows list of revisions. You can use it with parameter specifying a filter, that will select only revisions satisfying some criteria. For example \"log ((host == hpv2) & (author == karel))\" shows only revisions where object host hpv2 was modified by Karel. Note, that each expression must be in braces. You can create filter on any kind and on metadata revision, author, message and timestamp.";
     complPatterns.push_back("log");
 
     filterParser = new LogFilterParser<iterator_type>(this);
