@@ -184,7 +184,7 @@ LANGUAGE plpgsql;
 
         for table in self.composition_touples:
             self.check_composition_cycle(table, [])
-            self.check_cble_attributes(table)
+            #self.check_cble_attributes(table)
 
         self.constraint_sql.write(self.gen_add_check_constraint())
         self.trigger_sql.write(self.gen_rename_trigger())
