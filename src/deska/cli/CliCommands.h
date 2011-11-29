@@ -442,7 +442,7 @@ private:
 
 /** @short Cli command.
 *
-*   Runs commands from file.
+*   Runs parser commands from file.
 *
 *   @see Command
 */
@@ -457,7 +457,7 @@ public:
 
     virtual ~Batch();
 
-    /** @short Runs commands from file.
+    /** @short Runs parser commands from file.
     *
     *   @param params File name where commands are stored.
     */
