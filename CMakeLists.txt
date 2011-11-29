@@ -212,6 +212,7 @@ else()
 endif()
 
 SET(DESKA_VERSION 0.10)
+SET(DESKA_VERSION_STR "${DESKA_VERSION}")
 SET(DESKA_EXECUTABLE deska-cli)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli)
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/cli-config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/deska/cli/cli-config.h)

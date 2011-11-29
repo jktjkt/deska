@@ -38,7 +38,7 @@
 #include "gitversion-include.cpp"
 const char *deskaVersion = deskaGitVersion;
 #else
-const char *deskaVersion = DESKA_VERSION;
+const char *deskaVersion = DESKA_VERSION_STR;
 #endif
 
 void sigpipeHandler(int signum)
