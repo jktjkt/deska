@@ -78,6 +78,7 @@ int main(int argc, char **argv)
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
                       << "Usage: " << DESKA_EXECUTABLE << " [OPTION]" << std::endl << std::endl
                       << config.usage() << std::endl
+                      << "This is free software, dual-licensed under the GPLv2 and GPLv3." << std::endl << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
@@ -90,6 +91,7 @@ int main(int argc, char **argv)
                       << "Copyright (C) 2011 Lukas Kerpl <lukas.kerpl@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Martina Krejcova <martinka.krejcova@seznam.cz>" << std::endl
                       << "Copyright (C) 2011 Jan Kundrat <kundratj@fzu.cz>" << std::endl << std::endl
+                      << "This is free software, dual-licensed under the GPLv2 and GPLv3." << std::endl << std::endl
                       << "Please report all bugs to: deska@lists.flaska.net" << std::endl
                       << "Deska home page: http://projects.flaska.net/projects/show/deska" << std::endl;
             return 0;
