@@ -90,7 +90,8 @@ public:
         : handle_(h), 
         bufsize_(bufsize), 
         read_buf_(new char[bufsize]), 
-        write_buf_(new char[bufsize]) 
+        write_buf_(new char[bufsize]),
+        last_errno(0)
     { 
 #if defined(BOOST_POSIX_API) 
         BOOST_ASSERT(handle_ >= 0); 
@@ -239,6 +240,7 @@ private:
 public:
     boost::signals2::signal<void (const std::string& data)> event_read_data;
     boost::signals2::signal<void (const std::string& data)> event_wrote_data;
+    int last_errno;
 };
 
 } 
