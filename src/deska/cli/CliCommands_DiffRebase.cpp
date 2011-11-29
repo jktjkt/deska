@@ -763,14 +763,13 @@ bool Rebase::operator()(const std::string &params)
 
         ui->nonInteractiveMode = true;
         std::string line;
-        std::string parserLine;
         ui->m_parser->clearContextStack();
         unsigned int lineNumber = 0;
         while (!getline(ifs, line).eof()) {
             ++lineNumber;
-            if (!parserLine.empty() && parserLine[0] == '#')
+            if (line.empty() || line[0] == '#')
                 continue;
-            ui->m_parser->parseLine(parserLine);
+            ui->m_parser->parseLine(line);
             ui->m_parser->clearContextStack();
             if (ui->parsingFailed)
                 break;
