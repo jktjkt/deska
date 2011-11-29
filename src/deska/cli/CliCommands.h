@@ -531,6 +531,32 @@ public:
 
 /** @short Cli command.
 *
+*   Runs commands from file including CLI commands.
+*
+*   @see Command
+*/
+class Execute: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Execute(UserInterface *userInterface);
+
+    virtual ~Execute();
+
+    /** @short Runs commands from file including CLI commands.
+    *
+    *   @param params File name where commands are stored.
+    */
+    virtual bool operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
 *   Displays this list of commands with usages.
 *
 *   @see Command

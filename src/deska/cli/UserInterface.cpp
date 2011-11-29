@@ -68,6 +68,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["batch"] = Ptr(new Batch(this));
     commandsMap["backup"] = Ptr(new Backup(this));
     commandsMap["restore"] = Ptr(new Restore(this));
+    commandsMap["execute"] = Ptr(new Execute(this));
     // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
 
@@ -505,7 +506,7 @@ void UserInterface::run()
                     m_dbInteraction->unFreezeView();
             } else {
                 // Command found -> run it
-                (*(commandsMap[parsedCommand]))(parsedArguments);
+                executeCommand(parsedCommand, parsedArguments);
             }
         } catch (Db::ConstraintError &e) {
             std::ostringstream ostr;
@@ -530,6 +531,13 @@ void UserInterface::run()
             m_parser->setContextStack(previosContextStack);
         }
     }
+}
+
+
+
+bool UserInterface::executeCommand(const std::string &cmdName, const std::string &params)
+{
+    return (*(commandsMap[cmdName]))(params);
 }
 
 

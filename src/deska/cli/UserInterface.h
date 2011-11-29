@@ -123,6 +123,14 @@ public:
     /** @short Function for listening to users input and calling appropriate actions. */
     void run();
 
+    /** @short Function for executing a command while not entering event loop.
+    *
+    *   @param cmdName Command name from command map
+    *   @param params Command parameters
+    *   @return True is the executing was successfull, else false
+    */
+    bool executeCommand(const std::string &cmdName, const std::string &params);
+
 private:
 
     /** @short Recursively shows kind with attributes and nested kinds and origins.
@@ -149,6 +157,7 @@ private:
     friend class Batch;
     friend class Backup;
     friend class Restore;
+    friend class Execute;
     friend class Help;
 
     /** Pointer to the class used for communication with the database. */
