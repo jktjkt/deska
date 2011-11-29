@@ -45,7 +45,7 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
-    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(),
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(), exitLoop(false), parsingFailed(false),
     forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
     // Register all commands
