@@ -521,6 +521,9 @@ void UserInterface::run()
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
             m_parser->setContextStack(previosContextStack);
+        } catch (Db::JsonConnectionError &e) {
+            // Connection lost
+            io->reportError("Deska server not responding, or dead.\nExitting Deska CLI.");
         } catch (Db::JsonParseError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;

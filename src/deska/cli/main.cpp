@@ -41,17 +41,11 @@ const char *deskaVersion = deskaGitVersion;
 const char *deskaVersion = DESKA_VERSION_STR;
 #endif
 
-void sigpipeHandler(int signum)
-{
-    std::cerr << "Deska server not responding, or dead." << std::endl
-              << "Exitting Deska CLI." << std::endl;
-    exit(2);
-}
-
 
 int main(int argc, char **argv)
 {
-    signal(SIGPIPE, sigpipeHandler);
+    // Ignore SIGPIPE signal and catch Deska::Db::JsonConnectionError instead
+    signal(SIGPIPE, SIG_IGN);
 
     const char configFile[] = "deska.ini";
     try {
