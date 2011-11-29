@@ -267,3 +267,19 @@ LANGUAGE plpgsql;
         if len(kindattributes1 & kindattributes2):
             raise ValueError, ('Composition relation between "%s" and "%s" is badly defined, column sets of composed types should '
                                'be disjoint (got %s and %s)') % (table, reftable, repr(kindattributes1), repr(kindattributes2))
+                               
+        #check that there is no cycle in the composition chain
+        for table in self.composition_touples:
+            self.check_composition_cycle(table, list())
+
+    #function checks that there is no cycle that could be created by composition relation with table inside
+    def check_composition_cycle(self, table, composition_chain):
+        if table in composition_chain:
+            raise ValueError, ('relation composition is badly defined, kind %(tbl)s creates cycle' % {'tbl': table})
+        else:
+            if table not in self.composition_touples:
+                return
+            else:
+                composition_chain.append(table)
+                for contained_table in self.composition_touples[table]:
+                    self.check_composition_cycle(contained_table, composition_chain)
