@@ -222,8 +222,8 @@ LANGUAGE plpgsql;
     def gen_add_check_constraint(self):
         check_function_str = ""
         add_constr_string = ""
-        for table in self.composition_touples:
-            compos_cols = self.composition_touples[table]
+        for table in self.cble_touples:
+            compos_cols = self.cble_touples[table]
             if len(compos_cols) > 1:
                 nn_col_str = ""
                 #list of columns in composition relation with table and their type .. bigint
