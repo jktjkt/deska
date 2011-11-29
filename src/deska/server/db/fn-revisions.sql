@@ -30,21 +30,35 @@ LANGUAGE python SECURITY DEFINER;
 --
 -- get changeset id from its identificator
 --
-CREATE OR REPLACE FUNCTION changeset2id(rev text)
+CREATE OR REPLACE FUNCTION changeset2id(ch text)
 RETURNS bigint
 AS
 $$
-import re
-import Postgres
+DECLARE
+    changeset_id bigint;
+BEGIN
+    IF ch IS NULL THEN
+        RETURN 0;
+    END IF;
 
-@pytypes
-def main(rev):
-	if not re.match('tmp\d',rev):
-		Postgres.ERROR('"{rev}" is not valid changeset id.'.format(rev = rev),code = '70011')
+    IF ch !~ E'^tmp\\d+$' THEN
+        RAISE '% is not valid changeset id.', ch USING ERRCODE = '70011';
+    END IF;
+    
+    changeset_id = CAST (substr(ch,4) as bigint);
 
-	return rev[3:len(rev)]
+    IF changeset_id <= 0 THEN
+        RAISE '% is not valid changeset id.', ch USING ERRCODE = '70011';
+    END IF;
+        
+    IF NOT EXISTS (SELECT * FROM changeset WHERE id = changeset_id) THEN
+        RAISE 'Changeset % does not exist.', ch USING ERRCODE = '70014';
+    END IF;
+    
+    RETURN changeset_id;
+END;
 $$
-LANGUAGE python SECURITY DEFINER;
+LANGUAGE plpgsql SECURITY DEFINER;
 
 --
 -- get number from revision indentifier

@@ -182,6 +182,10 @@ LANGUAGE plpgsql;
                 self.cble_touples[reftable] = list()
             self.cble_touples[reftable].append(table)
 
+        for table in self.composition_touples:
+            self.check_composition_cycle(table, [])
+            #self.check_cble_attributes(table)
+
         self.constraint_sql.write(self.gen_add_check_constraint())
         self.trigger_sql.write(self.gen_rename_trigger())
 
@@ -222,8 +226,8 @@ LANGUAGE plpgsql;
     def gen_add_check_constraint(self):
         check_function_str = ""
         add_constr_string = ""
-        for table in self.composition_touples:
-            compos_cols = self.composition_touples[table]
+        for table in self.cble_touples:
+            compos_cols = self.cble_touples[table]
             if len(compos_cols) > 1:
                 nn_col_str = ""
                 #list of columns in composition relation with table and their type .. bigint
@@ -267,3 +271,30 @@ LANGUAGE plpgsql;
         if len(kindattributes1 & kindattributes2):
             raise ValueError, ('Composition relation between "%s" and "%s" is badly defined, column sets of composed types should '
                                'be disjoint (got %s and %s)') % (table, reftable, repr(kindattributes1), repr(kindattributes2))
+                               
+
+    #function checks that there is no cycle that could be created by composition relation with table inside
+    def check_composition_cycle(self, table, composition_chain):
+        if table in composition_chain:
+            raise ValueError, ('relation composition is badly defined, kind %(tbl)s creates cycle' % {'tbl': table})
+        else:
+            if table not in self.composition_touples:
+                return
+            else:
+                composition_chain.append(table)
+                for contained_table in self.composition_touples[table]:
+                    self.check_composition_cycle(contained_table, composition_chain)
+
+    def check_cble_attributes(self, table):
+        attribute_in_tables = dict()
+        for contained_table in self.composition_touples[table]:
+            record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': contained_table})
+            for row in record:
+                att = row[0]
+                if att == table:
+                    continue
+                if att in attribute_in_tables:
+                    raise ValueError, ('relation composition is badly defined, attribute %(att)s is in %(contained_tab1)s and %(contained_tab2)s, both contained in kind %(tbl)s' % {'tbl': table, 'contained_tab1': contained_table, 'contained_tab2': attribute_in_tables[att], 'att': att})
+                else:
+                    attribute_in_tables[att] = contained_table
+                    

@@ -19,8 +19,7 @@ def imperative(r):
     r.cvoid(setAttribute("hardware", "hw1", "warranty", "2011-01-01"))
 
     diffInChangeset = r.c(dataDifferenceInTemporaryChangeset(changeset))
-    # FIXME: Redmine #343
-    #r.cfail(dataDifferenceInTemporaryChangeset("tmp0"), ChangesetParsingError())
+    r.cfail(dataDifferenceInTemporaryChangeset("tmp0"), ChangesetParsingError())
     r.cfail(dataDifferenceInTemporaryChangeset("tmp123"), ChangesetRangeError())
     r.cfail(dataDifferenceInTemporaryChangeset("r0"), ChangesetParsingError())
     r.cfail(dataDifferenceInTemporaryChangeset("r123"), ChangesetParsingError())
