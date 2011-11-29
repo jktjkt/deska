@@ -24,8 +24,6 @@
 #if defined(BOOST_POSIX_API) 
 #  include <sys/types.h> 
 #  include <unistd.h> 
-#elif defined(BOOST_WINDOWS_API) 
-#  include <windows.h> 
 #else 
 #  error "Unsupported platform." 
 #endif 
