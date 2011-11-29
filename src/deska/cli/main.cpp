@@ -34,6 +34,12 @@
 #include "CliConfig.h"
 #include "cli-config.h"
 
+#if DESKA_HAVE_GITVERSION
+#include "gitversion-include.cpp"
+const char *deskaVersion = deskaGitVersion;
+#else
+const char *deskaVersion = DESKA_VERSION;
+#endif
 
 void sigpipeHandler(int signum)
 {
@@ -85,7 +91,7 @@ int main(int argc, char **argv)
 
         if (config.defined(Deska::Cli::CmdLine_Version)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl
-                      << "Version " << DESKA_VERSION << std::endl << std::endl
+                      << "Version " << deskaVersion << std::endl << std::endl
                       << "Copyright (C) 2011 Tomas Hubik <hubik.tomas@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Lukas Kerpl <lukas.kerpl@gmail.com>" << std::endl
                       << "Copyright (C) 2011 Martina Krejcova <martinka.krejcova@seznam.cz>" << std::endl
