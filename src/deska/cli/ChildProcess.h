@@ -24,8 +24,6 @@
 #ifndef DESKA_CLI_CHILDPROCESS_H
 #define DESKA_CLI_CHILDPROCESS_H
 
-#include "boost/process.hpp"
-
 namespace Deska
 {
 namespace Cli
