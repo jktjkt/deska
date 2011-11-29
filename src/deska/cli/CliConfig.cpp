@@ -43,8 +43,8 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
         ((CmdLine_Backup + ",b").c_str(), po::value<std::string>(), "creates backup of the DB to a file")
         ((CmdLine_Restore + ",r").c_str(), po::value<std::string>(), "restores the DB from a file")
         ((CmdLine_Execute + ",e").c_str(), po::value<std::string>(), "executes commands from a file")
-        (DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken(), "path to executable for connection to Deska server including arguments")
-        (CLI_HistoryFilename.c_str(), po::value<std::string>(), "name of file with history")
+        (DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken()->required(), "path to executable for connection to Deska server including arguments")
+        (CLI_HistoryFilename.c_str(), po::value<std::string>()->required(), "name of file with history")
         (CLI_HistoryLimit.c_str(), po::value<unsigned int>()->default_value(64), "number of lines stored in history")
         (CLI_LineWidth.c_str(), po::value<unsigned int>()->default_value(0), "width of line for wrapping")
         (CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
@@ -56,6 +56,9 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
     po::store(configFileOptions, configVars);
     unregCmdLineOptions = po::collect_unrecognized(commandLineOptions.options, po::include_positional);
     unregConfigFileOptions = po::collect_unrecognized(configFileOptions.options, po::include_positional);
+
+    if (!(configVars.count(CmdLine_Help) || configVars.count(CmdLine_Version)))
+        po::notify(configVars);
 
     std::ostringstream ostr;
     ostr << options;
@@ -70,9 +73,7 @@ T CliConfig::getVar(const std::string &name)
     if (configVars.count(name)) {
         return configVars[name].as<T>();
     } else {
-        std::ostringstream ss;
-        ss << "Configuration error: Option '" << name << "' not found neither in config file nor on command line.";
-        throw std::runtime_error(ss.str());
+        throw boost::program_options::required_option(name);
     }
 }
 
