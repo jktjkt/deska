@@ -252,6 +252,36 @@ public:
 
 
 
+/** @short Handles errors while parsing a name of an attribute in a filter. */
+template <typename Iterator>
+class AttributeFilterErrorHandler
+{
+public:
+    template <typename, typename, typename, typename, typename, typename, typename, typename>
+        struct result { typedef void type; };
+
+    /** @short Function invoked when some error occures during parsing of attribute name in context of a filter.
+    *
+    *   Generates appropriate parse error and pushes it to errors stack.
+    *
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param sets Symbols table with possible sets names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parser Pointer to main parser for purposes of storing generated error
+    *   @see ParseError
+    */
+    void operator()(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+                    const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
+                    const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &sets,
+                    const Db::Identifier &kindName, ParserImpl<Iterator> *parser) const;
+};
+
+
+
 /** @short Handles errors while parsing a name of an identifiers set. */
 template <typename Iterator>
 class IdentifiersSetsErrorHandler
@@ -450,6 +480,21 @@ public:
                const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
                const Db::Identifier &kindName, ParseErrorType parseErrorType);
 
+    /** @short Creates error using AttributeErrorHandler when some error occures in attribute name parsing in filter.
+    *   @param start Begin of the input being parsed when the error occures
+    *   @param end End of the input being parsed when the error occures
+    *   @param errorPos Position where the error occures
+    *   @param what Expected tokens
+    *   @param attributes Symbols table with possible attributes names
+    *   @param sets Symbols table with possible sets names
+    *   @param kindName Name of kind which attributes or nested kinds are currently being parsed
+    *   @param parseErrorType Type of the error identifying, where the error occures
+    */
+    ParseError(Iterator start, Iterator end, Iterator errorPos, const spirit::info &what,
+               const qi::symbols<char, qi::rule<Iterator, Db::Value(), ascii::space_type> > &attributes,
+               const qi::symbols<char, qi::rule<Iterator, Db::Identifier(), ascii::space_type> > &sets,
+               const Db::Identifier &kindName, ParseErrorType parseErrorType);
+
     /** @short Creates error using AttributeErrorHandler when some error occures in attribute name parsing.
     *   @param start Begin of the input being parsed when the error occures
     *   @param end End of the input being parsed when the error occures
@@ -611,6 +656,16 @@ private:
     */
     void extractAttributeName(const Db::Identifier &name,
                               const qi::rule<Iterator, Db::Value(), ascii::space_type> &rule);
+    /** @short Function for extracting set names from symbols table used in filter grammars.
+    *
+    *   This function should be used for extracting set names from symbols table using for_each function.
+    *
+    *   @param name Key from the symbols table
+    *   @param rule Value from the symbols table
+    *   @see FilterExpressionsParser
+    */
+    void extractSetName(const Db::Identifier &name,
+                              const qi::rule<Iterator, Db::Identifier(), ascii::space_type> &rule);
     /** @short Function for extracting attribute names from symbols table used in attributeRemovals grammars.
     *
     *   This function should be used for extracting attributes names from symbols table using for_each function.
