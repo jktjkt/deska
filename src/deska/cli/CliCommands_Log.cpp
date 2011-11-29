@@ -277,12 +277,12 @@ Log::~Log()
 
 
 
-void Log::operator()(const std::string &params)
+bool Log::operator()(const std::string &params)
 {
     if (params.empty()) {
         std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->allRevisions();
         ui->io->printRevisions(revisions);
-        return;
+        return true;
     }
 
     std::string::const_iterator iter = params.begin();
@@ -298,23 +298,24 @@ void Log::operator()(const std::string &params)
                           phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_VALUE_TYPE);
         if (it != parseErrors.end()) {
             ui->io->reportError(it->toString());
-            return;
+            return false;
         }
         // Error in attribute name in removal
         it = std::find_if(parseErrors.begin(), parseErrors.end(), phoenix::bind(&LogFilterParseError<iterator_type>::errorType,
                           phoenix::arg_names::_1) == LOG_FILTER_PARSE_ERROR_TYPE_ATTRIBUTE);
         if (it != parseErrors.end()) {
             ui->io->reportError(it->toString());
-            return;
+            return false;
         }
 
         // Other error
         ui->io->reportError("Error while parsing filter for revisions. Check matching braces and operators.");
-        return;
+        return false;
     }
 
     std::vector<Db::RevisionMetadata> revisions = ui->m_dbInteraction->filteredRevisions(filter);
     ui->io->printRevisions(revisions);
+    return true;
 }
 
 
