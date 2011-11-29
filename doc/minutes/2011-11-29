@@ -1,0 +1,131 @@
+Schuze Deska, 2011-11-29 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Martina:
+- changeset diff funguje jen na soucasnych changesetech
+- validace schematu (nepushnuto)
+- ON DELETE CASCADE: diskuse
+- bugy
+- validace nasla, ze schema network nema UNIQUE
+- 21.5
+
+Lukas:
+- merge contains/containable
+- bugfixy
+- navrhy testu
+- zamykani (a dalsi pomocne funkce) a vyjimky
+- zjisteni user roli, jak to s nimi je
+- testovani gitovskych generatoru
+- 18 hodin
+
+Tomas:
+- bugfixy
+- boost::program_options
+- zpristupneni funkci z cmd line
+- kontrola interaktivity
+- contains/containable
+- mazani vnorenych
+- pridani pomlcky do identifikatoru, problem s embed_into
+- vetsina prace v pondeli a utery, za minuly tyden 10-12
+
+Honza:
+- merge CONTAINS/CONTAINABLE, opravy testu
+- testy zpracovavani neplatneho vstupu
+- zmena DBAPI spec, identifier_set umi jen contains/not
+- nove vyjimky do DBAPI
+- cleanup ticketu + organizace v Redmine
+- prikaz pro vytvoreni cfg repozitare
+- zamykani changesetu
+- testy
+- git a config generators
+- instalator
+- dokumentace
+- prevod FarmDB do Desky (wip)
+- nastavovani verze z git tagu
+- oprava boost.process a error handling
+- 23 hodin (nedele-nedele)
+
+
+Diskuse:
+--------
+
+Relace:
+
+- REFERS_TO dostane specialni jmeno constraintu
+- jine cizi klice jsou povolene, ale generator bude varovat, kdyz na ne narazi
+- ON DELETE NO ACTION se ma vynutit u vsech FK
+
+- deska_admin je interni role, pod kterou bezi interni funkce
+- deska_user je role, kterou maji uzivatele
+- instalace potrebuje roli postgres
+
+- revize r1 ma prilis novy timestamp -- not a bug, feature
+
+Dokumentace:
+- str 15 dole: neni pravda, ze host a switch stejneho jmena nesmi existovat
+  (kvuli box)
+- s. 16 nahore to same
+- s. 17: cast, ze templates jsou striktenjsi nez refers_to, je matouci
+- "asses" :)
+- s11, s/Python/PgPython/
+- 2.1: ze "nededime" dela blbej dojem (proc negativne?)
+- znova zkusit lip (kompaktnejs?) popsat relace? rozdelit do vice casti?
+- split referenci do casti pro a) sysadmins, b) DB guys
+- Martina: "relace jsou rovzlacne"
+- obrazky pro relace?
+- 2.2.2, odst 2: prvni veta, ze spis nez sloupecek je to integr. omezeni na jeho
+  hodnotu
+- "enum" -- on je to dynamicky enum
+- "relace je potencialni" pridat footnote, ze jde NOT NULL
+- templates jsou specialni, jelikoz je nedela user, ale delaji se "samy"
+- pridat info o tom, co templaty vsechno prebiraji
+
+Licencovani:
+- pridat informace do souboru se zdrojaky
+
+- restoringCommit bude chranen roli deska_admin
+
+Lukas: funguje to i pod novym gitpythonem (aspon testy)
+
+"Nekdo by mel udelat testy pro vicenasobny embedding"
+
+
+Ukoly do konce (mimo jiz otevrenych bugreportu):
+------------------------------------------------
+
+- Tomas: nezname options maji ukoncit s non-zero exist statusem
+- Tomas: doladit rebase
+- Tomas: testy pro CLI
+- Tomas: dokumentace: programatorska pro CLI
+- Tomas: user docs pro CLI
+
+- Martina: testy pro kompozici
+- Martina:
+    - docs pro generatory SQL
+    - doxygen pro jeji veci
+- Martina: dokumentace pro omezeni schematu
+
+- Lukas: restoring commit
+- Lukas: FIXME v DB schematu FZU
+- Lukas: projit vsechny FIXME v kodu
+- Lukas: dokumentace
+    - jak cely server funguje
+    - jak funguje verzovani
+    - doxygen pro to, co psal on
+
+- Honza: DBAPI testy po deska_user roli
+- Honza: testy
+- Honza: balicky
+- Honza: instalator
+- Honza: generatory pro FZU
+- Honza: prevod FZU dat (naplnit DB)
+- Honza: skriptiky pro FZU
+- Honza: vizualizace racku
+- Honza: prog. dokumentace generatoru konfigurace
+
+Pristi schuzka: predpokaldam, ze utery 6. prosince?
