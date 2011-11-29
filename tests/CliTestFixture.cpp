@@ -204,6 +204,7 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help no");
     expectAddCommandCompletion("help remove");
     expectAddCommandCompletion("help show");
+    expectAddCommandCompletion("help where");
     expectAddCommandCompletion("log");
     expectAddCommandCompletion("non-interactive on");
     expectAddCommandCompletion("non-interactive off");
