@@ -59,26 +59,29 @@ int main(int argc, char **argv)
 
         std::vector<std::string> unregConfFileOpt = config.unregistredConfigFileOptions();
         std::vector<std::string> unregCmdLineOpt = config.unregistredCommandLineOptions();
-        if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty())
-            std::cerr << "Ignoring unknown options:" << std::endl;
-        if (!unregConfFileOpt.empty())
-            std::cerr << "In config file " << configFile << ":" << std::endl;
-        for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
-            if (it != unregConfFileOpt.begin())
-                std::cerr << ", ";
-            std::cerr << *it;
+        if (!unregConfFileOpt.empty() || !unregCmdLineOpt.empty()) {
+            std::cerr << "Uknown options found:" << std::endl;
+            if (!unregConfFileOpt.empty()) {
+                std::cerr << "In config file " << configFile << ":" << std::endl;
+                for (std::vector<std::string>::iterator it = unregConfFileOpt.begin(); it != unregConfFileOpt.end(); ++it) {
+                    if (it != unregConfFileOpt.begin())
+                        std::cerr << ", ";
+                    std::cerr << *it;
+                }
+                std::cerr << std::endl;
+            }
+            if (!unregCmdLineOpt.empty()) {
+                std::cerr << "On command line:" << std::endl;
+                for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
+                    if (it != unregCmdLineOpt.begin())
+                        std::cerr << ", ";
+                    std::cerr << *it;
+                }
+                std::cerr << std::endl;
+            }
+            std::cerr << "Use option --help for information about supported options and usage." << std::endl;
+            return 2;
         }
-        if (!unregConfFileOpt.empty())
-            std::cerr << std::endl;
-        if (!unregCmdLineOpt.empty())
-            std::cerr << "On command line:" << std::endl;
-        for (std::vector<std::string>::iterator it = unregCmdLineOpt.begin(); it != unregCmdLineOpt.end(); ++it) {
-            if (it != unregCmdLineOpt.begin())
-                std::cerr << ", ";
-            std::cerr << *it;
-        }
-        if (!unregCmdLineOpt.empty())
-            std::cerr << std::endl;
 
         if (config.defined(Deska::Cli::CmdLine_Help)) {
             std::cout << "Deska, a tool for central administration of a grid site" << std::endl << std::endl
