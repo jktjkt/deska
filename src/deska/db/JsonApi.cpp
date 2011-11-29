@@ -20,6 +20,7 @@
 * */
 
 #include <boost/foreach.hpp>
+#include <boost/process.hpp>
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
 #include "JsonApi.h"
@@ -56,12 +57,33 @@ void JsonApiParser::sendJsonObject(const json_spirit::Object &o) const
     json_spirit::write_stream(json_spirit::Value(o), *writeStream, json_spirit::remove_trailing_zeros);
     *writeStream << "\n";
     writeStream->flush();
-    if (writeStream->bad())
-        throw JsonConnectionError("Write error: output stream in 'bad' state");
-    if (writeStream->fail())
-        throw JsonConnectionError("Write error: output stream in 'fail' state");
-    if (writeStream->eof())
-        throw JsonConnectionError("Write error: EOF");
+    // This is evil. Due to the standard library limitation, where exceptions thrown from the streambuf functions are caught
+    // and reprocessed, we have to use this nasty side channel to get an information about what went wrong. That sucks.
+    boost::process::detail::systembuf *systembuf = dynamic_cast<boost::process::detail::systembuf *>(writeStream->rdbuf());
+    const char *errorString = 0;
+    if (systembuf && systembuf->last_errno)
+        errorString = ::strerror(systembuf->last_errno);
+    if (writeStream->bad()) {
+        std::ostringstream ss;
+        ss << "Write error: output stream in 'bad' state";
+        if (errorString)
+            ss << ": " << errorString;
+        throw JsonConnectionError(ss.str());
+    }
+    if (writeStream->fail()) {
+        std::ostringstream ss;
+        ss << "Write error: output stream in 'fail' state";
+        if (errorString)
+            ss << ": " << errorString;
+        throw JsonConnectionError(ss.str());
+    }
+    if (writeStream->eof()) {
+        std::ostringstream ss;
+        ss << "Write error: EOF";
+        if (errorString)
+            ss << ": " << errorString;
+        throw JsonConnectionError(ss.str());
+    }
 }
 
 json_spirit::Object JsonApiParser::readJsonObject() const
