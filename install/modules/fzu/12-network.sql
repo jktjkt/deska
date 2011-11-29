@@ -7,7 +7,7 @@ CREATE TABLE network (
 	uid bigint DEFAULT nextval('network_uid')
 		CONSTRAINT network_pk PRIMARY KEY,
 	name identifier 
-		CONSTRAINT "network with this name already exists" NOT NULL,
+		CONSTRAINT "network with this name already exists" UNIQUE NOT NULL,
 	-- the lowest IPv4 address on the network
 	ip4 ipv4,
 	-- number of bits in the netmask for IPv4 addresses
