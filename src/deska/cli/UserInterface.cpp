@@ -475,7 +475,7 @@ void UserInterface::reportParseError(const ParserException &error)
 
 
 
-void UserInterface::run()
+int UserInterface::run()
 {
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::pair<std::string, bool> line;
@@ -524,6 +524,7 @@ void UserInterface::run()
         } catch (Db::JsonConnectionError &e) {
             // Connection lost
             io->reportError("Deska server not responding, or dead.\nExitting Deska CLI.");
+            return 9;
         } catch (Db::JsonParseError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
@@ -533,6 +534,7 @@ void UserInterface::run()
             m_parser->setContextStack(previosContextStack);
         }
     }
+    return 0;
 }
 
 
