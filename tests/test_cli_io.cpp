@@ -51,6 +51,8 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectReportError("Error: You are already in the changeset tmp1!");
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("abort", false));
+    expectAskForConfirmation("Really abort current changeset?");
+    returnAskForConfirmation(true);
     expectPrintMessage("Changeset tmp1 aborted.");
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("start", false));

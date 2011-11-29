@@ -38,7 +38,7 @@ PredefinedRules<Iterator>::PredefinedRules()
     tQuotedString %= (qi::lit('"') >> qi::lexeme[+(ascii::char_ - ascii::char_('"'))] >> qi::lit('"')) |
                      (qi::lit('\'') >> qi::lexeme[+(ascii::char_ - ascii::char_('\''))] >> qi::lit('\''));
     tSimpleString %= qi::lexeme[+(ascii::char_ - ascii::space)];
-    tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(ascii::alnum | '_') % "->") >> -qi::lit("->")]];
+    tIdentifier %= qi::raw[qi::lexeme[!qi::lit("where") >> (+(*qi::lit('-') >> +(ascii::alnum | qi::lit('_'))) % "->") >> -qi::lit("->")]];
     tIdentifierSet %= qi::lit("[") > (tIdentifier % ",") > qi::lit("]");
     tIPv4Octet %= qi::raw[qi::lexeme[!(qi::lit("0") >> qi::digit) >> qi::uint_parser<boost::uint8_t, 10, 1, 3>()]];
     tIPv4Addr %= qi::raw[qi::lexeme[qi::repeat(3)[tIPv4Octet >> qi::lit(".")] >> tIPv4Octet]];

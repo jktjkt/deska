@@ -45,8 +45,8 @@ namespace Cli
 
 
 UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
-    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(),
-    forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive))
+    m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(), exitLoop(false), parsingFailed(false),
+    forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
     // Register all commands
     typedef std::tr1::shared_ptr<Command> Ptr;
@@ -56,6 +56,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["detach"] = Ptr(new Detach(this));
     commandsMap["abort"] = Ptr(new Abort(this));
     commandsMap["rebase"] = Ptr(new Rebase(this));
+    commandsMap["non-interactive"] = Ptr(new NonInteractive(this));
     commandsMap["status"] = Ptr(new Status(this));
     commandsMap["log"] = Ptr(new Log(this));
     commandsMap["diff"] = Ptr(new Diff(this));
@@ -67,6 +68,7 @@ UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserI
     commandsMap["batch"] = Ptr(new Batch(this));
     commandsMap["backup"] = Ptr(new Backup(this));
     commandsMap["restore"] = Ptr(new Restore(this));
+    commandsMap["execute"] = Ptr(new Execute(this));
     // Help has to be constructed last because of completions generating
     commandsMap["help"] = Ptr(new Help(this));
 
@@ -212,12 +214,11 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
         BOOST_FOREACH(const Deska::Db::Identifier &kindName, m_dbInteraction->topLevelKinds()) {
              io->printObjects(m_dbInteraction->kindInstances(kindName), 0, true);
         }
-        io->printObjects(m_dbInteraction->allOrphanObjects(), 0, true);
     } else {
         // If we are in some context, print all attributes and kind names
         try {
             showObjectRecursive(ObjectDefinition(context.back().kind, contextStackToPath(context)), 0);
-        } catch (std::runtime_error &e) {
+        } catch (ContextStackConversionError &e) {
             std::vector<ObjectDefinition> objects = m_dbInteraction->expandContextStack(context);
             for (std::vector<ObjectDefinition>::iterator it = objects.begin(); it != objects.end(); ++it) {
                 io->printObject(*it, 0, true);
@@ -232,20 +233,20 @@ bool UserInterface::applyFunctionShow(const ContextStack &context)
 
 bool UserInterface::applyFunctionDelete(const ContextStack &context)
 {
-    std::vector<ObjectDefinition> connectedObjects = m_dbInteraction->connectedObjectsTransitively(context);
-    if (connectedObjects.empty()) {
+    std::vector<ObjectDefinition> nestedObjects = m_dbInteraction->allNestedObjectsTransitively(context);
+    if (nestedObjects.empty()) {
         m_dbInteraction->deleteObject(context);
+        return true;
     } else {
-        if (io->confirmDeletionConnected(connectedObjects)) {
+        if (io->confirmDeletionNested(nestedObjects)) {
             std::vector<ObjectDefinition> toDelete = m_dbInteraction->expandContextStack(context);
-            toDelete.insert(toDelete.end(), connectedObjects.begin(), connectedObjects.end());
+            toDelete.insert(toDelete.end(), nestedObjects.begin(), nestedObjects.end());
             m_dbInteraction->deleteObjects(toDelete);
+            return true;
         } else {
-            m_dbInteraction->deleteObject(context);
+            return false;
         }
     }
-
-    return true;
 }
 
 
@@ -434,7 +435,6 @@ bool UserInterface::confirmFunctionShow(const ContextStack &context)
 
 bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
-    // FIXME: Delete also nested kinds
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         return false;
@@ -480,8 +480,10 @@ void UserInterface::run()
     io->printMessage("Deska CLI started. For usage info try typing \"help\".");
     std::pair<std::string, bool> line;
     exitLoop = false;
+    ContextStack previosContextStack;
     while (!exitLoop) {
         parsingFailed = false;
+        previosContextStack = m_parser->currentContextStack();
         line = io->readLine(contextStackToString(m_parser->currentContextStack()));
         if (line.second)
             (*(commandsMap["quit"]))("");
@@ -503,24 +505,38 @@ void UserInterface::run()
                     m_dbInteraction->unFreezeView();
             } else {
                 // Command found -> run it
-                (*(commandsMap[parsedCommand]))(parsedArguments);
+                executeCommand(parsedCommand, parsedArguments);
             }
+        } catch (Db::ConstraintError &e) {
+            std::ostringstream ostr;
+            ostr << "DB constraint violation:\n " << e.what() << std::endl;
+            io->reportError(ostr.str());
+            // Some command could fail -> cache could be obsolete now
+            m_dbInteraction->clearCache();
+            m_parser->setContextStack(previosContextStack);
         } catch (Db::RemoteDbError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
-            m_parser->clearContextStack();
+            m_parser->setContextStack(previosContextStack);
         } catch (Db::JsonParseError &e) {
             std::ostringstream ostr;
             ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
             io->reportError(ostr.str());
             // Some command could fail -> cache could be obsolete now
             m_dbInteraction->clearCache();
-            m_parser->clearContextStack();
+            m_parser->setContextStack(previosContextStack);
         }
     }
+}
+
+
+
+bool UserInterface::executeCommand(const std::string &cmdName, const std::string &params)
+{
+    return (*(commandsMap[cmdName]))(params);
 }
 
 
@@ -531,12 +547,11 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
     std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
     printEnd = printEnd || !attributes.empty();
-    // FIXME: Wait for contains/containable implementation without cycles
-    /*std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
+    std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
     unsigned int containedObjsSize = 0;
-    if (containedObjs.empty()) {*/
+    if (containedObjs.empty()) {
         io->printAttributesWithOrigin(attributes, depth);
-    /*} else {
+    } else {
         for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
              it != attributes.end(); ++it) {
             io->printAttributeWithOrigin(it->first, it->second, depth);
@@ -552,7 +567,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         }
     }
     // All contained objects has to be printed via attribute references
-    BOOST_ASSERT(containedObjsSize == containedObjs.size());*/
+    BOOST_ASSERT(containedObjsSize == containedObjs.size());
     std::vector<ObjectDefinition> nestedObjs = m_dbInteraction->allNestedObjects(object);
     printEnd = printEnd || !nestedObjs.empty();
     for (std::vector<ObjectDefinition>::iterator it = nestedObjs.begin(); it != nestedObjs.end(); ++it) {

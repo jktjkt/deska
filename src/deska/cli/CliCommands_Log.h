@@ -65,7 +65,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 
     /** @short Adds parse error to stack while parsing filter for revisions.
     *

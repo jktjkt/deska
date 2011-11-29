@@ -60,3 +60,9 @@ def imperative(r):
     # ...but indeed present when we ask specifically for the current one
     r.assertEqual(r.c(kindInstances("vendor", revision=r2)),
                   AnyOrderList(("a", "aa", "blabla")))
+
+    tmp4 = r.c(startChangeset())
+    r.c(createObject("vendor", "a-b"))
+    r.cfail(createObject("vendor", "a-"), exception=ConstraintError())
+    r.cfail(createObject("vendor", "-a"), exception=ConstraintError())
+    r.assertEqual(r.c(commitChangeset(".")), "r3")

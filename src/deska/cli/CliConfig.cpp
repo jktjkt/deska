@@ -36,15 +36,30 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv)
 
     boost::program_options::options_description options("Deska CLI Options");
     options.add_options()
-        (DBConnection_Server.c_str(), po::value<std::string>(), "path to executable for connection to Deska server")
+        ((CmdLine_Help + ",h").c_str(), "produces this help message")
+        ((CmdLine_Version + ",v").c_str(), "prints version information")
+        ((CmdLine_NonInteractive + ",n").c_str(), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed")
+        ((CmdLine_Dump + ",d").c_str(), po::value<std::string>()->implicit_value(""), "dumps DB to a file or to standard output")
+        ((CmdLine_Backup + ",b").c_str(), po::value<std::string>(), "creates backup of the DB to a file")
+        ((CmdLine_Restore + ",r").c_str(), po::value<std::string>(), "restores the DB from a file")
+        ((CmdLine_Execute + ",e").c_str(), po::value<std::string>(), "executes commands from a file")
+        (DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken(), "path to executable for connection to Deska server including arguments")
         (CLI_HistoryFilename.c_str(), po::value<std::string>(), "name of file with history")
         (CLI_HistoryLimit.c_str(), po::value<unsigned int>()->default_value(64), "number of lines stored in history")
         (CLI_LineWidth.c_str(), po::value<unsigned int>()->default_value(0), "width of line for wrapping")
         (CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
 
     std::ifstream configStream(configFile.c_str());
-    po::store(po::parse_command_line(argc, argv, options), configVars);
-    po::store(po::parse_config_file(configStream, options), configVars);
+    po::parsed_options commandLineOptions = po::command_line_parser(argc, argv).options(options).allow_unregistered().run();
+    po::store(commandLineOptions, configVars);
+    po::parsed_options configFileOptions = po::parse_config_file(configStream, options, true);
+    po::store(configFileOptions, configVars);
+    unregCmdLineOptions = po::collect_unrecognized(commandLineOptions.options, po::include_positional);
+    unregConfigFileOptions = po::collect_unrecognized(configFileOptions.options, po::include_positional);
+
+    std::ostringstream ostr;
+    ostr << options;
+    configUsage = ostr.str();
 }
 
 
@@ -63,6 +78,33 @@ T CliConfig::getVar(const std::string &name)
 
 
 
+bool CliConfig::defined(const std::string &name)
+{
+    return configVars.count(name);
+}
+
+
+
+std::vector<std::string> CliConfig::unregistredConfigFileOptions()
+{
+    return unregConfigFileOptions;
+}
+
+
+
+std::vector<std::string> CliConfig::unregistredCommandLineOptions()
+{
+    return unregCmdLineOptions;
+}
+
+
+
+std::string CliConfig::usage()
+{
+    return configUsage;
+}
+
+
 /////////////////////////Template instances for linker//////////////////////////
 
 template int CliConfig::getVar(const std::string &name);
@@ -72,6 +114,8 @@ template unsigned int CliConfig::getVar(const std::string &name);
 template bool CliConfig::getVar(const std::string &name);
 
 template std::string CliConfig::getVar(const std::string &name);
+
+template std::vector<std::string> CliConfig::getVar(const std::string &name);
 
 
 }

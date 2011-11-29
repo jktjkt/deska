@@ -9,4 +9,16 @@
 FIXME: describe the Python server here
 \end{abstract}
 
+FIXME: documentation goes here
+
+\section{Security Model}
+\label{sec:server-security-model}
+
+The {\tt deska-server} relies heavily on the authentication/authorization features offered by the SSH server, and on the
+{\tt trust = ident} feature of the PostgreSQL server.  Any Unix user who is able to connect to the PostgreSQL database
+which contains the Deska installation will be able to perform any modification to the database over the standard DBAPI
+calls.
+
+FIXME: this is mainly a placeholder for further documentation\ldots
+
 \end{document}

@@ -167,18 +167,26 @@ public:
     */
     std::vector<ObjectDefinition> allNestedObjects(const ObjectDefinition &object);
 
-    /** @short Obtains list of all objects, that could be nested, but their parent does not exist
-    *
-    *   @return Vector of all orphans
-    */
-    std::vector<ObjectDefinition> allOrphanObjects();
-
     /** @short Obtains all nested objects in given object.
     *
     *   @param context Path to the object for which the nested kinds are obtained
     *   @return Vector of all nested kinds when there is some context, else list of top-level objects
     */
     std::vector<ObjectDefinition> allNestedObjects(const ContextStack &context);
+
+    /** @short Obtains all attributes of given object.
+    *
+    *   @param object Object for which the nested kinds are obtained
+    *   @return Vector of all nested kinds when there is some context, else list of top-level objects
+    */
+    std::vector<ObjectDefinition> allNestedObjectsTransitively(const ObjectDefinition &object);
+
+    /** @short Obtains all transitively nested objects in given object.
+    *
+    *   @param context Path to the object for which the nested kinds are obtained
+    *   @return Vector of all transitively nested kinds when there is some context, else list of top-level objects
+    */
+    std::vector<ObjectDefinition> allNestedObjectsTransitively(const ContextStack &context);
 
     /** @short Check if object exists or not
     *
@@ -339,6 +347,14 @@ private:
     */
     void connectedObjectsTransitivelyRec(const ObjectDefinition &object,
                                       std::vector<ObjectDefinition> &containedObjects);
+
+    /** @short Helping function for allNestedObjectsTransitively() for obtaining nested objects recursively
+    *
+    *   @param object Object which nested objects to find
+    *   @param nestedObjects Vector of all nested objects already found
+    */
+    void allNestedObjectsTransitivelyRec(const ObjectDefinition &object,
+                                         std::vector<ObjectDefinition> &nestedObjects);
 
     /** Identifiers of top level kinds. */
     std::vector<Db::Identifier> pureTopLevelKinds;

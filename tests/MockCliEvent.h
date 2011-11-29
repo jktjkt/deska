@@ -81,6 +81,10 @@ struct MockCliEvent
         EVENT_CONFIRM_DELETION,
         /** @short The confirmDeletion() return */
         RETURN_CONFIRM_DELETION,
+        /** @short The confirmDeletionNested() event */
+        EVENT_CONFIRM_DELETION_NESTED,
+        /** @short The confirmDeletionNested() return */
+        RETURN_CONFIRM_DELETION_NESTED,
         /** @short The confirmDeletionConnected() event */
         EVENT_CONFIRM_DELETION_CONNECTED,
         /** @short The confirmDeletionConnected() return */

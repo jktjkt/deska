@@ -82,10 +82,10 @@ FilterExpressionsParser<Iterator>::FilterExpressionsParser(const Db::Identifier 
         > lazy(_a)[_val = phoenix::bind(&FilterExpressionsParser<Iterator>::constructFilter, this,
             _b, phoenix::ref(currentAttributeName), phoenix::construct<Db::Value>(_1))]);
 
-    phoenix::function<AttributeErrorHandler<Iterator> > attributeErrorHandler = AttributeErrorHandler<Iterator>();
+    phoenix::function<AttributeFilterErrorHandler<Iterator> > attributeFilterErrorHandler = AttributeFilterErrorHandler<Iterator>();
     phoenix::function<ValueErrorHandler<Iterator> > valueErrorHandler = ValueErrorHandler<Iterator>();
-    on_error<fail>(start, attributeErrorHandler(_1, _2, _3, _4,
-                                                phoenix::ref(attributes), phoenix::ref(m_name), m_parent));
+    on_error<fail>(start, attributeFilterErrorHandler(_1, _2, _3, _4, phoenix::ref(attributes),
+                                                phoenix::ref(sets), phoenix::ref(m_name), m_parent));
     on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4, phoenix::ref(currentAttributeName), m_parent));
 }
 

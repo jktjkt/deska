@@ -103,7 +103,7 @@ public:
     *
     *   @param params Parameters of the command.
     */
-    virtual void operator()(const std::string &params) = 0;
+    virtual bool operator()(const std::string &params) = 0;
 
     /** @short Gets command completion patterns.
     *
@@ -165,7 +165,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -191,7 +191,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -217,7 +217,7 @@ public:
     *
     *   @param params Commit message. Will be prompted, when omitted.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -243,7 +243,7 @@ public:
     *
     *   @param params Detach message. Will be prompted, when omitted.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -269,7 +269,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -295,8 +295,36 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
+
+
+
+/** @short Cli command.
+*
+*   Toggles non-interactive mode
+*
+*   @see Command
+*/
+class NonInteractive: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    NonInteractive(UserInterface *userInterface);
+
+    virtual ~NonInteractive();
+
+    /** @short Shows if you are in non-interactive mode or not and is able to switch it
+    *
+    *   @param params With param "on" switches to non-interactive mode, with param "off" turns
+    *                 non-interactive mode off. Without parameter shows if you are in non-interactive mode or not
+    */
+    virtual bool operator()(const std::string &params);
+};
+
 
 
 /** @short Cli command.
@@ -320,7 +348,7 @@ public:
     *
     *   @param params With parameter "regenerate" forces regeneration of the configuration.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -346,7 +374,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -372,7 +400,7 @@ public:
     *
     *   @param params For parameter "objects" shows list of objects matched by current context.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -398,7 +426,7 @@ public:
     *
     *   @param params File name where to dump the DB. Dump to standard output when ommited.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 
 private:
     /** @short Recursively dumps kind with attributes and nested kinds.
@@ -414,7 +442,7 @@ private:
 
 /** @short Cli command.
 *
-*   Runs commands from file.
+*   Runs parser commands from file.
 *
 *   @see Command
 */
@@ -429,11 +457,11 @@ public:
 
     virtual ~Batch();
 
-    /** @short Runs commands from file.
+    /** @short Runs parser commands from file.
     *
     *   @param params File name where commands are stored.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -459,7 +487,7 @@ public:
     *
     *   @param params File name where the backup will be stored.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 
 private:
     /** @short Function for sorting object modifications.
@@ -496,7 +524,33 @@ public:
     *
     *   @param params File name where the backup is stored.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
+};
+
+
+
+/** @short Cli command.
+*
+*   Runs commands from file including CLI commands.
+*
+*   @see Command
+*/
+class Execute: public Command
+{
+public:
+    /** @short Constructor sets command name and completion pattern.
+    *
+    *   @param userInterface Pointer to the UserInterface
+    */
+    Execute(UserInterface *userInterface);
+
+    virtual ~Execute();
+
+    /** @short Runs commands from file including CLI commands.
+    *
+    *   @param params File name where commands are stored.
+    */
+    virtual bool operator()(const std::string &params);
 };
 
 
@@ -522,7 +576,7 @@ public:
     *
     *   @param params Unused here.
     */
-    virtual void operator()(const std::string &params);
+    virtual bool operator()(const std::string &params);
 };
 
 
