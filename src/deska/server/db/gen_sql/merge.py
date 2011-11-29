@@ -184,6 +184,7 @@ LANGUAGE plpgsql;
 
         for table in self.composition_touples:
             self.check_composition_cycle(table, [])
+            self.check_cble_attributes(table)
 
         self.constraint_sql.write(self.gen_add_check_constraint())
         self.trigger_sql.write(self.gen_rename_trigger())
@@ -283,3 +284,17 @@ LANGUAGE plpgsql;
                 composition_chain.append(table)
                 for contained_table in self.composition_touples[table]:
                     self.check_composition_cycle(contained_table, composition_chain)
+
+    def check_cble_attributes(self, table):
+        attribute_in_tables = dict()
+        for contained_table in self.composition_touples[table]:
+            record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': contained_table})
+            for row in record:
+                att = row[0]
+                if att == table:
+                    continue
+                if att in attribute_in_tables:
+                    raise ValueError, ('relation composition is badly defined, attribute %(att)s is in %(contained_tab1)s and %(contained_tab2)s, both contained in kind %(tbl)s' % {'tbl': table, 'contained_tab1': contained_table, 'contained_tab2': attribute_in_tables[att], 'att': att})
+                else:
+                    attribute_in_tables[att] = contained_table
+                    
