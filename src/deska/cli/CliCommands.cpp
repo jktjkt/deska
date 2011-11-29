@@ -574,8 +574,6 @@ bool Exit::operator()(const std::string &params)
         ui->io->reportError("Error: No parameters expected for command " + cmdName + ".");
         return false;
     }
-    if (!ui->nonInteractiveMode && !ui->forceNonInteractive && !ui->io->askForConfirmation("Really exit Deska CLI?"))
-        return false;
     ui->exitLoop = true;
     return true;
 }
