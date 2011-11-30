@@ -4,6 +4,9 @@
 
 DB_SOURCES=`readlink -f ../src/deska/server/db/`
 
+# DO NOT write NOTICES
+export PGOPTIONS='--client-min-messages=warning'
+
 if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
     # do not pollute the source tree with generated files
     DESKA_GENERATED_FILES=`mktemp -d`
