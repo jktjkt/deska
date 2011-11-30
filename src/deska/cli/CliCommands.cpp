@@ -265,7 +265,6 @@ bool Resume::operator()(const std::string &params)
             ostr << "Error while resuming changeset: " << e.what();
             ui->io->reportError(ostr.str());
             return false;
-        }
         } catch (Db::ServerError &e) {
             std::ostringstream ostr;
             ostr << "Error while resuming changeset: " << e.what();
