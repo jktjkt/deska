@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE(changesets, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("resume", false));
     std::vector<Deska::Db::PendingChangeset> changesets;
-    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), "foobar", 
+    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), std::getenv("DESKA_USER"), 
         boost::posix_time::time_from_string("2011-Sep-17 12:34:56.789101"), Deska::Db::RevisionId(1), "Testing message",
         Deska::Db::PendingChangeset::ATTACH_DETACHED, boost::optional<std::string>()));
     expectChooseChangeset(changesets);
@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("resume", false));
     std::vector<Deska::Db::PendingChangeset> changesets;
-    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), "foobar", 
+    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), std::getenv("DESKA_USER"), 
         boost::posix_time::time_from_string("2011-Sep-17 12:34:56.789101"), Deska::Db::RevisionId(1), "Testing message",
         Deska::Db::PendingChangeset::ATTACH_IN_PROGRESS, boost::optional<std::string>()));
     expectChooseChangeset(changesets);
@@ -133,7 +133,7 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("resume", false));
     std::vector<Deska::Db::PendingChangeset> changesets;
-    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), "foobar", 
+    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), std::getenv("DESKA_USER"), 
         boost::posix_time::time_from_string("2011-Sep-17 12:34:56.789101"), Deska::Db::RevisionId(1), "Testing message",
         Deska::Db::PendingChangeset::ATTACH_IN_PROGRESS, boost::optional<std::string>()));
     expectChooseChangeset(changesets);
@@ -176,7 +176,7 @@ BOOST_FIXTURE_TEST_CASE(objects_connecting, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("resume", false));
     std::vector<Deska::Db::PendingChangeset> changesets;
-    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), "foobar", 
+    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), std::getenv("DESKA_USER"), 
         boost::posix_time::time_from_string("2011-Sep-17 12:34:56.789101"), Deska::Db::RevisionId(1), "Testing message",
         Deska::Db::PendingChangeset::ATTACH_IN_PROGRESS, boost::optional<std::string>()));
     expectChooseChangeset(changesets);
@@ -201,7 +201,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("resume", false));
     std::vector<Deska::Db::PendingChangeset> changesets;
-    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), "foobar", 
+    changesets.push_back(Deska::Db::PendingChangeset(Deska::Db::TemporaryChangesetId(2), std::getenv("DESKA_USER"), 
         boost::posix_time::time_from_string("2011-Sep-17 12:34:56.789101"), Deska::Db::RevisionId(1), "Testing message",
         Deska::Db::PendingChangeset::ATTACH_IN_PROGRESS, boost::optional<std::string>()));
     expectChooseChangeset(changesets);
