@@ -59,7 +59,7 @@ function add_merge_link_triggers(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python "${DB_SOURCES}/gen_sql/generator.py" "${DATABASE}" "${USER}" "${DESKA_GENERATED_FILES}/gen_schema.sql" > ${TARGET}/python/generated.py
+	python "${DB_SOURCES}/gen_sql/generator.py" "${DATABASE}" "${USER}" "${DESKA_GENERATED_FILES}/gen_schema.sql" "${TARGET}/python/generated.py" > ${TARGET}/warnings.txt
 }
 
 function generate_templates(){

@@ -134,7 +134,7 @@ CREATE FUNCTION commit_all(message text)
 
 
 	# generate sql for all tables
-	def gen_schema(self,filename):
+	def gen_schema(self,filename,generated_filename):
 		"""Generates sql files for creating history tables and stored procedures.
 
 		For each table in variable table (tables in the schema production) is called function gen_for_table.
@@ -145,6 +145,7 @@ CREATE FUNCTION commit_all(message text)
 		name_split = filename.rsplit('/', 1)
 		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
+		self.generated_py = open(generated_filename,'w')
 
 		# print this to add proc into genproc schema
 		self.table_sql.write("SET search_path TO history,deska,versioning,production;\n")
@@ -176,16 +177,16 @@ CREATE FUNCTION commit_all(message text)
 
 
 		# create some python helper functions
-		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
-		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
-		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
-		print self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)}
-		print self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)}
-		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
-		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
-		print self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"}
-		print self.py_fn_str % {'name': "relFromTbl", 'args': 'relName', 'result': str(self.relFromTbl) + "[relName]"}
-		print self.py_fn_str % {'name': "relToTbl", 'args': 'relName', 'result': str(self.relToTbl) + "[relName]"}
+		self.generated_py.write(self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)})
+		self.generated_py.write(self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"})
+		self.generated_py.write(self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"})
+		self.generated_py.write(self.py_fn_str % {'name': "relFromTbl", 'args': 'relName', 'result': str(self.relFromTbl) + "[relName]"})
+		self.generated_py.write(self.py_fn_str % {'name': "relToTbl", 'args': 'relName', 'result': str(self.relToTbl) + "[relName]"})
 		return
 
 	# generate sql for one table
