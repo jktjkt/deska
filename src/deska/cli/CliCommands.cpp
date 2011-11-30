@@ -260,6 +260,12 @@ bool Resume::operator()(const std::string &params)
             std::ostringstream ostr;
             ostr << "Changeset " << *(ui->currentChangeset) << " resumed.";
             ui->io->printMessage(ostr.str());
+        } catch (Db::ChangesetRangeError &e) {
+            std::ostringstream ostr;
+            ostr << "Error while resuming changeset: " << e.what();
+            ui->io->reportError(ostr.str());
+            return false;
+        }
         } catch (Db::ServerError &e) {
             std::ostringstream ostr;
             ostr << "Error while resuming changeset: " << e.what();
