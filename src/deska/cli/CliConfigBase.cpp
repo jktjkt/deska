@@ -86,6 +86,62 @@ std::string CliConfigBase::usage()
 
 
 
+void CliConfigBase::loadOptions(const boost::program_options::options_description &options)
+{
+    namespace po = boost::program_options;
+
+    // We have to obtain default values, so we do this "fake" parsing here
+    po::parsed_options commandLineOptions = po::command_line_parser(0, 0).options(options).run();
+    po::store(commandLineOptions, configVars);
+
+    std::ostringstream ostr;
+    ostr << options;
+    configUsage = ostr.str();
+}
+
+
+
+void CliConfigBase::loadOptions(const boost::program_options::options_description &options,
+                                const std::string &configFile)
+{
+    namespace po = boost::program_options;
+
+    std::ifstream configStream(configFile.c_str());
+    po::parsed_options configFileOptions = po::parse_config_file(configStream, options, true);
+    po::store(configFileOptions, configVars);
+    unregConfigFileOptions = po::collect_unrecognized(configFileOptions.options, po::include_positional);
+
+    // FIXME: Proper handling of required options is not available in Boost 1.41
+    /*if (!(configVars.count(CmdLine_Help) || configVars.count(CmdLine_Version)))
+        po::notify(configVars);*/
+
+    std::ostringstream ostr;
+    ostr << options;
+    configUsage = ostr.str();
+}
+
+
+
+void CliConfigBase::loadOptions(const boost::program_options::options_description &options,
+                                int argc, char **argv)
+{
+    namespace po = boost::program_options;
+
+    po::parsed_options commandLineOptions = po::command_line_parser(argc, argv).options(options).allow_unregistered().run();
+    po::store(commandLineOptions, configVars);
+    unregCmdLineOptions = po::collect_unrecognized(commandLineOptions.options, po::include_positional);
+
+    // FIXME: Proper handling of required options is not available in Boost 1.41
+    /*if (!(configVars.count(CmdLine_Help) || configVars.count(CmdLine_Version)))
+        po::notify(configVars);*/
+
+    std::ostringstream ostr;
+    ostr << options;
+    configUsage = ostr.str();
+}
+
+
+
 void CliConfigBase::loadOptions(const boost::program_options::options_description &options,
                                 const std::string &configFile, int argc, char **argv)
 {

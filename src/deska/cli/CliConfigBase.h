@@ -88,6 +88,26 @@ public:
     std::string usage();
 
 protected:
+    /** @short Only updates usage
+    *
+    *   @param options Options definitions
+    */
+    void loadOptions(const boost::program_options::options_description &options);
+    /** @short Loads configuration values from file
+    *
+    *   @param options Options definitions
+    *   @param configFile Name of file with configuration
+    */
+    void loadOptions(const boost::program_options::options_description &options,
+                     const std::string &configFile);
+    /** @short Loads configuration values from command line
+    *
+    *   @param options Options definitions
+    *   @param argc Number of parameters from the command line
+    *   @param argv Parameters from the command line
+    */
+    void loadOptions(const boost::program_options::options_description &options,
+                     int argc, char **argv);
     /** @short Loads configuration values from command line and from file
     *
     *   @param options Options definitions
