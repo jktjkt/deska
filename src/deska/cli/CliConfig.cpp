@@ -21,6 +21,7 @@
 * */
 
 
+#include <cstdlib>
 #include "CliConfig.h"
 
 
@@ -44,7 +45,7 @@ CliConfig::CliConfig(const std::string &configFile, int argc, char **argv): CliC
         ((CmdLine_Execute + ",e").c_str(), po::value<std::string>(), "executes commands from a file")
         // FIXME: Proper handling of required options is not available in Boost 1.41
         (DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken()/*->required()*/, "path to executable for connection to Deska server including arguments")
-        (CLI_HistoryFilename.c_str(), po::value<std::string>()->default_value(".deska_cli_history"), "name of file with history")
+        (CLI_HistoryFilename.c_str(), po::value<std::string>()->default_value(std::getenv("HOME") + std::string("/.local/share/deska/.deska_cli_history")), "name of file with history")
         (CLI_HistoryLimit.c_str(), po::value<unsigned int>()->default_value(64), "number of lines stored in history")
         (CLI_LineWidth.c_str(), po::value<unsigned int>()->default_value(0), "width of line for wrapping")
         (CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
