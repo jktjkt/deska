@@ -21,6 +21,8 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+
+#include <cstdlib>
 #include "boost/process.hpp"
 #include "ChildProcess.h"
 
@@ -32,10 +34,7 @@ namespace Cli
 
 Editor::Editor(const std::string &fileName)
 {
-    std::string exe = getenv("EDITOR");
-    if (exe.empty()) {
-        exe = "vim";
-    }
+    std::string exe = std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim";
 
     std::vector<std::string> args;
     args.push_back(exe);
@@ -55,10 +54,7 @@ Editor::Editor(const std::string &fileName)
 
 Pager::Pager(const std::string &message)
 {
-    std::string exe = getenv("PAGER");
-    if (exe.empty()) {
-        exe = "less";
-    }
+    std::string exe = std::getenv("PAGER") ? std::getenv("PAGER") : "less";
 
     std::vector<std::string> args;
     args.push_back(exe);

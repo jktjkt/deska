@@ -24,6 +24,8 @@
 #ifndef DESKA_CLI_CHILDPROCESS_H
 #define DESKA_CLI_CHILDPROCESS_H
 
+#include <string>
+
 namespace Deska
 {
 namespace Cli
