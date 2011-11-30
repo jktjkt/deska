@@ -912,7 +912,7 @@ bool Diff::operator()(const std::string &params)
         try {
             modifications = ui->m_dbInteraction->revisionsDifference(*revA, *revB);
         } catch (Db::RevisionRangeError &e) {
-            ui->io->reportError("Revision range does not make a sense.");
+            ui->io->reportError("Revision range does not make a sense or revision does not exist.");
             return false;
         }
         if (paramsList.size() == 2) {
