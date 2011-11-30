@@ -4,6 +4,9 @@
 
 DB_SOURCES=`readlink -f ../src/deska/server/db/`
 
+# DO NOT write NOTICES
+export PGOPTIONS='--client-min-messages=warning'
+
 if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
     # do not pollute the source tree with generated files
     DESKA_GENERATED_FILES=`mktemp -d`
@@ -54,7 +57,7 @@ function create_templates(){
 
 function generate_merge(){
 	echo "Generating templates ..."
-	python "${DB_SOURCES}/gen_sql/merge_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/merge.sql"> ${DB_SOURCES}/warnings.txt
+	python "${DB_SOURCES}/gen_sql/merge_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/merge.sql"
 }
 
 function add_merge_relations(){
@@ -73,17 +76,17 @@ function add_merge_link_triggers(){
 
 function generate(){
 	echo "Generating stored procedures ..."
-	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql" "${DB_SOURCES}/generated.py"> ${DB_SOURCES}/warnings.txt
+	python "${DB_SOURCES}/gen_sql/generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/gen_schema.sql" "${DB_SOURCES}/generated.py"
 }
 
 function generate_templates(){
 	echo "Generating templates ..."
-	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"> ${DB_SOURCES}/warnings.txt
+	python "${DB_SOURCES}/gen_sql/template_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/templates.sql"
 }
 
 function generate_multiRefs(){
 	echo "Generating multi references ..."
-	python "${DB_SOURCES}/gen_sql/multiRef_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/multiref.sql"> ${DB_SOURCES}/warnings.txt
+	python "${DB_SOURCES}/gen_sql/multiRef_generator.py" "$DATABASE" "$USER" "${DESKA_GENERATED_FILES}/multiref.sql"
 }
 
 function add_multiRefs(){
