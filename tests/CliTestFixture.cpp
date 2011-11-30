@@ -133,10 +133,8 @@ void CliTestFixture::verifyEnd()
 void CliTestFixture::startTest()
 {
     BOOST_ASSERT(!testStarted);
-    int argc = 0;
-    char **argv = 0;
     testStarted = true;
-    conf = new CliConfigTest("deska_test.ini", argc, argv);
+    conf = new CliConfigTest();
     std::vector<std::string> args;
     args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska-server");
     conn = new Deska::Db::Connection(args);

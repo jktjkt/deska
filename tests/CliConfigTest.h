@@ -31,13 +31,8 @@ class CliConfigTest: public Deska::Cli::CliConfigBase
 {
 public:
 
-    /** @short Constructor loads configuration from command line and configuration file.
-    *
-    *   @param configFile Name of file with configuration
-    *   @param argc Number of parameters from the command line
-    *   @param argv Parameters from the command line
-    */
-    CliConfigTest(const std::string &configFile, int argc, char **argv);
+    /** @short Constructor loads default values for configuration variables */
+    CliConfigTest();
 };
 
 

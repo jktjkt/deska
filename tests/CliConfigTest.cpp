@@ -24,15 +24,13 @@
 #include "CliConfigTest.h"
 
 
-CliConfigTest::CliConfigTest(const std::string &configFile, int argc, char **argv): CliConfigBase()
+CliConfigTest::CliConfigTest(): CliConfigBase()
 {
     namespace po = boost::program_options;
 
     boost::program_options::options_description options("Deska CLI Test Options");
     options.add_options()
-        // FIXME: Proper handling of required options is not available in Boost 1.41
-        (Deska::Cli::DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken()/*->required()*/, "path to executable for connection to Deska server including arguments")
         (Deska::Cli::CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
 
-    loadOptions(options, configFile, argc, argv);
+    loadOptions(options);
 }
