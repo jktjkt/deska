@@ -124,7 +124,7 @@ CREATE FUNCTION commit_all(message text)
 			invalid_rec = self.plpy.execute(self.invalid_relations_str % tbl[0])
 			#cheks if there is foreign key in schema that is not supported by deska
 			for row in invalid_rec:
-				print "Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is not deska relation." % {'tbl': tbl[0], 'att': row[0], 'reftbl': row[1]}
+				print "WARNING: Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is not deska relation." % {'tbl': tbl[0], 'att': row[0], 'reftbl': row[1]}
 			self.tables.add(tbl[0])
 
 		# print foreign keys at the end
