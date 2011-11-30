@@ -32,7 +32,7 @@
 
 #include "ChildProcess.h"
 #include "CliCommands.h"
-#include "CliConfig.h"
+#include "CliConfigBase.h"
 #include "ContextStack.h"
 #include "UserInterfaceIO.h"
 
@@ -312,7 +312,7 @@ UserInterfaceIO::UserInterfaceIO()
 
 
 
-UserInterfaceIO::UserInterfaceIO(Parser* parser, CliConfig* _config):
+UserInterfaceIO::UserInterfaceIO(Parser *parser, CliConfigBase *_config):
     tabSize(4), promptEnd("> "), config(_config), lineWidth(config->getVar<unsigned int>(CLI_LineWidth))
 {
     completer = new CliCompleter(parser);

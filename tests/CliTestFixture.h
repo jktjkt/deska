@@ -60,6 +60,7 @@ class Parser;
 #define FORWARD_4_OSTREAM(FUNC, EFUNC, TYPE_1, TYPE_2, TYPE_3) virtual void FUNC(boost::call_traits<TYPE_1>::param_type, boost::call_traits<TYPE_2>::param_type, boost::call_traits<TYPE_3>::param_type, std::ostream&);
 
 class CliTestFixture;
+class CliConfigTest;
 
 /** @short Class for testing IO operations needed in a command line user interface with a standard iostream implementation.
 *
@@ -116,7 +117,7 @@ struct CliTestFixture
     MockCliEvent returnHelper(const MockCliEvent &e);
     
 
-    Deska::Cli::CliConfig *conf;
+    CliConfigTest *conf;
     Deska::Db::Connection *conn;
     Deska::Cli::Parser *parser;
     Deska::Cli::DbInteraction *db;

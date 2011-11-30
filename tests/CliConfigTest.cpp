@@ -20,34 +20,19 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_CLICONFIG_H
-#define DESKA_CLI_CLICONFIG_H
 
-#include "CliConfigBase.h"
+#include "CliConfigTest.h"
 
 
-namespace Deska {
-namespace Cli {
-
-
-
-/** @short Class for storing, parsing and obtaining program configuration variables. */
-class CliConfig: public CliConfigBase
+CliConfigTest::CliConfigTest(const std::string &configFile, int argc, char **argv): CliConfigBase()
 {
-public:
+    namespace po = boost::program_options;
 
-    /** @short Constructor loads configuration from command line and configuration file.
-    *
-    *   @param configFile Name of file with configuration
-    *   @param argc Number of parameters from the command line
-    *   @param argv Parameters from the command line
-    */
-    CliConfig(const std::string &configFile, int argc, char **argv);
-};
+    boost::program_options::options_description options("Deska CLI Test Options");
+    options.add_options()
+        // FIXME: Proper handling of required options is not available in Boost 1.41
+        (Deska::Cli::DBConnection_Server.c_str(), po::value<std::vector<std::string> >()->multitoken()/*->required()*/, "path to executable for connection to Deska server including arguments")
+        (Deska::Cli::CLI_NonInteractive.c_str(), po::value<bool>()->default_value(false), "flag singalising, that all questions concerning object deletion, creation, etc. will be automaticly confirmed");
 
-
-
+    loadOptions(options, configFile, argc, argv);
 }
-}
-
-#endif // DESKA_CLI_CLICONFIG_H

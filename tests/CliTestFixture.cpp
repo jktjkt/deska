@@ -24,7 +24,7 @@
 #include <boost/test/test_tools.hpp>
 #include <boost/assert.hpp>
 #include "CliTestFixture.h"
-#include "deska/cli/CliConfig.h"
+#include "CliConfigTest.h"
 
 // At first, define a few macros which specify how the code shall be generated
 
@@ -136,7 +136,7 @@ void CliTestFixture::startTest()
     int argc = 0;
     char **argv = 0;
     testStarted = true;
-    conf = new Deska::Cli::CliConfig("deska.ini", argc, argv);
+    conf = new CliConfigTest("deska_test.ini", argc, argv);
     std::vector<std::string> args;
     args.push_back(std::string(CMAKE_CURRENT_SOURCE_DIR) + "/src/deska/server/app/deska-server");
     conn = new Deska::Db::Connection(args);

@@ -32,7 +32,7 @@
 #include "Parser.h"
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
-#include "CliConfig.h"
+#include "CliConfigBase.h"
 #include "deska/db/JsonException.h"
 
 
@@ -44,7 +44,7 @@ namespace Cli
 
 
 
-UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfigBase *_config):
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(), exitLoop(false), parsingFailed(false),
     forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
