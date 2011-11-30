@@ -111,7 +111,12 @@ class DB:
 	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
 			# set isolation level serializable, and read only transaction
-			changeset = self.callProc("get_current_changeset_or_null",{})
+
+			# try if there is changeset attached
+			try:
+				changeset = self.currentChangeset()
+			except:
+				changeset = None
 			if changeset is not None:
 				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
 			# FIXME: better solution needs psycopg2.4.2
