@@ -86,6 +86,7 @@ set(ParserTestHelpers_SRCS
 set(CliTestHelpers_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/MockCliEvent.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CliTestFixture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CliConfigTest.cpp  
 )
 
 add_library(ParserTestHelpers SHARED ${ParserTestHelpers_SRCS})

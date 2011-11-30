@@ -80,12 +80,6 @@ case "${TESTMODE}" in
         python ${DESKA_SOURCES}/tests/dbapi-application/testdbapi.py ${DESKA_SOURCES}/src/deska/server/app/deska-server $TESTCASE
         TEST_RESULT=$?
         ;;
-    persist)
-        export DESKA_USER
-        export DESKA_DB
-        python ${DESKA_SOURCES}/tests/dbapi-persist/tester.py ${DESKA_SOURCES}/src/deska/server/app/deska-server $TESTCASE
-        TEST_RESULT=$?
-        ;;
     run)
         export DESKA_USER
         export DESKA_DB

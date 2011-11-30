@@ -48,7 +48,7 @@ network.
 The Deska system is therefore built around a central object database.  When new data are pushed to the database by an
 administrator, a set of hook scripts is run.  These scripts walk the objects in the database and produce configuration
 files for each daemon and service.  The resulting configuration is then presented to the administrator who initiated the
-change.  She can asses the difference in the generated configuration, decide whether it matches the changes she has made
+change.  She can assess the difference in the generated configuration, decide whether it matches the changes she has made
 to the database, and if she is happy with the result, approve the resulting configuration and new version of the
 database data.  When approved, the system pushes the generated configuration files to the existing infrastructure for
 fabric management, which takes care of distributing the updated data to the individual services.

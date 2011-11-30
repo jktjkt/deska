@@ -45,7 +45,7 @@ namespace Cli
 {
 
 
-class CliConfig;
+class CliConfigBase;
 
 
 /** @brief Custom completions generator */
@@ -97,10 +97,10 @@ public:
     /** @short Constructor initializes input reader and CLI constants.
     *
     *   @param parser Pointer to the parser
-    *   @param _config Pointer to the CliConfig class for configuration parameters parsed from command line and config file
+    *   @param _config Pointer to the CliConfigBase class for configuration parameters parsed from command line and config file
     *   @see Parser
     */
-    UserInterfaceIO(Parser* parser, CliConfig* _config);
+    UserInterfaceIO(Parser *parser, CliConfigBase *_config);
     
     /** @short Destroys custom completer and line reader. */
     virtual ~UserInterfaceIO();
@@ -377,7 +377,7 @@ private:
     /** Custom completions generator. */
     CliCompleter *completer;
     /** Class containing loaded configuration parameters. */
-    CliConfig *config;
+    CliConfigBase *config;
     /** Width of a line for wrapping, 0 for no wrapping */
     unsigned int lineWidth;
 };

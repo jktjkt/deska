@@ -46,7 +46,7 @@ class Parser;
 class ParserException;
 class UserInterfaceIOBase;
 class UserInterface;
-class CliConfig;
+class CliConfigBase;
 
 
 /** @short Class for communication with the user.
@@ -66,9 +66,9 @@ public:
     *   @param dbInteraction Pointer to the class used for communication with the database
     *   @param parser Pointer to the parser used for parsing commands that are not any known keyword
     *   @param _io Pointer to the UserInterfaceIO class for IO oparations
-    *   @param _config Pointer to the CliConfig class for configuration parameters parsed from command line and config file
+    *   @param _config Pointer to the CliConfigBase class for configuration parameters parsed from command line and config file
     */
-    UserInterface(DbInteraction *dbInteraction, Parser* parser, UserInterfaceIOBase *_io, CliConfig* _config);
+    UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfigBase *_config);
 
     /** @short Deletes commands from commands map. */
     ~UserInterface();

@@ -32,7 +32,7 @@
 #include "Parser.h"
 #include "UserInterface.h"
 #include "UserInterfaceIOBase.h"
-#include "CliConfig.h"
+#include "CliConfigBase.h"
 #include "deska/db/JsonException.h"
 
 
@@ -44,7 +44,7 @@ namespace Cli
 
 
 
-UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfig* _config):
+UserInterface::UserInterface(DbInteraction *dbInteraction, Parser *parser, UserInterfaceIOBase *_io, CliConfigBase *_config):
     m_dbInteraction(dbInteraction), m_parser(parser), io(_io), currentChangeset(), exitLoop(false), parsingFailed(false),
     forceNonInteractive(_config->getVar<bool>(CLI_NonInteractive) || _config->defined(CmdLine_NonInteractive))
 {
@@ -97,7 +97,7 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
         newItem = m_dbInteraction->createObject(context);
         return true;
     } catch (Deska::Db::ReCreateObjectError &e) {
-        if (io->confirmRestoration(ObjectDefinition(kind,object))) {
+        if (nonInteractiveMode || forceNonInteractive || io->confirmRestoration(ObjectDefinition(kind,object))) {
             m_dbInteraction->restoreDeletedObject(context);
             newItem = ContextStackItem(kind, object);
             return true;
@@ -238,7 +238,7 @@ bool UserInterface::applyFunctionDelete(const ContextStack &context)
         m_dbInteraction->deleteObject(context);
         return true;
     } else {
-        if (io->confirmDeletionNested(nestedObjects)) {
+        if (nonInteractiveMode || forceNonInteractive || io->confirmDeletionNested(nestedObjects)) {
             std::vector<ObjectDefinition> toDelete = m_dbInteraction->expandContextStack(context);
             toDelete.insert(toDelete.end(), nestedObjects.begin(), nestedObjects.end());
             m_dbInteraction->deleteObjects(toDelete);
@@ -257,7 +257,7 @@ bool UserInterface::applyFunctionRename(const ContextStack &context, const Db::I
     if (connectedObjects.empty()) {
         m_dbInteraction->renameObject(context, newName);
     } else {
-        if (io->confirmRenameConnected(connectedObjects)) {
+        if (!nonInteractiveMode && !forceNonInteractive && io->confirmRenameConnected(connectedObjects)) {
             std::vector<ObjectDefinition> toRename = m_dbInteraction->expandContextStack(context);
             toRename.insert(toRename.end(), connectedObjects.begin(), connectedObjects.end());
             m_dbInteraction->renameObjects(toRename, newName);

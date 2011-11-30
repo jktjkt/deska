@@ -159,7 +159,7 @@ set(libDeskaCli_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Parser_p_TopLevelParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserErrors.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/Exceptions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfigBase.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliObjects.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/DbInteraction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/ParserSignals.cpp
@@ -174,6 +174,7 @@ set(libDeskaCli_SRCS
 
 set(deskaCliApp_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/cli/CliConfig.cpp
 )
 
 set(libLowLevelPyDeska_SRCS

@@ -20,19 +20,14 @@
 * Boston, MA 02110-1301, USA.
 * */
 
-#ifndef DESKA_CLI_CLICONFIG_H
-#define DESKA_CLI_CLICONFIG_H
+#ifndef DESKA_CLI_CLICONFIG_TEST_H
+#define DESKA_CLI_CLICONFIG_TEST_H
 
-#include "CliConfigBase.h"
-
-
-namespace Deska {
-namespace Cli {
-
+#include "deska/cli/CliConfigBase.h"
 
 
 /** @short Class for storing, parsing and obtaining program configuration variables. */
-class CliConfig: public CliConfigBase
+class CliConfigTest: public Deska::Cli::CliConfigBase
 {
 public:
 
@@ -42,12 +37,8 @@ public:
     *   @param argc Number of parameters from the command line
     *   @param argv Parameters from the command line
     */
-    CliConfig(const std::string &configFile, int argc, char **argv);
+    CliConfigTest(const std::string &configFile, int argc, char **argv);
 };
 
 
-
-}
-}
-
-#endif // DESKA_CLI_CLICONFIG_H
+#endif // DESKA_CLI_CLICONFIG_TEST_H

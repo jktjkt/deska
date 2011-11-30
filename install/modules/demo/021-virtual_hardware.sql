@@ -14,9 +14,9 @@ CREATE TABLE virtual_hardware (
 	name identifier
 		CONSTRAINT "virtual_hardware with this name already exists" UNIQUE NOT NULL,
 	-- how many CPUs are assigned to this machine?
-	cpu_num int,
+	vcpu_num int,
 	-- how much RAM (in MB) to put in there?
-	ram int,
+	vram int,
     host bigint
 );
 
