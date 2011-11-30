@@ -45,6 +45,9 @@ def %(name)s(%(args)s):
 	"""Query to get names of tables which are in composition with this table."""
 	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
 	"""Query to get info about all relations refers_to_set."""
+	check_ondel_no_action_str = "SELECT kindname, refkind, attname FROM check_delete_no_action()"
+	invalid_relations_str = "SELECT attname, refkind FROM kindRelations_full_info('%s') WHERE relation = 'INVALID';"
+	"""Query to get foreign keys that are not deska relations """
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -111,8 +114,17 @@ CREATE FUNCTION commit_all(message text)
 		# dict of tables that refers to some sets of uids
 		self.refers_to_set = dict()
 		# select all tables
+		
+		record = self.plpy.execute(self.check_ondel_no_action_str)
+		for row in record:
+			raise ValueError, "Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is badly defined, it should have set on delete no action." % {'tbl': row[0], 'att': row[1], 'reftbl': row[2]}
+		
 		record = self.plpy.execute(self.table_str)
 		for tbl in record[:]:
+			invalid_rec = self.plpy.execute(self.invalid_relations_str % tbl[0])
+			#cheks if there is foreign key in schema that is not supported by deska
+			for row in invalid_rec:
+				print "Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is not deska relation." % {'tbl': tbl[0], 'att': row[0], 'reftbl': row[1]}
 			self.tables.add(tbl[0])
 
 		# print foreign keys at the end
