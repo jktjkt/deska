@@ -1,6 +1,5 @@
 BEGIN;
 
-\i util-switch-user.sql
 \i util-include-path.sql
 
 

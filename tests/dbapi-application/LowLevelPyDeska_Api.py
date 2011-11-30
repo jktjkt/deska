@@ -53,7 +53,7 @@ def imperative(r):
         "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "vendor": "[]",
         "service": "[note: TYPE_STRING]",
-        "virtual_hardware": "[cpu_num: TYPE_INT, host: TYPE_IDENTIFIER, ram: TYPE_INT]"
+        "virtual_hardware": "[host: TYPE_IDENTIFIER, vcpu_num: TYPE_INT, vram: TYPE_INT]"
     }
     for kind in kindNames:
         kindAttributes = c.kindAttributes(kind)
