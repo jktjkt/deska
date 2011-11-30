@@ -11,4 +11,4 @@ conn = Connection(sys.argv[1],sys.argv[2])
 schema = Schema(conn)
 
 # generate sql code
-schema.gen_schema(sys.argv[3])
+schema.gen_schema(sys.argv[3],sys.argv[4])

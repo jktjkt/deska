@@ -45,6 +45,9 @@ def %(name)s(%(args)s):
 	"""Query to get names of tables which are in composition with this table."""
 	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
 	"""Query to get info about all relations refers_to_set."""
+	check_ondel_no_action_str = "SELECT kindname, refkind, attname FROM check_delete_no_action()"
+	invalid_relations_str = "SELECT attname, refkind FROM kindRelations_full_info('%s') WHERE relation = 'INVALID';"
+	"""Query to get foreign keys that are not deska relations """
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -111,8 +114,17 @@ CREATE FUNCTION commit_all(message text)
 		# dict of tables that refers to some sets of uids
 		self.refers_to_set = dict()
 		# select all tables
+		
+		record = self.plpy.execute(self.check_ondel_no_action_str)
+		for row in record:
+			raise ValueError, "Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is badly defined, it should have set on delete no action." % {'tbl': row[0], 'att': row[1], 'reftbl': row[2]}
+		
 		record = self.plpy.execute(self.table_str)
 		for tbl in record[:]:
+			invalid_rec = self.plpy.execute(self.invalid_relations_str % tbl[0])
+			#cheks if there is foreign key in schema that is not supported by deska
+			for row in invalid_rec:
+				print "Foreign key constraint from %(tbl)s kind, %(att)s attribute to %(reftbl)s kind is not deska relation." % {'tbl': tbl[0], 'att': row[0], 'reftbl': row[1]}
 			self.tables.add(tbl[0])
 
 		# print foreign keys at the end
@@ -134,7 +146,7 @@ CREATE FUNCTION commit_all(message text)
 
 
 	# generate sql for all tables
-	def gen_schema(self,filename):
+	def gen_schema(self,filename,generated_filename):
 		"""Generates sql files for creating history tables and stored procedures.
 
 		For each table in variable table (tables in the schema production) is called function gen_for_table.
@@ -145,6 +157,7 @@ CREATE FUNCTION commit_all(message text)
 		name_split = filename.rsplit('/', 1)
 		self.table_sql = open(name_split[0] + '/' + 'create_tables2.sql','w')
 		self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
+		self.generated_py = open(generated_filename,'w')
 
 		# print this to add proc into genproc schema
 		self.table_sql.write("SET search_path TO history,deska,versioning,production;\n")
@@ -176,16 +189,16 @@ CREATE FUNCTION commit_all(message text)
 
 
 		# create some python helper functions
-		print self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)}
-		print self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"}
-		print self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)}
-		print self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)}
-		print self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)}
-		print self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)}
-		print self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)}
-		print self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"}
-		print self.py_fn_str % {'name': "relFromTbl", 'args': 'relName', 'result': str(self.relFromTbl) + "[relName]"}
-		print self.py_fn_str % {'name': "relToTbl", 'args': 'relName', 'result': str(self.relToTbl) + "[relName]"}
+		self.generated_py.write(self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)})
+		self.generated_py.write(self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"})
+		self.generated_py.write(self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "containsNames", 'args': '', 'result': str(self.containsNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "containableNames", 'args': '', 'result': str(self.containableNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "embedNames", 'args': '', 'result': str(self.embedNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "templateNames", 'args': '', 'result': str(self.templateNames)})
+		self.generated_py.write(self.py_fn_str % {'name': "relFromCol", 'args': 'relName', 'result': str(self.relFromCol) + "[relName]"})
+		self.generated_py.write(self.py_fn_str % {'name': "relFromTbl", 'args': 'relName', 'result': str(self.relFromTbl) + "[relName]"})
+		self.generated_py.write(self.py_fn_str % {'name': "relToTbl", 'args': 'relName', 'result': str(self.relToTbl) + "[relName]"})
 		return
 
 	# generate sql for one table
