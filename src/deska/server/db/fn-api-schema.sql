@@ -252,26 +252,27 @@ RETURNS SETOF kind_relation_full
 AS $$
 DECLARE
 BEGIN
-	RETURN QUERY SELECT 
-			CASE 
-				WHEN conname LIKE 'rconta_%' THEN 'CONTAINS'
-				WHEN conname LIKE 'rcoble_%' THEN 'CONTAINABLE'
-				WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATIZED'
-				WHEN conname LIKE 'rembed_%' THEN 'EMBED_INTO'
-				WHEN ((SELECT typ.typname FROM pg_attribute AS att 
-					JOIN pg_type AS typ ON (typ.oid = att.atttypid)
-					WHERE att.attrelid = class1.oid AND att.attname = ref_att_name(class1.oid,constr.conkey,class2.oid,constr.confkey)) = 'identifier_set') THEN
-					'REFERS_TO_SET'
-				ELSE 'INVALID'
-			END,
-			concat_atts_name(class1.oid, constr.conkey),
-			class2.relname, concat_atts_name(class2.oid, constr.confkey)
-			FROM    pg_constraint AS constr
-				--join with TABLE which the contraint is ON
-				JOIN pg_class AS class1 ON (constr.conrelid = class1.oid)
-				--join with referenced TABLE
-				JOIN pg_class AS class2 ON (constr.confrelid = class2.oid)
-			WHERE contype='f' AND class1.relname = kindname;
+    RETURN QUERY SELECT 
+            CASE 
+                WHEN conname LIKE 'rconta_%' THEN 'CONTAINS'
+                WHEN conname LIKE 'rcoble_%' THEN 'CONTAINABLE'
+                WHEN conname LIKE 'rtempl_%' THEN 'TEMPLATIZED'
+                WHEN conname LIKE 'rembed_%' THEN 'EMBED_INTO'
+                WHEN conname LIKE 'rrefer_%' THEN 'REFERS_TO'
+                WHEN ((SELECT typ.typname FROM pg_attribute AS att 
+                    JOIN pg_type AS typ ON (typ.oid = att.atttypid)
+                    WHERE att.attrelid = class1.oid AND att.attname = ref_att_name(class1.oid,constr.conkey,class2.oid,constr.confkey)) = 'identifier_set') THEN
+                    'REFERS_TO_SET'
+                ELSE 'INVALID'
+            END,
+            concat_atts_name(class1.oid, constr.conkey),
+            class2.relname, concat_atts_name(class2.oid, constr.confkey)
+            FROM    pg_constraint AS constr
+                --join with TABLE which the contraint is ON
+                JOIN pg_class AS class1 ON (constr.conrelid = class1.oid)
+                --join with referenced TABLE
+                JOIN pg_class AS class2 ON (constr.confrelid = class2.oid)
+            WHERE contype='f' AND class1.relname = kindname;
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
