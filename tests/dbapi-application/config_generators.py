@@ -143,7 +143,31 @@ deska.init()
     r.c(commitChangeset("nothing"))
     rmGenerator("01")
 
+def test_unchanged_output(r):
+    """Test what happens if some commits do not generate any action"""
+    writeGenerator("01",
+"""#!/usr/bin/env python
+
+f = file("blah", "wb")
+f.write("pwnzor\\n")
+""")
+    changeset = r.c(startChangeset())
+    helper_check_second_clone(r, ["README"])
+    r.c(createObject("vendor", "dummy03"))
+    r.c(commitChangeset("added file"))
+    helper_check_second_clone(r, ["README", "blah"])
+    mytarget = os.path.join(PATH_WC, changeset, "blah")
+    r.assertEqual(file(mytarget, "rb").readlines(), ["pwnzor\n"])
+    changeset = r.c(startChangeset())
+    r.cvoid(deleteObject("vendor", "dummy03"))
+    r.c(commitChangeset("no change"))
+    helper_check_second_clone(r, ["README", "blah"])
+    #mytarget = os.path.join(PATH_WC, changeset, "blah")
+    r.assertEqual(file(mytarget, "rb").readlines(), ["pwnzor\n"])
+    rmGenerator("01")
+
 def imperative(r):
     test_trivial(r)
     test_no_generators(r)
     test_no_output(r)
+    test_unchanged_output(r)
