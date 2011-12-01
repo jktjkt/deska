@@ -276,13 +276,16 @@ os.unlink("output")
         changeset = r.c(startChangeset(), conn=conn2)
         r.cvoid(deleteObject("vendor", "dummy06"), conn=conn2)
         r.c(commitChangeset("cleanup"), conn=conn2)
-
     else:
         r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'showConfigDiff']))
         r.assertTrue(cmdres["showConfigDiff"].index("All done") != -1)
         helper_check_second_clone(r, ["README"])
         r.cvoid(abortCurrentChangeset(), conn=conn1)
         rmGenerator("sleeping-beauty")
+
+    fA.close()
+    os.unlink(lockA)
+    os.unlink(fifo)
 
 
 def imperative(r):
