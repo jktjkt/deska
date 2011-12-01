@@ -125,7 +125,25 @@ def test_no_generators(r):
     r.cvoid(abortCurrentChangeset())
     helper_check_second_clone(r, ["README"])
 
+def test_no_output(r):
+    """Config generators which do not produce any output"""
+    writeGenerator("01",
+"""#!/usr/bin/env python
+import deska
+
+deska.init()
+""")
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy01"))
+    r.assertEqual(r.c(showConfigDiff()), "")
+    r.c(commitChangeset("nothing"))
+    # try it once again, now without the explicit showConfigDiff() call
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy02"))
+    r.c(commitChangeset("nothing"))
+    rmGenerator("01")
 
 def imperative(r):
     test_trivial(r)
     test_no_generators(r)
+    test_no_output(r)
