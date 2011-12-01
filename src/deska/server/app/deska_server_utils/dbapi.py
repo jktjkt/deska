@@ -11,6 +11,7 @@ try:
 except ImportError:
     import simplejson as json
 from jsonparser import perform_io
+from deska_server_utils.config_generators import GeneratorError
 
 class FreezingError(Exception):
     pass
@@ -19,7 +20,7 @@ class DeskaException(Exception):
 	'''Exception class for deska exceptions from jsn'''
 	def __init__(self, src):
 		self.src = src
-		
+
 	def json(self,command,tag):
 		jsn = {"response": command,
 			"dbException": self.src,
