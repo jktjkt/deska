@@ -274,7 +274,7 @@ import os
 os.unlink("output")
 """)
         changeset = r.c(startChangeset(), conn=conn2)
-        r.cvoid(deleteObject("vendor", "dummy06"), conn=conn1)
+        r.cvoid(deleteObject("vendor", "dummy06"), conn=conn2)
         r.c(commitChangeset("cleanup"), conn=conn2)
 
     else:
