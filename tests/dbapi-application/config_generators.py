@@ -230,7 +230,7 @@ file("output", "wb").write("All done\\n")
     print >>sys.stderr, "*** Config generator will work in %s" % PATH_WC
     print >>sys.stderr, "*** Starting the config generator in the background"""
     if shallCommit:
-        conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"commitChangeset\",\"message\":\"x\"}\r\n")
+        conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"commitChangeset\",\"commitMessage\":\"x\"}\r\n")
     else:
         conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"showConfigDiff\"}\r\n")
     conn1.p.stdin.flush()
