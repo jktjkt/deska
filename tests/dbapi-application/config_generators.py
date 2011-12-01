@@ -235,31 +235,52 @@ file("output", "wb").write("All done\\n")
         conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"showConfigDiff\"}\r\n")
     conn1.p.stdin.flush()
     print >>sys.stderr, "*** Cfg generator started."""
+    print >>sys.stderr, "*** About to open a FIFO"
+    fp = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+    print >>sys.stderr, "*** FIFO opened in non-blocking mode"
     # At this point, the process associated with the conn1 shall begin executing
     # the generators.
-    # Let's wait for the generator to come to the life
-    print >>sys.stderr, "*** About to open a FIFO"
-    fp = os.open(fifo, os.O_RDONLY)
-    print >>sys.stderr, "*** FIFO opened, reading from there"
-    r.assertEqual(os.read(fp, 1), "x")
-    print >>sys.stderr, "*** Read data, which means that the cfg generator is alive and kicking"
+    # Let's wait for the generator to come to the life, or the DB to report
+    # something to us, whichever comes first.
+    fdset = (conn1.p.stdout, conn1.p.stderr, fp)
+    fifo_chat_occurred = False
+    while True:
+        print >>sys.stderr, "*** select..."
+        status = select.select(fdset, (), (), 10)
+        handled = False
+        if fp in status[0]:
+            print >>sys.stderr, "*** FIFO: incoming data"
+            r.assertEqual(os.read(fp, 1), "x")
+            print >>sys.stderr, "*** Read data, which means that the cfg generator is alive and kicking"
+            os.close(fp)
 
-    # At this point, the generator is blocking and we can do our best to beat
-    # the hell out of the DB from a second connection.
-    r.cfail(resumeChangeset(changeset), conn=conn2, exception=ChangesetLockingError())
+            # At this point, the generator is blocking and we can do our best to beat
+            # the hell out of the DB from a second connection.
+            r.cfail(resumeChangeset(changeset), conn=conn2, exception=ChangesetLockingError())
 
-    # Let's unblcok the generator and let it continue
-    print >>sys.stderr, "*** Unblocking the cfg generator in conn1"
-    fcntl.lockf(fA.fileno(), fcntl.LOCK_UN)
+            # Let's unblock the generator and let it continue
+            print >>sys.stderr, "*** Unblocking the cfg generator in conn1"
+            fcntl.lockf(fA.fileno(), fcntl.LOCK_UN)
+            fdset = (conn1.p.stdout, conn1.p.stderr)
+            fifo_chat_occurred = True
+            handled = True
+        if conn1.p.stderr in status[0]:
+            print >>sys.stderr, "*** DB chat through stderr"""
+            err = os.read(conn1.p.stderr.fileno(), 65536)
+            print >>sys.stderr, err
+            r.assertTrue(False)
+            handled = True
+            break
+        if conn1.p.stdout in status[0]:
+            print >>sys.stderr, "*** DB chat through stdout, OK so far"""
+            cmdres = deunicodeify(json.loads(conn1.p.stdout.readline()))
+            r.assertTrue(fifo_chat_occurred)
+            handled = True
+            break
+        if not handled:
+            print >>sys.stderr, status
+            r.assertFalse("Select timed out or returned garbage. Deadlock?")
 
-    # ...and process the command we sent in there
-    print >>sys.stderr, "*** Waiting for the cfg generator to respond"""
-    status = select.select((conn1.p.stdout, conn1.p.stderr), (), ())
-    if (conn1.p.stderr in status[0]):
-        err = os.read(conn1.p.stderr.fileno(), 65536)
-        print >>sys.stderr, err
-        r.assertTrue(False)
-    cmdres = deunicodeify(json.loads(conn1.p.stdout.readline()))
     if shallCommit:
         r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'commitChangeset']))
         helper_check_second_clone(r, ["README", "output"])
