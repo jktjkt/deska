@@ -171,7 +171,23 @@ f.write("pwnzor\\n")
     r.assertEqual(file(mytarget, "rb").readlines(), ["pwnzor\n"])
     rmGenerator("01")
 
-def test_parallel_commit(r):
+    writeGenerator("01",
+"""#!/usr/bin/env python
+import os
+
+os.unlink("blah")
+""")
+    changeset = r.c(startChangeset())
+    mytarget = os.path.join(PATH_WC, changeset, "blah")
+    r.assertTrue(not os.path.exists(mytarget))
+    r.c(createObject("vendor", "rm-v-unchanged"))
+    r.c(commitChangeset("deleted conf files"))
+    helper_check_second_clone(r, ["README"])
+
+    rmGenerator("01")
+
+
+def test_parallel_commit(r, shallCommit):
     """Test what happens when the config generators take a long time to complete
 
     This is going to be rather complicated. We want to have two parallel
