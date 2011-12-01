@@ -724,9 +724,8 @@ void UserInterfaceIO::printRevisions(const std::vector<Db::RevisionMetadata> &re
     } else {
         unsigned int maxRevWidth = 8;
         std::string::size_type maxUserWidth = 6;
-        unsigned int log;
         for (std::vector<Db::RevisionMetadata>::const_iterator it = revisions.begin(); it != revisions.end(); ++it) {
-            log = (digits(it->revision.r) + 1);
+            unsigned int log = (digits(it->revision.r) + 1);
             maxRevWidth = std::max(maxRevWidth, log);
             maxUserWidth = std::max(maxUserWidth, it->author.size());
         }
