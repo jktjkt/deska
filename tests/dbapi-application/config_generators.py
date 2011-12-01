@@ -221,12 +221,18 @@ file("output", "wb").write("All done\\n")
     conn2 = Connection(r.cmd)
 
     changeset = r.c(startChangeset(), conn=conn1)
-    r.c(createObject("vendor", "dummy06"), conn=conn1)
+    if shallCommit:
+        r.c(createObject("vendor", "dummy06"), conn=conn1)
+    else:
+        r.c(createObject("vendor", "dummy07"), conn=conn1)
     # We have to go the manual route here. We cannot block now, so we have to
     # feed the data directly.
     print >>sys.stderr, "*** Config generator will work in %s" % PATH_WC
     print >>sys.stderr, "*** Starting the config generator in the background"""
-    conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"showConfigDiff\"}\r\n")
+    if shallCommit:
+        conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"commitChangeset\",\"message\":\"x\"}\r\n")
+    else:
+        conn1.p.stdin.write("{\"tag\":\"HHH\",\"command\":\"showConfigDiff\"}\r\n")
     conn1.p.stdin.flush()
     print >>sys.stderr, "*** Cfg generator started."""
     # At this point, the process associated with the conn1 shall begin executing
@@ -254,9 +260,29 @@ file("output", "wb").write("All done\\n")
         print >>sys.stderr, err
         r.assertTrue(False)
     cmdres = deunicodeify(json.loads(conn1.p.stdout.readline()))
-    r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'showConfigDiff']))
-    r.assertTrue(cmdres["showConfigDiff"].index("All done") != -1)
-    rmGenerator("sleeping-beauty")
+    if shallCommit:
+        r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'commitChangeset']))
+        helper_check_second_clone(r, ["README", "output"])
+        mytarget = os.path.join(PATH_WC, changeset, "output")
+        r.assertEqual(file(mytarget, "rb").readlines(), ["All done\n"])
+        rmGenerator("sleeping-beauty")
+        # Now perform the cleanup
+        writeGenerator("01",
+"""#!/usr/bin/env python
+import os
+
+os.unlink("output")
+""")
+        changeset = r.c(startChangeset(), conn=conn2)
+        r.cvoid(deleteObject("vendor", "dummy06"), conn=conn1)
+        r.c(commitChangeset("cleanup"), conn=conn2)
+
+    else:
+        r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'showConfigDiff']))
+        r.assertTrue(cmdres["showConfigDiff"].index("All done") != -1)
+        helper_check_second_clone(r, ["README"])
+        r.cvoid(abortCurrentChangeset(), conn=conn1)
+        rmGenerator("sleeping-beauty")
 
 
 def imperative(r):
@@ -264,4 +290,5 @@ def imperative(r):
     test_no_generators(r)
     test_no_output(r)
     test_unchanged_output(r)
-    test_parallel_commit(r)
+    #test_parallel_commit(r, True)
+    test_parallel_commit(r, False)
