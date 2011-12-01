@@ -5,15 +5,21 @@ from apiUtils import *
 import datetime
 import deska
 
+def helperScriptName(fname):
+    return "%s/%s.py" % (os.environ["DESKA_CFGGEN_SCRIPTS"], fname)
+
 def writeGenerator(fname, script):
-    fname = "%s/%s.py" % (os.environ["DESKA_CFGGEN_SCRIPTS"], fname)
+    fname = helperScriptName(fname)
     f = file(fname, "wb")
     f.write(script)
     f.close()
     os.chmod(fname, 0755)
 
-def imperative(r):
-    # create a sample script that simply dumps names of all hosts to a file
+def rmGenerator(fname):
+    os.unlink(helperScriptName(fname))
+
+def test_trivial(r):
+    """Create a sample script that simply dumps names of all hosts to a file"""
     writeGenerator("01",
 """#!/usr/bin/env python
 import deska
@@ -50,3 +56,7 @@ for host in sorted(hosts):
 
     r.assertNotEquals(coloredDiff.find(expectedColoredDiff), -1)
     r.c(commitChangeset("objects set up"))
+    rmGenerator("01")
+
+def imperative(r):
+    test_trivial(r)
