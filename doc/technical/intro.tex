@@ -89,7 +89,7 @@ a domain-specific JSON-based wire protocol (the Deska DBAPI, as described in~\se
 \end{figure}
 
 Second part, the database server, translates the Deska DBAPI commands into calls to stored procedures in the PostgreSQL
-server, which in turn performs any required actions.  The database server is implemented in a mixture of Python and
+server, which in turn performs any required actions.  The database server is implemented in a mixture of PgPython and
 PL/PgSQL languages and provides full object-level versioning for all data contained in the Database, with features
 similar to Subversion.
 

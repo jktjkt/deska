@@ -41,4 +41,7 @@ deska_init_git()
 
     # Prepare the root for the working directories (one per changeset)
     mkdir "${DESKA_CFGGEN_GIT_WC}"
+
+    git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_SECOND} ||
+        deska_git_die "git clone my_repo my_second failed"
 }

@@ -5,6 +5,7 @@
 import os
 import stat
 import git
+from generatorerror import GeneratorError
 
 GIT_NEW_WORKDIR=os.path.join(os.path.dirname(__file__), "git-new-workdir")
 
@@ -83,7 +84,7 @@ class GitGenerator(object):
             runAnything = True
 
         if not runAnything:
-            raise RuntimeError, "No executable scripts found in %s" % self.scriptdir
+            raise GeneratorError, "No executable scripts found in %s" % self.scriptdir
 
     def completeConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''

@@ -57,3 +57,14 @@ def imperative(r):
     r.cvoid(resumeChangeset(changeset), conn=conn3)
     # Now the first session shall not be able to commit the changeset
     r.cfail(commitChangeset("."), conn=conn1, exception=NoChangesetError())
+    # On the other hand, the third session shall be able to go forward.
+    # The third connection was not holding its lock.
+    r.c(commitChangeset("."), conn=conn3)
+    # Let's try to create a changeset, steal it, lock it from the other session
+    # and try to commit
+    changeset = r.c(startChangeset(), conn=conn1)
+    r.cvoid(resumeChangeset(changeset), conn=conn3)
+    r.cvoid(lockCurrentChangeset(), conn=conn3)
+    r.cfail(resumeChangeset(changeset), conn=conn1, exception=ChangesetLockingError())
+    r.c(commitChangeset("."), conn=conn3)
+    r.cfail(resumeChangeset(changeset), conn=conn1, exception=ChangesetRangeError())
