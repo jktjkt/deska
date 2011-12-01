@@ -21,7 +21,7 @@ def helper_check_second_clone(r, contents):
         if ".git" in dirs:
             dirs.remove(".git")
         myfiles.extend([os.path.join(root[len(PATH_SECOND):], fname) for fname in files])
-    r.assertEqual(contents, myfiles)
+    r.assertEqual(sorted(contents), sorted(myfiles))
 
 def helperScriptName(fname):
     return "%s/%s.py" % (os.environ["DESKA_CFGGEN_SCRIPTS"], fname)
