@@ -28,7 +28,7 @@ def %(name)s(%(args)s):
 	"""Query to get the primary key constraint and all the columns relate to this constraint in the table"""
 	fk_str = "SELECT conname,attname,reftabname,refattname FROM fk_constraints_on_table('%s')"
 	"""Query to get for the table foreign key constraint, all the columns relate to this constraint and the name of referenced table."""
-	templ_tables_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
+	templ_tables_str = "SELECT relname, attname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	"""Query to get all tables that have attribute template.
 	For these tables would be generated template table.
 	"""
@@ -131,8 +131,10 @@ CREATE FUNCTION commit_all(message text)
 		self.fks = ""
 		record = self.plpy.execute(self.templ_tables_str)
 		self.templated_tables = set()
-		for tbl in record:
-			self.templated_tables.add(tbl[0])
+		self.table_template_column = dict()
+		for row in record:
+			self.templated_tables.add(row[0])
+			self.table_template_column[row[0]] = row[1]
 
 		record = self.plpy.execute(self.templates_str)
 		self.templates = dict()
@@ -343,6 +345,7 @@ CREATE FUNCTION commit_all(message text)
 
 		#different generated functions for templated and not templated tables
 		if tbl in self.templated_tables:
+			table.template_column = self.table_template_column[tbl]
 			if tbl in self.templates:
 			#tbl is template
 				table.templates = self.templates[tbl]

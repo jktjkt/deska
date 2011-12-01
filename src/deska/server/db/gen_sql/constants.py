@@ -914,7 +914,7 @@ class Templates:
 			WHERE version = get_current_changeset()
 			UNION ALL
 			SELECT
-				%(rd_dv_coalesce)s
+				%(rd_dv_coalesce)s,
 				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM %(template_tbl)s_data_version() dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s
@@ -962,7 +962,7 @@ class Templates:
 			WHERE version = ver
 			UNION ALL
 			SELECT
-				%(rd_dv_coalesce)s
+				%(rd_dv_coalesce)s,
 				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s
@@ -1002,7 +1002,7 @@ class Templates:
 				AND %(template_column)s IN (SELECT uid FROM affected_templates)
 			UNION ALL
 			SELECT
-				%(rd_dv_coalesce)s
+				%(rd_dv_coalesce)s,
 				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s
@@ -1025,7 +1025,7 @@ class Templates:
 			WHERE %(template_column)s IN (SELECT uid FROM affected_templates)
 			UNION ALL
 			SELECT
-				%(rd_dv_coalesce)s
+				%(rd_dv_coalesce)s,
 				dv.%(template_column)s AS %(template_column)s, rd.name AS name, rd.uid AS uid , rd.version AS version, rd.dest_bit AS dest_bit, rd.orig_template AS orig_template
 			FROM temp_%(tbl)s_template_data dv, resolved_data rd
 			WHERE dv.uid = rd.%(template_column)s

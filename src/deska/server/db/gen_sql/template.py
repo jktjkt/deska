@@ -3,6 +3,7 @@ class Template:
 	table_query_str = "SELECT relname FROM get_table_info() WHERE attname LIKE 'template_%';"
 	not_null_query_str = "SELECT n_constraints_on_table('%(tbl)s');"
 	relations_str = "SELECT relation, attname, refkind FROM kindrelations_full_info('%s');"
+	template_columns_str = "SELECT relname, attname FROM table_info_view WHERE attname LIKE 'template_%';"
 	"""Query to get names of tables which are merged with this table."""
 
 
@@ -11,11 +12,11 @@ CREATE SEQUENCE production.%(tbl)s_template_uid;
 CREATE TABLE production.%(tbl)s_template (
 	LIKE production.%(tbl)s,
 	CONSTRAINT pk_%(tbl)s_template PRIMARY KEY (uid),
-	CONSTRAINT rtempl_%(tbl)s_templ FOREIGN KEY ("template_%(tbl)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
+	CONSTRAINT rtempl_%(tbl)s_templ FOREIGN KEY ("%(templ_col)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE,
 	CONSTRAINT "%(tbl)s_template with this name already exists" UNIQUE (name)
 );
 ALTER TABLE %(tbl)s_template ALTER COLUMN uid SET DEFAULT nextval('%(tbl)s_template_uid'::regclass);
-ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") REFERENCES %(tbl)s_template(uid) DEFERRABLE INITIALLY IMMEDIATE;
 
 '''
 
@@ -47,6 +48,15 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s
 				if row[0] != 'uid' and row[0] != 'name':
 					self.not_null_dict[table_name].append(row[0])
 
+		#creates dict table name and table's column that refers to template table for this table
+		record = self.plpy.execute(self.template_columns_str)
+		self.template_columns = dict()
+		for row in record:
+			if row[0] not in self.template_columns:
+				self.template_columns[row[0]] = row[1]
+			else:
+				raise ValueError, 'relation template for table %(tbl)s is badly defined, each kind can have at most one column with prefix template_'
+
 
 	# generate sql for all tables
 	def gen_templates(self,filename):
@@ -63,6 +73,11 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s
 		return
 
 	def gen_relation_modif(self, table_name):
+		"""Generates sql code for drop column statemnets and adds refers to set relation to template tables.
+		
+		Drop column that is apart of the embed into relation and columns that are a part of some contains or containable relation.
+		Adds foreign key constraint to columns that should refers to set. This ensures that the inner table for n:m relation - multirefence will be created for this template table.
+		"""
 		record = self.plpy.execute(self.relations_str % table_name)
 		embed_column = ""
 		contained_columns = list()
@@ -103,7 +118,8 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("template_%(tbl)s
 
 	# generate sql for one table
 	def gen_table_template(self,table_name):
-		return self.template_str % {'tbl': table_name}
+		template_column = self.template_columns[table_name]
+		return self.template_str % {'tbl': table_name, 'templ_col': template_column}
 
 	def gen_table_drop_not_null(self, table_name):
 		constraints = list(
