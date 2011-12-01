@@ -287,28 +287,37 @@ class DB:
 	def showConfigDiff(self, name, tag, forceRegen):
 		logging.debug("showConfigDiff")
 		response = {"response": name, "tag": tag}
-		self.lockCurrentChangeset()
-		self.initCfgGenerator()
-		if forceRegen or not self.changesetHasFreshConfig():
-			logging.debug(" about to regenerate config")
-			self.cfgRegenerate()
-			self.markChangesetFresh()
-		else:
-			logging.debug(" configuration was fresh already")
-		response[name] = self.cfgGetDiff()
-		self.unlockCurrentChangeset()
+		try:
+			try:
+				self.lockCurrentChangeset()
+				self.initCfgGenerator()
+				if forceRegen or not self.changesetHasFreshConfig():
+					logging.debug(" about to regenerate config")
+					self.cfgRegenerate()
+					self.markChangesetFresh()
+				else:
+					logging.debug(" configuration was fresh already")
+				response[name] = self.cfgGetDiff()
+			finally:
+				self.unlockCurrentChangeset()
+		except GeneratorError, e:
+			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
 		self.checkFunctionArguments(name, args, tag)
 		self.lockCurrentChangeset()
 		self.initCfgGenerator()
-		if not self.changesetHasFreshConfig():
-			self.cfgRegenerate()
-			self.markChangesetFresh()
 		try:
+			if not self.changesetHasFreshConfig():
+				self.cfgRegenerate()
+				self.markChangesetFresh()
 			res = self.runDBFunction(name,args,tag)
 			self.cfgPushToScm(args["commitMessage"])
+		except GeneratorError, e:
+			self.db.rollback()
+			self.unlockCurrentChangeset()
+			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
