@@ -21,7 +21,8 @@ import deska
 deska.init()
 
 output = file("all-hosts", "wb")
-for host in deska.host[deska.host.name != "404"]:
+hosts = deska.host[deska.host.name != "404"]
+for host in sorted(hosts):
     output.write("%s\\n" % host)
 """)
 
@@ -33,8 +34,19 @@ for host in deska.host[deska.host.name != "404"]:
     coloredDiff = r.c(showConfigDiff())
     print coloredDiff
 
-    # The format shall be "human readable", which basically means a colored diff, and the usual rule about an unsorted output
-    # applies.  That's rather hard to check programatically.
-    for x in range(10):
-        r.assertNotEquals(coloredDiff.find("host%d" % x), -1)
+    expectedColoredDiff = '\x1b[1m--- /dev/null\x1b[m\n' + \
+        '\x1b[1m+++ b/all-hosts\x1b[m\n' + \
+        '\x1b[36m@@ -0,0 +1,10 @@\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost0\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost1\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost2\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost3\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost4\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost5\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost6\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost7\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost8\x1b[m\n' + \
+        '\x1b[32m+\x1b[m\x1b[32mhost9\x1b[m'
+
+    r.assertNotEquals(coloredDiff.find(expectedColoredDiff), -1)
     r.c(commitChangeset("objects set up"))
