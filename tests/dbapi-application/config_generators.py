@@ -273,9 +273,11 @@ file("output", "wb").write("All done\\n")
             break
         if conn1.p.stdout in status[0]:
             print >>sys.stderr, "*** DB chat through stdout, OK so far"""
-            cmdres = deunicodeify(json.loads(conn1.p.stdout.readline()))
+            rawdata = conn1.p.stdout.readline()
+            print >>sys.stderr, "*** Read data: ", rawdata
             r.assertTrue(fifo_chat_occurred)
             handled = True
+            cmdres = deunicodeify(json.loads(rawdata))
             break
         if not handled:
             print >>sys.stderr, status
