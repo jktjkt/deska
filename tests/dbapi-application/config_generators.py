@@ -58,5 +58,23 @@ for host in sorted(hosts):
     r.c(commitChangeset("objects set up"))
     rmGenerator("01")
 
+def test_no_generators(r):
+    """Running without any config generators shall fail horribly"""
+
+    # Commit without calling the showConfigDiff() shall fail
+    r.c(startChangeset())
+    r.c(createObject("vendor", "dummy"))
+    r.cfail(commitChangeset("added a dummy vendor"), exception=CfgGeneratingError())
+    r.cvoid(abortCurrentChangeset())
+
+    # Calling showConfigDiff() shall fail, too
+    r.c(startChangeset())
+    r.c(createObject("vendor", "dummy"))
+    r.cfail(showConfigDiff(), exception=CfgGeneratingError())
+    r.cfail(commitChangeset("added a dummy vendor"), exception=CfgGeneratingError())
+    r.cvoid(abortCurrentChangeset())
+
+
 def imperative(r):
     test_trivial(r)
+    test_no_generators(r)
