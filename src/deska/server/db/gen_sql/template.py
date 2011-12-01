@@ -4,6 +4,8 @@ class Template:
 	not_null_query_str = "SELECT n_constraints_on_table('%(tbl)s');"
 	relations_str = "SELECT relation, attname, refkind FROM kindrelations_full_info('%s');"
 	template_columns_str = "SELECT relname, attname FROM table_info_view WHERE attname LIKE 'template_%';"
+	table_columns_str = "SELECT attname FROM kindattributes('%(tbl)s') WHERE attname NOT LIKE 'template_%%';"
+	
 	"""Query to get names of tables which are merged with this table."""
 
 
@@ -55,7 +57,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 			if row[0] not in self.template_columns:
 				self.template_columns[row[0]] = row[1]
 			else:
-				raise ValueError, 'relation template for table %(tbl)s is badly defined, each kind can have at most one column with prefix template_'
+				raise ValueError, ('relation template for table %(tbl)s is badly defined, each kind can have at most one column with prefix template_' % {'tbl': row[0]})
 
 
 	# generate sql for all tables
@@ -81,14 +83,26 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 		record = self.plpy.execute(self.relations_str % table_name)
 		embed_column = ""
 		contained_columns = list()
+		relation_columns = list()
 		refers_to_set = dict()
 		for row in record:
 			if row[0] == "EMBED_INTO":
 				embed_column = row[1]
+				relation_columns.append(row[1])
 			elif row[0] == "CONTAINS" or row[0] == "CONTAINABLE":
 				contained_columns.append(row[1])
+				relation_columns.append(row[1])
 			elif row[0] == "REFERS_TO_SET":
 				refers_to_set[row[1]] = row[2]
+				relation_columns.append(row[1])
+		
+		columns = list()
+		record = self.plpy.execute(self.table_columns_str % {'tbl': table_name})
+		for row in record:
+			if row[0] not in relation_columns:
+				columns.append(row[0])
+		if len(columns) == 0:
+			raise ValueError, ('relation template for table %(tbl)s is badly defined, there is no attribute to template in kind %(tbl)s' % {'tbl': table_name})
 		
 		self.sql.write(self.gen_drop_embed_parent_column(table_name, embed_column))
 		self.sql.write(self.gen_drop_contained_column(table_name, contained_columns))

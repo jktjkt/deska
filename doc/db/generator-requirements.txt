@@ -18,7 +18,11 @@ Relations definition:
 You can add relation on column using reference (contains, refers_to, embed) or by column (template)
 FIXME: todo relations!
 For template relation, just name the column with prefix "template_" of bigint type.
+Each kind can not have more then one column with name with "template_" prefix.
+You can template only tables that have at least one column which value could be inherited from its template. (Columns that are a part of relation contains, containable, templatized or embed into could not inherit theirs values)
 
 From this convetion, you cannot create columns with prefix "template_" for non templated use.
 Also do not use column names with postfix "_templ" that has deska for internal use.
 The maximum length of kind name and attribute name (column) is 20 together (_template_resolved_object_data_template_info + kindName + attName = 64) - FIXME: how to change this
+
+Foreign keys in schema have to set ON DELETE NO ACTION, it's the default option.
