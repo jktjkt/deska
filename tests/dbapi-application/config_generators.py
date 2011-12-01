@@ -317,5 +317,5 @@ def imperative(r):
     test_no_generators(r)
     test_no_output(r)
     test_unchanged_output(r)
-    #test_parallel_commit(r, True)
+    test_parallel_commit(r, True)
     test_parallel_commit(r, False)
