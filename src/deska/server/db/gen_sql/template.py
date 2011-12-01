@@ -64,6 +64,8 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 		record = self.plpy.execute(self.table_query_str)
 		for row in record:
 			self.tables.add(row[0])
+			if row[1] not in ['bigint', 'int8']:
+				raise ValueError, ('relation template for table %(tbl)s is badly defined, template column should have type bigint' % {'tbl': row[0]})                                      
 
 		self.not_null_dict = dict()
 		for table_name in self.tables:
