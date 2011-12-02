@@ -281,7 +281,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     // The JsonApiParser needs to know type information for the individual object kinds
     expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"kk\"}\n");
     expectRead("{\"kindAttributes\": {\"int\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", \n"
-               "\"real\": \"double\", \"price\": \"double\", \"inherit\": \"identifier\", \"anotherKind\": \"identifier\", "
+               "\"real\": \"double\", \"price\": \"double\", \"funnyfloat\": \"double\", \"inherit\": \"identifier\", \"anotherKind\": \"identifier\", "
                "\"ipv4\": \"ipv4address\", \"mac\": \"macaddress\", \"ipv6\": \"ipv6address\", \"timestamp\": \"timestamp\", \"date\": \"date\", "
                "\"role\": \"identifier_set\"}, "
                "\"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
@@ -293,7 +293,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
                "], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
 
     expectWrite("{\"command\":\"objectData\",\"tag\":\"T\",\"kindName\":\"kk\",\"objectName\":\"oo\",\"revision\":\"r3\"}\n");
-    expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, "
+    expectRead("{\"tag\":\"T\", \"objectData\": {\"foo\": \"bar\", \"baz\": \"id\", \"int\": 10, \"real\": 100.666, \"price\": 666, \"funnyfloat\": 70.0, "
             "\"ipv4\": \"127.0.0.1\", \"mac\": \"00:16:3e:37:53:2B\", \"ipv6\": \"::1\", \"date\": \"2011-06-20\", \"timestamp\": \"2011-04-07 17:22:33\","
             "\"inherit\": \"bleh\", \"anotherKind\": \"foo_ref\", \"role\": [\"a\", \"b\", \"cc\"]}, \"response\": \"objectData\"}\n");
     map<Identifier,Value> expected;
@@ -302,6 +302,7 @@ BOOST_FIXTURE_TEST_CASE(json_objectData, JsonApiTestFixtureFailOnStreamThrow)
     expected["real"] = 100.666;
     // Yes, check int-to-float comparison here
     expected["price"] = 666.0;
+    expected["funnyfloat"] = 70.0;
     expected["baz"] = string("id");
     expected["mac"] = Deska::Db::MacAddress(0x00, 0x16, 0x3e, 0x37, 0x53, 0x2b);
     expected["ipv4"] = boost::asio::ip::address_v4::from_string("127.0.0.1");
@@ -559,6 +560,9 @@ BOOST_FIXTURE_TEST_CASE(json_setAttribute, JsonApiTestFixtureFailOnStreamThrow)
     data.push_back(SetAttrTestData(jsonInputPrefix + "false}\n", jsonOutput, Deska::Db::Value(false)));
     // double
     data.push_back(SetAttrTestData(jsonInputPrefix + "333.666}\n", jsonOutput, Deska::Db::Value(333.666)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "70.0}\n", jsonOutput, Deska::Db::Value(70.0)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "0.0}\n", jsonOutput, Deska::Db::Value(0.0)));
+    data.push_back(SetAttrTestData(jsonInputPrefix + "-1.0}\n", jsonOutput, Deska::Db::Value(-1.0)));
     // null
     data.push_back(SetAttrTestData(jsonInputPrefix + "null}\n", jsonOutput, Deska::Db::Value()));
     // IPv4 address
