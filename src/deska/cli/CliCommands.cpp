@@ -899,6 +899,7 @@ bool Restore::operator()(const std::string &params)
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     bool restoreError = false;
+    bool lastCommited = true;
 
     // FIXME: Batched operations for restore
     ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
@@ -931,12 +932,14 @@ bool Restore::operator()(const std::string &params)
             }
             ++lineNumber;
             ui->m_dbInteraction->restoringCommit(message, author, boost::posix_time::time_from_string(timestamp));
+            lastCommited = true;
         // Normal command
         } else {
             if (!ui->currentChangeset)
                 ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
             try {
                 ui->m_parser->parseLine(line);
+                lastCommited = false;
             } catch (Db::ConstraintError &e) {
                 ui->parsingFailed = true;
                 std::ostringstream ostr;
@@ -964,13 +967,15 @@ bool Restore::operator()(const std::string &params)
         ostr << "Parsing of backup file failed on line " << lineNumber << "." << std::endl;
         ostr << "Line: \"" << line << "\"";
         ui->io->reportError(ostr.str());
+    } else if (!lastCommited) {
+        ui->io->reportError("DB restored, but last changeset commit not found. You have to commit it manually!");
     } else {
         ui->io->printMessage("DB successfully restored.");
     }
 
     ifs.close();
     ui->m_parser->clearContextStack();
-    return !(ui->parsingFailed || restoreError);
+    return !(ui->parsingFailed || restoreError) && lastCommited;
 }
 
 
