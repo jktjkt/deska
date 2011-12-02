@@ -231,6 +231,10 @@ for x in fd_hardware.itervalues():
     print "end\n"
 print
 print
+print """# adding a fake modelhardware
+modelhardware FAKE-REMOVE end
+
+"""
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
     if map_ifaces.has_key(uid):
@@ -268,6 +272,7 @@ for (uid, x) in fd_machines.iteritems():
     if x.os is not None:
         print "# FIXME: os %s" % x.os
     # FIXME: rack no, pos, hpos
+    print "  modelhardware FAKE-REMOVE"
     print "end\n"
 print
 print "commit imported"
