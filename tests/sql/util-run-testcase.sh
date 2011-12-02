@@ -71,7 +71,7 @@ case "${TESTMODE}" in
             die "Locating SQL testcase"
         fi
 
-        pg_prove -U $DESKA_USER -d $DESKA_DB $TESTCASE
+        pg_prove -U $DESKA_ADMIN -d $DESKA_DB $TESTCASE
         TEST_RESULT=$?
         ;;
     dbapi)

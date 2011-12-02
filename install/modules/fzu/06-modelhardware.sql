@@ -59,6 +59,10 @@ CREATE TABLE modelhardware (
 	-- note that it is completely acceptable to have zero here (like for blades)
 	power_supply_count int,
 
+	weight int
+		CONSTRAINT "modelhardware weight shall be non-negative number"
+		CHECK (weight >= 0),
+
 	note text
 );
 

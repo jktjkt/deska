@@ -115,8 +115,18 @@ def run():
 
     logging.debug("connected to database")
 
+    ioTracer = None
+    if os.environ.has_key("DESKA_SERVER_IO_TRACE"):
+        ioTracer = logging.getLogger("deska-io-tracer")
+        ioTracer.propagate = False
+        ioTracer.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(deska_direction)s%(message)s")
+        handler = logging.FileHandler("deska_io_log", "w")
+        handler.setFormatter(formatter)
+        ioTracer.addHandler(handler)
+
     while True:
         try:
-            perform_io(db, sys.stdin, orig_stdout)
+            perform_io(db, sys.stdin, orig_stdout, ioTracer=ioTracer)
         except StopIteration:
             break

@@ -27,6 +27,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_cpu_num_positive
 		CHECK (cpu_num > 0),
 	cpu_ht bool,
+	hepspec real,
 	-- add cpu type, when we have cpu type table
 	host bigint,
 	note_hardware text,
