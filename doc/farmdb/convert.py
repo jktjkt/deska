@@ -1,5 +1,7 @@
 import csv
 import codecs
+import socket
+import struct
 
 fd_vendors = {}
 fd_networks = {}
@@ -57,10 +59,18 @@ for (uid, name) in getfile("Vendors"):
 for row in getfile("Networks"):
     o = Struct()
     try:
-        (uid, o.name, o.ip, o.vlan, o.mask, o.note) = row
+        (uid, o.name, ip4, o.vlan, mask, o.note) = row
     except ValueError:
         print row
         raise
+    numeric_addr = int(ip4, 16)
+    if numeric_addr >= 0xffffffff:
+        o.ip6 = numeric_addr
+        o.mask6 = "pwn"
+    else:
+        print ip4, numeric_addr
+        o.ip4 = socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
+        o.mask4 = mask
     fd_networks[uid] = o
 
 for row in getfile("Hardware"):
@@ -114,15 +124,12 @@ print
 print "# dumping networks"
 for x in fd_networks.itervalues():
     print "network %s" % x.name
-    print "  ip4 %s" % x.ip
-    if x.mask == "255.255.255.0":
-        print "  cidr4 24"
-    elif x.mask == "255.255.0.0":
-        print "  cidr4 16"
-    elif x.mask == "255.255.254.0":
-        print "  cidr4 23"
+    if dir(x).count("ip4"):
+        print "  ip4 %s" % x.ip4
+        print "  cidr4 %s" % x.mask4
     else:
-        print "# FIXME unknown cidr4: mask %s" % x.mask
+        print "  ip6 %s" % x.ip6
+        print "  cidr6 %s" % x.mask6
     print "  vlan %s" % x.vlan
     if x.note is not None:
         print "  note \"%s\"" % x.note
