@@ -166,20 +166,20 @@ print """# artificial: the boxmodels and form factors
 formfactor rackmount
 end
 
-modelbox generic-1u
+modelbox 1u
   formfactor rackmount
 end
 
-modelbox generic-2u
+modelbox 2u
   formfactor rackmount
   height 2
 end
 
-modelbox generic-3u
+modelbox 3u
   formfactor rackmount
   height 3
 end
-modelbox generic-4u
+modelbox 4u
   formfactor rackmount
   height 4
 end
@@ -222,14 +222,8 @@ for x in fd_hardware.itervalues():
     if x.weight is not None:
         print "  weight %s" % x.weight
     if x.width == "100":
-        if x.height == "1":
-            print "  modelbox generic-1u"
-        elif x.height == "2":
-            print "  modelbox generic-2u"
-        elif x.height == "3":
-            print "  modelbox generic-3u"
-        elif x.height == "4":
-            print "  modelbox generic-4u"
+        if x.height in [str(y) for y in range(1,5)]:
+            print "  modelbox %su" % x.height
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
