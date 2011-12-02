@@ -892,7 +892,7 @@ bool Restore::operator()(const std::string &params)
         return false;
     }
 
-    if (!ui->m_dbInteraction->allPendingChangesets().empty() || !ui->m_dbInteraction->allRevisions().empty()) {
+    if (!ui->m_dbInteraction->allPendingChangesets().empty() || (ui->m_dbInteraction->allRevisions().size() > 1)) {
         ui->io->reportError("Error: It is not allowed to perform restore on DB that is not empty.");
         return false;
     }
