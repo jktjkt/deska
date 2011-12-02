@@ -6,6 +6,7 @@ from apiUtils import *
 hw3_1 = {
     'cpu_ht': [None, None],
     'cpu_num': [None, None],
+    'hepspec': [None, None],
     'host': [None, None],
     'note_hardware': [None, None],
     'purchase': ['hw3', '2010-10-10'],

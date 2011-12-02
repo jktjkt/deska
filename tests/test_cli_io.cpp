@@ -106,6 +106,8 @@ BOOST_FIXTURE_TEST_CASE(creating_objects, CliTestFixture)
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("cpu_num", Deska::Db::Value()), Deska::Db::Identifier()));
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
+        Deska::Cli::AttributeDefinition("hepspec", Deska::Db::Value()), Deska::Db::Identifier()));
+    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("host", Deska::Db::Value()), Deska::Db::Identifier()));
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("note_hardware", Deska::Db::Value()), Deska::Db::Identifier()));
@@ -140,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
     returnChooseChangeset(0);
     expectPrintMessage("Changeset tmp2 resumed.");
     expectReadLine("");
-    returnReadLine(std::make_pair<std::string, bool>("hardware hpv2 cpu_ht true cpu_num 2 note_hardware \"Some note\"", false));
+    returnReadLine(std::make_pair<std::string, bool>("hardware hpv2 cpu_ht true hepspec 333.666 cpu_num 2 note_hardware \"Some note\"", false));
     expectReadLine("");
     returnReadLine(std::make_pair<std::string, bool>("show hardware hpv2", false));
     std::vector<std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> > attrs;
@@ -148,6 +150,8 @@ BOOST_FIXTURE_TEST_CASE(setting_attributes, CliTestFixture)
         Deska::Cli::AttributeDefinition("cpu_ht", Deska::Db::Value(true)), Deska::Db::Identifier()));
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("cpu_num", Deska::Db::Value(2)), Deska::Db::Identifier()));
+    attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
+        Deska::Cli::AttributeDefinition("hepspec", Deska::Db::Value(333.666)), Deska::Db::Identifier()));
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
         Deska::Cli::AttributeDefinition("host", Deska::Db::Value()), Deska::Db::Identifier()));
     attrs.push_back(std::make_pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier>(
@@ -213,6 +217,7 @@ BOOST_FIXTURE_TEST_CASE(dump, CliTestFixture)
     std::vector<Deska::Cli::AttributeDefinition> attrs;
     attrs.push_back(Deska::Cli::AttributeDefinition("cpu_ht", Deska::Db::Value(true)));
     attrs.push_back(Deska::Cli::AttributeDefinition("cpu_num", Deska::Db::Value(2)));
+    attrs.push_back(Deska::Cli::AttributeDefinition("hepspec", Deska::Db::Value(333.666)));
     attrs.push_back(Deska::Cli::AttributeDefinition("host", Deska::Db::Value(Deska::Db::Identifier("hpv2"))));
     attrs.push_back(Deska::Cli::AttributeDefinition("note_hardware", Deska::Db::Value(std::string("Some note"))));
     attrs.push_back(Deska::Cli::AttributeDefinition("purchase", Deska::Db::Value()));
