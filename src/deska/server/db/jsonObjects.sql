@@ -214,7 +214,7 @@ def main(tag,kindName,objectName):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
-	jsn[name] = dutil.mystr(assignedName)
+	jsn[name] = str(assignedName)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
