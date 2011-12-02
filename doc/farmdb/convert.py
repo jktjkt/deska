@@ -68,7 +68,6 @@ for row in getfile("Networks"):
         o.ip6 = numeric_addr
         o.mask6 = "pwn"
     else:
-        print ip4, numeric_addr
         # This is extremely unportable, as we rely on stuff like "host byte
         # order". We don't care. At all.
         o.ip4 = socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
