@@ -15,13 +15,7 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	atts = dutil.generated.atts(kindName)
-	atts["name"] = "identifier"
-	# dot the atts with kindName
-	new_atts = dict()
-	for att in atts:
-		new_atts[att] = "{0}.{1}".format(kindName,att)
-	atts = new_atts
+	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -67,7 +61,7 @@ def main(tag,kindName,revision,filter):
 	
 	res = dict()
 	for line in cur:
-		data = [dutil.mystr(x) for x in line]
+		data = dutil.pytypes(line)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.
@@ -98,13 +92,7 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	atts = dutil.generated.atts(kindName)
-	atts["name"] = "identifier"
-	# dot the atts with kindName
-	new_atts = dict()
-	for att in atts:
-		new_atts[att] = "{0}.{1}".format(kindName,att)
-	atts = new_atts
+	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -148,7 +136,7 @@ def main(tag,kindName,revision,filter):
 	
 	res = dict()
 	for line in cur:
-		data = [dutil.mystr(x) for x in line]
+		data = dutil.pytypes(line)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.
@@ -181,6 +169,7 @@ def main(tag,kindName,revision,filter):
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
 	attributes = dutil.generated.atts(kindName)
+
 	atts = dict()
 	for att in attributes:
 		if dutil.hasTemplate(kindName):
@@ -188,12 +177,7 @@ def main(tag,kindName,revision,filter):
 			if not re.match("template_",att):
 				atts[att+"_templ"] = attributes[att]
 		atts[att] = attributes[att]
-	atts["name"] = "identifier"
-	# dot the atts with kindName
-	new_atts = dict()
-	for att in atts:
-		new_atts[att] = "{0}.{1}".format(kindName,att)
-	atts = new_atts
+	atts = dutil.getAtts(atts,kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -237,7 +221,7 @@ def main(tag,kindName,revision,filter):
 	
 	res = dict()
 	for line in cur:
-		data = [dutil.mystr(x) for x in line]
+		data = dutil.pytypes(line)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.

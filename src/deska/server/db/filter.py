@@ -5,7 +5,6 @@ import json
 import re
 import generated
 from dutil import DutilException
-from dutil import mystr
 from dutil import fcall
 from dutil import getDataSuffix
 
@@ -76,12 +75,12 @@ class Condition():
 			if self.col == "name" and generated.relFromTbl(relName) == self.kind:
 				# FIXME: delimiter
 				parent, name = fcall("embed_name(text,text)",self.val,'->')
-				self.val = mystr(name)
+				self.val = str(name)
 				newcond = dict()
 				newcond["attribute"] = generated.relToTbl(relName)
 				newcond["kind"] = self.kind
 				newcond["condition"] = self.op
-				newcond["value"] = mystr(parent)
+				newcond["value"] = str(parent)
 				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
 		relNames = generated.refNames()
 		# add templates - same as refs for our stuff here

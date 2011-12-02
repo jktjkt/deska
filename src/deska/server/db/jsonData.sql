@@ -46,7 +46,7 @@ def main(tag,kindName,revision,filter):
 	
 	res = list()
 	for line in cur:
-		res.append(dutil.mystr(line[0]))
+		res.append(str(line[0]))
 
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -69,7 +69,14 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = dutil.getSelect(kindName, name)
+	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName)
+	embed = dutil.generated.embedNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			del atts[dutil.generated.relFromCol(relName)]
+	cols = ",".join(atts.values())
+
+	select = dutil.getSelect(kindName, name, cols)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -79,7 +86,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
-		data = [dutil.mystr(x) for x in data[0]]
+		data = dutil.pytypes(data[0])
 		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -101,8 +108,15 @@ def main(tag,kindName,objectName,revision):
 	# check kind name
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
+	
+	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName)
+	embed = dutil.generated.embedNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			del atts[dutil.generated.relFromCol(relName)]
+	cols = ",".join(atts.values())
 
-	select = dutil.getSelect(kindName, name)
+	select = dutil.getSelect(kindName, name, cols)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -112,7 +126,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
-		data = [dutil.mystr(x) for x in data[0]]
+		data = dutil.pytypes(data[0])
 		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -136,7 +150,22 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	select = dutil.getSelect(kindName, name)
+	attributes = dutil.generated.atts(kindName)
+
+	embed = dutil.generated.embedNames()
+	for relName in embed:
+		if embed[relName] == kindName:
+			del attributes[dutil.generated.relFromCol(relName)]
+	atts = dict()
+	for att in attributes:
+		if dutil.hasTemplate(kindName):
+			if not re.match("template_",att):
+				atts[att+"_templ"] = attributes[att]
+		atts[att] = attributes[att]
+	atts = dutil.getAtts(atts,kindName)
+	cols = ",".join(atts.values())
+
+	select = dutil.getSelect(kindName, name, cols)
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
 		colnames, data = dutil.getdata(select,objectName,revisionNumber)
@@ -146,7 +175,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		data = {}
 	else:
-		data = [dutil.mystr(x) for x in data[0]]
+		data = dutil.pytypes(data[0])
 		data = dict(zip(colnames,data))
 		if dutil.hasTemplate(kindName):
 			'''Only if kindName has template'''
