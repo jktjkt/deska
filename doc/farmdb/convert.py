@@ -178,7 +178,10 @@ for x in fd_hardware.itervalues():
     if x.cpuDesc is not None:
         print "  cpu_type \"%s\"" % x.cpuDesc
     if x.cpuHt is not None:
-        print "  cpu_ht %s" % x.cpuHt
+        if x.cpuHt:
+            print "  cpu_ht true"
+        else:
+            print "  cpu_ht false"
     if x.cpuPerf is not None:
         print "  hepspec %s" % x.cpuPerf
     if x.vendorUid != "00000000-0000-0000-0000-000000000001":
@@ -192,13 +195,11 @@ for x in fd_hardware.itervalues():
     if x.power is not None:
         print "  power_max %s" % x.power
     if x.imageName is not None:
-        print "  # FIXME: imageName %s" % x.imageName
+        print "# FIXME: imageName %s" % x.imageName
     if x.note is not None:
-        print "  note_hardware \"%s\"" % x.note
-    # FIXME: weight
-    # FIXME: width, height into a modelbox
+        print "  note \"%s\"" % x.note
     if x.weight is not None:
-        print "  XX_weight %s" % x.weight
+        print "  weight %s" % x.weight
     if x.width == "100":
         if x.height == "1":
             print "  modelbox generic-1u"
@@ -209,9 +210,9 @@ for x in fd_hardware.itervalues():
         elif x.height == "4":
             print "  modelbox generic-4u"
         else:
-            print "  # FIXME: weird height '%s' -> no modelbox" % x.height
+            print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
-        print "  # FIXME: weird width '%s' -> no modelbox" % x.width
+        print "# FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
 print
 
