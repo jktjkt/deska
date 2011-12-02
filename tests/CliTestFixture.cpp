@@ -210,7 +210,7 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("quit");
     expectAddCommandCompletion("rebase");
     expectAddCommandCompletion("restore %file");
-    expectAddCommandCompletion("resume");
+    expectAddCommandCompletion("resume tmp");
     expectAddCommandCompletion("start");
     expectAddCommandCompletion("status");
     expectPrintMessage("Deska CLI started. For usage info try typing \"help\".");
