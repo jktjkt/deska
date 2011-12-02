@@ -15,6 +15,8 @@ def unescape(x):
     if isinstance(x, str):
         if x.startswith("N'") and x.endswith("'"):
             return x[2:][:-1]
+        elif x.startswith(" N'") and x.endswith("'"):
+            return x[3:][:-1]
         elif x == "NULL":
             return None
         else:
