@@ -9,6 +9,8 @@ fd_hardware = {}
 fd_machines = {}
 fd_interfaces = {}
 
+map_ifaces = {}
+
 class Struct(object):
     def __repr__(self):
         return "{%s}" % ", ".join("%s: %s" % (attr, self.__getattribute__(attr)) for attr in dir(self) if not attr.startswith("__"))
@@ -111,6 +113,10 @@ for row in getfile("Interfaces"):
     except ValueError:
         print row
         raise
+    if map_ifaces.has_key(o.machine):
+        map_ifaces[o.machine].append(uid)
+    else:
+        map_ifaces[o.machine] = [uid]
     fd_interfaces[uid] = o
 
 
@@ -215,6 +221,47 @@ for x in fd_hardware.itervalues():
         print "# FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
 print
+print
+print "# dumping hardware"
+for (uid, x) in fd_machines.iteritems():
+    if map_ifaces.has_key(uid):
+        names = [fd_interfaces[y].dns for y in map_ifaces[uid] if
+                 fd_interfaces[y].dns is not None]
+        if len(names):
+            myname = "-".join(names)
+        else:
+            myname = "FIXME list of interfaces is useless"
+    elif x.serial is not None:
+        myname = x.serial
+    else:
+        myname = "FIXME unknown"
+    print "hardware %s" % myname.replace(" ", "_")
+    if x.serial is not None:
+        print "  serial_1 %s" % x.serial
+    if x.warrantyNo is not None:
+        print "# FIXME  warrantyNo %s" % x.warrantyNo
+    if x.warrantyEnd is not None:
+        print "# FIXME  warrantyExpires %s" % x.warrantyEnd
+    if x.invNo is not None:
+        print "  inventory_no %s" % x.invNo
+    if x.cpuHt is not None:
+        print "# FIXME: cpu_ht at the individual level: %s" % x.cpuHt
+    if x.purchaseDate is not None:
+        print "  purchased %s" % x.purchaseDate
+    if x.kvmNo is not None:
+        print "# FIXME: kvmNo %s" % x.kvmNo
+    if x.kvmPos is not None:
+        print "# FIXME: kvmPos %s" % x.kvmPos
+    if x.note is not None:
+        print "  note_hardware \"%s\"" % x.note
+    if x.obsolete is not None:
+        print "# FIXME obsolete: %s" % x.obsolete
+    if x.os is not None:
+        print "# FIXME: os %s" % x.os
+    # FIXME: rack no, pos, hpos
+    print "end\n"
+print
+print "commit imported"
 
 import pprint
 #pprint.pprint(fd_hardware)
