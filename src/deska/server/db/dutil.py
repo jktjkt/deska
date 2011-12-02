@@ -82,25 +82,12 @@ def errorJson(command,tag,typ,message):
 		})
 	return json.dumps(jsn)
 
-def mystr(s):
-	'''Like str but only not for all'''
-	if s is None:
-		return s
-	if type(s) == Postgres.types.int8:
-		return int(s)
-	if type(s) == Postgres.types.int4:
-		return int(s)
-	if type(s) == Postgres.types.int2:
-		return int(s)
-	if type(s) == Postgres.types.float4:
-		return float(s)
-	if type(s) == Postgres.types.float8:
-		return float(s)
-	if type(s) == Postgres.types.bool:
-		return bool(s)
-	if type(s) == Postgres.types.text.Array:
-		return [str(x) for x in list(s)]
-	return str(s)
+def pytypes(iterable):
+	iterable = list(iterable)
+	for i in range(0,len(iterable)):
+		if type(iterable[i]) == Postgres.types.text.Array:
+			iterable[i] = [str(x) for x in list(iterable[i])]
+	return Postgres.convert_postgres_objects(iterable)
 
 def fcall(fname,*args):
 	'''Call stored procedure with params.
@@ -172,7 +159,31 @@ def getDataFunction(funcName,kindName):
 	return nameDict[funcName]
 
 def getSelect(kindName, functionName, columns = "*", join = "", where = ""):
+	'''Create SELECT string'''
 	return 'SELECT {0} FROM {1}{2} AS {1} {3}{4}'.format(columns, kindName, getDataFunction(functionName,kindName), join, where)
+
+def getAtts(atts,kindName,addName = False):
+	'''Get attributes - columns definition'''
+	special = False
+	if addName:
+		atts["name"] = "identifier"
+	if atts == {}:
+		return {"":"*"}
+	# dot the atts with kindName
+	new_atts = dict()
+	for att in atts:
+		if atts[att] in ["macaddr","date"]:
+			new_atts[att] = "{0}.{1}::text".format(kindName,att)
+		elif atts[att] in ["ipv4","ipv6"]:
+			new_atts[att] = "host({0}.{1}) AS {1}".format(kindName,att)
+		elif atts[att] == "timestamp":
+			new_atts[att] = "to_char({0}.{1},'YYYY-MM-DD HH24:MI:SS') AS {1}".format(kindName,att)
+		elif atts[att] == "identifier_set":
+			new_atts[att] = "{0}.{1}".format(kindName,att)
+			special = True
+		else:
+			new_atts[att] = "{0}.{1}".format(kindName,att)
+	return new_atts
 
 def fakeOriginColumns(columns,objectName):
 	'''fake data into small arrays of [origin,value]'''
@@ -256,35 +267,39 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 
 		res = list()
 		for line in deleted():
+			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
+			obj["objectName"] = line[0]
 			res.append(obj)
 		for line in renamed():
+			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "renameObject"
 			obj["kindName"] = kindName
-			obj["oldObjectName"] = mystr(line[0])
-			obj["newObjectName"] = mystr(line[1])
+			obj["oldObjectName"] = line[0]
+			obj["newObjectName"] = line[1]
 			res.append(obj)
 		for line in created():
+			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "createObject"
 			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
+			obj["objectName"] = line[0]
 			res.append(obj)
 		setattrRes = setattr(a,b)
 		if setattr2 is not None:
 			setattrRes = setattrRes + setattr2(a,b)
 		for line in setattrRes:
+			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName
-			obj["objectName"] = mystr(line[0])
-			obj["attributeName"] = mystr(line[1])
-			obj["oldAttributeData"] = mystr(line[2])
-			obj["attributeData"] = mystr(line[3])
+			obj["objectName"] = line[0]
+			obj["attributeName"] = line[1]
+			obj["oldAttributeData"] = line[2]
+			obj["attributeData"] = line[3]
 			res.append(obj)
 		terminate()
 	return res
