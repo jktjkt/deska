@@ -248,7 +248,9 @@ for (uid, x) in fd_machines.iteritems():
         myname = x.serial
     else:
         myname = "FIXME unknown"
-    print "hardware %s" % myname.replace(" ", "_")
+    myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
+    print "box %s end" % myname
+    print "hardware %s" % myname
     if x.serial is not None:
         print "  serial_1 %s" % x.serial
     if x.warrantyNo is not None:
