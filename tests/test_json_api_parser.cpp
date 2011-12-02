@@ -28,43 +28,12 @@
 #include "deska/db/JsonApi.h"
 #include "deska/db/JsonHandler.h"
 #include "deska/db/AdditionalValueStreamOperators.h"
+#include "FuzzyDeskaValue.h"
 
 using std::vector;
 using std::map;
 using std::string;
 using namespace Deska::Db;
-
-/** @short Fuzzy comparator for Deska::Value which can dela with floating point values
-
-@see json_objectData
-*/
-struct FuzzyTestCompareDeskaValue: public boost::static_visitor<>
-{
-    template <typename T, typename U> void operator()(const T &, const U &) const
-    {
-        BOOST_ERROR("Cannot compare different types for equality");
-    }
-
-    template <typename T> void operator()(const T &a, const T &b) const
-    {
-        BOOST_CHECK_EQUAL(a, b);
-    }
-
-    void operator()(const double &a, const double &b) const
-    {
-        BOOST_CHECK_CLOSE(a, b, 0.01);
-    }
-
-    void operator()(const int &a, const double &b) const
-    {
-        BOOST_CHECK_CLOSE(static_cast<double>(a), b, 0.01);
-    }
-
-    void operator()(const double &a, const int &b) const
-    {
-        BOOST_CHECK_CLOSE(a, static_cast<double>(b), 0.01);
-    }
-};
 
 /** @short Test that kindNames() can retrieve data */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
