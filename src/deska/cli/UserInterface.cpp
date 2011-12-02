@@ -276,6 +276,7 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -283,6 +284,7 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
         std::ostringstream ostr;
         ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
         io->reportError(ostr.str());
+        parsingFailed = true;
         return false;
     }
 
@@ -301,6 +303,7 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -328,6 +331,7 @@ bool UserInterface::confirmSetAttribute(const ContextStack &context, const Db::I
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to set an attribue. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -355,6 +359,7 @@ bool UserInterface::confirmSetAttributeInsert(const ContextStack &context, const
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to insert an identifier to a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -382,6 +387,7 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an identifier from a set. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -391,6 +397,7 @@ bool UserInterface::confirmSetAttributeRemove(const ContextStack &context, const
     adjustedContext.back().kind = kind;
     if (!m_dbInteraction->objectExists(adjustedContext)) {
         io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove identifiers from its sets.");
+        parsingFailed = true;
         return false;
     }
     return true;
@@ -402,6 +409,7 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to remove an attribute. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -411,6 +419,7 @@ bool UserInterface::confirmRemoveAttribute(const ContextStack &context, const Db
     adjustedContext.back().kind = kind;
     if (!m_dbInteraction->objectExists(adjustedContext)) {
         io->reportError("Object " + contextStackToString(adjustedContext) + " does not exist, so you can not remove its attributes.");
+        parsingFailed = true;
         return false;
     }
     return true;
@@ -437,6 +446,7 @@ bool UserInterface::confirmFunctionDelete(const ContextStack &context)
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to delete an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
@@ -455,6 +465,7 @@ bool UserInterface::confirmFunctionRename(const ContextStack &context, const Db:
 {
     if (!currentChangeset) {
         io->reportError("Error: You have to be connected to a changeset to rename an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
+        parsingFailed = true;
         return false;
     }
 
