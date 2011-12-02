@@ -2,6 +2,7 @@ import csv
 import codecs
 import socket
 import struct
+import datetime
 
 fd_vendors = {}
 fd_networks = {}
@@ -30,6 +31,18 @@ def unescape(x):
         return [unescape(item) for item in x]
     else:
         return x
+
+def dateify(x):
+    prefix = "CAST(0x"
+    if x is None:
+        return None
+    elif x.startswith(prefix):
+        x = x[len(prefix):][:8]
+        offset = int(x, 16)
+        return datetime.date(1970, 1, 1) + datetime.timedelta(days=offset)
+    else:
+        raise ValueError, "Malformed date: %s" % x
+
 
 def getfile(name):
     #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
@@ -101,6 +114,8 @@ for row in getfile("Machines"):
     except ValueError:
         print row
         raise
+    o.purchaseDate = dateify(o.purchaseDate)
+    o.warrantyEnd = dateify(o.warrantyEnd)
     fd_machines[uid] = o
 
 for row in getfile("Interfaces"):
