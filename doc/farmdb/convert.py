@@ -59,14 +59,19 @@ for (uid, name) in getfile("Vendors"):
 for row in getfile("Networks"):
     o = Struct()
     try:
-        (uid, o.name, ip4, o.vlan, mask, o.note) = row
+        (uid, o.name, ip, o.vlan, mask, o.note) = row
     except ValueError:
         print row
         raise
-    numeric_addr = int(ip4, 16)
+    numeric_addr = int(ip, 16)
     if numeric_addr >= 0xffffffff:
-        o.ip6 = numeric_addr
-        o.mask6 = "pwn"
+        tupleA = socket.htonl(int(ip[2:10], 16))
+        tupleB = socket.htonl(int(ip[10:18], 16))
+        tupleC = socket.htonl(int(ip[18:26], 16))
+        tupleD = socket.htonl(int(ip[26:34], 16))
+        bytes = struct.pack("IIII", tupleA, tupleB, tupleC, tupleD)
+        o.ip6 = socket.inet_ntop(socket.AF_INET6, bytes)
+        o.mask6 = mask
     else:
         # This is extremely unportable, as we rely on stuff like "host byte
         # order". We don't care. At all.
