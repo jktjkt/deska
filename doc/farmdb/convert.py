@@ -141,6 +141,29 @@ for x in fd_networks.itervalues():
         print "  note \"%s\"" % x.note
     print "end\n"
 print
+print """# artificial: the boxmodels and form factors
+formfactor rackmount
+end
+
+modelbox generic-1u
+  formfactor rackmount
+end
+
+modelbox generic-2u
+  formfactor rackmount
+  height 2
+end
+
+modelbox generic-3u
+  formfactor rackmount
+  height 3
+end
+modelbox generic-4u
+  formfactor rackmount
+  height 4
+end
+
+"""
 print "# dumping HW models"
 for x in fd_hardware.itervalues():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
@@ -174,6 +197,21 @@ for x in fd_hardware.itervalues():
         print "  note_hardware \"%s\"" % x.note
     # FIXME: weight
     # FIXME: width, height into a modelbox
+    if x.weight is not None:
+        print "  XX_weight %s" % x.weight
+    if x.width == "100":
+        if x.height == "1":
+            print "  modelbox generic-1u"
+        elif x.height == "2":
+            print "  modelbox generic-2u"
+        elif x.height == "3":
+            print "  modelbox generic-3u"
+        elif x.height == "4":
+            print "  modelbox generic-4u"
+        else:
+            print "  # FIXME: weird height '%s' -> no modelbox" % x.height
+    else:
+        print "  # FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
 print
 
