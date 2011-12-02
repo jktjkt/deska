@@ -154,7 +154,11 @@ namespace json_spirit
 
         if( first_non_zero != 0 )
         {
+            // We really want to prevent producing numbers like "10.". There are two options here, either we end up with "10",
+            // which looks like an int, or go all the way to produce the "10.0".  We're going to do the second choice.
             str.erase( first_non_zero + 1 );
+            if ( ! str.empty() && str.at(str.length()-1) == '.')
+                str += '0';
         }
 
         str += exp;
