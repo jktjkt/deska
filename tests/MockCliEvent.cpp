@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include "MockCliEvent.h"
+#include "FuzzyDeskaValue.h"
 
 
 bool testChangesetsEqual(const Deska::Db::PendingChangeset &a, const Deska::Db::PendingChangeset &b)
@@ -40,6 +41,26 @@ bool testRevisionsEqual(const Deska::Db::RevisionMetadata &a, const Deska::Db::R
            a.commitMessage == b.commitMessage;
 }
 
+bool fuzzyTestValueAttrEqual(const Deska::Cli::AttributeDefinition &a, const Deska::Cli::AttributeDefinition &b)
+{
+    if (a.attribute != b.attribute)
+        return false;
+    if ((a.value && !b.value) || (!a.value && b.value))
+        return false;
+    if (!a.value && !b.value)
+        return true;
+    BOOST_ASSERT(a.value && b.value);
+
+    boost::apply_visitor(FuzzyTestCompareDeskaValue(), *(a.value), *(b.value));
+    // The visitor asserts if it's different
+    return true;
+}
+
+bool fuzzyTestValueAttrOrigEqual(const std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> &a,
+                         const std::pair<Deska::Cli::AttributeDefinition, Deska::Db::Identifier> &b)
+{
+    return (a.second == b.second) && fuzzyTestValueAttrEqual(a.first, b.first);
+}
 
 
 MockCliEvent MockCliEvent::reportError(const std::string &errorMessage)
@@ -541,8 +562,8 @@ bool MockCliEvent::operator==(const MockCliEvent &other) const
            std::equal(changesets.begin(), changesets.end(), other.changesets.begin(), testChangesetsEqual) &&
            std::equal(revisions.begin(), revisions.end(), other.revisions.begin(), testRevisionsEqual) &&
            std::equal(diff.begin(), diff.end(), other.diff.begin()) &&
-           std::equal(attrs.begin(), attrs.end(), other.attrs.begin()) &&
-           std::equal(attrsorig.begin(), attrsorig.end(), other.attrsorig.begin()) &&
+           std::equal(attrs.begin(), attrs.end(), other.attrs.begin(), fuzzyTestValueAttrEqual) &&
+           std::equal(attrsorig.begin(), attrsorig.end(), other.attrsorig.begin(), fuzzyTestValueAttrOrigEqual) &&
            std::equal(objects.begin(), objects.end(), other.objects.begin());
 }
 

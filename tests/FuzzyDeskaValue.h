@@ -20,6 +20,7 @@
 * */
 
 #include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/test_tools.hpp>
 
 /** @short Fuzzy comparator for Deska::Value which can dela with floating point values
 
