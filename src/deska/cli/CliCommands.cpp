@@ -234,9 +234,9 @@ bool Start::operator()(const std::string &params)
 
 Resume::Resume(UserInterface *userInterface): Command(userInterface)
 {
-    cmdName = "resume tmp";
+    cmdName = "resume";
     cmdUsage = "Displays list of pending changesets with ability to connect to one.";
-    complPatterns.push_back("resume");
+    complPatterns.push_back("resume tmp");
 }
 
 
