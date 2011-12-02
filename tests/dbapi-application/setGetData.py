@@ -13,16 +13,12 @@ def imperative(r):
 
 def doStuff(r):
     vendorNames = set(["vendor1", "vendor2"])
-    presentVendors = set(r.c(kindInstances("vendor")))
-    vendorNames = vendorNames - presentVendors
 
     r.c(startChangeset())
     for obj in vendorNames:
         r.assertEqual(r.c(createObject("vendor", obj)), obj)
 
     hardwareNames = set(["hw1"])
-    presentHW = set(r.c(kindInstances("hardware")))
-    hardwareNames = hardwareNames - presentHW
 
     for obj in hardwareNames:
         r.assertEqual(r.c(createObject("hardware", obj)), obj)
@@ -37,8 +33,8 @@ def doStuff(r):
 
     hardwareData = r.c(objectData("hardware", "hw1", revision))
     r.assertEqual(hardwareData, expectedHardwareData)
-    if "hwNoneExisting" not in r.c(kindInstances("hardware")):
-        r.cfail(objectData("hardware", "hwNoneExisting"), NotFoundError())
+    r.assertTrue("hwNoneExisting" not in r.c(kindInstances("hardware")))
+    r.cfail(objectData("hardware", "hwNoneExisting"), NotFoundError())
 
     r.c(startChangeset())
     r.cvoid(setAttribute("hardware", "hw1", "vendor", "vendor2"))
