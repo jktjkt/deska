@@ -277,7 +277,12 @@ for (uid, x) in fd_machines.iteritems():
     print "  modelhardware FAKE-REMOVE"
     print "end\n"
 print
-print "commit imported"
+print """@commit to r2
+jkt
+Initial import
+2011-Dec-02 18:19:44.929512
+#commit end
+"""
 
 import pprint
 #pprint.pprint(fd_hardware)
