@@ -1,4 +1,5 @@
 import csv
+import codecs
 
 fd_vendors = {}
 fd_networks = {}
@@ -24,7 +25,8 @@ def unescape(x):
         return x
 
 def getfile(name):
-    reader = csv.reader(file("%s.sql.csv" % name, "rb"))
+    #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
+    reader = csv.reader(preprocess_sql(name))
     first = True
     for row in reader:
         if first:
@@ -32,12 +34,24 @@ def getfile(name):
             continue
         yield unescape(row)
 
-for (uid, name) in getfile("vendors"):
+def preprocess_sql(name):
+    f = codecs.open("dbo.%s.Table.sql" % name, "rb", "utf-16")
+    for line in f:
+        if line.find("VALUES ") == -1:
+            continue
+        (garbage, line) = line.split("VALUES ")
+        if line.startswith("("):
+            line = line[1:]
+        if line.endswith(")\r\n"):
+            line = line[:-3]
+        yield line
+
+for (uid, name) in getfile("Vendors"):
     o = Struct()
     o.name = name
     fd_vendors[uid] = o
 
-for row in getfile("networks"):
+for row in getfile("Networks"):
     o = Struct()
     try:
         (uid, o.name, o.ip, o.vlan, o.mask, o.note) = row
@@ -46,7 +60,7 @@ for row in getfile("networks"):
         raise
     fd_networks[uid] = o
 
-for row in getfile("hardware"):
+for row in getfile("Hardware"):
     o = Struct()
     try:
         (uid, o.vendorUid, o.vendorId, o.typeDesc, o.cpuDesc, o.cpuCount,
@@ -57,7 +71,7 @@ for row in getfile("hardware"):
         raise
     fd_hardware[uid] = o
 
-for row in getfile("machines"):
+for row in getfile("Machines"):
     o = Struct()
     try:
         (uid, o.parentMachineUid, o.serial, o.warrantyNo, o.invNo, o.hwUid,
@@ -68,7 +82,7 @@ for row in getfile("machines"):
         raise
     fd_machines[uid] = o
 
-for row in getfile("interfaces"):
+for row in getfile("Interfaces"):
     o = Struct()
     try:
         (uid,
