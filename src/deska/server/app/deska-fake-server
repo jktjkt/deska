@@ -6,9 +6,12 @@ f = file(sys.argv[1], "rb")
 for line in f:
     if line.startswith("R"):
         i = sys.stdin.readline()
-        assert(i == line[1:])
+        if i != line[1:]:
+            print line
+            print i
+            assert(False)
     elif line.startswith("W"):
         sys.stdout.write(line[1:])
         sys.stdout.flush()
     else:
-        assert(false)
+        assert(False)
