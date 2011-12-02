@@ -16,7 +16,7 @@ CREATE TABLE hardware (
 	-- model of hardware
 	modelhardware bigint 
 		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE NOT NULL,
-	purchase date,
+	purchased date,
 	-- reference for the warranty information
 	warranty_contract bigint
 		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
@@ -34,6 +34,8 @@ CREATE TABLE hardware (
 	warranty_vendor bigint,
 	-- Internal inventory number at FZU, format: dddddd-d
 	inventory_no text,
+
+	note_hardware text,
 
 	template_hardware bigint
 );
