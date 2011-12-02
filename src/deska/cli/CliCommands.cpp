@@ -349,9 +349,9 @@ bool Commit::operator()(const std::string &params)
         commitMessage = ui->io->askForCommitMessage();
     }
     try {
-        ui->m_dbInteraction->commitChangeset(commitMessage);
+        Db::RevisionId newRev = ui->m_dbInteraction->commitChangeset(commitMessage);
         std::ostringstream ostr;
-        ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
+        ostr << "Changeset " << *(ui->currentChangeset) << " commited to " << newRev << ".";
         ui->io->printMessage(ostr.str());
         ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
         ui->m_parser->clearContextStack();

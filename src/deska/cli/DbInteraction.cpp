@@ -526,11 +526,11 @@ void DbInteraction::resumeChangeset(const Db::TemporaryChangesetId &changesetId)
 
 
 
-void DbInteraction::commitChangeset(const std::string &message)
+Db::RevisionId DbInteraction::commitChangeset(const std::string &message)
 {
     clearCache();
     stableView = false;
-    m_api->commitChangeset(message);
+    return m_api->commitChangeset(message);
 }
 
 
@@ -553,11 +553,11 @@ void DbInteraction::abortChangeset()
 
 
 
-void DbInteraction::restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp)
+Db::RevisionId DbInteraction::restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp)
 {
     clearCache();
     stableView = false;
-    m_api->restoringCommit(message, author, timestamp);
+    return m_api->restoringCommit(message, author, timestamp);
 }
 
 

@@ -257,8 +257,9 @@ public:
     /** @short Commits current changeset
     *
     *   @param message Commit message
+    *   @return Revision ID created by this commit
     */
-    void commitChangeset(const std::string &message);
+    Db::RevisionId commitChangeset(const std::string &message);
     /** @short Detaches from current changeset
     *
     *   @param message Detach message
@@ -271,8 +272,9 @@ public:
     *   @param message Commit message
     *   @param author Author
     *   @param timestamp Timestamp
+    *   @return Revision ID created by this commit
     */
-    void restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp);
+    Db::RevisionId restoringCommit(const std::string &message, const std::string &author, const boost::posix_time::ptime &timestamp);
 
     /** Function for obtaining all revisions.
     *
