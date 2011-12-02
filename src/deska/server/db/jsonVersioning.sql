@@ -385,7 +385,7 @@ def main(tag):
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] = str(ver)
+	jsn[name] = dutil.pytypes([ver])[0]
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
