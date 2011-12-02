@@ -252,13 +252,13 @@ for (uid, x) in fd_machines.iteritems():
     print "box %s end" % myname
     print "hardware %s" % myname
     if x.serial is not None:
-        print "  serial_1 %s" % x.serial
+        print "  serial_1 \"%s\"" % x.serial
     if x.warrantyNo is not None:
         print "# FIXME  warrantyNo %s" % x.warrantyNo
     if x.warrantyEnd is not None:
         print "# FIXME  warrantyExpires %s" % x.warrantyEnd
     if x.invNo is not None:
-        print "  inventory_no %s" % x.invNo
+        print "  inventory_no '%s'" % x.invNo
     if x.cpuHt is not None:
         print "# FIXME: cpu_ht at the individual level: %s" % x.cpuHt
     if x.purchaseDate is not None:
@@ -268,7 +268,7 @@ for (uid, x) in fd_machines.iteritems():
     if x.kvmPos is not None:
         print "# FIXME: kvmPos %s" % x.kvmPos
     if x.note is not None:
-        print "  note_hardware \"%s\"" % x.note
+        print "  note_hardware '%s'" % x.note
     if x.obsolete is not None:
         print "# FIXME obsolete: %s" % x.obsolete
     if x.os is not None:
