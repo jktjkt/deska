@@ -18,6 +18,8 @@ def unescape(x):
             return x[2:][:-1]
         elif x == "NULL":
             return None
+        elif x == "":
+            return None
         else:
             return x
     elif isinstance(x, (list, tuple)):
