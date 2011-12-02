@@ -50,11 +50,9 @@ namespace {
 bool objectModificationResultLess(const Deska::Db::ObjectModificationResult &a, const Deska::Db::ObjectModificationResult &b)
 {
     Deska::Cli::ModificationTypeGetter modificationTypeGetter;
-    if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
-        return false;
-    } else {
-        return true;
-    }
+    // Do not ever try to return true in cases when a is not strictly less than b. std::sort relies on you getting this right,
+    // and if you fool it, it will crash.
+    return (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b));
 }
 
 }
