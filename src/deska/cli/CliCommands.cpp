@@ -912,62 +912,114 @@ bool Restore::operator()(const std::string &params)
 
     // FIXME: Batched operations for restore
     ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
-    while (!getline(ifs, line).eof()) {
-        ++lineNumber;
-        // Comment
-        if (line.empty() || line[0] == '#')
-            continue;
-        // Commit info
-        if (!line.empty() && line[0] == '@') {
-            std::string author;
-            std::string message;
-            std::string timestamp;
-            getline(ifs, author);
+    try {
+        ui->m_dbInteraction->lockCurrentChangeset();
+        while (!getline(ifs, line).eof()) {
             if (ifs.fail()) {
+                ui->io->reportError("Reading of backup file failed.");
                 restoreError = true;
                 break;
             }
             ++lineNumber;
-            getline(ifs, message);
-            if (ifs.fail()) {
-                restoreError = true;
+            // Comment
+            if (line.empty() || line[0] == '#')
+                continue;
+            // Commit info
+            if (!line.empty() && line[0] == '@') {
+                // Checking commit head
+                if (line.size() < 12) {
+                    ui->io->reportError("Commit header info corrupted.");
+                    restoreError = true;
+                    break;
+                }
+                std::string checkRevStr = std::string(line.begin() + 11, line.end());
+                boost::optional<Db::RevisionId> checkRev;
+                try {
+                    checkRev = Db::RevisionId::fromString(checkRevStr);
+                } catch (std::runtime_error &e) {
+                    ui->io->reportError("Commit header info corrupted.");
+                    restoreError = true;
+                    break;
+                }
+                std::string author;
+                std::string message;
+                std::string timestamp;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                author = line;
+                ++lineNumber;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                message = line;
+                ++lineNumber;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                timestamp = line;
+                ++lineNumber;
+                boost::posix_time::ptime timestampConv;
+                try {
+                    timestampConv = boost::posix_time::time_from_string(timestamp);
+                } catch (boost::bad_lexical_cast &e) {
+                    ui->io->reportError("Error while reading commit timestamp.");
+                    restoreError = true;
+                    break;
+                }
+                Db::RevisionId realRev = ui->m_dbInteraction->restoringCommit(message, author, timestampConv);
+                if (realRev != *checkRev) {
+                    std::ostringstream ostr;
+                    ostr << "Commited revision " << realRev << " differs from " << *checkRev << " stated in commit header.";
+                    ui->io->reportError(ostr.str());
+                    restoreError = true;
+                    break;
+                }
+                ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
+                lastCommited = true;
+            // Normal command
+            } else {
+                if (!ui->currentChangeset) {
+                    ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
+                    ui->m_dbInteraction->lockCurrentChangeset();
+                }
+                try {
+                    ui->m_parser->parseLine(line);
+                    lastCommited = false;
+                } catch (Db::ConstraintError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "DB constraint violation:\n " << e.what() << std::endl;
+                    ui->io->reportError(ostr.str());
+                } catch (Db::RemoteDbError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+                    ui->io->reportError(ostr.str());
+                } catch (Db::JsonParseError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+                    ui->io->reportError(ostr.str());
+                }
+            }
+            if (ui->parsingFailed)
                 break;
-            }
-            ++lineNumber;
-            getline(ifs, timestamp);
-            if (ifs.fail()) {
-                restoreError = true;
-                break;
-            }
-            ++lineNumber;
-            ui->m_dbInteraction->restoringCommit(message, author, boost::posix_time::time_from_string(timestamp));
-            lastCommited = true;
-        // Normal command
-        } else {
-            if (!ui->currentChangeset)
-                ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
-            try {
-                ui->m_parser->parseLine(line);
-                lastCommited = false;
-            } catch (Db::ConstraintError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "DB constraint violation:\n " << e.what() << std::endl;
-                ui->io->reportError(ostr.str());
-            } catch (Db::RemoteDbError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
-                ui->io->reportError(ostr.str());
-            } catch (Db::JsonParseError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
-                ui->io->reportError(ostr.str());
-            }
         }
-        if (ui->parsingFailed)
-            break;
+        if (ui->currentChangeset)
+            ui->m_dbInteraction->unlockCurrentChangeset();
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while locking changeset for restore oparations.");
+        restoreError = true;
     }
 
     ui->nonInteractiveMode = false;
