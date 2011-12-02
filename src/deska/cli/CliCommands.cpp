@@ -882,6 +882,12 @@ bool Restore::operator()(const std::string &params)
         ui->io->reportError("Error: Wou must not be connected to a changeset to perform restore. Use \"help\" for more info.");
         return false;
     }
+
+    if (!ui->m_dbInteraction->allPendingChangesets().empty() || !ui->m_dbInteraction->allRevisions().empty()) {
+        ui->io->reportError("Error: It is not allowed to perform restore on DB that is not empty.");
+        return false;
+    }
+
     std::ifstream ifs(params.c_str());
     if (!ifs) {
         ui->io->reportError("Error while opening backup file \"" + params + "\".");
