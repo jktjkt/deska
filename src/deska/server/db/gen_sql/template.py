@@ -47,7 +47,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 	"""Drop not null constraint.
 	"""
 
-	add_multiref_fk_str = '''ALTER TABLE %(tbl_name)s_template 
+	add_multiref_fk_str = '''ALTER TABLE %(tbl_name)s_template
 	ADD CONSTRAINT rset_%(tbl_name)s_fk_%(column)s FOREIGN KEY (%(column)s)
 	REFERENCES %(reftbl_name)s (uid) DEFERRABLE INITIALLY IMMEDIATE;'''
 	"""Add rset_ constraint to columns that refers to identifier set.
@@ -104,7 +104,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 
 	def gen_relation_modif(self, table_name):
 		"""Generates sql code for drop column statements and adds refers to set relation to template tables.
-		
+
 		Drop column that is apart of the embed into relation and columns that are a part of some contains or containable relation.
 		Adds foreign key constraint to columns that should refers to set. This ensures that the inner table for n:m relation - multirefence will be created for this template table.
 		"""
@@ -123,7 +123,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 			elif row[0] == "REFERS_TO_SET":
 				refers_to_set[row[1]] = row[2]
 				relation_columns.append(row[1])
-		
+
 		columns = list()
 		record = self.plpy.execute(self.table_columns_str % {'tbl': table_name})
 		for row in record:
@@ -131,7 +131,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 				columns.append(row[0])
 		if len(columns) == 0:
 			raise ValueError, ('relation template for table %(tbl)s is badly defined, there is no attribute to template in kind %(tbl)s' % {'tbl': table_name})
-		
+
 		self.sql.write(self.gen_drop_embed_parent_column(table_name, embed_column))
 		self.sql.write(self.gen_drop_contained_column(table_name, contained_columns))
 		self.sql.write(self.gen_refers_to_set(table_name, refers_to_set))
@@ -149,7 +149,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 		drop_contained_columns = ""
 		for column in contained_columns:
 			drop_contained_columns = drop_contained_columns + '\n' + self.drop_column_str % (table_name, column)
-			
+
 		return drop_contained_columns
 
 	def gen_refers_to_set(self, table_name, refers_to_set):
@@ -158,7 +158,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 		for column in refers_to_set:
 			reftbl = refers_to_set[column]
 			add_multiref_fk = add_multiref_fk + '\n' + self.add_multiref_fk_str % {'tbl_name': table_name, 'column': column, 'reftbl_name': reftbl}
-		
+
 		return add_multiref_fk
 
 	# generate sql for one table
