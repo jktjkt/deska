@@ -310,6 +310,7 @@ os.unlink("output")
     fA.close()
     os.unlink(lockA)
     os.unlink(fifo)
+    os.rmdir(lockDir)
 
 
 def imperative(r):
