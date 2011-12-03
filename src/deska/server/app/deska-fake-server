@@ -13,5 +13,7 @@ for line in f:
     elif line.startswith("W"):
         sys.stdout.write(line[1:])
         sys.stdout.flush()
+    elif line.startswith("T") or line.startswith("D"):
+        continue
     else:
         assert(False)

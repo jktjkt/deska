@@ -5,15 +5,22 @@ except ImportError:
 
 import sys
 import traceback
+import time
 import logging
 
 CMD = "command"
 ERR = "dbException"
 
+last_t = None
+
 def perform_io(db, stdin, stdout, ioTracer=None):
 	try:
 		line = stdin.readline()
 		if ioTracer is not None:
+			t = time.time()
+			global last_t
+			if last_t is not None:
+				ioTracer.debug(t - last_t, extra={"deska_direction":"D"})
 			ioTracer.debug(line.strip(), extra={"deska_direction":"R"})
 		logging.debug("read data %s" % line)
 		if not line:
@@ -25,7 +32,10 @@ def perform_io(db, stdin, stdout, ioTracer=None):
 		stdout.write(res + "\n")
 		stdout.flush()
 		if ioTracer is not None:
+			end = time.time()
 			ioTracer.debug(res, extra={"deska_direction":"W"})
+			ioTracer.debug(end - t, extra={"deska_direction":"T"})
+			last_t = end
 	except StopIteration:
 		raise
 	except Exception, e:
