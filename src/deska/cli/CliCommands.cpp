@@ -26,8 +26,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 
 #include "CliCommands_Log.h"
 #include "CliCommands_DiffRebase.h"
@@ -38,24 +36,6 @@
 #include "Parser.h"
 #include "deska/db/JsonApi.h"
 
-namespace {
-/** @short Function for sorting object modifications.
-*
-*   Sorting by modification type.
-*
-*   @param a First object modification
-*   @param b Second object modification
-*   @return True if b is greater than a, else false
-*/
-bool objectModificationResultLess(const Deska::Db::ObjectModificationResult &a, const Deska::Db::ObjectModificationResult &b)
-{
-    Deska::Cli::ModificationTypeGetter modificationTypeGetter;
-    // Do not ever try to return true in cases when a is not strictly less than b. std::sort relies on you getting this right,
-    // and if you fool it, it will crash.
-    return (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b));
-}
-
-}
 
 namespace Deska {
 namespace Cli {
@@ -844,7 +824,6 @@ bool Backup::operator()(const std::string &params)
     ModificationBackuper modificationBackuper;
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference((it - 1)->revision, it->revision);
-        using namespace boost::phoenix::arg_names;
         std::sort(modifications.begin(), modifications.end(), objectModificationResultLess);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
             ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
@@ -861,6 +840,15 @@ bool Backup::operator()(const std::string &params)
     return true;
 }
 
+
+
+bool Backup::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
+{
+    Cli::ModificationTypeGetter modificationTypeGetter;
+    // Do not ever try to return true in cases when a is not strictly less than b. std::sort relies on you getting
+    //this right, and if you fool it, it will crash.
+    return (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b));
+}
 
 
 

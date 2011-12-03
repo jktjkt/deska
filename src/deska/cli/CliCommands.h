@@ -488,6 +488,17 @@ public:
     *   @param params File name where the backup will be stored.
     */
     virtual bool operator()(const std::string &params);
+
+private:
+    /** @short Function for sorting object modifications.
+    *
+    *   Sorting by modification type.
+    *
+    *   @param a First object modification
+    *   @param b Second object modification
+    *   @return True if b is greater than a, else false
+    */
+    static bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
 
