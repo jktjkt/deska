@@ -328,6 +328,14 @@ public:
     */
     std::vector<ObjectDefinition> expandContextStack(const ContextStack &context);
 
+    /** @short Checks if the attribute of some kind is read-only or not
+    *
+    *   @param kind Kind containing the attribute
+    *   @param attribute Attribute, that will be checked
+    *   @return True if the attribute is read-only
+    */
+    bool readonlyAttribute(const Db::Identifier &kind, const Db::Identifier &attribute);
+
     /** @short Locks the current changeset */
     void lockCurrentChangeset();
     /** @short Unlocks current changeset */
@@ -372,6 +380,9 @@ private:
     std::map<Db::Identifier, std::vector<Db::Identifier> > containable;
     /** Map of kinds, their attributes and kinds, that are contained using these attributes. */
     std::map<Db::Identifier, std::map<Db::Identifier, Db::Identifier> > referringAttrs;
+    /** List of read-only attributes for each kind */
+    std::map<Db::Identifier, std::vector<Db::Identifier> > readonlyAttributes;
+
     /** Flag if we are connected to any changeset, or not */
     bool stableView;
     /** Cache of queries for object existance check */

@@ -654,6 +654,23 @@ bool Rebase::operator()(const std::string &params)
     std::vector<Db::ObjectModificationResult> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
         oldChangeset);
 
+    // Erasing modifications, that should not be stored (eg. read-only attributes)
+    ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
+    for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
+         it != externModifications.end();) {
+        if (boost::apply_visitor(modificationBackupChecker, *it))
+            externModifications.erase(it);
+        else
+            ++it;
+    }
+    for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
+         it != ourModifications.end();) {
+        if (boost::apply_visitor(modificationBackupChecker, *it))
+            ourModifications.erase(it);
+        else
+            ++it;
+    }
+
     // Sort modifications for to merge the lists
     std::sort(externModifications.begin(), externModifications.end(), Rebase::objectModificationResultLess);
     std::sort(ourModifications.begin(), ourModifications.end(),Rebase::objectModificationResultLess);
@@ -876,8 +893,10 @@ bool Diff::operator()(const std::string &params)
             *(ui->currentChangeset));
         std::sort(modifications.begin(), modifications.end(), Diff::objectModificationResultLess);
         ModificationBackuper modificationBackuper;
+        ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+            if (boost::apply_visitor(modificationBackupChecker, *itm))
+                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
         }
         ofs.close();
         ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
@@ -919,8 +938,10 @@ bool Diff::operator()(const std::string &params)
                 return false;
             }
             ModificationBackuper modificationBackuper;
+            ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
             for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+                if (boost::apply_visitor(modificationBackupChecker, *itm))
+                    ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
             }
             ofs.close();
             ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");

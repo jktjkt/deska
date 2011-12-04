@@ -50,11 +50,13 @@ DbInteraction::DbInteraction(Db::Api *api):
             if (itr->kind == Db::RELATION_CONTAINABLE) {
                 containable[*itk].push_back(itr->target);
                 referringAttrs[*itk][itr->column] = itr->target;
+                readonlyAttributes[*itk].push_back(itr->column);
             }
 
             if (itr->kind == Db::RELATION_CONTAINS) {
                 contains[*itk].push_back(itr->target);
                 referringAttrs[*itk][itr->column] = itr->target;
+                readonlyAttributes[*itk].push_back(itr->column);
             }
 
         }
@@ -693,6 +695,14 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
     }
 
     return objects;
+}
+
+
+
+bool DbInteraction::readonlyAttribute(const Db::Identifier &kind, const Db::Identifier &attribute)
+{
+    return (std::find(readonlyAttributes[kind].begin(), readonlyAttributes[kind].end(), attribute) !=
+        readonlyAttributes[kind].end());
 }
 
 

@@ -37,6 +37,7 @@ namespace Cli {
 std::string readableAttrPrinter(const std::string &prefixMessage, const Db::Value &v);
 
 class UserInterface;
+class DbInteraction;
 
 
 /** @short Type of object modification for sorting purposes */
@@ -51,8 +52,11 @@ typedef enum {
     OBJECT_MODIFICATION_TYPE_SETATTR = 3
 } ModificationType;
 
+
+
 /** @short Visitor for printing object modifications. */
-struct ModificationBackuper: public boost::static_visitor<std::string> {
+struct ModificationBackuper: public boost::static_visitor<std::string>
+{
     //@{
     /** @short Function for converting single object modification to string for purposes of backup.
     *
@@ -65,6 +69,8 @@ struct ModificationBackuper: public boost::static_visitor<std::string> {
     std::string operator()(const Db::SetAttributeModification &modification) const;
     //@}
 };
+
+
 
 /** @short Visitor for obtaining type of each object modification */
 struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
@@ -80,6 +86,37 @@ struct ModificationTypeGetter: public boost::static_visitor<ModificationType>
     ModificationType operator()(const Db::RenameObjectModification &modification) const;
     ModificationType operator()(const Db::SetAttributeModification &modification) const;
     //@}
+};
+
+
+
+/** @short Visitor for checking if the modification should be backed up or not
+*
+*   For example read-only attributes should not be backed up as they are assigned automaticaly by the DB.
+*/
+class ModificationBackupChecker: public boost::static_visitor<bool>
+{
+public:
+    /** @short Constructor assignes DbInteraction to the checker so it can check if some attributes are read-only or not
+    *
+    *   @param m_dbInteraction Pointer to the DbInteraction to allow communication with the DB
+    */
+    ModificationBackupChecker(DbInteraction *dbInteraction);
+    //@{
+    /** @short Function for obtaining ModificationType for each modification
+    *
+    *   @param modification Instance of modifications from Db::ObjectModification variant.
+    *   @return Type of the modification
+    */
+    bool operator()(const Db::CreateObjectModification &modification) const;
+    bool operator()(const Db::DeleteObjectModification &modification) const;
+    bool operator()(const Db::RenameObjectModification &modification) const;
+    bool operator()(const Db::SetAttributeModification &modification) const;
+    //@}
+    
+private:
+    /** Pointer to the DbInteraction to allow communication with the DB */
+    DbInteraction *m_dbInteraction;
 };
 
 
