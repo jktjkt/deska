@@ -186,6 +186,103 @@ os.unlink("blah")
 
     rmGenerator("01")
 
+def helper_get_line_count(fname):
+    return len(file(fname, "rb").readlines())
+
+def test_generator_repetition(r):
+    """How many times did the generator run?"""
+
+    counterDir = tempfile.mkdtemp()
+    counterFile = os.path.join(counterDir, "c")
+    writeGenerator("01",
+"""#!/usr/bin/env python
+
+output = file("%s", "ab")
+output.write("We have run!\\n")
+""" % counterFile)
+
+    # Check that no config generators have ever run, or that they were correctly
+    # cleaned already
+    r.assertTrue(os.path.exists(PATH_WC))
+    # FIXME: this shall be properly cleaned up after a commit, or an aborted
+    # changeset...
+    #r.assertEqual(os.listdir(os.environ["DESKA_CFGGEN_GIT_WC"]), [])
+    helper_check_second_clone(r, ["README"])
+
+    # Make sure that the generators run exactly once during the "normal operation"
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-repetition-01"))
+    r.assertTrue(not os.path.exists(counterFile))
+    r.c(showConfigDiff())
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    r.c(showConfigDiff())
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    r.c(commitChangeset("."))
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    os.unlink(counterFile)
+
+    # Even without an explicit showConfigDiff(), the generators should've run anyway upon commit
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-repetition-02"))
+    r.assertTrue(not os.path.exists(counterFile))
+    r.c(commitChangeset("."))
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    os.unlink(counterFile)
+
+    # Let's check that any change to the DB triggers a regen
+    objname = "dummy-repetition-03"
+    changeset = r.c(startChangeset())
+    r.assertTrue(not os.path.exists(counterFile))
+    r.c(showConfigDiff())
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    os.unlink(counterFile)
+    r.cvoid(detachFromCurrentChangeset("."))
+    for x in range(4):
+        print "Iteration %d" % x
+        r.cvoid(resumeChangeset(changeset))
+        r.c(showConfigDiff())
+        r.assertTrue(not os.path.exists(counterFile))
+        if x == 0:
+            r.c(createObject("service", objname))
+        elif x == 1:
+            newname = "dummy-repetition-04"
+            r.cvoid(renameObject("service", objname, newname))
+            objname = newname
+        elif x == 2:
+            r.cvoid(setAttribute("service", objname, "note", "x"))
+        elif x == 3:
+            r.cvoid(deleteObject("service", objname))
+        else:
+            r.assertFalse("Should not happen")
+        r.assertTrue(not os.path.exists(counterFile))
+        r.c(showConfigDiff())
+        r.assertEqual(helper_get_line_count(counterFile), 1)
+        os.unlink(counterFile)
+        r.cvoid(detachFromCurrentChangeset("."))
+        r.assertTrue(not os.path.exists(counterFile))
+    r.cvoid(resumeChangeset(changeset))
+    r.cvoid(abortCurrentChangeset())
+    r.assertTrue(not os.path.exists(counterFile))
+
+    # On the other hand, we can always request a regen and the script will obey us
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-repetition-05"))
+    r.assertTrue(not os.path.exists(counterFile))
+    r.c(showConfigDiff())
+    r.assertEqual(helper_get_line_count(counterFile), 1)
+    r.c(showConfigDiff(True))
+    r.assertEqual(helper_get_line_count(counterFile), 2)
+    r.c(showConfigDiff())
+    r.assertEqual(helper_get_line_count(counterFile), 2)
+    r.c(showConfigDiff(True))
+    r.assertEqual(helper_get_line_count(counterFile), 3)
+    r.cvoid(abortCurrentChangeset())
+    os.unlink(counterFile)
+
+    # Cleanup
+    rmGenerator("01")
+    os.rmdir(counterDir)
+
 
 def test_parallel_commit(r, shallCommit):
     """Test what happens when the config generators take a long time to complete
@@ -310,6 +407,7 @@ os.unlink("output")
     fA.close()
     os.unlink(lockA)
     os.unlink(fifo)
+    os.rmdir(lockDir)
 
 
 def imperative(r):
@@ -317,5 +415,6 @@ def imperative(r):
     test_no_generators(r)
     test_no_output(r)
     test_unchanged_output(r)
+    test_generator_repetition(r)
     test_parallel_commit(r, True)
     test_parallel_commit(r, False)
