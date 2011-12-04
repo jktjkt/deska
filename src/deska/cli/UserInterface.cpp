@@ -298,16 +298,17 @@ bool UserInterface::confirmCategoryEntered(const ContextStack &context,
 {
     // We're entering into some context, so we should check whether the object in question exists, and if it does not,
     // ask the user whether to create it.
-    if (m_dbInteraction->objectExists(context))
-        return true;
 
-    if (!currentChangeset) {
+    if (!currentChangeset && !m_dbInteraction->objectExists(context)) {
         io->reportError("Error: You have to be connected to a changeset to create an object. Use commands \"start\" or \"resume\". Use \"help\" for more info.");
         parsingFailed = true;
         return false;
     }
 
     if (nonInteractiveMode || forceNonInteractive)
+        return true;
+
+    if (m_dbInteraction->objectExists(context))
         return true;
 
     // Object does not exist -> ask the user here
