@@ -23,6 +23,8 @@ CREATE TABLE box (
 	switch bigint,
 	-- hardware coble
 	hardware bigint,
+	-- extrahw containable
+	extrahw bigint,
 	-- position, checked by trigger
 	position text,
 	note text
