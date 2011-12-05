@@ -346,7 +346,7 @@ for (uid, x) in fd_interfaces.iteritems():
     print "  mac %s" % x.mac
     if x.ip is not None:
         print "  ip4 %s" % x.ip
-    print "end\n"
+    print "end\nend\n"
     # FIXME: more of them!
 
 print
