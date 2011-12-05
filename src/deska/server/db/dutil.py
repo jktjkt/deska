@@ -16,6 +16,7 @@ class DeskaException(Exception):
 		'70007': 'ObsoleteParentError',
 		'70004': 'ConstraintError',
 		'70005': 'SpecialReadOnlyAttributeError',
+		'70006': 'AlreadyExistsError',
 		'70011': 'ChangesetParsingError',
 		'70012': 'RevisionParsingError',
 		'70013': 'RevisionRangeError',
