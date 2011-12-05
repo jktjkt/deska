@@ -334,6 +334,24 @@ for (uid, x) in fd_machines.iteritems():
         pass
     print "end\n"
 
+for (uid, x) in fd_interfaces.iteritems():
+    try:
+        hw = out_assigned_hardware[x.machine]
+    except KeyError:
+        print "# FIXME: iface %s has unknown HW %s" % (uid, x.machine)
+        print
+        continue
+    ifindex = map_ifaces[x.machine].index(uid)
+    print "interface %s->eth%d" % (hw, ifindex)
+    try:
+        print "  network %s" % fd_networks[x.network].name
+    except KeyError:
+        print "# FIXME: no such network: %s" % x.network
+    print "  mac %s" % x.mac
+    print "  ip4 %s" % x.ip
+    print "end\n"
+    # FIXME: more of them!
+
 print
 print """@commit to r2
 jkt
