@@ -21,7 +21,7 @@ CREATE TABLE extrahw (
     name identifier
         CONSTRAINT "extrahw with this name already exists" UNIQUE NOT NULL,
     modelextrahw bigint NOT NULL
-        CONSTRAINT extrahw_fk_modelextrahw REFERENCES extrahw(uid) DEFERRABLE,
+        CONSTRAINT extrahw_fk_modelextrahw REFERENCES modelextrahw(uid) DEFERRABLE,
     box bigint NOT NULL
         CONSTRAINT rconta_extrahw_fk_box REFERENCES box(uid) DEFERRABLE,
     purchase date,
