@@ -67,11 +67,7 @@ def ipify(ip):
 def getfile(name):
     #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
     reader = csv.reader(preprocess_sql(name))
-    first = True
     for row in reader:
-        if first:
-            first = False
-            continue
         yield unescape(row)
 
 def preprocess_sql(name):
