@@ -45,6 +45,23 @@ def dateify(x):
     else:
         raise ValueError, "Malformed date: %s" % x
 
+def ipify(ip):
+    if ip is None:
+        return ip
+    if ip.startswith("0x"):
+        ip = ip[2:]
+    numeric_addr = int(ip, 16)
+    if numeric_addr >= 0xffffffff:
+        tupleA = socket.htonl(int(ip[2:10], 16))
+        tupleB = socket.htonl(int(ip[10:18], 16))
+        tupleC = socket.htonl(int(ip[18:26], 16))
+        tupleD = socket.htonl(int(ip[26:34], 16))
+        bytes = struct.pack("IIII", tupleA, tupleB, tupleC, tupleD)
+        return socket.inet_ntop(socket.AF_INET6, bytes)
+    else:
+        # This is extremely unportable, as we rely on stuff like "host byte
+        # order". We don't care. At all.
+        return socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
 
 def getfile(name):
     #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
@@ -81,21 +98,14 @@ for row in getfile("Networks"):
     except ValueError:
         print row
         raise
-    numeric_addr = int(ip, 16)
-    if numeric_addr >= 0xffffffff:
-        tupleA = socket.htonl(int(ip[2:10], 16))
-        tupleB = socket.htonl(int(ip[10:18], 16))
-        tupleC = socket.htonl(int(ip[18:26], 16))
-        tupleD = socket.htonl(int(ip[26:34], 16))
-        bytes = struct.pack("IIII", tupleA, tupleB, tupleC, tupleD)
-        o.ip6 = socket.inet_ntop(socket.AF_INET6, bytes)
-        o.mask6 = mask
-    else:
-        # This is extremely unportable, as we rely on stuff like "host byte
-        # order". We don't care. At all.
-        o.ip4 = socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
-        o.mask4 = mask
     uid = uid.lower()
+    ip = ipify(ip)
+    if ip.find(":") == -1:
+        o.ip4 = ip
+        o.mask4 = mask
+    else:
+        o.ip6 = ip
+        o.mask6 = mask
     fd_networks[uid] = o
 
 for row in getfile("Hardware"):
