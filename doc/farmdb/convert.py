@@ -69,6 +69,7 @@ def preprocess_sql(name):
 for (uid, name) in getfile("Vendors"):
     o = Struct()
     o.name = name
+    uid = uid.lower()
     fd_vendors[uid] = o
 
 for row in getfile("Networks"):
@@ -92,6 +93,7 @@ for row in getfile("Networks"):
         # order". We don't care. At all.
         o.ip4 = socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
         o.mask4 = mask
+    uid = uid.lower()
     fd_networks[uid] = o
 
 for row in getfile("Hardware"):
@@ -103,6 +105,9 @@ for row in getfile("Hardware"):
     except ValueError:
         print row
         raise
+    uid = uid.lower()
+    if o.vendorUid is not None:
+        o.vendorUid = o.vendorUid.lower()
     fd_hardware[uid] = o
 
 for row in getfile("Machines"):
@@ -114,8 +119,13 @@ for row in getfile("Machines"):
     except ValueError:
         print row
         raise
+    uid = uid.lower()
     o.purchaseDate = dateify(o.purchaseDate)
     o.warrantyEnd = dateify(o.warrantyEnd)
+    if o.parentMachineUid is not None:
+        o.parentMachineUid = o.parentMachineUid.lower()
+    if o.hwUid is not None:
+        o.hwUid = o.hwUid.lower()
     fd_machines[uid] = o
 
 for row in getfile("Interfaces"):
@@ -128,6 +138,9 @@ for row in getfile("Interfaces"):
     except ValueError:
         print row
         raise
+    uid = uid.lower()
+    if o.machine is not None:
+        o.machine = o.machine.lower()
     if map_ifaces.has_key(o.machine):
         map_ifaces[o.machine].append(uid)
     else:
