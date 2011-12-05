@@ -231,8 +231,8 @@ for x in fd_hardware.itervalues():
         print "  hdd_note \"%s\"" % x.hddDesc
     if x.power is not None:
         print "  power_max %s" % x.power
-    if x.imageName is not None:
-        print "# FIXME: imageName %s" % x.imageName
+    #if x.imageName is not None:
+    #    print "# FIXME: imageName %s" % x.imageName
     if x.note is not None:
         print "  note \"%s\"" % x.note
     if x.weight is not None:
