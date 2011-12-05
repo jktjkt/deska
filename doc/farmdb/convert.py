@@ -155,6 +155,9 @@ for row in getfile("Interfaces"):
     else:
         map_ifaces[o.machine] = [uid]
     o.ip = ipify(o.ip)
+    o.mac = o.mac.strip()
+    if not len(o.mac):
+        o.mac = None
     fd_interfaces[uid] = o
 
 #histogram = {}
@@ -343,7 +346,8 @@ for (uid, x) in fd_interfaces.iteritems():
         print "  network %s" % fd_networks[x.network].name
     except KeyError:
         print "# FIXME: no such network: %s" % x.network
-    print "  mac %s" % x.mac
+    if x.mac is not None:
+        print "  mac %s" % x.mac
     if x.ip is not None:
         print "  ip4 %s" % x.ip
     print "end\nend\n"
