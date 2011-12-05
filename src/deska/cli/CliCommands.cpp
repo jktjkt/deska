@@ -26,8 +26,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
 
 #include "CliCommands_Log.h"
 #include "CliCommands_DiffRebase.h"
@@ -37,6 +35,7 @@
 #include "Exceptions.h"
 #include "Parser.h"
 #include "deska/db/JsonApi.h"
+
 
 namespace Deska {
 namespace Cli {
@@ -121,6 +120,40 @@ std::string ModificationBackuper::operator()(const Db::SetAttributeModification 
     else
         ostr << "no " << modification.attributeName;
     return ostr.str();
+}
+
+
+
+ModificationBackupChecker::ModificationBackupChecker(DbInteraction *dbInteraction): m_dbInteraction(dbInteraction)
+{
+}
+
+
+
+bool ModificationBackupChecker::operator()(const Db::CreateObjectModification &modification) const
+{
+    return true;
+}
+
+
+
+bool ModificationBackupChecker::operator()(const Db::DeleteObjectModification &modification) const
+{
+    return true;
+}
+
+
+
+bool ModificationBackupChecker::operator()(const Db::RenameObjectModification &modification) const
+{
+    return true;
+}
+
+
+
+bool ModificationBackupChecker::operator()(const Db::SetAttributeModification &modification) const
+{
+    return !m_dbInteraction->readonlyAttribute(modification.kindName, modification.attributeName);
 }
 
 
@@ -217,7 +250,7 @@ Resume::Resume(UserInterface *userInterface): Command(userInterface)
 {
     cmdName = "resume";
     cmdUsage = "Displays list of pending changesets with ability to connect to one.";
-    complPatterns.push_back("resume");
+    complPatterns.push_back("resume tmp");
 }
 
 
@@ -328,9 +361,9 @@ bool Commit::operator()(const std::string &params)
         commitMessage = ui->io->askForCommitMessage();
     }
     try {
-        ui->m_dbInteraction->commitChangeset(commitMessage);
+        Db::RevisionId newRev = ui->m_dbInteraction->commitChangeset(commitMessage);
         std::ostringstream ostr;
-        ostr << "Changeset " << *(ui->currentChangeset) << " commited.";
+        ostr << "Changeset " << *(ui->currentChangeset) << " commited to " << newRev << ".";
         ui->io->printMessage(ostr.str());
         ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
         ui->m_parser->clearContextStack();
@@ -823,13 +856,13 @@ bool Backup::operator()(const std::string &params)
 
     // First revision is not a real revision, but head of the list, that is always present even with empty DB
     ModificationBackuper modificationBackuper;
+    ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
     for (std::vector<Db::RevisionMetadata>::iterator it = revisions.begin() + 1; it != revisions.end(); ++it) {
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifference((it - 1)->revision, it->revision);
-        using namespace boost::phoenix::arg_names;
-        std::sort(modifications.begin(), modifications.end(),
-            boost::phoenix::bind(&Backup::objectModificationResultLess, this, arg1, arg2));
+        std::sort(modifications.begin(), modifications.end(), objectModificationResultLess);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+            if (boost::apply_visitor(modificationBackupChecker, *itm))
+                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
         }
         ofs << "@commit to " << it->revision << std::endl;
         ofs << it->author << std::endl;
@@ -848,11 +881,9 @@ bool Backup::operator()(const std::string &params)
 bool Backup::objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b)
 {
     ModificationTypeGetter modificationTypeGetter;
-    if (boost::apply_visitor(modificationTypeGetter, a) > boost::apply_visitor(modificationTypeGetter, b)) {
-        return false;
-    } else {
-        return true;
-    }
+    // Do not ever try to return true in cases when a is not strictly less than b. std::sort relies on you getting
+    //this right, and if you fool it, it will crash.
+    return (boost::apply_visitor(modificationTypeGetter, a) < boost::apply_visitor(modificationTypeGetter, b));
 }
 
 
@@ -882,6 +913,16 @@ bool Restore::operator()(const std::string &params)
         ui->io->reportError("Error: Wou must not be connected to a changeset to perform restore. Use \"help\" for more info.");
         return false;
     }
+
+    if (!ui->m_dbInteraction->allPendingChangesets().empty()) {
+        ui->io->reportError("Error: The database contains pending changesets");
+        return false;
+    }
+    if (ui->m_dbInteraction->allRevisions().size() > 1) {
+        ui->io->reportError("Error: The database already contains data");
+        return false;
+    }
+
     std::ifstream ifs(params.c_str());
     if (!ifs) {
         ui->io->reportError("Error while opening backup file \"" + params + "\".");
@@ -893,63 +934,118 @@ bool Restore::operator()(const std::string &params)
     ui->m_parser->clearContextStack();
     unsigned int lineNumber = 0;
     bool restoreError = false;
+    bool lastCommited = true;
 
     // FIXME: Batched operations for restore
     ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
-    while (!getline(ifs, line).eof()) {
-        ++lineNumber;
-        // Comment
-        if (line.empty() || line[0] == '#')
-            continue;
-        // Commit info
-        if (!line.empty() && line[0] == '@') {
-            std::string author;
-            std::string message;
-            std::string timestamp;
-            getline(ifs, author);
+    try {
+        ui->m_dbInteraction->lockCurrentChangeset();
+        while (!getline(ifs, line).eof()) {
             if (ifs.fail()) {
+                ui->io->reportError("Reading of backup file failed.");
                 restoreError = true;
                 break;
             }
             ++lineNumber;
-            getline(ifs, message);
-            if (ifs.fail()) {
-                restoreError = true;
+            // Comment
+            if (line.empty() || line[0] == '#')
+                continue;
+            // Commit info
+            if (!line.empty() && line[0] == '@') {
+                // Checking commit head
+                if (line.size() < 12) {
+                    ui->io->reportError("Commit header info corrupted.");
+                    restoreError = true;
+                    break;
+                }
+                std::string checkRevStr = std::string(line.begin() + 11, line.end());
+                boost::optional<Db::RevisionId> checkRev;
+                try {
+                    checkRev = Db::RevisionId::fromString(checkRevStr);
+                } catch (std::runtime_error &e) {
+                    ui->io->reportError("Commit header info corrupted.");
+                    restoreError = true;
+                    break;
+                }
+                std::string author;
+                std::string message;
+                std::string timestamp;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                author = line;
+                ++lineNumber;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                message = line;
+                ++lineNumber;
+                getline(ifs, line);
+                if (ifs.fail()) {
+                    ui->io->reportError("Reading of backup file failed.");
+                    restoreError = true;
+                    break;
+                }
+                timestamp = line;
+                ++lineNumber;
+                boost::posix_time::ptime timestampConv;
+                try {
+                    timestampConv = boost::posix_time::time_from_string(timestamp);
+                } catch (boost::bad_lexical_cast &e) {
+                    ui->io->reportError("Error while reading commit timestamp.");
+                    restoreError = true;
+                    break;
+                }
+                Db::RevisionId realRev = ui->m_dbInteraction->restoringCommit(message, author, timestampConv);
+                if (realRev != *checkRev) {
+                    std::ostringstream ostr;
+                    ostr << "Commited revision " << realRev << " differs from " << *checkRev << " stated in commit header.";
+                    ui->io->reportError(ostr.str());
+                    restoreError = true;
+                    break;
+                }
+                ui->currentChangeset = boost::optional<Db::TemporaryChangesetId>();
+                lastCommited = true;
+            // Normal command
+            } else {
+                if (!ui->currentChangeset) {
+                    ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
+                    ui->m_dbInteraction->lockCurrentChangeset();
+                }
+                try {
+                    ui->m_parser->parseLine(line);
+                    lastCommited = false;
+                } catch (Db::ConstraintError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "DB constraint violation:\n " << e.what() << std::endl;
+                    ui->io->reportError(ostr.str());
+                } catch (Db::RemoteDbError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+                    ui->io->reportError(ostr.str());
+                } catch (Db::JsonParseError &e) {
+                    ui->parsingFailed = true;
+                    std::ostringstream ostr;
+                    ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+                    ui->io->reportError(ostr.str());
+                }
+            }
+            if (ui->parsingFailed)
                 break;
-            }
-            ++lineNumber;
-            getline(ifs, timestamp);
-            if (ifs.fail()) {
-                restoreError = true;
-                break;
-            }
-            ++lineNumber;
-            ui->m_dbInteraction->restoringCommit(message, author, boost::posix_time::time_from_string(timestamp));
-        // Normal command
-        } else {
-            if (!ui->currentChangeset)
-                ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
-            try {
-                ui->m_parser->parseLine(line);
-            } catch (Db::ConstraintError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "DB constraint violation:\n " << e.what() << std::endl;
-                ui->io->reportError(ostr.str());
-            } catch (Db::RemoteDbError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
-                ui->io->reportError(ostr.str());
-            } catch (Db::JsonParseError &e) {
-                ui->parsingFailed = true;
-                std::ostringstream ostr;
-                ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
-                ui->io->reportError(ostr.str());
-            }
         }
-        if (ui->parsingFailed)
-            break;
+        if (ui->currentChangeset)
+            ui->m_dbInteraction->unlockCurrentChangeset();
+    } catch (Db::ChangesetLockingError &e) {
+        ui->io->reportError("Error while locking changeset for restore oparations.");
+        restoreError = true;
     }
 
     ui->nonInteractiveMode = false;
@@ -958,13 +1054,15 @@ bool Restore::operator()(const std::string &params)
         ostr << "Parsing of backup file failed on line " << lineNumber << "." << std::endl;
         ostr << "Line: \"" << line << "\"";
         ui->io->reportError(ostr.str());
+    } else if (!lastCommited) {
+        ui->io->reportError("DB restored, but last changeset commit not found. You have to commit it manually!");
     } else {
         ui->io->printMessage("DB successfully restored.");
     }
 
     ifs.close();
     ui->m_parser->clearContextStack();
-    return !(ui->parsingFailed || restoreError);
+    return !(ui->parsingFailed || restoreError) && lastCommited;
 }
 
 

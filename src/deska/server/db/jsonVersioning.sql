@@ -18,7 +18,7 @@ def main(tag):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
-	jsn[name] = dutil.mystr(ver)
+	jsn[name] = str(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -84,7 +84,7 @@ def main(tag,commitMessage):
 		ver = dutil.fcall(fname,commitMessage)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] = dutil.mystr(ver)
+	jsn[name] = str(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -106,7 +106,7 @@ def main(tag,commitMessage,author,timestamp):
 		ver = dutil.fcall(fname,commitMessage,author,timestamp)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] = dutil.mystr(ver)
+	jsn[name] = str(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -138,7 +138,6 @@ RETURNS text
 AS
 $$
 import dutil
-from dutil import mystr
 from filter import Filter
 import json
 
@@ -150,7 +149,7 @@ def main(tag,filter):
 	try:
 		filter = Filter(filter,1)
 		where, values = filter.getWhere()
-		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status,num2revision(id2num(metadata.parentRevision)),metadata.timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.id"
+		select = "SELECT id2changeset(metadata.id),metadata.author,metadata.status::text,num2revision(id2num(metadata.parentRevision)),to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM changeset AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.id"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 
@@ -161,13 +160,14 @@ def main(tag,filter):
 
 	res = list()
 	for line in data:
+		line = dutil.pytypes(line)
 		ver = dict()
-		ver["changeset"] = mystr(line[0])
-		ver["author"] = mystr(line[1])
-		ver["status"] = mystr(line[2])
-		ver["parentRevision"] = mystr(line[3])
-		ver["timestamp"] = mystr(line[4])
-		ver["message"] = mystr(line[5])
+		ver["changeset"] = line[0]
+		ver["author"] = line[1]
+		ver["status"] = line[2]
+		ver["parentRevision"] = line[3]
+		ver["timestamp"] = line[4]
+		ver["message"] = line[5]
 		res.append(ver)
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -179,7 +179,6 @@ RETURNS text
 AS
 $$
 import dutil
-from dutil import mystr
 from filter import Filter
 import json
 
@@ -191,7 +190,7 @@ def main(tag,filter):
 	try:
 		filter = Filter(filter,1)
 		where, values = filter.getWhere()
-		select = "SELECT num2revision(metadata.num),metadata.author,metadata.timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
+		select = "SELECT num2revision(metadata.num),metadata.author,to_char(metadata.timestamp,'YYYY-MM-DD HH24:MI:SS') AS timestamp,metadata.message FROM version AS metadata " + filter.getJoin("metadata") + where + " ORDER BY metadata.num"
 	except dutil.DutilException as err:
 		return err.json(name,jsn)
 	
@@ -202,11 +201,12 @@ def main(tag,filter):
 
 	res = list()
 	for line in data:
+		line = dutil.pytypes(line)
 		ver = dict()
-		ver["revision"] = mystr(line[0])
-		ver["author"] = mystr(line[1])
-		ver["timestamp"] = mystr(line[2])
-		ver["commitMessage"] = mystr(line[3])
+		ver["revision"] = line[0]
+		ver["author"] = line[1]
+		ver["timestamp"] = line[2]
+		ver["commitMessage"] = line[3]
 		res.append(ver)
 
 	jsn[name] = res
@@ -385,7 +385,7 @@ def main(tag):
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] = dutil.mystr(ver)
+	jsn[name] = dutil.pytypes([ver])[0]
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;
@@ -428,7 +428,7 @@ def main(tag):
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
-	jsn[name] = "tmp{0}".format(dutil.mystr(ver))
+	jsn[name] = "tmp{0}".format(ver)
 	return json.dumps(jsn)
 $$
 LANGUAGE python SECURITY DEFINER;

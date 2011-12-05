@@ -22,10 +22,6 @@
 
 #include <fstream>
 #include <cstdlib>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
 
 #include "CliCommands_DiffRebase.h"
 #include "UserInterface.h"
@@ -658,12 +654,26 @@ bool Rebase::operator()(const std::string &params)
     std::vector<Db::ObjectModificationResult> ourModifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
         oldChangeset);
 
+    // Erasing modifications, that should not be stored (eg. read-only attributes)
+    ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
+    for (std::vector<Db::ObjectModificationResult>::iterator it = externModifications.begin();
+         it != externModifications.end();) {
+        if (boost::apply_visitor(modificationBackupChecker, *it))
+            externModifications.erase(it);
+        else
+            ++it;
+    }
+    for (std::vector<Db::ObjectModificationResult>::iterator it = ourModifications.begin();
+         it != ourModifications.end();) {
+        if (boost::apply_visitor(modificationBackupChecker, *it))
+            ourModifications.erase(it);
+        else
+            ++it;
+    }
+
     // Sort modifications for to merge the lists
-    using namespace boost::phoenix::arg_names;
-    std::sort(externModifications.begin(), externModifications.end(),
-        boost::phoenix::bind(&Rebase::objectModificationResultLess, this, arg1, arg2));
-    std::sort(ourModifications.begin(), ourModifications.end(),
-        boost::phoenix::bind(&Rebase::objectModificationResultLess, this, arg1, arg2));
+    std::sort(externModifications.begin(), externModifications.end(), Rebase::objectModificationResultLess);
+    std::sort(ourModifications.begin(), ourModifications.end(),Rebase::objectModificationResultLess);
 
     // Merge the lists in the temporary file in user readable and edittable format
     std::vector<Db::ObjectModificationResult>::iterator ite = externModifications.begin();
@@ -881,12 +891,12 @@ bool Diff::operator()(const std::string &params)
         }
         std::vector<Db::ObjectModificationResult> modifications = ui->m_dbInteraction->revisionsDifferenceChangeset(
             *(ui->currentChangeset));
-        using namespace boost::phoenix::arg_names;
-        std::sort(modifications.begin(), modifications.end(),
-            boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
+        std::sort(modifications.begin(), modifications.end(), Diff::objectModificationResultLess);
         ModificationBackuper modificationBackuper;
+        ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
         for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-            ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+            if (boost::apply_visitor(modificationBackupChecker, *itm))
+                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
         }
         ofs.close();
         ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");
@@ -921,17 +931,17 @@ bool Diff::operator()(const std::string &params)
             return true;
         } else {
             // Create patch
-            using namespace boost::phoenix::arg_names;
-            std::sort(modifications.begin(), modifications.end(),
-                boost::phoenix::bind(&Diff::objectModificationResultLess, this, arg1, arg2));
+            std::sort(modifications.begin(), modifications.end(), Diff::objectModificationResultLess);
             std::ofstream ofs(paramsList[0].c_str());
             if (!ofs) {
                 ui->io->reportError("Error while creating patch to file \"" + params + "\".");
                 return false;
             }
             ModificationBackuper modificationBackuper;
+            ModificationBackupChecker modificationBackupChecker(ui->m_dbInteraction);
             for (std::vector<Db::ObjectModificationResult>::iterator itm = modifications.begin(); itm != modifications.end(); ++itm) {
-                ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
+                if (boost::apply_visitor(modificationBackupChecker, *itm))
+                    ofs << boost::apply_visitor(modificationBackuper, *itm) << std::endl;
             }
             ofs.close();
             ui->io->printMessage("Patch successfully created into file \"" + paramsList[0] + "\".");

@@ -68,7 +68,7 @@ private:
     *   @param b Second object modification
     *   @return True if b is greater than a, else false
     */
-    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
+    static bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
 /** @short Cli command.
@@ -103,7 +103,7 @@ private:
     *   @param b Second object modification
     *   @return True if b is greater than a, else false
     */
-    bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
+    static bool objectModificationResultLess(const Db::ObjectModificationResult &a, const Db::ObjectModificationResult &b);
 };
 
 

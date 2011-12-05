@@ -5,22 +5,37 @@ except ImportError:
 
 import sys
 import traceback
+import time
 import logging
 
 CMD = "command"
 ERR = "dbException"
 
-def perform_io(db, stdin, stdout):
+last_t = None
+
+def perform_io(db, stdin, stdout, ioTracer=None):
 	try:
 		line = stdin.readline()
+		if ioTracer is not None:
+			t = time.time()
+			global last_t
+			if last_t is not None:
+				ioTracer.debug(t - last_t, extra={"deska_direction":"D"})
+			ioTracer.debug(line.strip(), extra={"deska_direction":"R"})
 		logging.debug("read data %s" % line)
 		if not line:
 			raise StopIteration
 		jsn = CommandParser(line)
 		fn = jsn.getfn()
 		args = jsn.getargs()
-		stdout.write(db.run(fn,args) + "\n")
+		res = db.run(fn,args)
+		stdout.write(res + "\n")
 		stdout.flush()
+		if ioTracer is not None:
+			end = time.time()
+			ioTracer.debug(res, extra={"deska_direction":"W"})
+			ioTracer.debug(end - t, extra={"deska_direction":"T"})
+			last_t = end
 	except StopIteration:
 		raise
 	except Exception, e:
@@ -28,8 +43,11 @@ def perform_io(db, stdin, stdout):
 		jsonErr = { "dbException": {"type": "ServerError", "message": repr(
 			traceback.format_exception(exc_type, exc_value, exc_traceback)
 		) } }
-		stdout.write(json.dumps(jsonErr) + "\n")
+		res = json.dumps(jsonErr)
+		stdout.write(res + "\n")
 		stdout.flush()
+		if ioTracer is not None:
+			ioTracer.debug(res, extra={"deska_direction":"W"})
 		raise
 
 class CommandParser:
