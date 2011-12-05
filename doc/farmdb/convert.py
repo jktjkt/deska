@@ -264,10 +264,6 @@ for (uid, x) in fd_hardware.iteritems():
     print "end\n"
 print
 print
-print """# adding a fake modelhardware
-modelhardware FAKE-REMOVE end
-
-"""
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
     if map_ifaces.has_key(uid):
