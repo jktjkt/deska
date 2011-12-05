@@ -126,6 +126,33 @@ NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()
 
 
 
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::string &value) const
+{
+    bool quote = (value.find('"') != std::string::npos);
+    bool apost = (value.find('\'') != std::string::npos);
+    bool space = ((value.find(' ') != std::string::npos) || (value.find('\t') != std::string::npos));
+    BOOST_ASSERT(!(quote && apost && space));
+    // No wrapping for string without spaces needed
+    if (!space)
+        return value;
+    std::ostringstream ostr;
+    // String with quotes should be wrapped in apostrophes
+    if (quote) {
+        ostr << "\'" << value << "\'";
+        return ostr.str();
+    }
+    // String with apostrophes should be wrapped in quotes
+    if (apost) {
+        ostr << "\"" << value << "\"";
+        return ostr.str();
+    }
+    // String with spaces only we can wrap in quotes
+    ostr << "\"" << value << "\"";
+    return ostr.str();
+}
+
+
+
 template <typename T>
 NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const T & value) const
 {
