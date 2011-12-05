@@ -39,7 +39,7 @@ def dateify(x):
     elif x.startswith(prefix):
         x = x[len(prefix):][:8]
         offset = int(x, 16)
-        return datetime.date(1970, 1, 1) + datetime.timedelta(days=offset)
+        return datetime.date(1900, 1, 1) + datetime.timedelta(days=offset)
     else:
         raise ValueError, "Malformed date: %s" % x
 
