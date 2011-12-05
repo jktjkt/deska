@@ -104,6 +104,12 @@ bool UserInterface::applyCreateObject(const ContextStack &context,
         } else {
             return false;
         }
+    } catch (Deska::Db::AlreadyExistsError &e) {
+        std::ostringstream ostr;
+        ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
+        io->reportError(ostr.str());
+        parsingFailed = true;
+        return false;
     }
 }
 
@@ -279,16 +285,6 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
         parsingFailed = true;
         return false;
     }
-
-    /*
-     Disabling this piece of code speeds up batched restore by 40%.
-     if (m_dbInteraction->objectExists(context)) {
-        std::ostringstream ostr;
-        ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
-        io->reportError(ostr.str());
-        parsingFailed = true;
-        return false;
-    }*/
 
     return true;
 }
