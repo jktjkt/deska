@@ -73,6 +73,8 @@ REMOTEDBEXCEPTION(FreezingError)
 REMOTEDBEXCEPTION(FilterError)
 /** @short Attempted to re-create a deleted object in the same changeset */
 REMOTEDBEXCEPTION(ReCreateObjectError)
+/** @short The object already exists and therefore cannot be created */
+REMOTEDBEXCEPTION(AlreadyExistsError)
 /** @short The specified kind is not valid */
 REMOTEDBEXCEPTION(InvalidKindError)
 /** @short Cannot access the specified attribute of a given kind */
