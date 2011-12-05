@@ -10,6 +10,8 @@ fd_hardware = {}
 fd_machines = {}
 fd_interfaces = {}
 
+out_assigned_modelhw = {}
+
 map_ifaces = {}
 
 class Struct(object):
@@ -215,12 +217,14 @@ for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not N
 print
 print
 print "# dumping HW models"
-for x in fd_hardware.itervalues():
+for (uid, x) in fd_hardware.iteritems():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
         fullname = "_-%s" % x.typeDesc
     else:
         fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
-    print "modelhardware %s" % fullname.replace(" ", "-")
+    fullname = fullname.replace(" ", "-")
+    out_assigned_modelhw[uid] = fullname
+    print "modelhardware %s" % fullname
     if x.cpuCount is not None:
         print "  cpu_sockets %s" % x.cpuCount
     if x.cpuCoreCount is not None:
@@ -301,7 +305,11 @@ for (uid, x) in fd_machines.iteritems():
         print "# FIXME obsolete: %s" % x.obsolete
     if x.os is not None:
         print "# FIXME: os %s" % x.os
-    print "  modelhardware FAKE-REMOVE"
+    if x.hwUid is not None:
+        if out_assigned_modelhw.has_key(x.hwUid):
+            print "  modelhardware %s" % out_assigned_modelhw[x.hwUid]
+        else:
+            print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
     print "box %s" % myname
     if x.rackNo is not None:
