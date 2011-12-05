@@ -192,17 +192,12 @@ modelbox generic-rack
   internal_depth 1
   accepts_inside [rackmount]
 end
-modelextrahw generic-rack
-  modelbox generic-rack
-end
 
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
-    print "extrahw %s" % rack
-    print "  modelextrahw generic-rack"
-    print "end"
     print "box %s" % rack
+    print "  direct_modelbox generic-rack"
     print "end"
 print
 print
