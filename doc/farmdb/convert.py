@@ -291,7 +291,13 @@ for (uid, x) in fd_machines.iteritems():
     elif x.serial is not None:
         myname = x.serial
     else:
-        myname = "FIXME unknown"
+        myname = "FIXME_unknown"
+        print "# FIXME: unknown HW; this would lead to a name clash:"
+        print "# %s" % x
+        continue
+    if myname == "0":
+        print "# FIXME: the following HW got created by a nasty UID"
+        myname = uid
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
