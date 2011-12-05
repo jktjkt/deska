@@ -289,18 +289,20 @@ for (uid, x) in fd_machines.iteritems():
     if x.os is not None:
         print "# FIXME: os %s" % x.os
     print "  modelhardware FAKE-REMOVE"
+    print "end"
+    print "box %s" % myname
     if x.rackNo is not None:
-        print "end"
-        print "box %s" % myname
         print "  inside %s" % x.rackNo
         if x.rackHPos is not None:
             print "  x %s" % x.rackHPos
-        print "  y %s" % x.rackPos
-        print "end\n"
+        if x.rackPos is not None:
+            print "  y %s" % x.rackPos
     elif x.rackPos is not None or x.rackHPos is not None:
         print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
     else:
-        print "end\n"
+        print "# FIXME: famrdb does not contain any physical placement"
+        pass
+    print "end\n"
 
 print
 print """@commit to r2
