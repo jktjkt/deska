@@ -280,13 +280,15 @@ bool UserInterface::confirmCreateObject(const ContextStack &context,
         return false;
     }
 
-    if (m_dbInteraction->objectExists(context)) {
+    /*
+     Disabling this piece of code speeds up batched restore by 40%.
+     if (m_dbInteraction->objectExists(context)) {
         std::ostringstream ostr;
         ostr << "Object " << ObjectDefinition(kind,object) << " already exists!";
         io->reportError(ostr.str());
         parsingFailed = true;
         return false;
-    }
+    }*/
 
     return true;
 }
