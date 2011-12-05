@@ -917,6 +917,7 @@ BOOST_FIXTURE_TEST_CASE(json_exceptions, JsonApiTestFixtureFailOnStreamThrow)
     JSON_ERR_TEST(FreezingError);
     JSON_ERR_TEST(FilterError);
     JSON_ERR_TEST(ReCreateObjectError);
+    JSON_ERR_TEST(AlreadyExistsError);
     JSON_ERR_TEST(RevisionParsingError);
     JSON_ERR_TEST(RevisionRangeError);
     JSON_ERR_TEST(ChangesetParsingError);

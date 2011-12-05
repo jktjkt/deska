@@ -104,6 +104,10 @@ class ReCreateObjectError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "ReCreateObjectError")
 
+class AlreadyExistsError(RemoteDbException):
+    def __init__(self):
+        RemoteDbException.__init__(self, "AlreadyExistsError")
+
 class RevisionParsingError(RemoteDbException):
     def __init__(self):
         RemoteDbException.__init__(self, "RevisionParsingError")
