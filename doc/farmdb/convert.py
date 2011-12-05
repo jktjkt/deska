@@ -134,7 +134,6 @@ for row in getfile("Interfaces"):
         map_ifaces[o.machine] = [uid]
     fd_interfaces[uid] = o
 
-
 #histogram = {}
 #for (k, v) in fd_interfaces.iteritems():
 #    if histogram.has_key(v.parentInterface):
@@ -185,6 +184,28 @@ modelbox 4u
 end
 
 """
+
+print """# Generic racks
+modelbox generic-rack
+  internal_height 47
+  internal_width 1
+  internal_depth 1
+  accepts_inside [rackmount]
+end
+modelextrahw generic-rack
+  modelbox generic-rack
+end
+
+"""
+
+for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
+    print "extrahw %s" % rack
+    print "  modelextrahw generic-rack"
+    print "end"
+    print "box %s" % rack
+    print "end"
+print
+print
 print "# dumping HW models"
 for x in fd_hardware.itervalues():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
@@ -249,7 +270,6 @@ for (uid, x) in fd_machines.iteritems():
     else:
         myname = "FIXME unknown"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
-    print "box %s end" % myname
     print "hardware %s" % myname
     if x.serial is not None:
         print "  serial_1 \"%s\"" % x.serial
@@ -273,9 +293,20 @@ for (uid, x) in fd_machines.iteritems():
         print "# FIXME obsolete: %s" % x.obsolete
     if x.os is not None:
         print "# FIXME: os %s" % x.os
-    # FIXME: rack no, pos, hpos
     print "  modelhardware FAKE-REMOVE"
-    print "end\n"
+    if x.rackNo is not None:
+        print "end"
+        print "box %s" % myname
+        print "  inside %s" % x.rackNo
+        if x.rackHPos is not None:
+            print "  x %s" % x.rackHPos
+        print "  y %s" % x.rackPos
+        print "end\n"
+    elif x.rackPos is not None or x.rackHPos is not None:
+        print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
+    else:
+        print "end\n"
+
 print
 print """@commit to r2
 jkt
