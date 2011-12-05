@@ -556,11 +556,21 @@ bool UserInterface::executeCommand(const std::string &cmdName, const std::string
 
 
 
-void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned int depth)
+void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned int depth,
+                                        boost::optional<ObjectDefinition> contained)
 {
     bool printEnd = false;
     std::vector<std::pair<AttributeDefinition, Db::Identifier> > attributes =
         m_dbInteraction->allAttributesResolvedWithOrigin(object);
+    for (std::vector<std::pair<AttributeDefinition, Db::Identifier> >::iterator it = attributes.begin();
+         it != attributes.end();) {
+        Db::Identifier containable = m_dbInteraction->referredKind(object.kind, it->first.attribute);
+        if (contained && (!containable.empty()) && (containable == contained->kind) &&
+            (it->first.value == Db::Value(contained->name)))
+            attributes.erase(it);
+        else
+            ++it;
+    }
     printEnd = printEnd || !attributes.empty();
     std::vector<ObjectDefinition> containedObjs = m_dbInteraction->containedObjects(object);
     unsigned int containedObjsSize = 0;
@@ -576,7 +586,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
                     ObjectDefinition(contains, object.name));
                 if (itmo != containedObjs.end()) {
                     ++containedObjsSize;
-                    showObjectRecursive(*itmo, depth);
+                    showObjectRecursive(*itmo, depth, object);
                 }
             }
         }
@@ -589,7 +599,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
         io->printObject(*it, depth, false);
         showObjectRecursive(*it, depth + 1);
     }
-    if (printEnd && (depth > 0))
+    if (printEnd && (depth > 0) && !contained)
         io->printEnd(depth - 1);
 }
 
