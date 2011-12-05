@@ -11,6 +11,7 @@ fd_machines = {}
 fd_interfaces = {}
 
 out_assigned_modelhw = {}
+out_assigned_hardware = {}
 
 map_ifaces = {}
 
@@ -288,6 +289,7 @@ for (uid, x) in fd_machines.iteritems():
     else:
         myname = "FIXME unknown"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
+    out_assigned_hardware[uid] = myname
     print "hardware %s" % myname
     if x.serial is not None:
         print "  serial_1 \"%s\"" % x.serial
