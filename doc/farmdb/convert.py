@@ -158,6 +158,7 @@ for row in getfile("Interfaces"):
         map_ifaces[o.machine].append(uid)
     else:
         map_ifaces[o.machine] = [uid]
+    o.ip = ipify(o.ip)
     fd_interfaces[uid] = o
 
 #histogram = {}
