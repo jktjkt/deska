@@ -344,7 +344,8 @@ for (uid, x) in fd_interfaces.iteritems():
     except KeyError:
         print "# FIXME: no such network: %s" % x.network
     print "  mac %s" % x.mac
-    print "  ip4 %s" % x.ip
+    if x.ip is not None:
+        print "  ip4 %s" % x.ip
     print "end\n"
     # FIXME: more of them!
 
