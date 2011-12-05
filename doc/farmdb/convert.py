@@ -171,10 +171,11 @@ for row in getfile("Interfaces"):
 print "# dumping vendors"
 for x in fd_vendors.itervalues():
     if x.name != "UNKNOWN":
-        print "vendor %s\nend\n" % x.name
+        print "create vendor %s\n" % x.name
 print
 print "# dumping networks"
 for x in fd_networks.itervalues():
+    print "create network %s" % x.name
     print "network %s" % x.name
     if dir(x).count("ip4"):
         print "  ip4 %s" % x.ip4
@@ -222,6 +223,7 @@ end
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
+    print "create box %s" % rack
     print "box %s" % rack
     print "  direct_modelbox generic-rack"
     print "end"
@@ -235,6 +237,8 @@ for (uid, x) in fd_hardware.iteritems():
         fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
     fullname = fullname.replace(" ", "-")
     out_assigned_modelhw[uid] = fullname
+    # FIXME: "create" fails with duplicates
+    #print "create modelhardware %s" % fullname
     print "modelhardware %s" % fullname
     if x.cpuCount is not None:
         print "  cpu_sockets %s" % x.cpuCount
@@ -290,6 +294,7 @@ for (uid, x) in fd_machines.iteritems():
         myname = "FIXME unknown"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
     out_assigned_hardware[uid] = myname
+    print "create hardware %s" % myname
     print "hardware %s" % myname
     if x.serial is not None:
         print "  serial_1 \"%s\"" % x.serial
@@ -319,6 +324,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
+    print "create box %s" % myname
     print "box %s" % myname
     if x.rackNo is not None:
         print "  inside %s" % x.rackNo
@@ -341,6 +347,7 @@ for (uid, x) in fd_interfaces.iteritems():
         print
         continue
     ifindex = map_ifaces[x.machine].index(uid)
+    print "create interface %s->eth%d" % (hw, ifindex)
     print "interface %s->eth%d" % (hw, ifindex)
     try:
         print "  network %s" % fd_networks[x.network].name
