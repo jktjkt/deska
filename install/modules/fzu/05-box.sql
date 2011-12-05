@@ -38,7 +38,7 @@ CREATE TABLE box (
 );
 
 -- function for trigger, checking position number
-CREATE FUNCTION box_check()
+CREATE FUNCTION box_check_position()
 RETURNS TRIGGER
 AS
 $$
@@ -60,6 +60,6 @@ END
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER box_trigger BEFORE INSERT OR UPDATE ON box FOR EACH ROW
-	EXECUTE PROCEDURE box_check()
+CREATE TRIGGER box_trigger_2 BEFORE INSERT OR UPDATE ON box FOR EACH ROW
+	EXECUTE PROCEDURE box_check_position();
 
