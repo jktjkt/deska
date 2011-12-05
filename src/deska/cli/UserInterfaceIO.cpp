@@ -785,7 +785,7 @@ bool UserInterfaceIO::askForConfirmationImpl(const std::string &prompt)
     std::string answer;
     getline(std::cin, answer);
     boost::algorithm::to_lower(answer);
-    return answer == "yes" || answer == "y";
+    return answer.empty() || answer == "yes" || answer == "y";
 }
 
 
