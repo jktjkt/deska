@@ -7,7 +7,7 @@ the environment and configuration files where applicable); this means that this
 module can only be used when the database is reachable and available.
 '''
 import libLowLevelPyDeska as _l
-from classes import _discoverScheme
+from classes import _discoverScheme, _addExpressionOperators
 
 def init(conn=None):
     _kinds = {}
@@ -23,5 +23,7 @@ def init(conn=None):
             raise RuntimeError("Cannot determine how to access the Deska database. "
                                "Please pass along the connection object or set DESKA_VIA_FD_R and DESKA_VIA_FD_W.")
     _discoverScheme(conn, _kinds)
+    _addExpressionOperators()
+
     for k, v in _kinds.iteritems():
         globals()[k] = v
