@@ -193,9 +193,9 @@ def getAtts(atts,kindName,addName = False):
 def getColumnIndexes(columns,specialCols):
 	'''get list of indexes of given special columns in column/table result'''
 	i = 0
-	Postgres.NOTICE(columns)
-	Postgres.NOTICE(specialCols)
 	ret = list()
+	# now we don't need to have exact mapping, just need indexes number in any order
+	# if someone would need it, this must be changed - for col in specialCols, find index of col in columns...
 	for col in columns:
 		if col in specialCols:
 			ret.append(i)
