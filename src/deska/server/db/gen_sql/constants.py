@@ -760,7 +760,7 @@ class Templates:
 				VALUES (name_,ver);
 		EXCEPTION
 			WHEN check_violation THEN
-				RAISE 'Object %% violates check constraint.', name_ USING ERRCODE = '70004';
+				RAISE 'Object %% violates check constraint, %%.', name_, SQLERRM USING ERRCODE = '70004';
 			WHEN unique_violation THEN
 				RAISE '%(tbl)s with name %% already exists.', name_ USING ERRCODE = '70006';
 		END;
@@ -815,7 +815,9 @@ class Templates:
 			INSERT INTO %(tbl)s_history(name, %(column)s, version) VALUES (%(tbl)s_name, %(reftbl)s_uid, ver);
 		EXCEPTION
 				WHEN unique_violation THEN
-			RAISE '%(tbl)s with name %% already exists.', full_name USING ERRCODE = '70006';
+					RAISE '%(tbl)s with name %% already exists.', full_name USING ERRCODE = '70006';
+				WHEN check_violation THEN
+					RAISE 'Object %% violates check constraint, %%.', full_name, SQLERRM USING ERRCODE = '70004';
 		END;
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;
