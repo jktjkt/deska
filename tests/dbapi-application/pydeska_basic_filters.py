@@ -63,6 +63,7 @@ def prepareObjects(r):
         iface = "%s->eth0" % hostname
         r.c(createObject("interface", iface))
         r.cvoid(setAttribute("interface", iface, "ip4", "192.168.12.%d" % (x*3+1)))
+    r.c(createObject("interface", "x0->eth1"))
 
 
     r.c(commitChangeset("objects set up"))
@@ -174,4 +175,4 @@ def doTests(r):
 
     # Indirect and non-equivalence
     matching = deska.interface[deska.network.vlan != 25]
-    r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(4,10)]))
+    r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(4,10)] + ["x0->eth1"]))
