@@ -298,6 +298,8 @@ for (uid, x) in fd_machines.iteritems():
     if myname == "0":
         print "# FIXME: the following HW got created by a nasty UID"
         myname = uid
+    if x.obsolete:
+        myname += "-obsolete"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
