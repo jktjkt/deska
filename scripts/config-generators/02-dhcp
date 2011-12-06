@@ -20,12 +20,11 @@ def write_file(fname, header, footer, iterable):
         if hostname.endswith("-obsolete"):
             continue
         # check any other interfaces here
-        others = deska.interface[(deska.host.name == hostname)
-                                 # FIXME: doesn't work, Redmine #399, Redmine #400
-                                 #& (deska.interface.name != "->".join([hostname, ifacename]))
-                                ]
+        # We do not go to the DB here; doing that locally is faster
+        others = [(k1, v1) for (k1, v1) in iterable if
+                  k1.startswith("%s->" % hostname) and k1 != ifacename]
         additional = []
-        for (other_k, other_v) in others.iteritems():
+        for (other_k, other_v) in others:
             if other_k == k:
                 continue
             if v.note is not None:
