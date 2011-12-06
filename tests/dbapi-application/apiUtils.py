@@ -317,8 +317,8 @@ def listRevisions(filter=None):
         args["filter"] = filter
     return ApiMethod("listRevisions", args)
 
-def showConfigDiff(forceRegen=False):
-    return ApiMethod("showConfigDiff", {"forceRegen": forceRegen})
+def showConfigDiff(forceRegenerate=False):
+    return ApiMethod("showConfigDiff", {"forceRegenerate": forceRegenerate})
 
 def dataDifference(revisionA, revisionB):
     return ApiMethod("dataDifference", {"revisionA": revisionA, "revisionB": revisionB})
