@@ -137,8 +137,10 @@ private:
     *
     *   @param object Object which attributes and nested kinds will be printed recursively.
     *   @param depth Depth of nesting for indentation.
+    *   @param contained The object in which is the one being printed part of
     */
-    void showObjectRecursive(const ObjectDefinition &object, unsigned int depth);
+    void showObjectRecursive(const ObjectDefinition &object, unsigned int depth,
+                             boost::optional<ObjectDefinition> contained = boost::optional<ObjectDefinition>());
 
     friend class Start;
     friend class Resume;

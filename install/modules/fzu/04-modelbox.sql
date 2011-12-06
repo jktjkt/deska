@@ -25,6 +25,13 @@ CREATE TABLE modelbox (
         CONSTRAINT "height cannot be negative number" CHECK (height >= 0),
     depth int
         CONSTRAINT "depth cannot be negative number" CHECK (depth >= 0),
+    -- inner dimensions
+    internal_width int
+        CONSTRAINT "internal_width cannot be negative number" CHECK (internal_width >= 0),
+    internal_height int
+        CONSTRAINT "internal_height cannot be negative number" CHECK (internal_height >= 0),
+    internal_depth int
+        CONSTRAINT "internal_depth cannot be negative number" CHECK (internal_depth >= 0),
 
     -- Regular expression for a list of valid bays in this
     -- rack/sleeve/enclosure/...

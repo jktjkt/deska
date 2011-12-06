@@ -19,22 +19,59 @@ CREATE TABLE box (
 	-- Our "parent"
 	inside bigint
 		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
+
+	-- Defining a link to "something" which provides the information about the model of the box
 	-- switch coble
 	switch bigint,
 	-- hardware coble
 	hardware bigint,
+	-- extrahw containable
+	extrahw bigint,
+	-- fallback: direct specification
+	direct_modelbox bigint
+		CONSTRAINT box_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
+
 	-- position, checked by trigger
 	position text,
+	-- alternatively, do it via the good old numbers
+	x int
+		CONSTRAINT "'x' cannot be negative number" CHECK (x >= 0),
+	y int
+		CONSTRAINT "'y' cannot be negative number" CHECK (y >= 0),
+	z int
+		CONSTRAINT "'z' cannot be negative number" CHECK (z >= 0),
 	note text
 );
 
+-- Make sure that the direct_modelbox is not present if there's an indirect reference through composition
+CREATE FUNCTION box_check_modelbox()
+RETURNS TRIGGER
+AS
+$$
+BEGIN
+	IF ((NEW.switch IS NOT NULL) or (NEW.hardware IS NOT NULL) or (NEW.extrahw IS NOT NULL)) and (NEW.direct_modelbox IS NOT NULL) THEN
+		RAISE EXCEPTION E'Box "%s" specifies a direct reference to a modelbox, even though there\'s already one through the composition', NEW.name;
+	END IF;
+	RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+
 -- function for trigger, checking position number
-CREATE FUNCTION box_check()
+CREATE FUNCTION box_check_position()
 RETURNS TRIGGER
 AS
 $$
 DECLARE pos_regexp text;
 BEGIN
+	if NEW.position IS NULL THEN
+		-- FIXME: Unfortunately, this checking won't work at all for the multi-unit
+		-- boxes.  The regular expression can check that a machine fits in a given
+		-- slot, but the problems start to pop out when a machine occupies more than
+		-- one slot.
+		RETURN NEW;
+	END IF;
 	SELECT bays_validity_regexp INTO pos_regexp FROM modelbox WHERE modelbox.uid = NEW.inside;
 	IF NEW.position !~ pos_regexp THEN
 		RAISE EXCEPTION 'Box position % does not match bays_validity_regexp "%"!', NEW.position, pos_regexp;
@@ -44,6 +81,9 @@ END
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER box_trigger BEFORE INSERT OR UPDATE ON box FOR EACH ROW
-	EXECUTE PROCEDURE box_check()
+CREATE TRIGGER box_trigger_1 BEFORE INSERT OR UPDATE ON box FOR EACH ROW
+	EXECUTE PROCEDURE box_check_modelbox();
+
+CREATE TRIGGER box_trigger_2 BEFORE INSERT OR UPDATE ON box FOR EACH ROW
+	EXECUTE PROCEDURE box_check_position();
 

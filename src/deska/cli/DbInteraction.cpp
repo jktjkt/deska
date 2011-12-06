@@ -75,7 +75,6 @@ ContextStackItem DbInteraction::createObject(const ContextStack &context)
     BOOST_ASSERT(!objects.empty());
 
     if (objects.size() == 1) {
-        BOOST_ASSERT(!objectExists(objects.front()));
         Db::Identifier newObjectName = m_api->createObject(objects.front().kind, objects.front().name);
         if (stableView)
             objectExistsCache[objects.front()] = true;

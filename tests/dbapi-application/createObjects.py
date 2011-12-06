@@ -27,6 +27,7 @@ def imperative(r):
     r.assertEqual(r.c(createObject("vendor", "a")), "a")
     r.assertEqual(r.c(createObject("vendor", "aa")), "aa")
     r.assertEqual(r.c(createObject("vendor", "blabla")), "blabla")
+    r.cfail(createObject("vendor", "a"), exception=AlreadyExistsError())
 
     r.assertEqual(r.c(kindInstances("vendor")),
                   AnyOrderList(("a", "aa", "blabla")))
