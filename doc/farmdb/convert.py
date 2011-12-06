@@ -156,6 +156,9 @@ for row in getfile("Interfaces"):
         map_ifaces[o.machine] = [uid]
     o.ip = ipify(o.ip)
     o.mac = o.mac.strip()
+    if o.ip is not None and o.ip.startswith("172.16."):
+        # FIXME: hardcoded stuff...
+        o.network = "6d31f21c-ceaf-4c22-9269-1730cd686456"
     if not len(o.mac):
         o.mac = None
     fd_interfaces[uid] = o
