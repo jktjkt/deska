@@ -25,7 +25,7 @@ def main(tag,kindName,revision,filter):
 				#FIXME: propagate delimiter constant here,or drop this argument
 				refTbl = dutil.generated.relToTbl(relName)
 				refCol = dutil.generated.relFromCol(relName)
-				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->')".format(ref = refTbl, kind = kindName, col = refCol)
+				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
 	else:
 		columns = "{0}.name".format(kindName)
 
