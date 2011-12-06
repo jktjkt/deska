@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys
-from operator import itemgetter, attrgetter
+import time
 # FIXME: this shall be removed in the final version
 sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
 import deska
@@ -49,9 +49,11 @@ def write_file(fname, header, footer, iterable):
 # has to rely on the "&", as "and" cannot be overriden in Python. Please see
 # comments in src/deska/python/deska/classes.py (or the Deska documentation) for
 # details.
+t1 = time.time()
 interfaces = sorted(deska.interface[(deska.interface.ip4 != None) &
                                     (deska.interface.mac != None) &
                                     (deska.network.vlan == 25)].iteritems(), key=ipv4_sorter)
+t2 = time.time()
 
 write_file("dhcpd-farm",
 """subnet 147.231.25.0 netmask 255.255.255.0  {
@@ -76,3 +78,8 @@ group {
 
 """,
            "\n\n}\n", interfaces)
+
+t3 = time.time()
+
+file("__timing-stats", "wb").write(
+    "DHCP VLAN 25: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
