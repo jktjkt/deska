@@ -285,7 +285,7 @@ class DB:
 		return self.cfgGenerator.diff()
 
 	def showConfigDiff(self, name, tag, forceRegen):
-		logging.debug("showConfigDiff")
+		logging.debug("showConfigDiff forceRegen=%s", forceRegen)
 		response = {"response": name, "tag": tag}
 		try:
 			try:
