@@ -176,3 +176,13 @@ def doTests(r):
     # Indirect and non-equivalence
     matching = deska.interface[deska.network.vlan != 25]
     r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(4,10)] + ["x0->eth1"]))
+
+    # FIXME: fails, Redmine#400
+    # Check for all other interfaces of a given host
+    #matching = deska.interface[(deska.interface.host == "x0") &
+    #                           (deska.interface.name != "x0->eth0")]
+    #r.assertEqual(matching.keys(), ["x0->eth1"])
+    # FIXME: fails, Redmine#399
+    #matching = deska.interface[(deska.interface.host == "x0") &
+    #                           (deska.interface.name != "eth0")]
+    #r.assertEqual(matching.keys(), ["x0->eth1"])
