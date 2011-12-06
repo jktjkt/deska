@@ -59,6 +59,7 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
 		data = dutil.pytypes(line,specialTypeCols)
@@ -134,6 +135,7 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
 		data = dutil.pytypes(line,specialTypeCols)
@@ -219,6 +221,7 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
 		data = dutil.pytypes(line,specialTypeCols)

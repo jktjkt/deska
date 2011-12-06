@@ -86,6 +86,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 		data = dutil.pytypes(data[0],specialTypeCols)
 		res = dict(zip(colnames,data))
 	jsn[name] = res
@@ -126,6 +127,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 		data = dutil.pytypes(data[0],specialTypeCols)
 		res = dict(zip(colnames,data))
 	jsn[name] = res
@@ -175,6 +177,7 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		data = {}
 	else:
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 		data = dutil.pytypes(data[0],specialTypeCols)
 		data = dict(zip(colnames,data))
 		if dutil.hasTemplate(kindName):

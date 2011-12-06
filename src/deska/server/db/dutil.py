@@ -189,6 +189,18 @@ def getAtts(atts,kindName,addName = False):
 			new_atts[att] = "{0}.{1}".format(kindName,att)
 	return new_atts, specialCols
 
+def getColumnIndexes(columns,specialCols):
+	'''get list of indexes of given special columns in column/table result'''
+	i = 0
+	Postgres.NOTICE(columns)
+	Postgres.NOTICE(specialCols)
+	ret = list()
+	for col in columns:
+		if col in specialCols:
+			ret.append(i)
+		i = i + 1
+	return ret
+
 def fakeOriginColumns(columns,objectName):
 	'''fake data into small arrays of [origin,value]'''
 	data = dict()
