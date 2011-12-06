@@ -752,6 +752,13 @@ bool Rebase::operator()(const std::string &params)
         ++ito;
     }
 
+    ModificationTypeGetter modificationTypeGetter;
+    if ((!ourModifications.empty() &&
+            (boost::apply_visitor(modificationTypeGetter, ourModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)) ||
+        (!externModifications.empty() &&
+            (boost::apply_visitor(modificationTypeGetter, externModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)))
+            ofs << "end" << std::endl;;
+
     ofs.close();
 
     bool conflictResolved = false;
