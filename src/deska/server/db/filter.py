@@ -74,17 +74,19 @@ class Condition():
 		for relName in embedNames:
 			if self.col == "name" and generated.relFromTbl(relName) == self.kind:
 				# FIXME: delimiter
-				parent, name = fcall("embed_name(text,text)",self.val,'->')
-				self.val = str(name)
+				#parent, name = fcall("embed_name(text,text)",self.val,'->')
+				#self.val = str(name)
 				newcond = dict()
-				newcond["attribute"] = generated.relToTbl(relName)
-				newcond["kind"] = self.kind
-				newcond["condition"] = self.op
-				newcond["value"] = str(parent)
-				self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
+				#newcond["attribute"] = generated.relToTbl(relName)
+				#newcond["kind"] = self.kind
+				#newcond["condition"] = self.op
+				#newcond["value"] = str(parent)
+				#self.newcond = AdditionalEmbedCondition(newcond,self.counter + 1)
 		relNames = generated.refNames()
 		# add templates - same as refs for our stuff here
 		relNames.update(generated.templateNames())
+		# add embeding - same as refs for our stuff here
+		relNames.update(embedNames)
 		# add contains/containable - same as refs for our stuff here
 		relNames.update(generated.containsNames())
 		relNames.update(generated.containableNames())

@@ -183,6 +183,6 @@ def doTests(r):
     #                           (deska.interface.name != "x0->eth0")]
     #r.assertEqual(matching.keys(), ["x0->eth1"])
     # FIXME: fails, Redmine#399
-    #matching = deska.interface[(deska.interface.host == "x0") &
-    #                           (deska.interface.name != "eth0")]
-    #r.assertEqual(matching.keys(), ["x0->eth1"])
+    matching = deska.interface[(deska.interface.host == "x0") &
+                               (deska.interface.name != "eth0")]
+    r.assertEqual(matching.keys(), ["x0->eth1"])
