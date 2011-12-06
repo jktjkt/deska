@@ -16,13 +16,11 @@ done
 
 if [[ -z "${USER}" ]]; then
 	echo "User was not specified" >&2
-	help
 	exit 1
 fi
 
 if [[ -z "${DATABASE}" ]]; then
 	echo "Database was not specified" >&2
-	help
 	exit 1
 fi
 
