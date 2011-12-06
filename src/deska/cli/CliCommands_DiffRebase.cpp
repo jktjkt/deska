@@ -752,6 +752,13 @@ bool Rebase::operator()(const std::string &params)
         ++ito;
     }
 
+    ModificationTypeGetter modificationTypeGetter;
+    if ((!ourModifications.empty() &&
+            (boost::apply_visitor(modificationTypeGetter, ourModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)) ||
+        (!externModifications.empty() &&
+            (boost::apply_visitor(modificationTypeGetter, externModifications.back()) == OBJECT_MODIFICATION_TYPE_SETATTR)))
+            ofs << "end" << std::endl;;
+
     ofs.close();
 
     bool conflictResolved = false;
@@ -783,11 +790,28 @@ bool Rebase::operator()(const std::string &params)
             ++lineNumber;
             if (line.empty() || line[0] == '#')
                 continue;
-            ui->m_parser->parseLine(line);
-            ui->m_parser->clearContextStack();
+            try {
+                ui->m_parser->parseLine(line);
+            } catch (Db::ConstraintError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "DB constraint violation:\n " << e.what() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::RemoteDbError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected server error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            } catch (Db::JsonParseError &e) {
+                ui->parsingFailed = true;
+                std::ostringstream ostr;
+                ostr << "Unexpected JSON error:\n " << e.whatWithBacktrace() << std::endl;
+                ui->io->reportError(ostr.str());
+            }
             if (ui->parsingFailed)
                 break;
         }
+        ui->m_parser->clearContextStack();
         ui->nonInteractiveMode = false;
         ifs.close();
         if (ui->parsingFailed) {
