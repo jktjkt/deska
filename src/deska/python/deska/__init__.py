@@ -8,11 +8,11 @@ module can only be used when the database is reachable and available.
 '''
 import libLowLevelPyDeska as _l
 from classes import _discoverScheme
-import os
 
 def init(conn=None):
     _kinds = {}
     if conn is None:
+        import os
         if os.environ.has_key("DESKA_VIA_FD_R") and os.environ.has_key("DESKA_VIA_FD_W"):
             rfd = int(os.environ["DESKA_VIA_FD_R"])
             wfd = int(os.environ["DESKA_VIA_FD_W"])
