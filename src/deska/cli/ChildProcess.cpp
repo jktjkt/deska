@@ -23,6 +23,7 @@
 
 
 #include <cstdlib>
+#include <boost/algorithm/string.hpp>
 #include "boost/process.hpp"
 #include "ChildProcess.h"
 
@@ -32,15 +33,25 @@ namespace Deska
 namespace Cli
 {
 
+std::string maybe_add_full_path(std::string exe)
+{
+    if (!boost::algorithm::starts_with(exe, "/") &&
+        !boost::algorithm::starts_with(exe, "./") &&
+        !boost::algorithm::starts_with(exe, "../")) {
+        exe = boost::process::find_executable_in_path(exe);
+    }
+    return exe;
+}
+
 Editor::Editor(const std::string &fileName)
 {
-    std::string exe = std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim";
+    namespace bp = boost::process;
 
+    std::string exe = maybe_add_full_path(std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim");
     std::vector<std::string> args;
     args.push_back(exe);
     args.push_back(fileName);
-
-    namespace bp = boost::process;
+    
     bp::context ctx;
     ctx.environment = bp::self::get_environment();
     ctx.stdout_behavior = bp::inherit_stream();
@@ -54,12 +65,12 @@ Editor::Editor(const std::string &fileName)
 
 Pager::Pager(const std::string &message)
 {
-    std::string exe = std::getenv("PAGER") ? std::getenv("PAGER") : "less";
+    namespace bp = boost::process;
 
+    std::string exe = maybe_add_full_path(std::getenv("PAGER") ? std::getenv("PAGER") : "less");
     std::vector<std::string> args;
     args.push_back(exe);
-
-    namespace bp = boost::process;
+    
     bp::context ctx;
     ctx.environment = bp::self::get_environment();
     ctx.stdout_behavior = bp::inherit_stream();

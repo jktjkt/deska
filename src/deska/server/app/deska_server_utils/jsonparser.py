@@ -16,9 +16,9 @@ last_t = None
 def perform_io(db, stdin, stdout, ioTracer=None):
 	try:
 		line = stdin.readline()
+		t = time.time()
+		global last_t
 		if ioTracer is not None:
-			t = time.time()
-			global last_t
 			if last_t is not None:
 				ioTracer.debug(t - last_t, extra={"deska_direction":"D"})
 			ioTracer.debug(line.strip(), extra={"deska_direction":"R"})
@@ -31,11 +31,12 @@ def perform_io(db, stdin, stdout, ioTracer=None):
 		res = db.run(fn,args)
 		stdout.write(res + "\n")
 		stdout.flush()
+		end = time.time()
+		last_t = end
 		if ioTracer is not None:
-			end = time.time()
 			ioTracer.debug(res, extra={"deska_direction":"W"})
 			ioTracer.debug(end - t, extra={"deska_direction":"T"})
-			last_t = end
+		logging.debug("perform_io: command took %ss" % (end - t))
 	except StopIteration:
 		raise
 	except Exception, e:
@@ -46,11 +47,12 @@ def perform_io(db, stdin, stdout, ioTracer=None):
 		res = json.dumps(jsonErr)
 		stdout.write(res + "\n")
 		stdout.flush()
+		end = time.time()
+		last_t = end
 		if ioTracer is not None:
-			end = time.time()
 			ioTracer.debug(res, extra={"deska_direction":"W"})
 			ioTracer.debug(end - t, extra={"deska_direction":"T"})
-			last_t = end
+		logging.debug("perform_io: command took %ss" % (end - t))
 		raise
 
 class CommandParser:
