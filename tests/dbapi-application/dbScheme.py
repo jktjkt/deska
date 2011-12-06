@@ -4,7 +4,7 @@ from apiUtils import *
 
 helper_interface_attrs = {
     "host": "identifier", "note": "string", "ip4": "ipv4address", "ip6": "ipv6address",
-    "mac": "macaddress", "template_interface": "identifier"
+    "mac": "macaddress", "template_interface": "identifier", "network": "identifier"
 }
 helper_hardware_attrs = {
     "warranty": "date", "purchase": "date", "vendor": "identifier", "cpu_ht": "bool", "hepspec": "double",
@@ -21,7 +21,7 @@ def helper_split_templated_args(source, ignored):
 
 def imperative(r):
     r.assertEqual(r.c(kindNames()), AnyOrderList(
-        ('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware', 'virtual_hardware', 'service', 'host_template')))
+        ('interface', 'interface_template', 'vendor', 'hardware_template', 'host', 'hardware', 'virtual_hardware', 'service', 'host_template', 'network')))
 
     r.assertEqual(r.c(kindAttributes("interface")), helper_interface_attrs)
     r.assertEqual(r.c(kindAttributes("interface_template")), helper_split_templated_args(helper_interface_attrs, ("host",)))
@@ -38,10 +38,13 @@ def imperative(r):
     r.assertEqual(r.c(kindRelations("interface")),
         AnyOrderList([
             {'relation': 'EMBED_INTO', 'target': 'host', 'column': 'host'},
+            {'relation': 'REFERS_TO', 'target': 'network', 'column': 'network'},
             {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'}])
     )
     r.assertEqual(r.c(kindRelations("interface_template")), AnyOrderList([
-        {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'}]))
+        {'relation': 'TEMPLATIZED', 'target': 'interface_template', 'column': 'template_interface'},
+        {'relation': 'REFERS_TO', 'target': 'network', 'column': 'network'},
+    ]))
     r.assertEqual(r.c(kindRelations("host")),
         AnyOrderList([
             {'relation': 'CONTAINS', 'target': 'hardware', 'column': 'hardware'},

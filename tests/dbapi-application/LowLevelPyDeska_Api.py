@@ -24,19 +24,20 @@ def imperative(r):
     kindNames = c.kindNames()
     r.assertEquals(sorted(kindNames), sorted(["hardware", "host", "host_template", "vendor",
                                               "interface", "interface_template", "service",
-                                              "hardware_template", "virtual_hardware"]))
+                                              "hardware_template", "virtual_hardware", "network"]))
 
     # continue with kindRelations
     expectedRelations = {
-        "interface": "[embedInto(host, host), templatized(interface_template, template_interface)]",
+        "interface": "[embedInto(host, host), refersTo(network, network), templatized(interface_template, template_interface)]",
         "hardware": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware), containable(host, host)]",
         "host": "[refersTo(service, service), templatized(host_template, template_host), contains(hardware, hardware), contains(virtual_hardware, virtual_hardware)]",
         "host_template": "[refersTo(service, service), templatized(host_template, template_host)]",
         "vendor": "[]",
         "service": "[]",
+        "network": "[]",
         "hardware_template": "[refersTo(vendor, vendor), templatized(hardware_template, template_hardware)]",
         # the embedInto is *not* present in this case, as templates cannot define this attribute
-        "interface_template": "[templatized(interface_template, template_interface)]",
+        "interface_template": "[refersTo(network, network), templatized(interface_template, template_interface)]",
         "virtual_hardware": "[containable(host, host)]",
     }
     for kind in kindNames:
@@ -49,9 +50,10 @@ def imperative(r):
         "hardware_template": "[cpu_ht: TYPE_BOOL, cpu_num: TYPE_INT, hepspec: TYPE_DOUBLE, note_hardware: TYPE_STRING, purchase: TYPE_DATE, ram: TYPE_INT, template_hardware: TYPE_IDENTIFIER, vendor: TYPE_IDENTIFIER, warranty: TYPE_DATE]",
         "host": "[hardware: TYPE_IDENTIFIER, note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER, virtual_hardware: TYPE_IDENTIFIER]",
         "host_template": "[note_host: TYPE_STRING, service: TYPE_IDENTIFIER_SET, template_host: TYPE_IDENTIFIER]",
-        "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
-        "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
+        "interface": "[host: TYPE_IDENTIFIER, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, network: TYPE_IDENTIFIER, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
+        "interface_template": "[ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, mac: TYPE_MAC_ADDRESS, network: TYPE_IDENTIFIER, note: TYPE_STRING, template_interface: TYPE_IDENTIFIER]",
         "vendor": "[]",
+        "network": "[cidr4: TYPE_INT, cidr6: TYPE_INT, dnsdomain: TYPE_STRING, ip4: TYPE_IPV4_ADDRESS, ip6: TYPE_IPV6_ADDRESS, note: TYPE_STRING, vlan: TYPE_INT]",
         "service": "[note: TYPE_STRING]",
         "virtual_hardware": "[host: TYPE_IDENTIFIER, vcpu_num: TYPE_INT, vram: TYPE_INT]"
     }
