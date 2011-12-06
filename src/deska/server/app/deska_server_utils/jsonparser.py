@@ -47,7 +47,10 @@ def perform_io(db, stdin, stdout, ioTracer=None):
 		stdout.write(res + "\n")
 		stdout.flush()
 		if ioTracer is not None:
+			end = time.time()
 			ioTracer.debug(res, extra={"deska_direction":"W"})
+			ioTracer.debug(end - t, extra={"deska_direction":"T"})
+			last_t = end
 		raise
 
 class CommandParser:
