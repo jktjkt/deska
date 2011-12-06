@@ -1,0 +1,66 @@
+Schuze Deska, 2011-12-06 FZU
+----------------------------
+
+Pritomni: vsichni
+
+Prehled, co kdo udelal od minula:
+---------------------------------
+
+Martina:
+- validace schematu
+- bugfixy
+- templatovani
+- dokumentace, nepushnuto
+- hodiny nezname, vic jak 20
+
+Lukas:
+- optimalizace vykonu
+- cisteni kodu
+- rozmysleni dokumentace
+- 25 hodin
+
+Tomas:
+- bugfixy v CLI
+- nepushnuta dokumentace
+- 25-30 hodin
+
+Honza:
+- import farmdb
+- zmeny schmetu FZU
+- debugging CLI
+- CLI: zrychleni importu
+- IO tracing a fake server
+- dukladne testy konfiguracnich generatoru
+- testy
+- role deska_user
+- lehke upravy dokumentace
+- 31.5 hodiny
+
+Diskuse:
+--------
+
+Dokumentace:
+- Martina a Tomas nepushuji, protoze maji dokumentaci rozpracovanou. Prosim o
+pravidelne pushovani.
+
+Komplexnost resolved diffu v changesetu: trva 3.3 vteriny na DB fzu s prave
+jednou verzi. Lukas: zrejme je to kvuli inicializaci docasnych tabulek. Profiler
+nezname.
+
+Diskuse o psani dokumentace, stavu CLI a dalsich vecech.
+
+Zaver: Tomas, Lukas a Martina budou prioritne pracovat na dokumentaci.
+
+Schuzka se Zavoralem kvuli odevzdani idealne jeste tento tyden.
+
+"Je mozne provozovat CLI pres SSH?" -- nalezen bug, Honza opravi a Tomas pouzije
+i pro volani $EDITOR/$PAGER
+
+
+Pristi schuzka:
+---------------
+
+utery 13. prosince, 18.00 FZU
+
+Schuzka trvala 75 minut.
+

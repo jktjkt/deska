@@ -36,6 +36,36 @@ def prepareObjects(r):
         r.cvoid(setAttribute("hardware", objname, "vendor", myVendor))
         r.cvoid(setAttribute("hardware", objname, "cpu_num", myCPUs))
         r.cvoid(setAttribute("hardware", objname, "ram", myRAM))
+
+    r.c(createObject("network", "nat"))
+    r.cvoid(setAttribute("network", "nat", "ip4", "172.16.0.0"))
+    r.cvoid(setAttribute("network", "nat", "cidr4", 16))
+    r.cvoid(setAttribute("network", "nat", "vlan", 172))
+    r.c(createObject("network", "public"))
+    r.cvoid(setAttribute("network", "public", "ip4", "147.231.25.0"))
+    r.cvoid(setAttribute("network", "public", "cidr4", 24))
+    r.cvoid(setAttribute("network", "public", "vlan", 25))
+
+    for x in range(0, 4):
+        hostname = "x%d" % x
+        iface = "%s->eth0" % hostname
+        r.c(createObject("interface", iface))
+        r.cvoid(setAttribute("interface", iface, "ip4", "147.231.25.%d" % (x*3+1)))
+        r.cvoid(setAttribute("interface", iface, "network", "public"))
+    for x in range(4, 9):
+        hostname = "x%d" % x
+        iface = "%s->eth0" % hostname
+        r.c(createObject("interface", iface))
+        r.cvoid(setAttribute("interface", iface, "ip4", "172.16.0.%d" % (x*3+1)))
+        r.cvoid(setAttribute("interface", iface, "network", "nat"))
+    for x in [9]:
+        hostname = "x%d" % x
+        iface = "%s->eth0" % hostname
+        r.c(createObject("interface", iface))
+        r.cvoid(setAttribute("interface", iface, "ip4", "192.168.12.%d" % (x*3+1)))
+    r.c(createObject("interface", "x0->eth1"))
+
+
     r.c(commitChangeset("objects set up"))
 
 def doTests(r):
@@ -133,3 +163,26 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()),
                   sorted([v["vendor"] for (k, v) in myHw.iteritems()
                           if v["ram"] == "3" and v["vendor"] is not None]))
+
+    # Indirect check: check for all interface in a network with particular VLAN
+    matching = deska.interface[deska.network.vlan == 25]
+    r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(0,4)]))
+
+    # Indirect check combined with another condition
+    matching = deska.interface[(deska.interface.ip4 != None) &
+                               (deska.network.vlan == 25)]
+    r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(0,4)]))
+
+    # Indirect and non-equivalence
+    matching = deska.interface[deska.network.vlan != 25]
+    r.assertEqual(sorted(matching.keys()), sorted(["x%d->eth0" % x for x in range(4,10)] + ["x0->eth1"]))
+
+    # FIXME: fails, Redmine#400
+    # Check for all other interfaces of a given host
+    #matching = deska.interface[(deska.interface.host == "x0") &
+    #                           (deska.interface.name != "x0->eth0")]
+    #r.assertEqual(matching.keys(), ["x0->eth1"])
+    # FIXME: fails, Redmine#399
+    #matching = deska.interface[(deska.interface.host == "x0") &
+    #                           (deska.interface.name != "eth0")]
+    #r.assertEqual(matching.keys(), ["x0->eth1"])

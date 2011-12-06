@@ -19,6 +19,7 @@
 * Boston, MA 02110-1301, USA.
 * */
 
+#include <boost/algorithm/string.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include "ProcessIO.h"
@@ -39,6 +40,11 @@ ProcessIO::ProcessIO(const std::vector<std::string> &arguments)
 
     // The first "argument" is actually a process' name, but boost::process expects them separate
     std::string exe = arguments.front();
+
+    // Got to resolve path
+    if (!boost::algorithm::starts_with(exe, "/") && !boost::algorithm::starts_with(exe, "./") && !boost::algorithm::starts_with(exe, "../")) {
+        exe = bp::find_executable_in_path(exe);
+    }
 
     childProcess = bp::launch(exe, arguments, ctx);
     using namespace boost::phoenix;
