@@ -1,0 +1,75 @@
+#!/usr/bin/python
+import sys
+from operator import itemgetter, attrgetter
+# FIXME: this shall be removed in the final version
+sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
+import deska
+
+deska.init()
+
+def ipv4_sorter(x):
+    (k, v) = x
+    return int(str(v.ip4).split(".")[-1])
+
+output = file("dhcpd-farm", "wb")
+output.write("""subnet 147.231.25.0 netmask 255.255.255.0  {
+
+    option routers                  147.231.25.253;
+    option domain-name "farm.particle.cz";
+    option domain-name-servers      147.231.25.14, 147.231.25.16, 147.231.27.173;
+    option interface-mtu 1500;
+
+    # one week
+    default-lease-time      604800;
+    min-lease-time          604800;
+}
+
+# sorted by IP address
+
+group {
+    filename "pxelinux.0";
+    next-server 147.231.25.14;
+
+    # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
+
+""")
+
+# There are a few gotchas here. First of all, the tests for NULLs got to be
+# performed through the "== None" or "!= None" operations instead of Pythonic
+# "is (not) None". Another point is that one cannot use the "and" oeprator, but
+# has to rely on the "&", as "and" cannot be overriden in Python. Please see
+# comments in src/deska/python/deska/classes.py (or the Deska documentation) for
+# details.
+interfaces = sorted(deska.interface[(deska.interface.ip4 != None) &
+                                    (deska.interface.mac != None) &
+                                    (deska.network.vlan == 25)].iteritems(), key=ipv4_sorter)
+
+for (k, v) in interfaces:
+    (hostname, ifacename) = k.split("->")
+    if hostname.endswith("-obsolete"):
+        continue
+    # check any other interfaces here
+    others = deska.interface[(deska.host.name == hostname)
+                             # FIXME: doesn't work, Redmine #399, Redmine #400
+                             #& (deska.interface.name != "->".join([hostname, ifacename]))
+                            ]
+    additional = []
+    for (other_k, other_v) in others.iteritems():
+        if other_k == k:
+            continue
+        if v.note is not None:
+            note = v.note + " "
+        else:
+            note = ""
+        additional.append("\n        # %s: %s%s" % (other_k.split("->")[-1],
+                                                    note, other_v.mac))
+    output.write(
+"""    host %(host)s {%(additional)s
+        hardware ethernet %(mac)s;
+        fixed-address %(ipv4)s;
+    }
+
+""" % {
+    "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
+
+output.write("\n\n}\n")
