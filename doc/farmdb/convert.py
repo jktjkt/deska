@@ -53,12 +53,12 @@ def ipify(ip):
         ip = ip[2:]
     numeric_addr = int(ip, 16)
     if numeric_addr >= 0xffffffff:
-        tupleA = socket.htonl(int(ip[2:10], 16))
-        tupleB = socket.htonl(int(ip[10:18], 16))
-        tupleC = socket.htonl(int(ip[18:26], 16))
-        tupleD = socket.htonl(int(ip[26:34], 16))
-        bytes = struct.pack("IIII", tupleA, tupleB, tupleC, tupleD)
-        return socket.inet_ntop(socket.AF_INET6, bytes)
+        out = []
+        for x in range(8):
+            start = x*4
+            end = start + 4
+            out.append(int(ip[start:end], 16))
+        return ":".join(hex(byte)[2:] for byte in out)
     else:
         # This is extremely unportable, as we rely on stuff like "host byte
         # order". We don't care. At all.
