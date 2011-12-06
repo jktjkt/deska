@@ -14,14 +14,14 @@ expectedHardwareData2 = {
 }
 
 expectedInterfaceData = {
-    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:aa", "ip6": None, "ip4": "192.168.0.1", "template_interface": None},
-    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None}
+	"host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:aa", "ip6": None, "ip4": "192.168.0.1", "template_interface": None, "network": None},
+	"host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None, "network": None}
 }
 
 expectedInterfaceData2 = {
-    "host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:ab", "ip6": None, "ip4": "192.168.0.1", "template_interface": None},
-    "host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None},
-    "host1->eth1": {"note": None, "mac": "01:23:45:67:89:ba", "ip6": None, "ip4": None, "template_interface": None}
+	"host1->eth0": {"note": "some note", "mac": "01:23:45:67:89:ab", "ip6": None, "ip4": "192.168.0.1", "template_interface": None, "network": None},
+	"host2->eth0": {"note": "another note", "mac": "01:23:45:67:89:bb", "ip6": None, "ip4": None, "template_interface": None, "network": None},
+	"host1->eth1": {"note": None, "mac": "01:23:45:67:89:ba", "ip6": None, "ip4": None, "template_interface": None, "network": None}
 }
 
 def imperative(r):

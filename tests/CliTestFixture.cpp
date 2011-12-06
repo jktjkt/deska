@@ -189,6 +189,7 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help host_template");
     expectAddCommandCompletion("help interface");
     expectAddCommandCompletion("help interface_template");
+    expectAddCommandCompletion("help network");
     expectAddCommandCompletion("help service");
     expectAddCommandCompletion("help vendor");
     expectAddCommandCompletion("help virtual_hardware");

@@ -19,6 +19,8 @@ CREATE TABLE interface (
 	-- IP
 	-- TODO unique constraint
 	ip4 ipv4,
+	network bigint
+		CONSTRAINT interface_fk_network REFERENCES network(uid) DEFERRABLE,
 	ip6 ipv6,
 	-- MAC
 	-- TODO unique constraint
