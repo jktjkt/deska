@@ -140,8 +140,8 @@ objects, Deska provides the {\tt CONTAINS} relation.
 
 Using this relation, a logical object is essentially composed of many smaller objects, where each of the ``contained''
 parts provides a particular function.  For example, a logical ``computer'' object could be composed of the following
-building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for stuff like
-serial number) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
+building blocks: {\tt host} (for stuff like hostname, OS configuration, embedded network interfaces etc.), {\tt hardware} (for stuff like
+serial number or installed RAM) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
 include the {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
 provided no conflicts arise.  It is important to realize that this reusing happens at the {\em kind} level and not at
 the object level ---  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
