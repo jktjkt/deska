@@ -56,7 +56,9 @@ Let's start with perhaps one of the simplest relation, the {\tt REFERS\_TO} one.
 to make sure that an object's attribute does not contain just an ordinary text, but that the value of said attribute
 refers to an object of a given kind.
 
-There are many use cases for such relation, the most basic one is probably the DB-way of defining enumerations.  Suppose
+There are many use cases for such relation, the most basic one is probably the DB-way of defining
+enumerations.\footnote{The domain of the acceptable values of the enumeration is determined from the user-supplied data
+at runtime, leading to a dynamic nature of these enums.} Suppose
 we are designing a hardware inventory and want to keep track of vendors or manufacturers.  It would be impractical to
 modify the database code when a new company selling servers emerges, so it makes sense to treat the list of
 manufacturers as data.  This is simply done by creating a new kind, let's call it ``vendor'', and instantiating new
