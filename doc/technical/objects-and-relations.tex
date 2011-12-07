@@ -113,14 +113,15 @@ among all of them.  Therefore it might make sense to create one artificial objec
 put all the shared data in there, and have fifty new individual objects ``inherit'' the default values from it.  This
 scenario is assisted by the {\tt TEMPLATIZED} relation.
 
-Templates are typically implemented through two kinds, let's call them {\tt hardware} and {\tt template\_hardware}, and
-a relation of type {\tt TEMPLATIZED}, which would typically be ``activated'' via the {\tt template} attribute of the
-first kind (remember, relations always exist between individual objects).  So in our sample scenario when a vendor
-delivers fifty new RM-666 boxes, we would create one instance of the {\tt template\_hardware} kind with the name {\tt
-rm666\_2011\_03}, assign interesting properties to that object (like the end of warranty period, support contract number
-etc.), and then create fifty {\tt hardware} objects for the individual machines, setting their {\tt template} attribute
-to {\tt rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each
-object are inherited from the associated template.
+Any Deska kind having an attribute whose name starts with {\tt template\_} prefix will gain one additional kind which
+serves as the source of the default values.  The {\tt TEMPLATIZED} relation between them is set up automatically and one
+can activate it (remember, relations always exist between individual objects) by simply setting the corresponding
+{\tt template\_something} attribute.  So in our sample scenario when a vendor delivers fifty new RM-666 boxes, we would
+create one instance of the {\tt template\_hardware} kind with the name {\tt rm666\_2011\_03}, assign interesting
+properties to that object (like the end of warranty period, support contract number etc.), and then create fifty {\tt
+hardware} objects for the individual machines, setting their {\tt template\_hardware} attribute to {\tt
+rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each object
+are inherited from the associated template.
 
 This default value substitution can be overridden at any time by setting an explicit non-null value at the level of the
 leaf object.  Resetting the attribute value back to {\tt null} later effectively restores the inherited default.  It is
