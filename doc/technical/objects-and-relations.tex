@@ -27,12 +27,9 @@ primary key, which in the Deska corresponds to a special attribute called {\em n
 of an object.
 
 Two objects from different kinds can have the same name, and unless the scheme defines a special connection between
-these two kinds, the two objects will remain completely isolated from each other.  There is no inherent hierarchy
-between the Deska kinds, all of them exist at the same level.  Even though the real-world is full of examples where
-something ``belongs'' to something else, like an {\tt eth0} interface could belong to machine called {\tt srv06},
-there's no such thing at this level of the Deska interface --- when you want to work with a particular object, perhaps
-the {\tt srv06}'s {\tt eth0}, you always have to identify it through a globally unique name.  Of course, all of this is
-hidden (and much else provided) by the upper layers thanks to the concept of {\em relations}.
+these two kinds, the two objects will remain completely isolated from each other.  This flat set of object kinds is
+further expanded by the concept of {\tt relations}, a feature which allows modelling complex real-world scenarios on top
+of this basic functionality.
 
 \section{Relations}
 \label{sec:objects-and-relations-relations}
@@ -81,12 +78,12 @@ prohibited, an object can easily exist without that particular relation taking a
 add any additional integrity constraints to their database scheme, and can therefore easily force a particular relation
 to come into existence through the {\tt NOT NULL} stanza.}
 
-The foreign key is just a table column similar to other object attributes.  It has its own name defined by the scheme
-architect, and is usually fully accessible to the DBAPI users.  The established Deska conventions call for either using
-a name which matches the purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reusing the name
-of the target kind.  There are certain situations (which are even present in the sample schemes, as shipped with Deska)
-which warrant using a completely different name, so implementors shall refer to their best judgement when inventing
-naming conventions.
+The foreign key is just an integrity constraint on top of a table column which is otherwise similar to other object
+attributes.  The column has its own name defined by the scheme architect, and is usually fully accessible to the DBAPI
+users.  The established Deska conventions call for either using a name which matches the purpose of the relation (like
+{\tt template}, {\tt inherit} etc.), or simply reusing the name of the target kind.  There are certain situations (which
+are even present in the sample schemes, as shipped with Deska) which warrant using a completely different name, so
+implementors shall refer to their best judgement when inventing naming conventions.
 
 \subsection{Multi-value References}
 
