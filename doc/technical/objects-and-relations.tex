@@ -77,7 +77,9 @@ Each relation therefore merely specifies that objects of a particular kind {\em 
 other kind (or of the same kind, for that matter).  It is important to understand that this relation is {\bf optional},
 and can be present or absent on a per-object basis, and that these relations concern the individual objects.  Under the
 hood, relations are implemented as database foreign keys, and as foreign keys can be {\tt NULL} unless explicitly
-prohibited, an object can easily exist without that particular relation taking any effect.
+prohibited, an object can easily exist without that particular relation taking any effect.\footnote{Users are free to
+add any additional integrity constraints to their database scheme, and can therefore easily force a particular relation
+to come into existence through the {\tt NOT NULL} stanza.}
 
 The foreign key is just a table column similar to other object attributes.  It has its own name defined by the scheme
 architect, and is usually fully accessible to the DBAPI users.  The established Deska conventions call for either using
