@@ -248,6 +248,7 @@ class DB:
 
 	def executeScript(self, script, workdir):
 		# setup the environment and pipes for IO
+		startTime = time.time()
 		env = os.environ
 		(remote_reading, writing) = os.pipe()
 		(reading, remote_writing) = os.pipe()
@@ -274,6 +275,7 @@ class DB:
 				break
 		# and wait for the corpse to appear
 		(stdout, stderr) = proc.communicate()
+		logging.debug("executeScript: time spent in executing: %ss" % (time.time() - startTime))
 		if proc.returncode:
 			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout, stderr)
 		# that's all, baby!

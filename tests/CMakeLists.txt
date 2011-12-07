@@ -18,6 +18,8 @@
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
+include(ParseArguments.cmake)
+
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
 macro(deska_test fname)
@@ -37,8 +39,14 @@ macro(deska_sql_test fname)
 endmacro(deska_sql_test)
 
 macro(deska_dbapi_test fname)
+    parse_arguments(ARG_TEST "DBSCHEME" "" ${ARGN})
+    if(ARG_TEST_DBSCHEME)
+        set(test_dbapi_extraopts ${test_dbapi_extraopts} "--dbscheme" ${ARG_TEST_DBSCHEME})
+    else()
+        set(test_dbapi_extraopts)
+    endif()
     add_test(test_dbapi_${fname}
-        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh
+        ${CMAKE_CURRENT_BINARY_DIR}/sql/util-run-testcase.sh ${test_dbapi_extraopts}
         dbapi ${fname})
 endmacro(deska_dbapi_test)
 
@@ -156,6 +164,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(templates)
     deska_dbapi_test(concurrent-versioning)
     deska_dbapi_test(fuzzying)
+    deska_dbapi_test(fzuContainable DBSCHEME fzu)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)

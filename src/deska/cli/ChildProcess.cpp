@@ -33,18 +33,21 @@ namespace Deska
 namespace Cli
 {
 
+std::string maybe_add_full_path(std::string exe)
+{
+    if (!boost::algorithm::starts_with(exe, "/") &&
+        !boost::algorithm::starts_with(exe, "./") &&
+        !boost::algorithm::starts_with(exe, "../")) {
+        exe = boost::process::find_executable_in_path(exe);
+    }
+    return exe;
+}
+
 Editor::Editor(const std::string &fileName)
 {
     namespace bp = boost::process;
 
-    std::string exe = std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim";
-
-    if (!boost::algorithm::starts_with(exe, "/") &&
-        !boost::algorithm::starts_with(exe, "./") &&
-        !boost::algorithm::starts_with(exe, "../")) {
-        exe = bp::find_executable_in_path(exe);
-    }
-
+    std::string exe = maybe_add_full_path(std::getenv("EDITOR") ? std::getenv("EDITOR") : "vim");
     std::vector<std::string> args;
     args.push_back(exe);
     args.push_back(fileName);
@@ -64,14 +67,7 @@ Pager::Pager(const std::string &message)
 {
     namespace bp = boost::process;
 
-    std::string exe = std::getenv("PAGER") ? std::getenv("PAGER") : "less";
-
-    if (!boost::algorithm::starts_with(exe, "/") &&
-        !boost::algorithm::starts_with(exe, "./") &&
-        !boost::algorithm::starts_with(exe, "../")) {
-        exe = bp::find_executable_in_path(exe);
-    }
-
+    std::string exe = maybe_add_full_path(std::getenv("PAGER") ? std::getenv("PAGER") : "less");
     std::vector<std::string> args;
     args.push_back(exe);
     

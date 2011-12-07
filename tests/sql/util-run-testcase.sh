@@ -9,6 +9,19 @@ fi
 
 . ./util-config.sh
 
+while [[ -n "${1}" ]]; do
+    case "${1}" in
+        --dbscheme)
+            shift
+            export DESKA_SCHEME="${1}"
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 TESTMODE="${1}"
 TESTCASE="${2}"
 

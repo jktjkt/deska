@@ -83,7 +83,11 @@ def errorJson(command,tag,typ,message):
 		})
 	return json.dumps(jsn)
 
-def pytypes(iterable):
+def pytypes(iterable,specialCols = []):
+	if specialCols == []:
+		'''No columns with special type (array)'''
+		return Postgres.convert_postgres_objects(iterable)
+	# OK, we need to do some manual type convesions
 	iterable = list(iterable)
 	for i in range(0,len(iterable)):
 		if type(iterable[i]) == Postgres.types.text.Array:
@@ -165,11 +169,11 @@ def getSelect(kindName, functionName, columns = "*", join = "", where = ""):
 
 def getAtts(atts,kindName,addName = False):
 	'''Get attributes - columns definition'''
-	special = False
+	specialCols = list()
 	if addName:
 		atts["name"] = "identifier"
 	if atts == {}:
-		return {"":"*"}
+		return {"":"*"}, []
 	# dot the atts with kindName
 	new_atts = dict()
 	for att in atts:
@@ -181,10 +185,22 @@ def getAtts(atts,kindName,addName = False):
 			new_atts[att] = "to_char({0}.{1},'YYYY-MM-DD HH24:MI:SS') AS {1}".format(kindName,att)
 		elif atts[att] == "identifier_set":
 			new_atts[att] = "{0}.{1}".format(kindName,att)
-			special = True
+			specialCols.append(att)
 		else:
 			new_atts[att] = "{0}.{1}".format(kindName,att)
-	return new_atts
+	return new_atts, specialCols
+
+def getColumnIndexes(columns,specialCols):
+	'''get list of indexes of given special columns in column/table result'''
+	i = 0
+	ret = list()
+	# now we don't need to have exact mapping, just need indexes number in any order
+	# if someone would need it, this must be changed - for col in specialCols, find index of col in columns...
+	for col in columns:
+		if col in specialCols:
+			ret.append(i)
+		i = i + 1
+	return ret
 
 def fakeOriginColumns(columns,objectName):
 	'''fake data into small arrays of [origin,value]'''
@@ -293,7 +309,7 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 		if setattr2 is not None:
 			setattrRes = setattrRes + setattr2(a,b)
 		for line in setattrRes:
-			line = pytypes(line)
+			line = pytypes(line,[2,3])
 			obj = dict()
 			obj["command"] = "setAttribute"
 			obj["kindName"] = kindName

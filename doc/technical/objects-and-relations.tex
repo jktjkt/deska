@@ -27,12 +27,9 @@ primary key, which in the Deska corresponds to a special attribute called {\em n
 of an object.
 
 Two objects from different kinds can have the same name, and unless the scheme defines a special connection between
-these two kinds, the two objects will remain completely isolated from each other.  There is no inherent hierarchy
-between the Deska kinds, all of them exist at the same level.  Even though the real-world is full of examples where
-something ``belongs'' to something else, like an {\tt eth0} interface could belong to machine called {\tt srv06},
-there's no such thing at this level of the Deska interface --- when you want to work with a particular object, perhaps
-the {\tt srv06}'s {\tt eth0}, you always have to identify it through a globally unique name.  Of course, all of this is
-hidden (and much else provided) by the upper layers thanks to the concept of {\em relations}.
+these two kinds, the two objects will remain completely isolated from each other.  This flat set of object kinds is
+further expanded by the concept of {\tt relations}, a feature which allows modelling complex real-world scenarios on top
+of this basic functionality.
 
 \section{Relations}
 \label{sec:objects-and-relations-relations}
@@ -56,7 +53,9 @@ Let's start with perhaps one of the simplest relation, the {\tt REFERS\_TO} one.
 to make sure that an object's attribute does not contain just an ordinary text, but that the value of said attribute
 refers to an object of a given kind.
 
-There are many use cases for such relation, the most basic one is probably the DB-way of defining enumerations.  Suppose
+There are many use cases for such relation, the most basic one is probably the DB-way of defining
+enumerations.\footnote{The domain of the acceptable values of the enumeration is determined from the user-supplied data
+at runtime, leading to a dynamic nature of these enums.} Suppose
 we are designing a hardware inventory and want to keep track of vendors or manufacturers.  It would be impractical to
 modify the database code when a new company selling servers emerges, so it makes sense to treat the list of
 manufacturers as data.  This is simply done by creating a new kind, let's call it ``vendor'', and instantiating new
@@ -75,14 +74,16 @@ Each relation therefore merely specifies that objects of a particular kind {\em 
 other kind (or of the same kind, for that matter).  It is important to understand that this relation is {\bf optional},
 and can be present or absent on a per-object basis, and that these relations concern the individual objects.  Under the
 hood, relations are implemented as database foreign keys, and as foreign keys can be {\tt NULL} unless explicitly
-prohibited, an object can easily exist without that particular relation taking any effect.
+prohibited, an object can easily exist without that particular relation taking any effect.\footnote{Users are free to
+add any additional integrity constraints to their database scheme, and can therefore easily force a particular relation
+to come into existence through the {\tt NOT NULL} stanza.}
 
-The foreign key is just a table column similar to other object attributes.  It has its own name defined by the scheme
-architect, and is usually fully accessible to the DBAPI users.  The established Deska conventions call for either using
-a name which matches the purpose of the relation (like {\tt template}, {\tt inherit} etc.), or simply reusing the name
-of the target kind.  There are certain situations (which are even present in the sample schemes, as shipped with Deska)
-which warrant using a completely different name, so implementors shall refer to their best judgement when inventing
-naming conventions.
+The foreign key is just an integrity constraint on top of a table column which is otherwise similar to other object
+attributes.  The column has its own name defined by the scheme architect, and is usually fully accessible to the DBAPI
+users.  The established Deska conventions call for either using a name which matches the purpose of the relation (like
+{\tt template}, {\tt inherit} etc.), or simply reusing the name of the target kind.  There are certain situations (which
+are even present in the sample schemes, as shipped with Deska) which warrant using a completely different name, so
+implementors shall refer to their best judgement when inventing naming conventions.
 
 \subsection{Multi-value References}
 
@@ -109,14 +110,15 @@ among all of them.  Therefore it might make sense to create one artificial objec
 put all the shared data in there, and have fifty new individual objects ``inherit'' the default values from it.  This
 scenario is assisted by the {\tt TEMPLATIZED} relation.
 
-Templates are typically implemented through two kinds, let's call them {\tt hardware} and {\tt template\_hardware}, and
-a relation of type {\tt TEMPLATIZED}, which would typically be ``activated'' via the {\tt template} attribute of the
-first kind (remember, relations always exist between individual objects).  So in our sample scenario when a vendor
-delivers fifty new RM-666 boxes, we would create one instance of the {\tt template\_hardware} kind with the name {\tt
-rm666\_2011\_03}, assign interesting properties to that object (like the end of warranty period, support contract number
-etc.), and then create fifty {\tt hardware} objects for the individual machines, setting their {\tt template} attribute
-to {\tt rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each
-object are inherited from the associated template.
+Any Deska kind having an attribute whose name starts with {\tt template\_} prefix will gain one additional kind which
+serves as the source of the default values.  The {\tt TEMPLATIZED} relation between them is set up automatically and one
+can activate it (remember, relations always exist between individual objects) by simply setting the corresponding
+{\tt template\_something} attribute.  So in our sample scenario when a vendor delivers fifty new RM-666 boxes, we would
+create one instance of the {\tt template\_hardware} kind with the name {\tt rm666\_2011\_03}, assign interesting
+properties to that object (like the end of warranty period, support contract number etc.), and then create fifty {\tt
+hardware} objects for the individual machines, setting their {\tt template\_hardware} attribute to {\tt
+rm666\_2011\_03}.  This will make sure that attributes which have not been explicitly set at the level of each object
+are inherited from the associated template.
 
 This default value substitution can be overridden at any time by setting an explicit non-null value at the level of the
 leaf object.  Resetting the attribute value back to {\tt null} later effectively restores the inherited default.  It is
@@ -140,8 +142,8 @@ objects, Deska provides the {\tt CONTAINS} relation.
 
 Using this relation, a logical object is essentially composed of many smaller objects, where each of the ``contained''
 parts provides a particular function.  For example, a logical ``computer'' object could be composed of the following
-building blocks: {\tt host} (for stuff like hostname and embedded network interfaces), {\tt hardware} (for stuff like
-serial number) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
+building blocks: {\tt host} (for stuff like hostname, OS configuration, embedded network interfaces etc.), {\tt hardware} (for stuff like
+serial number or installed RAM) and {\tt placement} (for the physical space occupied in a rack).  An Ethernet switch would typically
 include the {\tt placement} object as well, so it means that the low-level building blocks can be freely reused,
 provided no conflicts arise.  It is important to realize that this reusing happens at the {\em kind} level and not at
 the object level ---  an individual {\tt placement} object can be linked to a {\tt computer} or to a {\tt switch}, but
@@ -152,10 +154,9 @@ The Deska database contains special hooks which prevent possible ambiguities. Fo
 which can be included in another one (in our example, a {\tt placement}), appropriate foreign keys will immediately tie
 the freshly created instance to the pre-existing object with the same name, if one exists.  Therefore, if there is
 already a switch called {\tt foobar} and one attempts to create a {\tt placement} of the same name, it will immediately
-get tied to said switch.  Constraint checks are in place that forbid creating a {\tt switch} and a
-{\tt host} with the same name, as it would be impossible to {\em place} them into a rack any time later.  This check is
-transitive, i.e. if there is a {\tt machine} which includes {\tt hardware} which in turn includes a {\tt placement}, it
-is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
+get tied to said switch.  In cases when the database cannot determine the target object to link to without any
+ambiguity, ie. when there are already the {\tt host} and {\tt switch} objects with the same name, the database will not
+allow creating the {\tt box} object and respond with a constraint error when the user attempts to do so.
 
 It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
 building blocks objects on their own right, without being ``used'' by the other objects --- an example where this would
@@ -226,7 +227,7 @@ respect the following two simple conditions:
 
 \begin{itemize}
     \item {\em No duplicates.} Given kinds A and B and an attribute C of kind A, there is at most one relation between A
-        and B that uses attribute C.
+        and B that is built upon attribute C.
     \item {\em No conflicts.} Any setup which might introduce ambiguity to the possible interpretation of relations is
         prohibited.
 \end{itemize}
@@ -239,19 +240,22 @@ kind, but never more.\footnote{This limitation might be lifted in future version
 be ready for such a change.}  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
-The rules for the {\tt REFERS\_TO} are much more relaxed --- essentially, only the {\em no duplicates} rule applies here.
-This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
-user and can be paraphrased as just ``this object makes a reference of some type to that object''.
-
-In contrast to the {\tt REFERS\_TO}, the {\tt TEMPLATE} relation is much stricter.  Each kind can only have at most one
-kind as the target of the templating relation (ie. the source of the default values).  Additionally, a kind which serves
-as a template to some other kind is automatically a template source for itself, and cannot be used as a template by any
-other kind.
+The {\tt TEMPLATE} relation has similar limitations -- a kind can only be templatized by at most one other kind, and no
+two kinds can be templatized by the same template.  A kind which serves as a template for some other kind also provides
+default values for itself. There are also special requirements on the exact name of the attribute which is used for the
+relation, which are documented in~\secref{sec:db-scheme-req}.
 
 Semantics of the {\tt CONTAINS} relation are also rather strict.  A low-level building block can be contained in many
 higher-level objects, provided that the containment graph never contains a diamond-like shape.  This means that if kinds
 A and B both contain kind C, either directly or indirectly, through other kinds, it is forbidden to have another kind D
 contain A and B at the same time, again directly or indirectly.
+
+The rules for the {\tt REFERS\_TO} are much more relaxed --- essentially, only the {\em no duplicates} rule applies here.
+This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
+user and can be paraphrased as just ``this object makes a reference of some type to that object''.
+
+All relations are also subject to the general requirements imposed by the SQL implementation; these are described in
+dept in~\secref{sec:admin-dbscheme}.
 
 \section{Attributes}
 
