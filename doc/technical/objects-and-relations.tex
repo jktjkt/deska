@@ -243,19 +243,19 @@ kind, but never more.\footnote{This limitation might be lifted in future version
 be ready for such a change.}  Finally, this hierarchy must not ever form a circular graph (with kinds being vertices and
 relations being edges).
 
-The rules for the {\tt REFERS\_TO} are much more relaxed --- essentially, only the {\em no duplicates} rule applies here.
-This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
-user and can be paraphrased as just ``this object makes a reference of some type to that object''.
-
-In contrast to the {\tt REFERS\_TO}, the {\tt TEMPLATE} relation is much stricter.  Each kind can only have at most one
-kind as the target of the templating relation (ie. the source of the default values).  Additionally, a kind which serves
-as a template to some other kind is automatically a template source for itself, and cannot be used as a template by any
-other kind.
+The {\tt TEMPLATE} relation has similar limitations -- a kind can only be templatized by at most one other kind, and no
+two kinds can be templatized by the same template.  A kind which serves as a template for some other kind also provides
+default values for itself. There are also special requirements on the exact name of the attribute which is used for the
+relation, which are documented in~\secref{sec:db-scheme-req}.
 
 Semantics of the {\tt CONTAINS} relation are also rather strict.  A low-level building block can be contained in many
 higher-level objects, provided that the containment graph never contains a diamond-like shape.  This means that if kinds
 A and B both contain kind C, either directly or indirectly, through other kinds, it is forbidden to have another kind D
 contain A and B at the same time, again directly or indirectly.
+
+The rules for the {\tt REFERS\_TO} are much more relaxed --- essentially, only the {\em no duplicates} rule applies here.
+This relation does not convey any semantic which is important for the Deska tools, the meaning is completely up to the
+user and can be paraphrased as just ``this object makes a reference of some type to that object''.
 
 \section{Attributes}
 
