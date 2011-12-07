@@ -1148,8 +1148,9 @@ class Templates:
 '''
 
 #template for getting deleted objects between two versions
+#parameters are not needed, they are present only for unification of function's header
 	diff_deleted_string = '''CREATE FUNCTION
-%(tbl)s_diff_deleted()
+%(tbl)s_diff_deleted(from_version bigint = 0, to_version bigint = 0)
 RETURNS SETOF text
 AS
 $$
@@ -1162,9 +1163,47 @@ LANGUAGE plpgsql;
 
 '''
 
+#template for getting deleted objects between two versions
+	diff_deleted_embed_string = '''CREATE FUNCTION
+%(tbl)s_diff_deleted(from_version bigint, to_version bigint)
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	--deleted were between two versions objects that have set dest_bit in new data
+	RETURN QUERY SELECT %(tbl)s_get_name(old_uid, from_version) FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_uid IS NOT NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+#template for getting deleted objects between two versions
+	diff_deleted_ch_embed_string = '''CREATE FUNCTION
+%(tbl)s_diff_deleted(changeset_id bigint = 0)
+RETURNS SETOF text
+AS
+$$
+DECLARE
+	from_version bigint;
+BEGIN
+	IF changeset_id = 0 THEN
+		changeset_id = get_current_changeset();
+	END IF;
+	from_version = id2num(parent(changeset_id));
+	--deleted were between two versions objects that have set dest_bit in new data
+	RETURN QUERY SELECT %(tbl)s_get_name(old_uid, from_version) FROM %(tbl)s_diff_data WHERE new_dest_bit = '1' AND old_uid IS NOT NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+
  #template for getting created objects between two versions
+ #parameters are not needed, they are present only for unification of function's header
 	diff_created_string = '''CREATE FUNCTION
-%(tbl)s_diff_created()
+%(tbl)s_diff_created(from_version bigint = 0, to_version bigint = 0)
 RETURNS SETOF text
 AS
 $$
@@ -1177,8 +1216,44 @@ LANGUAGE plpgsql;
 
 '''
 
+ #template for getting created objects between two versions
+	diff_created_embed_string = '''CREATE FUNCTION
+%(tbl)s_diff_created(from_version bigint, to_version bigint)
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	--created were objects which are in new data and not deleted and are not in old data
+	--embed kinds need to get full name, in column name is only their local name
+	RETURN QUERY SELECT %(tbl)s_get_name(new_uid, to_version) FROM %(tbl)s_diff_data WHERE old_uid IS NULL AND new_dest_bit = '0';
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
+ #template for getting created objects in given temporary changeset
+	diff_created_ch_embed_string = '''CREATE FUNCTION
+%(tbl)s_diff_created(changeset_id bigint = 0)
+RETURNS SETOF text
+AS
+$$
+BEGIN
+	IF changeset_id = 0 THEN
+		changeset_id = get_current_changeset();
+	END IF;
+	--created were objects which are in new data and not deleted and are not in old data
+	--embed kinds need to get full name, in column name is only their local name
+	RETURN QUERY SELECT %(tbl)s_get_name_ch(new_uid,changeset_id) FROM %(tbl)s_diff_data WHERE old_uid IS NULL AND new_dest_bit = '0';
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
 #template for function that finds all rename changes
-	diff_rename_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+#parameters are not needed, they are present only for unification of function's header
+	diff_rename_string = '''CREATE FUNCTION %(tbl)s_diff_rename(from_version bigint = 0, to_version bigint = 0)
 RETURNS SETOF deska.diff_rename_type
 AS
 $$
@@ -1192,18 +1267,38 @@ LANGUAGE plpgsql;
 '''
 
 #template for function that finds all rename changes
-	diff_rename_embed_string = '''CREATE FUNCTION %(tbl)s_diff_rename()
+	diff_rename_embed_string = '''CREATE FUNCTION %(tbl)s_diff_rename(from_version bigint, to_version bigint)
 RETURNS SETOF deska.diff_rename_type
 AS
 $$
 BEGIN
-	RETURN QUERY SELECT old_name, new_name
+--embed kinds need to get full name, in column name is only their local name
+	RETURN QUERY SELECT %(tbl)s_get_name(new_uid, from_version), %(tbl)s_get_name(new_uid, to_version)
 	FROM %(tbl)s_diff_data
-	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND local_name_differs(new_name,old_name,'%(delim)s');
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND new_name <> old_name;
 END;
 $$
 LANGUAGE plpgsql;
 '''
+
+#template for function that finds all rename changes
+	diff_rename_ch_embed_string = '''CREATE FUNCTION %(tbl)s_diff_rename(changeset_id bigint = 0)
+RETURNS SETOF deska.diff_rename_type
+AS
+$$
+BEGIN
+	IF changeset_id = 0 THEN
+		changeset_id = get_current_changeset();
+	END IF;
+--embed kinds need to get full name, in column name is only their local name
+	RETURN QUERY SELECT %(tbl)s_get_name_ch(new_uid, changeset_id), %(tbl)s_get_name_ch(new_uid, changeset_id)
+	FROM %(tbl)s_diff_data
+	WHERE new_name IS NOT NULL AND new_dest_bit = '0' AND new_name <> old_name;
+END;
+$$
+LANGUAGE plpgsql;
+'''
+
 
 #template for if constructs in diff_set_attribute
 	one_column_change_string = '''
@@ -1226,6 +1321,32 @@ LANGUAGE plpgsql;
 		  result.attribute = '%(column)s';
 		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
 		  result.newdata = %(reftbl)s_get_name(new_data.%(column)s, to_version);
+		  RETURN NEXT result;
+	 END IF;
+
+'''
+
+#template for if constructs in diff_set_attribute, this version is for refuid columns
+	one_column_change_ref_uid_string = '''
+	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
+		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
+	 THEN
+		  result.attribute = '%(column)s';
+		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
+		  result.newdata = %(reftbl)s_get_name(new_data.%(column)s, to_version);
+		  RETURN NEXT result;
+	 END IF;
+
+'''
+
+#for embed kinds and temporary changeset
+	one_column_change_ref_uid_ch_string = '''
+	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
+		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
+	 THEN
+		  result.attribute = '%(column)s';
+		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
+		  result.newdata = %(reftbl)s_get_name_ch(new_data.%(column)s, changeset_id);
 		  RETURN NEXT result;
 	 END IF;
 
@@ -1280,6 +1401,79 @@ LANGUAGE plpgsql;
 	 LANGUAGE plpgsql;
 
 '''
+
+#parameters are necessary for get_name
+	diff_set_attribute_embed_string = '''CREATE FUNCTION
+	%(tbl)s_diff_set_attributes(from_version bigint, to_version bigint)
+	 RETURNS SETOF diff_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		old_data %(tbl)s_diff_data_type;
+		new_data %(tbl)s_diff_data_type;
+		result diff_set_attribute_type;
+		current_changeset bigint;
+	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF from_version = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset
+			current_changeset = get_current_changeset();
+			from_version = id2num(parent(current_changeset));
+		END IF;
+
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
+		FOR %(old_new_obj_list)s IN
+			SELECT %(select_old_new_list)s
+			FROM %(tbl)s_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0' %(and_differs)s
+		LOOP
+			--all changes are mentioned with new name
+			result.objname = %(tbl)s_get_name(new_data.uid, to_version);
+			--check if the column was changed
+			%(columns_changes)s
+		END LOOP;
+	 END
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
+#parameters are necessary for get_name
+	diff_set_attribute_ch_embed_string = '''CREATE FUNCTION
+	%(tbl)s_diff_set_attributes(changeset_id bigint = 0)
+	 RETURNS SETOF diff_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		old_data %(tbl)s_diff_data_type;
+		new_data %(tbl)s_diff_data_type;
+		result diff_set_attribute_type;
+		from_version bigint;
+	 BEGIN
+		--sets from_version to parent revision, for diff in current changeset use
+		IF changeset_id = 0 THEN
+			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset
+			changeset_id = get_current_changeset();
+		END IF;
+
+		from_version = id2num(parent(changeset_id));
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
+		FOR %(old_new_obj_list)s IN
+			SELECT %(select_old_new_list)s
+			FROM %(tbl)s_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0' %(and_differs)s
+		LOOP
+			--all changes are mentioned with new name
+			result.objname = %(tbl)s_get_name_ch(new_data.uid, changeset_id);
+			--check if the column was changed
+			%(columns_changes)s
+		END LOOP;
+	 END
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
 
 #diff set_attribute for attributes that refers to set o identifiers
 	diff_refs_set_set_attribute_string = '''CREATE FUNCTION

@@ -271,6 +271,13 @@ class Table(constants.Templates):
 		#we would like to know change of referenced name not change of referenced uid
 		refuid_collist = list()
 		cols_changes = ""
+		#changes in temporary changeset
+		cols_changes_ch = ""
+		#we need to iterate only over rows where are some changes, we should generate part of where clause
+		and_differs_string = '''(old_%(col)s <> new_%(col)s) OR 
+		((old_%(col)s IS NULL OR new_%(col)s IS NULL) AND NOT(old_%(col)s IS NULL AND new_%(col)s IS NULL))
+		'''
+		and_diff_list = list()
 		#we would like to find all columns that references uid of some kind
 		#we find them in foreign keys
 		for refcol in self.refuid_columns:
@@ -282,7 +289,18 @@ class Table(constants.Templates):
 				if (refcol not in self.refers_to_set) and (refcol <> self.embed_column):
 					#set comparison is in another function
 					cols_changes = cols_changes + self.one_column_change_ref_uid_string % {'reftbl': reftbl, 'column': refcol}
+					cols_changes_ch = cols_changes_ch + self.one_column_change_ref_uid_ch_string % {'reftbl': reftbl, 'column': refcol}
+					and_diff_list.append(and_differs_string % {'col': refcol})
 
+		#for all remaining columns we generate if clause to find possible changes
+		for col in collist:
+		#we would like to check columns that refers to set at the end
+			if col not in self.refers_to_set:
+				cols_changes = cols_changes + self.one_column_change_string % {'column': col}
+				cols_changes_ch = cols_changes_ch + self.one_column_change_string % {'column': col}
+				and_diff_list.append(and_differs_string % {'col': col});
+
+		and_differs_idset_string = "NOT inner_%(tbl)s_%(refcol)s_sets_equal(newuid)"
 		refers_set_set_fn = ""
 		if len(self.refers_to_set) > 0:
 			columns_changes = ""
@@ -299,23 +317,32 @@ class Table(constants.Templates):
 				select_old_new_sets_list.append("new_%(col)s"% {'col': col})
 				var_set = var_set + var_set_str % {'col': col}
 				refs_set_cols_changes = refs_set_cols_changes + self.one_column_change_ref_set_string % {'tbl': self.name, 'refcol': col, 'column': col}
+				and_diff_list.append(and_differs_idset_string % {'tbl': self.name, 'refcol': col})
 				
 			old_new_sets = ",".join(old_new_sets_list)
 			select_old_new_sets = ",".join(select_old_new_sets_list)
 			refers_set_set_fn = self.diff_refs_set_set_attribute_string % {'tbl': self.name, 'columns_changes': refs_set_cols_changes, 'old_new_obj_list': old_new_sets, 'select_old_new_list': select_old_new_sets, 'set_variables': var_set}            
-
-		#for all remaining columns we generate if clause to find possible changes
-		for col in collist:
-			cols_changes = cols_changes + self.one_column_change_string % {'column': col}
+		
+		and_diff = ""
+		if len(and_diff_list) > 0:
+			and_diff = "AND (" + " OR ".join(and_diff_list) + ")";
 
 		if self.embed_column <> "":
-			diff_rename_string = self.diff_rename_embed_string
+			diff_set_attribute = self.diff_set_attribute_embed_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string, 'and_differs': and_diff} + \
+			self.diff_set_attribute_ch_embed_string % {'tbl': self.name, 'columns_changes': cols_changes_ch, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list':select_old_new_attributes_string, 'and_differs': and_diff}
 		else:
-			diff_rename_string = self.diff_rename_string
+			diff_set_attribute = self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} 
 
-		return self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
+		if self.embed_column <> "":
+			#for embed kinds we need to generate different function for diff between revisions and in temorary changeset
+			diff_rename = self.diff_rename_embed_string % {'tbl': self.name} + self.diff_rename_ch_embed_string % {'tbl': self.name}
+		else:
+			diff_rename = self.diff_rename_string % {'tbl': self.name}
+
+		return diff_set_attribute + \
             refers_set_set_fn + \
-            diff_rename_string % {'tbl': self.name, 'delim': constants.DELIMITER}
+            diff_rename
+            
 
 	#generates function which prepairs temp table with diff data
 	#diff data table is used in diff_created data, diff_deleted and diff_set functions
@@ -332,17 +359,11 @@ class Table(constants.Templates):
 			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]
 			select_old_attributes_ch = ["dv.%s AS old_%s" % (col, col) for col in get_name_collist]
 			select_new_attributes_ch = ["chv.%s AS new_%s" % (col, col) for col in get_name_collist]			
-			select_old_attributes[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
-			select_new_attributes[pos] = ("%s_get_name(chv.uid, to_version) AS new_name" % (self.name))
-			select_old_attributes_ch[pos] = ("%s_get_name(dv.uid, from_version) AS old_name" % (self.name))
-			select_new_attributes_ch[pos] = ("%s_get_name_ch(chv.uid, changeset_id) AS new_name" % (self.name))
-
 		else:
 			select_old_attributes = ["dv.%s AS old_%s" % (col, col) for col in collist]
 			select_new_attributes = ["chv.%s AS new_%s" % (col, col) for col in collist]
 			select_old_attributes_ch = select_old_attributes
 			select_new_attributes_ch = select_new_attributes
-
 
 		select_old_new_objects_attributes = ",".join(select_old_attributes) + "," + ",".join(select_new_attributes)
 		select_old_new_objects_attributes_ch = ",".join(select_old_attributes_ch) + "," + ",".join(select_new_attributes_ch)
@@ -465,14 +486,24 @@ class Table(constants.Templates):
 		"""Generates diff_deleted stored function that returns a list of names of objects that were deleted between two versions.
 		This list of deleted data is found out from temp table prepared in the init_diff function,
 		"""
-		return self.diff_deleted_string % {'tbl': self.name}
+		if self.embed_column <> "":
+			diff_deleted = self.diff_deleted_embed_string % {'tbl': self.name} + self.diff_deleted_ch_embed_string % {'tbl': self.name}
+		else:
+			diff_deleted = self.diff_deleted_string % {'tbl': self.name}
+			
+		return diff_deleted
 
 	#generates function which finds all created objects in diff data table
 	def gen_diff_created(self):
 		"""Generates diff_created stored function that returns a list of objecta that where created between two versions
 		This list of created objects is found out from temp table prepared in the init_diff function.
 		"""
-		return self.diff_created_string % {'tbl': self.name}
+		if self.embed_column <> "":
+			diff_created = self.diff_created_embed_string % {'tbl': self.name} + self.diff_created_ch_embed_string % {'tbl': self.name}
+		else:
+			diff_created = self.diff_created_string % {'tbl': self.name}
+		
+		return diff_created
 
 	def gen_data_version(self):
 		"""Generates data_version stored function that returns data of all object in this table taht were in the table in the given version."""
