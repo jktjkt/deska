@@ -164,6 +164,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(templates)
     deska_dbapi_test(concurrent-versioning)
     deska_dbapi_test(fuzzying)
+    deska_dbapi_test(fzuContainable DBSCHEME fzu)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
