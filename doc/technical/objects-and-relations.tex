@@ -152,10 +152,9 @@ The Deska database contains special hooks which prevent possible ambiguities. Fo
 which can be included in another one (in our example, a {\tt placement}), appropriate foreign keys will immediately tie
 the freshly created instance to the pre-existing object with the same name, if one exists.  Therefore, if there is
 already a switch called {\tt foobar} and one attempts to create a {\tt placement} of the same name, it will immediately
-get tied to said switch.  Constraint checks are in place that forbid creating a {\tt switch} and a
-{\tt host} with the same name, as it would be impossible to {\em place} them into a rack any time later.  This check is
-transitive, i.e. if there is a {\tt machine} which includes {\tt hardware} which in turn includes a {\tt placement}, it
-is forbidden to create a {\tt machine} and a {\tt switch} with the same name.
+get tied to said switch.  In cases when the database cannot determine the target object to link to without any
+ambiguity, ie. when there are already the {\tt host} and {\tt switch} objects with the same name, the database will not
+allow creating the {\tt box} object and respond with a constraint error when the user attempts to do so.
 
 It is up to the Deska administrator to define further database constraints to prevent creating the ``low-level''
 building blocks objects on their own right, without being ``used'' by the other objects --- an example where this would
