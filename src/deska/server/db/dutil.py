@@ -256,25 +256,25 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			init(a,b)
 
 		terminate = proc(kindName + "_terminate_diff()")
-		created = prepare("SELECT * FROM " + kindName + "_diff_created()")
-		renamed = prepare("SELECT * FROM " + kindName + "_diff_rename()")
+		created = prepare("SELECT * FROM " + kindName + "_diff_created($1,$2)")
+		renamed = prepare("SELECT * FROM " + kindName + "_diff_rename($1,$2)")
 		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
 		if "identifier_set" in generated.atts(kindName).values():
 			'''for identifier_set'''
 			setattr2 = prepare("SELECT * FROM " + kindName + "_diff_refs_set_set_attributes($1,$2)")
 		else:
 			setattr2 = None
-		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted()")
+		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted($1,$2)")
 
 		res = list()
-		for line in deleted():
+		for line in deleted(a,b):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
 			obj["objectName"] = line[0]
 			res.append(obj)
-		for line in renamed():
+		for line in renamed(a,b):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "renameObject"
@@ -282,7 +282,7 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			obj["oldObjectName"] = line[0]
 			obj["newObjectName"] = line[1]
 			res.append(obj)
-		for line in created():
+		for line in created(a,b):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "createObject"
