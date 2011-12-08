@@ -17,10 +17,10 @@ def imperative(r):
     r.assertEqual(r.c(startChangeset()), "tmp2")
     oldname = "foo"
     newname = "bar"
-    r.cvoid(applyBatchedChanges([
-        {"command": "renameObject", "kindName": "host", "oldObjectName": oldname, "newObjectName": newname},
-        {"command": "renameObject", "kindName": "hardware", "oldObjectName": oldname, "newObjectName": newname},
-        {"command": "renameObject", "kindName": "box", "oldObjectName": oldname, "newObjectName": newname},
-        #{"command": "renameObject", "kindName": "host", "oldObjectName": oldname, "newObjectName": newname}
-    ]))
+    modifications = [{"command": "renameObject", "kindName": kind, "oldObjectName": oldname, "newObjectName": newname}
+            for kind in ["host", "hardware", "box"]]
+    # Duplicate operations shall fail
+    r.cfail(applyBatchedChanges(modifications + [modifications[0]]), exception=NotFoundError())
+    # And the whole command shall also be atomic
+    r.cvoid(applyBatchedChanges(modifications))
     r.assertEqual(r.c(commitChangeset(".")), "r3")
