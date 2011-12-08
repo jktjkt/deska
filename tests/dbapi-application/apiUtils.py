@@ -246,6 +246,9 @@ def restoreDeletedObject(kindName, objectName):
     return ApiMethod("restoreDeletedObject", {"kindName": kindName, "objectName":
                                       objectName})
 
+def applyBatchedChanges(modifications):
+    return ApiMethod("applyBatchedChanges", {"modifications": modifications})
+
 def objectData(kindName, objectName, revision=None):
     args = {"kindName": kindName, "objectName": objectName}
     if revision is not None:
