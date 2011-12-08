@@ -36,8 +36,9 @@ project~\cite{deska-project} was formed to evaluate various existing tools which
 
 Before we begun the initial design of the Deska project, we had evaluated various existing tools which were available
 on the market at that time (see \secref{sec:evaluating-existing-tools} for details).  We came to the conclusion that
-there is a market opportunity for a tool which --- instead of trying to reinvent the wheel --- works in close
-collaboration with the existing infrastructure and serves as a glue layer between the individual services.
+there is a market opportunity for a tool which --- instead of trying to reinvent the wheel --- would work in close
+collaboration with the existing infrastructure and serve as a glue layer between the individual services.  With this
+basic premise, we have designed the Deska system.
 
 \section{The Deska Design}
 
@@ -64,13 +65,13 @@ throughout the WLCG~\cite{wlcg} shows that each site prefers to stick with their
 the Deska database imposed a fixed database layout, it would face rather strong opposition when pushed for adoption.  We
 acknowledge that this is a political problem, not a technical one, but we have nonetheless chosen to design Deska as a
 {\em generic} database.  Most of the code which ships with Deska is agnostic to the database layout the administrators
-choose to use.  It is expected that installations of Deska at individual sites will differ only in the DB scheme and the
-set of hook scripts which is used for configuration generators.
+choose to use.  It is expected that installations of Deska at individual sites will differ in the DB scheme and the set
+of hook scripts which is used for configuration generators.
 
 Nevertheless, it is clear that Deska cannot support a completely arbitrary database layout and at the same time provide
 efficient client-side tools, which is why we impose some limits on the table structures.  These constraints are
-explained in detail in~\secref{sec:objects-and-relations}.  A conforming database scheme is then fed to the Deska
-installer, a tool which checks the scheme for validity and generates server-side SQL code.  This code provides full
+explained in detail in~\secref{sec:objects-and-relations}.  A conforming database scheme is fed to the Deska installer,
+a tool which checks the scheme for validity and generates server-side SQL code.  The generated code provides full
 support for data versioning, audit logging, constraint checking and many more server-side operations.
 
 \section{Implementation}
