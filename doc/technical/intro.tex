@@ -106,4 +106,23 @@ further used to create, or {\em generate}, configuration for various services wh
 servers and DNS to network switches.  The Deska system, as shipped, comes with everything that is required to plug its
 configuration generators to an existing VCS repository of configuration files.
 
+\section{Database}
+
+The entire Deska system is built around a database storing structured data.  Users deploying this system are free to
+adapt the database scheme to their needs, provided they obey a few rules.  A much more in-depth explanation of these
+rules and principles behind them, mainly targeted at the system administrators, is provided
+in~\secref{sec:objects-and-relations}.
+
+\subsection{Kinds, Objects, Attributes and Relations}
+
+The database is built around an object-oriented data store.  The object classes (known as the {\tt kinds} in Deska for
+various reasons) are defined using standard SQL data definition language features, and enforce the necessary structure.
+Individual {\em objects}, instances of one of these classes, then store data in their {\em attributes}.
+
+The {\em relations} describe further associations or connections between the individual objects.  Modelled through the
+foreign keys, relations are used to provide a wide range of features, from simple referrals and tagging
+(\secref{sec:relation-refers-to}), defining default values through template inheritance
+(\secref{sec:relation-templatized}) or object composition (\secref{sec:relation-contains}) to implementing a tree-like
+hierarchy of objects on top of the flat namespace (\secref{sec:relation-embed-into}).
+
 \end{document}
