@@ -227,14 +227,15 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 	else:
 		diffname = "_diff"
 	with xact():
-		Postgres.NOTICE("Running diff: {0}{1}({2},{3})".format(kindName,diffname,a,b))
 		if (a is None) and (b is None):
 			# diff for temporaryChangeset
 			diffname = "_init_ch" + diffname
 			init = proc(kindName + diffname + "(bigint)")
 			#send proper values for diff_set_attr... (#292)
-			a, b = 0, 0
+			a = 0
 			init(a)
+			paramsDef = "$1"
+			params = [a]
 		elif (b is None):
 			# diff for temporaryChangeset with changeset parameter
 			diffname = "_init_ch" + diffname
@@ -242,9 +243,9 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			#get changeset ids first
 			changeset2id = proc("changeset2id(text)")
 			a = changeset2id(a)
-			#send proper values for diff_set_attr... (#292)
-			b = 0
 			init(a)
+			paramsDef = "$1"
+			params = [a]
 		else:
 			# diff for 2 revisions
 			diffname = "_init" + diffname
@@ -254,27 +255,30 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			a = revision2num(a)
 			b = revision2num(b)
 			init(a,b)
+			paramsDef = "$1,$2"
+			params = [a,b]
+		Postgres.NOTICE("Running diff: {0}{1} {2}".format(kindName,diffname,[int(x) for x in params]))
 
 		terminate = proc(kindName + "_terminate_diff()")
-		created = prepare("SELECT * FROM " + kindName + "_diff_created($1,$2)")
-		renamed = prepare("SELECT * FROM " + kindName + "_diff_rename($1,$2)")
-		setattr = prepare("SELECT * FROM " + kindName + "_diff_set_attributes($1,$2)")
+		created = prepare("SELECT * FROM {0}_diff_created({1})".format(kindName,paramsDef))
+		renamed = prepare("SELECT * FROM {0}_diff_rename({1})".format(kindName,paramsDef))
+		setattr = prepare("SELECT * FROM {0}_diff_set_attributes({1})".format(kindName,paramsDef))
 		if "identifier_set" in generated.atts(kindName).values():
 			'''for identifier_set'''
-			setattr2 = prepare("SELECT * FROM " + kindName + "_diff_refs_set_set_attributes($1,$2)")
+			setattr2 = prepare("SELECT * FROM {0}_diff_refs_set_set_attributes({1})".format(kindName,paramsDef))
 		else:
 			setattr2 = None
-		deleted = prepare("SELECT * FROM " + kindName + "_diff_deleted($1,$2)")
+		deleted = prepare("SELECT * FROM {0}_diff_deleted({1})".format(kindName,paramsDef))
 
 		res = list()
-		for line in deleted(a,b):
+		for line in deleted(*params):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "deleteObject"
 			obj["kindName"] = kindName
 			obj["objectName"] = line[0]
 			res.append(obj)
-		for line in renamed(a,b):
+		for line in renamed(*params):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "renameObject"
@@ -282,16 +286,16 @@ def oneKindDiff(kindName,diffname,a = None,b = None):
 			obj["oldObjectName"] = line[0]
 			obj["newObjectName"] = line[1]
 			res.append(obj)
-		for line in created(a,b):
+		for line in created(*params):
 			line = pytypes(line)
 			obj = dict()
 			obj["command"] = "createObject"
 			obj["kindName"] = kindName
 			obj["objectName"] = line[0]
 			res.append(obj)
-		setattrRes = setattr(a,b)
+		setattrRes = setattr(*params)
 		if setattr2 is not None:
-			setattrRes = setattrRes + setattr2(a,b)
+			setattrRes = setattrRes + setattr2(*params)
 		for line in setattrRes:
 			line = pytypes(line)
 			obj = dict()
