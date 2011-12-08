@@ -111,15 +111,16 @@ configuration generators to an existing VCS repository of configuration files.
 The entire Deska system is built around a database storing structured data.  Users deploying this system are free to
 adapt the default database scheme to their needs, or indeed come up with completely revised design, provided they obey a
 few rules.  A much more in-depth explanation of these rules and principles behind them, mainly targeted at the system
-administrators, is provided in~\secref{sec:objects-and-relations}, so readers are encouraged not to give up if they not
-immediately feel overwhelmed with this quick overview.
+administrators, is provided in~\secref{sec:objects-and-relations}, so readers are encouraged not to give up if they
+immediately feel overwhelmed by this quick tour of Deska's features.
 
 \subsection{Kinds, Objects and Attributes}
 
 The database is built around an object-oriented data store.  The object classes (known as the {\tt kinds} in Deska for
-various reasons) are defined using standard SQL data definition language features, and enforce the necessary structure.
-Individual {\em objects}, instances of one of these classes, then store data in their {\em attributes}, named key-value
-pairs whose structure, names and type is defined at the kind level.
+various reasons) are defined using standard SQL data definition language features, and enforce the necessary structure
+of the data.  Individual {\em objects}, instances of one of these classes and rows in a database table, then store
+individual data in their {\em attributes} (table columns), named key-value pairs whose structure and type is defined by
+the corresponding kind.
 
 The kinds place no limits on the number of attributes that each object might have, and support a wide range of low-level
 data types (see \secref{sec:json-data-types-reference} for a full list).  Almost arbitrary integrity constraints and
@@ -131,21 +132,21 @@ directly utilized as a primary key for performance reasons.  Their functions are
 or through an indirect query based on values of object attributes (see \secref{sec:api-filters} for supported
 operations).
 
-The objects contained in the database cannot be altered through direct SQL data manipulation calls, but each access is
-subject to an audit check through a custom RPC-like interface (\secref{sec:api-group-data-modification}).  These
-functions implement fully-fledged version control for all objects, preventing accidental modifications and maintaining a
-detailed audit trail of any activity.  The historical data can be retrieved ({sec:api-group-history}) at any time.
+The objects contained in the database cannot be altered through direct SQL data manipulation calls, but each access has
+to be performed through a custom RPC-like interface (\secref{sec:api-group-data-modification}).  This interface
+implements fully-fledged version control for all objects, preventing accidental modifications and maintaining a detailed
+audit trail of any activity.  The historical data can be retrieved (\secref{sec:api-group-history}) at any time.
 
 \subsection{Relations: Providing Structure to the Data}
 
-The {\em relations} describe further associations or connections between the individual objects.  Modelled through the
-foreign keys, relations are used to provide a wide range of features, from simple referrals to providing tree-shaped
-structures on top of flat object lists.
+The {\em relations} describe further associations --- or connections --- between the individual objects.  Modelled
+through foreign keys, relations are used to provide a wide range of features, from simple referrals to implementing
+tree-shaped structures on top of flat object lists.
 
 The simplest relation is just an ordinary foreign key with no special meaning.  It can be used as a simple pointer for
 associating an object with another one, like the {\tt vendor} attribute of a {\tt machine}.  This relation, the {\tt
-REFERS\_TO}, is described in detail in~\secref{sec:relation-refers-to}, and does not need any special thought, as any
-qualifying foreign key which is not recognized as a special relation is interpreted as this relation.
+REFERS\_TO}, is described in detail in~\secref{sec:relation-refers-to}, and does not need any special handling, as any
+qualifying foreign key which is not recognized as a specific relation is interpreted as a {\tt REFERS\_TO} one.
 
 More complicated example of a relation is the {\tt CONTAINS} and {\tt CONTAINABLE} pair (described
 in~\secref{sec:relation-contains}), which ties together objects of different kinds, combining their set of attributes in
@@ -162,6 +163,6 @@ administrator to design database scheme in close resemblance with a real world, 
 in the user-visible layers.
 
 Relations are a rich and complicated topic, and readers are encouraged to explore their features in next chapter,
-which provides a much more detailed explanation of these fundamental design point of the Deska database.
+which provides a much more detailed explanation of these fundamental features of the Deska database.
 
 \end{document}
