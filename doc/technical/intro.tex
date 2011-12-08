@@ -130,9 +130,7 @@ rest of the Deska system.
 Objects (rows in the database) can be retrieved by their {\em name} (a primary key\footnote{The {\tt name} itself is not
 directly utilized as a primary key for performance reasons.  Their functions are, however, equivalent at this level.})
 or through an indirect query based on values of object attributes (see \secref{sec:api-filters} for supported
-operations).
-
-The objects contained in the database cannot be altered through direct SQL data manipulation calls, but each access has
+operations).  They cannot be altered through direct SQL data manipulation calls, but each access has
 to be performed through a custom RPC-like interface (\secref{sec:api-group-data-modification}).  This interface
 implements fully-fledged version control for all objects, preventing accidental modifications and maintaining a detailed
 audit trail of any activity.  The historical data can be retrieved (\secref{sec:api-group-history}) at any time.
