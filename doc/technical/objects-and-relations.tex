@@ -52,6 +52,7 @@ maintaining referential integrity, others serve as ``context helpers'' for human
 to build complex inheritance and composition patterns, common to the object-oriented programming.
 
 \subsection{Referential Integrity}
+\label{sec:relation-refers-to}
 
 Let's start with perhaps one of the simplest relation, the {\tt REFERS\_TO} one.  The sole purpose of this relation is
 to make sure that an object's attribute does not contain just an ordinary text, but that the value of said attribute
@@ -107,6 +108,7 @@ REFERS\_TO} relation.  In our example, the {\tt role} is a standalone kind, and 
 auxiliary table just for the mapping, the Deska DBAPI provides an abstraction without any extra kinds.
 
 \subsection{Templates: Default Value Inheritance}
+\label{sec:relation-templatized}
 
 There are certain cases where many objects have certain shared properties.  As an example, imagine a situation where you
 order a delivery of 50 new, identical servers.  A lot of their properties is going to be the same, or almost the same,
@@ -136,6 +138,7 @@ between the hardware's physical dimensions, its inner compounds like CPU configu
 rack location), it is usually recommended to go with composition or something else instead of templating.
 
 \subsection{Composition}
+\label{sec:relation-contains}
 
 In the previous section, we have briefly mentioned that it makes sense to ``split'' properties of one real-world object
 into several groups.  On the other hand, doing so imposes a significant burden on the hands of a system administrator
@@ -182,6 +185,7 @@ Due to technical reasons, the {\tt CONTAINS} relation is complemented by a {\tt 
 direction.  As a rule of thumb, if there is a relation {\em A contains B}, there is also a {\em B containable A}.
 
 \subsection{Object Embedding}
+\label{sec:relation-embed-into}
 
 Earlier in this chapter, we have mentioned that there is no structure among the kinds, and that as a result, all objects
 have to bear a name which is unique among all objects in the given kind.  However, not only the real world in all its
