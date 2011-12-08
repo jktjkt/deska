@@ -348,7 +348,16 @@ void JsonApiParser::applyBatchedChanges(const std::vector<ObjectModificationComm
     JsonCommandContext c1("applyBatchedChanges");
 
     JsonHandlerApiWrapper h(this, "applyBatchedChanges");
-    h.argument("modifications", modifications);
+
+    // FIXME: this is a horribly inefficient hack for Redmine #403
+    std::vector<ObjectModificationCommand> toBePerformed;
+    BOOST_FOREACH(const ObjectModificationCommand &c, modifications) {
+        if (std::find(toBePerformed.begin(), toBePerformed.end(), c) == toBePerformed.end()) {
+            toBePerformed.push_back(c);
+        }
+    }
+
+    h.argument("modifications", toBePerformed);
     h.work();
 }
 
