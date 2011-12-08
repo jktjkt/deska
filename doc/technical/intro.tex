@@ -18,15 +18,15 @@ had to perform during their regular maintenance.
 One of the issues which the administrators at the Institute were fighting with was a high level of {\em duplicated
 information}.  The data about machines in the server room were not available from a central place, but instead got
 spread out into configuration files of many services and in-house databases.  Bind, the DNS daemon, provided mapping
-between the DNS names and IP addresses, the configuration of the DHCP server listed pairs of the Ethernet MAC addresses
-and IP addresses, names of switch ports were assigned by hand.  Various monitoring services had to include low-level
-hardware information like the available disk size in order to be able to warn when the space begun to run out.  Roles of
+between the DNS names and IP addresses, the configuration of the DHCP server added MAC addresses and hostnames, names of
+Ethernet ports on switches were assigned by hand.  Various monitoring services had to include low-level hardware
+information like the available disk size in order to be able to warn when the space begun to run out.  Roles of
 machines, i.e. the desired purpose of each server, was mentioned in Cfengine's~\cite{cfengine} configuration, in the
 Nagios~\cite{nagios} database and in many other places.  Adding new machines, retiring the old ones or even just
-performing basic queries led to a rather tedious process where people had to consult each of the individual data sources
-by hand and retrieve the desired piece of information.  Needless to say, this complicated workflow often led to working
-with stale data or time wasted when troubleshooting an outdated network daemon configuration, and --- in the end ---
-administrators who were unhappy with the process.
+performing basic queries or preparing reports led to a rather tedious process where people had to consult each of the
+individual data sources by hand and retrieve the desired piece of information.  Needless to say, this complicated
+workflow often led to working with stale data or time wasted when troubleshooting an outdated network daemon
+configuration, and --- in the end --- administrators who were unhappy with the process.
 
 It was therefore decided that the Institute shall find a tool that can store all the information about the whole data
 center, from hardware configuration and rack layout to network topology and provided application services, at a single,
