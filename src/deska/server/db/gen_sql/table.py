@@ -331,7 +331,8 @@ class Table(constants.Templates):
 			diff_set_attribute = self.diff_set_attribute_embed_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string, 'and_differs': and_diff} + \
 			self.diff_set_attribute_ch_embed_string % {'tbl': self.name, 'columns_changes': cols_changes_ch, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list':select_old_new_attributes_string, 'and_differs': and_diff}
 		else:
-			diff_set_attribute = self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} 
+			diff_set_attribute = self.diff_set_attribute_string % {'tbl': self.name, 'columns_changes': cols_changes, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string} + \
+			self.diff_set_attribute_ch_string% {'tbl': self.name, 'columns_changes': cols_changes_ch, 'old_new_obj_list': old_new_attributes_string, 'select_old_new_list': select_old_new_attributes_string}
 
 		if self.embed_column <> "":
 			#for embed kinds we need to generate different function for diff between revisions and in temorary changeset

@@ -1326,20 +1326,7 @@ LANGUAGE plpgsql;
 
 '''
 
-#template for if constructs in diff_set_attribute, this version is for refuid columns
-	one_column_change_ref_uid_string = '''
-	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
-		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
-	 THEN
-		  result.attribute = '%(column)s';
-		  result.olddata = %(reftbl)s_get_name(old_data.%(column)s, from_version);
-		  result.newdata = %(reftbl)s_get_name(new_data.%(column)s, to_version);
-		  RETURN NEXT result;
-	 END IF;
-
-'''
-
-#for embed kinds and temporary changeset
+#for kinds and temporary changeset
 	one_column_change_ref_uid_ch_string = '''
 	 IF (old_data.%(column)s <> new_data.%(column)s) OR ((old_data.%(column)s IS NULL OR new_data.%(column)s IS NULL)
 		  AND NOT(old_data.%(column)s IS NULL AND new_data.%(column)s IS NULL))
@@ -1368,7 +1355,7 @@ LANGUAGE plpgsql;
 #return type is defined in file diff.sql and created in create script
 #parameters are necessary for get_name
 	diff_set_attribute_string = '''CREATE FUNCTION
-	%(tbl)s_diff_set_attributes(from_version bigint = 0, to_version bigint = 0)
+	%(tbl)s_diff_set_attributes(from_version bigint, to_version bigint)
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$
@@ -1378,11 +1365,39 @@ LANGUAGE plpgsql;
 		result diff_set_attribute_type;
 		current_changeset bigint;
 	 BEGIN
+		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
+		FOR %(old_new_obj_list)s IN
+			SELECT %(select_old_new_list)s
+			FROM %(tbl)s_diff_data
+			WHERE new_name IS NOT NULL AND new_dest_bit = '0'
+		LOOP
+			--all changes are mentioned with new name
+			result.objname = new_data.name;
+			--check if the column was changed
+			%(columns_changes)s
+		END LOOP;
+	 END
+	 $$
+	 LANGUAGE plpgsql;
+
+'''
+
+	diff_set_attribute_ch_string = '''CREATE FUNCTION
+	%(tbl)s_diff_set_attributes(changeset_id bigint)
+	 RETURNS SETOF diff_set_attribute_type
+	 AS
+	 $$
+	 DECLARE
+		old_data %(tbl)s_diff_data_type;
+		new_data %(tbl)s_diff_data_type;
+		result diff_set_attribute_type;
+		from_version bigint;
+	 BEGIN
 		--sets from_version to parent revision, for diff in current changeset use
 		IF from_version = 0 THEN
 			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset
-			current_changeset = get_current_changeset();
-			from_version = id2num(parent(current_changeset));
+			changeset_id = get_current_changeset();
+			from_version = id2num(parent(changeset_id));
 		END IF;
 
 		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
