@@ -1382,7 +1382,7 @@ LANGUAGE plpgsql;
 '''
 
 	diff_set_attribute_ch_string = '''CREATE FUNCTION
-	%(tbl)s_diff_set_attributes(changeset_id bigint)
+	%(tbl)s_diff_set_attributes(changeset_id bigint = 0)
 	 RETURNS SETOF diff_set_attribute_type
 	 AS
 	 $$
@@ -1393,12 +1393,11 @@ LANGUAGE plpgsql;
 		from_version bigint;
 	 BEGIN
 		--sets from_version to parent revision, for diff in current changeset use
-		IF from_version = 0 THEN
+		IF changeset_id = 0 THEN
 			--could raise exception, if you dont have opened changeset and you call this function for diff made in a current changeset
 			changeset_id = get_current_changeset();
-			from_version = id2num(parent(changeset_id));
 		END IF;
-
+		from_version = id2num(parent(changeset_id));
 		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
 		FOR %(old_new_obj_list)s IN
 			SELECT %(select_old_new_list)s
