@@ -754,13 +754,13 @@ class Templates:
 		BEGIN
 			SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND name = name_ AND dest_bit = '1';
 			IF FOUND THEN
-				RAISE 'Object with name %% was deleted, ...', name_ USING ERRCODE = '70010';
+				RAISE 'Object %(tbl)s %% was deleted, ...', name_ USING ERRCODE = '70010';
 			END IF;
 			INSERT INTO %(tbl)s_history (name,version)
 				VALUES (name_,ver);
 		EXCEPTION
 			WHEN check_violation THEN
-				RAISE 'Object %% violates check constraint, %%.', name_, SQLERRM USING ERRCODE = '70004';
+				RAISE 'Object %(tbl)s %% violates check constraint, %%.', name_, SQLERRM USING ERRCODE = '70004';
 			WHEN unique_violation THEN
 				RAISE '%(tbl)s with name %% already exists.', name_ USING ERRCODE = '70006';
 		END;
@@ -808,16 +808,16 @@ class Templates:
 		SELECT get_current_changeset() INTO ver;
 		SELECT uid INTO tmp FROM %(tbl)s_history WHERE version = ver AND %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name AND dest_bit = '1';
 		IF FOUND THEN
-			RAISE EXCEPTION 'object with name %% was deleted, ...', full_name USING ERRCODE = '70010';
+			RAISE EXCEPTION 'object %(tbl)s %% was deleted, ...', full_name USING ERRCODE = '70010';
 		END IF;
-		
+
 		BEGIN
 			INSERT INTO %(tbl)s_history(name, %(column)s, version) VALUES (%(tbl)s_name, %(reftbl)s_uid, ver);
 		EXCEPTION
 				WHEN unique_violation THEN
 					RAISE '%(tbl)s with name %% already exists.', full_name USING ERRCODE = '70006';
 				WHEN check_violation THEN
-					RAISE 'Object %% violates check constraint, %%.', full_name, SQLERRM USING ERRCODE = '70004';
+					RAISE 'Object %(tbl)s %% violates check constraint, %%.', full_name, SQLERRM USING ERRCODE = '70004';
 		END;
 		--flag is_generated set to false
 		UPDATE changeset SET is_generated = FALSE WHERE id = ver;

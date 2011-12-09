@@ -109,6 +109,7 @@ class JsonApiTester(unittest.TestCase):
                 self.assertFalse("Wrong class of the dbException")
             else:
                 self.assertEqual(res["dbException"], exception)
+        return res["dbException"]
 
 if __name__ == "__main__":
     # usage: testdbapi.py /path/to/deska-server testcase

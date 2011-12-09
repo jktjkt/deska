@@ -18,15 +18,15 @@ had to perform during their regular maintenance.
 One of the issues which the administrators at the Institute were fighting with was a high level of {\em duplicated
 information}.  The data about machines in the server room were not available from a central place, but instead got
 spread out into configuration files of many services and in-house databases.  Bind, the DNS daemon, provided mapping
-between the DNS names and IP addresses, the configuration of the DHCP server listed pairs of the Ethernet MAC addresses
-and IP addresses, names of switch ports were assigned by hand.  Various monitoring services had to include low-level
-hardware information like the available disk size in order to be able to warn when the space begun to run out.  Roles of
+between the DNS names and IP addresses, the configuration of the DHCP server added MAC addresses and hostnames, names of
+Ethernet ports on switches were assigned by hand.  Various monitoring services had to include low-level hardware
+information like the available disk size in order to be able to warn when the space begun to run out.  Roles of
 machines, i.e. the desired purpose of each server, was mentioned in Cfengine's~\cite{cfengine} configuration, in the
 Nagios~\cite{nagios} database and in many other places.  Adding new machines, retiring the old ones or even just
-performing basic queries led to a rather tedious process where people had to consult each of the individual data sources
-by hand and retrieve the desired piece of information.  Needless to say, this complicated workflow often led to working
-with stale data or time wasted when troubleshooting an outdated network daemon configuration, and --- in the end ---
-administrators who were unhappy with the process.
+performing basic queries or preparing reports led to a rather tedious process where people had to consult each of the
+individual data sources by hand and retrieve the desired piece of information.  Needless to say, this complicated
+workflow often led to working with stale data or time wasted when troubleshooting an outdated network daemon
+configuration, and --- in the end --- administrators who were unhappy with the process.
 
 It was therefore decided that the Institute shall find a tool that can store all the information about the whole data
 center, from hardware configuration and rack layout to network topology and provided application services, at a single,
@@ -36,8 +36,9 @@ project~\cite{deska-project} was formed to evaluate various existing tools which
 
 Before we begun the initial design of the Deska project, we had evaluated various existing tools which were available
 on the market at that time (see \secref{sec:evaluating-existing-tools} for details).  We came to the conclusion that
-there is a market opportunity for a tool which --- instead of trying to reinvent the wheel --- works in close
-collaboration with the existing infrastructure and serves as a glue layer between the individual services.
+there is a market opportunity for a tool which --- instead of trying to reinvent the wheel --- would work in close
+collaboration with the existing infrastructure and serve as a glue layer between the individual services.  With this
+basic premise, we have designed the Deska system.
 
 \section{The Deska Design}
 
@@ -55,7 +56,7 @@ fabric management, which takes care of distributing the updated data to the indi
 
 \begin{figure}[h]
     \centering
-    \includegraphics[trim=28mm 33mm 30mm 28mm, clip=true, width=75mm]{img-deska-workflow.pdf}
+    \includegraphics[trim=28mm 53mm 30mm 28mm, clip=true, width=75mm]{img-deska-workflow.pdf}
     \caption{Deska Workflow}
 \end{figure}
 
@@ -64,13 +65,13 @@ throughout the WLCG~\cite{wlcg} shows that each site prefers to stick with their
 the Deska database imposed a fixed database layout, it would face rather strong opposition when pushed for adoption.  We
 acknowledge that this is a political problem, not a technical one, but we have nonetheless chosen to design Deska as a
 {\em generic} database.  Most of the code which ships with Deska is agnostic to the database layout the administrators
-choose to use.  It is expected that installations of Deska at individual sites will differ only in the DB scheme and the
-set of hook scripts which is used for configuration generators.
+choose to use.  It is expected that installations of Deska at individual sites will differ in the DB scheme and the set
+of hook scripts which is used for configuration generators.
 
 Nevertheless, it is clear that Deska cannot support a completely arbitrary database layout and at the same time provide
 efficient client-side tools, which is why we impose some limits on the table structures.  These constraints are
-explained in detail in~\secref{sec:objects-and-relations}.  A conforming database scheme is then fed to the Deska
-installer, a tool which checks the scheme for validity and generates server-side SQL code.  This code provides full
+explained in detail in~\secref{sec:objects-and-relations}.  A conforming database scheme is fed to the Deska installer,
+a tool which checks the scheme for validity and generates server-side SQL code.  The generated code provides full
 support for data versioning, audit logging, constraint checking and many more server-side operations.
 
 \section{Implementation}
@@ -84,7 +85,7 @@ a domain-specific JSON-based wire protocol (the Deska DBAPI, as described in~\se
 
 \begin{figure}[h]
     \centering
-    \includegraphics[trim=28mm 134mm 28mm 25mm, clip=true, width=140mm]{img-deska-components.pdf}
+    \includegraphics[trim=28mm 64mm 28mm 27mm, clip=true, width=95mm]{img-deska-components.pdf}
     \caption{Structure of a Deska System}
 \end{figure}
 
@@ -104,5 +105,62 @@ pure Python and contains a layer which presents the database contents as a nativ
 further used to create, or {\em generate}, configuration for various services which are in use in Prague, from DHCP
 servers and DNS to network switches.  The Deska system, as shipped, comes with everything that is required to plug its
 configuration generators to an existing VCS repository of configuration files.
+
+\section{Database Features}
+
+The entire Deska system is built around a database storing structured data.  Users deploying this system are free to
+adapt the default database scheme to their needs, or indeed come up with completely revised design, provided they obey a
+few rules.  A much more in-depth explanation of these rules and principles behind them, mainly targeted at the system
+administrators, is provided in~\secref{sec:objects-and-relations}, so readers are encouraged not to give up if they
+immediately feel overwhelmed by this quick tour of Deska's features.
+
+\subsection{Kinds, Objects and Attributes}
+
+The database is built around an object-oriented data store.  The object classes (known as the {\tt kinds} in Deska for
+various reasons) are defined using standard SQL data definition language features, and enforce the necessary structure
+of the data.  Individual {\em objects}, instances of one of these classes and rows in a database table, then store
+individual data in their {\em attributes} (table columns), named key-value pairs whose structure and type is defined by
+the corresponding kind.
+
+The kinds place no limits on the number of attributes that each object might have, and support a wide range of low-level
+data types (see \secref{sec:json-data-types-reference} for a full list).  Almost arbitrary integrity constraints and
+triggers can be defined, allowing for further freedom in designing the scheme, as long as they do not interfere with the
+rest of the Deska system.
+
+Objects (rows in the database) can be retrieved by their {\em name} (a primary key\footnote{The {\tt name} itself is not
+directly utilized as a primary key for performance reasons.  Their functions are, however, equivalent at this level.})
+or through an indirect query based on values of object attributes (see \secref{sec:api-filters} for supported
+operations).  They cannot be altered through direct SQL data manipulation calls, but each access has
+to be performed through a custom RPC-like interface (\secref{sec:api-group-data-modification}).  This interface
+implements fully-fledged version control for all objects, preventing accidental modifications and maintaining a detailed
+audit trail of any activity.  The historical data can be retrieved (\secref{sec:api-group-history}) at any time.
+
+\subsection{Relations: Providing Structure to the Data}
+
+The {\em relations} describe further associations --- or connections --- between the individual objects.  Modelled
+through foreign keys, relations are used to provide a wide range of features, from simple referrals to implementing
+tree-shaped structures on top of flat object lists.
+
+The simplest relation is just an ordinary foreign key with no special meaning.  It can be used as a simple pointer for
+associating an object with another one, like the {\tt vendor} attribute of a {\tt machine}.  This relation, the {\tt
+REFERS\_TO}, is described in detail in~\secref{sec:relation-refers-to}, and does not need any special handling, as any
+qualifying foreign key which is not recognized as a specific relation is interpreted as a {\tt REFERS\_TO} one.
+
+More complicated example of a relation is the {\tt CONTAINS} and {\tt CONTAINABLE} pair (described
+in~\secref{sec:relation-contains}), which ties together objects of different kinds, combining their set of attributes in
+the composite pattern.  This relation enables abstracting common properties, like ``placement in rack'', into a
+dedicated object kind and ``including'' this particular kind into multiple other kinds, preventing needless code
+duplication and enabling cleaner design of tools which process the data.
+
+The {\tt TEMPLATIZED} relation enables further specialization of muster objects through inheriting their attribute
+values as a default --- see~\secref{sec:relation-templatized} for details.
+
+Finally, the flat lists of objects, as provided by the raw Deska database, are transformed into full-fledged trees
+through the {\tt EMBED\_INTO} relation (\secref{sec:relation-embed-into}).  This object embedding allows the
+administrator to design database scheme in close resemblance with a real world, preventing creation of GUID-like names
+in the user-visible layers.
+
+Relations are a rich and complicated topic, and readers are encouraged to explore their features in next chapter,
+which provides a much more detailed explanation of these fundamental features of the Deska database.
 
 \end{document}

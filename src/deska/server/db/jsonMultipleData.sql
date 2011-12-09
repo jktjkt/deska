@@ -15,7 +15,7 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
+	atts, specialTypeCols = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -37,9 +37,9 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] == "identifier_set":
 				#"inner_host_service_get_set"
-				coldef = "inner_{0}_{1}_get_set({0}.uid, $1)".format(kindName, refTbl)
+				coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refTbl)
 			else:
-				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
+				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -59,9 +59,10 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
-		data = dutil.pytypes(line)
+		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.
@@ -92,7 +93,7 @@ def main(tag,kindName,revision,filter):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
+	atts, specialTypeCols = dutil.getAtts(dutil.generated.atts(kindName),kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -114,7 +115,7 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# no action for identifier_set - getting it from data function
-				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
+				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -134,9 +135,10 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
-		data = dutil.pytypes(line)
+		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.
@@ -177,7 +179,7 @@ def main(tag,kindName,revision,filter):
 			if not re.match("template_",att):
 				atts[att+"_templ"] = attributes[att]
 		atts[att] = attributes[att]
-	atts = dutil.getAtts(atts,kindName,True)
+	atts, specialTypeCols = dutil.getAtts(atts,kindName,True)
 
 	embed = dutil.generated.embedNames()
 	rels = dutil.generated.refNames()
@@ -199,7 +201,7 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# No action for identifier_set required, getting from data function
-				coldef = "{0}_get_name({1}.{2},$1)".format(refTbl,kindName,refCol)
+				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -219,9 +221,10 @@ def main(tag,kindName,revision,filter):
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 	
+	specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
 	res = dict()
 	for line in cur:
-		data = dutil.pytypes(line)
+		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
 		#FIXME? this shoud be slower, but its in protocol spec.

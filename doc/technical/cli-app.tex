@@ -6,7 +6,58 @@
 \label{sec:cli-app}
 
 \begin{abstract}
-FIXME: describe the CLI architecture here
+
+In this chapter you can find the description of the {\tt Deska CLI}, the user interface for the whole system.
+
 \end{abstract}
+
+\section{Components}
+
+The whole user interface is composed of five main components and two supporting ones.
+
+When describing the architecture in direction from the DB, the first component is {\tt Deska::Cli::DbInteraction}. The 
+whole CLI communicates with the DB through this class. The second part on our way to the user is {\tt 
+Deska::Cli::UserInterface}. Here you can find all definitions for single commands you can type to the command line, 
+event loop handler and logics of communication with the user. This class is connected to another important component 
+called simply,
+
+{\tt Parser}. All classes related to the CLI are placed in the namespace {\tt Deska::Cli}, so this one is not an 
+exception and you can find it as class {\tt Deska::Cli::Parser}. This component is responsible for parsing of the 
+command line. Each action, that user wans to perform writing it to the command line is represented by a signal emitted 
+by this parser. All these signals are collected in a supporting component called {\tt SignalsHandler} and the {\tt 
+Parser} is then connected with the {\tt UserInterface} through this component. {\tt UserInterface} is also directly 
+connected to the closest part of the application to the user, the {\tt UserInterfaceIO}. This class stands for a 
+translator between questions and responses from the {\tt UserInterface} and the end user. Besides these five 
+components, there is one more. The whole CLI needs some configuration values for it's work. For obtaining these values 
+is responsible {\tt Deska::Cli::CliConfig}.
+
+Now we can describe all components in more detail.
+
+\section{DbInteraction}
+
+In the CLI part of Deska are used specific structures for manipulating data from the DB. We will describe firstly 
+these structures, and then the role of {\tt DbInteraction}.
+
+First structure is {\tt AttributeDefinition}. This one is very simple. It is containing attribute name ({\tt Db::Identifier}))
+and it's value ({\tt Db::Value}). {\tt AttributeDefinition} is not fully determined by itself as it 
+does not contain any information about object to which this attribute with value belongs. So another structure is {\tt ObjectDefinition}.
+This one is very similar to {\tt AttributeDefinition}, because it is also representing some kind of 
+key - value structure. It contains kind name ({\tt Db::Identifier})) and object name ({\tt Db::Identifier})). The name 
+is fully qualified, so in case of one object embedded using relations to another, this name will contain symbol "->" 
+and both names. For example when we imagine kind "host" and embedded kind "interface". We can have one host -- "hpv2" 
+and it's "interface" -- "eth0". Now the {\tt ObjectDefinition} for this interface will have kind "interface" and name 
+"hpv2->eth0". And now, when we have pair of {\tt AttributeDefinition} and {\tt ObjectDefinition}, we perfectly know, 
+what value of which attribute belongs to a specific object. These structures are used for both assigning and obtaining 
+the attributes from DB or creating objects. Another structure is a little bit more complicated. It is {\tt ContextStack}
+and {\tt ContextStackItem}. {\tt ContextStack} is only a simple {\tt std::vector} of {\tt ContextStackItem} instances.
+Under {\tt ContextStack} you can imagine some kind of path in directory structure on your computer where one item is not
+a folder, but it is an object. When we use our example of {\tt ObjectDefinition}, the {\tt ContextStack} representing
+the "interface oth0" will have two instances of {\tt ContextStackItem}: "host hpv2" and "interface eth0". You can see,
+that in opposite to the {\tt ObjectDefinition}, {\tt ContextStackItem} is not fully qualified by itself. You must have
+the whole {\tt ContextStack} in order to know which object is it representing. Till now we were talking about
+{\tt ContextStack} representing only one object. In this case, {\tt ContextStack} contains only something like
+instances of {\tt ObjectDefinition} without fully qualified names. {\tt ContextStackItem} could also represent a filter.
+In this case it is a pair of kind name and {\tt Db::Filter}.
+
 
 \end{document}

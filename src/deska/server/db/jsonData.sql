@@ -25,7 +25,7 @@ def main(tag,kindName,revision,filter):
 				#FIXME: propagate delimiter constant here,or drop this argument
 				refTbl = dutil.generated.relToTbl(relName)
 				refCol = dutil.generated.relFromCol(relName)
-				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->')".format(ref = refTbl, kind = kindName, col = refCol)
+				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
 	else:
 		columns = "{0}.name".format(kindName)
 
@@ -69,7 +69,7 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 
-	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName)
+	atts, specialTypeCols = dutil.getAtts(dutil.generated.atts(kindName),kindName)
 	embed = dutil.generated.embedNames()
 	for relName in embed:
 		if embed[relName] == kindName:
@@ -86,7 +86,8 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
-		data = dutil.pytypes(data[0])
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
+		data = dutil.pytypes(data[0],specialTypeCols)
 		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -109,7 +110,7 @@ def main(tag,kindName,objectName,revision):
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
 	
-	atts = dutil.getAtts(dutil.generated.atts(kindName),kindName)
+	atts, specialTypeCols = dutil.getAtts(dutil.generated.atts(kindName),kindName)
 	embed = dutil.generated.embedNames()
 	for relName in embed:
 		if embed[relName] == kindName:
@@ -126,7 +127,8 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		res = {}
 	else:
-		data = dutil.pytypes(data[0])
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
+		data = dutil.pytypes(data[0],specialTypeCols)
 		res = dict(zip(colnames,data))
 	jsn[name] = res
 	return json.dumps(jsn)
@@ -162,7 +164,7 @@ def main(tag,kindName,objectName,revision):
 			if not re.match("template_",att):
 				atts[att+"_templ"] = attributes[att]
 		atts[att] = attributes[att]
-	atts = dutil.getAtts(atts,kindName)
+	atts, specialTypeCols = dutil.getAtts(atts,kindName)
 	cols = ",".join(atts.values())
 
 	select = dutil.getSelect(kindName, name, cols)
@@ -175,7 +177,8 @@ def main(tag,kindName,objectName,revision):
 	if dutil.generated.atts(kindName) == {}:
 		data = {}
 	else:
-		data = dutil.pytypes(data[0])
+		specialTypeCols = dutil.getColumnIndexes(colnames,specialTypeCols)
+		data = dutil.pytypes(data[0],specialTypeCols)
 		data = dict(zip(colnames,data))
 		if dutil.hasTemplate(kindName):
 			'''Only if kindName has template'''
