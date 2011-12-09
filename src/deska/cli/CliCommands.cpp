@@ -940,6 +940,10 @@ bool Restore::operator()(const std::string &params)
     ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
     try {
         ui->m_dbInteraction->lockCurrentChangeset();
+        // FIXME: this leads to a nice performance improvement, but does not offer a great deal of control over error handling.
+        // It might be wiser to allow specifying the old-fashioned, unbatched operations through some command line option (or maybe
+        // even retry automatically in case of an error?)
+        // See Redmine #405 for details.
         ui->m_dbInteraction->setApiCachingMode(Db::CACHE_SAME_KIND);
         while (!getline(ifs, line).eof()) {
             if (ifs.fail()) {
