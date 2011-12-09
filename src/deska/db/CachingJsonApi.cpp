@@ -209,7 +209,7 @@ struct ExtractObjectId: public boost::static_visitor<std::pair<Identifier, Ident
 bool CachingJsonApi::isPreviousSameObjectAs(const Identifier &kindName, const Identifier &objectName)
 {
     if (m_pendingModifications.empty())
-        return false;
+        return true;
 
     return boost::apply_visitor(ExtractObjectId(), m_pendingModifications.back()) == std::make_pair(kindName, objectName);
 }
