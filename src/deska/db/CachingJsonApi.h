@@ -85,6 +85,9 @@ private:
     /** @short Is the previous operation targetted at the same object as this one? */
     bool isPreviousSameObjectAs(const Identifier &kindName, const Identifier &objectName);
 
+    /** @short Is the previous operation targetted at an object of the same kind as this one? */
+    bool isPreviousSameKindAs(const Identifier &kindName);
+
     /** @short Storage for values which were already retrieved */
     FakeApi *m_cache;
 

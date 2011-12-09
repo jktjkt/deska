@@ -81,6 +81,11 @@ void CachingJsonApi::deleteObject(const Identifier &kindName, const Identifier &
             flushCommandsNow();
         m_pendingModifications.push_back(DeleteObjectModification(kindName, objectName));
         break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
+            flushCommandsNow();
+        m_pendingModifications.push_back(DeleteObjectModification(kindName, objectName));
+        break;
     }
 }
 
@@ -113,6 +118,20 @@ Identifier CachingJsonApi::createObject(const Identifier &kindName, const Identi
             return JsonApiParser::createObject(kindName, objectName);
         }
         break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
+            flushCommandsNow();
+        // See above for why this is a valid optimization (provided the server is not buggy)
+        if (!objectName.empty()) {
+            m_pendingModifications.push_back(CreateObjectModification(kindName, objectName));
+            return objectName;
+        } else {
+            // This is different than the case for CACHE_SAME_OBJECT; we have to explicitly flush here, because we might have not
+            // done so above
+            flushCommandsNow();
+            return JsonApiParser::createObject(kindName, objectName);
+        }
+        break;
     }
     BOOST_ASSERT(false);
 }
@@ -130,6 +149,11 @@ void CachingJsonApi::renameObject(const Identifier &kindName, const Identifier &
             flushCommandsNow();
         m_pendingModifications.push_back(RenameObjectModification(kindName, oldObjectName, newObjectName));
         break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
+            flushCommandsNow();
+        m_pendingModifications.push_back(RenameObjectModification(kindName, oldObjectName, newObjectName));
+        break;
     }
 }
 
@@ -141,6 +165,11 @@ void CachingJsonApi::setAttribute(const Identifier &kindName, const Identifier &
         break;
     case CACHE_SAME_OBJECT:
         if (!isPreviousSameObjectAs(kindName, objectName))
+            flushCommandsNow();
+        m_pendingModifications.push_back(SetAttributeModification(kindName, objectName, attributeName, attributeData));
+        break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
             flushCommandsNow();
         m_pendingModifications.push_back(SetAttributeModification(kindName, objectName, attributeName, attributeData));
         break;
@@ -158,6 +187,11 @@ void CachingJsonApi::setAttributeInsert(const Identifier &kindName, const Identi
             flushCommandsNow();
         m_pendingModifications.push_back(SetAttributeInsertModification(kindName, objectName, attributeName, attributeData));
         break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
+            flushCommandsNow();
+        m_pendingModifications.push_back(SetAttributeInsertModification(kindName, objectName, attributeName, attributeData));
+        break;
     }
 }
 
@@ -169,6 +203,11 @@ void CachingJsonApi::setAttributeRemove(const Identifier &kindName, const Identi
         break;
     case CACHE_SAME_OBJECT:
         if (!isPreviousSameObjectAs(kindName, objectName))
+            flushCommandsNow();
+        m_pendingModifications.push_back(SetAttributeRemoveModification(kindName, objectName, attributeName, attributeData));
+        break;
+    case CACHE_SAME_KIND:
+        if (!isPreviousSameKindAs(kindName))
             flushCommandsNow();
         m_pendingModifications.push_back(SetAttributeRemoveModification(kindName, objectName, attributeName, attributeData));
         break;
@@ -187,6 +226,9 @@ void CachingJsonApi::applyBatchedChanges(const std::vector<ObjectModificationCom
         // together. We're going to try the gamble and merge them together, no matter what. Let's hope that this is safe.
         std::copy(modifications.begin(), modifications.end(), std::back_inserter(m_pendingModifications));
         break;
+    case CACHE_SAME_KIND:
+        // See above, we again go for performance here
+        std::copy(modifications.begin(), modifications.end(), std::back_inserter(m_pendingModifications));
     }
 }
 
@@ -206,12 +248,30 @@ struct ExtractObjectId: public boost::static_visitor<std::pair<Identifier, Ident
     }
 };
 
+/** @short Extract the kindName from any object modification command */
+struct ExtractObjectKind: public boost::static_visitor<Identifier>
+{
+    template<typename T>
+    result_type operator()(const T &a) const
+    {
+        return a.kindName;
+    }
+};
+
 bool CachingJsonApi::isPreviousSameObjectAs(const Identifier &kindName, const Identifier &objectName)
 {
     if (m_pendingModifications.empty())
         return true;
 
     return boost::apply_visitor(ExtractObjectId(), m_pendingModifications.back()) == std::make_pair(kindName, objectName);
+}
+
+bool CachingJsonApi::isPreviousSameKindAs(const Identifier &kindName)
+{
+    if (m_pendingModifications.empty())
+        return true;
+
+    return boost::apply_visitor(ExtractObjectKind(), m_pendingModifications.back()) == kindName;
 }
 
 void CachingJsonApi::flushCommandsNow()

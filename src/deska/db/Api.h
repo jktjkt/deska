@@ -111,7 +111,9 @@ typedef enum {
     /** @short Do not delay any command at all */
     SEND_IMMEDIATELY,
     /** @short Commands which modify the same object are delayed until a modification to another one arrives */
-    CACHE_SAME_OBJECT
+    CACHE_SAME_OBJECT,
+    /** @short Cache all commands which reference the same kind */
+    CACHE_SAME_KIND
 } CommandBatchingMode;
 
 
