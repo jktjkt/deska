@@ -348,6 +348,9 @@ public:
     /** @short Function for clearing queries cache */
     void clearCache();
 
+    /** @short Enable automatic groupping of related commands to a single DBAPI call */
+    void setApiCachingMode(Db::CommandBatchingMode mode);
+
 private:
 
     /** @short Helping function for connectedObjectsTransitively() for obtaining contained objects recursively

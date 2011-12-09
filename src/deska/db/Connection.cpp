@@ -216,5 +216,10 @@ std::string Connection::showConfigDiff(const ConfigGeneratingMode forceRegenerat
     return p->showConfigDiff(forceRegenerate);
 }
 
+void Connection::setCommandBatching(const CommandBatchingMode mode)
+{
+    p->setCommandBatching(mode);
+}
+
 }
 }
