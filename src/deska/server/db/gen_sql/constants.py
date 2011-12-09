@@ -1363,7 +1363,6 @@ LANGUAGE plpgsql;
 		old_data %(tbl)s_diff_data_type;
 		new_data %(tbl)s_diff_data_type;
 		result diff_set_attribute_type;
-		current_changeset bigint;
 	 BEGIN
 		--for each row in diff_data, which does not mean deletion (dest_bit='1'), lists modifications of each attribute
 		FOR %(old_new_obj_list)s IN
