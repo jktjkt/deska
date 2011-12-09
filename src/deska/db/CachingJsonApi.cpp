@@ -114,6 +114,7 @@ Identifier CachingJsonApi::createObject(const Identifier &kindName, const Identi
         }
         break;
     }
+    BOOST_ASSERT(false);
 }
 
 void CachingJsonApi::renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName)
