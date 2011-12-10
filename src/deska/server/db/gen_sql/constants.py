@@ -517,6 +517,48 @@ class Templates:
 	DECLARE
 		changeset_id bigint;
 		value bigint;
+	BEGIN
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				--user wants current uid from production
+				SELECT uid INTO value FROM production.%(tbl)s WHERE name = name_;
+				IF NOT FOUND THEN
+					RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+				END IF;
+				RETURN value;
+			END IF;
+
+			SELECT uid INTO value FROM %(tbl)s_history WHERE name = name_ AND version = changeset_id;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN value;
+			END IF;
+			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+			--from_version = id2num(parent(changeset_id));
+		END IF;
+
+		SELECT uid INTO value FROM %(tbl)s_data_version(from_version) WHERE name = name_;
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+		END IF;
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	get_uid_real_string = '''CREATE FUNCTION
+	%(tbl)s_get_uid_real(IN name_ text, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		changeset_id bigint;
+		value bigint;
 		dbit bigint;
 	BEGIN
 	--from_version is user id of version
@@ -554,6 +596,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	#template string for get functions
 	get_name_string = '''CREATE FUNCTION
 	%(tbl)s_get_name(IN %(tbl)s_uid bigint, from_version bigint = 0)
@@ -718,6 +761,52 @@ class Templates:
 		%(tbl)s_name text;
 		%(tbl)s_uid bigint;
 		changeset_id bigint;
+	BEGIN
+		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
+		--finds uid of object which is this one embed into
+		SELECT %(reftbl)s_get_uid(rest_of_name, from_version) INTO %(reftbl)s_uid;
+
+		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
+		--look for object in current_changeset
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				SELECT uid INTO %(tbl)s_uid FROM %(tbl)s_history WHERE %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name;
+				IF NOT FOUND THEN
+					--object with this name is not in current changeset, we should look for it in parent version or earlier
+					from_version = id2num(parent(changeset_id));
+				ELSE
+					--we have result and can return it
+					RETURN %(tbl)s_uid;
+				END IF;
+			END IF;
+		END IF;
+
+		SELECT uid INTO %(tbl)s_uid FROM %(tbl)s_data_version(from_version) WHERE name = %(tbl)s_name AND %(column)s = %(reftbl)s_uid;
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s with name %% exist in this version', full_name USING ERRCODE = '70021';
+		END IF;
+
+		RETURN %(tbl)s_uid;
+	END;
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	#template for function getting uid of object embed into another
+	get_uid_embed_real_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_get_uid_real(full_name text, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		%(reftbl)s_uid bigint;
+		rest_of_name text;
+		%(tbl)s_name text;
+		%(tbl)s_uid bigint;
+		changeset_id bigint;
 		dbit bit(1);
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
@@ -734,7 +823,7 @@ class Templates:
 				SELECT dest_bit, uid INTO dbit, %(tbl)s_uid FROM %(tbl)s_history WHERE %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name;
 				IF NOT FOUND THEN
 					IF dbit = '1' THEN
-						RAISE 'No %(tbl)s with name %% exist in this version', full_name USING ERRCODE = '70021';
+						RETURN NULL;
 					END IF;
 					--object with this name is not in current changeset, we should look for it in parent version or earlier
 					from_version = id2num(parent(changeset_id));
@@ -756,6 +845,7 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
 	# template string for add function
 	add_string = '''CREATE FUNCTION
 	%(tbl)s_add(IN name_ text)

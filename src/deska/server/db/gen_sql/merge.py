@@ -20,7 +20,7 @@ BEGIN
     END IF;
     
     BEGIN
-        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+        SELECT %(comp_tbl)s_get_uid_real(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
@@ -59,7 +59,7 @@ BEGIN
     END IF;
 
     BEGIN
-        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+        SELECT %(comp_tbl)s_get_uid_real(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             RETURN NEW;
@@ -78,7 +78,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_histo
     before_update_trigger_comp_obj_part = '''
     refuid = NULL;
     BEGIN    
-        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+        SELECT %(comp_tbl)s_get_uid_real(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             --nothing
@@ -90,7 +90,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_histo
     after_update_trigger_comp_obj_part = '''
     refuid = NULL;
     BEGIN
-        SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
+        SELECT %(comp_tbl)s_get_uid_real(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
             --nothing
