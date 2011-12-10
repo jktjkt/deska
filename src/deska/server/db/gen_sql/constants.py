@@ -517,6 +517,7 @@ class Templates:
 	DECLARE
 		changeset_id bigint;
 		value bigint;
+		dbit bigint;
 	BEGIN
 	--from_version is user id of version
 	--we need id of changeset
@@ -531,8 +532,11 @@ class Templates:
 				RETURN value;
 			END IF;
 
-			SELECT uid INTO value FROM %(tbl)s_history WHERE name = name_ AND version = changeset_id;
+			SELECT dest_bit, uid INTO dbit, value FROM %(tbl)s_history WHERE name = name_ AND version = changeset_id;
 			IF FOUND THEN
+				IF dbit = '1' THEN
+					RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+				END IF;
 				--we have result and can return it
 				RETURN value;
 			END IF;
@@ -714,7 +718,7 @@ class Templates:
 		%(tbl)s_name text;
 		%(tbl)s_uid bigint;
 		changeset_id bigint;
-		deleted bit(1);
+		dbit bit(1);
 	BEGIN
 		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
 		--finds uid of object which is this one embed into
@@ -727,8 +731,11 @@ class Templates:
 			IF changeset_id IS NULL THEN
 				SELECT MAX(num) INTO from_version FROM version;
 			ELSE
-				SELECT uid INTO %(tbl)s_uid FROM %(tbl)s_history WHERE %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name;
+				SELECT dest_bit, uid INTO dbit, %(tbl)s_uid FROM %(tbl)s_history WHERE %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name;
 				IF NOT FOUND THEN
+					IF dbit = '1' THEN
+						RAISE 'No %(tbl)s with name %% exist in this version', full_name USING ERRCODE = '70021';
+					END IF;
 					--object with this name is not in current changeset, we should look for it in parent version or earlier
 					from_version = id2num(parent(changeset_id));
 				ELSE
