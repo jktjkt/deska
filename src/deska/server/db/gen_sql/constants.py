@@ -559,6 +559,7 @@ class Templates:
 	DECLARE
 		value text;
 		current_changeset bigint;
+		dbit bigint;
 	BEGIN
 		IF from_version = 0 THEN
 			--user wants the most actual data
@@ -568,8 +569,11 @@ class Templates:
 				RETURN value;
 			END IF;
 
-			SELECT name INTO value FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = current_changeset;
+			SELECT dest_bit, name INTO dbit, value FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = current_changeset;
 			IF FOUND THEN
+                IF dbit = '1' THEN
+                    RETURN NULL;
+                END IF;
 				--we have result and can return it
 				RETURN value;
 			END IF;
@@ -598,6 +602,7 @@ class Templates:
 		--version from which we search for local name
 		version_to_search bigint;
 		value text;
+		dbit bit(1);
 	BEGIN
 	--from_version we need unchanged for rest_of_name
 		version_to_search = from_version;
@@ -613,8 +618,11 @@ class Templates:
 				RETURN value;
 			END IF;
 
-			SELECT join_with_delim(%(reftbl)s_get_name(%(column)s, from_version), name, '%(delim)s') INTO value FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = current_changeset;
+			SELECT join_with_delim(%(reftbl)s_get_name(%(column)s, from_version), name, '%(delim)s'), dest_bit INTO value, dbit FROM %(tbl)s_history WHERE uid = %(tbl)s_uid AND version = current_changeset;
 			IF FOUND THEN
+				IF dbit = '1' THEN
+					RETURN NULL;
+				END IF;
 				--we have result and can return it
 				RETURN value;
 			END IF;

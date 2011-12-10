@@ -15,6 +15,10 @@ $$
 DECLARE
     refuid bigint;
 BEGIN
+    IF NEW.dest_bit = '1' THEN
+        RETURN NEW;
+    END IF;
+    
     BEGIN
         SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
     EXCEPTION
@@ -38,7 +42,22 @@ AS
 $$
 DECLARE
     refuid bigint;
+    old_name text;
 BEGIN
+   --object is deleted
+    IF NEW.dest_bit = '1' THEN
+        IF NEW.%(comp_tbl)s IS NOT NULL THEN
+            PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NULL);
+        END IF;
+        RETURN NULL;
+    END IF;
+    
+    SELECT name INTO old_name FROM %(tbl)s_data_version() WHERE uid = NEW.uid;
+    --object is renamed, we disconnect them
+    IF NEW.%(comp_tbl)s IS NOT NULL AND NEW.name <> old_name THEN
+        PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NULL);
+    END IF;
+
     BEGIN
         SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
     EXCEPTION
@@ -48,9 +67,8 @@ BEGIN
 
     IF refuid IS NOT NULL THEN
         PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
-        NEW.%(comp_tbl)s = refuid;
     END IF;
-    RETURN NEW;
+    RETURN NULL;
 END
 $$
 LANGUAGE plpgsql;
@@ -59,7 +77,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_histo
 
     before_update_trigger_comp_obj_part = '''
     refuid = NULL;
-    BEGIN
+    BEGIN    
         SELECT %(comp_tbl)s_get_uid(NEW.name) INTO refuid;
     EXCEPTION
         WHEN SQLSTATE '70021' THEN
@@ -82,7 +100,7 @@ CREATE TRIGGER trg_after_%(tbl)s_%(comp_tbl)s_link AFTER INSERT ON %(tbl)s_histo
         PERFORM inner_%(comp_tbl)s_set_%(tbl)s(OLD.name, NULL);
     END IF;
 
-    IF refuid IS NOT NULL THEN
+    IF NEW.dest_bit = '0' AND refuid IS NOT NULL THEN
         PERFORM inner_%(comp_tbl)s_set_%(tbl)s(NEW.name, NEW.name);
     END IF;
 '''
@@ -96,12 +114,17 @@ $$
 DECLARE 
     refuid bigint;
 BEGIN
-    %(before_comp_obj_parts)s
+    --if object is deleted, it's not necessary to set its values
+    IF NEW.dest_bit = '1' THEN
+        RETURN NEW;
+    END IF;
+    
+    %(before_comp_obj_parts)s 
     RETURN NEW;
 END 
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_bup_%(tbl)s_%(dir)s_%(comp_tbl)s_link BEFORE UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_lbup();
+CREATE TRIGGER trg_bup_%(tbl)s_%(dir)s_%(comp_tbl)s_link BEFORE UPDATE OF dest_bit, name ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_lbup();
 
 --links just renamed object to in composition relation, sets comp_kind.tbl attribute to refs just renamed object
 CREATE OR REPLACE FUNCTION history.%(tbl)s_%(dir)s_%(comp_tbl)s_laup()
@@ -112,11 +135,11 @@ DECLARE
     refuid bigint;
 BEGIN
     %(after_comp_obj_parts)s    
-    RETURN NEW;
+    RETURN NEW;    
 END 
 $$
 LANGUAGE plpgsql;
-CREATE TRIGGER trg_aup_%(tbl)s_%(dir)s_%(comp_tbl)s_link AFTER UPDATE ON %(tbl)s_history FOR EACH ROW WHEN (OLD.name <> NEW.name) EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_laup();
+CREATE TRIGGER trg_aup_%(tbl)s_%(dir)s_%(comp_tbl)s_link AFTER UPDATE OF dest_bit, name ON %(tbl)s_history FOR EACH ROW EXECUTE PROCEDURE %(tbl)s_%(dir)s_%(comp_tbl)s_laup();
 
 '''
 
