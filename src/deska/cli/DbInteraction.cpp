@@ -805,6 +805,11 @@ void DbInteraction::allNestedObjectsTransitivelyRec(const ObjectDefinition &obje
     }
 }
 
+void DbInteraction::setApiCachingMode(Db::CommandBatchingMode mode)
+{
+    m_api->setCommandBatching(mode);
+}
+
 
 
 }

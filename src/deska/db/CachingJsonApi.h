@@ -30,14 +30,17 @@ namespace Db {
 
 class FakeApi;
 
-/** @short API implementation that caches metadata queries
+/** @short API implementation that caches metadata queries and groups related modifications together
 
 This implementation of the DB API will ask for the metadata (the DB scheme) only once, upon the first request, and then
-use that information to answer eventual further questions.  All functions for performing modifications are forwarded to
-the real API implementation for execution.
+use that information to answer eventual further questions.  In addition to that, functions for performing modifications
+might be delayed before they get forwarded to the real API implementation for execution.
 
-In future, this could be extended to remember other stuff, like lists of object names etc etc, but none of these is
-implemented at this point.
+WARNING: users are responsible to change the command caching mode to SEND_IMMEDIATELY before they proceed to use any "interesting"
+methods like diffing, commits etc etc.  This is a limitation which might be lifted in future versions (see Redmine #404 for progress).
+
+In future, the feature set of this class could be extended to remember other stuff, like lists of object names etc etc, but none
+of these is implemented at this point.
 
 It looks like one can't create stuff like CachingApi<JsonApiParser> p( [JsonApiParser's constructor arguments go here] ),
 so we have to stick with having having this "decorator" implemented as a dumb class setting the type of the base class in
@@ -54,16 +57,48 @@ public:
     virtual std::vector<KindAttributeDataType> kindAttributes( const Identifier &kindName ) const;
     virtual std::vector<ObjectRelation> kindRelations( const Identifier &kindName ) const;
 
+    virtual void deleteObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void restoreDeletedObject(const Identifier &kindName, const Identifier &objectName);
+    virtual Identifier createObject(const Identifier &kindName, const Identifier &objectName);
+    virtual void renameObject(const Identifier &kindName, const Identifier &oldObjectName, const Identifier &newObjectName);
+    virtual void setAttribute(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Value &attributeData);
+    virtual void setAttributeInsert(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+    virtual void setAttributeRemove(const Identifier &kindName, const Identifier &objectName, const Identifier &attributeName, const Identifier &attributeData);
+    virtual void applyBatchedChanges(const std::vector<ObjectModificationCommand> &modifications);
+
     // Other functions are not overriden
+
+    /** @short Set a policy for delayed/immediate sending of commands
+
+    Setting the policy to a lower level of caching will also make sure that at least thsoe commands which cannot be cached in the
+    new level are flushed immediately.
+    */
+    void setCommandBatching(const CommandBatchingMode mode);
+
 private:
     /** @short Ask the real underlying database for the metadata */
     void askForMetadata() const;
+
+    /** @short Immediately flush all commands which have been queued */
+    void flushCommandsNow();
+
+    /** @short Is the previous operation targetted at the same object as this one? */
+    bool isPreviousSameObjectAs(const Identifier &kindName, const Identifier &objectName);
+
+    /** @short Is the previous operation targetted at an object of the same kind as this one? */
+    bool isPreviousSameKindAs(const Identifier &kindName);
 
     /** @short Storage for values which were already retrieved */
     FakeApi *m_cache;
 
     /** @short Did we ask for the metadata already? */
     mutable bool m_askedForMetadata;
+
+    /** @short List of modifications which are waiting for completion */
+    std::vector<ObjectModificationCommand> m_pendingModifications;
+
+    /** @short Are we delaying some commands? */
+    CommandBatchingMode m_commandBatching;
 };
 
 }

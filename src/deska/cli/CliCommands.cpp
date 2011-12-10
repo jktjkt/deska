@@ -940,6 +940,11 @@ bool Restore::operator()(const std::string &params)
     ui->currentChangeset = ui->m_dbInteraction->createNewChangeset();
     try {
         ui->m_dbInteraction->lockCurrentChangeset();
+        // FIXME: this leads to a nice performance improvement, but does not offer a great deal of control over error handling.
+        // It might be wiser to allow specifying the old-fashioned, unbatched operations through some command line option (or maybe
+        // even retry automatically in case of an error?)
+        // See Redmine #405 for details.
+        ui->m_dbInteraction->setApiCachingMode(Db::CACHE_SAME_KIND);
         while (!getline(ifs, line).eof()) {
             if (ifs.fail()) {
                 ui->io->reportError("Reading of backup file failed.");
@@ -1002,7 +1007,10 @@ bool Restore::operator()(const std::string &params)
                     restoreError = true;
                     break;
                 }
+                // Got to explicitly flush the cache at this point
+                ui->m_dbInteraction->setApiCachingMode(Db::SEND_IMMEDIATELY);
                 Db::RevisionId realRev = ui->m_dbInteraction->restoringCommit(message, author, timestampConv);
+                ui->m_dbInteraction->setApiCachingMode(Db::CACHE_SAME_KIND);
                 if (realRev != *checkRev) {
                     std::ostringstream ostr;
                     ostr << "Commited revision " << realRev << " differs from " << *checkRev << " stated in commit header.";
@@ -1047,6 +1055,7 @@ bool Restore::operator()(const std::string &params)
         ui->io->reportError("Error while locking changeset for restore oparations.");
         restoreError = true;
     }
+    ui->m_dbInteraction->setApiCachingMode(Db::SEND_IMMEDIATELY);
 
     ui->nonInteractiveMode = false;
     if (ui->parsingFailed || restoreError) {

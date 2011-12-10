@@ -106,6 +106,16 @@ REMOTEDBEXCEPTION(ServerError)
 
 #undef REMOTEDBEXCEPTION
 
+/** @short Delaying of commands */
+typedef enum {
+    /** @short Do not delay any command at all */
+    SEND_IMMEDIATELY,
+    /** @short Commands which modify the same object are delayed until a modification to another one arrives */
+    CACHE_SAME_OBJECT,
+    /** @short Cache all commands which reference the same kind */
+    CACHE_SAME_KIND
+} CommandBatchingMode;
+
 
 /** @short Class representing the database API
  *
@@ -324,6 +334,8 @@ public:
 
     /** @short Show the human readable difference in the generated configuration, as determined by changes in the current changeset */
     virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE) = 0;
+
+    virtual void setCommandBatching(const CommandBatchingMode mode);
 };
 
 }

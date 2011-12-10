@@ -104,6 +104,13 @@ public:
 
     // Output config runners
     virtual std::string showConfigDiff(const ConfigGeneratingMode forceRegenerate=MAYBE_REGENERATE);
+
+    /** @short Set a policy for delayed/immediate sending of commands
+
+    Setting the policy to a lower level of caching will also make sure that at least thsoe commands which cannot be cached in the
+    new level are flushed immediately.
+    */
+    virtual void setCommandBatching(const CommandBatchingMode mode);
 private:
     Connection_p *p;
 };

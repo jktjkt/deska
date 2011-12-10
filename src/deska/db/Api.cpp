@@ -54,6 +54,11 @@ std::vector<KindAttributeDataType> Api::kindAttributesWithoutRelation(const Iden
     return attrs;
 }
 
+void Api::setCommandBatching(const CommandBatchingMode mode)
+{
+    throw ServerError("Deska::Db::Api: setCommandBatching is not implemented in the connection class you use");
+}
+
 RemoteDbError::RemoteDbError(const std::string &message): std::runtime_error(message)
 {
 }
