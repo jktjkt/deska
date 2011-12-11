@@ -19,9 +19,7 @@ When describing the architecture in direction from the DB, the first component i
 whole CLI communicates with the DB through this class. The second part on our way to the user is {\tt Deska::Cli::UserInterface}.
 Here you can find all definitions for single commands you can type to the command line, 
 event loop handler and logics of communication with the user. This class is connected to another important component 
-called simply,
-
-{\tt Parser}. All classes related to the CLI are placed in the namespace {\tt Deska::Cli}, so this one is not an 
+called simply, {\tt Parser}. All classes related to the CLI are placed in the namespace {\tt Deska::Cli}, so this one is not an 
 exception and you can find it as class {\tt Deska::Cli::Parser}. This component is responsible for parsing of the 
 command line. Each action, that user wans to perform writing it to the command line is represented by a signal emitted 
 by this parser. All these signals are collected in a supporting component called {\tt SignalsHandler} and the {\tt Parser}
@@ -38,6 +36,8 @@ Now we can describe all components in more detail.
 In the CLI part of Deska are used specific structures for manipulating data from the DB. We will describe firstly 
 these structures, and then the role of {\tt DbInteraction}.
 
+\subsection{Structures}
+
 First structure is {\tt AttributeDefinition}. This one is very simple. It is containing attribute name ({\tt Db::Identifier}))
 and it's value ({\tt Db::Value}). {\tt AttributeDefinition} is not fully determined by itself as it 
 does not contain any information about object to which this attribute with value belongs. So another structure is {\tt ObjectDefinition}.
@@ -52,12 +52,35 @@ the attributes from DB or creating objects. Another structure is a little bit mo
 and {\tt ContextStackItem}. {\tt ContextStack} is only a simple {\tt std::vector} of {\tt ContextStackItem} instances.
 Under {\tt ContextStack} you can imagine some kind of path in directory structure on your computer where one item is not
 a folder, but it is an object. When we use our example of {\tt ObjectDefinition}, the {\tt ContextStack} representing
-the "interface oth0" will have two instances of {\tt ContextStackItem}: "host hpv2" and "interface eth0". You can see,
+the "interface eth0" will have two instances of {\tt ContextStackItem}: "host hpv2" and "interface eth0". You can see,
 that in opposite to the {\tt ObjectDefinition}, {\tt ContextStackItem} is not fully qualified by itself. You must have
 the whole {\tt ContextStack} in order to know which object is it representing. Till now we were talking about
 {\tt ContextStack} representing only one object. In this case, {\tt ContextStack} contains only something like
 instances of {\tt ObjectDefinition} without fully qualified names. {\tt ContextStackItem} could also represent a filter.
-In this case it is a pair of kind name and {\tt Db::Filter}.
+In this case it is a pair of kind name and {\tt Db::Filter}. Using context stack with a filter you can address a set of
+objects with a specific characteristic. For example all interfaces of object "host hpv2" that belongs to a specific
+network.
+
+Because the work in the CLI is based mostly on the context stack as it is a natural way how to deal with the structure
+of data in the DB and DBAPI is based on functions working with single objects or filters, we have the implemented the
+class {\tt DbInteraction} to deal with conversion from context stack to format that is suitable for DBAPI.
+
+\subsection{Context stack conversion}
+
+As we described earlier, the context stack can be simple, without filters or more complicated with filters.
+
+Conversion of {\tt ContextStack} to a single {\tt ObjectDefinition} is possible only when the {\tt ContextStack} does
+not contain any filters. This type of conversion is very straight forward and could be done without queries to the DB.
+We simply concatenate all object names from the stack with "->" symbol and use kind name from the last kind in the stack.
+
+When we want to convert {\tt ContextStack} with filters, we have to perform queries to the DB. The conversion is made
+step by step when going through the stack. In every tim of the conversion we have a vector of all objects matching current
+level of context stack. When the {\tt ContextStackItem} is representing an object, we only extend all names in the vector
+with the "->" symbol and the object name from the {\tt ContextStackItem} and use kind name from the {\tt ContextStackItem}.
+When the {\tt ContextStackItem} is representing a filter, we have to construct a large filter. Firstly we have to construct
+a filter matching all objects in the vector. This is done by {\tt Db::OrFilter} containing all object names. Then we use
+this filter together with filter from {\tt ContextStackItem} in a {\tt Db::AndFilter}. Now we have filter matching new
+level of context stack, that can be used for performing operations through DBAPI.
 
 
 \end{document}
