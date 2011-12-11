@@ -467,6 +467,13 @@ std::vector<ObjectDefinition> DbInteraction::connectedObjectsTransitively(const 
     std::vector<ObjectDefinition> containedObjects;
     connectedObjectsTransitivelyRec(object, containedObjects);
 
+    // We have to remove an object for which connected objects are we looking for, because firs contained object
+    // has this one as containable and so it will be added as connected one even it is the object itself
+    std::vector<ObjectDefinition>::iterator it = 
+        std::find(containedObjects.begin(), containedObjects.end(), object);
+    if (it != containedObjects.end())
+        containedObjects.erase(it);
+
     return containedObjects;
 }
 
