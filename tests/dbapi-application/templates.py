@@ -22,6 +22,7 @@ def strip_origin(x):
 def imperative(r):
     do_hardware(r)
     do_host(r)
+    do_interface(r)
 
 def helper_check_non_templated(r):
     # Check that resolving work even for non-templated kinds
@@ -50,6 +51,15 @@ def helper_check_host(r, expected):
     r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), expected)
     r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(expected)})
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": expected})
+
+def helper_check_interface(r, expected):
+    r.assertEqual(r.c(resolvedObjectData("interface", "h->i0")), strip_origin(expected))
+    # FIXME: Redmine #408
+    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("interface", "h->i0")), expected)
+    r.assertEqual(r.c(multipleResolvedObjectData("interface")), {"h->i0": strip_origin(expected)})
+    # FIXME: Redmine #408
+    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("interface")), {"h->i0": expected})
+
 
 def do_hardware(r):
     # Start with creating some objects
@@ -160,3 +170,19 @@ def do_host(r):
     # test after a commit
     r.c(commitChangeset("."))
     helper_check_host(r, hdata)
+
+def do_interface(r):
+    changeset = r.c(startChangeset())
+    r.c(createObject("interface", "h->i0"))
+    idata = {
+        "ip6": [None, None],
+        "ip4": [None, None],
+        "mac": [None, None],
+        "network": [None, None],
+        "note": [None, None],
+        "template_interface": [None, None],
+    }
+    helper_check_interface(r, idata)
+    rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
+
+    # FIXME: finalize me, Redmine #408
