@@ -110,3 +110,55 @@ BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 
     // The JsonApiTestFixture's destructor will free j.
 }
+
+BOOST_FIXTURE_TEST_CASE(json_caching_modifications_same_kind, JsonApiTestFixtureFailOnStreamThrow)
+{
+    COMMON_INIT
+    j->kindNames();
+
+    j->setCommandBatching(Deska::Db::CACHE_SAME_KIND);
+    // The first two commands shall be batched together
+    j->setAttribute("a", "o1", "bar", Deska::Db::Value(10));
+    j->setAttribute("a", "o2", "price", Deska::Db::Value(0.0));
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":["
+                "{\"command\":\"setAttribute\",\"kindName\":\"a\",\"objectName\":\"o1\",\"attributeName\":\"bar\",\"attributeData\":10},"
+                "{\"command\":\"setAttribute\",\"kindName\":\"a\",\"objectName\":\"o2\",\"attributeName\":\"price\",\"attributeData\":0.0}"
+                "]}\n");
+    expectRead("{\"response\":\"applyBatchedChanges\", \"tag\":\"T\"}\n");
+    // But this one is for a different kind, and therefore will not be batched with them
+    j->setAttribute("b", "o3", "name", Deska::Db::Value(std::string("666")));
+    // It will remain cached until we flush the cache explicitly. This command will not send the modification further:
+    expectWrite("{\"command\":\"listRevisions\",\"tag\":\"T\"}\n");
+    expectRead("{\"response\": \"listRevisions\", \"listRevisions\": [], \"tag\":\"T\"}\n");
+    j->listRevisions();
+    // Only an explicit cache flush will send the cached modification for o3.name, along with the rest of the command for this kind:
+    BOOST_CHECK_EQUAL(j->createObject("b", "o4"), std::string("o4"));
+    j->deleteObject("b", "o5");
+    j->renameObject("b", "o4", "o6");
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":["
+                "{\"command\":\"setAttribute\",\"kindName\":\"b\",\"objectName\":\"o3\",\"attributeName\":\"name\",\"attributeData\":\"666\"},"
+                "{\"command\":\"createObject\",\"kindName\":\"b\",\"objectName\":\"o4\"},"
+                "{\"command\":\"deleteObject\",\"kindName\":\"b\",\"objectName\":\"o5\"},"
+                "{\"command\":\"renameObject\",\"kindName\":\"b\",\"oldObjectName\":\"o4\",\"newObjectName\":\"o6\"}"
+                "]}\n");
+    expectRead("{\"response\":\"applyBatchedChanges\", \"tag\":\"T\"}\n");
+    j->setCommandBatching(Deska::Db::SEND_IMMEDIATELY);
+
+    // Enable caching again and check that createObject with an empty name is a special case and flushes the cache
+    j->setCommandBatching(Deska::Db::CACHE_SAME_KIND);
+    // File the cache with junk data
+    j->setAttribute("a", "o1", "bar", Deska::Db::Value(10));
+    // Now the createObject() will automaitcally flush the cache and add a standalone command
+    expectWrite("{\"command\":\"applyBatchedChanges\",\"tag\":\"T\",\"modifications\":["
+                "{\"command\":\"setAttribute\",\"kindName\":\"a\",\"objectName\":\"o1\",\"attributeName\":\"bar\",\"attributeData\":10}"
+                "]}\n");
+    expectRead("{\"response\":\"applyBatchedChanges\", \"tag\":\"T\"}\n");
+    expectWrite("{\"command\":\"createObject\",\"tag\":\"T\",\"kindName\":\"a\",\"objectName\":\"\"}\n");
+    expectRead("{\"response\":\"createObject\",\"tag\":\"T\",\"createObject\":\"o7\"}\n");
+    BOOST_CHECK_EQUAL(j->createObject("a", ""), std::string("o7"));
+
+    // There are no pending commands, so this shall be a NOP
+    j->setCommandBatching(Deska::Db::SEND_IMMEDIATELY);
+
+    // The JsonApiTestFixture's destructor will free j.
+}
