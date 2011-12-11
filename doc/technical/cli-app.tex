@@ -16,16 +16,16 @@ In this chapter you can find the description of the {\tt Deska CLI}, the user in
 The whole user interface is composed of five main components and two supporting ones.
 
 When describing the architecture in direction from the DB, the first component is {\tt Deska::Cli::DbInteraction}. The 
-whole CLI communicates with the DB through this class. The second part on our way to the user is {\tt 
-Deska::Cli::UserInterface}. Here you can find all definitions for single commands you can type to the command line, 
+whole CLI communicates with the DB through this class. The second part on our way to the user is {\tt Deska::Cli::UserInterface}.
+Here you can find all definitions for single commands you can type to the command line, 
 event loop handler and logics of communication with the user. This class is connected to another important component 
 called simply,
 
 {\tt Parser}. All classes related to the CLI are placed in the namespace {\tt Deska::Cli}, so this one is not an 
 exception and you can find it as class {\tt Deska::Cli::Parser}. This component is responsible for parsing of the 
 command line. Each action, that user wans to perform writing it to the command line is represented by a signal emitted 
-by this parser. All these signals are collected in a supporting component called {\tt SignalsHandler} and the {\tt 
-Parser} is then connected with the {\tt UserInterface} through this component. {\tt UserInterface} is also directly 
+by this parser. All these signals are collected in a supporting component called {\tt SignalsHandler} and the {\tt Parser}
+is then connected with the {\tt UserInterface} through this component. {\tt UserInterface} is also directly 
 connected to the closest part of the application to the user, the {\tt UserInterfaceIO}. This class stands for a 
 translator between questions and responses from the {\tt UserInterface} and the end user. Besides these five 
 components, there is one more. The whole CLI needs some configuration values for it's work. For obtaining these values 
