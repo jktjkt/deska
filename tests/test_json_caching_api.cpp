@@ -29,6 +29,28 @@ using std::vector;
 using std::map;
 using namespace Deska::Db;
 
+#define COMMON_INIT \
+    /* At first, it has to find out what the top-level object types are */ \
+    expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n"); \
+    expectRead("{\"response\": \"kindNames\", \"tag\":\"T\", \"kindNames\": [\"a\", \"b\"]}\n"); \
+    /* The, for each of them, it asks for a list of attributes, and then for a list of relations. */ \
+    /* Start with "a": */ \
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"a\"}\n"); \
+    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", " \
+            "\"price\": \"double\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n"); \
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"a\"}\n"); \
+    expectRead("{\"kindRelations\": [], \"response\": \"kindRelations\", \"tag\":\"T\"}\n"); \
+    /* ...and move to "b": */ \
+    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"b\"}\n"); \
+    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n"); \
+    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"b\"}\n"); \
+    expectRead("{\"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\", \"column\": \"name_of_a\"}], \"tag\":\"T\", \"response\": \"kindRelations\"}\n"); \
+    \
+    /* This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this: */ \
+    delete j; \
+    j = new Deska::Db::CachingJsonApi(); \
+    bindStreams();
+
 /** @short Make sure that CachingJsonApi's caching really works
 
 This tests tries to verify that when we call any metadata-querying method of the API, the caching layer
@@ -36,26 +58,7 @@ will rmember the result and use it for further inquiries.
 */
 BOOST_FIXTURE_TEST_CASE(json_kindNames, JsonApiTestFixtureFailOnStreamThrow)
 {
-    // At first, it has to find out what the top-level object types are
-    expectWrite("{\"command\":\"kindNames\",\"tag\":\"T\"}\n");
-    expectRead("{\"response\": \"kindNames\", \"tag\":\"T\", \"kindNames\": [\"a\", \"b\"]}\n");
-    // The, for each of them, it asks for a list of attributes, and then for a list of relations.
-    // Start with "a":
-    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"a\"}\n");
-    expectRead("{\"kindAttributes\": {\"bar\": \"int\", \"baz\": \"identifier\", \"foo\": \"string\", "
-            "\"price\": \"double\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"a\"}\n");
-    expectRead("{\"kindRelations\": [], \"response\": \"kindRelations\", \"tag\":\"T\"}\n");
-    // ...and move to "b":
-    expectWrite("{\"command\":\"kindAttributes\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindAttributes\": {\"name\": \"string\", \"name_of_a\": \"identifier\"}, \"tag\":\"T\", \"response\": \"kindAttributes\"}\n");
-    expectWrite("{\"command\":\"kindRelations\",\"tag\":\"T\",\"kindName\":\"b\"}\n");
-    expectRead("{\"kindRelations\": [{\"relation\":\"TEMPLATIZED\", \"target\":\"a\", \"column\": \"name_of_a\"}], \"tag\":\"T\", \"response\": \"kindRelations\"}\n");
-
-    // This is ugly, but in order to reuse the JsonApiTestFixture, we'll have to hack around this:
-    delete j;
-    j = new Deska::Db::CachingJsonApi();
-    bindStreams();
+    COMMON_INIT
 
     // Now, the first call to the API will request everything. Let's start with the kind names, for example.
     vector<Identifier> kindNames = j->kindNames();
