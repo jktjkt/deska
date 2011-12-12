@@ -29,8 +29,9 @@ These functions have to provide similar function as object manipulation function
 
 \section{SQL generator}
 The Sql generator is generator of stored procedures and tables that ensure data manipulation for schema described in modules.\\
+All generated stored procedures are created in schema genproc.
 
-The generator is composed of classes Connection, Schema, Table, Template, Merge and Multiref.\\
+The generator is composed of classes Connection, Schema, Table, Template, Composition and Multiref.\\
 The Connection class provides connection to database server.
 The class Schema explores modules defined by user and cooperates with Table class.\\
 The class Table has methods that for given kind/table generates functions for data manipulation like get, set.\\
@@ -72,6 +73,11 @@ Plpgsql functions for following DBAPI commands are generated inside the Table cl
 	\item commit
 \end{enumerate}
 
+\subsubsection{History tables}
+In following text we will talk about {\tt table} and its history table {\tt table\_history}.\\
+For each table created in schema production is generated table with suffix \_history. {\tt table\_history} serves as complete history of objects of kind that is in database represented by {\tt table}.\\
+{\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} attribute. Deletion object from {\tt table\_history} means set {\tt dest\_bit} on.
+
 \subsubsection{Get}
 
 \subsubsection{Add, delete, set attribute}
@@ -90,10 +96,23 @@ Diff has these stages:
 Stage init diff creates temporary table with almost all data needed to get list of all modifications.
 More init functions exist, one for diff between two versions and one for diff between state in current changeset and its parent version. For templated kinds these init diff functions exist even in resolved modifiation.\\
 
-Temporary table created in init diff stage could be than processed by diff functions. Diff functions can find list of changes . Each type of change is listed by different function, one for created, deleted, renamed objects and for objects which at least one attribute was changed.\\
+Temporary table created in init diff stage could be than processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of identifier\_set type and next for the rest of attributes.\\
+
+Terminate diff just drops temporary table.
 
 \subsubsection{Commit}
-Commit pro resolvovaci fce
+Commit function selects objects from history table of given kind that were just added, deleted or updated in the current changeset. Rows that belong to added objects are inserted into kind's table in the schema production. Rows that belong to deleted objects are deleted from kind's table in the schema production. And rows that belong to updated objects are updated in kind's table in the schema production.\\
+Tables in schema production store resolved data. So it is needed to find modified objects and resolve their data. We should keep in mind that object's data could be modified even by modification in the object that templates this object.\\
+Commit of templated kinds is composed of:
+\begin{enumerate}
+	\item find all objects in kind\_template table that were modified in the current changeset
+	\item find all objects in kind\_template table that can tranistivly inherit data from objects in step 1
+	\item find all objetcs in kind table that inherit data from objects in step 2
+	\item resolve data of objects from step 3
+	\item process data from step 4 as it was selected from history table of not templated kinds
+\end{enumerate}
+
+% Does it need algorithm in pseudo code?
 
 \subsection{Template}
 When all tables described by user in modules are created, tables that have a attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
