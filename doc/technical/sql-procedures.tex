@@ -27,4 +27,86 @@ There are some wrapper functions for manupulation with objects stored in db. Fro
 \subsection{Object data functions}
 These functions have to provide similar function as object manipulation functions, to determine the function to call. But this functions returns data tables, so we have to create json struncture from this. Therefor creation of sql statement is more complicated. Due to performance reasons, we have to do many cast in created sql statement, because it is quicker then do it in python way. This cast must be done for data, that pgpython cannot convert to native python types.
 
+\section{SQL generator}
+The Sql generator is generator of stored procedures and tables that ensure data manipulation for schema described in modules.\\
+
+The generator is composed of classes Connection, Schema, Table, Template, Merge and Multiref.\\
+The Connection class provides connection to database server.
+The class Schema explores modules defined by user and cooperates with Table class.\\
+The class Table has methods that for given kind/table generates functions for data manipulation like get, set.\\
+The class Template has methods that generates template for modules that are marked as having template.\\
+The class Merge generates triggers that maintain contains/containable relation.\\
+And the class Multiref generates code for inner tables for identifier sets and data manipulation with those tables.\\
+
+The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are in class methods formated, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
+Detailed information about mentioned classes are below.
+
+Parts of plpgsql generator run at the moment when all moduls defined by user are already present as tables in the database. And they start in this order:
+
+\begin{enumerate}
+	\item Template class - generate and create templates for tables that should have template
+	\item Schema class, Table class - generate and create history tables for all tables (even for template tables that were generated)
+	\item Schema class, Table class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
+	\item Multiref class - generate and create tables and stored procedures for identifier sets, history and template table for identifier sets.
+	\item Composition class - generate and add triggers for contains/containable relation
+\end{enumerate}
+
+\subsection{Connection}
+Connection and sending commands to the database are provided by the Connection class. Generator instantiates the Connection class and passes it to the Schema class.
+
+\subsection{Schema}
+The Schema class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with Connection parameter, which is used for querying the database. 
+The Schema class finds out which kinds were created in database and what is their structure. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to destinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another could be in database identified just by name. But objects of kinds that are embed into another could be identified by its local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for embed and not embed into kinds.
+For templated kinds are in addition to not templated kinds generated functions for getting resolved data.\\
+The final code for created kinds is generated inside the Table class.
+
+\subsection{Table}
+A lot of string constants are present inside the Table class. These string are prototypes of create type statements, create function statements or some another pieces of plpgsql code.\\
+Methods of Table class return concrete plpgsql code for data manipulation functions. Generated functions are prepared to be created on the database server.\\
+Plpgsql functions for following DBAPI commands are generated inside the Table class.
+
+\begin{enumerate}
+	\item get data functions - objectData, resolvedObjectData, resolvedObjectDataWithOrigin, multipleObjectData, multipleResolvedObjectData, multipleResolvedObjectDataWithOrigin
+	\item add, delete objects, set attribute functions - createObject, deleteObject, restoreDeletedObject, renameObject, setAttribute
+	\item diff functions - dataDifference, dataDifferenceInTemporaryChangeset, resolvedDataDifference, resolvedDataDifferenceInTemporaryChangeset
+	\item commit
+\end{enumerate}
+
+\subsubsection{Get}
+
+\subsubsection{Add, delete, set attribute}
+add pridava radku
+set updatuje nebo pridava radku
+delete nastavuje dest\_bit
+
+\subsubsection{Diff}
+
+Diff has these stages:
+\begin{enumerate}
+	\item init diff
+	\item process diff data
+	\item terminate diff
+\end{enumerate}
+Stage init diff creates temporary table with almost all data needed to get list of all modifications.
+More init functions exist, one for diff between two versions and one for diff between state in current changeset and its parent version. For templated kinds these init diff functions exist even in resolved modifiation.\\
+
+Temporary table created in init diff stage could be than processed by diff functions. Diff functions can find list of changes . Each type of change is listed by different function, one for created, deleted, renamed objects and for objects which at least one attribute was changed.\\
+
+\subsubsection{Commit}
+Commit pro resolvovaci fce
+
+\subsection{Template}
+When all tables described by user in modules are created, tables that have a attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
+Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
+Template table will be created like table that will be templated by this template table. And so created template table will have than dropped not null constraints and dropped columns that can't inherit theirs value.
+
+
+% -Templates are even part of the production schema and they behave like they were defined as a module by user.
+% -inherits relation from templated tables
+% -same data manipulation, procedure for data manipulation are generated after template
+% -identifier set creates inner table - has another structure (without name ...), needs templating too -> templates for them are generated inside multiref class
+
+\subsection{Composition}
+
+\subsection{Multiref}
 \end{document}
