@@ -15,7 +15,6 @@ PATH_WC = os.environ["DESKA_CFGGEN_GIT_WC"]
 PATH_SECOND = os.environ["DESKA_CFGGEN_GIT_SECOND"]
 
 def helper_check_second_clone(r, contents):
-    r.assertEqual(subprocess.call(["git", "pull"], cwd=PATH_SECOND), 0)
     myfiles = []
     for (root, dirs, files) in os.walk(PATH_SECOND):
         if ".git" in dirs:

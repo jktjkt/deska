@@ -25,6 +25,13 @@ deska_init_git()
 
     # Initialize the master repository which simulates a remote repo
     git init --bare ${DESKA_CFGGEN_GIT_REPO} || deska_git_die "git init --bare my_repo failed"
+
+    # Set up a repo-side hook for auto-updating the second clone
+    echo -e "#!/bin/bash\nGIT_WORK_TREE="${DESKA_CFGGEN_GIT_SECOND}" git checkout -f" > \
+        "${DESKA_CFGGEN_GIT_REPO}/hooks/post-receive"
+    chmod +x "${DESKA_CFGGEN_GIT_REPO}/hooks/post-receive"
+    mkdir "${DESKA_CFGGEN_GIT_SECOND}" || deska_git_die "creating the DESKA_CFGGEN_GIT_SECOND failed"
+
     # Initialize the "primary clone"; that's the repository from which we create extra WCs
     git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_PRIMARY_CLONE} ||
         deska_git_die "git clone my_repo my_primary_clone failed"
@@ -41,7 +48,4 @@ deska_init_git()
 
     # Prepare the root for the working directories (one per changeset)
     mkdir "${DESKA_CFGGEN_GIT_WC}"
-
-    git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_SECOND} ||
-        deska_git_die "git clone my_repo my_second failed"
 }
