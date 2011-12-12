@@ -316,6 +316,7 @@ class DB:
 				self.markChangesetFresh()
 			res = self.runDBFunction(name,args,tag)
 			self.cfgPushToScm(args["commitMessage"])
+			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
 			self.db.rollback()
 			self.unlockCurrentChangeset()
