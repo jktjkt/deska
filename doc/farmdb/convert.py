@@ -343,6 +343,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
+    print "create host %s" % myname
     print "create box %s" % myname
     print "box %s" % myname
     if x.rackNo is not None:
