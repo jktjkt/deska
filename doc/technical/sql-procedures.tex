@@ -9,4 +9,22 @@
 FIXME: talk about the SQL stored procedures? maybe refine this somehow?
 \end{abstract}
 
+\section{Schema json}
+In schema json there are functions, wich are used by the deska-server application. The server calls only function in this schema. Every function has three parts: Check and validate its arguments, do some simple db action and create result structure, wich is returned in json format.
+
+In validation part, function check that kinds/attributes passed as arguments and report proper exceptions, if some error is found.
+After this validation, sql query is created. Then sql query is run, mostly just call generated stored procedure. Finally result structure is created and returned as json.
+
+\subsection{Changeset functions}
+Functions manipulated with changeset, we can divide into two parts. Functions performing some action, these just calls another function like startChangeset or getCurrentChangeset and fucntions returning content of some table: pendingChangeset and listRevisions.
+
+First part is very simple, every function just call another function, wich perform desired action, create json a returns it.
+Only pendingChangeset and listRevision, the second part, are more difficult. It perform select from database table and the result transforms into returned json format. In these function filters can be used, so the performed sql query can be complicated.
+
+\subsection{Object manipulation function}
+There are some wrapper functions for manupulation with objects stored in db. From generator, we have for every object some add, rename, delete functions, and set function for each attribute. So in functions like createObject, we have to determine right name of generated function to call. We check validity of function arguments and then from kind and attributeName determine the function to call, another arguments (objectName for example) are passed to this function.
+
+\subsection{Object data functions}
+These functions have to provide similar function as object manipulation functions, to determine the function to call. But this functions returns data tables, so we have to create json struncture from this. Therefor creation of sql statement is more complicated. Due to performance reasons, we have to do many cast in created sql statement, because it is quicker then do it in python way. This cast must be done for data, that pgpython cannot convert to native python types.
+
 \end{document}
