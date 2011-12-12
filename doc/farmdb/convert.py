@@ -195,22 +195,26 @@ for x in fd_networks.itervalues():
     print "end\n"
 print
 print """# artificial: the boxmodels and form factors
-formfactor rackmount
-end
+create formfactor rackmount
 
+create modelbox 1u
 modelbox 1u
   formfactor rackmount
 end
 
+create modelbox 2u
 modelbox 2u
   formfactor rackmount
   height 2
 end
 
+create modelbox 3u
 modelbox 3u
   formfactor rackmount
   height 3
 end
+
+create modelbox 4u
 modelbox 4u
   formfactor rackmount
   height 4
@@ -219,6 +223,7 @@ end
 """
 
 print """# Generic racks
+create modelbox generic-rack
 modelbox generic-rack
   internal_height 47
   internal_width 1
