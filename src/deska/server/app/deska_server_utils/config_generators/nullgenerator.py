@@ -23,5 +23,3 @@ class NullGenerator(object):
     def generate(self, executor):
         self.maybeThrow()
 
-    def nukeWorkDir(self):
-        self.maybeThrow()

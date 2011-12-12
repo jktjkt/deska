@@ -88,9 +88,6 @@ class GitGenerator(object):
         if not runAnything:
             raise GeneratorError, "No executable scripts found in %s" % self.scriptdir
 
-    def nukeWorkDir(self):
-        shutil.rmtree(self.workdir)
-
     def completeConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''
         if not changesetIsFresh:

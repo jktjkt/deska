@@ -209,6 +209,16 @@ class DB:
 		'''get name of the current changeset from the DB'''
 		return self.noJsonCallProc("getCurrentChangeset")
 
+	def getCfgWorkDir(self):
+		if self.cfggenBackend == "git":
+			workdir = self.cfggenOptions["cfggenGitWorkdir"]
+			if workdir is None:
+				raise ValueError, "cfggenGitWorkdir is None"
+			workdir = workdir + "/" + self.currentChangeset()
+			return workdir
+		else:
+			return None
+
 	def initCfgGenerator(self):
 		logging.debug("initCfgGenerator")
 		if self.cfggenBackend == "git":
@@ -217,10 +227,7 @@ class DB:
 			repodir = self.cfggenOptions["cfggenGitRepo"]
 			if repodir is None:
 				raise ValueError, "cfggenGitRepo is None"
-			workdir = self.cfggenOptions["cfggenGitWorkdir"]
-			if workdir is None:
-				raise ValueError, "cfggenGitWorkdir is None"
-			workdir = workdir + "/" + self.currentChangeset()
+			workdir = self.getCfgWorkDir()
 			scriptdir = self.cfggenOptions["cfggenScriptPath"]
 			logging.debug(" cfggen: initializing Gitgenerator(%s, %s, %s)" % (repodir, workdir, scriptdir))
 			self.cfgGenerator = GitGenerator(repodir, workdir, scriptdir)
@@ -311,23 +318,34 @@ class DB:
 		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		try:
+			logging.debug("commitConfig: cfg generator is initialized, beginning the protected block")
 			if not self.changesetHasFreshConfig():
+				logging.debug("commitConfig: will regenerate")
 				self.cfgRegenerate()
 				self.markChangesetFresh()
+			workdir = self.getCfgWorkDir()
+			logging.debug("commitConfig: the script WD is %s" % workdir)
+			logging.debug("commitConfig: contacting the DB")
 			res = self.runDBFunction(name,args,tag)
+			logging.debug("commitConfig: pushing to the SCM")
 			self.cfgPushToScm(args["commitMessage"])
-			self.cfgGenerator.nukeWorkDir()
+			if workdir is not None:
+				logging.debug("commitConfig: cleaning the obsolete WD")
+				shutil.rmtree(workdir)
 		except GeneratorError, e:
+			logging.debug("commitConfig: got GeneratorError %s" % repr(e))
 			self.db.rollback()
 			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
+			logging.debug("commitConfig: got Exception %s" % repr(e))
 			self.db.rollback()
 			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e))
 		if "dbException" in res:
 			'''Or regular error in db response'''
+			logging.debug("commitConfig: got dbException in the JSON response %s" % e)
 			self.db.rollback()
 			self.unlockCurrentChangeset()
 			return res
@@ -341,6 +359,13 @@ class DB:
 		# A correct fix would be to explicitly unlock stuff from inside the DB
 		# when commiting.
 		return res
+
+	def abortCurrentChangeset(self, name, args, tag):
+		self.checkFunctionArguments(name, args, tag)
+		#workdir = self.getCfgWorkDir()
+		#if workdir is not None and os.path.exists(workdir):
+		#	shutil.rmtree(workdir)
+		return self.runDBFunction(name,args,tag)
 
 	def run(self,name,args):
 		logging.debug("start run method(%s, %s)" % (name, args))
@@ -377,6 +402,10 @@ class DB:
 				return self.commitConfig(name, args, tag)
 			except DeskaException, e:
 				return e.json(name,tag)
+
+		if name == "abortCurrentChangeset":
+			# We are supposed to clean up after the config generators
+			return self.abortCurrentChangeset(name, args, tag)
 
 		return self.standaloneRunDbFunction(name, args, tag)
 
