@@ -177,7 +177,7 @@ def main(tag,kindName,revision,filter):
 		if dutil.hasTemplate(kindName):
 			'''Only if kindName has template'''
 			if not re.match("template_",att):
-				atts[att+"_templ"] = attributes[att]
+				atts[att+"_templ"] = "text"
 		atts[att] = attributes[att]
 	atts, specialTypeCols = dutil.getAtts(atts,kindName,True)
 
@@ -195,6 +195,7 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
+			del atts[refCol+"_templ"]
 	for relName in rels:
 		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)

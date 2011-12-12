@@ -162,7 +162,7 @@ def main(tag,kindName,objectName,revision):
 	for att in attributes:
 		if dutil.hasTemplate(kindName):
 			if not re.match("template_",att):
-				atts[att+"_templ"] = attributes[att]
+				atts[att+"_templ"] = "text"
 		atts[att] = attributes[att]
 	atts, specialTypeCols = dutil.getAtts(atts,kindName)
 	cols = ",".join(atts.values())
