@@ -1,4 +1,7 @@
 class MultiRef:
+    """Multiref class can generate inner table for binding one object with n another objects.
+    Multiref class also generates functions for data manipulation with generated inner classes.
+    """
     multiRef_tables_str = "SELECT relname FROM get_table_info() WHERE typname = 'identifier_set';"
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
     tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
@@ -713,6 +716,8 @@ LANGUAGE plpgsql;
 
     # generate sql for all tables
     def gen_multiRef(self,filename):
+        """This function controls generation of inner tables for multi-value references and functions that maintain these tables.
+        """
         name_split = filename.rsplit('/', 1)
         self.tab_sql = open(name_split[0] + '/' + 'tab_' + name_split[1],'w')
         self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
@@ -746,9 +751,17 @@ LANGUAGE plpgsql;
         self.fn_sql.close()
 
     def gen_inner_table_references(self, table, reftable, attname):
+        """For given table generates inner table for each identifier_set attribute to provide m:n mapping.
+        Generated inner table has name with prefix "inner_" followed by name of table, "_" and tables identifier_set attribute.
+        Inner tables have attributes, att1 with name of table tab1, att2 with name of table tab2 that is referenced from identifier_set attribute of tab1.
+        Attribute att1 references tab1(uid) and attribute att2 references tab2(uid)
+        """
         return self.add_inner_table_str % {'tbl': table, 'ref_tbl': reftable, 'ref_col': attname}
 
     def check_multiRef_definition(self, table, reftable, attname, refattname):
+        """This function checks validity of given multi-value reference.
+        This function raises exception in case the multi-value reference is not defined properly.
+        """
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise ValueError, 'multiRef relation is badly defined, too many columns in relation'
@@ -757,17 +770,19 @@ LANGUAGE plpgsql;
         if refattname != 'uid':
             raise ValueError, 'multiRef relation is badly defined, referenced column should be uid column'
 
-    def gen_inner_table_history(self, table):
-        return table.gen_hist()
-
     def gen_tables(self, table, reftable, attname):
+        """This function coordinates generation of create inner table statement and create history table for inner table statement.
+        """
         self.tab_sql.write(self.gen_inner_table_references(table, reftable, attname))
-        #inner table name is inner_tablename_idsetattname, where idset attname is name of column that references to set of identifiers
+        #inner table name is inner_tablename_idsetattname, where idset attname is name of column that refers to set of identifiers
         join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl': table, 'ref_col': attname}
         self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
 
 
     def gen_functions(self, table, reftable, attname, refattname):
+        """This function coordinates generation of functions for data manipulation of given inner table.
+        Validation of corectly defined templating of given multi-value refence is a part of this function.
+        """
         join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl' : table, 'ref_col' : attname}
         self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})

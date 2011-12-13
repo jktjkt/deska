@@ -1,4 +1,7 @@
 class Composition:
+	"""Compositio class can generate sql script that add triggers and check constraints that manage composition relations of kinds.
+	"""
+
     comp_pairs_query_str = "SELECT relname, refrelname, attnames, refattnames FROM get_dependency_info() WHERE conname LIKE 'rconta_%';"
     kind_attributes_query_str = "SELECT attname FROM kindAttributes('%(tbl)s')"
 
@@ -176,6 +179,8 @@ LANGUAGE plpgsql;
 
     # generate sql for all tables
     def gen_composition(self,filename):
+        """Controls generation of create function statements for trigger functions, function used for check of composition, alter table statement for adding triggers that manage tables taht are in composition relation and add foreign key constraints in containable direction.
+        """
         name_split = filename.rsplit('/', 1)
         self.constraint_sql = open(name_split[0] + '/' + 'rel_' + name_split[1],'w')
         self.trigger_sql = open(name_split[0] + '/' + 'trg_' + name_split[1],'w')
@@ -216,12 +221,24 @@ LANGUAGE plpgsql;
         self.trigger_sql.close()
 
     def gen_comp_reference(self, table, reftable):
+        """Generates alter table add foreign key constraint in containable direction.
+        """
         return self.add_constraint_str % {'tbl': table, 'comp_tbl': reftable}
 
     def gen_link_trigger(self, table, reftable):
+        """Generates create before and after insert trigger functions and add triggers to table. 
+        Insert trigger is triggered by objects that were not modified in the current changeset till now.
+        These triggers ensure linking objects of same name in composition relation if they exist, ensure disjoining of objects if one of linked object was renamed or deleted.
+        These triggers are added in both directions contains and containable.
+        """
         return self.trigger_link_comp_objects % {'tbl': table, 'comp_tbl': reftable} + '\n' + self.trigger_link_comp_objects % {'tbl': reftable, 'comp_tbl': table}
     
     def gen_rename_trigger(self):
+        """Generates create of before and after update triggers.
+        Update trigger is triggered by modification of objects that were already modified in the current changeset.
+        These triggers ensure linking objects of same name in composition relation if they exist, ensure disjoining of objects if one of linked object was renamed or deleted.
+        These triggers are added in both directions contains and containable.
+        """
         triggers = ""
         for table in self.composition_touples:
             compos_cols = self.composition_touples[table]
@@ -247,6 +264,9 @@ LANGUAGE plpgsql;
     #generates check constraint and function that is used in this check contraint
     #check consraint checks whether there is not more than one not null column (that is in composition relation with this kind) in row (object)
     def gen_add_check_constraint(self):
+        """Generates check constraint for kinds that are in the containable relation with more then one kind.
+        The generated constraint ensures that one object is contained in at most one object.
+        """
         check_function_str = ""
         add_constr_string = ""
         for table in self.cble_touples:
@@ -267,6 +287,9 @@ LANGUAGE plpgsql;
         return check_function_str + add_constr_string
 
     def check_comp_definition(self, table, reftable, attname, refattname):
+        """This function validates that all composition relations were correctly defined.
+        If the relation is badly defined, function will raise exception.
+        """
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise ValueError, 'relation composition is badly defined, too many columns in relation'
@@ -298,6 +321,9 @@ LANGUAGE plpgsql;
 
     #function checks that there is no cycle that could be created by composition relation with table inside
     def check_composition_cycle(self, table, composition_chain):
+        """This function is part of validation of composition relation.
+        Raises exception in case there is a cycle of kinds in the composition relation.
+        """
         if table in composition_chain:
             raise ValueError, ('relation composition is badly defined, kind %(tbl)s creates cycle' % {'tbl': table})
         else:
@@ -309,6 +335,9 @@ LANGUAGE plpgsql;
                     self.check_composition_cycle(contained_table, composition_chain)
 
     def check_cble_attributes(self, table):
+        """This function is part of validation of composition relation.
+        Raises exception in case there is some attribute present in both of kinds that are in the composition relation.
+        """
         attribute_in_tables = dict()
         for contained_table in self.composition_touples[table]:
             record = self.plpy.execute(self.kind_attributes_query_str % {'tbl': contained_table})

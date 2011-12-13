@@ -13,4 +13,163 @@ needs, as well as through the deployment of the database side.
 \label{sec:db-scheme-req}
 FIXME
 
+\section{Requirements on modules}
+
+\subsection{General Requirements}
+Every sql mudule needs:
+
+\begin{itemize}
+    \item set search\_path to schemas production and deska
+    \item have primary key column uid of bigint type
+    \item have unique, not null column name of identifier type
+\end{itemize}
+
+If you would like to use automaticly incremented uids, you have to create sequence and then assign it as the default value of the column uid.
+Following example shows the simplest deska module.
+
+\begin{minted}{sql}
+--
+-- This is example of deska plug-in
+--
+-- every module must be place in schema production
+--
+SET search_path TO production,deska;
+
+CREATE SEQUENCE vendor_uid START 1;
+
+--vendor is name of this kind
+CREATE TABLE vendor (
+    -- nextval can be used - will aplly to history table
+    uid bigint DEFAULT nextval('vendor_uid')
+        CONSTRAINT vendor_pk PRIMARY KEY,
+    -- name column is required in all plugins
+    name identifier
+        CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+);
+\end{minted}{sql}
+
+It is not recommended to use module names with prefix "inner_", module names with suffix "_template" that has deska for internal use.
+The maximum length of kind name and attribute name is 20 together.
+Foreign keys have to have set ON DELETE NO ACTION, it's the default option.
+
+\subsection{Relations definition}
+Here we will describe how to add Deska relations to modules.
+
+\subsubsection{Refers to}
+Refers to relation needs adding the foreign key constraint. This constraint have to:
+\begin{itemize}
+    \item refer to module that will be installed before this one
+    \item have referring column of bigint type
+    \item have name with {\tt rrefer\_} prefix
+    \item refer to uid column of the referenced table
+\end{itemize}
+
+\begin{minted}{sql}
+SET search_path TO production,deska;
+
+CREATE SEQUENCE hardware_uid START 1;
+
+CREATE TABLE hardware (
+    -- this column is required in all plugins
+    uid bigint DEFAULT nextval('hardware_uid')
+        CONSTRAINT hardware_pk PRIMARY KEY,
+    -- this column is required in all plugins
+    name identifier
+        CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
+    -- TODO - better use uid
+    vendor bigint 
+        CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+);
+\end{minted}{sql}
+
+\subsubsection{Template}
+Template relation needs adding special column to the module. This column have to:
+\begin{itemize}
+    \item have name with {\tt template_} prefix
+    \item be the only one column in module with name with {\tt template_} prefix
+    \item be of bigint type
+\end{itemize}
+You can template only tables that have at least one column which value could be inherited from its template. Columns that are a part of composition relation, template relation or embed into relation could not inherit theirs values.
+
+\begin{minted}{sql}
+SET search_path TO production,deska;
+
+CREATE SEQUENCE hardware_uid START 1;
+
+CREATE TABLE hardware (
+    -- this column is required in all plugins
+    uid bigint DEFAULT nextval('hardware_uid')
+        CONSTRAINT hardware_pk PRIMARY KEY,
+    -- this column is required in all plugins
+    name identifier
+        CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
+    -- TODO - better use uid
+    vendor bigint 
+        CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+    template_hardware bigint
+);
+\end{minted}{sql}
+
+
+\subsubsection{Multi-value Reference}
+Multi-value reference relation needs adding the foreign key constrain. This constraint have to:
+\begin{itemize}
+    \item refer to module that will be installed before this one
+    \item have referring column of {\tt identifier_set} type
+    \item have name with {\tt rset\_} prefix
+    \item refer to uid column of the referenced table
+\end{itemize}
+
+\begin{minted}{sql}
+SET search_path TO production,deska;
+
+CREATE SEQUENCE host_uid START 1;
+
+CREATE TABLE host (
+    -- this column is required in all plugins
+    uid bigint DEFAULT nextval('host_uid')
+        CONSTRAINT host_pk PRIMARY KEY,
+    -- this column is required in all plugins
+    name identifier
+        CONSTRAINT host_name_unique UNIQUE NOT NULL,
+    service identifier_set
+        CONSTRAINT rset_host_fk_service REFERENCES service(uid) DEFERRABLE,
+);
+\end{minted}{sql}
+
+\subsubsection{Composition}
+Composition relation needs adding the foreign key constrain. This constraint have to:
+\begin{itemize}
+    \item refer to module that will be installed before this one
+    \item have referring column of bigint type
+    \item have name with {\tt rconta\_} prefix
+    \item refer to uid column of the referenced table
+\end{itemize}
+In addition to requirements on module's foreign key, it is needed that:
+\begin{itemize}
+    \item this module and referenced module do not have any attribute with the same name (of course except name and uid)
+    \item the chain created by composition foreign keys of defined modules do not contain a cycle
+\end{itemize}
+
+\begin{minted}{sql}
+SET search_path TO production,deska;
+
+CREATE SEQUENCE host_uid START 1;
+
+-- vendors of hw
+CREATE TABLE host (
+    -- this column is required in all plugins
+    uid bigint DEFAULT nextval('host_uid')
+        CONSTRAINT host_pk PRIMARY KEY,
+    -- this column is required in all plugins
+    name identifier
+        CONSTRAINT host_name_unique UNIQUE NOT NULL,
+    -- hardwere where it runs
+    -- TODO-virtual host
+    -- TODO - better use uid
+    hardware bigint
+        CONSTRAINT rconta_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
+);
+\end{minted}{sql}
+
 \end{document}

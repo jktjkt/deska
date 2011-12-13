@@ -34,91 +34,94 @@ All generated stored procedures are created in schema genproc.
 The generator is composed of classes Connection, Schema, Table, Template, Composition and Multiref.\\
 The Connection class provides connection to database server.
 The class Schema explores modules defined by user and cooperates with Table class.\\
-The class Table has methods that for given kind/table generates functions for data manipulation like get, set.\\
-The class Template has methods that generates template for modules that are marked as having template.\\
+The class Table has methods that for given kind/table generate functions for data manipulation like get, set.\\
+The class Template has methods that generate template for modules that are marked as having template.\\
 The class Merge generates triggers that maintain contains/containable relation.\\
 And the class Multiref generates code for inner tables for identifier sets and data manipulation with those tables.\\
 
-The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are in class methods formated, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
+The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are formated in class methods, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
 Detailed information about mentioned classes are below.
 
 Parts of plpgsql generator run at the moment when all moduls defined by user are already present as tables in the database. And they start in this order:
 
 \begin{enumerate}
-	\item Template class - generate and create templates for tables that should have template
-	\item Schema class, Table class - generate and create history tables for all tables (even for template tables that were generated)
-	\item Schema class, Table class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
-	\item Multiref class - generate and create tables and stored procedures for identifier sets, history and template table for identifier sets.
-	\item Composition class - generate and add triggers for contains/containable relation
+    \item Template class - generate and create templates for tables that should have template
+    \item Schema class, Table class - generate and create history tables for all tables (even for template tables that were generated)
+    \item Schema class, Table class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
+    \item Multiref class - generate and create tables and stored procedures for identifier sets, history and template table for identifier sets.
+    \item Composition class - generate and add triggers for contains/containable relation
 \end{enumerate}
 
 \subsection{Connection}
-Connection and sending commands to the database are provided by the Connection class. Generator instantiates the Connection class and passes it to the Schema class.
+Connection and sending commands to the database is provided by the Connection class. Generator instantiates the Connection class and passes it to the Schema class.
 
 \subsection{Schema}
-The Schema class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with Connection parameter, which is used for querying the database. 
-The Schema class finds out which kinds were created in database and what is their structure. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to destinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another could be in database identified just by name. But objects of kinds that are embed into another could be identified by its local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for embed and not embed into kinds.
+The Schema class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with Connection parameter, which is used to query the database. 
+The Schema class finds out which kinds were created in database and what is their structure. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to distinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another in database could be identified just by name. But objects of kinds that are embed into another could be identified by their local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for those embed and those not embed into kinds.
 For templated kinds are in addition to not templated kinds generated functions for getting resolved data.\\
 The final code for created kinds is generated inside the Table class.
 
 \subsection{Table}
-A lot of string constants are present inside the Table class. These string are prototypes of create type statements, create function statements or some another pieces of plpgsql code.\\
+A lot of string constants are present inside the Table class. These string constants are prototypes of create type statements, create function statements or some another pieces of plpgsql code.\\
 Methods of Table class return concrete plpgsql code for data manipulation functions. Generated functions are prepared to be created on the database server.\\
 Plpgsql functions for following DBAPI commands are generated inside the Table class.
 
 \begin{enumerate}
-	\item get data functions - objectData, resolvedObjectData, resolvedObjectDataWithOrigin, multipleObjectData, multipleResolvedObjectData, multipleResolvedObjectDataWithOrigin
-	\item add, delete objects, set attribute functions - createObject, deleteObject, restoreDeletedObject, renameObject, setAttribute
-	\item diff functions - dataDifference, dataDifferenceInTemporaryChangeset, resolvedDataDifference, resolvedDataDifferenceInTemporaryChangeset
-	\item commit
+    \item get data functions - objectData, resolvedObjectData, resolvedObjectDataWithOrigin, multipleObjectData, multipleResolvedObjectData, multipleResolvedObjectDataWithOrigin
+    \item add, delete objects, set attribute functions - createObject, deleteObject, restoreDeletedObject, renameObject, setAttribute
+    \item diff functions - dataDifference, dataDifferenceInTemporaryChangeset, resolvedDataDifference, resolvedDataDifferenceInTemporaryChangeset
+    \item commit
 \end{enumerate}
 
 \subsubsection{History tables}
 In following text we will talk about {\tt table} and its history table {\tt table\_history}.\\
-For each table created in schema production is generated table with suffix \_history. {\tt table\_history} serves as complete history of objects of kind that is in database represented by {\tt table}.\\
-{\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} attribute. Deletion object from {\tt table\_history} means set {\tt dest\_bit} on.
+For each table created in schema production a table with suffix \_history is generated. {\tt table\_history} serves as complete history of objects of kind that is represented by {\tt table} in database. These history tables are created in schema history.\\
+{\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} and {\tt version} attributes. {\tt dest\_bit} attribute indicates whether the object was deleted or not. In {\tt version} attribute is stored in which version was this row inserted. Inserted rows represnts new object creation but even modification of an object. Don't confuse this {\tt version} attribute with the number of revision.
 
-\subsubsection{Get}
+\subsubsection{Retrive Object Data}
+Getting objects' data means getting data of these objects from oldest version where they were modified before the given version in which user would like to get them.
+In resolved modifications of get data functions it is needed to resolve these data. And to resolve them again use inherited data from templates in oldest version where they were modified before the given version.
+These resolving functions are written by recursive selects.
 
-\subsubsection{Add, delete, set attribute}
-add pridava radku
-set updatuje nebo pridava radku
-delete nastavuje dest\_bit
+\subsubsection{Performing Modifications}
+Create new object is done by inserting a row with values given name, uid, {\tt dest\_bit} set off and id of current changeset in version attribute into history table.
+Set attribute operation inserts current data of the object which we would like to modify into history table, sets value of version attribute to id of current changeset and updates the value of attribute, which has to be set.
+Object deletion is done by setting {\tt dest\_bit} attribute on.
+The {\tt dest\_bit} attribute can be also set from on to off, this is the way, how we can undo deletion. But it is enabled only in the same changeset in which it was set to on. This deleted object will not exist later and will not be found.
 
 \subsubsection{Diff}
 
 Diff has these stages:
 \begin{enumerate}
-	\item init diff
-	\item process diff data
-	\item terminate diff
+    \item init diff
+    \item process diff data
+    \item terminate diff
 \end{enumerate}
 Stage init diff creates temporary table with almost all data needed to get list of all modifications.
-More init functions exist, one for diff between two versions and one for diff between state in current changeset and its parent version. For templated kinds these init diff functions exist even in resolved modifiation.\\
+More init functions exist, one for diff between two versions and one for diff between state in current changeset and its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
 
-Temporary table created in init diff stage could be than processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of identifier\_set type and next for the rest of attributes.\\
+Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of identifier\_set type and next for the rest of attributes.\\
 
 Terminate diff just drops temporary table.
 
 \subsubsection{Commit}
-Commit function selects objects from history table of given kind that were just added, deleted or updated in the current changeset. Rows that belong to added objects are inserted into kind's table in the schema production. Rows that belong to deleted objects are deleted from kind's table in the schema production. And rows that belong to updated objects are updated in kind's table in the schema production.\\
+Commit function selects objects from history table of given kind which were just added, deleted or updated in the current changeset. Rows that belong to added objects are inserted into given kind's table in the schema production. Rows that belong to deleted objects are deleted from kind's table in the schema production. And rows that belong to updated objects are updated in kind's table in the schema production.\\
 Tables in schema production store resolved data. So it is needed to find modified objects and resolve their data. We should keep in mind that object's data could be modified even by modification in the object that templates this object.\\
 Commit of templated kinds is composed of:
 \begin{enumerate}
-	\item find all objects in kind\_template table that were modified in the current changeset
-	\item find all objects in kind\_template table that can tranistivly inherit data from objects in step 1
-	\item find all objetcs in kind table that inherit data from objects in step 2
-	\item resolve data of objects from step 3
-	\item process data from step 4 as it was selected from history table of not templated kinds
+    \item find all objects in kind\_template table that were modified in the current changeset
+    \item find all objects in kind\_template table that can tranistivly inherit data from objects in step 1
+    \item find all objetcs in kind table that inherit data from objects in step 2
+    \item resolve data of objects from step 3
+    \item process data from step 4 as it was selected from history table of not templated kinds
 \end{enumerate}
 
 % Does it need algorithm in pseudo code?
 
 \subsection{Template}
-When all tables described by user in modules are created, tables that have a attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
+When all tables described by user in modules are created, tables that have an attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
 Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
-Template table will be created like table that will be templated by this template table. And so created template table will have than dropped not null constraints and dropped columns that can't inherit theirs value.
-
+Template table will be created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
 
 % -Templates are even part of the production schema and they behave like they were defined as a module by user.
 % -inherits relation from templated tables
@@ -126,6 +129,14 @@ Template table will be created like table that will be templated by this templat
 % -identifier set creates inner table - has another structure (without name ...), needs templating too -> templates for them are generated inside multiref class
 
 \subsection{Composition}
+Composition class generates sql script that alters created history tables which are in some composition relation. These history tables are altered in the way to ensure consistent state of objects in composition relation. Triggers for linking objects and check constraints are added.\\
+Linking objects of kinds in composition relation with same name is done by generating before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
+Condition that one object could be contained in at most one another object is checked by the check constraints that are generated by the Composition class as well.
 
 \subsection{Multiref}
+Multiref class can for each {\tt identifier\_set} attribute of the given table generate create table statement for inner table, which provides multi-value references. The generated inner class stores for object its identifier set.\\
+Generated inner table has always name with prefix "inner\_" followed by name of table, "\_" and name of tables {\tt identifier\_set} attribute. Inner tables have attributes attribute att1 with name of table tab1, attribute att2 with name of table tab2 that is referenced from {\tt identifier\_set} attribute of tab1, last attribute is a flag that is used to distinguish between rows representing empty set from rows representing NULL value. Generated inner table has following foreign key constraints, attribute att1 references uid column of table tab1 and attribute att2 references uid column of table tab2.\\
+As inner table stores data of attribute that is part of versioned data, Multiref class generates also create statement for history table of inner tables.\\ 
+The table, to which attribute an inner table is made, could also be templated. Therefore Multiref class generates create table statement for template table of these inner tables. And it also generates functions for resolving templated inner table's data.\\
+In addition to ordinary set attribute function that is for each kind and its attribute generated by Table class, Multiref class generates functions that insert or remove identifier into or from identifier set.
 \end{document}
