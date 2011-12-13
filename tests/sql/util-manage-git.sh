@@ -23,6 +23,9 @@ deska_init_git()
     DESKA_CFGGEN_GIT_SECOND=${MY_PREFIX}/second-wd
     export DESKA_CFGGEN_GIT_SECOND
 
+    export GIT_AUTHOR_NAME="Unit Test"
+    export GIT_AUTHOR_EMAIL="unit.test@example.org"
+
     # Initialize the master repository which simulates a remote repo
     git init --bare ${DESKA_CFGGEN_GIT_REPO} || deska_git_die "git init --bare my_repo failed"
 
