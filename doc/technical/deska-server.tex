@@ -9,7 +9,7 @@
 Talk about server part of deska application. Deska server application and deska database.
 \end{abstract}
 
-\section{DesignD}
+\section{Design}
 Server part of deska application can be devided into two parts. The deska-server and deska database.
 Deska-server is python application, that runs for every user, listen for the commands from deska-cli (see dbapi protocol).
 Main work is to load json data, call corresponding stored function, and return the answer to deska-cli.
@@ -34,6 +34,11 @@ But not the tables including data about changesets and versions. These tables ar
 Functions which are called by deska-server are in json schema.
 
 Schema testing stores some functions used by tests, these functions are not needed for deska database at all (except running tests).
+\begin{figure}[h]
+	\centering
+	\includegraphics[trim=28mm 170mm 30mm 28mm]{img-deska-server-components.pdf}
+	\caption{Deska server components}
+\end{figure}
 
 The philosophy of this desing is, that deska-server calls function in json schema (deska user is db role, for normal user, and it has rights only to run functions in schama json). Functions in json schema are using functions from deska schema (for work with versioning tables) or functions from genproc schema (for work with history and production tables).
 
