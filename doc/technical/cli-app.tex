@@ -74,13 +74,124 @@ not contain any filters. This type of conversion is very straight forward and co
 We simply concatenate all object names from the stack with "->" symbol and use kind name from the last kind in the stack.
 
 When we want to convert {\tt ContextStack} with filters, we have to perform queries to the DB. The conversion is made
-step by step when going through the stack. In every tim of the conversion we have a vector of all objects matching current
+step by step when going through the stack. In every time of the conversion we have a vector of all objects matching current
 level of context stack. When the {\tt ContextStackItem} is representing an object, we only extend all names in the vector
 with the "->" symbol and the object name from the {\tt ContextStackItem} and use kind name from the {\tt ContextStackItem}.
 When the {\tt ContextStackItem} is representing a filter, we have to construct a large filter. Firstly we have to construct
 a filter matching all objects in the vector. This is done by {\tt Db::OrFilter} containing all object names. Then we use
 this filter together with filter from {\tt ContextStackItem} in a {\tt Db::AndFilter}. Now we have filter matching new
 level of context stack, that can be used for performing operations through DBAPI.
+
+\subsection{Caching}
+
+Another role of class {\tt DbInteraction} is caching of several types of data to reduce network traffic, delays and
+server load.
+
+First caching is made on DB structure. {\tt DbInteraction} stores names of kinds and their attributes in several maps
+(we used nested {\tt std::map} for implementation of these structures) for fast access to data needed for oparations with
+the DB. Information like to which kind each attribute refers, in which kind is some kind embedded and more are stored
+here.
+
+Another chaching is performed on querries checking if some object exists or not, as these querries are quite frequent.
+Because all queries to the DB are performed through this class, we can update our cache while performing modification to
+the DB like creating objects, deleting objects, renaming objects and so on.
+
+\section{UserInterface}
+
+Class {\tt UserInterface} is the central class holding the logics of the CLI. This class serves like a glue connecting
+all other components together.
+
+It is driven by two types of commands. First type are commands implemented as classes inherited from {\tt CliCommand}.
+
+\begin{minted}{c++}
+class Command
+{
+public:
+    Command(UserInterface *userInterface);
+    virtual ~Command();
+    virtual bool operator()(const std::string &params) = 0;
+protected:
+    std::vector<std::string> complPatterns;
+    std::string cmdName;
+    std::string cmdUsage;
+};
+\end{minted}
+
+As you can see, the base is very simple. In constructor several mandatory variables of the class are set like
+completion patterns, command name, and usage description for help generation. These commands are infuencing the rest of
+the Deska through pointer to {\tt UserInterface}. These command classes are stored in a map with their names as a key.
+After that they are picked up using this name. Executing the command is made by calling function {\tt bool operator()} with
+string as a parameter. This parameter could be then processed to influence behavior of each command. Return value is here
+to tell the other world is the executing of the command succeeded or not. Names and parameters of these commands
+are indepent on DB structure. Their purpose are things like operations with changesets, dumping, backuping and restoring
+the DB and so on. We will describe each command separately in more detail later.
+
+The second type of commands are dependent on DB structure. They are used for manipulating data in the DB like setting attributes,
+creating, deleting and renaming objects and so on. Because of the fact, that these actions are performed using calls
+like "<attribute-name> <attribute-value>" or "<kind-name>" "<object-name>", you can see, that here actualy is not any
+name for this command. It is fully determined by the action it should perform. A special class was developped for parsing
+of these "commands", class {\tt Parser}. It is one of the main components and also one of the most complicated, so we will
+describe it later in a separate section. The parser itself does not change the datain the DB. It communicates with the
+{\tt UserInterface} through simple class {\tt SignalsHandler}. This class is here because the parser emmits signals for
+each action. These signals are caught and stored in the {\tt SignalsHandler}. Then comes two way processing of the stack,
+where in the first round each action represented by one signal is confirmed and then when all signels are confirmed, they
+are applyed to the DB. The confirmation and applying is performed via functions implemented in the {\tt UserInterface},
+that you can see on the following snippet.
+
+\begin{minted}{c++}
+class UserInterface: public boost::noncopyable
+{
+public:
+
+...
+
+    bool applyCreateObject(const ContextStack &context,
+            const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
+    bool applyCategoryEntered(const ContextStack &context,
+            const Db::Identifier &kind, const Db::Identifier &object, ContextStackItem &newItem);
+    bool applySetAttribute(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Value &value);
+    bool applySetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Identifier &value);
+    bool applySetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Identifier &value);
+    bool applyRemoveAttribute(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute);
+    bool applyObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
+            const boost::optional<Db::Filter> &filter);
+    bool applyFunctionShow(const ContextStack &context);
+    bool applyFunctionDelete(const ContextStack &context);
+    bool applyFunctionRename(const ContextStack &context, const Db::Identifier &newName);
+
+    bool confirmCreateObject(const ContextStack &context,
+            const Db::Identifier &kind, const Db::Identifier &object);
+    bool confirmCategoryEntered(const ContextStack &context,
+            const Db::Identifier &kind, const Db::Identifier &object, bool &autoCreate);
+    bool confirmSetAttribute(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Value &value);
+    bool confirmSetAttributeInsert(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Identifier &value);
+    bool confirmSetAttributeRemove(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute, const Db::Identifier &value);
+    bool confirmRemoveAttribute(const ContextStack &context, const Db::Identifier &kind,
+            const Db::Identifier &attribute);
+    bool confirmObjectsFilter(const ContextStack &context, const Db::Identifier &kind,
+            const boost::optional<Db::Filter> &filter);
+    bool confirmFunctionShow(const ContextStack &context);
+    bool confirmFunctionDelete(const ContextStack &context);
+    bool confirmFunctionRename(const ContextStack &context, const Db::Identifier &newName);
+
+...
+
+};
+\end{minted}
+
+Now we will describe how each command from the first group works.
+
+\subsection{Start}
+
+This one is very simple.
+
 
 
 \end{document}
