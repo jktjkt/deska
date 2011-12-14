@@ -3,7 +3,7 @@ from testdbapi import Connection
 
 def imperative(r):
     # test the cdash infrastructure
-    r.assertTrue(False)
+    r.assertEqual(0, 1)
     # Let's play around with concurrent access to the DB
     conn1 = Connection(r.cmd)
     conn2 = Connection(r.cmd)
