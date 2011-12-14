@@ -73,6 +73,22 @@ class DB:
 		"setAttributeInsert", "setAttributeRemove"]
 
 	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):
+		v = psycopg2.__version__.split(" ")[0]
+		splitted = [int (x) for x in v.split(".")]
+		# Unfortunately, setuptools might not be available at this point, so we
+		# cannot use their version_parse comparator
+		if splitted[0] > 2:
+			# we have no idea what to do here, so assume forward compatibility
+			self.psycopg2_use_new_isolation = True
+		elif splitted[0] < 2:
+			raise RuntimeError, "psycopg2 version %s looks ancient, sorry" % v
+		elif splitted[0] == 2 and splitted[1] < 4:
+			self.psycopg2_use_new_isolation = False
+		elif splitted[0] == 2 and splitted[1] == 4 and splitted[2] < 2:
+			# The 2.4.1 fails when used in the old way
+			self.psycopg2_use_new_isolation = False
+		else:
+			self.psycopg2_use_new_isolation = True
 		self.db = psycopg2.connect(**dbOptions);
 		self.mark = self.db.cursor()
 		self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
@@ -120,10 +136,12 @@ class DB:
 				changeset = None
 			if changeset is not None:
 				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
-			# FIXME: better solution needs psycopg2.4.2
-			# self.db.set_session(SERIALIZABLE,True)
-			self.db.set_isolation_level(2)
-			self.db.commit()
+			if self.psycopg2_use_new_isolation:
+				self.db.commit()
+				self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=True)
+			else:
+				self.db.set_isolation_level(2)
+				self.db.commit()
 			# commit and start new transaction with selected properties
 			self.freeze = True
 			return self.responseJson(name,tag)
@@ -131,10 +149,12 @@ class DB:
 			if not self.freeze:
 				raise FreezingError("Cannot call unFreezeView, view is not frozen")
 			# set isolation level readCommited
-			# FIXME: better solution needs psycopg2.4.2
-			#self.db.set_session(DEFAULT,False)
-			self.db.set_isolation_level(1)
-			self.db.commit()
+			if self.psycopg2_use_new_isolation:
+				self.db.commit()
+				self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED, readonly=False)
+			else:
+				self.db.set_isolation_level(1)
+				self.db.commit()
 			# commit and start new transaction with selected properties
 			self.db.commit()
 			self.freeze = False
