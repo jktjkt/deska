@@ -26,6 +26,7 @@ for role in deska_user deska_admin; do
 done
 
 ctest --output-on-failure $@
+RES=$?
 
 pg_ctl stop -D ${SHMDIR}
 
@@ -35,3 +36,5 @@ if [[ -n "${DESKA_TRACE_SQL}" ]]; then
 fi
 
 rm -rf ${SHMDIR}
+
+exit $RES
