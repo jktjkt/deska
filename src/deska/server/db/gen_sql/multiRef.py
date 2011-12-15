@@ -525,7 +525,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_data_version(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    LEFT OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s )
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_data_version(from_version) inner1
+    RIGHT OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -541,7 +547,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    LEFT OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s)
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_resolved_data(from_version) inner1
+    RIGHT OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -571,7 +583,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
         FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
-            FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
+            LEFT OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s IS NOT DISTINCT FROM chv.%(ref_tbl_name)s)
+            
+    UNION
+    
+    SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
+            RIGHT OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s IS NOT DISTINCT FROM chv.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -618,7 +636,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data(from_version) inner1
-    FULL OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
+    LEFT OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s IS NOT DISTINCT FROM  inner2.%(reftbl_name)s)
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_resolved_data(from_version) inner1
+    RIGHT OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s IS NOT DISTINCT FROM  inner2.%(reftbl_name)s);
 
     DROP TABLE resolved_changeset;
     DROP TABLE inner_template_data_changeset;
@@ -650,7 +674,7 @@ DECLARE
 BEGIN
     SELECT COUNT(*) INTO cnt
     FROM %(tbl)s_diff_data
-    WHERE (new_%(tbl_name)s = obj_uid OR old_%(tbl_name)s = obj_uid) AND (old_%(ref_tbl_name)s IS NULL OR new_%(ref_tbl_name)s IS NULL);
+    WHERE (new_%(tbl_name)s = obj_uid OR old_%(tbl_name)s = obj_uid) AND (old_%(ref_tbl_name)s IS DISTINCT FROM new_%(ref_tbl_name)s OR old_flag IS DISTINCT FROM new_flag);
     IF cnt > 0 THEN
         RETURN false;
     ELSE
