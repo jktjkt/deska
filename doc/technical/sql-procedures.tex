@@ -27,6 +27,34 @@ There are some wrapper functions for manupulation with objects stored in db. Fro
 \subsection{Object data functions}
 These functions have to provide similar function as object manipulation functions, to determine the function to call. But this functions returns data tables, so we have to create json struncture from this. Therefor creation of sql statement is more complicated. Due to performance reasons, we have to do many cast in created sql statement, because it is quicker then do it in python way. This cast must be done for data, that pgpython cannot convert to native python types.
 
+Lets see the multipleResolvedObjectDataWithOrigin function to explain, how it work. The other functions are very similar.
+At first, name is set (this is used for result json and/or reporting errors) and json struncture is prepared, using dutil.jsn function. After this, kindName is checked. Then attributes are load from generated.py file.
+If kind has template, every attribute except one starts with template\_ prefix are duplicated, so that we has also information about origin of the value.
+Then columns definition is generated. For normal attribute, "kindName.attributeName" is the definition. But for referenced attributes, which are
+represented as id in database, not string, kindName\_get\_name function must be called. So in the case that attribute vendor is represented as id, then
+"vendor\_get\_name(kindName.attributeName, version) AS kindName.attributeName" is the column definition. For embedded kind, emmbedd name is created in similar way,
+using function join\_with\_delim.
+Then, the final sql statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter are used.
+This function also checks if this kind has template or not, and proper function resolved or not is used in the final sql statement.
+After this preparation, sql statement is run and the result is fetched. For each line in the result table, one part of result json structure is
+created. And then final json is created and returned.
+
+Lets see as the final sql statement can look like.
+\begin{itemize}
+\item{STATEMENT}: SELECT "columns" FROM "data\_function" "JOIN\_part" "WHERE\_part"
+\item{columns}: col1,col2,...colN where colX is defined as said before
+\item{data\_function}: name of data function, with parameter version
+\item{JOIN\_part}: result of filter.getJoin: JOIN "data\_function" ON (join condition)
+\item{WHERE\_part}: result of filter.getWhere: WHERE kind.attribute = \$1 OR ...
+\end{itemize}\$
+And here is some example:
+SELECT host.service\_templ,host.name,host.service,host.virtual\_hardware\_templ,
+host\_template\_get\_name(host.template\_host,\$1) AS host\_template,hardware\_get\_name(host.hardware,\$1) AS hardware,
+host.note\_host\_templ,virtual\_hardware\_get\_name(host.virtual\_hardware,\$1) AS virtual\_hardware,host.hardware\_templ,
+host.note\_host FROM host\_resolved\_data\_template\_info(\$1) AS host
+LEFT OUTER JOIN hardware\_resolved\_data(\$1) AS hardware ON host.uid = hardware.host
+WHERE hardware.name != \$2 OR hardware.name IS NULL 
+
 \section{SQL generator}
 The Sql generator is generator of stored procedures and tables that ensure data manipulation for schema described in modules.\\
 All generated stored procedures are created in schema genproc.
