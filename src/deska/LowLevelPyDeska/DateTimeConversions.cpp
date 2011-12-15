@@ -209,6 +209,9 @@ struct tduration_from_python_delta
      }
 };
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
 void bind_datetime()
 {
     PyDateTime_IMPORT;
