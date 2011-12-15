@@ -190,7 +190,63 @@ Now we will describe how each command from the first group works.
 
 \subsection{Start}
 
-This one is very simple.
+This one is very simple. It only starts and connects to a new changeset.
+
+\subsection{Resume}
+
+Class {\tt Resume} is here to connect user to some pending changeset. Choosing procedure is implemented in the IO part of
+the Deska, in class {\tt UserInterfaceIO}, which will be described later. 
+
+\subsection{Detach}
+
+Class implementing command "detach" is also very simple. It only obtains detach message from the user using
+class {\tt UserInterfaceIO} and detaches from current changeset.
+
+\subsection{Abort}
+
+{\tt Abort} is here only to detach from the current changeset and dispose it.
+
+\subsection{Rebase}
+
+Class {\tt Rebase} is quite complicated one. It's purpose is to reconnect current changeset from it's parent to a new
+one. This is done firstly by creating a new changeset, which will be connected to a newest revision and then by performing
+the same changes as we performed in old changeset in this changeset. Then we can abort the old changeset. Well we can not
+perform exactly the same changes in our new changeset, because the DB could change that it could not be possible. For
+example when we set attribute of some object which was deleted in a newer revision. To solve this problem we are performing
+some kind of merge here. We obtain two sets of {\tt Db::ObjectModificationResult}. Firs is diff between our old changeset
+and it's parent. This gives us list of our changes. Next set is diff between parent of our old changeset and parent of a
+new changeset. This represents changeset made while we were working in our old changeset. These sets has to be somehow
+merged and shown to a user in order to see, haw the final result of merge will look like and also in order to influence
+the result of this merge. The merge is performed by several comparators and the result has to be in the following order:
+\begin{enumerate}
+    \item {\tt Db::DeleteObjectModification}
+    \item {\tt Db::RenameObjectModification}
+    \item {\tt Db::CreateObjectModification}
+    \item {\tt Db::SetAttributeModification}
+\end{enumerate}
+This order was chosen because of constraints in the DB. For example when we are creating some object, the object with
+the same name must not exist and so on. So deleting does not break any constraint any time. Rename is before create
+because you can create then the object of the same name as an old one, but you will never need to perform create before
+rename to unblock rename. Setting attributes must be last as it requires an existing object. After this sorting and
+merging the result is shown to the user using an interactive editor implemented in {\tt UserInterfaceIO}. Here the user
+can delete or modify the modifications. When the editting part is finished, the corrected list is processed and
+all modifications are performed.
+
+\subsection{Status}
+
+{\tt Status} is on of the simpliest classes as it only informs user if he is connected to some changeset or not by looking
+to one variable stored in {\tt UserInterface}.
+
+\subsection{NonInteractive}
+
+This class is not complicated as well. It toggles boolean variable in {\tt UserInterface} signalising if the user will
+be asked for confirmations of some actions or if they will be confirmed automaticaly.
+
+\subsection{Log}
+
+Function {\tt bool Log::operator()} when executed without parameters only obtains list of all revisions in the DB and
+prints this list using {\tt UserInterfaceIO} to the screen. The more interesting part of this class is parameters parser.
+It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}. 
 
 
 
