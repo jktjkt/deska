@@ -198,6 +198,35 @@ def do_host(r):
     r.cvoid(setAttributeInsert("host_template", "t2", "service", "c"))
     r.c(commitChangeset("."))
 
+    hdata["h2"] = {
+            "hardware": [None, None],
+            "note_host": [None, None],
+            "template_host": [None, None],
+            "service": [None, None],
+            "virtual_hardware": [None, None],
+    }
+
+    # Play around with template inheritance
+    changeset = r.c(startChangeset())
+    r.cvoid(setAttribute("host", "h2", "template_host", "t2"))
+    hdata["h2"]["template_host"] = ["h2", "t2"]
+    hdata["h2"]["service"] = ["t2", ["b", "c"]]
+    expectedResolved = [
+        {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t2"},
+        {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "service", "oldAttributeData": None, "attributeData": ["b", "c"]},
+    ]
+    expectedRaw = [
+        {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t2"},
+    ]
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+
+    rev = r.c(commitChangeset("."))
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
+    r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
+
 def do_interface(r):
     changeset = r.c(startChangeset())
     r.c(createObject("interface", "h->i0"))
