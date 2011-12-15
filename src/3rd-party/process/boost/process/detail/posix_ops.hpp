@@ -27,6 +27,7 @@
 #include <boost/assert.hpp> 
 #include <boost/system/system_error.hpp> 
 #include <boost/throw_exception.hpp> 
+#include <iostream>
 #include <map> 
 #include <utility> 
 #include <string> 
@@ -411,8 +412,7 @@ inline pid_t posix_start(const Executable &exe, const Arguments &args, const env
         } 
         catch (const boost::system::system_error &e) 
         { 
-            ::write(STDERR_FILENO, e.what(), std::strlen(e.what())); 
-            ::write(STDERR_FILENO, "\n", 1); 
+            std::cerr << e.what() << std::endl;
             std::exit(EXIT_FAILURE); 
         } 
 
@@ -430,8 +430,7 @@ inline pid_t posix_start(const Executable &exe, const Arguments &args, const env
             delete[] envp[i]; 
         delete[] envp; 
 
-        ::write(STDERR_FILENO, e.what(), std::strlen(e.what())); 
-        ::write(STDERR_FILENO, "\n", 1); 
+        std::cerr << e.what() << std::endl;
         std::exit(EXIT_FAILURE); 
     } 
 

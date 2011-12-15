@@ -7,7 +7,7 @@ class MultiRef:
     tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
     template_column_str = "SELECT attname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'TEMPLATIZED';"
 
-    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_col)s(
+    add_inner_table_str = '''CREATE TABLE history.inner_%(tbl)s_%(ref_col)s(
 %(tbl)s bigint
     CONSTRAINT inner_%(tbl)s_fk_%(ref_col)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
@@ -23,7 +23,7 @@ CONSTRAINT inner_%(tbl)s_%(ref_col)s_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
     -- include default values
     INCLUDING DEFAULTS,
     version int NOT NULL,
-    CONSTRAINT %(tbl)s_unique UNIQUE (%(tbl_name)s, %(ref_tbl_name)s, version)
+    CONSTRAINT %(tbl)s_h_unique UNIQUE (%(tbl_name)s, %(ref_tbl_name)s, version)
 );
 '''
 
@@ -723,7 +723,7 @@ LANGUAGE plpgsql;
         self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
 
         # print this to add proc into genproc schema
-        self.tab_sql.write("SET search_path TO deska, production, history;\n")
+        self.tab_sql.write("SET search_path TO history, deska, production;\n")
         self.fn_sql.write("SET search_path TO genproc, deska, production, history;\n")
 
         record = self.plpy.execute(self.tbl_name_template_str)
