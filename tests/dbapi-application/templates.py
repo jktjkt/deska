@@ -227,6 +227,31 @@ def do_host(r):
     r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
     r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
 
+    # Try to distinguish between the empty set and NULL
+    changeset = r.c(startChangeset())
+    r.cvoid(setAttribute("host_template", "t2", "template_host", "t1"))
+    r.cvoid(setAttributeRemove("host_template", "t2", "service", "b"))
+    r.cvoid(setAttributeRemove("host_template", "t2", "service", "c"))
+    expectedResolved = [
+        {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "service", "oldAttributeData": ["b", "c"], "attributeData": []},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t1"},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": ["b", "c"], "attributeData": []},
+    ]
+    expectedRaw = [
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t1"},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": ["b", "c"], "attributeData": []},
+    ]
+    hdata["h2"]["service"] = ["t2", []]
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+
+    rev = r.c(commitChangeset("."))
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
+    r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
+
+
 def do_interface(r):
     changeset = r.c(startChangeset())
     r.c(createObject("interface", "h->i0"))
