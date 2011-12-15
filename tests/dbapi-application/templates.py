@@ -282,6 +282,9 @@ def do_host(r):
     # Try to call setAttribute with an empty set explicitly
     changeset = r.c(startChangeset())
     r.cvoid(setAttribute("host_template", "t2", "service", []))
+    # FIXME: fails, Redmine #414, no exception is raised
+    #for trash in ["[]", "{}", "", "()", " "]:
+    #    r.cfail(setAttribute("host_template", "t2", "service", trash), exception=NotASetError())
     hdata["h2"]["service"] = ["t2", []]
     expectedResolved = [
         {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "service", "oldAttributeData": ["b"], "attributeData": []},
