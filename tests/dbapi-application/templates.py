@@ -149,6 +149,8 @@ def do_host(r):
     changeset = r.c(startChangeset())
     for service in ["a", "b", "c"]:
         r.assertEqual(r.c(createObject("service", service)), service)
+    r.c(commitChangeset("."))
+    changeset = r.c(startChangeset())
     r.c(createObject("host", "h"))
     r.c(createObject("host_template", "t1"))
     r.cvoid(setAttribute("host", "h", "template_host", "t1"))
@@ -163,13 +165,27 @@ def do_host(r):
     }
 
     helper_check_host(r, hdata)
-    rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
-    rdiff = r.c(resolvedDataDifference("r1", "r2"))
-    # FIXME: write that when #304 is fixed
-    #r.assertEqual(rdiff, [])
+    expectedResolved = [
+        {"command": "createObject", "kindName": "host", "objectName": "h"},
+        {"command": "setAttribute", "kindName": "host", "objectName": "h", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t1"},
+        {"command": "setAttribute", "kindName": "host", "objectName": "h", "attributeName": "service", "oldAttributeData": None, "attributeData": ["a"]},
+        {"command": "createObject", "kindName": "host_template", "objectName": "t1"},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t1", "attributeName": "service", "oldAttributeData": None, "attributeData": ["a"]},
+    ]
+    expectedRaw = [
+        {"command": "createObject", "kindName": "host", "objectName": "h"},
+        {"command": "setAttribute", "kindName": "host", "objectName": "h", "attributeName": "template_host", "oldAttributeData": None, "attributeData": "t1"},
+        {"command": "createObject", "kindName": "host_template", "objectName": "t1"},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t1", "attributeName": "service", "oldAttributeData": None, "attributeData": ["a"]},
+    ]
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+
     # test after a commit
-    r.c(commitChangeset("."))
+    rev = r.c(commitChangeset("."))
     helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
+    r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
 
 def do_interface(r):
     changeset = r.c(startChangeset())
