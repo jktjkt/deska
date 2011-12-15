@@ -66,7 +66,7 @@ Here we try to explain work with exception in deska database/ server. Postgre sq
 This sqlstate is like number of error. We use this to split posible exceptions into some category - exception types. Exception in database is
 every unexpected or “bad” thing that occures. It can be run time error as well as contraint violation, or exception thrown explicitly by RAISE.
 
-Psycopg used in deska-server to perform actions in db, has no good way to get sqlstate of exception, whích is used to determine exception type.
+Psycopg2 used in deska-server to perform actions in db, has no good way to get sqlstate of exception, whích is used to determine exception type.
 This is reason to catch maximum number of exception inside the database (in json schema part), so that exception type can be determined.
 
 Functions in json schema catches all exceptions and transform it into json - see format of this execption in dbapi specification.
