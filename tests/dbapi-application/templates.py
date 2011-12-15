@@ -271,8 +271,6 @@ def do_host(r):
         {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": [], "attributeData": ["b"]},
     ]
     hdata["h2"]["service"] = ["t2", ["b"]]
-    # FIXME: Redmine #412, the change in the attribute values takes no effect
-    #r.cvoid(abortCurrentChangeset())
     helper_check_host(r, hdata)
     r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
     r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
