@@ -251,6 +251,50 @@ def do_host(r):
     r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
     r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
 
+    # There shall be no differences at this point
+    changeset = r.c(startChangeset())
+    expectedResolved = []
+    expectedRaw = []
+    helper_check_host(r, hdata)
+    # FIXME: Redmine #411, there's a weird change in here
+    return
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+    r.cvoid(abortChangeset())
+
+    # Add some values back
+    # FIXME: Redmine #411, the change in the attribute values takes no effect
+    changeset = r.c(startChangeset())
+    r.cvoid(setAttributeRemove("host_template", "t2", "service", "b"))
+    expectedResolved = [
+        {"command": "setAttribute", "kindName": "host", "objectName": "h2", "attributeName": "service", "oldAttributeData": [], "attributeData": ["b"]},
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": [], "attributeData": ["b"]},
+    ]
+    expectedRaw = [
+        {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": [], "attributeData": ["b"]},
+    ]
+    hdata["h2"]["service"] = ["t2", ["b"]]
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+    rev = r.c(commitChangeset("."))
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
+    r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
+
+
+    # Try to call setAttribute with an empty set explicitly
+    changeset = r.c(startChangeset())
+    # FIXME: Redmine #410, cannot set to an empty set here
+    #r.cvoid(setAttribute("host_template", "t2", "service", []))
+    hdata["h2"]["service"] = ["t2", []]
+    expectedResolved = []
+    expectedRaw = []
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+    r.cvoid(abortCurrentChangeset())
+
 
 def do_interface(r):
     changeset = r.c(startChangeset())
