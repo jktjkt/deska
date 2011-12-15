@@ -256,8 +256,10 @@ def do_host(r):
     expectedResolved = []
     expectedRaw = []
     helper_check_host(r, hdata)
-    # FIXME: Redmine #411, there's a weird change in here
+    # FIXME: Redmine #411, got to abort immediately
+    r.cvoid(abortCurrentChangeset())
     return
+    # FIXME: Redmine #411, there's a weird change in here
     r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
     r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
     r.cvoid(abortChangeset())
