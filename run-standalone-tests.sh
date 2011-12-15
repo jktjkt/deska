@@ -2,7 +2,7 @@
 
 SHMDIR=/dev/shm/deska-${USER}-$$
 mkdir ${SHMDIR}
-initdb -U postgres -A trust ${SHMDIR}
+initdb -U postgres -A trust ${SHMDIR} > /dev/null
 echo "listen_addresses = ''
 unix_socket_directory = '${SHMDIR}'
 " >> ${SHMDIR}/postgresql.conf
@@ -19,7 +19,7 @@ else
 fi
 PGHOST=${SHMDIR}
 export PGHOST
-PGUSER=postgres pg_ctl start -D ${SHMDIR} -w -l ${CTL_LOG} -o "-F"
+PGUSER=postgres pg_ctl start -D ${SHMDIR} -w -l ${CTL_LOG} -o "-F" > /dev/null
 
 for role in deska_user deska_admin; do
     psql -q -U postgres -c "CREATE ROLE ${role};"
@@ -28,7 +28,7 @@ done
 ctest --output-on-failure $@
 RES=$?
 
-pg_ctl stop -D ${SHMDIR}
+pg_ctl stop -D ${SHMDIR} > /dev/null
 
 if [[ -n "${DESKA_TRACE_SQL}" ]]; then
     cat "${SHMDIR}/pg_log/error_log"
