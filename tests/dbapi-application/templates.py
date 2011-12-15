@@ -47,10 +47,11 @@ def helper_check_hw3(r, expected):
     r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("hardware")), {"hw3": expected})
 
 def helper_check_host(r, expected):
-    r.assertEqual(r.c(resolvedObjectData("host", "h")), strip_origin(expected))
-    r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", "h")), expected)
-    r.assertEqual(r.c(multipleResolvedObjectData("host")), {"h": strip_origin(expected)})
-    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), {"h": expected})
+    for name in expected.keys():
+        r.assertEqual(r.c(resolvedObjectData("host", name)), strip_origin(expected[name]))
+        r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", name)), expected[name])
+    r.assertEqual(r.c(multipleResolvedObjectData("host")), dict((k,strip_origin(v)) for (k,v) in expected.iteritems()))
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), expected)
 
 def helper_check_interface(r, expected):
     r.assertEqual(r.c(resolvedObjectData("interface", "h->i0")), strip_origin(expected))
@@ -156,12 +157,14 @@ def do_host(r):
     r.cvoid(setAttribute("host", "h", "template_host", "t1"))
     r.cvoid(setAttribute("host_template", "t1", "service", ["a"]))
 
-    hdata = {
-        "hardware": [None, None],
-        "note_host": [None, None],
-        "template_host": ["h", "t1"],
-        "service": ["t1", ["a"]],
-        "virtual_hardware": [None, None],
+    hdata = {"h":
+        {
+            "hardware": [None, None],
+            "note_host": [None, None],
+            "template_host": ["h", "t1"],
+            "service": ["t1", ["a"]],
+            "virtual_hardware": [None, None],
+        }
     }
 
     helper_check_host(r, hdata)
