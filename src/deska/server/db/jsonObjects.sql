@@ -23,7 +23,13 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 	try:
 		# check attribute is not set
 		if dutil.generated.atts(kindName)[attributeName] == "identifier_set":
-			raise dutil.DutilException("NotASetError","Attribute '{0}' type is identifier_set, but data type is not.".format(attributeName))
+			if attributeData == '{}':
+				'''This is hack (see #410), to work with empty string, which psycopg call as array
+				but database thinks it is a string, do not raise exception'''
+				attributeData = []
+				fname = kindName+"_set_"+attributeName+"(text,text[])"
+			else:
+				raise dutil.DutilException("NotASetError","Attribute '{0}' type is identifier_set, but data type is {1}".format(attributeName,attributeData))
 		dutil.fcall(fname,objectName,attributeData)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)
