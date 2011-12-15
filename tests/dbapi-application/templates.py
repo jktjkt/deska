@@ -190,6 +190,14 @@ def do_host(r):
     r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
     r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
 
+    # Create a few more objects so that we can play with them
+    changeset = r.c(startChangeset())
+    r.c(createObject("host", "h2"))
+    r.c(createObject("host_template", "t2"))
+    r.cvoid(setAttributeInsert("host_template", "t2", "service", "b"))
+    r.cvoid(setAttributeInsert("host_template", "t2", "service", "c"))
+    r.c(commitChangeset("."))
+
 def do_interface(r):
     changeset = r.c(startChangeset())
     r.c(createObject("interface", "h->i0"))
