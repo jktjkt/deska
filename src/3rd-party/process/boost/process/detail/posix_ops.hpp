@@ -27,6 +27,7 @@
 #include <boost/assert.hpp> 
 #include <boost/system/system_error.hpp> 
 #include <boost/throw_exception.hpp> 
+#include <iostream>
 #include <map> 
 #include <utility> 
 #include <string> 
