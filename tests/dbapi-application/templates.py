@@ -256,16 +256,11 @@ def do_host(r):
     expectedResolved = []
     expectedRaw = []
     helper_check_host(r, hdata)
-    # FIXME: Redmine #411, got to abort immediately
-    r.cvoid(abortCurrentChangeset())
-    return
-    # FIXME: Redmine #411, there's a weird change in here
     r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
     r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
     r.cvoid(abortCurrentChangeset())
 
     # Add some values back
-    # FIXME: Redmine #411, the change in the attribute values takes no effect
     changeset = r.c(startChangeset())
     r.cvoid(setAttributeRemove("host_template", "t2", "service", "b"))
     expectedResolved = [
@@ -276,6 +271,9 @@ def do_host(r):
         {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": [], "attributeData": ["b"]},
     ]
     hdata["h2"]["service"] = ["t2", ["b"]]
+    # FIXME: Redmine #412, the change in the attribute values takes no effect
+    r.cvoid(abortCurrentChangeset())
+    return
     helper_check_host(r, hdata)
     r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
     r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
