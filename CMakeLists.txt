@@ -26,6 +26,10 @@ SET(DESKA_SOVERSION 0.10)
 cmake_minimum_required(VERSION 2.6)
 
 SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ggdb -pipe")
+# boost::optional fails with strict aliasing, unfortunately.
+# http://boost.2283326.n4.nabble.com/optional-Strict-Aliasing-Warnings-on-Trunk-td2644713i20.html
+# http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41874
+SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-strict-aliasing")
 # STL debugging breaks ABI compatibility with virtualy any library that uses STL, hence disabled
 # add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
 #SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")

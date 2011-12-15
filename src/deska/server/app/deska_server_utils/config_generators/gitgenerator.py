@@ -4,6 +4,7 @@
 
 import os
 import stat
+import shutil
 import git
 from generatorerror import GeneratorError
 
@@ -74,7 +75,8 @@ class GitGenerator(object):
             path = os.path.join(self.scriptdir, script)
             s = os.stat(path)
             if stat.S_ISDIR(s.st_mode):
-                # FIXME: error handling
+                # Directories are ignored -- meybe they are required by the
+                # scripts after all...
                 continue
             if not s.st_mode & stat.S_IXUSR:
                 # Ignore scripts without an exectuable bit. This is on purpose,
@@ -85,6 +87,9 @@ class GitGenerator(object):
 
         if not runAnything:
             raise GeneratorError, "No executable scripts found in %s" % self.scriptdir
+
+    def nukeWorkDir(self):
+        shutil.rmtree(self.workdir)
 
     def completeConfigDiff(self, changesetIsFresh):
         '''Return a human-readable diff of the output, no matter of the initial state'''

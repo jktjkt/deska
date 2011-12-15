@@ -15,7 +15,6 @@ PATH_WC = os.environ["DESKA_CFGGEN_GIT_WC"]
 PATH_SECOND = os.environ["DESKA_CFGGEN_GIT_SECOND"]
 
 def helper_check_second_clone(r, contents):
-    r.assertEqual(subprocess.call(["git", "pull"], cwd=PATH_SECOND), 0)
     myfiles = []
     for (root, dirs, files) in os.walk(PATH_SECOND):
         if ".git" in dirs:
@@ -160,14 +159,18 @@ f.write("pwnzor\\n")
     helper_check_second_clone(r, ["README"])
     r.c(createObject("vendor", "dummy03"))
     r.c(commitChangeset("added file"))
+    # The file shall be present in the repo
     helper_check_second_clone(r, ["README", "blah"])
-    mytarget = os.path.join(PATH_WC, changeset, "blah")
+    # ...with a correct contents
+    mytarget = os.path.join(PATH_SECOND, "blah")
     r.assertEqual(file(mytarget, "rb").readlines(), ["pwnzor\n"])
+
+    # Try to start another changeset
     changeset = r.c(startChangeset())
     r.cvoid(deleteObject("vendor", "dummy03"))
-    r.c(commitChangeset("no change"))
+    r.c(commitChangeset("no change in the output"))
+    # Check that the file is indeed there
     helper_check_second_clone(r, ["README", "blah"])
-    #mytarget = os.path.join(PATH_WC, changeset, "blah")
     r.assertEqual(file(mytarget, "rb").readlines(), ["pwnzor\n"])
     rmGenerator("01")
 
@@ -383,7 +386,7 @@ file("output", "wb").write("All done\\n")
     if shallCommit:
         r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'commitChangeset']))
         helper_check_second_clone(r, ["README", "output"])
-        mytarget = os.path.join(PATH_WC, changeset, "output")
+        mytarget = os.path.join(PATH_SECOND, "output")
         r.assertEqual(file(mytarget, "rb").readlines(), ["All done\n"])
         rmGenerator("sleeping-beauty")
         # Now perform the cleanup
@@ -401,6 +404,10 @@ os.unlink("output")
         r.assertEqual(sorted(cmdres.keys()), sorted(['tag', 'response', 'showConfigDiff']))
         r.assertTrue(cmdres["showConfigDiff"].index("All done") != -1)
         helper_check_second_clone(r, ["README"])
+        # We are indeed checking the per-changeset working copy here
+        # (as we are not comitting anything)
+        mytarget = os.path.join(PATH_WC, changeset, "output")
+        r.assertEqual(file(mytarget, "rb").readlines(), ["All done\n"])
         r.cvoid(abortCurrentChangeset(), conn=conn1)
         rmGenerator("sleeping-beauty")
 

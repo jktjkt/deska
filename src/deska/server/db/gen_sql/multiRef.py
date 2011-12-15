@@ -1,10 +1,13 @@
 class MultiRef:
+    """Multiref class can generate inner table for binding one object with n another objects.
+    Multiref class also generates functions for data manipulation with generated inner classes.
+    """
     multiRef_tables_str = "SELECT relname FROM get_table_info() WHERE typname = 'identifier_set';"
     multiRef_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET';"
     tbl_name_template_str = "SELECT DISTINCT template, kind FROM get_templates_info();"
     template_column_str = "SELECT attname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'TEMPLATIZED';"
 
-    add_inner_table_str = '''CREATE TABLE deska.inner_%(tbl)s_%(ref_col)s(
+    add_inner_table_str = '''CREATE TABLE history.inner_%(tbl)s_%(ref_col)s(
 %(tbl)s bigint
     CONSTRAINT inner_%(tbl)s_fk_%(ref_col)s REFERENCES %(tbl)s(uid) ON DELETE CASCADE DEFERRABLE INITIALLY IMMEDIATE,
 %(ref_tbl)s bigint
@@ -20,7 +23,7 @@ CONSTRAINT inner_%(tbl)s_%(ref_col)s_unique UNIQUE (%(tbl)s,%(ref_tbl)s)
     -- include default values
     INCLUDING DEFAULTS,
     version int NOT NULL,
-    CONSTRAINT %(tbl)s_unique UNIQUE (%(tbl_name)s, %(ref_tbl_name)s, version)
+    CONSTRAINT %(tbl)s_h_unique UNIQUE (%(tbl_name)s, %(ref_tbl_name)s, version)
 );
 '''
 
@@ -522,7 +525,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_data_version(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    LEFT OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s )
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_data_version(from_version) inner1
+    RIGHT OUTER JOIN %(tbl)s_data_version(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -538,7 +547,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data(from_version) inner1
-    FULL OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s = inner2.%(ref_tbl_name)s);
+    LEFT OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s)
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_resolved_data(from_version) inner1
+    RIGHT OUTER JOIN %(tbl)s_resolved_data(to_version) inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(ref_tbl_name)s IS NOT DISTINCT FROM inner2.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -568,7 +583,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS  SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
         FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
-            FULL OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s = chv.%(ref_tbl_name)s);
+            LEFT OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s IS NOT DISTINCT FROM chv.%(ref_tbl_name)s)
+            
+    UNION
+    
+    SELECT chv.%(tbl_name)s AS new_%(tbl_name)s, chv.%(ref_tbl_name)s AS new_%(ref_tbl_name)s, chv.flag AS new_flag, dv.%(tbl_name)s AS old_%(tbl_name)s, dv.%(ref_tbl_name)s AS old_%(ref_tbl_name)s, dv.flag AS old_flag
+        FROM (SELECT * FROM %(tbl)s_history WHERE version = changeset_id) chv
+            RIGHT OUTER JOIN %(tbl)s_data_version(from_version) dv ON (dv.%(tbl_name)s = chv.%(tbl_name)s AND dv.%(ref_tbl_name)s IS NOT DISTINCT FROM chv.%(ref_tbl_name)s);
 END
 $$
 LANGUAGE plpgsql;
@@ -615,7 +636,13 @@ BEGIN
     CREATE TEMP TABLE %(tbl)s_diff_data
     AS SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
     FROM %(tbl)s_resolved_data(from_version) inner1
-    FULL OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s = inner2.%(reftbl_name)s);
+    LEFT OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s IS NOT DISTINCT FROM  inner2.%(reftbl_name)s)
+    
+    UNION
+    
+    SELECT inner1.%(tbl_name)s AS old_%(tbl_name)s, inner1.%(reftbl_name)s AS old_%(reftbl_name)s, inner1.flag AS old_flag, inner2.%(tbl_name)s AS new_%(tbl_name)s, inner2.%(reftbl_name)s AS new_%(reftbl_name)s, inner2.flag AS new_flag
+    FROM %(tbl)s_resolved_data(from_version) inner1
+    RIGHT OUTER JOIN resolved_changeset inner2 ON (inner1.%(tbl_name)s = inner2.%(tbl_name)s AND inner1.%(reftbl_name)s IS NOT DISTINCT FROM  inner2.%(reftbl_name)s);
 
     DROP TABLE resolved_changeset;
     DROP TABLE inner_template_data_changeset;
@@ -647,7 +674,7 @@ DECLARE
 BEGIN
     SELECT COUNT(*) INTO cnt
     FROM %(tbl)s_diff_data
-    WHERE (new_%(tbl_name)s = obj_uid OR old_%(tbl_name)s = obj_uid) AND (old_%(ref_tbl_name)s IS NULL OR new_%(ref_tbl_name)s IS NULL);
+    WHERE (new_%(tbl_name)s = obj_uid OR old_%(tbl_name)s = obj_uid) AND (old_%(ref_tbl_name)s IS DISTINCT FROM new_%(ref_tbl_name)s OR old_flag IS DISTINCT FROM new_flag);
     IF cnt > 0 THEN
         RETURN false;
     ELSE
@@ -713,12 +740,14 @@ LANGUAGE plpgsql;
 
     # generate sql for all tables
     def gen_multiRef(self,filename):
+        """This function controls generation of inner tables for multi-value references and functions that maintain these tables.
+        """
         name_split = filename.rsplit('/', 1)
         self.tab_sql = open(name_split[0] + '/' + 'tab_' + name_split[1],'w')
         self.fn_sql = open(name_split[0] + '/' + 'fn_' + name_split[1],'w')
 
         # print this to add proc into genproc schema
-        self.tab_sql.write("SET search_path TO deska, production, history;\n")
+        self.tab_sql.write("SET search_path TO history, deska, production;\n")
         self.fn_sql.write("SET search_path TO genproc, deska, production, history;\n")
 
         record = self.plpy.execute(self.tbl_name_template_str)
@@ -746,9 +775,17 @@ LANGUAGE plpgsql;
         self.fn_sql.close()
 
     def gen_inner_table_references(self, table, reftable, attname):
+        """For given table generates inner table for each identifier_set attribute to provide m:n mapping.
+        Generated inner table has name with prefix "inner_" followed by name of table, "_" and tables identifier_set attribute.
+        Inner tables have attributes, att1 with name of table tab1, att2 with name of table tab2 that is referenced from identifier_set attribute of tab1.
+        Attribute att1 references tab1(uid) and attribute att2 references tab2(uid)
+        """
         return self.add_inner_table_str % {'tbl': table, 'ref_tbl': reftable, 'ref_col': attname}
 
     def check_multiRef_definition(self, table, reftable, attname, refattname):
+        """This function checks validity of given multi-value reference.
+        This function raises exception in case the multi-value reference is not defined properly.
+        """
         #attnames, refattnames should have only one item
         if len(attname.split(',')) > 1 or len(refattname.split(',')) > 1:
             raise ValueError, 'multiRef relation is badly defined, too many columns in relation'
@@ -757,17 +794,19 @@ LANGUAGE plpgsql;
         if refattname != 'uid':
             raise ValueError, 'multiRef relation is badly defined, referenced column should be uid column'
 
-    def gen_inner_table_history(self, table):
-        return table.gen_hist()
-
     def gen_tables(self, table, reftable, attname):
+        """This function coordinates generation of create inner table statement and create history table for inner table statement.
+        """
         self.tab_sql.write(self.gen_inner_table_references(table, reftable, attname))
-        #inner table name is inner_tablename_idsetattname, where idset attname is name of column that references to set of identifiers
+        #inner table name is inner_tablename_idsetattname, where idset attname is name of column that refers to set of identifiers
         join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl': table, 'ref_col': attname}
         self.tab_sql.write(self.hist_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
 
 
     def gen_functions(self, table, reftable, attname, refattname):
+        """This function coordinates generation of functions for data manipulation of given inner table.
+        Validation of corectly defined templating of given multi-value refence is a part of this function.
+        """
         join_tab = "inner_%(tbl)s_%(ref_col)s" % {'tbl' : table, 'ref_col' : attname}
         self.fn_sql.write(self.set_string % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})
         self.fn_sql.write(self.add_item_str % {'tbl': join_tab, 'tbl_name': table, 'ref_tbl_name': reftable, 'ref_col': attname})

@@ -195,22 +195,26 @@ for x in fd_networks.itervalues():
     print "end\n"
 print
 print """# artificial: the boxmodels and form factors
-formfactor rackmount
-end
+create formfactor rackmount
 
+create modelbox 1u
 modelbox 1u
   formfactor rackmount
 end
 
+create modelbox 2u
 modelbox 2u
   formfactor rackmount
   height 2
 end
 
+create modelbox 3u
 modelbox 3u
   formfactor rackmount
   height 3
 end
+
+create modelbox 4u
 modelbox 4u
   formfactor rackmount
   height 4
@@ -219,6 +223,7 @@ end
 """
 
 print """# Generic racks
+create modelbox generic-rack
 modelbox generic-rack
   internal_height 47
   internal_width 1
@@ -241,7 +246,7 @@ for (uid, x) in fd_hardware.iteritems():
         fullname = "_-%s" % x.typeDesc
     else:
         fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
-    fullname = fullname.replace(" ", "-")
+    fullname = fullname.replace(" ", "-").replace("(", "").replace(")", "")
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
     #print "create modelhardware %s" % fullname
@@ -338,6 +343,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
+    print "create host %s" % myname
     print "create box %s" % myname
     print "box %s" % myname
     if x.rackNo is not None:

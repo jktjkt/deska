@@ -24,8 +24,6 @@ function generate() {
 }
 
 function verify-same() {
-    rm -rf ${DESKA_CFGGEN_GIT_SECOND}
-    git clone ${DESKA_CFGGEN_GIT_REPO} ${DESKA_CFGGEN_GIT_SECOND} || die "Cannot clone"
     diff -Naurt -x .git ${MY_WC} ${DESKA_CFGGEN_GIT_SECOND} || die "There are some differences"
 }
 
