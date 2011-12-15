@@ -262,7 +262,7 @@ def do_host(r):
     # FIXME: Redmine #411, there's a weird change in here
     r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
     r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
-    r.cvoid(abortChangeset())
+    r.cvoid(abortCurrentChangeset())
 
     # Add some values back
     # FIXME: Redmine #411, the change in the attribute values takes no effect
