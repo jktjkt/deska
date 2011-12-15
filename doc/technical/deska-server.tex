@@ -15,15 +15,16 @@ Deska-server is python application, that runs for every user, listen for the com
 Main work is to load json data, call corresponding stored function, and return the answer to deska-cli.
 There are some special functions (freezeChangeset, showConfigDiff etc.) that are not implemented by deska db, but the server itselfs.
 
-\subsection{Deska server}
+\section{Deska server}
 FIXME: about deska server configuration generators & some tricks (maybe) in deska-server to explain.
 
-\subsection{Deska database}
+\section{Deska database}
 Deska database is devided into several parts. Every part is in special db schema. 
 
+There are schemas only for tables (versioning, production, history), and schemas only for functions, data types etc. (deska, genproc, json).
 User defined schema, that contains user modules/tables with all indexes and triggers, is contained in schema production. After each commit, into these tables are copied resolved data, all user defined triggers and checks are run, so that contained data are checked as it was specified in modules definition.
 
-In history schema are stored all tables used for history tracking, work in temporary changeset. Every kind (module i one kind, or two - if it is templetized) has one table here, with columns copied from production table and some more added for history tracking.
+In history schema are stored all tables used for history tracking, work in temporary changeset. Every kind (module i one kind, or two - if it is templetized) has one table here, with columns copied from production table and some more added for history tracking. Here should be placed all tables created by sql generator.
 
 For every kind there is bunch of stored procedures, which are used for manipulation with data in history tables. For example for kind vendor, there are functions like vendor\_add, vendor\_set\_(all attributes), vendor\_del ….
 These functions, created by sql generator are stored in genproc schema.
