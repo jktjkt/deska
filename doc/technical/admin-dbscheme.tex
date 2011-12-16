@@ -39,7 +39,7 @@ CREATE SEQUENCE vendor_uid START 1;
 
 --vendor is name of this kind
 CREATE TABLE vendor (
-    -- nextval can be used - will aplly to history table
+    -- this column is required in all plugins
     uid bigint DEFAULT nextval('vendor_uid')
         CONSTRAINT vendor_pk PRIMARY KEY,
     -- name column is required in all plugins
@@ -76,7 +76,6 @@ CREATE TABLE hardware (
     -- this column is required in all plugins
     name identifier
         CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
-    -- TODO - better use uid
     vendor bigint 
         CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 );
@@ -103,7 +102,6 @@ CREATE TABLE hardware (
     -- this column is required in all plugins
     name identifier
         CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
-    -- TODO - better use uid
     vendor bigint 
         CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
     template_hardware bigint
@@ -165,8 +163,6 @@ CREATE TABLE host (
     name identifier
         CONSTRAINT host_name_unique UNIQUE NOT NULL,
     -- hardwere where it runs
-    -- TODO-virtual host
-    -- TODO - better use uid
     hardware bigint
         CONSTRAINT rconta_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 );
