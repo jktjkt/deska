@@ -46,7 +46,7 @@ CREATE TABLE vendor (
     name identifier
         CONSTRAINT vendor_name_unique UNIQUE NOT NULL
 );
-\end{minted}{sql}
+\end{minted}
 
 It is not recommended to use module names with prefix "inner\_", module names with suffix "\_template" that has deska for internal use.
 The maximum length of kind name and attribute name is 20 together.
@@ -79,7 +79,7 @@ CREATE TABLE hardware (
     vendor bigint 
         CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 );
-\end{minted}{sql}
+\end{minted}
 
 \subsubsection{Template}
 Template relation needs adding special column to the module. This column have to:
@@ -106,7 +106,7 @@ CREATE TABLE hardware (
         CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
     template_hardware bigint
 );
-\end{minted}{sql}
+\end{minted}
 
 
 \subsubsection{Multi-value Reference}
@@ -133,7 +133,7 @@ CREATE TABLE host (
     service identifier_set
         CONSTRAINT rset_host_fk_service REFERENCES service(uid) DEFERRABLE,
 );
-\end{minted}{sql}
+\end{minted}
 
 \subsubsection{Composition}
 Composition relation needs adding the foreign key constrain. This constraint have to:
@@ -166,6 +166,6 @@ CREATE TABLE host (
     hardware bigint
         CONSTRAINT rconta_host_fk_hardware REFERENCES hardware(uid) DEFERRABLE,
 );
-\end{minted}{sql}
+\end{minted}
 
 \end{document}
