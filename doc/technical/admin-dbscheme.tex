@@ -48,7 +48,7 @@ CREATE TABLE vendor (
 );
 \end{minted}{sql}
 
-It is not recommended to use module names with prefix "inner_", module names with suffix "_template" that has deska for internal use.
+It is not recommended to use module names with prefix "inner\_", module names with suffix "\_template" that has deska for internal use.
 The maximum length of kind name and attribute name is 20 together.
 Foreign keys have to have set ON DELETE NO ACTION, it's the default option.
 
@@ -85,8 +85,8 @@ CREATE TABLE hardware (
 \subsubsection{Template}
 Template relation needs adding special column to the module. This column have to:
 \begin{itemize}
-    \item have name with {\tt template_} prefix
-    \item be the only one column in module with name with {\tt template_} prefix
+    \item have name with {\tt template\_} prefix
+    \item be the only one column in module with name with {\tt template\_} prefix
     \item be of bigint type
 \end{itemize}
 You can template only tables that have at least one column which value could be inherited from its template. Columns that are a part of composition relation, template relation or embed into relation could not inherit theirs values.
@@ -115,7 +115,7 @@ CREATE TABLE hardware (
 Multi-value reference relation needs adding the foreign key constrain. This constraint have to:
 \begin{itemize}
     \item refer to module that will be installed before this one
-    \item have referring column of {\tt identifier_set} type
+    \item have referring column of {\tt identifier\_set} type
     \item have name with {\tt rset\_} prefix
     \item refer to uid column of the referenced table
 \end{itemize}
