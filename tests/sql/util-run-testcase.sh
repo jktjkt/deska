@@ -41,31 +41,16 @@ fi
 
 DESKA_SERVER_SIDE_DESTINATION="${DESKA_GENERATED_FILES}/target"
 
-if [[ -z ${DESKA_SKIP_DB_INIT} ]]; then
-    DESKA_DB_STATE_FILE=./.db_initialized
 
-    if [[ -n "${DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC}" ]] && [[ -f $DESKA_DB_STATE_FILE ]]; then
-        # Use the fast way of doing things
-        pushd "${DESKA_SOURCES}/install"
-        ./deska_install.sh restore --all -u $DESKA_SU -d $DESKA_DB || die "Running deska_install"
-        popd
-    else
-        # Use the slower way which is completely deterministic
+# Always remove stuff, so that a possible error in previous test does not leave
+# stuff broken
+./util-delete-database.sh 2>/dev/null
 
-        # Always remove stuff, so that a possible error in previous test does not leave
-        # stuff broken
-        ./util-delete-database.sh 2>/dev/null
+./util-create-database.sh || die "Preparing the DB environment"
 
-        ./util-create-database.sh || die "Preparing the DB environment"
-
-        pushd "${DESKA_SOURCES}/install"
-        ./deska-deploy-database.sh -U "${DESKA_SU}" -d "${DESKA_DB}" -t "${DESKA_SERVER_SIDE_DESTINATION}" || die "Running deploy-database"
-        popd
-        touch $DESKA_DB_STATE_FILE
-    fi
-else
-    echo "Skipping the DB init altogether"
-fi
+pushd "${DESKA_SOURCES}/install"
+./deska-deploy-database.sh -U "${DESKA_SU}" -d "${DESKA_DB}" -t "${DESKA_SERVER_SIDE_DESTINATION}" || die "Running deploy-database"
+popd
 
 if [[ -n "${DESKA_WITH_GIT}" ]]; then
     . ./util-manage-git.sh || die "git stuff"
