@@ -3,6 +3,7 @@ import codecs
 import socket
 import struct
 import datetime
+import sys
 
 fd_vendors = {}
 fd_networks = {}
@@ -81,6 +82,41 @@ def preprocess_sql(name):
         if line.endswith(")\r\n"):
             line = line[:-3]
         yield line
+
+import ply.lex as lex
+
+tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
+          'NULL', 'CRLF')
+
+t_LEADER = r"INSERT (.*) VALUES "
+def t_STR(t):
+    r"(N')((''|[^'])*)(')"
+    t.value = t.lexer.lexmatch.group(3)
+    return t
+t_COMMA = ","
+t_LPAREN = "\("
+t_RPAREN = "\)"
+t_NUM = r"\d+"
+t_HEX = r"0x([0-9A-Fa-f])+"
+t_NULL = "NULL"
+t_CRLF = r"\r\n"
+
+t_ignore = " "
+
+def t_error(t):
+    print "Invalid input: %s" % t
+    sys.exit(1)
+
+lexer = lex.lex()
+data = open("dbo.Networks.Table.sql", "rb").read()
+lexer.input(data)
+while True:
+    tok = lexer.token()
+    if not tok:
+        break
+    print tok
+
+sys.exit(0)
 
 for (uid, name) in getfile("Vendors"):
     o = Struct()
