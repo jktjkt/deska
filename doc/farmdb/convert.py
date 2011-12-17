@@ -4,6 +4,7 @@ import socket
 import struct
 import datetime
 import sys
+import ply.lex as lex
 
 fd_vendors = {}
 fd_networks = {}
@@ -83,39 +84,45 @@ def preprocess_sql(name):
             line = line[:-3]
         yield line
 
-import ply.lex as lex
 
-tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
-          'NULL', 'CRLF')
+class DboLexer:
+    tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
+              'NULL', 'CRLF')
 
-t_LEADER = r"INSERT (.*) VALUES "
-def t_STR(t):
-    r"(N')((''|[^'])*)(')"
-    t.value = t.lexer.lexmatch.group(3)
-    return t
-t_COMMA = ","
-t_LPAREN = "\("
-t_RPAREN = "\)"
-t_NUM = r"\d+"
-t_HEX = r"0x([0-9A-Fa-f])+"
-t_NULL = "NULL"
-t_CRLF = r"\r\n"
+    t_LEADER = r"INSERT (.*) VALUES "
+    def t_STR(self, t):
+        r"(N')((''|[^'])*)(')"
+        t.value = t.lexer.lexmatch.group(3)
+        return t
+    t_COMMA = ","
+    t_LPAREN = "\("
+    t_RPAREN = "\)"
+    t_NUM = r"\d+"
+    t_HEX = r"0x([0-9A-Fa-f])+"
+    t_NULL = "NULL"
+    t_CRLF = r"\r\n"
 
-t_ignore = " "
+    t_ignore = " "
 
-def t_error(t):
-    print "Invalid input: %s" % t
-    sys.exit(1)
+    def t_error(self, t):
+        print "Invalid input: %s" % t
+        sys.exit(1)
 
-lexer = lex.lex()
+    def build(self, **kwargs):
+        self.lexer = lex.lex(module=self, **kwargs)
+
+    def doit(self, data):
+        self.lexer.input(data)
+        while True:
+            tok = self.lexer.token()
+            if not tok:
+                break
+            print tok
+
 data = open("dbo.Networks.Table.sql", "rb").read()
-lexer.input(data)
-while True:
-    tok = lexer.token()
-    if not tok:
-        break
-    print tok
-
+x = DboLexer()
+x.build()
+x.doit(data)
 sys.exit(0)
 
 for (uid, name) in getfile("Vendors"):
