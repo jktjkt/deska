@@ -99,7 +99,10 @@ class DboLexer:
     t_RPAREN = "\)"
     t_NUM = r"\d+"
     t_HEX = r"0x([0-9A-Fa-f])+"
-    t_NULL = "NULL"
+    def t_NULL(self, t):
+        "NULL"
+        t.value = None
+        return t
     t_CRLF = r"\r\n"
 
     t_ignore = " "
