@@ -21,22 +21,6 @@ class Struct(object):
     def __repr__(self):
         return "{%s}" % ", ".join("%s: %s" % (attr, self.__getattribute__(attr)) for attr in dir(self) if not attr.startswith("__"))
 
-def unescape(x):
-    if isinstance(x, str):
-        x = x.lstrip()
-        if x.startswith("N'") and x.endswith("'"):
-            return x[2:][:-1]
-        elif x == "NULL":
-            return None
-        elif x == "":
-            return None
-        else:
-            return x
-    elif isinstance(x, (list, tuple)):
-        return [unescape(item) for item in x]
-    else:
-        return x
-
 def dateify(x):
     prefix = "CAST(0x"
     if x is None:
@@ -65,25 +49,6 @@ def ipify(ip):
         # This is extremely unportable, as we rely on stuff like "host byte
         # order". We don't care. At all.
         return socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
-
-def getfile(name):
-    #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
-    reader = csv.reader(preprocess_sql(name))
-    for row in reader:
-        yield unescape(row)
-
-def preprocess_sql(name):
-    f = open("dbo.%s.Table.sql" % name, "rb")
-    for line in f:
-        if line.find("VALUES ") == -1:
-            continue
-        (garbage, line) = line.split("VALUES ")
-        if line.startswith("("):
-            line = line[1:]
-        if line.endswith(")\r\n"):
-            line = line[:-3]
-        yield line
-
 
 class DboLexer:
     tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
@@ -147,15 +112,11 @@ class DboLexer:
                 else:
                     raise RuntimeError, "Unexpected token %s" % repr(tok)
 
-
     def __init__(self):
         self.build()
 
-data = open("dbo.Networks.Table.sql", "rb").read()
-x = DboLexer()
-for line in x.parse(data):
-    print line
-sys.exit(0)
+def getfile(name):
+    return (line for line in DboLexer().parse(open("dbo.%s.Table.sql" % name, "rb").read()))
 
 for (uid, name) in getfile("Vendors"):
     o = Struct()
