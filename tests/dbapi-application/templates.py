@@ -293,16 +293,13 @@ def do_host(r):
     expectedRaw = [
         {"command": "setAttribute", "kindName": "host_template", "objectName": "t2", "attributeName": "service", "oldAttributeData": ["b"], "attributeData": []},
     ]
-    # FIXME: fails, Redmine#413 (result still contains "b")
-    #helper_check_host(r, hdata)
-    # FIXME: fails, Redmine #413 (attributeData is reported as null, but expecting an empty list)
-    #r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
-    #r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifferenceInTemporaryChangeset(changeset)), expectedResolved)
+    r.assertEqual(r.c(dataDifferenceInTemporaryChangeset(changeset)), expectedRaw)
     rev = r.c(commitChangeset("."))
-    # FIXME: fails, Redmine#413 (see above)
-    #helper_check_host(r, hdata)
-    #r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
-    #r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
+    helper_check_host(r, hdata)
+    r.assertEqual(r.c(resolvedDataDifference(revisionIncrement(rev, -1), rev)), expectedResolved)
+    r.assertEqual(r.c(dataDifference(revisionIncrement(rev, -1), rev)), expectedRaw)
 
 
 def do_interface(r):

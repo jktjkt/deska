@@ -1,0 +1,115 @@
+Schuze Deska, 2011-12-16 FZU
+----------------------------
+
+Pritomni: vsichni, Tomas pozde
+
+Diskuse:
+--------
+
+- Martina: REFERS_TO s multivalue references je ve skutecnosti v ramci DB
+REFERS_TO_SET, prefix pro constrainty je rset_
+    - Honza upravi dokumentaci
+
+- latex ma "prikazy pro typografii", proc nejsou pouzity?
+- cross-referencing
+- preklepy
+- dia: sjednotit fonty
+    - Lukas se podiva, posoudi
+- pokud nekdo na nejake casti pracoval pul roku, mela by tomu odpovidat
+dokumentace svym rozsahem
+    - odkazy na resene problemy, bugy, komplikace,...
+    - proc je to udelano takhle...
+    - v minulosti udelana reseni, ktera nefungovala (spirit, diffovani,...) --
+    popsat, ze to bylo pracne
+
+- CLI: proc DbInteraction dela cache, kdyz to stejne cachuje i CachingJsobApi?
+    - Tomas napise, ze cachovani schematu je kvuli jine ocekavane forme dat, ne
+    kvuli vykonu
+- CliCommand != Command (8.3, "UserInterface")
+    - Tomas udela
+- extra sekce pro kazdy Command je vyrazne overkill
+    - Tomas udela
+- it's != its
+- prepsat cast o rebase (+ nejake povidani o fungovani DB, prolinkovat,...)
+    - Tomas udela
+- konverze slotu applyXXX na applyBatchedChanges -- kolik prace?
+
+- db: termin "module" bych radeji nezavadel
+    - v Martinine casti o generatorech tomu rikat "tabulka od uzivatele"
+    - v Lukasove casti idealne zrusit termin "modul"
+
+- nerozumim cast o rolich
+    - Lukas doplni
+- psycopg2 & exceptions: dokumentace rika, ze z psycopg2 vyjimky dostanu
+sqlstate jako e.pgcode (od verze 2.0.7)
+    - Lukas doplni
+- "server part of deska" - "deska server" -> prejmenovat
+    - Honza udela
+- filtry: snesl bych to lepe vysvetlene -- co to vsechno dela,...
+    - proc to tak funguje, proc to neni parametrizovany pohled,...
+    - Lukas
+- neni napsano, jak funguje JSON konverze a spousta dalsich veci
+    - Lukas
+- "jak funguje verzovani"
+    - cast o generatorech, to neni uplne intuitivni misto
+    - Martina zvazi, jak to udelat
+- proc se sloupecek s changesetem jmenuje "version"?
+    - protoze bagr, psal Lukas
+- dest_bit znamena "destroy"
+- zdokumentovat, proc si psycopg2/postgre/pgpython pletou praznde pole a string "{}"
+    - Lukas
+- UIDy v tabulkach nejsou volitelne, musi tam byt, aby Deska fungovala
+    - Martina napise
+- Lukas: dalsi indexy v tabulkach nejsou potreba, neprinaseji uzitek
+    - nebo prinasi?
+    - Martina: napise do dokumentace pro spravce DB, ze se nemaji pouzit indexy
+- zapsat vysledky mereni, testu a skalovatelnosti
+    - Lukas zapise vysledky perf testu,...
+    - nejaky text o tom, ze kdyby byly filtry udelane pouze na aktualni
+    changeset, slo by to pres pohledy a bylo by to rychlejsi, a ze je to krasny
+    namet na zlepseni
+
+Tomas: "prace na uprave CLI pro dvojice (global, local) zabere max jedno
+odpoledne"
+
+Lukas: Martina by mela do generated.py pridat, ze delimiter je sipka ("->")
+- CLI to umet nebude, protoze proste nebude (spirit)
+
+Lukas: nedaly by se DBAPI testy pouzit i pro testovani CLI?
+    - Honza rozmysli, event. udela
+
+Otazka, zda testy neudelat tak, ze se jednou za beh normalne naisntaluje DB, a
+pro zbytek testu se obnovi na SQL urovni.
+    - Honza se podiva
+
+
+Co chybi v dokumentaci:
+-----------------------
+
+Tahle cast obsahuje pouze zasadni velke veci, ktere chybeji, ne drobne
+pripominky zapsane vyse. Popisuje pouze dokumentaci, nic jineho.
+
+Lukas:
+- zbyva dodelat par prikladu, popsat slozite veci,...
+- pretypovani,...
+- hotovo bude v pondeli vecer, v nedeli vecer
+
+Martina:
+- popsat, jak funguje verzovani v DB
+- prohledavani katalogu
+- ...
+
+Tomas:
+- popsat parser
+- uzivatelska dokumentace
+- rovnez pondeli vecer
+
+Honza:
+- doc pro generatory konfigurace
+- doc o unit testech,...
+- pochlubit se vsema great successame (tm)
+
+Pristi schuzka:
+---------------
+
+Na MS ve ctvrtek.

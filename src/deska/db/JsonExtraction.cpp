@@ -32,6 +32,16 @@ using json_spirit::Pair;
 namespace Deska {
 namespace Db {
 
+template<>
+inline json_spirit::Value JsonConversionTraits<int>::toJson(const int &value) {
+    return value;
+}
+
+template<>
+inline json_spirit::Value JsonConversionTraits<double>::toJson(const double &value) {
+    return value;
+}
+
 /** @short Variant visitor convert a Deska::Db::Value to json_spirit::Value */
 struct DeskaValueToJsonValue: public boost::static_visitor<json_spirit::Value>
 {
@@ -64,16 +74,6 @@ template DeskaValueToJsonValue::result_type DeskaValueToJsonValue::operator()(co
 template<>
 json_spirit::Value JsonConversionTraits<Value>::toJson(const Value &value) {
     return value ? boost::apply_visitor(DeskaValueToJsonValue(), *value) : json_spirit::Value();
-}
-
-template<>
-inline json_spirit::Value JsonConversionTraits<int>::toJson(const int &value) {
-    return value;
-}
-
-template<>
-inline json_spirit::Value JsonConversionTraits<double>::toJson(const double &value) {
-    return value;
 }
 
 std::string jsonValueTypeToString(const json_spirit::Value_type type)

@@ -101,6 +101,7 @@ def fcall(fname,*args):
 	'''
 	try:
 		with xact():
+			Postgres.NOTICE("Running function: {0}({1})".format(fname,args))
 			func = proc(fname)
 			return func(*args)
 		return 1

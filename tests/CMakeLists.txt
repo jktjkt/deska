@@ -113,14 +113,6 @@ deska_test(json_caching_api)
 
 if(RUN_SQL_TESTS)
     message(STATUS "Will run integration tests upon each `make test` run.")
-    if( DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC)
-        message(STATUS "The database re-initialization will not be repeated")
-        # careful here, got to use *another* variable name
-        set(DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE 1)
-    else()
-        message(STATUS "Will re-initialize the database before each test")
-        unset(DESKA_SQL_TEST_FAST_BUT_NONDETERMINISTIC_CMAKE)
-    endif()
 
     # A dummy test at first, just for the DB init, so that it doesn't affect
     # test timings, and to make sure that DB setup works
