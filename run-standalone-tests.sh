@@ -25,6 +25,15 @@ for role in deska_user deska_admin; do
     psql -q -U postgres -c "CREATE ROLE ${role};"
 done
 
+if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
+    # do not pollute the source tree with generated files
+    export DESKA_GENERATED_FILES=`mktemp -d`
+    trap "rm -rf $DESKA_GENERATED_FILES" EXIT
+fi
+
+export DESKA_TEST_VANILLA_DB="${DESKA_GENERATED_FILES}/deska-dump-vanilla"
+mkdir "${DESKA_TEST_VANILLA_DB}"
+
 ctest --output-on-failure $@
 RES=$?
 
