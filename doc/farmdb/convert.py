@@ -48,6 +48,8 @@ class DboLexer:
         r"(N')((''|[^'])*)(')"
         # yuck, that replace is evil
         t.value = t.lexer.lexmatch.group(3).replace("''", "'")
+        # FIXME: this is a crude hack for the CLI
+        t.value = t.value.replace("\"", "_").replace("\n", "_")
         return t
     def t_CAST_DATETIME(self, t):
         r"(CAST\(0x)(?P<datetime>[^\)]+)( DateTime\))"
