@@ -32,6 +32,7 @@ if [[ -z "${DESKA_GENERATED_FILES}" ]]; then
 fi
 
 export DESKA_TEST_VANILLA_DB="${DESKA_GENERATED_FILES}/deska-dump-vanilla"
+mkdir "${DESKA_TEST_VANILLA_DB}"
 
 ctest --output-on-failure $@
 RES=$?

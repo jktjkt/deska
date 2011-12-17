@@ -22,6 +22,10 @@ while [[ -n "${1}" ]]; do
     esac
 done
 
+if [[ -z "${DESKA_SCHEME}" ]]; then
+    export DESKA_SCHEME=demo
+fi
+
 TESTMODE="${1}"
 TESTCASE="${2}"
 
@@ -33,19 +37,30 @@ if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
-DESKA_SERVER_SIDE_DESTINATION="${DESKA_GENERATED_FILES}/target"
+DESKA_SERVER_SIDE_DESTINATION="${DESKA_GENERATED_FILES}/target-${DESKA_SCHEME}"
 
-if [[ -f "${DESKA_TEST_VANILLA_DB}" ]]; then
+DESKA_SQL_DB_TO_RESTORE="${DESKA_TEST_VANILLA_DB}/${DESKA_SCHEME}"
+
+if [[ -f "${DESKA_SQL_DB_TO_RESTORE}" ]]; then
     # Restore the DB quickly
-    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --clean --exit-on-error "${DESKA_TEST_VANILLA_DB}" \
+    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --clean --exit-on-error "${DESKA_SQL_DB_TO_RESTORE}" \
         || die "Restoring the DB"
 else
-    psql -q -U $DESKA_SU -c "CREATE USER ${DESKA_USER};" || die "Create user"
-    psql -q -U $DESKA_SU -c "CREATE USER ${DESKA_ADMIN};" || die "Create admin"
+    # The users might be already there, so we do not want to fail in that case
+    psql -q -U $DESKA_SU -c "CREATE USER ${DESKA_USER};"
+    psql -q -U $DESKA_SU -c "CREATE USER ${DESKA_ADMIN};"
     for role in deska_admin deska_user; do
         psql -q -U $DESKA_SU -c "GRANT ${role} TO ${DESKA_ADMIN};" || die "Grant ${role}"
     done
     psql -q -U $DESKA_SU -c "GRANT deska_user TO ${DESKA_USER};" || die "Grant ${role}"
+
+    # We might be asked to run in a different scheme, so let's make sure the DB is gone
+    psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};"
+    if [[ $? -ne 0 ]]; then
+        # Dropping the DB occasionally fails on EL5, so let's try it multiple times
+        sleep 5
+        psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};" || die "Drop database"
+    fi
 
     if [[ -z ${DESKA_TABLESPACE} ]]; then
         TABLESPACE=""
@@ -64,7 +79,7 @@ else
     popd
 
     # Now take a DB backup for the following executions
-    pg_dump -U "${DESKA_SU}" -f "${DESKA_TEST_VANILLA_DB}" \
+    pg_dump -U "${DESKA_SU}" -f "${DESKA_SQL_DB_TO_RESTORE}" \
         --format=custom --oids "${DESKA_DB}" > /dev/null \
         || die "Cannot take a DB backup for further tests"
 fi
