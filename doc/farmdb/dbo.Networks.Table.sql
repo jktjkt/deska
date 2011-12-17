@@ -7,5 +7,9 @@ INSERT [dbo].[Networks] ([NetworkUID], [NetworkName], [NetworkIP], [NetworkVLAN]
 INSERT [dbo].[Networks] ([NetworkUID], [NetworkName], [NetworkIP], [NetworkVLAN], [NetworkMaskBits], [NetworkNote]) VALUES (N'9751c60e-c319-45c5-a6c1-22fa7e63c4cb', N'ss', 0x0A1ACD00, 205, 24, N'sit FZU pro ovladani prepinacu
 ')
 INSERT [dbo].[Networks] ([NetworkUID], [NetworkName], [NetworkIP], [NetworkVLAN], [NetworkMaskBits], [NetworkNote]) VALUES (N'cd3aa385-2c77-4521-97b4-fc49e6806e04', N'ss', 0x0A1ACD00, 205, 24, N'sit administrace switchu
+
+ignore:
+x-deska-quote: "
+x-deska-apos: ''
 ')
 INSERT [dbo].[Networks] ([NetworkUID], [NetworkName], [NetworkIP], [NetworkVLAN], [NetworkMaskBits], [NetworkNote]) VALUES (N'f90729d8-4b01-4a87-8b3c-3fbea8acaddf', N'IPv6 testing', 0x200107181E0117250000000000000000, 625, 64, NULL)
