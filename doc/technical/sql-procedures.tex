@@ -46,7 +46,7 @@ Lets see as the final sql statement can look like.
 \item{data\_function}: name of data function, with parameter version
 \item{JOIN\_part}: result of filter.getJoin: JOIN "data\_function" ON (join condition)
 \item{WHERE\_part}: result of filter.getWhere: WHERE kind.attribute = \$1 OR ...
-\end{itemize}
+\end{itemize}\$
 And here is some example:
 SELECT host.service\_templ,host.name,host.service,host.virtual\_hardware\_templ,
 host\_template\_get\_name(host.template\_host,\$1) AS host\_template,hardware\_get\_name(host.hardware,\$1) AS hardware,
@@ -56,6 +56,8 @@ LEFT OUTER JOIN hardware\_resolved\_data(\$1) AS hardware ON host.uid = hardware
 WHERE hardware.name != \$2 OR hardware.name IS NULL 
 
 \section{SQL generator}
+\label{sec:objects-and-relations}
+
 The Sql generator is generator of stored procedures and tables that ensure data manipulation for scheme described in modules.\\
 All generated stored procedures are created in schema genproc.
 
@@ -76,7 +78,7 @@ Parts of plpgsql generator run at the moment when all moduls defined by user are
     \item Template class - generate and create templates for tables that should have template
     \item Schema class, Table class - generate and create history tables for all tables (even for template tables that were generated)
     \item Schema class, Table class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
-    \item Multiref class - generate and create tables and stored procedures for {\tt identifier\_set}s, history and template table for {\tt identifier\_set}s.
+    \item Multiref class - generate and create tables and stored procedures for {\tt identifier\_set}s, history and template table for {\tt identifier_set}s.
     \item Composition class - generate and add triggers for contains/containable relation
 \end{enumerate}
 
