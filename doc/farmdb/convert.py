@@ -280,6 +280,9 @@ for (uid, x) in fd_hardware.iteritems():
     else:
         fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
     fullname = fullname.replace(" ", "-").replace("(", "").replace(")", "")
+    # does not work: fullname.strip("-")
+    if fullname.endswith("-"):
+        fullname = fullname[:-1]
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
     #print "create modelhardware %s" % fullname
