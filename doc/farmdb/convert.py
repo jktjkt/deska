@@ -21,17 +21,6 @@ class Struct(object):
     def __repr__(self):
         return "{%s}" % ", ".join("%s: %s" % (attr, self.__getattribute__(attr)) for attr in dir(self) if not attr.startswith("__"))
 
-def dateify(x):
-    prefix = "CAST(0x"
-    if x is None:
-        return None
-    elif x.startswith(prefix):
-        x = x[len(prefix):][:8]
-        offset = int(x, 16)
-        return datetime.date(1900, 1, 1) + datetime.timedelta(days=offset)
-    else:
-        raise ValueError, "Malformed date: %s" % x
-
 def ipify(ip):
     if ip is None:
         return ip
@@ -52,13 +41,20 @@ def ipify(ip):
 
 class DboLexer:
     tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
-              'NULL', 'CRLF')
+              'NULL', 'CRLF', 'CAST_DATETIME')
 
     t_LEADER = r"INSERT (.*) VALUES "
     def t_STR(self, t):
         r"(N')((''|[^'])*)(')"
         # yuck, that replace is evil
         t.value = t.lexer.lexmatch.group(3).replace("''", "'")
+        return t
+    def t_CAST_DATETIME(self, t):
+        r"(CAST\(0x)(?P<datetime>[^\)]+)( DateTime\))"
+        num_with_as = t.lexer.lexmatch.groupdict()["datetime"]
+        if num_with_as.endswith(" AS "):
+            num_with_as = num_with_as[:-4][:8]
+            t.value = datetime.date(1900, 1, 1) + datetime.timedelta(days=int(num_with_as, 16))
         return t
     t_COMMA = ","
     t_LPAREN = "\("
@@ -97,7 +93,8 @@ class DboLexer:
                 else:
                     raise RuntimeError, "Unexpected token %s" % repr(tok)
             elif state == S_FIELDS:
-                if tok.type == 'NUM' or tok.type == 'HEX' or tok.type == 'STR' or tok.type == 'NULL':
+                if tok.type == 'NUM' or tok.type == 'HEX' or tok.type == 'STR' or \
+                   tok.type == 'NULL' or tok.type == "CAST_DATETIME":
                     if want_comma:
                         raise RuntimeError, "wanted comma: %s" % repr(tok)
                     line.append(tok.value)
@@ -165,8 +162,6 @@ for row in getfile("Machines"):
         print row
         raise
     uid = uid.lower()
-    o.purchaseDate = dateify(o.purchaseDate)
-    o.warrantyEnd = dateify(o.warrantyEnd)
     if o.parentMachineUid is not None:
         o.parentMachineUid = o.parentMachineUid.lower()
     if o.hwUid is not None:
