@@ -59,7 +59,7 @@ DESKA_SQL_DB_TO_RESTORE="${DESKA_TEST_VANILLA_DB}/${DESKA_SCHEME}"
 
 if [[ -f "${DESKA_SQL_DB_TO_RESTORE}" ]]; then
     # Restore the DB quickly
-    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --exit-on-error "${DESKA_SQL_DB_TO_RESTORE}" \
+    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --single-transaction --exit-on-error "${DESKA_SQL_DB_TO_RESTORE}" \
         || die "Restoring the DB"
 else
     # The users might be already there, so we do not want to fail in that case
