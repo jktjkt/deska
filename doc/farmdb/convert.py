@@ -3,6 +3,8 @@ import codecs
 import socket
 import struct
 import datetime
+import sys
+import ply.lex as lex
 
 fd_vendors = {}
 fd_networks = {}
@@ -18,33 +20,6 @@ map_ifaces = {}
 class Struct(object):
     def __repr__(self):
         return "{%s}" % ", ".join("%s: %s" % (attr, self.__getattribute__(attr)) for attr in dir(self) if not attr.startswith("__"))
-
-def unescape(x):
-    if isinstance(x, str):
-        x = x.lstrip()
-        if x.startswith("N'") and x.endswith("'"):
-            return x[2:][:-1]
-        elif x == "NULL":
-            return None
-        elif x == "":
-            return None
-        else:
-            return x
-    elif isinstance(x, (list, tuple)):
-        return [unescape(item) for item in x]
-    else:
-        return x
-
-def dateify(x):
-    prefix = "CAST(0x"
-    if x is None:
-        return None
-    elif x.startswith(prefix):
-        x = x[len(prefix):][:8]
-        offset = int(x, 16)
-        return datetime.date(1900, 1, 1) + datetime.timedelta(days=offset)
-    else:
-        raise ValueError, "Malformed date: %s" % x
 
 def ipify(ip):
     if ip is None:
@@ -64,23 +39,83 @@ def ipify(ip):
         # order". We don't care. At all.
         return socket.inet_ntoa(struct.pack("I", socket.htonl(numeric_addr)))
 
-def getfile(name):
-    #reader = csv.reader(file("%s.sql.csv" % name, "rb"))
-    reader = csv.reader(preprocess_sql(name))
-    for row in reader:
-        yield unescape(row)
+class DboLexer:
+    tokens = ('STR', 'COMMA', 'LPAREN', 'RPAREN', 'LEADER', 'NUM', 'HEX',
+              'NULL', 'CRLF', 'CAST_DATETIME')
 
-def preprocess_sql(name):
-    f = codecs.open("dbo.%s.Table.sql" % name, "rb", "utf-16")
-    for line in f:
-        if line.find("VALUES ") == -1:
-            continue
-        (garbage, line) = line.split("VALUES ")
-        if line.startswith("("):
-            line = line[1:]
-        if line.endswith(")\r\n"):
-            line = line[:-3]
-        yield line
+    t_LEADER = r"INSERT (.*) VALUES "
+    def t_STR(self, t):
+        r"(N')((''|[^'])*)(')"
+        # yuck, that replace is evil
+        t.value = t.lexer.lexmatch.group(3).replace("''", "'")
+        # FIXME: this is a crude hack for the CLI
+        t.value = t.value.replace("\"", "_").replace("\n", "_")
+        return t
+    def t_CAST_DATETIME(self, t):
+        r"(CAST\(0x)(?P<datetime>[^\)]+)( DateTime\))"
+        num_with_as = t.lexer.lexmatch.groupdict()["datetime"]
+        if num_with_as.endswith(" AS "):
+            num_with_as = num_with_as[:-4][:8]
+            t.value = datetime.date(1900, 1, 1) + datetime.timedelta(days=int(num_with_as, 16))
+        return t
+    t_COMMA = ","
+    t_LPAREN = "\("
+    t_RPAREN = "\)"
+    t_NUM = r"\d+"
+    t_HEX = r"0x([0-9A-Fa-f])+"
+    def t_NULL(self, t):
+        "NULL"
+        t.value = None
+        return t
+    t_CRLF = r"\r\n"
+
+    t_ignore = " "
+
+    def t_error(self, t):
+        print "Invalid input: %s" % t
+        sys.exit(1)
+
+    def build(self, **kwargs):
+        self.lexer = lex.lex(module=self, **kwargs)
+
+    def parse(self, data):
+        self.lexer.input(data)
+        (S_BEGIN, S_FIELDS) = range(2)
+        state = S_BEGIN
+        line = []
+        want_comma = False
+        for tok in self.lexer:
+            if tok.type == 'CRLF':
+                continue
+            if state == S_BEGIN:
+                if tok.type == 'LPAREN':
+                    state = S_FIELDS
+                elif tok.type == 'LEADER':
+                    continue
+                else:
+                    raise RuntimeError, "Unexpected token %s" % repr(tok)
+            elif state == S_FIELDS:
+                if tok.type == 'NUM' or tok.type == 'HEX' or tok.type == 'STR' or \
+                   tok.type == 'NULL' or tok.type == "CAST_DATETIME":
+                    if want_comma:
+                        raise RuntimeError, "wanted comma: %s" % repr(tok)
+                    line.append(tok.value)
+                    want_comma = True
+                elif tok.type == 'COMMA':
+                    want_comma = False
+                elif tok.type == 'RPAREN':
+                    want_comma = False
+                    state = S_BEGIN
+                    yield line
+                    line = []
+                else:
+                    raise RuntimeError, "Unexpected token %s" % repr(tok)
+
+    def __init__(self):
+        self.build()
+
+def getfile(name):
+    return (line for line in DboLexer().parse(open("dbo.%s.Table.sql" % name, "rb").read()))
 
 for (uid, name) in getfile("Vendors"):
     o = Struct()
@@ -129,8 +164,6 @@ for row in getfile("Machines"):
         print row
         raise
     uid = uid.lower()
-    o.purchaseDate = dateify(o.purchaseDate)
-    o.warrantyEnd = dateify(o.warrantyEnd)
     if o.parentMachineUid is not None:
         o.parentMachineUid = o.parentMachineUid.lower()
     if o.hwUid is not None:
@@ -247,6 +280,9 @@ for (uid, x) in fd_hardware.iteritems():
     else:
         fullname = "%s-%s" % (fd_vendors[x.vendorUid].name, x.typeDesc)
     fullname = fullname.replace(" ", "-").replace("(", "").replace(")", "")
+    # does not work: fullname.strip("-")
+    if fullname.endswith("-"):
+        fullname = fullname[:-1]
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
     #print "create modelhardware %s" % fullname
