@@ -71,7 +71,7 @@ def getfile(name):
         yield unescape(row)
 
 def preprocess_sql(name):
-    f = codecs.open("dbo.%s.Table.sql" % name, "rb", "utf-16")
+    f = open("dbo.%s.Table.sql" % name, "rb")
     for line in f:
         if line.find("VALUES ") == -1:
             continue
