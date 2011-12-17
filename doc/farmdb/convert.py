@@ -111,18 +111,17 @@ class DboLexer:
     def build(self, **kwargs):
         self.lexer = lex.lex(module=self, **kwargs)
 
-    def doit(self, data):
+    def parse(self, data):
         self.lexer.input(data)
-        while True:
-            tok = self.lexer.token()
-            if not tok:
-                break
+        for tok in self.lexer:
             print tok
+
+    def __init__(self):
+        self.build()
 
 data = open("dbo.Networks.Table.sql", "rb").read()
 x = DboLexer()
-x.build()
-x.doit(data)
+x.parse(data)
 sys.exit(0)
 
 for (uid, name) in getfile("Vendors"):
