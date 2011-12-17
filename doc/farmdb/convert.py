@@ -117,15 +117,44 @@ class DboLexer:
 
     def parse(self, data):
         self.lexer.input(data)
+        (S_BEGIN, S_FIELDS) = range(2)
+        state = S_BEGIN
+        line = []
+        want_comma = False
         for tok in self.lexer:
-            print tok
+            if tok.type == 'CRLF':
+                continue
+            if state == S_BEGIN:
+                if tok.type == 'LPAREN':
+                    state = S_FIELDS
+                elif tok.type == 'LEADER':
+                    continue
+                else:
+                    raise RuntimeError, "Unexpected token %s" % repr(tok)
+            elif state == S_FIELDS:
+                if tok.type == 'NUM' or tok.type == 'HEX' or tok.type == 'STR' or tok.type == 'NULL':
+                    if want_comma:
+                        raise RuntimeError, "wanted comma: %s" % repr(tok)
+                    line.append(tok.value)
+                    want_comma = True
+                elif tok.type == 'COMMA':
+                    want_comma = False
+                elif tok.type == 'RPAREN':
+                    want_comma = False
+                    state = S_BEGIN
+                    yield line
+                    line = []
+                else:
+                    raise RuntimeError, "Unexpected token %s" % repr(tok)
+
 
     def __init__(self):
         self.build()
 
 data = open("dbo.Networks.Table.sql", "rb").read()
 x = DboLexer()
-x.parse(data)
+for line in x.parse(data):
+    print line
 sys.exit(0)
 
 for (uid, name) in getfile("Vendors"):
