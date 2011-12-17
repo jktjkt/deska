@@ -81,7 +81,7 @@ else
 
     # Now take a DB backup for the following executions
     pg_dump -U "${DESKA_SU}" -f "${DESKA_SQL_DB_TO_RESTORE}" \
-        --format=custom --oids "${DESKA_DB}" > /dev/null \
+        --format=custom "${DESKA_DB}" > /dev/null \
         || die "Cannot take a DB backup for further tests"
 fi
 
