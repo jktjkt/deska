@@ -92,7 +92,8 @@ class DboLexer:
     t_LEADER = r"INSERT (.*) VALUES "
     def t_STR(self, t):
         r"(N')((''|[^'])*)(')"
-        t.value = t.lexer.lexmatch.group(3)
+        # yuck, that replace is evil
+        t.value = t.lexer.lexmatch.group(3).replace("''", "'")
         return t
     t_COMMA = ","
     t_LPAREN = "\("
