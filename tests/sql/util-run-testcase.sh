@@ -37,13 +37,29 @@ if [[ -z $TESTCASE ]]; then
     die "No test case to run. Execution"
 fi
 
+# We might be asked to run in a different scheme, so let's make sure the DB is gone
+psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};"
+if [[ $? -ne 0 ]]; then
+    # Dropping the DB occasionally fails on EL5, so let's try it multiple times
+    sleep 5
+    psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};" || die "Drop database"
+fi
+
+if [[ -z ${DESKA_TABLESPACE} ]]; then
+    TABLESPACE=""
+else
+    TABLESPACE=" WITH TABLESPACE = ${DESKA_TABLESPACE}"
+fi
+psql -q -U $DESKA_SU -c "CREATE DATABASE ${DESKA_DB} ${TABLESPACE} OWNER deska_admin;" || die "Create database"
+
+
 DESKA_SERVER_SIDE_DESTINATION="${DESKA_GENERATED_FILES}/target-${DESKA_SCHEME}"
 
 DESKA_SQL_DB_TO_RESTORE="${DESKA_TEST_VANILLA_DB}/${DESKA_SCHEME}"
 
 if [[ -f "${DESKA_SQL_DB_TO_RESTORE}" ]]; then
     # Restore the DB quickly
-    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --clean --exit-on-error "${DESKA_SQL_DB_TO_RESTORE}" \
+    pg_restore -U "${DESKA_SU}" -d "${DESKA_DB}" --exit-on-error "${DESKA_SQL_DB_TO_RESTORE}" \
         || die "Restoring the DB"
 else
     # The users might be already there, so we do not want to fail in that case
@@ -53,21 +69,6 @@ else
         psql -q -U $DESKA_SU -c "GRANT ${role} TO ${DESKA_ADMIN};" || die "Grant ${role}"
     done
     psql -q -U $DESKA_SU -c "GRANT deska_user TO ${DESKA_USER};" || die "Grant ${role}"
-
-    # We might be asked to run in a different scheme, so let's make sure the DB is gone
-    psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};"
-    if [[ $? -ne 0 ]]; then
-        # Dropping the DB occasionally fails on EL5, so let's try it multiple times
-        sleep 5
-        psql -q -U $DESKA_SU -c "DROP DATABASE IF EXISTS ${DESKA_DB};" || die "Drop database"
-    fi
-
-    if [[ -z ${DESKA_TABLESPACE} ]]; then
-        TABLESPACE=""
-    else
-        TABLESPACE=" WITH TABLESPACE = ${DESKA_TABLESPACE}"
-    fi
-    psql -q -U $DESKA_SU -c "CREATE DATABASE ${DESKA_DB} ${TABLESPACE} OWNER deska_admin;" || die "Create database"
 
     PGTAP_FILE="${DESKA_SOURCES}/install/pgtap.sql"
     PGPYTHON_FILE="${DESKA_SOURCES}/install/pgpython.sql"
