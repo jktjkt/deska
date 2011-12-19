@@ -315,7 +315,53 @@ for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not N
     print "  direct_modelbox generic-rack"
     print "end"
 print
-print
+print """
+create formfactor idataplex-unit
+
+create modelbox idataplex-sleeve
+modelbox idataplex-chassis-2u
+    formfactor rackmount
+    accepts_inside [idataplex-unit]
+    width 1
+    height 2
+    depth 1
+    internal_width 1
+    internal_depth 1
+    internal_height 2
+    note "A sleeve for two iDataPlex units"
+end
+
+create modelbox idataplex-1u
+modelbox idataplex-1u
+    formfactor idataplex-unit
+    width 1
+    height 1
+    depth 1
+end
+
+create formfactor sgi-twin
+
+create modelbox sgi-twin-chassis
+modelbox sgi-twin-chassis
+    formfactor rackmount
+    accepts_inside [sgi-twin]
+    width 1
+    height 1
+    depth 1
+    internal_width 2
+    internal_depth 1
+    internal_height 1
+    note "A chassis for housing of two SGI twin nodes"
+end
+
+create modelbox sgi-twin
+modelbox sgi-twin
+    formfactor sgi-twin
+    width 1
+    height 1
+    depth 1
+end
+"""
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
@@ -373,7 +419,12 @@ for (uid, x) in fd_hardware.iteritems():
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
-        print "# FIXME: weird width '%s' -> no modelbox" % x.width
+        if fullname == "IBM-iDataPlex-dx340":
+            print "  modelbox idataplex-1u"
+        elif fullname == "SGI-Altix-XE340":
+            print "  modelbox sgi-twin"
+        else:
+            print "# FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
 print
 print
