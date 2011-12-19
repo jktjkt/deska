@@ -21,13 +21,13 @@ Every sql mudule needs:
 \begin{itemize}
     \item set search\_path to schemas production and deska
     \item have primary key column uid of bigint type
-    \item have unique, not null column name of identifier type
+    \item have unique, not null column name of identifier type; for embed tables should be unique pair uid and referencing column
     \item assign created sequence's nextval as the default value of the column uid
 \end{itemize}
 
 Following example shows the simplest deska module.
 
-\begin{minted}
+\begin{minted}{sql}
 --
 -- This is example of deska plug-in
 --
@@ -64,7 +64,7 @@ Refers to relation needs adding the foreign key constraint. This constraint have
     \item refer to uid column of the referenced table
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE hardware_uid START 1;
@@ -81,6 +81,35 @@ CREATE TABLE hardware (
 );
 \end{minted}
 
+\subsection{Embed into}
+Embed into relation needs adding the foreign key constraint. This constraint have to:
+\begin{itemize}
+    \item refer to module that will be installed before this one
+    \item have referring column of bigint type
+    \item have name with {\tt rembed\_} prefix
+    \item refer to uid column of the referenced table
+\end{itemize}
+The tables that are embed into another have to have unique pair of uid and referencing column, which refers to uid of table that is this embed into.
+\begin{minted}{sql}
+SET search_path TO production,deska;
+
+CREATE SEQUENCE interface_uid START 1;
+
+-- interfaces of host
+CREATE TABLE interface (
+    -- this column is required in all plugins
+    uid bigint DEFAULT nextval('interface_uid')
+        CONSTRAINT interface_pk PRIMARY KEY,
+    -- this column is required in all plugins
+    name identifier NOT NULL,
+    host bigint
+        CONSTRAINT rembed_interface_fk_host REFERENCES host(uid) DEFERRABLE,
+    CONSTRAINT interface_pk_namexhost UNIQUE (name,host)
+);
+\end{minted}
+
+
+
 \subsubsection{Template}
 Template relation needs adding special column to the module. This column have to:
 \begin{itemize}
@@ -90,7 +119,7 @@ Template relation needs adding special column to the module. This column have to
 \end{itemize}
 You can template only tables that have at least one column which value could be inherited from its template. Columns that are a part of composition relation, template relation or embed into relation could not inherit theirs values.
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE hardware_uid START 1;
@@ -118,7 +147,7 @@ Multi-value reference relation needs adding the foreign key constrain. This cons
     \item refer to uid column of the referenced table
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE host_uid START 1;
@@ -149,7 +178,7 @@ In addition to requirements on module's foreign key, it is needed that:
     \item the chain created by composition foreign keys of defined modules do not contain a cycle
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE host_uid START 1;
