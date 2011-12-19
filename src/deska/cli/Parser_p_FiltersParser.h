@@ -40,7 +40,7 @@ template <typename Iterator> class FilterExpressionsParser;
 *   This parser is connected to one error handler. KindErrorHandler for reporting an error while parsing
 *   name of nested kind.
 *
-*   @see KindErrorHandler
+*   @see KindFiltersErrorHandler
 */
 template <typename Iterator>
 class FiltersParser: public qi::grammar<Iterator, Db::Filter(), ascii::space_type>
