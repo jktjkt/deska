@@ -27,7 +27,7 @@ Every sql mudule needs:
 
 Following example shows the simplest deska module.
 
-\begin{minted}
+\begin{minted}{sql}
 --
 -- This is example of deska plug-in
 --
@@ -64,7 +64,7 @@ Refers to relation needs adding the foreign key constraint. This constraint have
     \item refer to uid column of the referenced table
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE hardware_uid START 1;
@@ -90,7 +90,7 @@ Template relation needs adding special column to the module. This column have to
 \end{itemize}
 You can template only tables that have at least one column which value could be inherited from its template. Columns that are a part of composition relation, template relation or embed into relation could not inherit theirs values.
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE hardware_uid START 1;
@@ -118,7 +118,7 @@ Multi-value reference relation needs adding the foreign key constrain. This cons
     \item refer to uid column of the referenced table
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE host_uid START 1;
@@ -149,7 +149,7 @@ In addition to requirements on module's foreign key, it is needed that:
     \item the chain created by composition foreign keys of defined modules do not contain a cycle
 \end{itemize}
 
-\begin{minted}
+\begin{minted}{sql}
 SET search_path TO production,deska;
 
 CREATE SEQUENCE host_uid START 1;

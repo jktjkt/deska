@@ -50,7 +50,7 @@ If this was only part of data from hardware\_history table then we could not rec
 In row with hardware h2, version 3 we can see that when object is modified, row with its actual data and id of current changeset is inserted into history table, after that the attribute which has to be modified is set.\\
 In words of stored procedures it could be written so:
 
-\begin{minted}
+\begin{minted}{sql}
 select startchangeset();
 select hardware_add('h1');
 select hardware_add('h2');
@@ -98,7 +98,7 @@ Important infomation for us are id and num. id is id of changeset from which the
 
 There are some examples of data retriving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.
 
-\begin{minted}
+\begin{minted}{sql}
 select * from hardware_data_version();
 select * from hardware_data_version(3);
 \end{minted}
@@ -154,7 +154,7 @@ If the table is in the {\tt refers to} relation with another, it has to have col
 Stored procedures for setting refuid columns expect as parameter some value of name attribute from referenced table. The given name is found in referenced table and proper {\tt uid} is set as value of refuid column instead of the name.
 
 Here is an example of setting refuid column. The result of these selects is in tables \ref{tab-refs-hardware} and  \ref{tab-refs-vendor}.
-\begin{minted}
+\begin{minted}{sql}
 select startchangeset();
 select vendor_add('v1');
 select vendor_add('v2');
@@ -207,7 +207,7 @@ As the template tables are templated by themself, object can inherit value of it
 To ensure right data retrieving in given version, template tables need to have history tables as well.\\
 The following example shows how we can work with the templated tables. The hardware table is templated by the hardware\_template table. The result of these selects is in tables \ref{tab-templ-hwhist} and \ref{tab-templ-hwtemplhist}.
 
-\begin{minted}
+\begin{minted}{sql}
 select startchangeset();
 select hardware_template_add('t1');
 select hardware_template_set_note('t1','note from template t1');
@@ -265,14 +265,14 @@ select commitchangeset('r4');
 \end{center}
 
 By calling the following commands we can get resolved data, it means with inherited values.
-\begin{minted}
+\begin{minted}{sql}
 --from version 'r3'
 select * from hardware_resolved_data(3);
 select * from hardware_template_resolved_data(3);
 \end{minted}{swql}
 Results are in \ref{tab-templ-hwres2} and \ref{tab-templ-hwtemplres2}.
 
-\begin{minted}
+\begin{minted}{sql}
 --in production are the newest resolved data
 select * from hardware;
 select * from hardware_template;
