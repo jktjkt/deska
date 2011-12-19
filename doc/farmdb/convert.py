@@ -440,6 +440,9 @@ def find_hostname_for_hw(uid, x):
             myname = "FIXME list of interfaces is useless"
     elif x.serial is not None:
         myname = x.serial
+    elif out_assigned_modelhw.has_key(x.hwUid):
+        # ...and hope for the best here...
+        myname = out_assigned_modelhw[x.hwUid]
     else:
         myname = "FIXME_unknown"
         print "# FIXME: unknown HW; this would lead to a name clash:"
