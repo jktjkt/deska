@@ -26,7 +26,7 @@ by this parser. All these signals are collected in a supporting component called
 is then connected with the {\tt UserInterface} through this component. {\tt UserInterface} is also directly 
 connected to the closest part of the application to the user, the {\tt UserInterfaceIO}. This class stands for a 
 translator between questions and responses from the {\tt UserInterface} and the end user. Besides these five 
-components, there is one more. The whole CLI needs some configuration values for it's work. For obtaining these values 
+components, there is one more. The whole CLI needs some configuration values for its work. For obtaining these values 
 is responsible {\tt Deska::Cli::CliConfig}.
 
 Now we can describe all components in more detail.
@@ -39,13 +39,13 @@ these structures, and then the role of {\tt DbInteraction}.
 \subsection{Structures}
 
 First structure is {\tt AttributeDefinition}. This one is very simple. It is containing attribute name ({\tt Db::Identifier}))
-and it's value ({\tt Db::Value}). {\tt AttributeDefinition} is not fully determined by itself as it 
+and its value ({\tt Db::Value}). {\tt AttributeDefinition} is not fully determined by itself as it 
 does not contain any information about object to which this attribute with value belongs. So another structure is {\tt ObjectDefinition}.
 This one is very similar to {\tt AttributeDefinition}, because it is also representing some kind of 
 key - value structure. It contains kind name ({\tt Db::Identifier})) and object name ({\tt Db::Identifier})). The name 
 is fully qualified, so in case of one object embedded using relations to another, this name will contain symbol "->" 
 and both names. For example when we imagine kind "host" and embedded kind "interface". We can have one host -- "hpv2" 
-and it's "interface" -- "eth0". Now the {\tt ObjectDefinition} for this interface will have kind "interface" and name 
+and its "interface" -- "eth0". Now the {\tt ObjectDefinition} for this interface will have kind "interface" and name 
 "hpv2->eth0". And now, when we have pair of {\tt AttributeDefinition} and {\tt ObjectDefinition}, we perfectly know, 
 what value of which attribute belongs to a specific object. These structures are used for both assigning and obtaining 
 the attributes from DB or creating objects. Another structure is a little bit more complicated. It is {\tt ContextStack}
@@ -101,7 +101,7 @@ the DB like creating objects, deleting objects, renaming objects and so on.
 Class {\tt UserInterface} is the central class holding the logics of the CLI. This class serves like a glue connecting
 all other components together.
 
-It is driven by two types of commands. First type are commands implemented as classes inherited from {\tt CliCommand}.
+It is driven by two types of commands. First type are commands implemented as classes inherited from {\tt Command}.
 
 \begin{minted}{c++}
 class Command
@@ -186,35 +186,17 @@ public:
 };
 \end{minted}
 
-Now we will describe how each command from the first group works.
-
-\subsection{Start}
-
-This one is very simple. It only starts and connects to a new changeset.
-
-\subsection{Resume}
-
-Class {\tt Resume} is here to connect user to some pending changeset. Choosing procedure is implemented in the IO part of
-the Deska, in class {\tt UserInterfaceIO}, which will be described later. 
-
-\subsection{Detach}
-
-Class implementing command "detach" is also very simple. It only obtains detach message from the user using
-class {\tt UserInterfaceIO} and detaches from current changeset.
-
-\subsection{Abort}
-
-{\tt Abort} is here only to detach from the current changeset and dispose it.
+Now we will describe how the more complicated commands from the first group work.
 
 \subsection{Rebase}
 
-Class {\tt Rebase} is quite complicated one. It's purpose is to reconnect current changeset from it's parent to a new
+Class {\tt Rebase} is quite complicated one. It's purpose is to reconnect current changeset from its parent to a new
 one. This is done firstly by creating a new changeset, which will be connected to a newest revision and then by performing
 the same changes as we performed in old changeset in this changeset. Then we can abort the old changeset. Well we can not
 perform exactly the same changes in our new changeset, because the DB could change that it could not be possible. For
 example when we set attribute of some object which was deleted in a newer revision. To solve this problem we are performing
 some kind of merge here. We obtain two sets of {\tt Db::ObjectModificationResult}. Firs is diff between our old changeset
-and it's parent. This gives us list of our changes. Next set is diff between parent of our old changeset and parent of a
+and its parent. This gives us list of our changes. Next set is diff between parent of our old changeset and parent of a
 new changeset. This represents changeset made while we were working in our old changeset. These sets has to be somehow
 merged and shown to a user in order to see, haw the final result of merge will look like and also in order to influence
 the result of this merge. The merge is performed by several comparators and the result has to be in the following order:
@@ -232,22 +214,143 @@ merging the result is shown to the user using an interactive editor implemented 
 can delete or modify the modifications. When the editting part is finished, the corrected list is processed and
 all modifications are performed.
 
-\subsection{Status}
-
-{\tt Status} is on of the simpliest classes as it only informs user if he is connected to some changeset or not by looking
-to one variable stored in {\tt UserInterface}.
-
-\subsection{NonInteractive}
-
-This class is not complicated as well. It toggles boolean variable in {\tt UserInterface} signalising if the user will
-be asked for confirmations of some actions or if they will be confirmed automaticaly.
-
 \subsection{Log}
 
 Function {\tt bool Log::operator()} when executed without parameters only obtains list of all revisions in the DB and
 prints this list using {\tt UserInterfaceIO} to the screen. The more interesting part of this class is parameters parser.
-It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}. 
+It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}.
+An output of this class is a {\tt Db::Filter}, that will be used directly for obtaining the list of revisions and similarily
+printed using {\tt UserInterfaceIO} to the screen. Now we will describe the {\tt LogFilterParser}.
 
+This class is inherited from {\tt boost::spirit::qi::grammar}. The grammar is based on three symbols tables with lazy lookup
+function. This method could be found under name "Nabialek trick". We have to use this method as the grammer is build at
+the runtime. This is because of the fact, thet we have to parse kind names, that are not known at compile time, but are obtained
+from the DB. In the first symbols table there are names of metadata (author, timestamp, ...) and is filled at compile time
+directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier &kindName)}.
+The third table contains operators. This parser is connected to three error handlers. {\tt LogAttributeErrorHandler}
+for reporting an error while parsing an metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
+while parsing of an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
+metadata. The {\tt boost::spirit} error handlers ale classes with function {\tt operator()}, that will be invoked every time
+when the matching of the input to a specific rule fails. Each rule could have associated a number of error handlers. The
+problem of this way how error handlers work is, that when some rule fails, error handlers of other rules cointaining this one
+will be cascadely invoked. So we have to store all there errors in a stack and when some error occures process this stack
+and inform user with a proper message. The whole grammar is build as a recursive expression parsing the input directly in the
+recursive filers represented by {\tt Db::Filter}. You can see the logics on the following snippet:
+
+\begin{minted}{c++}
+start %= ((qi::lit("(") >> andFilter >> qi::lit(")"))
+        | (qi::lit("(") >> orFilter >> qi::lit(")"))
+        | (qi::lit("(") >> expr >> qi::lit(")")));
+
+andFilter = (start % qi::lit("&"))[_val = phoenix::construct<Db::AndFilter>(_1)];
+orFilter = (start % qi::lit("|"))[_val = phoenix::construct<Db::OrFilter>(_1)];
+
+expr %= kindExpr | metadataExpr;
+
+kindExpr %= (eps(!_a) > kindDispatch >> -eoi[_a = true]);
+metadataExpr %= (eps(!_a) > metadataDispatch >> -eoi[_a = true]);
+
+// Kind name recognized -> try to parse object name
+kindDispatch = (raw[kinds[_a = _1]][rangeToString(_1, phoenix::ref(currentKindName))]
+    > operators[_b = _1] > lazy(_a)[_val = phoenix::construct<Db::AttributeExpression>(
+        _b, phoenix::ref(currentKindName), "name", phoenix::construct<Db::Value>(_1))]);
+// Metadata name recognized -> try to parse metadata value
+metadataDispatch = (raw[metadatas[_a = _1]][rangeToString(_1, phoenix::ref(currentMetadataName))]
+    > operators[_b = _1] > lazy(_a)[_val = phoenix::construct<Db::MetadataExpression>(
+        _b, phoenix::ref(currentMetadataName), _1)]);
+        
+phoenix::function<LogAttributeErrorHandler<Iterator> > attributeErrorHandler
+    = LogAttributeErrorHandler<Iterator>();
+phoenix::function<LogValueErrorHandler<Iterator> > valueErrorHandler
+    = LogValueErrorHandler<Iterator>();
+phoenix::function<LogIdentifierErrorHandler<Iterator> > identifierErrorHandler
+    = LogIdentifierErrorHandler<Iterator>();
+on_error<fail>(kindExpr, attributeErrorHandler(_1, _2, _3, _4,
+    phoenix::ref(kinds), phoenix::ref(metadatas), m_parent));
+on_error<fail>(metadataExpr, attributeErrorHandler(_1, _2, _3, _4,
+    phoenix::ref(kinds), phoenix::ref(metadatas), m_parent));
+on_error<fail>(kindDispatch, identifierErrorHandler(_1, _2, _3, _4,
+    phoenix::ref(currentKindName), m_parent));
+on_error<fail>(metadataDispatch, valueErrorHandler(_1, _2, _3, _4,
+    phoenix::ref(currentMetadataName), m_parent));
+\end{minted} 
+
+When parsing some input using Nabialek trick, the rule, that is using the symbols table will not be entered when the keyword
+is not found in the table. The {\tt eps} is there to ensure, that the {\tt kindExpr} and {\tt metadataExpr} rules will be
+entered every time and so the error handler for bad keywords could be bound to it. The {\tt eoi} rule is there to avoid
+the grammar require more input on the end of the line, which is side effect of eps usage in this way.
+
+\subsection{Diff}
+
+This function obtains list of {\tt Db::ObjectModificationResult} between two revisions or between changeset and its parent.
+This depends on the parameters given. The output depends on the destination. If it is a diff to file the modifications
+are sorted in the way like in {\tt Rebase}. This is because of the fact, that this output of the diff could be used for
+example for backing the work in the changeset up. So we have to for example create the object bfore we are referencing it
+in another object. This form of output is unfortunately not very user friendly. When the destination is a screen, the
+modifications are sorted in the way, that modifcations of one objects are groupped. This allows us to better ilustrate
+the obtained modifications.
+
+\subsection{Dump}
+
+Dump is performing some visual picture of the whole DB. The outpus is the same when dumping to the file or to the screen.
+It is not intended to be used for backing anything up as it does not take any contraints in account.
+The principle is very simple. We have a list of all kinds that could not be embedded in any other. This gives us a list
+of "top-level" kinds. Now we can obtain instances of these kinds and for each instance we obtain list of embedded objects.
+This is performed recursively. As the embedded objects can not live without their parents, we can print all objects in this way.
+
+\subsection{Batch}
+
+Class {\tt Batch} reads and performs cammands readable by the {\tt Parser} from a file. It could be used for reading of
+an output from a diff.
+
+\subsection{Backup}
+
+Command "backup" is here to backup all persistent revisions from the DB including data. This is performed by obtaining
+differences between each two revisons and saving these differences in a file. The order of the modifications is the same
+as in case of diff to a file.
+
+The format of the backup is following:
+
+FIXME: Format this somehow
+
+<list of modifications between r1 and r2, one per line>
+...
+@commit to r2
+<author>
+<commit message>
+<commit timestamp>
+#commit end
+<list of modifications between r2 and r3, one per line>
+...
+@commit to r3
+<author>
+<commit message>
+<commit timestamp>
+#commit end
+...
+
+\subsection{Restore}
+
+Restore reads backup created by {\tt Backup}. Restore is performed using function {\tt RevisionId restoringCommit(const
+std::string &commitMessage, const std::string &author, const boost::posix_time::ptime &timestamp)}. The DB has to be
+empty in order to perform restore. This is checket before any actions are made.
+
+\subsection{Execute}
+
+Command "execute" was implemented mainly for testing purposes. It reads commands from a file and performs actions. It
+can read the same commands, that can be written to the CLI. The only difference is, that all command run in non-interactive
+mode. This means, that user will not be asked for any confirmations as this would be impossible when reading commands from
+a file.
+
+\subsection{Help}
+
+
+
+\subsection{Other commands}
+
+There is a bunch of other comands, that are not very interesting. You can see a reference inline comments for more info.
+Their names are {\tt Start}, {\tt Resume}, {\tt Commit}, {\tt Detach}, {\tt Abort}, {\tt Status}, {\tt NonInteractive},
+{\tt Configdiff}, {\tt Exit}, {\tt Context}. 
 
 
 \end{document}
