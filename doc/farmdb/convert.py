@@ -299,19 +299,32 @@ end
 """
 
 print """# Generic racks
+
+create formfactor rack
+
 create modelbox generic-rack
 modelbox generic-rack
   internal_height 47
   internal_width 1
   internal_depth 1
   accepts_inside [rackmount]
+  formfactor rack
 end
 
+create modelbox serverovna
+modelbox serverovna
+   accepts_inside [rack]
+end
+
+box serverovna
+  direct_modelbox serverovna
+end
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
     print "create box %s" % rack
     print "box %s" % rack
+    print "  inside serverovna"
     print "  direct_modelbox generic-rack"
     print "end"
 print
