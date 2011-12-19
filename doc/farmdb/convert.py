@@ -253,6 +253,49 @@ modelbox 4u
   height 4
 end
 
+create modelbox 5u
+modelbox 5u
+  formfactor rackmount
+  height 5
+end
+
+create modelbox 8u
+modelbox 8u
+  formfactor rackmount
+  height 8
+end
+
+create modelbox 9u
+modelbox 9u
+  formfactor rackmount
+  height 9
+end
+
+create modelbox 10u
+modelbox 10u
+  formfactor rackmount
+  height 10
+end
+
+create modelbox 11u
+modelbox 11u
+  formfactor rackmount
+  height 11
+end
+
+create modelbox 29u
+modelbox 29u
+  formfactor rackmount
+  height 29
+end
+
+create modelbox 40u
+modelbox 40u
+  formfactor rackmount
+  height 40
+end
+
+
 """
 
 print """# Generic racks
@@ -272,7 +315,53 @@ for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not N
     print "  direct_modelbox generic-rack"
     print "end"
 print
-print
+print """
+create formfactor idataplex-unit
+
+create modelbox idataplex-sleeve
+modelbox idataplex-chassis-2u
+    formfactor rackmount
+    accepts_inside [idataplex-unit]
+    width 1
+    height 2
+    depth 1
+    internal_width 1
+    internal_depth 1
+    internal_height 2
+    note "A sleeve for two iDataPlex units"
+end
+
+create modelbox idataplex-1u
+modelbox idataplex-1u
+    formfactor idataplex-unit
+    width 1
+    height 1
+    depth 1
+end
+
+create formfactor sgi-twin
+
+create modelbox sgi-twin-chassis
+modelbox sgi-twin-chassis
+    formfactor rackmount
+    accepts_inside [sgi-twin]
+    width 1
+    height 1
+    depth 1
+    internal_width 2
+    internal_depth 1
+    internal_height 1
+    note "A chassis for housing of two SGI twin nodes"
+end
+
+create modelbox sgi-twin
+modelbox sgi-twin
+    formfactor sgi-twin
+    width 1
+    height 1
+    depth 1
+end
+"""
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
@@ -283,9 +372,17 @@ for (uid, x) in fd_hardware.iteritems():
     # does not work: fullname.strip("-")
     if fullname.endswith("-"):
         fullname = fullname[:-1]
+    if fullname in out_assigned_modelhw.values():
+        # try to avoid a collision
+        candidate = "%s-%sGRAM" % (fullname, x.ram)
+        if candidate in out_assigned_modelhw.values():
+            fullname = "%s-%sdisk" % (fullname, x.hddSize)
+            # ...and hope for the best
+        else:
+            fullname = candidate
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
-    #print "create modelhardware %s" % fullname
+    print "create modelhardware %s" % fullname
     print "modelhardware %s" % fullname
     if x.cpuCount is not None:
         print "  cpu_sockets %s" % x.cpuCount
@@ -317,17 +414,23 @@ for (uid, x) in fd_hardware.iteritems():
     if x.weight is not None:
         print "  weight %s" % x.weight
     if x.width == "100":
-        if x.height in [str(y) for y in range(1,5)]:
+        if x.height in [str(y) for y in range(1,5) + [8, 9, 10, 11, 29, 40]]:
             print "  modelbox %su" % x.height
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
-        print "# FIXME: weird width '%s' -> no modelbox" % x.width
+        if fullname == "IBM-iDataPlex-dx340":
+            print "  modelbox idataplex-1u"
+        elif fullname == "SGI-Altix-XE340":
+            print "  modelbox sgi-twin"
+        else:
+            print "# FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
 print
 print
-print "# dumping hardware"
-for (uid, x) in fd_machines.iteritems():
+
+
+def find_hostname_for_hw(uid, x):
     if map_ifaces.has_key(uid):
         names = [fd_interfaces[y].dns for y in map_ifaces[uid] if
                  fd_interfaces[y].dns is not None]
@@ -337,17 +440,26 @@ for (uid, x) in fd_machines.iteritems():
             myname = "FIXME list of interfaces is useless"
     elif x.serial is not None:
         myname = x.serial
+    elif out_assigned_modelhw.has_key(x.hwUid):
+        # ...and hope for the best here...
+        myname = out_assigned_modelhw[x.hwUid]
     else:
         myname = "FIXME_unknown"
         print "# FIXME: unknown HW; this would lead to a name clash:"
         print "# %s" % x
-        continue
     if myname == "0":
-        print "# FIXME: the following HW got created by a nasty UID"
         myname = uid
+        print "# FIXME: will create HW with a nasty UID: %s" % myname
     if x.obsolete:
         myname += "-obsolete"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
+    return myname
+
+created_twins = {}
+
+print "# dumping hardware"
+for (uid, x) in fd_machines.iteritems():
+    myname = find_hostname_for_hw(uid, x)
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
     print "hardware %s" % myname
@@ -373,27 +485,74 @@ for (uid, x) in fd_machines.iteritems():
         print "# FIXME obsolete: %s" % x.obsolete
     if x.os is not None:
         print "# FIXME: os %s" % x.os
+    my_modelhw = None
     if x.hwUid is not None:
         if out_assigned_modelhw.has_key(x.hwUid):
-            print "  modelhardware %s" % out_assigned_modelhw[x.hwUid]
+            my_modelhw = out_assigned_modelhw[x.hwUid]
+            print "  modelhardware %s" % my_modelhw
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
-    print "create host %s" % myname
-    print "create box %s" % myname
-    print "box %s" % myname
-    if x.rackNo is not None:
-        print "  inside %s" % x.rackNo
-        if x.rackHPos is not None:
-            print "  x %s" % x.rackHPos
-        if x.rackPos is not None:
-            print "  y %s" % x.rackPos
-    elif x.rackPos is not None or x.rackHPos is not None:
-        print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
+    if my_modelhw == "IBM-iDataPlex-dx340":
+        # a twin node; let's see if it's present already
+        # These things are special, as the farmdb specifies their own slot for
+        # each of them
+        x.rackPos = int(x.rackPos)
+        if x.rackPos % 2:
+            # an even one -> be special
+            positions = [x.rackPos, x.rackPos + 1]
+            rack_x = x.rackPos + 1
+            sleeve_pos = 1
+        else:
+            positions = [x.rackPos, x.rackPos - 1]
+            rack_x = x.rackPos
+            sleeve_pos = 0
+        candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
+                      v.hwUid == x.hwUid and v.rackNo == x.rackNo and
+                      v.rackHPos == x.rackHPos and int(v.rackPos) in positions]
+        if len(candidates) == 1:
+            # looks like this one is alone in there
+            boxname = "%s-sleeve" % candidates[0]
+        else:
+            boxname = "-".join(candidates)
+        format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
+                  "hostname": myname, "sleeve_pos": sleeve_pos}
+        if not created_twins.has_key(boxname):
+            created_twins[boxname] = True
+            box_str = """create box %(boxname)s
+box %(boxname)s
+    inside %(rack)s
+    x %(rack_x)s
+end
+""" % format
+        else:
+            box_str = ""
+        box_str = box_str + """create box %(hostname)s
+box %(hostname)s
+    inside %(boxname)s
+    y %(sleeve_pos)s
+end
+""" % format
     else:
-        print "# FIXME: famrdb does not contain any physical placement"
-        pass
-    print "end\n"
+        box_str = None
+    print "create host %s" % myname
+    if box_str is not None:
+        print box_str
+    else:
+        print "create box %s" % myname
+        print "box %s" % myname
+        if x.rackNo is not None:
+            print "  inside %s" % x.rackNo
+            if x.rackHPos is not None:
+                print "  x %s" % x.rackHPos
+            if x.rackPos is not None:
+                print "  y %s" % x.rackPos
+        elif x.rackPos is not None or x.rackHPos is not None:
+            print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
+        else:
+            print "# FIXME: famrdb does not contain any physical placement"
+            pass
+        print "end\n"
 
 for (uid, x) in fd_interfaces.iteritems():
     try:
