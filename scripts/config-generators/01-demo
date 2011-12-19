@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import sys
+import time
+t0 = time.time()
 # FIXME: this shall be removed in the final version
 sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
 import deska
@@ -14,17 +16,17 @@ def dump_everything():
                  "modelswitch", "switch", "modelhardware", "hardware_template",
                  "hardware", "virtual_hardware", "host", "interface", "event"]
 
+    t1 = time.time()
     for kind in all_items:
-        output.write("%s\n\n" % kind)
+        t2 = time.time()
+        cnt = 0
         for name, data in getattr(deska, kind)._all().iteritems():
-            output.write("%s: %s\n" % (name, data))
+            cnt += 1
+            pass
+        output.write("# Downloading %s: %d items, %ss\n" % (kind, cnt, time.time() - t2))
+
+    t3 = time.time()
+    output.write("# Total time: %ss (init: %s, run: %s)\n\n" %
+                 (t3 - t0, t1 - t0, t3 - t1))
 
 dump_everything()
-sys.exit(0)
-
-for name, data in deska.hardware[deska.hardware.box == None].iteritems():
-    output.write("%s\n" % name)
-
-#output = file("all-hosts", "wb")
-#for hostname, data in deska.host._all().iteritems():
-#    output.write("%s: %s\n" % (hostname, data.service))
