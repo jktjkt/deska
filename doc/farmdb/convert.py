@@ -469,6 +469,7 @@ def find_hostname_for_hw(uid, x):
     return myname
 
 created_twins = {}
+obsolete_items = []
 
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
@@ -496,6 +497,9 @@ for (uid, x) in fd_machines.iteritems():
         print "  note_hardware '%s'" % x.note
     if x.obsolete is not None:
         print "# FIXME obsolete: %s" % x.obsolete
+        obsolete_items.append(("hardware", myname))
+        obsolete_items.append(("box", myname))
+        obsolete_items.append(("host", myname))
     if x.os is not None:
         print "# FIXME: os %s" % x.os
     my_modelhw = None
@@ -594,4 +598,15 @@ jkt
 Initial import
 2011-Dec-02 18:19:44.929512
 #commit end
-"""
+
+# removing obsolete stuff"""
+
+for (kind, name) in sorted(obsolete_items):
+    print "delete %s %s" % (kind, name)
+
+print """
+@commit to r3
+jkt
+Removing obsolete items
+2011-Dec-19 20:00:00.0
+# commit end"""
