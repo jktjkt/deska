@@ -283,9 +283,17 @@ for (uid, x) in fd_hardware.iteritems():
     # does not work: fullname.strip("-")
     if fullname.endswith("-"):
         fullname = fullname[:-1]
+    if fullname in out_assigned_modelhw.values():
+        # try to avoid a collision
+        candidate = "%s-%sGRAM" % (fullname, x.ram)
+        if candidate in out_assigned_modelhw.values():
+            fullname = "%s-%sdisk" % (fullname, x.hddSize)
+            # ...and hope for the best
+        else:
+            fullname = candidate
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
-    #print "create modelhardware %s" % fullname
+    print "create modelhardware %s" % fullname
     print "modelhardware %s" % fullname
     if x.cpuCount is not None:
         print "  cpu_sockets %s" % x.cpuCount
