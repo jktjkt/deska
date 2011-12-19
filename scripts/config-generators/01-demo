@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import sys
+import time
+t0 = time.time()
 # FIXME: this shall be removed in the final version
 sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
 import deska
@@ -9,84 +11,22 @@ deska.init()
 def dump_everything():
     output = file("dump-of-everything", "wb")
 
-    output.write("vendor\n\n")
-    for name, data in deska.vendor._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
+    all_items = ["vendor", "service", "warranty_contract", "network",
+                 "formfactor", "modelbox", "box", "modelextrahw", "extrahw",
+                 "modelswitch", "switch", "modelhardware", "hardware_template",
+                 "hardware", "virtual_hardware", "host", "interface", "event"]
 
-    output.write("service\n\n")
-    for name, data in deska.service._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
+    t1 = time.time()
+    for kind in all_items:
+        t2 = time.time()
+        cnt = 0
+        for name, data in getattr(deska, kind)._all().iteritems():
+            cnt += 1
+            pass
+        output.write("# Downloading %s: %d items, %ss\n" % (kind, cnt, time.time() - t2))
 
-    output.write("warranty_contract\n\n")
-    for name, data in deska.warranty_contract._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("network\n\n")
-    for name, data in deska.network._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("formfactor\n\n")
-    for name, data in deska.formfactor._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("modelbox\n\n")
-    for name, data in deska.modelbox._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("box\n\n")
-    for name, data in deska.box._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("modelextrahw\n\n")
-    for name, data in deska.modelextrahw._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("extrahw\n\n")
-    for name, data in deska.extrahw._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("modelswitch\n\n")
-    for name, data in deska.modelswitch._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("switch\n\n")
-    for name, data in deska.switch._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("modelhardware\n\n")
-    for name, data in deska.modelhardware._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("hardware_template\n\n")
-    for name, data in deska.hardware_template._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("hardware\n\n")
-    for name, data in deska.hardware._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("virtual_hardware\n\n")
-    for name, data in deska.virtual_hardware._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("host\n\n")
-    for name, data in deska.host._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("interface\n\n")
-    for name, data in deska.interface._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
-
-    output.write("event\n\n")
-    for name, data in deska.event._all().iteritems():
-        output.write("%s: %s\n" % (name, data))
+    t3 = time.time()
+    output.write("# Total time: %ss (init: %s, run: %s)\n\n" %
+                 (t3 - t0, t1 - t0, t3 - t1))
 
 dump_everything()
-sys.exit(0)
-
-for name, data in deska.hardware[deska.hardware.box == None].iteritems():
-    output.write("%s\n" % name)
-
-#output = file("all-hosts", "wb")
-#for hostname, data in deska.host._all().iteritems():
-#    output.write("%s: %s\n" % (hostname, data.service))
