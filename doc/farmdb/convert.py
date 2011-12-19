@@ -510,7 +510,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
-    if my_modelhw == "IBM-iDataPlex-dx340":
+    if my_modelhw.startswith("IBM-iDataPlex"):
         # a twin node; let's see if it's present already
         # These things are special, as the farmdb specifies their own slot for
         # each of them
