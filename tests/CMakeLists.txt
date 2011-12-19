@@ -158,6 +158,7 @@ if(RUN_SQL_TESTS)
     deska_dbapi_test(fuzzying)
     deska_dbapi_test(fzuContainable DBSCHEME fzu)
     deska_dbapi_test(fzuBatchedChanges DBSCHEME fzu)
+    deska_dbapi_test(fzuRegressions DBSCHEME fzu)
 
     # Tests for interaction between the CLI and the DB parts
     deska_cli_test(io)
