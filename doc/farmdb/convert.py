@@ -535,6 +535,8 @@ for (uid, x) in fd_machines.iteritems():
         format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
                   "hostname": myname, "sleeve_pos": sleeve_pos}
         if not created_twins.has_key(boxname):
+            if x.obsolete is not None:
+                obsolete_items.append(("box", boxname))
             created_twins[boxname] = True
             box_str = """create box %(boxname)s
 box %(boxname)s
