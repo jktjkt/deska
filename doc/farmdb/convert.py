@@ -455,6 +455,8 @@ def find_hostname_for_hw(uid, x):
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
     return myname
 
+created_twins = {}
+
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
     myname = find_hostname_for_hw(uid, x)
@@ -483,27 +485,74 @@ for (uid, x) in fd_machines.iteritems():
         print "# FIXME obsolete: %s" % x.obsolete
     if x.os is not None:
         print "# FIXME: os %s" % x.os
+    my_modelhw = None
     if x.hwUid is not None:
         if out_assigned_modelhw.has_key(x.hwUid):
-            print "  modelhardware %s" % out_assigned_modelhw[x.hwUid]
+            my_modelhw = out_assigned_modelhw[x.hwUid]
+            print "  modelhardware %s" % my_modelhw
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
-    print "create host %s" % myname
-    print "create box %s" % myname
-    print "box %s" % myname
-    if x.rackNo is not None:
-        print "  inside %s" % x.rackNo
-        if x.rackHPos is not None:
-            print "  x %s" % x.rackHPos
-        if x.rackPos is not None:
-            print "  y %s" % x.rackPos
-    elif x.rackPos is not None or x.rackHPos is not None:
-        print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
+    if my_modelhw == "IBM-iDataPlex-dx340":
+        # a twin node; let's see if it's present already
+        # These things are special, as the farmdb specifies their own slot for
+        # each of them
+        x.rackPos = int(x.rackPos)
+        if x.rackPos % 2:
+            # an even one -> be special
+            positions = [x.rackPos, x.rackPos + 1]
+            rack_x = x.rackPos + 1
+            sleeve_pos = 1
+        else:
+            positions = [x.rackPos, x.rackPos - 1]
+            rack_x = x.rackPos
+            sleeve_pos = 0
+        candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
+                      v.hwUid == x.hwUid and v.rackNo == x.rackNo and
+                      v.rackHPos == x.rackHPos and int(v.rackPos) in positions]
+        if len(candidates) == 1:
+            # looks like this one is alone in there
+            boxname = "%s-sleeve" % candidates[0]
+        else:
+            boxname = "-".join(candidates)
+        format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
+                  "hostname": myname, "sleeve_pos": sleeve_pos}
+        if not created_twins.has_key(boxname):
+            created_twins[boxname] = True
+            box_str = """create box %(boxname)s
+box %(boxname)s
+    inside %(rack)s
+    x %(rack_x)s
+end
+""" % format
+        else:
+            box_str = ""
+        box_str = box_str + """create box %(hostname)s
+box %(hostname)s
+    inside %(boxname)s
+    y %(sleeve_pos)s
+end
+""" % format
     else:
-        print "# FIXME: famrdb does not contain any physical placement"
-        pass
-    print "end\n"
+        box_str = None
+    print "create host %s" % myname
+    if box_str is not None:
+        print box_str
+    else:
+        print "create box %s" % myname
+        print "box %s" % myname
+        if x.rackNo is not None:
+            print "  inside %s" % x.rackNo
+            if x.rackHPos is not None:
+                print "  x %s" % x.rackHPos
+            if x.rackPos is not None:
+                print "  y %s" % x.rackPos
+        elif x.rackPos is not None or x.rackHPos is not None:
+            print "# FIXME: rackNo is null, but others are specified: %s %s" % (x.rackPos, x.rackHPos)
+        else:
+            print "# FIXME: famrdb does not contain any physical placement"
+            pass
+        print "end\n"
 
 for (uid, x) in fd_interfaces.iteritems():
     try:
