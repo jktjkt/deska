@@ -46,7 +46,7 @@ Lets see as the final sql statement can look like.
 \item{data\_function}: name of data function, with parameter version
 \item{JOIN\_part}: result of filter.getJoin: JOIN "data\_function" ON (join condition)
 \item{WHERE\_part}: result of filter.getWhere: WHERE kind.attribute = \$1 OR ...
-\end{itemize}\$
+\end{itemize}
 And here is some example:
 SELECT host.service\_templ,host.name,host.service,host.virtual\_hardware\_templ,
 host\_template\_get\_name(host.template\_host,\$1) AS host\_template,hardware\_get\_name(host.hardware,\$1) AS hardware,
