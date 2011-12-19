@@ -253,6 +253,49 @@ modelbox 4u
   height 4
 end
 
+create modelbox 5u
+modelbox 5u
+  formfactor rackmount
+  height 5
+end
+
+create modelbox 8u
+modelbox 8u
+  formfactor rackmount
+  height 8
+end
+
+create modelbox 9u
+modelbox 9u
+  formfactor rackmount
+  height 9
+end
+
+create modelbox 10u
+modelbox 10u
+  formfactor rackmount
+  height 10
+end
+
+create modelbox 11u
+modelbox 11u
+  formfactor rackmount
+  height 11
+end
+
+create modelbox 29u
+modelbox 29u
+  formfactor rackmount
+  height 29
+end
+
+create modelbox 40u
+modelbox 40u
+  formfactor rackmount
+  height 40
+end
+
+
 """
 
 print """# Generic racks
@@ -325,7 +368,7 @@ for (uid, x) in fd_hardware.iteritems():
     if x.weight is not None:
         print "  weight %s" % x.weight
     if x.width == "100":
-        if x.height in [str(y) for y in range(1,5)]:
+        if x.height in [str(y) for y in range(1,5) + [8, 9, 10, 11, 29, 40]]:
             print "  modelbox %su" % x.height
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
