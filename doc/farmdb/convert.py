@@ -428,8 +428,9 @@ for (uid, x) in fd_hardware.iteritems():
     print "end\n"
 print
 print
-print "# dumping hardware"
-for (uid, x) in fd_machines.iteritems():
+
+
+def find_hostname_for_hw(uid, x):
     if map_ifaces.has_key(uid):
         names = [fd_interfaces[y].dns for y in map_ifaces[uid] if
                  fd_interfaces[y].dns is not None]
@@ -443,13 +444,17 @@ for (uid, x) in fd_machines.iteritems():
         myname = "FIXME_unknown"
         print "# FIXME: unknown HW; this would lead to a name clash:"
         print "# %s" % x
-        continue
     if myname == "0":
-        print "# FIXME: the following HW got created by a nasty UID"
         myname = uid
+        print "# FIXME: will create HW with a nasty UID: %s" % myname
     if x.obsolete:
         myname += "-obsolete"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
+    return myname
+
+print "# dumping hardware"
+for (uid, x) in fd_machines.iteritems():
+    myname = find_hostname_for_hw(uid, x)
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
     print "hardware %s" % myname
