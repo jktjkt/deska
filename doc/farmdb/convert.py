@@ -595,8 +595,3 @@ Initial import
 2011-Dec-02 18:19:44.929512
 #commit end
 """
-
-import pprint
-#pprint.pprint(fd_hardware)
-#for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
-#    pprint.pprint(x)
