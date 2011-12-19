@@ -40,7 +40,7 @@ Each history table contains, in addition to attributes in the table defined by u
 
 In table \ref{tab-example-hardwarehist} is example history of hardware. This is how the hardware\_history table looks like after following operations. 
 \begin{itemize}
-    \item In changeset 1 were inserted hardware h1, h2. \\
+    \item In changeset 1 were inserted hardware h1, h2.
     \item In changeset 2 was h2's note attribute set to note.
     \item In changeset 3 was h2's purchase attribute set to 01-01-2011 and hardware h1 was deleted.
 \end{itemize}
@@ -48,7 +48,7 @@ In table \ref{tab-example-hardwarehist} is example history of hardware. This is 
 
 If this was only part of data from hardware\_history table then we could not recognize if these objects were in changeset 1 created or some of their attribute was just set.\\
 In row with hardware h2, version 3 we can see that when object is modified, row with its actual data and id of current changeset is inserted into history table, after that the attribute which has to be modified is set.\\
-In words of stored procedures it could be written so:
+In words of stored procedures it could be written so:\\
 
 \begin{minted}{sql}
 select startchangeset();
@@ -94,7 +94,7 @@ Important infomation for us are id and num. id is id of changeset from which the
 \end{center}
 
 
-There are some examples of data retriving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.
+There are some examples of data retriving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.\\
 
 \begin{minted}{sql}
 select * from hardware_data_version();
@@ -110,7 +110,7 @@ select * from hardware_data_version(3);
     \hline
     \multicolumn{6}{|c|}{hardware\_data\_version()}\\
     \hline
-    uid & name & note & purchase & dets\_bit & version\\
+    uid & name & note & purchase & version & dets\_bit\\
     \hline
     2 & h2 & note & 2011-01-01 & 3 & 0\\
     \hline
@@ -128,7 +128,7 @@ select * from hardware_data_version(3);
     \hline
     \multicolumn{6}{|c|}{hardware\_data\_version(3)}\\
     \hline
-    uid & name & note  & purchase& dets\_bit & version\\
+    uid & name & note & purchase & version & dets\_bit\\
     \hline
     1 & h1 &  &  & 1 & 0\\
     2 & h2 & note &  & 2 & 0\\
@@ -148,6 +148,7 @@ Commits of our example will cause this changes:
 \end{itemize}
 
 \section{Refers To}
+\label{sec:db-refs-to}
 If the table is in the {\tt refers to} relation with another, it has to have column that refers to the {\tt uid} column of the another table. This column, which refers to the {\tt uid} column of another table, we will call here {\em refuid}.\\
 Stored procedures for setting refuid columns expect as parameter some value of name attribute from referenced table. The given name is found in referenced table and proper {\tt uid} is set as value of refuid column instead of the name.
 
@@ -194,15 +195,63 @@ select commitchangeset('.');
 
 \end{center}
 
-\section{Embed into}
+\section{Object Embedding}
+Object embedding is described in \ref{sec:relation-embed-into}. The object which is embedded into another object could be identified by the global name, pair of object's local name and parent's name. Embedded objects have an attribute which refer to the parent object's uid. With this attribute is manipulated in the same way as with the refuid attributes described in \ref{sec:db-refs-to}\\
+The following example shows how to work with embedding, the table identifier is embedded into the table host. Result of these selects is in the tables \ref{tab-embed-host} and \ref{tab-embed-interface}
+
+\begin{minted}{sql}
+select startchangeset();
+select host_add('h1');
+select host_add('h2');
+select interface_add('h1->i1');
+select interface_add('h1->i2');
+select interface_add('h2->i1');
+select commitchangeset('r2');
+\end{minted}
+
+\begin{center}
+
+\begin{table}
+    \caption{host}
+    \label{tab-embed-host}
+\begin{tabular}{ | l | l | }
+    \hline
+    \multicolumn{2}{|c|}{host}\\
+    \hline
+    uid & name \\
+    \hline
+    1 & h1\\
+    2 & h2\\
+    \hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+    \caption{interface}
+    \label{tab-embed-interface}
+\begin{tabular}{ | l | l | l | l | }
+    \hline
+    \multicolumn{4}{|c|}{interface}\\
+    \hline
+    uid & name & host & note\\
+    \hline
+    1 & i1 & 1 & \\
+    2 & i2 & 1 & \\
+    3 & i1 & 2 & \\
+    \hline
+\end{tabular}
+\end{table}
+
+\end{center}
 
 \section{Templates}
-{\tt TEMPLATIZED} relation which is described in \ref{FIXME-missing-reference} is implemented by template tables. 
+{\tt TEMPLATIZED} relation which is described in \ref{{sec:relation-templatized}} is implemented by template tables. 
 
 \subsection{Value inheritence}
 The columns, which are a part of some {\tt composition} relation or {\tt embed into} relation, can not inherit its value from templates. Therefor these columns are not present in the template table. All other attributes from the templated table are in the template table.\\
 As the template tables are templated by themself, object can inherit value of its attributes transitively from more templates.\\
 To ensure right data retrieving in given version, template tables need to have history tables as well.\\
+Tables in the schema production store resolved data.\\
 The following example shows how we can work with the templated tables. The hardware table is templated by the hardware\_template table. The result of these selects is in tables \ref{tab-templ-hwhist} and \ref{tab-templ-hwtemplhist}.
 
 \begin{minted}{sql}
@@ -268,6 +317,7 @@ By calling the following commands we can get resolved data, it means with inheri
 select * from hardware_resolved_data(3);
 select * from hardware_template_resolved_data(3);
 \end{minted}
+
 Results are in \ref{tab-templ-hwres2} and \ref{tab-templ-hwtemplres2}.
 
 \begin{minted}{sql}
@@ -327,7 +377,7 @@ Results are in \ref{tab-templ-hw} and \ref{tab-templ-hwtempl}.
     \label{tab-templ-hwtempl}
 \begin{tabular}{ | l | l | l | l | l | l |}
     \hline
-    \multicolumn{7}{|c|}{hardware\_template}\\
+    \multicolumn{6}{|c|}{hardware\_template}\\
     \hline
     uid & name & note & purchase & vendor & template\_hw\\
     \hline
@@ -340,11 +390,64 @@ Results are in \ref{tab-templ-hw} and \ref{tab-templ-hwtempl}.
 \end{center}
 
 \subsection{Commit of Templated Tables}
+As data in the production schema are resolved, it is needed during commit find modified objects and resolve their data. We should keep in mind that object's data could be modified even by modification in the object that templates this object.\\
+Commit of templated table is composed of:
+\begin{enumerate}
+    \item find all objects in the template table that were modified in the current changeset
+    \item find all objects in the template table that can tranistivly inherit data from objects in step 1
+    \item find all objetcs in the templated table that inherit data from objects in step 2
+    \item resolve data of objects from step 3
+    \item process data from step 4 as it was selected from history table of not templated table
+\end{enumerate}
 
 \section{Diff}
+Modifications which were done between two versions or inside a temporary changeset could be listed by diff functions. Diff has these stages:
+\begin{enumerate}
+    \item init diff
+    \item process diff data
+    \item terminate diff
+\end{enumerate}
+Stage init diff creates temporary table with almost all data needed to get list of all modifications.
+More init functions exist, one for diff between two versions and one for diff between state in temporary changeset and its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
+Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
+The example below shows how you can select changes between versions.
+
+\begin{minted}{sql}
+select startchangeset();
+select hardware_add('h1');
+select hardware_add('h2');
+select hardware_set_purchase('h1','02-12-2011');
+select commitchangeset('r2');
+
+select startchangeset();
+select hardware_set_purchase('h1','01-01-2012');
+select hardware_add('h3');
+select hardware_del('h2');
+select hardware_set_name('h1','hr');
+select commitchangeset('r3');
+
+select hardware_init_diff(2,3);
+
+select * from hardware_diff_created();
+--returns h3
+
+select * from hardware_diff_deleted();
+--returns h2
+
+select * from hardware_diff_rename();
+--returns oldname:h1   newname:hr
+
+select * from hardware_diff_set_attributes(2,3);
+--returns objname:hr   attribute:purchase   olddata:2011-02-12   newdata:2012-01-01
+
+select hardware_terminate_diff();
+\end{minted}
 
 \section{Composition}
+Linking objects of kinds in composition relation with same name is done by generating before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
+Condition that one object could be contained in at most one another object is checked by the check constraints that are generated by the Composition class as well.
 
 \section{Multi-value References}
+\label{sec:multi-val}
 
 \end{document}
