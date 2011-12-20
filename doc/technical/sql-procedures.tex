@@ -10,36 +10,36 @@ FIXME: talk about the SQL stored procedures? maybe refine this somehow?
 \end{abstract}
 
 \section{Schema json}
-In schema json there are functions, wich are used by the deska-server application. The server calls only function in this schema. Every function has three parts: Check and validate its arguments, do some simple db action and create result structure, wich is returned in json format.
+In schema json there are functions, which are used by the deska-server application. The server calls only function in this schema. Every function has three parts: Check and validate its arguments, do some simple db action and create result structure, which is returned in json format.
 
 In validation part, function check that kinds/attributes passed as arguments and report proper exceptions, if some error is found.
-After this validation, sql query is created. Then sql query is run, mostly just call generated stored procedure. Finally result structure is created and returned as json.
+After this validation, SQL query is created. Then SQL query is run, mostly just call generated stored procedure. Finally result structure is created and returned as json.
 
 \subsection{Changeset functions}
-Functions manipulated with changeset, we can divide into two parts. Functions performing some action, these just calls another function like startChangeset or getCurrentChangeset and fucntions returning content of some table: pendingChangeset and listRevisions.
+Functions manipulated with changeset, we can divide into two parts. Functions performing some action, these just calls another function like startChangeset or getCurrentChangeset and functions returning content of some table: pendingChangeset and listRevisions.
 
-First part is very simple, every function just call another function, wich perform desired action, create json a returns it.
-Only pendingChangeset and listRevision, the second part, are more difficult. It perform select from database table and the result transforms into returned json format. In these function filters can be used, so the performed sql query can be complicated.
+First part is very simple, every function just call another function, which perform desired action, create json a returns it.
+Only pendingChangeset and listRevisions, the second part, are more difficult. It perform select from database table and the result transforms into returned json format. In these function filters can be used, so the performed SQL query can be complicated.
 
 \subsection{Object manipulation function}
-There are some wrapper functions for manupulation with objects stored in db. From generator, we have for every object some add, rename, delete functions, and set function for each attribute. So in functions like createObject, we have to determine right name of generated function to call. We check validity of function arguments and then from kind and attributeName determine the function to call, another arguments (objectName for example) are passed to this function.
+There are some wrapper functions for manipulation with objects stored in db. From generator, we have for every object some add, rename, delete functions, and set function for each attribute. So in functions like createObject, we have to determine right name of generated function to call. We check validity of function arguments and then from kind and attributeName determine the function to call, another arguments (objectName for example) are passed to this function.
 
 \subsection{Object data functions}
-These functions have to provide similar function as object manipulation functions, to determine the function to call. But this functions returns data tables, so we have to create json struncture from this. Therefor creation of sql statement is more complicated. Due to performance reasons, we have to do many cast in created sql statement, because it is quicker then do it in python way. This cast must be done for data, that pgpython cannot convert to native python types.
+These functions have to provide similar function as object manipulation functions, to determine the function to call. But this functions returns data tables, so we have to create json structure from this. Therefor creation of SQL statement is more complicated. Due to performance reasons, we have to do many cast in created SQL statement, because it is quicker then do it in python way. This cast must be done for data, that pg-python cannot convert to native python types.
 
 Lets see the multipleResolvedObjectDataWithOrigin function to explain, how it work. The other functions are very similar.
-At first, name is set (this is used for result json and/or reporting errors) and json struncture is prepared, using dutil.jsn function. After this, kindName is checked. Then attributes are load from generated.py file.
+At first, name is set (this is used for result json and/or reporting errors) and json structure is prepared, using dutil.jsn function. After this, kindName is checked. Then attributes are load from generated.py file.
 If kind has template, every attribute except one starts with template\_ prefix are duplicated, so that we has also information about origin of the value.
 Then columns definition is generated. For normal attribute, "kindName.attributeName" is the definition. But for referenced attributes, which are
 represented as id in database, not string, kindName\_get\_name function must be called. So in the case that attribute vendor is represented as id, then
-"vendor\_get\_name(kindName.attributeName, version) AS kindName.attributeName" is the column definition. For embedded kind, emmbedd name is created in similar way,
+"vendor\_get\_name(kindName.attributeName, version) AS kindName.attributeName" is the column definition. For embedded kind, embed name is created in similar way,
 using function join\_with\_delim.
-Then, the final sql statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter are used.
-This function also checks if this kind has template or not, and proper function resolved or not is used in the final sql statement.
-After this preparation, sql statement is run and the result is fetched. For each line in the result table, one part of result json structure is
+Then, the final SQL statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter are used.
+This function also checks if this kind has template or not, and proper function resolved or not is used in the final SQL statement.
+After this preparation, SQL statement is run and the result is fetched. For each line in the result table, one part of result json structure is
 created. And then final json is created and returned.
 
-Lets see as the final sql statement can look like.
+Lets see as the final SQL statement can look like.
 \begin{itemize}
 \item{STATEMENT}: SELECT "columns" FROM "data\_function" "JOIN\_part" "WHERE\_part"
 \item{columns}: col1,col2,...colN where colX is defined as said before

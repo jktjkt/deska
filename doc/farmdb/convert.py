@@ -299,19 +299,32 @@ end
 """
 
 print """# Generic racks
+
+create formfactor rack
+
 create modelbox generic-rack
 modelbox generic-rack
   internal_height 47
   internal_width 1
   internal_depth 1
   accepts_inside [rackmount]
+  formfactor rack
 end
 
+create modelbox serverovna
+modelbox serverovna
+   accepts_inside [rack]
+end
+
+box serverovna
+  direct_modelbox serverovna
+end
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
     print "create box %s" % rack
     print "box %s" % rack
+    print "  inside serverovna"
     print "  direct_modelbox generic-rack"
     print "end"
 print
@@ -456,6 +469,7 @@ def find_hostname_for_hw(uid, x):
     return myname
 
 created_twins = {}
+obsolete_items = []
 
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
@@ -483,6 +497,9 @@ for (uid, x) in fd_machines.iteritems():
         print "  note_hardware '%s'" % x.note
     if x.obsolete is not None:
         print "# FIXME obsolete: %s" % x.obsolete
+        obsolete_items.append(("hardware", myname))
+        obsolete_items.append(("box", myname))
+        obsolete_items.append(("host", myname))
     if x.os is not None:
         print "# FIXME: os %s" % x.os
     my_modelhw = None
@@ -493,7 +510,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             print "# FIXME: modelhardware not found: %s" % x.hwUid
     print "end"
-    if my_modelhw == "IBM-iDataPlex-dx340":
+    if my_modelhw.startswith("IBM-iDataPlex"):
         # a twin node; let's see if it's present already
         # These things are special, as the farmdb specifies their own slot for
         # each of them
@@ -518,6 +535,8 @@ for (uid, x) in fd_machines.iteritems():
         format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
                   "hostname": myname, "sleeve_pos": sleeve_pos}
         if not created_twins.has_key(boxname):
+            if x.obsolete is not None:
+                obsolete_items.append(("box", boxname))
             created_twins[boxname] = True
             box_str = """create box %(boxname)s
 box %(boxname)s
@@ -581,9 +600,15 @@ jkt
 Initial import
 2011-Dec-02 18:19:44.929512
 #commit end
-"""
 
-import pprint
-#pprint.pprint(fd_hardware)
-#for x in fd_vendors, fd_networks, fd_hardware, fd_machines, fd_interfaces:
-#    pprint.pprint(x)
+# removing obsolete stuff"""
+
+for (kind, name) in sorted(obsolete_items):
+    print "delete %s %s" % (kind, name)
+
+print """
+@commit to r3
+jkt
+Removing obsolete items
+2011-Dec-19 20:00:00.0
+# commit end"""

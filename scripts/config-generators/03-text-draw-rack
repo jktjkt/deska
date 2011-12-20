@@ -1,0 +1,55 @@
+#!/usr/bin/python
+import sys
+import time
+# FIXME: this shall be removed in the final version
+sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
+import deska
+
+deska.init()
+
+t1 = time.time()
+boxes = deska.box._all()
+t2 = time.time()
+
+queue = ["serverovna"]
+keys = boxes.keys()
+keys.remove("serverovna")
+res = {}
+res[None] = [k for k in keys if boxes[k].inside is None]
+
+while len(queue):
+    current = queue.pop(0)
+    children = [x for x in keys if boxes[x].inside == current]
+    queue.extend(children)
+    res[current] = children
+
+def position_sorter(item):
+    if boxes[item].x is not None:
+        x = boxes[item].x
+    else:
+        x = 1
+    if boxes[item].y is not None:
+        y = boxes[item].y
+    else:
+        y = 1
+    if boxes[item].z is not None:
+        z = boxes[item].z
+    else:
+        z = 1
+    return (-y, x, z, item)
+
+def print_current(s, indent, key):
+    prefix = " " * indent
+    s.write("%s%s\n" % (prefix, key))
+    for x in sorted(res[key], key=position_sorter):
+        print_current(s, indent + 1, x)
+
+f = file("boxes", "wb")
+print_current(f, 0, "serverovna")
+import pprint
+pprint.pprint(res, f)
+
+t3 = time.time()
+
+file("__timing-stats", "wb").write(
+    "boxes: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
