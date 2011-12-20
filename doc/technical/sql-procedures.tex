@@ -70,10 +70,10 @@ The class Template has methods that generate template for modules that are marke
 The class Merge generates triggers that maintain contains/containable relation.\\
 And the class Multiref generates code for inner tables for {\tt identifier\_set}s and functions for data manipulation with those tables.\\
 
-The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are formated in class methods, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
+The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are formatted in class methods, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
 Detailed information about mentioned classes are below.
 
-Parts of plpgsql generator run at the moment when all moduls defined by user are already present as tables in the database. And they start in this order:
+Parts of plpgsql generator run at the moment when all modules defined by user are already present as tables in the database. And they start in this order:
 
 \begin{enumerate}
     \item Template class - generate and create templates for tables that should have template
@@ -88,7 +88,7 @@ Connection and sending commands to the database is provided by the Connection cl
 
 \subsection{Schema}
 The Schema class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with Connection parameter, which is used to query the database. 
-The Schema class finds out which kinds were created in database and what is their structure. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to distinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another in database could be identified just by name. But objects of kinds that are embed into another could be identified by a pair, their local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for those embed and those not embed kinds.
+The Schema class finds out which kinds were created in database and what their structure is. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to distinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another in database could be identified just by name. But objects of kinds that are embed into another could be identified by a pair, their local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for those embed and those not embed kinds.
 For templated kinds are in addition to not templated kinds generated functions for getting resolved data.\\
 The final code for created kinds is generated inside the Table class.
 
