@@ -60,7 +60,11 @@ Here we will describe how to add Deska relations to modules.
 FIXME: add proper cross-references
 
 \subsubsection{REFERS\_TO}
-The {\tt REFERS\_TO} relation needs adding the foreign key constraint. This constraint have to:
+\label{sec:db-scheme-refers-to}
+
+The {\tt REFERS\_TO} relation (see \secref{sec:relation-refers-to}) needs adding the foreign key constraint. This
+constraint have to:
+
 \begin{itemize}
     \item The target module table has to be present in the database already
     \item The referring column forming the relation has to be of the {\tt bigint} type
