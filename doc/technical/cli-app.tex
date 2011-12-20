@@ -634,5 +634,16 @@ One more thing to note here is, that also position of the error has to be taken 
 else, than where we have out cursor. In this case we do no suggest any completions as the error is somewhere before the
 cursor.
 
+\section{UserInterfaceIO}
+
+{\tt UserInterfaceIO} is the class handling all IO operations from and to the user. It contains set of function for asking
+user for several confirmations, set of function for printing various information. Most of these functions does not
+contain any advanced logics. This is centred in {\tt UserInterface}.
+
+{\tt UserInterfaceIO} takes care of tab-completion. For these purposes it uses class {\tt CliCompleter} that obtains completion
+patterns from the parser and from the CLI commands. For the logics of tab-completion takes care class {\tt ReadlineWrapper::Readline}.
+This is only a C++ wrapper for a well known library {\em readline}. It does splitting of the line to tokens and then comparing
+these tokens with given tab-completions patterns to find out matching completions.
+
 
 \end{document}
