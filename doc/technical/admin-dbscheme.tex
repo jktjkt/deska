@@ -22,7 +22,7 @@ Every SQL table provided by the user needs to:
     \item Set {\tt search\_path} to schemas {\tt production} and {\tt deska}
     \item Have primary key column {\tt uid} of the {\tt bigint} type
     \item Have unique, not null column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
-        unique pair of a {\tt uid} and a referencing column
+        unique pair of a {\tt uid} and a referencing column (see \secref{sec:db-scheme-refers-to} for an example).
     \item Use a sequence's {\tt nextval} as the default value of the column {\tt uid}
 \end{itemize}
 
@@ -62,11 +62,14 @@ FIXME: add proper cross-references
 \subsubsection{REFERS\_TO}
 The {\tt REFERS\_TO} relation needs adding the foreign key constraint. This constraint have to:
 \begin{itemize}
-    \item refer to module that will be installed before this one
-    \item have referring column of bigint type
-    \item have name with {\tt rrefer\_} prefix
-    \item refer to uid column of the referenced table
+    \item The target module table has to be present in the database already
+    \item The referring column forming the relation has to be of the {\tt bigint} type
+    \item The name of the constraint shall start with the {\tt rrefer\_} prefix
+    \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
+
+FIXME: there's a discrepancy between what the docs say (``has to start with rrefer\_'') and what the example suggests
+below. Martina, please fix this one.
 
 \begin{minted}{sql}
 SET search_path TO production,deska;
