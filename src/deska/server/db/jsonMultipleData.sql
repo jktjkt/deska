@@ -37,7 +37,7 @@ def main(tag,kindName,revision,filter):
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] == "identifier_set":
 				#"inner_host_service_get_set"
-				coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refTbl)
+				coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
 			else:
 				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 			atts[refCol] = coldef
