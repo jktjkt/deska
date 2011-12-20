@@ -72,7 +72,7 @@ select commitchangeset('.');
 
 If we would like to get data of some objects in given version. We have to find the objects' last modification. To find the really last objects' modification, we need to know version table.\\
 At the time of changeset commit, table with versions is updated. For our example it could looks like \ref{tab-example-version}.\\
-Important infomation for us are id and num. id is id of changeset from which the version num was created. The version number num is an increasing sequence, if version num2 was created on the base of version num1 then num1 < num2.
+Important information for us are id and num. id is id of changeset from which the version num was created. The version number num is an increasing sequence, if version num2 was created on the base of version num1 then num1 < num2.
 
 \begin{center}
 
@@ -253,8 +253,8 @@ select commitchangeset('r2');
 \section{Templates}
 {\tt TEMPLATIZED} relation which is described in \ref{sec:relation-templatized} is implemented by template tables. 
 
-\subsection{Value inheritence}
-The columns, which are a part of some {\tt COMPOSITION} relation or {\tt EMBED INTO} relation, can not inherit its value from templates. Therefor these columns are not present in the template table. All other attributes from the templated table are also in the template table.\\
+\subsection{Value inheritance}
+The columns, which are a part of some {\tt COMPOSITION} relation or {\tt EMBED INTO} relation, can not inherit its value from templates. Therefore these columns are not present in the template table. All other attributes from the templated table are also in the template table.\\
 As the template tables are templated by themself, object can inherit value of its attributes transitively from more templates.\\
 To ensure right data retrieving from given version, template tables need to have history tables as well.\\
 Tables in the schema production store resolved data.\\
@@ -401,8 +401,8 @@ As data in the production schema are resolved, it is needed during commit find m
 Commit of templated table is composed of:
 \begin{enumerate}
     \item find all objects in the template table that were modified in the current changeset
-    \item find all objects in the template table that can tranistively inherit data from objects in step 1
-    \item find all objetcs in the templated table that inherit data from objects in step 2
+    \item find all objects in the template table that can transitively inherit data from objects in step 1
+    \item find all objects in the templated table that inherit data from objects in step 2
     \item resolve data of objects from step 3
     \item process data from step 4 as it was selected from history table of not templated table
 \end{enumerate}
