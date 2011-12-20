@@ -46,8 +46,6 @@ def print_current(s, indent, key):
 
 f = file("boxes", "wb")
 print_current(f, 0, "serverovna")
-import pprint
-pprint.pprint(res, f)
 
 t3 = time.time()
 
