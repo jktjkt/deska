@@ -40,7 +40,7 @@ Each history table contains, in addition to attributes in the table defined by u
 
 \end{center}
 
-In table \ref{tab-example-hardwarehist} is example history of hardware. This is how the hardware\_history table looks like after following operations. 
+In table \ref{tab-example-hardwarehist} is example of hardware's history table. This is how the hardware\_history table looks like after following operations. 
 \begin{itemize}
     \item In changeset 1 were inserted hardware h1, h2.
     \item In changeset 2 was h2's note attribute set to note.
@@ -48,7 +48,7 @@ In table \ref{tab-example-hardwarehist} is example history of hardware. This is 
 \end{itemize}
 
 
-If this was only part of data from hardware\_history table then we could not recognize if these objects were in changeset 1 created or some of their attribute was just set.\\
+If the table \ref{tab-example-hardwarehist} was only a piece of data from hardware\_history table then we could not recognize if these objects were in changeset 1 created or some of their attributes were just set.\\
 In row with hardware h2, version 3 we can see that when object is modified, row with its actual data and id of current changeset is inserted into history table, after that the attribute which has to be modified is set.\\
 In words of stored procedures it could be written so:\\
 
@@ -99,6 +99,7 @@ Important infomation for us are id and num. id is id of changeset from which the
 There are some examples of data retriving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.\\
 
 \begin{minted}{sql}
+--functions for data retrieving without parameters returns the most actual data
 select * from hardware_data_version();
 select * from hardware_data_version(3);
 \end{minted}
@@ -142,7 +143,7 @@ select * from hardware_data_version(3);
 
 \subsection{Commit}
 Commit function selects objects from history table of given kind which were just added, deleted or updated in the current changeset. Rows that belong to added objects are inserted into given kind's table in the schema production. Rows that belong to deleted objects are deleted from kind's table in the schema production. And rows that belong to updated objects are updated in kind's table in the schema production.\\
-Commits of our example will cause this changes:
+Commits from our example will cause these changes:
 \begin{itemize}
     \item After changeset 1 rows with hardware h1, h2 will be inserted.
     \item After changeset 2 h2's note attribute will be updated.
@@ -151,7 +152,7 @@ Commits of our example will cause this changes:
 
 \section{Refers To}
 \label{sec:db-refs-to}
-If the table is in the {\tt refers to} relation with another, it has to have column that refers to the {\tt uid} column of the another table. This column, which refers to the {\tt uid} column of another table, we will call here {\em refuid}.\\
+If the table is in the {\tt REFERS TO} relation with another, it has to have column that refers to the {\tt uid} column of the another table. This column, which refers to the {\tt uid} column of another table, we will call here {\em refuid}.\\
 Stored procedures for setting refuid columns expect as parameter some value of name attribute from referenced table. The given name is found in referenced table and proper {\tt uid} is set as value of refuid column instead of the name.
 
 Here is an example of setting refuid column. The result of these selects is in tables \ref{tab-refs-hardware} and  \ref{tab-refs-vendor}.
@@ -162,6 +163,9 @@ select vendor_add('v2');
 select hardware_add('h1');
 select hardware_set_vendor('h1','v2');
 select commitchangeset('.');
+
+select * from hardware;
+select * from vendor;
 \end{minted}
 
 \begin{center}
@@ -247,12 +251,12 @@ select commitchangeset('r2');
 \end{center}
 
 \section{Templates}
-{\tt TEMPLATIZED} relation which is described in \ref{{sec:relation-templatized}} is implemented by template tables. 
+{\tt TEMPLATIZED} relation which is described in \ref{sec:relation-templatized} is implemented by template tables. 
 
 \subsection{Value inheritence}
-The columns, which are a part of some {\tt composition} relation or {\tt embed into} relation, can not inherit its value from templates. Therefor these columns are not present in the template table. All other attributes from the templated table are in the template table.\\
+The columns, which are a part of some {\tt COMPOSITION} relation or {\tt EMBED INTO} relation, can not inherit its value from templates. Therefor these columns are not present in the template table. All other attributes from the templated table are also in the template table.\\
 As the template tables are templated by themself, object can inherit value of its attributes transitively from more templates.\\
-To ensure right data retrieving in given version, template tables need to have history tables as well.\\
+To ensure right data retrieving from given version, template tables need to have history tables as well.\\
 Tables in the schema production store resolved data.\\
 The following example shows how we can work with the templated tables. The hardware table is templated by the hardware\_template table. The result of these selects is in tables \ref{tab-templ-hwhist} and \ref{tab-templ-hwtemplhist}.
 
@@ -313,7 +317,8 @@ select commitchangeset('r4');
 
 \end{center}
 
-By calling the following commands we can get resolved data, it means with inherited values.
+By calling the following commands we can get resolved data, it means with inherited values.\\
+It is possible to get resolved data even with the data origin, this function is introduced in section about multi-value references \ref{sec:multi-val}.
 \begin{minted}{sql}
 --from version 'r3'
 select * from hardware_resolved_data(3);
@@ -396,7 +401,7 @@ As data in the production schema are resolved, it is needed during commit find m
 Commit of templated table is composed of:
 \begin{enumerate}
     \item find all objects in the template table that were modified in the current changeset
-    \item find all objects in the template table that can tranistivly inherit data from objects in step 1
+    \item find all objects in the template table that can tranistively inherit data from objects in step 1
     \item find all objetcs in the templated table that inherit data from objects in step 2
     \item resolve data of objects from step 3
     \item process data from step 4 as it was selected from history table of not templated table
@@ -410,8 +415,8 @@ Modifications which were done between two versions or inside a temporary changes
     \item terminate diff
 \end{enumerate}
 Stage init diff creates temporary table with almost all data needed to get list of all modifications.
-More init functions exist, one for diff between two versions and one for diff between state in temporary changeset and its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
-Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
+More init functions exist, one for diff between two versions and one for diff between state in temporary changeset and in its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
+Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI \ref{sec:dbapi-protocol} is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
 The example below shows how you can select changes between versions.
 
 \begin{minted}{sql}
@@ -428,8 +433,10 @@ select hardware_del('h2');
 select hardware_set_name('h1','hr');
 select commitchangeset('r3');
 
+--init
 select hardware_init_diff(2,3);
 
+--process diff data
 select * from hardware_diff_created();
 --returns h3
 
@@ -442,14 +449,15 @@ select * from hardware_diff_rename();
 select * from hardware_diff_set_attributes(2,3);
 --returns objname:hr   attribute:purchase   olddata:2011-02-12   newdata:2012-01-01
 
+--terminate
 select hardware_terminate_diff();
 \end{minted}
 
 \section{Composition}
 Composition is described in \ref{sec:relation-contains}
-Linking objects with same name from different tables is maintained by before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
+Linking objects with the same name from different tables is maintained by before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
 Condition that one object could be contained in at most one another object is checked by the check constraints. When the table represents kind that is containable to more than one kind, the containable table has this check constraint.\\
-Following example shows, how the objects in composition relation are linked and disjoined. Result is in \ref{tab-comp-box} \ref{tab-comp-hw} \ref{tab-comp-switch}
+Following example shows, how the objects in composition relation are linked and disjoined. Result is in tables \ref{tab-comp-box}, \ref{tab-comp-hw} and \ref{tab-comp-switch}.
 
 \begin{minted}{sql}
 select startchangeset();
@@ -460,7 +468,7 @@ select box_add('h1');
 select box_add('h3');
 
 --select switch_add('h1');
---would raise exception - h1 switch and h1 hardware can not contain the same box
+--would raise exception (violates check constraint) - h1 switch and h1 hardware can not contain the same box
 select box_add('o1');
 select commitchangeset('r2');
 
@@ -527,15 +535,15 @@ select uid, name, box from switch;
 \end{center}
 
 \section{Multi-value References}
-Multi-value are described in \label{sec:multi-val}.\\
+\label{sec:multi-val}
+Multi-value references are described in \ref{sec:relation-multi-value-references}.\\
 For each table's attribute, which is a part of some multi-value reference, is generated table, we call it {\em inner table}. This inner table stores for each object from the table its {\tt identifier\_set} value.\\
 
 \subsection{Data Modifications and Versioning}
-Value of the {\tt identifier\_set} attribute has to be versioned to, so it is needed to generate history table for inner table as well.\\
-Each inner table has flag that is used to distinguish between rows representing empty set from rows representing NULL value.\\
-As inner table stores data of attribute that is part of versioned data, Multiref class generates also create statement for history table of inner tables.\\ 
-In addition to ordinary set attribute function that is for each kind and its attribute generated by Table class, Multiref class generates functions that insert or remove identifier into or from identifier set.\\
-Following example shows how can we work with {\tt identifier\_set}s. In tables \ref{tab-multi-hosthist} and \ref{tab-multi-innerhist} you can see whole history of objects in the example. The table \ref{tab-multi-hostv} shows result of the last select, it selects data from given version.
+As inner table stores data of attribute that is part of versioned data, it is needed to have history table for all inner tables as well.\\ 
+In addition to ordinary set attribute functions {\tt identifier\_set} attributes could be modified also by functions that insert or remove identifier into or from identifier set.\\
+Each inner table has attribute flag that is used to distinguish between rows representing empty set from rows representing NULL value.\\
+Following example shows how we can work with {\tt identifier\_set}s. In tables \ref{tab-multi-hosthist} and \ref{tab-multi-innerhist} you can see whole history of objects in the example. The table \ref{tab-multi-hostv} shows result of the last select, it selects data from given version.
 
 \begin{minted}{sql}
 select startchangeset();
@@ -629,7 +637,81 @@ select uid, name, host_get_service(uid,4) from host_data_version(4);
 \end{center}
 
 \subsection{Templates}
-The table, to which attribute an inner table is made, could also be templated. It is needed to create template table of these inner tables and have functions for resolving templated inner table's data.\\
+The table, to which attribute an inner table is made, could also be templated. So it is needed to have template table of these inner tables and have functions for resolving templated inner table's data.\\
+Following example shows how we can work with templated {\tt identifier\_set}s. Promised example of function, which retrieves resolved objects' data with the data origin, is introduced in the example. Also the function which process diff data and lists data modifications of {\tt identifier\_set} attributes is showed in the example.\\
+
+\begin{minted}{sql}
+select startchangeset();
+select service_add('s1');
+select service_add('s2');
+select service_add('s3');
+select host_add('h1');
+select host_add('h2');
+select host_template_add('t1');
+select host_template_add('t2');
+select host_template_set_service('t2',ARRAY['s1','s2']);
+select host_template_set_template_host('t1','t2');
+select host_template_set_note_host('t1','note from t1');
+select host_set_template_host('h1','t1');
+select host_set_template_host('h2','t2');
+select commitchangeset('r2');
+
+select startchangeset();
+select host_set_service_remove('h2','s2');
+select host_template_set_service_insert('t1','s3');
+select commitchangeset('r3');
+
+select host_init_resolved_diff(2,3);
+select * from host_diff_refs_set_set_attributes(2,3);
+--returns these two rows
+--objname:h1 attribute:service olddata:{s1,s2} newdata:{s1,s2,s3}
+--objname:h2 attribute:service olddata:{s1,s2} newdata:{s1}
+
+select host_terminate_diff();
+\end{minted}
+
+By calling the following selects we can get resolved data with the data origin, it means with inherited values and name of the object from which was the value taken.\\
+\begin{minted}{sql}
+select * from host_resolved_data_template_info();
+select * from host_resolved_data_template_info(2);
+\end{minted}
+
+Results are in \ref{tab-multi-reshost}} and \ref{tab-multi-reshostv2}.
+
+\begin{center}
+
+\begin{table}
+    \caption{host\_resolved\_data\_template\_info()}
+    \label{tab-multi-reshost}
+\begin{tabular}{ | l | l | l | l | l | l | l | }
+    \hline
+    \multicolumn{7}{|c|}{host\_resolved\_data\_template\_info()}\\
+    \hline
+    uid &  name &  service &  service\_templ &  note\_host &  note\_host\_templ &  template\_host\\
+    \hline
+    2 & h2 & \{s1\} & h2 &  &  & 2\\
+    1 & h1 & \{s1,s2,s3\} & t1 & note from t1 & t1 & 1\\
+    \hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+    \caption{host\_resolved\_data\_template\_info(2)}
+    \label{tab-multi-reshostv2}
+\begin{tabular}{ | l | l | l | l | l | l | l | }
+    \hline
+    \multicolumn{7}{|c|}{host\_resolved\_data\_template\_info(2)}\\
+    \hline
+    uid &  name &  service &  service\_templ &  note\_host &  note\_host\_templ &  template\_host\\
+    \hline
+    2 & h2 & \{s1,s2\} & t2 &  &  & 2\\
+    1 & h1 & \{s1,s2\} & t2 & note from t1 & t1 & 1\\
+    \hline
+\end{tabular}
+\end{table}
+
+
+\end{center}
 
 
 \end{document}

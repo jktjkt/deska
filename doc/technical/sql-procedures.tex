@@ -57,6 +57,7 @@ WHERE hardware.name != \$2 OR hardware.name IS NULL
 
 \section{SQL generator}
 \label{sec:sql-generator}
+This section describes how the tables and functions in the Deska database are generated. The Deska database is described in \ref{sec:deska-db}.
 
 The Sql generator is generator of stored procedures and tables that ensure data manipulation for scheme described in modules.\\
 All generated stored procedures are created in schema genproc.
@@ -121,42 +122,12 @@ The {\tt dest\_bit} attribute can be also set from on to off, this is the way, h
 
 \subsubsection{Diff}
 
-Diff has these stages:
-\begin{enumerate}
-    \item init diff
-    \item process diff data
-    \item terminate diff
-\end{enumerate}
-Stage init diff creates temporary table with almost all data needed to get list of all modifications.
-More init functions exist, one for diff between two versions and one for diff between state in temporary changeset and its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
-
-Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
-
-Terminate diff just drops the temporary table.
-
 \subsubsection{Commit}
-Commit function selects objects from history table of given kind which were just added, deleted or updated in the current changeset. Rows that belong to added objects are inserted into given kind's table in the schema production. Rows that belong to deleted objects are deleted from kind's table in the schema production. And rows that belong to updated objects are updated in kind's table in the schema production.\\
-Tables in schema production store resolved data. So it is needed to find modified objects and resolve their data. We should keep in mind that object's data could be modified even by modification in the object that templates this object.\\
-Commit of templated kinds is composed of:
-\begin{enumerate}
-    \item find all objects in kind\_template table that were modified in the current changeset
-    \item find all objects in kind\_template table that can tranistivly inherit data from objects in step 1
-    \item find all objetcs in kind table that inherit data from objects in step 2
-    \item resolve data of objects from step 3
-    \item process data from step 4 as it was selected from history table of not templated kinds
-\end{enumerate}
-
-% Does it need algorithm in pseudo code?
 
 \subsection{Template}
 When all tables described by user in modules are created, tables that have an attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
 Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
 Template table will be created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
-
-% -Templates are even part of the production schema and they behave like they were defined as a module by user.
-% -inherits relation from templated tables
-% -same data manipulation, procedure for data manipulation are generated after template
-% -identifier set creates inner table - has another structure (without name ...), needs templating too -> templates for them are generated inside multiref class
 
 \subsection{Composition}
 Composition class generates sql script that alters created history tables which are in some composition relation. These history tables are altered in the way to ensure consistent state of objects in composition relation. Triggers for linking objects and check constraints are added.\\
