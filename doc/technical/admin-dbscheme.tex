@@ -10,53 +10,57 @@ This chapter leads the Deska administrator through the process of customizing th
 needs, as well as through the deployment of the database side.
 \end{abstract}
 
-\label{sec:db-scheme-req}
-FIXME
+FIXME: tell the user how to actually configure the scheme; that's the part of the end-user docs.
 
-\section{Requirements on modules}
+\section{Requirements on the Table Layout}
+\label{sec:db-scheme-req}
 
 \subsection{General Requirements}
-Every sql mudule needs:
+Every SQL table provided by the user needs to:
 
 \begin{itemize}
-    \item set search\_path to schemas production and deska
-    \item have primary key column uid of bigint type
-    \item have unique, not null column name of identifier type; for embed tables should be unique pair uid and referencing column
-    \item assign created sequence's nextval as the default value of the column uid
+    \item Set {\tt search\_path} to schemas {\tt production} and {\tt deska}
+    \item Have primary key column {\tt uid} of the {\tt bigint} type
+    \item Have unique, not null column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
+        unique pair of a {\tt uid} and a referencing column
+    \item Use a sequence's {\tt nextval} as the default value of the column {\tt uid}
 \end{itemize}
 
-Following example shows the simplest deska module.
+Following example shows a simplest table to be used in Deska.
 
 \begin{minted}{sql}
 --
--- This is example of deska plug-in
+-- This is example of a user-provided table for Deska.
+-- It does not provide any attributes.
 --
--- every module must be place in schema production
 --
-SET search_path TO production,deska;
+SET search_path TO production, deska;
 
 CREATE SEQUENCE vendor_uid START 1;
 
---vendor is name of this kind
+-- vendor is the name of this kind
 CREATE TABLE vendor (
-    -- this column is required in all plugins
+    -- An internal primary key
     uid bigint DEFAULT nextval('vendor_uid')
         CONSTRAINT vendor_pk PRIMARY KEY,
-    -- name column is required in all plugins
+    -- Name is the user-visible identifier
     name identifier
         CONSTRAINT vendor_name_unique UNIQUE NOT NULL
 );
 \end{minted}
 
-It is not recommended to use module names with prefix "inner\_", module names with suffix "\_template" that has deska for internal use.
-The maximum length of kind name and attribute name is 20 together.
-Foreign keys have to have set ON DELETE NO ACTION, it's the default option. Foreign keys also needs to be set to DEFERRABLE.
+It is not recommended to use table names starting with a prefix {\tt "inner\_"}, or ending with {\tt "\_template"}, as
+Deska uses these names for internal use.  The total maximum length of a kind name and an attribute name is 20 characters
+together.  Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a default option. All foreign keys also
+needs to be set to {\tt DEFERRABLE}.
 
-\subsection{Relations definition}
+\subsection{Relations Definition}
 Here we will describe how to add Deska relations to modules.
 
-\subsubsection{Refers to}
-Refers to relation needs adding the foreign key constraint. This constraint have to:
+FIXME: add proper cross-references
+
+\subsubsection{REFERS\_TO}
+The {\tt REFERS\_TO} relation needs adding the foreign key constraint. This constraint have to:
 \begin{itemize}
     \item refer to module that will be installed before this one
     \item have referring column of bigint type
@@ -70,10 +74,8 @@ SET search_path TO production,deska;
 CREATE SEQUENCE hardware_uid START 1;
 
 CREATE TABLE hardware (
-    -- this column is required in all plugins
     uid bigint DEFAULT nextval('hardware_uid')
         CONSTRAINT hardware_pk PRIMARY KEY,
-    -- this column is required in all plugins
     name identifier
         CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
     vendor bigint 
@@ -81,8 +83,8 @@ CREATE TABLE hardware (
 );
 \end{minted}
 
-\subsection{Embed into}
-Embed into relation needs adding the foreign key constraint. This constraint have to:
+\subsection{EMBED\_INTO}
+The {\tt EMBED\_INTO} relation needs adding the foreign key constraint. This constraint have to:
 \begin{itemize}
     \item refer to module that will be installed before this one
     \item have referring column of bigint type
