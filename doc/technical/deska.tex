@@ -7,7 +7,7 @@
 \usepackage{longtable}
 \usepackage{graphicx}
 \usepackage{etoolbox}
-\usepackage{lmodern}
+\usepackage{lmodern}\renewcommand{\ttdefault}{lmvtt}
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
 \usepackage{hyperref}
@@ -18,15 +18,62 @@
 % http://tex.stackexchange.com/questions/3468/an-abstract-at-the-start-of-every-chapter
 \newenvironment{abstract}{\begin{quote}\itshape}{\end{quote}}
 
-\newcommand{\deskaFuncRef}[1]{{\hyperref[sec:api-ref-#1]{\tt {#1}}}}
+\newcommand{\deskaFuncRef}[1]{\hyperref[sec:api-ref-#1]{\tt{#1}}}
 
 \newcommand{\secref}[1]{section~\ref{#1} on page~\pageref{#1}}
+\hyphenation{
+kind-Names
+kind-Attributes
+kind-Relations
+kind-Instances
+object-Data
+multiple-Object-Data
+resolved-Object-Data
+multiple-Resolved-Object-Data
+resolved-Object-Data-With-Origin
+multiple-Resolved-Object-Data-With-Origin
+delete-Object
+create-Object
+restore-Deleted-Object
+rename-Object
+set-Attribute
+set-Attribute-Insert
+set-Attribute-Remove
+apply-Batched-Changes
+start-Changeset
+commit-Changeset
+pending-Changesets
+resume-Changeset
+detach-From-Current-Changeset
+abort-Current-Changeset
+lock-Current-Changeset
+unlock-Current-Changeset
+freeze-View
+un-Freeze-View
+restoring-Commit
+list-Revisions
+data-Difference
+data-Difference-In-Temporary-Changeset
+resolved-Data-Difference
+resolved-Data-Difference-In-Temporary-Changeset
+show-Config-Diff
+
+Deska::-Cli
+Deska::-Cli::-CliConfig
+Deska::-Cli::-DbInteraction
+Deska::-Cli::-UserInterface
+Deska::-Cli::-UserInterfaceIO
+Deska::-Cli::-Parser
+Db::-Identifier
+boost::-process::-detail::-systembuf
+}
+
 
 \begin{document}
 
 \title{Deska: A Tool for Central Administration and Monitoring of a Grid Site}
 
-\author{Jan Kundrát \and Tomáš Hubík}
+\author{Jan Kundrát \and Tomáš Hubík \and Lukáš Kerpl \and Martina Krejčová}
 
 \maketitle
 

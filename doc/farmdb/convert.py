@@ -295,10 +295,7 @@ modelbox 40u
   height 40
 end
 
-
-"""
-
-print """# Generic racks
+# Generic racks
 
 create formfactor rack
 
@@ -319,21 +316,22 @@ end
 box serverovna
   direct_modelbox serverovna
 end
-"""
 
-for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
-    print "create box %s" % rack
-    print "box %s" % rack
-    print "  inside serverovna"
-    print "  direct_modelbox generic-rack"
-    print "end"
-print
-print """
 create formfactor idataplex-unit
+create formfactor idataplex-sleeve
+
+create modelbox idataplex-rack
+modelbox idataplex-rack
+    internal_width 2
+    internal_height 48
+    internal_depth 1
+    accepts_inside [idataplex-sleeve]
+    formfactor rack
+end
 
 create modelbox idataplex-sleeve
 modelbox idataplex-chassis-2u
-    formfactor rackmount
+    formfactor idataplex-sleeve
     accepts_inside [idataplex-unit]
     width 1
     height 2
@@ -375,6 +373,19 @@ modelbox sgi-twin
     depth 1
 end
 """
+
+for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
+    print "create box %s" % rack
+    print "box %s" % rack
+    print "  inside serverovna"
+    if rack in ("L10", "L11"):
+        print "  direct_modelbox idataplex-rack"
+    else:
+        print "  direct_modelbox generic-rack"
+    print "end"
+print
+
+
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
     if x.vendorUid == "00000000-0000-0000-0000-000000000001":
