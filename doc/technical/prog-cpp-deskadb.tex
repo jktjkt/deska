@@ -22,7 +22,7 @@ The {\tt Deska::Db::Connection} employs a number of classes under the hood.  The
 section.
 
 At the very lowest level lies the {\tt Deska::Db::JsonExtractionTraits} policy class which defines proper methods of
-JSON serialization and deserialization of individuala data types, from strings, numbers and Deska identifiers to more
+JSON serialization and deserialization of individual data types, from strings, numbers and Deska identifiers to more
 complicated, compound types like IP addresses, timestamps and Deska server-side exceptions.  Each specialization of this
 class shall provides two methods, the {\tt toJson()} and {\tt fromJson()}, which are supposed to properly convert back
 and forth between the native C++ classes and their associated JSON representation.  These methods shall simply return
@@ -197,7 +197,7 @@ The {\tt DeskaDb} library delegates its IO interaction to a dedicates class, an 
 interface.  Two distinct implementations are provided, the {\tt ProcessIO}, which launches a child process and
 communicates with it through the stdin/stdout, and the {\tt UnixFdIO}, which uses a pair of Unix pipes, usually
 inherited from its parent process, to perform the communication.  The latter is required for proper support for
-configuraiton generators, which are described in \secref{sec:config-generators}.
+configuration generators, which are described in \secref{sec:config-generators}.
 
 \subsection{Stream Copying}
 
