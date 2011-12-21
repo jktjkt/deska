@@ -354,26 +354,27 @@ class DB:
 			regenerate = not self.changesetHasFreshConfig()
 			self.transaction_isolate()
 			res = self.runDBFunction(name,args,tag)
+			if "dbException" in res:
+				'''Or regular error in db response'''
+				self.db.rollback()
+				self.unlockCurrentChangeset()
+				return res
 			if regenerate:
 				self.cfgRegenerate()
-				self.markChangesetFresh()
+				#self.markChangesetFresh()
+				# there is no changeset at this time
+				# but we not need this, because if we are here, commit in db
+				# was successfull so only error while generating can occur
 			self.cfgPushToScm(args["commitMessage"])
 			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
 			self.db.rollback()
-			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
-			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e))
-		if "dbException" in res:
-			'''Or regular error in db response'''
-			self.db.rollback()
-			self.unlockCurrentChangeset()
-			return res
-		# this includes commmit transaction
+		self.db.commit()
 		self.transaction_shared()
 		# The lock is still held even after a commit. No other sessions is
 		# usually expected to try to obtain it, but it still won't hurt to
