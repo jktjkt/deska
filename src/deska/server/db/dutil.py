@@ -5,6 +5,8 @@ import json
 import re
 import generated
 import cProfile
+import trace
+import sys
 
 class profilable(object):
 	"""A decorator that enables function execution profiling"""
@@ -14,15 +16,22 @@ class profilable(object):
 	def __init__(self, f):
 		self.f = f
 		if profilable.profiler is None:
-			profilable.profiler = cProfile.Profile()
+			#profilable.profiler = cProfile.Profile()
+			profilable.profiler = trace.Trace(
+				ignoredirs=[sys.prefix, sys.exec_prefix],
+				timing=True, countfuncs=1, countcallers=1,
+				outfile="/tmp/tracing")
 
 	def __call__(self, *args, **kwargs):
-		res = profilable.profiler.runcall(self.f, *args, **kwargs)
+		#res = profilable.profiler.runcall(self.f, *args, **kwargs)
+		res = profilable.profiler.runfunc(self.f, *args, **kwargs)
 		self.dump_stats("/tmp/myprofile")
 		return res
 
 	def dump_stats(self, filename):
-		profilable.profiler.dump_stats(filename)
+		r = profilable.profiler.results()
+		r.write_results(show_missing=True, coverdir="/tmp")
+		#profilable.profiler.dump_stats(filename)
 
 class DeskaException(Exception):
 	'''Exception class for deska exceptions'''
