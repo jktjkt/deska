@@ -164,7 +164,6 @@ class DB:
 			if not self.freeze:
 				raise FreezingError("Cannot call unFreezeView, view is not frozen")
 			self.transaction_shared()
-			self.db.commit()
 			self.freeze = False
 			return self.responseJson(name,tag)
 		else:
