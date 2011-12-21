@@ -22,7 +22,7 @@ Every SQL table provided by the user needs to:
     \item Set {\tt search\_path} to schemas {\tt production} and {\tt deska}
     \item Have primary key column {\tt uid} of the {\tt bigint} type
     \item Have unique, not null column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
-        unique pair of a {\tt uid} and a referencing column (see \secref{sec:db-scheme-refers-to} for an example).
+        unique pair of a {\tt uid} and a referencing column (see \secref{sec:db-scheme-refers-to} for an example)
     \item Use a sequence's {\tt nextval} as the default value of the column {\tt uid}
 \end{itemize}
 
