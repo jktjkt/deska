@@ -322,15 +322,23 @@ class DB:
 				self.initCfgGenerator()
 				if forceRegen or not self.changesetHasFreshConfig():
 					logging.debug(" about to regenerate config")
+					self.transaction_isolate()
+					self.mark.execute("SAVEPOINT before_revision_commit;")
+					res = self.runDBFunction("commitChangeset", {"commitMessage": "showConfigDiff", "tag": "FakeTag"}, "FakeTag")
 					self.cfgRegenerate()
+					self.mark.execute("ROLLBACK TO SAVEPOINT before_revision_commit;")
+					self.db.rollback()
 					self.markChangesetFresh()
+					self.db.commit()
 				else:
 					logging.debug(" configuration was fresh already")
 				response[name] = self.cfgGetDiff()
 			finally:
+				self.db.rollback()
 				self.unlockCurrentChangeset()
 		except GeneratorError, e:
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
+		self.transaction_shared()
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
