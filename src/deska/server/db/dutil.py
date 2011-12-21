@@ -4,6 +4,25 @@ import Postgres
 import json
 import re
 import generated
+import cProfile
+
+class profilable(object):
+	"""A decorator that enables function execution profiling"""
+
+	profiler = None
+
+	def __init__(self, f):
+		self.f = f
+		if profilable.profiler is None:
+			profilable.profiler = cProfile.Profile()
+
+	def __call__(self, *args, **kwargs):
+		res = profilable.profiler.runcall(self.f, *args, **kwargs)
+		self.dump_stats("/tmp/myprofile")
+		return res
+
+	def dump_stats(self, filename):
+		profilable.profiler.dump_stats(filename)
 
 class DeskaException(Exception):
 	'''Exception class for deska exceptions'''
