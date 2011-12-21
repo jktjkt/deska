@@ -94,7 +94,10 @@ class DB:
 		self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
 		# commit search_path
 		self.db.commit()
+		# freeze mode
 		self.freeze = False
+		# autocommit mode - if you are in insolation and create SAVEPOINT you cannot be in autocommit mode
+		self.autocommit = True
 		self.cfggenBackend = cfggenBackend
 		self.cfggenOptions = cfggenOptions
 
@@ -134,6 +137,7 @@ class DB:
 		else:
 			self.db.set_isolation_level(2)
 			self.db.commit()
+		self.autocommit = False
 
 	def transaction_shared(self):
 		"""Restore the transaction isolation to a default level"""
@@ -144,6 +148,7 @@ class DB:
 		else:
 			self.db.set_isolation_level(1)
 			self.db.commit()
+		self.autocommit = True
 
 
 	def freezeUnfreeze(self,name,tag):
@@ -199,7 +204,7 @@ class DB:
 		return self.responseJson("applyBatchedChanges",tag)
 
 	def endTransaction(self):
-		if not self.freeze:
+		if self.autocommit:
 			self.db.commit()
 
 	def noJsonCallProc(self,name):
