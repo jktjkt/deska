@@ -125,6 +125,27 @@ class DB:
 		jsn = dict({"response": command, "tag": tag})
 		return json.dumps(jsn)
 
+	def transaction_isolate(self):
+		"""Set an isolation level between concurrent sessions"""
+		# commit and start new transaction with selected properties
+		if self.psycopg2_use_new_isolation:
+			self.db.commit()
+			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=True)
+		else:
+			self.db.set_isolation_level(2)
+			self.db.commit()
+
+	def transaction_shared(self):
+		"""Restore the transaction isolation to a default level"""
+		# set isolation level readCommited
+		if self.psycopg2_use_new_isolation:
+			self.db.commit()
+			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED, readonly=False)
+		else:
+			self.db.set_isolation_level(1)
+			self.db.commit()
+
+
 	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
 			# set isolation level serializable, and read only transaction
@@ -136,27 +157,13 @@ class DB:
 				changeset = None
 			if changeset is not None:
 				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
-			if self.psycopg2_use_new_isolation:
-				self.db.commit()
-				self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=True)
-			else:
-				self.db.set_isolation_level(2)
-				self.db.commit()
-			# commit and start new transaction with selected properties
+			self.transaction_isolate()
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
 			if not self.freeze:
 				raise FreezingError("Cannot call unFreezeView, view is not frozen")
-			# set isolation level readCommited
-			if self.psycopg2_use_new_isolation:
-				self.db.commit()
-				self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED, readonly=False)
-			else:
-				self.db.set_isolation_level(1)
-				self.db.commit()
-			# commit and start new transaction with selected properties
-			self.db.commit()
+			self.transaction_shared()
 			self.freeze = False
 			return self.responseJson(name,tag)
 		else:

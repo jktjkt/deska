@@ -89,11 +89,11 @@ This is because of the fact, that CLI uses the information provided by a server 
 with the format obtained from the server.
 
 First caching is made on DB structure. {\tt DbInteraction} stores names of kinds and their attributes in several maps
-(we used nested {\tt std::map} for implementation of these structures) for fast access to data needed for oparations with
+(we used nested {\tt std::map} for implementation of these structures) for fast access to data needed for operations with
 the DB. Information like to which kind each attribute refers, in which kind is some kind embedded and more are stored
 here. This is the caching made because of the format of the data.
 
-Another chaching is performed on querries checking if some object exists or not, as these querries are quite frequent.
+Another caching is performed on queries checking if some object exists or not, as these queries are quite frequent.
 Because all queries to the DB are performed through this class, we can update our cache while performing modification to
 the DB like creating objects, deleting objects, renaming objects and so on. This one reduces server load and network traffic.
 
@@ -119,24 +119,24 @@ protected:
 \end{minted}
 
 As you can see, the base is very simple. In constructor several mandatory variables of the class are set like
-completion patterns, command name, and usage description for help generation. These commands are infuencing the rest of
+completion patterns, command name, and usage description for help generation. These commands are influencing the rest of
 the Deska through pointer to {\tt UserInterface}. These command classes are stored in a map with their names as a key.
 After that they are picked up using this name. Executing the command is made by calling function {\tt bool operator()} with
 string as a parameter. This parameter could be then processed to influence behavior of each command. Return value is here
 to tell the other world is the executing of the command succeeded or not. Names and parameters of these commands
-are indepent on DB structure. Their purpose are things like operations with changesets, dumping, backuping and restoring
+are independent on DB structure. Their purpose are things like operations with changesets, dumping, backuping and restoring
 the DB and so on. We will describe each command separately in more detail later.
 
 The second type of commands are dependent on DB structure. They are used for manipulating data in the DB like setting attributes,
 creating, deleting and renaming objects and so on. Because of the fact, that these actions are performed using calls
-like "<attribute-name> <attribute-value>" or "<kind-name>" "<object-name>", you can see, that here actualy is not any
-name for this command. It is fully determined by the action it should perform. A special class was developped for parsing
+like "<attribute-name> <attribute-value>" or "<kind-name>" "<object-name>", you can see, that here actually is not any
+name for this command. It is fully determined by the action it should perform. A special class was developed for parsing
 of these "commands", class {\tt Parser}. It is one of the main components and also one of the most complicated, so we will
-describe it later in a separate section. The parser itself does not change the datain the DB. It communicates with the
-{\tt UserInterface} through simple class {\tt SignalsHandler}. This class is here because the parser emmits signals for
+describe it later in a separate section. The parser itself does not change the data in the DB. It communicates with the
+{\tt UserInterface} through simple class {\tt SignalsHandler}. This class is here because the parser emits signals for
 each action. These signals are caught and stored in the {\tt SignalsHandler}. Then comes two way processing of the stack,
-where in the first round each action represented by one signal is confirmed and then when all signels are confirmed, they
-are applyed to the DB. The confirmation and applying is performed via functions implemented in the {\tt UserInterface},
+where in the first round each action represented by one signal is confirmed and then when all signals are confirmed, they
+are applied to the DB. The confirmation and applying is performed via functions implemented in the {\tt UserInterface},
 that you can see on the following snippet.
 
 \begin{minted}{c++}
@@ -214,7 +214,7 @@ the same name must not exist and so on. So deleting does not break any constrain
 because you can create then the object of the same name as an old one, but you will never need to perform create before
 rename to unblock rename. Setting attributes must be last as it requires an existing object. After this sorting and
 merging the result is shown to the user using an interactive editor implemented in {\tt UserInterfaceIO}. Here the user
-can delete or modify the modifications. When the editting part is finished, the corrected list is processed and
+can delete or modify the modifications. When the editing part is finished, the corrected list is processed and
 all modifications are performed.
 
 \subsection{Log}
@@ -222,12 +222,12 @@ all modifications are performed.
 Function {\tt bool Log::operator()} when executed without parameters only obtains list of all revisions in the DB and
 prints this list using {\tt UserInterfaceIO} to the screen. The more interesting part of this class is parameters parser.
 It is based on {\tt boost::spirit} as well as the {\tt Parser}. Parsing of parameters is done by class {\tt LogFilterParser}.
-An output of this class is a {\tt Db::Filter}, that will be used directly for obtaining the list of revisions and similarily
+An output of this class is a {\tt Db::Filter}, that will be used directly for obtaining the list of revisions and similarly
 printed using {\tt UserInterfaceIO} to the screen. Now we will describe the {\tt LogFilterParser}.
 
 This class is inherited from {\tt boost::spirit::qi::grammar}. The grammar is based on three symbols tables with lazy lookup
-function. This method could be found under name "Nabialek trick". We have to use this method as the grammer is build at
-the runtime. This is because of the fact, thet we have to parse kind names, that are not known at compile time, but are obtained
+function. This method could be found under name "Nabialek trick". We have to use this method as the grammar is build at
+the runtime. This is because of the fact, that we have to parse kind names, that are not known at compile time, but are obtained
 from the DB. In the first symbols table there are names of metadata (author, timestamp, ...) and is filled at compile time
 directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier &kindName)}.
 The third table contains operators. This parser is connected to three error handlers. {\tt LogAttributeErrorHandler}
@@ -235,8 +235,8 @@ for reporting an error while parsing an metadata name or a kind name, {\tt LogId
 while parsing of an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
 metadata. The {\tt boost::spirit} error handlers ale classes with function {\tt operator()}, that will be invoked every time
 when the matching of the input to a specific rule fails. Each rule could have associated a number of error handlers. The
-problem of this way how error handlers work is, that when some rule fails, error handlers of other rules cointaining this one
-will be cascadely invoked. So we have to store all there errors in a stack and when some error occures process this stack
+problem of this way how error handlers work is, that when some rule fails, error handlers of other rules containing this one
+will be cascadely invoked. So we have to store all there errors in a stack and when some error occurs process this stack
 and inform user with a proper message. The whole grammar is build as a recursive expression parsing the input directly in the
 recursive filers represented by {\tt Db::Filter}. You can see the logics on the following snippet:
 
@@ -288,28 +288,28 @@ the grammar require more input on the end of the line, which is side effect of e
 This function obtains list of {\tt Db::ObjectModificationResult} between two revisions or between changeset and its parent.
 This depends on the parameters given. The output depends on the destination. If it is a diff to file the modifications
 are sorted in the way like in {\tt Rebase}. This is because of the fact, that this output of the diff could be used for
-example for backing the work in the changeset up. So we have to for example create the object bfore we are referencing it
+example for backing the work in the changeset up. So we have to for example create the object before we are referencing it
 in another object. This form of output is unfortunately not very user friendly. When the destination is a screen, the
-modifications are sorted in the way, that modifcations of one objects are groupped. This allows us to better ilustrate
+modifications are sorted in the way, that modifications of one objects are grouped. This allows us to better illustrate
 the obtained modifications.
 
 \subsection{Dump}
 
-Dump is performing some visual picture of the whole DB. The outpus is the same when dumping to the file or to the screen.
-It is not intended to be used for backing anything up as it does not take any contraints in account.
+Dump is performing some visual picture of the whole DB. The output is the same when dumping to the file or to the screen.
+It is not intended to be used for backing anything up as it does not take any constraints in account.
 The principle is very simple. We have a list of all kinds that could not be embedded in any other. This gives us a list
 of "top-level" kinds. Now we can obtain instances of these kinds and for each instance we obtain list of embedded objects.
 This is performed recursively. As the embedded objects can not live without their parents, we can print all objects in this way.
 
 \subsection{Batch}
 
-Class {\tt Batch} reads and performs cammands readable by the {\tt Parser} from a file. It could be used for reading of
+Class {\tt Batch} reads and performs commands readable by the {\tt Parser} from a file. It could be used for reading of
 an output from a diff.
 
 \subsection{Backup}
 
 Command "backup" is here to backup all persistent revisions from the DB including data. This is performed by obtaining
-differences between each two revisons and saving these differences in a file. The order of the modifications is the same
+differences between each two revisions and saving these differences in a file. The order of the modifications is the same
 as in case of diff to a file.
 
 The format of the backup is following:
@@ -352,7 +352,7 @@ FIXME: Format this somehow
 
 Restore reads backup created by {\tt Backup}. Restore is performed using function {\tt RevisionId restoringCommit(const
 std::string &commitMessage, const std::string &author, const boost::posix\_time::ptime &timestamp)}. The DB has to be empty
-in order to perform restore. This is checket before any actions are made.
+in order to perform restore. This is checked before any actions are made.
 
 \subsection{Execute}
 
@@ -368,7 +368,7 @@ Help collects all help entries from the {\tt Parser} and from all registered CLI
 
 \subsection{Other commands}
 
-There is a bunch of other comands, that are not very interesting. You can see a reference inline comments for more info.
+There is a bunch of other commands, that are not very interesting. You can see a reference inline comments for more info.
 Their names are {\tt Start}, {\tt Resume}, {\tt Commit}, {\tt Detach}, {\tt Abort}, {\tt Status}, {\tt NonInteractive},
 {\tt Configdiff}, {\tt Exit}, {\tt Context}.
 
@@ -376,14 +376,14 @@ Their names are {\tt Start}, {\tt Resume}, {\tt Commit}, {\tt Detach}, {\tt Abor
 
 The {\tt Parser} parses lines in the CLI, that does not begin with name of some command implemented through class {\tt Command}.
 The actions, you can perform though this parser do not depend only on the command written to the CLI, but also on the
-context in which the parser currently is. It is based on many sub parsers stored in maps and calfled depending on the current context.
+context in which the parser currently is. It is based on many sub parsers stored in maps and calculated depending on the current context.
 
 The whole parser operates in one loop. At the beginning, before the loop, it tries to parse function words using
 {\tt functionWordsParser} to switch the parsing mode. It means whether the whole kinds including attributes definitions
 or only kind definitions will be parsed etc. After parsing the function words, parser will step into the main loop.
 
-Here the grammars are invoked until the whole line is parsed or until some parse error occures. We have to parse
-the line in such loops because we are allowing so called inline opeartions. That means we can step into context of
+Here the grammars are invoked until the whole line is parsed or until some parse error occurs. We have to parse
+the line in such loops because we are allowing so called inline operations. That means we can step into context of
 a object and set attributes of this object using only one line. Setting an attribute value requires the parser to
 be in context of the object, which attribute are we going to set. So as you can see, context before parsing and
 during parsing can differ. The loops ensures, that after each parsed kind definition, the parsing is terminated so
@@ -428,7 +428,7 @@ Now we will describe the single sub-grammars and error reporting in more detail.
 
 Class {\tt PredefinedRules} contains definitions of rules parsing values of all defined types. These rules are stored
 in the map indexed by a {\tt Db::Type}. It also contains rules for all metadata types used in revisions and changesets
-like parsr of timestamps, revisions IDs, temporary changeset IDs and so on. You can see reference manual for more details.
+like parser of timestamps, revisions IDs, temporary changeset IDs and so on. You can see reference manual for more details.
 Each rule has assigned its name used in error reporting.
 
 If some would like to extend the Deska with more data types, he has to implement also rule for parsing of this datatype
@@ -442,8 +442,8 @@ This is made by oterator "or".
 {\tt AttributesSettingParser} parses only one pair from set of <attribute\_name> <attribute\_value> definitions, {\tt AttributeRemovalsParser}
 parses a pair "no" <attribute\_name> and {\tt IdentifiersSetsParser} parses commands like "add" <set\_name> <identifier> or
 "remove" <set\_name> <identifier>. Parsing only one pair does not mean that this parser accepts only
-one attribute. It menas, that parse accepts any attribute of a specific kind, but not a list of them.
-For parsing set of thees pairs, use some {\tt boost::spirit} operator like kleene star.
+one attribute. It means, that parse accepts any attribute of a specific kind, but not a list of them.
+For parsing set of these pairs, use some {\tt boost::spirit} operator like Kleene star.
 
 All these grammars are based on a symbols tables with lazy lookup function. This method could be found
 under name "Nabialek trick". This is the same trick as we used in {\tt LogFilterParser}. Each parsed comand is sent to the
@@ -457,7 +457,7 @@ There is one {\tt AttributeParser} with sub-parsers for each kind.
 
 \subsection{FunctionWordsParser}
 
-Function words parser is a stand-alone praser outside of the main parsing loop. As we wrote, this one parses function words
+Function words parser is a stand-alone parser outside of the main parsing loop. As we wrote, this one parses function words
 "create", "delete", "rename" and "show". Each parsed keyword is reported by appropriate function call that changes parsing mode.
 For example when keyword "delete" was recognized, the rest of the input will be parsed only by {\tt KindsParser}. It means
 no operations with attributes will be allowed for th rest of the line.
@@ -555,7 +555,7 @@ on_error<fail>(dispatch, valueErrorHandler(_1, _2, _3, _4,
     phoenix::ref(currentAttributeName), m_parent));
 \end{minted}
 
-You can see, that error handler are there tha same as in {\tt AttributesSettingParser} and has also the same function here.
+You can see, that error handler are there the same as in {\tt AttributesSettingParser} and has also the same function here.
 Another point to mention here is, that the return value of the rule "start" is the final {\tt Db::AttributeExpression},
 that is then processed by {\tt FiltersParser} and more complicated filters are constructed here by conjunction or disjunction
 of these {\tt Db::AttributeExpression}s.
@@ -630,7 +630,7 @@ The parser has a special mode for obtaining a list of tab completions. It is cal
 this dry run. No actions are propagated from the parser and after the parsing, the parser remains unchanged including its
 context stack. When the parsing succeeds, we are suggesting all keywords depending on the current context stack and line.
 Like "show", "add", "no", etc. When the parsing fails, we can process a list of possible tokens from each generated error
-and then use these tokens as possible completion patterns. Moreover when the error occures while parsing an attribute
+and then use these tokens as possible completion patterns. Moreover when the error occurs while parsing an attribute
 value, we investigate this attribute if it refers to some kind and then suggest instances of this kind as possible completions.
 One more thing to note here is, that also position of the error has to be taken in account as the error could occur somewhere
 else, than where we have out cursor. In this case we do no suggest any completions as the error is somewhere before the
