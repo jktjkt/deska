@@ -84,6 +84,7 @@ import dutil
 from filter import Filter
 import json
 
+@dutil.profilable
 @pytypes
 def main(tag,kindName,revision,filter):
 	name = "multipleResolvedObjectData"
