@@ -351,10 +351,12 @@ class DB:
 		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		try:
-			if not self.changesetHasFreshConfig():
+			regenerate = not self.changesetHasFreshConfig()
+			self.transaction_isolate()
+			res = self.runDBFunction(name,args,tag)
+			if regenerate:
 				self.cfgRegenerate()
 				self.markChangesetFresh()
-			res = self.runDBFunction(name,args,tag)
 			self.cfgPushToScm(args["commitMessage"])
 			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
@@ -371,7 +373,8 @@ class DB:
 			self.db.rollback()
 			self.unlockCurrentChangeset()
 			return res
-		self.db.commit()
+		# this includes commmit transaction
+		self.transaction_shared()
 		# The lock is still held even after a commit. No other sessions is
 		# usually expected to try to obtain it, but it still won't hurt to
 		# release the lock explicitly. However, the DB code tries to determine
