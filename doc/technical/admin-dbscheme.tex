@@ -72,9 +72,6 @@ constraint have to:
     \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
 
-FIXME: there's a discrepancy between what the docs say (``has to start with rrefer\_'') and what the example suggests
-below. Martina, please fix this one.
-
 \begin{minted}{sql}
 SET search_path TO production,deska;
 
@@ -86,11 +83,11 @@ CREATE TABLE hardware (
     name identifier
         CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
     vendor bigint 
-        CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+        CONSTRAINT rrefer_hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 );
 \end{minted}
 
-\subsection{EMBED\_INTO}
+\subsubsection{EMBED\_INTO}
 The {\tt EMBED\_INTO} relation needs adding the foreign key constraint. This constraint have to:
 \begin{itemize}
     \item refer to module that will be installed before this one
@@ -118,9 +115,8 @@ CREATE TABLE interface (
 \end{minted}
 
 
-
-\subsubsection{Template}
-Template relation needs adding special column to the module. This column have to:
+\subsubsection{TEMPLATIZE}
+Templatize relation needs adding special column to the module. This column have to:
 \begin{itemize}
     \item have name with {\tt template\_} prefix
     \item be the only one column in module with name with {\tt template\_} prefix
