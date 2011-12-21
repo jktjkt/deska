@@ -88,14 +88,14 @@ CREATE TRIGGER box_trigger_2 BEFORE INSERT OR UPDATE ON box FOR EACH ROW
 	EXECUTE PROCEDURE box_check_position();
 
 
-CREATE FUNCTION box_not_in_cycle(box_uid bigint)
+CREATE FUNCTION box_not_in_cycle(box_uid bigint, inside_uid bigint)
 RETURNS BOOLEAN
 AS
 $$
 BEGIN
 IF box_uid IN (
     WITH recursive rdata AS(
-        SELECT inside AS uid FROM box WHERE uid = box_uid AND inside IS NOT NULL
+        SELECT inside_uid AS uid
         UNION
         SELECT inside FROM box b JOIN rdata rd ON (b.uid = rd.uid)
         WHERE inside IS NOT NULL
@@ -112,4 +112,4 @@ END;
 $$
 LANGUAGE plpgsql;
 
-ALTER TABLE box ADD CONSTRAINT box_chck_inside CHECK (box_not_in_cycle(uid) = true);
+ALTER TABLE box ADD CONSTRAINT box_chck_inside CHECK (box_not_in_cycle(uid, inside));
