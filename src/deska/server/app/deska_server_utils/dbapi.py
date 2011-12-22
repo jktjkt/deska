@@ -94,7 +94,10 @@ class DB:
 		self.mark.execute("SET search_path TO jsn,api,genproc,history,deska,versioning,production;")
 		# commit search_path
 		self.db.commit()
+		# freeze mode
 		self.freeze = False
+		# autocommit mode - if you are in insolation and create SAVEPOINT you cannot be in autocommit mode
+		self.autocommit = True
 		self.cfggenBackend = cfggenBackend
 		self.cfggenOptions = cfggenOptions
 
@@ -125,15 +128,16 @@ class DB:
 		jsn = dict({"response": command, "tag": tag})
 		return json.dumps(jsn)
 
-	def transaction_isolate(self):
+	def transaction_isolate(self, readonly):
 		"""Set an isolation level between concurrent sessions"""
 		# commit and start new transaction with selected properties
 		if self.psycopg2_use_new_isolation:
 			self.db.commit()
-			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=True)
+			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=readonly)
 		else:
 			self.db.set_isolation_level(2)
 			self.db.commit()
+		self.autocommit = False
 
 	def transaction_shared(self):
 		"""Restore the transaction isolation to a default level"""
@@ -144,6 +148,7 @@ class DB:
 		else:
 			self.db.set_isolation_level(1)
 			self.db.commit()
+		self.autocommit = True
 
 
 	def freezeUnfreeze(self,name,tag):
@@ -157,7 +162,7 @@ class DB:
 				changeset = None
 			if changeset is not None:
 				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
-			self.transaction_isolate()
+			self.transaction_isolate(readonly=True)
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
@@ -199,7 +204,7 @@ class DB:
 		return self.responseJson("applyBatchedChanges",tag)
 
 	def endTransaction(self):
-		if not self.freeze:
+		if self.autocommit:
 			self.db.commit()
 
 	def noJsonCallProc(self,name):
@@ -322,15 +327,23 @@ class DB:
 				self.initCfgGenerator()
 				if forceRegen or not self.changesetHasFreshConfig():
 					logging.debug(" about to regenerate config")
+					self.transaction_isolate(readonly=False)
+					self.mark.execute("SAVEPOINT before_revision_commit;")
+					res = self.runDBFunction("commitChangeset", {"commitMessage": "showConfigDiff", "tag": "FakeTag"}, "FakeTag")
 					self.cfgRegenerate()
+					self.mark.execute("ROLLBACK TO SAVEPOINT before_revision_commit;")
+					self.db.rollback()
 					self.markChangesetFresh()
+					self.db.commit()
 				else:
 					logging.debug(" configuration was fresh already")
 				response[name] = self.cfgGetDiff()
 			finally:
+				self.db.rollback()
 				self.unlockCurrentChangeset()
 		except GeneratorError, e:
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
+		self.transaction_shared()
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
@@ -338,27 +351,31 @@ class DB:
 		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		try:
-			if not self.changesetHasFreshConfig():
-				self.cfgRegenerate()
-				self.markChangesetFresh()
+			regenerate = not self.changesetHasFreshConfig()
+			self.transaction_isolate(readonly=False)
 			res = self.runDBFunction(name,args,tag)
+			if "dbException" in res:
+				'''Or regular error in db response'''
+				self.db.rollback()
+				self.unlockCurrentChangeset()
+				return res
+			if regenerate:
+				self.cfgRegenerate()
+				#self.markChangesetFresh()
+				# there is no changeset at this time
+				# but we not need this, because if we are here, commit in db
+				# was successfull so only error while generating can occur
 			self.cfgPushToScm(args["commitMessage"])
 			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
 			self.db.rollback()
-			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
 			self.db.rollback()
-			self.unlockCurrentChangeset()
 			return self.errorJson(name, tag, str(e))
-		if "dbException" in res:
-			'''Or regular error in db response'''
-			self.db.rollback()
-			self.unlockCurrentChangeset()
-			return res
 		self.db.commit()
+		self.transaction_shared()
 		# The lock is still held even after a commit. No other sessions is
 		# usually expected to try to obtain it, but it still won't hurt to
 		# release the lock explicitly. However, the DB code tries to determine

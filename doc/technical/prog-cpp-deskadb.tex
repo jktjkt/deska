@@ -51,7 +51,9 @@ data.}
 
 To allow this dynamic checking of high-level constraints, the {\tt CachingJsonApi} class adds metadata caching to the
 picture.  This addition is necessary to prevent illegal loops of metadata requests going on between the Deska library
-and the remote server.
+and the remote server.  Furthermore, for performance reasons, this layer also supports optional postponing of commands
+which modify the database in order to be able to squash them into a few large batch operations.  The cache control is
+described in the Doxygen documentation of the {\tt Deska::Db::CachingJsonApi::setCommandBatching()} method.
 
 The {\tt Deska\_p} class adds a streaming IO support on top of the {\tt CachingJsonApi}, and is finally wrapped in the
 {\tt Deska::Db::Connection} class which strives to provide a stable ABI on top of C++ objects (which is, one might add,
