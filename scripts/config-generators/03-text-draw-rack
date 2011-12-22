@@ -9,6 +9,9 @@ deska.init()
 
 t1 = time.time()
 boxes = deska.box._all()
+hardware = deska.hardware._all()
+modelbox = deska.modelbox._all()
+modelhardware = deska.modelhardware._all()
 t2 = time.time()
 
 queue = ["serverovna"]
@@ -40,7 +43,29 @@ def position_sorter(item):
 
 def print_current(s, indent, key):
     prefix = " " * indent
-    s.write("%s%s\n" % (prefix, key))
+    my_modelbox = None
+    message = None
+    if boxes[key].direct_modelbox is not None:
+        my_modelbox = deska.modelbox[deska.modelbox.name == boxes[key].direct_modelbox]
+    elif boxes[key].hardware is not None:
+        # due to the way how the relations work, we can rely on the same name here
+        # That doesn't work
+        # modelbox = deska.modelbox[deska.hardware.name == key]
+        name_modelhardware = hardware[key].modelhardware
+        my_modelhardware = {name_modelhardware:
+                            modelhardware[name_modelhardware]}
+        name_modelbox = my_modelhardware[name_modelhardware].modelbox
+        if name_modelbox is None:
+            message = " [modelhardware %s has no associated modelbox]" % name_modelhardware
+        else:
+            my_modelbox = {name_modelbox: modelbox[name_modelbox]}
+    if my_modelbox is not None:
+        additional = ": %s %s" % (my_modelbox.keys()[0], repr(my_modelbox.values()[0]))
+    elif message is not None:
+        additional = message
+    else:
+        additional = " [no modelbox]"
+    s.write("%s%s%s\n" % (prefix, key, additional))
     for x in sorted(res[key], key=position_sorter):
         print_current(s, indent + 1, x)
 
