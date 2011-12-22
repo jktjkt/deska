@@ -9,7 +9,115 @@
 The following chapter serves as a users' guide to the CLI application.
 \end{abstract}
 
-FIXME
+\section{Prompt and context}
+
+When the CLI is started, you will se the command prompt, where the commands could be entered. The prompt has its context.
+The context is something like a path to some object where each object in the path is nested to the previous. 
+It means, that all commands manipulating, or working with objects will now be related to this context. This behavior
+is very similar to an ordinary unix prompt where under context we can imagine a current directory where we are. Actually the
+context could represent a set of objects, because it can contain also filters, not only single object definitions.
+We will talk about filters later. Context means, that all commands manipulating, or working with objects will now be related to
+object or objects represented by this context. This behavior is very similar to an ordinary unix prompt where under context
+we can imagine a current directory where we are. In unix prompt all commands like "ls", "cd", "mv" and so on are also related
+to the current directory.
+
+You can go into the context of some object simply by typing its kind and name. For example:
+
+\begin{minted}{text}
+> host hpv2
+host hpv2> interface eth0
+host hpv2->interface eth0>
+\end{minted}
+
+Now we are in context of object interface "interface eth0" embedded in "host hpv2". Steping from the context is done by
+keyword "end".
+
+There is also a possibility of shortened types of jumping into context of a nested object using "->" in the name of the
+object.
+
+\begin{minted}{text}
+> interface hpv2->eth0
+host hpv2->interface eth0> end
+host hpv2> end
+>
+\end{minted}
+
+The "interface hpv2->eth0" is equivalent to "host hpv2 interface eth0". So also keyword "end" will jump into context of
+"host hpv2" and not to a "top-level" context. This shortened version could be used also in commands manipulating with
+objects.
+
+\subsection{Filters}
+
+Now we can describe, how to use filters in the context. Filter could be entered by typing kind name followed by keyword
+"where" and then writing filter definition in braces. The filter definition syntax could be described as this recursive
+structure:
+
+\begin{minted}{text}
+<filter>     = (<andFilter>) or (<orFilter>) or (<expression>)
+<andFilter>  = list of <filter> separated by '&'
+<orFilter>   = list of <filter> separated by '|'
+<expression> = comparison of attribute name and some value
+\end{minted}
+
+Note that each part of the filter has to be in braces. In a filter for a specific kind you can use expressions containing
+attributes directly from this kind, or kinds, that are contained in this one. There is also possibility to use expressions
+containing attributes of any kind, that is in some relation wtih this one. With relations we mean standard Deska relations
+like "embed into", "contains" and "containable" and "refers to". These attributes should be prefixed by name of their
+kind with dot. For example "interface.ipv4". There are two sets of operators, that can be used in expressions. First
+set is for standard attributes: "<", ">", "<=", ">=", "!=" or "<>" and "=" or "==". The second set is for identifiers
+sets. There are only two operators: "contains" and "not_contains".
+
+Filters are an exception in a concept of context. Normally we can not be in context of a specific interface without being
+in context of its host. Filters are a little bit different as a set of interfaces should not have one shared parent. So
+when being in top-level context, we can write filter on any kind. When being in context of some object, this filter
+relates to this context and we can filter only on objects and kinds, that are embedded directly or recursively in this object.
+
+Now we will show some examples of filters:
+
+Filter on hardware from a specific vendor:
+\begin{minted}{text}
+> hardware where (vendor == HP)
+filter on hardware> end
+>
+\end{minted}
+
+This was filter using attribute directly from hardware. We can also ask for the same thing using attribute from vendor.
+\begin{minted}{text}
+> hardware where (vendor.name == HP)
+filter on hardware> end
+>
+\end{minted}
+
+Now we can write filter for hardware not puchased in 2010 serving as www server.
+
+\begin{minted}{text}
+> hardware where (((purchase < 2010/01/01) | (purchase > 2010/12/31)) & (host.service contains www))
+filter on hardware> end
+>
+\end{minted}
+
+There are also two special filters. One is for selecting all instances of a specific kind. This is done by keyword "all".
+\begin{minted}{text}
+> all host
+filter on host> end
+>
+\end{minted}
+
+We can use this filter also for for example all interfaces of a specific host.
+\begin{minted}{text}
+> host hpv2
+host hpv2> all interface
+host hpv2->filter on interface> end
+host hpv2>
+>
+\end{minted}
+
+The second filter is for obtaining last added embedded object using keyword "new". The usage is the same as in case of
+"all". We will describe usage of both keywords later.
+
+\section{Showing content of the DB}
+
+
 
 \section{Database Backup}
 \label{sec:cli-db-backup}
