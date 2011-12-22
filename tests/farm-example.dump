@@ -179,14 +179,14 @@ modelhardware dl140
 end
 
 # FIXME
-create modelhardware BNT-RackSwitch-G8124
-modelhardware BNT-RackSwitch-G8124
+create modelswitch BNT-RackSwitch-G8124
+modelswitch BNT-RackSwitch-G8124
   vendor IBM
   modelbox 1u
 end
 
-create modelhardware Force10-24-port-10GE-XFP
-modelhardware Force10-24-port-10GE-XFP
+create modelswitch Force10-24-port-10GE-XFP
+modelswitch Force10-24-port-10GE-XFP
   vendor force10
   modelbox 1u
 end
