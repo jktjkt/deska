@@ -132,8 +132,8 @@ box L01
 end
 
 # dumping HW models
-create modelhardware IBM-iDataPlex-dx340
-modelhardware IBM-iDataPlex-dx340
+create modelhardware dx340
+modelhardware dx340
   cpu_sockets 2
   cpu_cores 4
   cpu_type "Intel Xeon 5440"
@@ -191,8 +191,8 @@ modelhardware Force10-24-port-10GE-XFP
   modelbox 1u
 end
 
-create modelhardware IBM-iDataPlex-dx360-M2
-modelhardware IBM-iDataPlex-dx360-M2
+create modelhardware dx360-m2
+modelhardware dx360-m2
   cpu_sockets 2
   cpu_cores 4
   cpu_type "Intel Xeon E5520"
@@ -207,8 +207,8 @@ modelhardware IBM-iDataPlex-dx360-M2
   modelbox idataplex-1u
 end
 
-create modelhardware IBM-iDataPlex-dx360-M3
-modelhardware IBM-iDataPlex-dx360-M3
+create modelhardware dx360-m3
+modelhardware dx360-m3
   cpu_sockets 2
   cpu_cores 6
   cpu_type "Intel Xeon X5650"
@@ -223,8 +223,8 @@ modelhardware IBM-iDataPlex-dx360-M3
   modelbox idataplex-1u
 end
 
-create modelhardware SGI-Altix-XE310
-modelhardware SGI-Altix-XE310
+create modelhardware xe310
+modelhardware xe310
   cpu_sockets 2
   cpu_cores 4
   cpu_type "Intel Xeon E5420 "
@@ -246,7 +246,7 @@ hardware ibis28
   serial_1 "06K6579"
 # FIXME  warrantyExpires 2012-12-16
   purchased 2009-12-16
-  modelhardware IBM-iDataPlex-dx360-M2
+  modelhardware dx360-m2
 end
 create host ibis28
 create box ibis28-ibis27
@@ -265,7 +265,7 @@ hardware ibis27
   serial_1 "06K6578"
 # FIXME  warrantyExpires 2012-12-16
   purchased 2009-12-16
-  modelhardware IBM-iDataPlex-dx360-M2
+  modelhardware dx360-m2
 end
 create host ibis27
 create box ibis27
@@ -277,7 +277,7 @@ end
 create hardware iberis27
 hardware iberis27
   serial_1 "0635234"
-  modelhardware IBM-iDataPlex-dx340
+  modelhardware dx340
 end
 create host iberis27
 create box iberis27-iberis28
@@ -294,7 +294,7 @@ end
 create hardware iberis28
 hardware iberis28
   serial_1 "0635204"
-  modelhardware IBM-iDataPlex-dx340
+  modelhardware dx340
 end
 create host iberis28
 create box iberis28
@@ -307,9 +307,7 @@ create hardware sql
 hardware sql
   serial_1 "CZJ94907SV"
   inventory_no '112251-0'
-# FIXME: cpu_ht at the individual level: 1
   purchased 2009-12-31
-# FIXME: os SL5.5
   modelhardware dl360
 end
 create host sql
@@ -361,10 +359,6 @@ interface sql->eth0
   ip4 147.231.25.23
 end
 end
-
-
-
-
 
 
 
