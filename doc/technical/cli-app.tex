@@ -229,7 +229,7 @@ This class is inherited from {\tt boost::spirit::qi::grammar}. The grammar is ba
 function. This method could be found under name "Nabialek trick". We have to use this method as the grammar is build at
 the runtime. This is because of the fact, that we have to parse kind names, that are not known at compile time, but are obtained
 from the DB. In the first symbols table there are names of metadata (author, timestamp, ...) and is filled at compile time
-directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier &kindName)}.
+directly in the constructor. The second one is empty and will be filled using function {\tt void addKind(const Db::Identifier \&kindName)}.
 The third table contains operators. This parser is connected to three error handlers. {\tt LogAttributeErrorHandler}
 for reporting an error while parsing an metadata name or a kind name, {\tt LogIdentifierErrorHandler} for reporting errors
 while parsing of an object name and {\tt LogValueErrorHandler} for reporting an error while parsing a value of some
@@ -351,7 +351,7 @@ FIXME: Format this somehow
 \subsection{Restore}
 
 Restore reads backup created by {\tt Backup}. Restore is performed using function {\tt RevisionId restoringCommit(const
-std::string &commitMessage, const std::string &author, const boost::posix\_time::ptime &timestamp)}. The DB has to be empty
+std::string \&commitMessage, const std::string \&author, const boost::posix\_time::ptime \&timestamp)}. The DB has to be empty
 in order to perform restore. This is checked before any actions are made.
 
 \subsection{Execute}
