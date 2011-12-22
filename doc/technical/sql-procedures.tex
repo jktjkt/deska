@@ -107,9 +107,9 @@ Plpgsql functions for following DBAPI commands are generated inside the Table cl
 \subsubsection{History tables}
 In following text we will talk about {\tt table} and its history table {\tt table\_history}.\\
 For each table created in schema production a table with suffix \_history is generated. {\tt table\_history} serves as complete history of objects of kind that is represented by {\tt table} in database. These history tables are created in schema history.\\
-{\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} and {\tt version} attributes. {\tt dest\_bit} attribute indicates whether the object was deleted or not. In {\tt version} attribute is stored in which changeset was this row inserted. Inserted rows represnts new object creation but even modification of an object. Don't confuse this {\tt version} attribute with the number of revision.
+{\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} and {\tt version} attributes. {\tt dest\_bit} attribute indicates whether the object was deleted or not. In {\tt version} attribute is stored in which changeset was this row inserted. Inserted rows represents new object creation but even modification of an object. Don't confuse this {\tt version} attribute with the number of revision.
 
-\subsubsection{Retrive Object Data}
+\subsubsection{Retrieve Object Data}
 Getting objects' data means getting data of these objects' last modification before the given version in which user would like to get them.
 In resolved modifications of get data functions it is needed to resolve these data. And to resolve them again use inherited data from templates' last modification before the given version.
 These resolving functions are written as recursive selects.
@@ -121,11 +121,14 @@ Object deletion is done by setting {\tt dest\_bit} attribute on.\\
 The {\tt dest\_bit} attribute can be also set from on to off, this is the way, how we can undo deletion. But it is enabled only in the same changeset in which it was set to on. This deleted object will not exist later and will not be found.
 
 \subsubsection{Diff}
+For diffing are generated functions for diff initialization, processing data prepared during the initialization and cleaning after diff. For templated tables is generated also the resolved modification of function for diff initialization. Data processing stays the same even for diff of resolved data, because all data resolving is done in the initialization step.\\
+These diff initialization functions have two other forms, for getting list of modifications between two versions and between the state inside temporary changeset and in its parent version. Even data processing have to take into consideration between which stages is diffing done. It is because it is needed for columns, which refers to some table uid and were changed, the proper name have to be taken.
 
 \subsubsection{Commit}
+Table class for given table generates also commit function that bring tables in the production schema up to data. As data in tables in the production schema are resolved and templated data could be modified even by a change in the template table, it is necessary to distinguish templated tables from not templated and generate different commit functions for them.
 
 \subsection{Template}
-When all tables described by user in modules are created, tables that have an attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
+When all tables described by user are created, tables that have an attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
 Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
 Template table will be created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
 

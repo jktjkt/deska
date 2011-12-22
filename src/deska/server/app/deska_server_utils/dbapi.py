@@ -128,12 +128,12 @@ class DB:
 		jsn = dict({"response": command, "tag": tag})
 		return json.dumps(jsn)
 
-	def transaction_isolate(self, readonly):
+	def transaction_isolate(self):
 		"""Set an isolation level between concurrent sessions"""
 		# commit and start new transaction with selected properties
 		if self.psycopg2_use_new_isolation:
 			self.db.commit()
-			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE, readonly=readonly)
+			self.db.set_session(isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
 		else:
 			self.db.set_isolation_level(2)
 			self.db.commit()
@@ -153,7 +153,7 @@ class DB:
 
 	def freezeUnfreeze(self,name,tag):
 		if name == "freezeView":
-			# set isolation level serializable, and read only transaction
+			# set isolation level serializable
 
 			# try if there is changeset attached
 			try:
@@ -162,7 +162,7 @@ class DB:
 				changeset = None
 			if changeset is not None:
 				raise FreezingError("Cannot run freezeView, changeset tmp%s is attached." % changeset)
-			self.transaction_isolate(readonly=True)
+			self.transaction_isolate()
 			self.freeze = True
 			return self.responseJson(name,tag)
 		elif name == "unFreezeView":
@@ -327,7 +327,7 @@ class DB:
 				self.initCfgGenerator()
 				if forceRegen or not self.changesetHasFreshConfig():
 					logging.debug(" about to regenerate config")
-					self.transaction_isolate(readonly=False)
+					self.transaction_isolate()
 					self.mark.execute("SAVEPOINT before_revision_commit;")
 					res = self.runDBFunction("commitChangeset", {"commitMessage": "showConfigDiff", "tag": "FakeTag"}, "FakeTag")
 					self.cfgRegenerate()
@@ -352,7 +352,7 @@ class DB:
 		self.initCfgGenerator()
 		try:
 			regenerate = not self.changesetHasFreshConfig()
-			self.transaction_isolate(readonly=False)
+			self.transaction_isolate()
 			res = self.runDBFunction(name,args,tag)
 			if "dbException" in res:
 				'''Or regular error in db response'''

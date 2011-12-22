@@ -27,7 +27,7 @@ Each history table contains, in addition to attributes in the table defined by u
     \hline
     \multicolumn{6}{|c|}{hardware\_history}\\
     \hline
-    name & uid & purchase & note & dets\_bit & version\\
+    name & uid & purchase & note & dest\_bit & version\\
     \hline
     h1 & 1 & & & 0 & 1 \\
     h2 & 2 & & & 0 & 1 \\
@@ -96,7 +96,7 @@ Important information for us are id and num. id is id of changeset from which th
 \end{center}
 
 
-There are some examples of data retriving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.\\
+There are some examples of data retrieving, results are in table \ref{tab-select-hardware} and table \ref{tab-select-hardware-v3}.\\
 
 \begin{minted}{sql}
 --functions for data retrieving without parameters returns the most actual data
@@ -113,7 +113,7 @@ select * from hardware_data_version(3);
     \hline
     \multicolumn{6}{|c|}{hardware\_data\_version()}\\
     \hline
-    uid & name & note & purchase & version & dets\_bit\\
+    uid & name & note & purchase & version & dest\_bit\\
     \hline
     2 & h2 & note & 2011-01-01 & 3 & 0\\
     \hline
@@ -131,7 +131,7 @@ select * from hardware_data_version(3);
     \hline
     \multicolumn{6}{|c|}{hardware\_data\_version(3)}\\
     \hline
-    uid & name & note & purchase & version & dets\_bit\\
+    uid & name & note & purchase & version & dest\_bit\\
     \hline
     1 & h1 &  &  & 1 & 0\\
     2 & h2 & note &  & 2 & 0\\
@@ -457,7 +457,7 @@ select hardware_terminate_diff();
 Composition is described in \ref{sec:relation-contains}.
 Linking objects with the same name from different tables is maintained by before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
 Condition that one object could be contained in at most one another object is checked by the check constraints. When the table represents kind that is containable to more than one kind, the containable table has this check constraint.\\
-Following example shows, how the objects in composition relation are linked and disjoined. Result is in tables \ref{tab-comp-box}, \ref{tab-comp-hw} and \ref{tab-comp-switch}.
+Following example shows, how the objects in composition relation are linked and disjoint. Result is in tables \ref{tab-comp-box}, \ref{tab-comp-hw} and \ref{tab-comp-switch}.
 
 \begin{minted}{sql}
 select startchangeset();
@@ -676,7 +676,7 @@ select * from host_resolved_data_template_info();
 select * from host_resolved_data_template_info(2);
 \end{minted}
 
-Results are in \ref{tab-multi-reshost}} and \ref{tab-multi-reshostv2}.
+Results are in \ref{tab-multi-reshost} and \ref{tab-multi-reshostv2}.
 
 \begin{center}
 

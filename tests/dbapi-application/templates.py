@@ -83,6 +83,11 @@ def do_hardware(r):
     helper_check_hw3(r, hw3_1)
     helper_check_non_templated(r)
 
+    # try it from inside a frozen view
+    r.cvoid(freezeView())
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("hardware", "hw3")), hw3_1)
+    r.cvoid(unFreezeView())
+
     # Now let's see how templates come into play. Let's inherit three attributes.
     r.c(startChangeset())
     r.assertEqual(r.c(createObject("hardware_template", "t1")), "t1")

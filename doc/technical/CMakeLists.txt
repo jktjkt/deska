@@ -21,6 +21,15 @@
 project(deska)
 include(../../UseLATEX.cmake)
 
+# There does not appear to be any reasonable way of ensuring that:
+# a) the pdflatex does not prompt for input at all,
+# b) the process stops on error immediately,
+# c) no .pdf output is ever produced in case of an error
+#
+# The current situation (-interaction=nonstopmode) prevents interactive prompts,
+# but still produces .pdf files and therefore masks the real issue.
+# A reasonable workaround for debugging is to temporarily comment out inheriting
+# the PDFLATEX_COMPILER_FLAGS below.
 set(PDFLATEX_COMPILER_FLAGS "-shell-escape" "${PDFLATEX_COMPILER_FLAGS}")
 
 file(GLOB deska_doc_tex
