@@ -37,7 +37,7 @@ template <typename Iterator> class FilterExpressionsParser;
 *   The grammar is based on a symbols table with lazy lookup function. This method could be found
 *   under name "Nabialek trick".
 *
-*   This parser is connected to one error handler. KindErrorHandler for reporting an error while parsing
+*   This parser is connected to one error handler. KindFiltersErrorHandler for reporting an error while parsing
 *   name of nested kind.
 *
 *   @see KindFiltersErrorHandler
