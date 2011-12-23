@@ -423,14 +423,16 @@ class Table(constants.Templates):
 	def gen_get_uid(self):
 		"""Generates stored function that returns the uid of the object with the given name."""
 		return self.get_uid_string % {'tbl': self.name} + \
-		self.get_uid_real_string % {'tbl': self.name}
+		self.get_uid_real_string % {'tbl': self.name} + \
+		self.find_uid_string % {'tbl': self.name}
 
 	def gen_get_uid_embed(self, refcolumn, reftable):
 		"""Generates stored function that returns the uid of the object with the given name.
 		This function is used for the tables that are embed into another.
 		"""
 		return self.get_uid_embed_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER} + \
-		self.get_uid_embed_real_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
+		self.get_uid_embed_real_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER} + \
+		self.find_uid_embed_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
 
 	def gen_commit_templated(self):
 		"""gen_commit_templated generates commit function for templated tables.
