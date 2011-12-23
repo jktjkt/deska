@@ -15,7 +15,7 @@ reimplementation.
 \label{sec:dbapi-protocol}
 
 First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
-database, after all, is built on PostgreSQL, which already provides a library which can be used to access database
+database, after all, is built on PostgreSQL~\cite{postgresql}, which already provides a library which can be used to access database
 servers.  However, using a RDBMS-specific transport library would make the Deska application suite needlessly tied to
 one particular database server implementation.  Exposing a low-level SQL-like interface, even when wrapped by stored
 procedures, would make it very hard to prevent users from accessing the database without first going through a
@@ -32,7 +32,7 @@ allow future extensions towards non-blocking operation.
 
 After defining the general mode of operation for an interface, there is a need to establish a method for serialization
 of data sent over the wire.  There are many widely-used ways for serializing commands, from binary-only protocols to the
-XML-RPC family.  For the Deska DB API, we have chosen to use JSON, a fairly recent arrival to the already broad family
+XML-RPC family.  For the Deska DB API, we have chosen to use JSON~\cite{json}, a fairly recent arrival to the already broad family
 of serialization standards.  The main reason behind this choice is the fact that the protocol itself is reasonably
 terse, so that one can pretty easily look at the raw form of traffic and tell what is going on without using extra tools
 or frameworks.  There is also quite a number of ready-made libraries for JSON parsing, so the JSON itself is as
