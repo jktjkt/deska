@@ -1,7 +1,5 @@
 '''A git-based implementation of the configuration generators helper'''
 
-# FIXME: race conditions when multiple sessions work on the same changeset...
-
 import os
 import stat
 import shutil
