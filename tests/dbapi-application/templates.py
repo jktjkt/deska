@@ -55,11 +55,9 @@ def helper_check_host(r, expected):
 
 def helper_check_interface(r, expected):
     r.assertEqual(r.c(resolvedObjectData("interface", "h->i0")), strip_origin(expected))
-    # FIXME: Redmine #408
-    #r.assertEqual(r.c(resolvedObjectDataWithOrigin("interface", "h->i0")), expected)
+    r.assertEqual(r.c(resolvedObjectDataWithOrigin("interface", "h->i0")), expected)
     r.assertEqual(r.c(multipleResolvedObjectData("interface")), {"h->i0": strip_origin(expected)})
-    # FIXME: Redmine #408
-    #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("interface")), {"h->i0": expected})
+    r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("interface")), {"h->i0": expected})
 
 
 def do_hardware(r):
@@ -321,4 +319,4 @@ def do_interface(r):
     helper_check_interface(r, idata)
     rdiff = r.c(resolvedDataDifferenceInTemporaryChangeset(changeset))
 
-    # FIXME: finalize me, Redmine #408
+    # FIXME: finalize me
