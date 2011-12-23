@@ -377,12 +377,12 @@ class DB:
 			self.cfgPushToScm(args["commitMessage"])
 			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
-			logging.debug(" got GeneratorError %s" % repr(e))
+			logging.debug(" got GeneratorError %s" % e)
 			self.db.rollback()
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
-			logging.debug(" got Exception %s" % repr(e))
+			logging.debug(" got Exception %s" % e)
 			self.db.rollback()
 			return self.errorJson(name, tag, str(e))
 		logging.debug(" Deska commit went OK, configuration is pushed, will	commit the transaction now")
