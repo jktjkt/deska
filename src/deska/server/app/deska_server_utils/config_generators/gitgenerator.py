@@ -1,7 +1,5 @@
 '''A git-based implementation of the configuration generators helper'''
 
-# FIXME: race conditions when multiple sessions work on the same changeset...
-
 import os
 import stat
 import shutil
@@ -24,6 +22,18 @@ class GitGenerator(object):
         self.workdir = workdir
         self.scriptdir = scriptdir
         self.git = git.Git(self.workdir)
+        # Pull from the upsteram repository before we do anything
+        # Redmine #419
+        repogit = git.Git(self.repodir)
+        # A push might have failed already, so we better switch to the upstream
+        # master at first.  We shall not lose any data here, as the config
+        # generators are stateless anyway, and if this repository has diverged
+        # from upstream, it means that the `git pull` has surely failed, which
+        # means that the changes could not possibly be commited to the DB
+        # either.
+        repogit.reset("--hard", "origin/master")
+        # Now refresh our copy
+        repogit.pull()
 
     def openRepo(self):
         '''Make sure that the working copy is usable and initialized to a clean state'''

@@ -1,0 +1,372 @@
+create vendor Dell
+create vendor HP
+create vendor IBM
+create vendor Supermicro
+create vendor cisco
+create vendor force10
+create vendor SGI
+
+create network Golias-NAT
+network Golias-NAT
+  ip4 172.16.0.0
+  cidr4 16
+  vlan 172
+  note ""
+end
+
+create network Monitoring
+network Monitoring
+  ip4 192.168.0.0
+  cidr4 16
+  vlan 8
+end
+
+create network Golias-25
+network Golias-25
+  ip4 147.231.25.0
+  cidr4 24
+  vlan 25
+end
+
+create formfactor rack
+create formfactor rackmount
+create formfactor sgi-twin
+create formfactor idataplex-unit
+create formfactor idataplex-sleeve
+
+create modelbox generic-rack
+modelbox generic-rack
+  internal_height 47
+  internal_width 1
+  internal_depth 1
+  accepts_inside [rackmount]
+  formfactor rack
+end
+
+create modelbox serverovna
+modelbox serverovna
+   accepts_inside [rack]
+end
+
+create modelbox 1u
+modelbox 1u
+  formfactor rackmount
+end
+
+create modelbox 2u
+modelbox 2u
+  formfactor rackmount
+  height 2
+end
+
+box serverovna
+  direct_modelbox serverovna
+end
+
+create modelbox idataplex-rack
+modelbox idataplex-rack
+    internal_width 2
+    internal_height 48
+    internal_depth 1
+    accepts_inside [idataplex-sleeve]
+    formfactor rack
+end
+
+create modelbox idataplex-sleeve
+modelbox idataplex-chassis-2u
+    formfactor idataplex-sleeve
+    accepts_inside [idataplex-unit]
+    width 1
+    height 2
+    depth 1
+    internal_width 1
+    internal_depth 1
+    internal_height 2
+    note "A sleeve for two iDataPlex units"
+end
+
+create modelbox idataplex-1u
+modelbox idataplex-1u
+    formfactor idataplex-unit
+    width 1
+    height 1
+    depth 1
+end
+
+create modelbox sgi-twin-chassis
+modelbox sgi-twin-chassis
+    formfactor rackmount
+    accepts_inside [sgi-twin]
+    width 1
+    height 1
+    depth 1
+    internal_width 2
+    internal_depth 1
+    internal_height 1
+    note "A chassis for housing of two SGI twin nodes"
+end
+
+create modelbox sgi-twin
+modelbox sgi-twin
+    formfactor sgi-twin
+    width 1
+    height 1
+    depth 1
+end
+
+create box L10
+box L10
+  inside serverovna
+  direct_modelbox idataplex-rack
+end
+create box L11
+box L11
+  inside serverovna
+  direct_modelbox idataplex-rack
+end
+
+create box L01
+box L01
+  inside serverovna
+  direct_modelbox generic-rack
+end
+
+# dumping HW models
+create modelhardware dx340
+modelhardware dx340
+  cpu_sockets 2
+  cpu_cores 4
+  cpu_type "Intel Xeon 5440"
+  hepspec 70
+  vendor IBM
+  ram 16
+  hdd_drive_capacity 300
+  hdd_note "SAS"
+  power_max 300
+  note "SAS"
+  modelbox idataplex-1u
+end
+
+create modelhardware dl360
+modelhardware dl360
+  cpu_sockets 1
+  cpu_cores 4
+  cpu_type "Intel Xeon E5530 2.4GHz"
+  cpu_ht true
+  vendor HP
+  ram 12
+  hdd_drive_capacity 300
+  hdd_note "8x SAS 10k"
+  note "8x SAS 10k"
+  modelbox 1u
+end
+
+create modelhardware dl140
+modelhardware dl140
+  cpu_sockets 2
+  cpu_cores 1
+  cpu_type "Intel Xeon 3,06 GHz"
+  cpu_ht true
+  hepspec 8
+  vendor HP
+  ram 2
+  hdd_drive_capacity 80
+  hdd_note "ATA"
+  power_max 211
+  note "ATA"
+  weight 11
+  modelbox 1u
+end
+
+# FIXME
+create modelswitch BNT-RackSwitch-G8124
+modelswitch BNT-RackSwitch-G8124
+  vendor IBM
+  modelbox 1u
+end
+
+create modelswitch Force10-24-port-10GE-XFP
+modelswitch Force10-24-port-10GE-XFP
+  vendor force10
+  modelbox 1u
+end
+
+create modelhardware dx360-m2
+modelhardware dx360-m2
+  cpu_sockets 2
+  cpu_cores 4
+  cpu_type "Intel Xeon E5520"
+  cpu_ht true
+  hepspec 118
+  vendor IBM
+  ram 32
+  hdd_drive_capacity 450
+  hdd_note "SAS"
+  power_max 256
+  note "SAS"
+  modelbox idataplex-1u
+end
+
+create modelhardware dx360-m3
+modelhardware dx360-m3
+  cpu_sockets 2
+  cpu_cores 6
+  cpu_type "Intel Xeon X5650"
+  cpu_ht true
+  hepspec 204
+  vendor IBM
+  ram 48
+  hdd_drive_capacity 300
+  hdd_note "2x SAS"
+  power_max 284
+  note "2x SAS"
+  modelbox idataplex-1u
+end
+
+create modelhardware xe310
+modelhardware xe310
+  cpu_sockets 2
+  cpu_cores 4
+  cpu_type "Intel Xeon E5420 "
+  hepspec 68
+  vendor SGI
+  ram 16
+  hdd_drive_capacity 300
+  hdd_note "SAS"
+  power_max 350
+  note "SAS"
+  modelbox sgi-twin
+end
+
+
+
+# dumping hardware
+create hardware ibis28
+hardware ibis28
+  serial_1 "06K6579"
+# FIXME  warrantyExpires 2012-12-16
+  purchased 2009-12-16
+  modelhardware dx360-m2
+end
+create host ibis28
+create box ibis28-ibis27
+box ibis28-ibis27
+    inside L11
+    x 28
+end
+create box ibis28
+box ibis28
+    inside ibis28-ibis27
+    y 0
+end
+
+create hardware ibis27
+hardware ibis27
+  serial_1 "06K6578"
+# FIXME  warrantyExpires 2012-12-16
+  purchased 2009-12-16
+  modelhardware dx360-m2
+end
+create host ibis27
+create box ibis27
+box ibis27
+    inside ibis28-ibis27
+    y 1
+end
+
+create hardware iberis27
+hardware iberis27
+  serial_1 "0635234"
+  modelhardware dx340
+end
+create host iberis27
+create box iberis27-iberis28
+box iberis27-iberis28
+    inside L10
+    x 28
+end
+create box iberis27
+box iberis27
+    inside iberis27-iberis28
+    y 1
+end
+
+create hardware iberis28
+hardware iberis28
+  serial_1 "0635204"
+  modelhardware dx340
+end
+create host iberis28
+create box iberis28
+box iberis28
+    inside iberis27-iberis28
+    y 0
+end
+
+create hardware sql
+hardware sql
+  serial_1 "CZJ94907SV"
+  inventory_no '112251-0'
+  purchased 2009-12-31
+  modelhardware dl360
+end
+create host sql
+create box sql
+box sql
+  inside L01
+  x 1
+  y 34
+end
+
+
+
+create interface iberis27->eth0
+interface iberis27->eth0
+  network Golias-NAT
+  mac 00:1F:C6:DA:19:AE
+  ip4 172.16.2.27
+end
+end
+
+create interface iberis28->eth0
+interface iberis28->eth0
+  network Golias-NAT
+  mac 00:1F:C6:DA:19:7E
+  ip4 172.16.2.28
+end
+end
+
+create interface ibis27->eth0
+interface ibis27->eth0
+  network Golias-NAT
+  mac E4:1F:13:22:78:C6
+  ip4 172.16.6.27
+end
+end
+
+create interface ibis28->eth0
+interface ibis28->eth0
+  network Golias-NAT
+  mac E4:1F:13:22:74:46
+  ip4 172.16.6.28
+end
+end
+
+create interface sql->eth0
+interface sql->eth0
+  network Golias-25
+  mac 18:A9:05:76:7D:AC
+  ip4 147.231.25.23
+end
+end
+
+
+
+
+@commit to r2
+jkt
+Fake data
+2011-Dec-02 18:19:44.929512
+#commit end
+
+

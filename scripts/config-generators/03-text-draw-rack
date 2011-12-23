@@ -48,17 +48,11 @@ def print_current(s, indent, key):
     if boxes[key].direct_modelbox is not None:
         my_modelbox = deska.modelbox[deska.modelbox.name == boxes[key].direct_modelbox]
     elif boxes[key].hardware is not None:
-        # due to the way how the relations work, we can rely on the same name here
-        # That doesn't work
-        # modelbox = deska.modelbox[deska.hardware.name == key]
-        name_modelhardware = hardware[key].modelhardware
-        my_modelhardware = {name_modelhardware:
-                            modelhardware[name_modelhardware]}
-        name_modelbox = my_modelhardware[name_modelhardware].modelbox
-        if name_modelbox is None:
-            message = " [modelhardware %s has no associated modelbox]" % name_modelhardware
-        else:
-            my_modelbox = {name_modelbox: modelbox[name_modelbox]}
+        my_modelhw = deska.modelhardware[deska.hardware.name == key]
+        my_modelhw_obj = my_modelhw[my_modelhw.keys()[0]]
+        my_modelbox = deska.modelbox[deska.modelbox.name == my_modelhw_obj.modelbox]
+        if not len(my_modelbox):
+            my_modelbox = None
     if my_modelbox is not None:
         additional = ": %s %s" % (my_modelbox.keys()[0], repr(my_modelbox.values()[0]))
     elif message is not None:

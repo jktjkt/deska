@@ -9,10 +9,10 @@
 This chapter talks about deska-server, python application providing interaction with database.
 \end{abstract}
 
-FIXME: when it is start, parameters, connection to db...
+\todo{Lukas: when it is start, parameters, connection to db...}
 
 \section{Command running}
-For communication with deska-cli, json dbapi is used (see FIXME). On server side, this json is tranformed into python structure of dicts and lists. Some check are performed, like if command or number of arguments is right.
+For communication with the {\tt deska-cli}, the JSON-based DBAPI (see~\secref{sec:dbapi-protocol} is used. On server side, this json is tranformed into python structure of dicts and lists. Some check are performed, like if command or number of arguments is right.
 Most of command have their implementation inside the database, so the proper db function is called and its result is retuned. In this part, there is no special logic, just check parameter, add some defaults if it is needed and catch db exceptions.
 
 But there are some function implemented in deska-server, like function for view freezing, which just starts or ends transaction, with isolation
@@ -32,6 +32,6 @@ The {\tt deska-server} relies heavily on the authentication/authorization featur
 which contains the Deska installation will be able to perform any modification to the database over the standard DBAPI
 calls.
 
-FIXME: this is mainly a placeholder for further documentation\ldots
+\todo{Lukas: this is mainly a placeholder for further documentation\ldots}
 
 \end{document}

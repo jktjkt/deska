@@ -30,7 +30,9 @@ include(../../UseLATEX.cmake)
 # but still produces .pdf files and therefore masks the real issue.
 # A reasonable workaround for debugging is to temporarily comment out inheriting
 # the PDFLATEX_COMPILER_FLAGS below.
-set(PDFLATEX_COMPILER_FLAGS "-shell-escape" "${PDFLATEX_COMPILER_FLAGS}")
+set(PDFLATEX_COMPILER_FLAGS "-shell-escape"
+    "${PDFLATEX_COMPILER_FLAGS}"
+)
 
 file(GLOB deska_doc_tex
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
