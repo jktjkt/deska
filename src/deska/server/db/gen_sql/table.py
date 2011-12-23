@@ -192,6 +192,13 @@ class Table(constants.Templates):
 		else:
 			get_data_string = self.get_data_string
 
+		if len(collist) == 0:
+			#for kinds that has not additional data attributes (has only name, uid) generates another function
+			if self.embed_column <> "":
+				return self.get_data_empty_embed_kind_string % {'tbl': self.name, 'embed_col': self.embed_column, 'delim': constants.DELIMITER, 'reftbl': self.refuid_columns[self.embed_column]}
+			else:
+				return self.get_data_empty_kind_string % {'tbl': self.name}
+
 		#replace uid of referenced table object by its name
 		for col in self.refuid_columns:
 			if col in collist:
