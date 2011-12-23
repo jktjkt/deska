@@ -117,7 +117,87 @@ The second filter is for obtaining last added embedded object using keyword "new
 
 \section{Showing content of the DB}
 
+There are two way, how to look, what is currently stored in the DB. First way is showing content of the whole DB. This
+is done by command "dump".
 
+Command "dump" shows all objects in the DB including their attributes and also nested objects recursively. No other
+relations were displayed here. You can also use command "dump" with parameter. This parameter stands for a filename and
+the dump will be then stored in this file. The sample dump can look like this:
+\begin{minted}{text}
+> dump
+host hpv2
+    no hardware
+    note_host "Sample host"
+    service [ftp, www]
+    no template_host
+    no virtual_hardware
+    interface eth0
+        ip4 192.168.2.34
+        no ip6
+        mac 2E:4A:AB:89:6C:7B
+        no network
+        no note
+        no template_interface
+    end
+end
+host golias2
+    no hardware
+    note_host "Another sample host"
+    no service
+    no template_host
+    no virtual_hardware
+end
+service www
+    no note
+end
+service ftp
+    no note
+end
+service dns
+    no note
+end
+\end{minted}
+
+Another method is using command "show". When there is no context, it shows only list of top-level objects without any
+additional information. In context the command shows information about object or objects from the context. The
+information contains all attributes with resolved values from templates. When some attributes value was taken from
+a template, information about source of this value is also printed. If some object is contained in one being currently
+printed, its attributes and nsted kinds will be printed under attribute referring to this object. Nested objects are
+printed in the way similar to output fromcommand "dump". Example of output from "show" on host containing some hardware
+through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
+
+\begin{minted}{text}
+> host hpv2
+host hpv2> show
+hardware hpv2
+cpu_ht 1
+cpu_num 4
+no hepcpec
+host hpv2
+no note_hardware
+purchase 2011-12-23
+ram 4096 -> hp357
+template_hardware hp357
+no vendor
+warranty 2013-12-23
+note_host "Sample host"
+no service [ftp, www]
+no template_host
+no virtual_hardware
+interface eth0
+    ip4 192.168.2.34
+    no ip6
+    mac 2E:4A:AB:89:6C:7B
+    no network
+    no note
+    no template_interface
+end
+\end{minted}
+
+Command "show" could be used also for printing information about objects not in current context. Like "show host hpv2" or
+"show host hpv2 interface eth0". Ths will not change current context and shows information about object in parameter.
+The parameter is also relative to current context. It means, that in context of host "hpv2" you can type "show interface eth0"
+for showing information about interface "eth0" nested in host "hpv2".
 
 \section{Database Backup}
 \label{sec:cli-db-backup}
