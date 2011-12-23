@@ -1,0 +1,87 @@
+Schuze Deska, 2011-12-22 MFF
+----------------------------
+
+Pritomni: Zavoral, Martina, Lukas, Tomas, Honza
+
+Pripominky od vedouciho k dokumentaci:
+
+- 1.4 presunout do 2, obsah nechat (Honza)
+- User's Guide: "kdo je to user?" (Honza: pridat kapitolu)
+- na CD vcetne vsech ext. balicku
+- EL6 je OK
+- doporucit instalaci z balicku, disclaimer pro src (Honza)
+- vic naskriptovat DB instalaci (Honza)
+- kap. 4: neni jasne, ze je to user-defined, vic rict, ze tohle ma udelat
+uzivatel (Honza v uvodu, Lukas v kapitole 4)
+- rict, co ma user na zacatku udelat (ze vuebc pise nejake CREATE TABLE...)
+    (Honza, Lukas)
+- na zacatek dev's docs podrobny obrazek struktury aplikace -- ze je to
+client-server,... (Honza okomentuje obrazek recyklovany z uvodni kapitoly)
+- kap. 6: reference na Pg, JSON,...
+- vyhodit "aditional" u exceptions
+- CLI: obrazek struktury (Tomas)
+- CLI: user's guide zcela chybi (Tomas)
+- Python: k cemu je? spravit v uvodu (viz vyse)
+- zmatek v tom, co je server, db,... -- prehazet/sloucit kapitoly, udela Martina
+a Lukas
+- Z. spatne rozlisuje mezi popisem "obecneho frameworku" a "konkretni veci"
+(Lukas, Martina)
+- nic o FZU schematu; popsat, co ve schematu muze byt (Lukas)
+- potreba pripomenout, ze schema urcuje kindy, relace,... (Lukas)
+- sloucit kapitolu o SQL stored procs (Lukas, Martina)
+- popis trid/workflow SQL generatoru nejasny; obrazek (Martina)
+- konfiguracni generatory -- co to je, k cemu slouzi,... (Honza)
+- prilohy:
+    - nase schema (???)
+    - struktura CD
+- CD:
+    - hotove dilo
+    - kompletni dev podklady (ne SCM historie)
+- obecne: chybi popis souvislosti
+
+Dalsi:
+- overit funkcnost CD
+    - dela nekdo jiny, nez ten, kdo CD vytvoril
+- chlubit se publikacemi,...
+- zaver:
+    - publikace
+    - nasazeni
+    - testovani
+    - historie
+
+- 29. 12. posilame dokumentaci Zav.
+
+
+- cfggen dotaz na HW: 1) dotaz na HW, 2) modelbox[modelhw.name == viz_1]
+
+Dalsi prace:
+- viz ukoly nahore
+- bugreporty
+- FIXME v kodu
+
+Honza:
+- kdo je user
+- generatory docs
+- stranka na uvod do dev's docs
+- zaver
+- zarovnani Martinino tabulek
+- non-docs:
+    - generatory FZU
+    - skripty
+    - ctest zaklad pro CLI
+    - sample DB obsah pro testy ^^^
+
+Tomas:
+- doc: CLI!!!
+- testy CLI
+- ? problem s rebase?
+- test soubor
+
+Martina:
+- dokumentace
+- indexy pro produkci
+
+Lukas:
+- dokumentace
+- jak uzivatel ma pracovat se schematy
+- filtry ne pres funkce, pokud to pujde (pro prazdny changeset & zadnou revizi)

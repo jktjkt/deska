@@ -347,33 +347,45 @@ class DB:
 		return json.dumps(response)
 
 	def commitConfig(self, name, args, tag):
+		logging.debug("commitConfig")
 		self.checkFunctionArguments(name, args, tag)
 		self.lockCurrentChangeset()
 		self.initCfgGenerator()
 		try:
 			regenerate = not self.changesetHasFreshConfig()
+			if regenerate:
+				logging.debug(" will run the config generators after the commit")
+			else:
+				logging.debug(" configuration snapshot fresh already")
 			self.transaction_isolate()
+			logging.debug(" running the DB commit now")
 			res = self.runDBFunction(name,args,tag)
 			if "dbException" in res:
 				'''Or regular error in db response'''
+				logging.debug(" DB commit returned a DB exception, performing rollback")
 				self.db.rollback()
 				self.unlockCurrentChangeset()
 				return res
 			if regenerate:
+				logging.debug(" running the config generators now")
 				self.cfgRegenerate()
 				#self.markChangesetFresh()
 				# there is no changeset at this time
 				# but we not need this, because if we are here, commit in db
 				# was successfull so only error while generating can occur
+			logging.debug(" about to push the config to the SCM")
 			self.cfgPushToScm(args["commitMessage"])
 			self.cfgGenerator.nukeWorkDir()
 		except GeneratorError, e:
+			logging.debug(" got GeneratorError %s" % e)
 			self.db.rollback()
 			return self.errorJson(name, tag, str(e), "CfgGeneratingError")
 		except Exception, e:
 			'''Unexpected error in db or cfgPushToScm...'''
+			logging.debug(" got Exception %s" % e)
 			self.db.rollback()
 			return self.errorJson(name, tag, str(e))
+		logging.debug(" Deska commit went OK, configuration is pushed, will	commit the transaction now")
 		self.db.commit()
 		self.transaction_shared()
 		# The lock is still held even after a commit. No other sessions is
@@ -384,6 +396,7 @@ class DB:
 		# changeset". This unfortunately leads to leaving dangling locks behind.
 		# A correct fix would be to explicitly unlock stuff from inside the DB
 		# when commiting.
+		logging.debug("commitConfig: OK")
 		return res
 
 	def run(self,name,args):

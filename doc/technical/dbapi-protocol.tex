@@ -15,7 +15,7 @@ reimplementation.
 \label{sec:dbapi-protocol}
 
 First of all, it might not be obvious why bother with designing a custom protocol for accessing a database.  The Deska
-database, after all, is built on PostgreSQL, which already provides a library which can be used to access database
+database, after all, is built on PostgreSQL~\cite{postgresql}, which already provides a library which can be used to access database
 servers.  However, using a RDBMS-specific transport library would make the Deska application suite needlessly tied to
 one particular database server implementation.  Exposing a low-level SQL-like interface, even when wrapped by stored
 procedures, would make it very hard to prevent users from accessing the database without first going through a
@@ -32,7 +32,7 @@ allow future extensions towards non-blocking operation.
 
 After defining the general mode of operation for an interface, there is a need to establish a method for serialization
 of data sent over the wire.  There are many widely-used ways for serializing commands, from binary-only protocols to the
-XML-RPC family.  For the Deska DB API, we have chosen to use JSON, a fairly recent arrival to the already broad family
+XML-RPC family.  For the Deska DB API, we have chosen to use JSON~\cite{json}, a fairly recent arrival to the already broad family
 of serialization standards.  The main reason behind this choice is the fact that the protocol itself is reasonably
 terse, so that one can pretty easily look at the raw form of traffic and tell what is going on without using extra tools
 or frameworks.  There is also quite a number of ready-made libraries for JSON parsing, so the JSON itself is as
@@ -260,39 +260,39 @@ This is the list of currently defined exceptions, along with their other argumen
 
 \begin{longtable}{ p{44mm} p{80mm} p{24mm} }
     \caption{List of supported exceptions} \\
-    Exception Name & Meaning & Additional arguments \\
+    Exception Name & Meaning \\
     \hline
     \endhead
-    {\tt InvalidKindError} & The specified kind is not valid & --- \\
-    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind & --- \\
+    {\tt InvalidKindError} & The specified kind is not valid \\
+    {\tt InvalidAttributeError} & Cannot access the specified attribute of a given kind \\
     {\tt NotFoundError} & The database does not contain such object.  This exception is returned only in case when no
     better exception is available; it means that attempts to follow an invalid kind should result in the {\tt
-    InvalidKindError}, etc. & --- \\
+    InvalidKindError}, etc. \\
     {\tt NoChangesetError} & Tried to perform an operation which requires being attached into a pending changeset
-        without one & --- \\
-    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one & --- \\
+        without one \\
+    {\tt ChangesetAlreadyOpenError} & Tried to access/create/\ldots a changeset while being already attached to one \\
     {\tt FreezingError} & An error related to attempted combination of a frozen view and an active changeset
-    manipulation & --- \\
-    {\tt FilterError} & The specified filter is not valid & --- \\
+    manipulation \\
+    {\tt FilterError} & The specified filter is not valid \\
     {\tt ReCreateObjectError} & Attempted to re-create a deleted object in the same changeset. See
-    \deskaFuncRef{restoreDeletedObject}. & --- \\
-    {\tt AlreadyExistsError} & The object already exists and therefore cannot be created & --- \\
-    {\tt RevisionParsingError} & Failed to parse the revision ID & --- \\
-    {\tt RevisionRangeError} & Tried to reference a revision which does not exist & --- \\
-    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID & --- \\
-    {\tt ChangesetRangeError} & Tried to reference a changeset which does not exist & --- \\
-    {\tt ConstraintError} & The executed action violates an integrity constraint & --- \\
+    \deskaFuncRef{restoreDeletedObject}. \\
+    {\tt AlreadyExistsError} & The object already exists and therefore cannot be created \\
+    {\tt RevisionParsingError} & Failed to parse the revision ID \\
+    {\tt RevisionRangeError} & Tried to reference a revision which does not exist \\
+    {\tt ChangesetParsingError} & Failed to parse the temporary changeset ID \\
+    {\tt ChangesetRangeError} & Tried to reference a changeset which does not exist \\
+    {\tt ConstraintError} & The executed action violates an integrity constraint \\
     {\tt ObsoleteParentError} & Attempted to commit a changeset which is based on a parent that is no longer the very
-    latest revision in the history & --- \\
+    latest revision in the history \\
     {\tt NotASetError} & The attribute data type is not an {\tt identifier\_set}, and hence the operation does not make
-    sense & --- \\
+    sense \\
     {\tt ChangesetLockingError} & Attempted to access a locked changeset or execute an invalid operation related to
-    changeset locking & --- \\
-    {\tt CfgGeneratingError} & An error has occurred when generating configuration files & --- \\
+    changeset locking \\
+    {\tt CfgGeneratingError} & An error has occurred when generating configuration files \\
     {\tt SpecialReadOnlyAttributeError} & Attempted to modify a special attribute which is managed by the Deska server
-    itself and cannot be modified by regular \deskaFuncRef{setAttribute} calls & --- \\
-    {\tt SqlError} & Execution of SQL statements resulted in an error & --- \\
-    {\tt ServerError} & The server has encountered an internal error & --- \\
+    itself and cannot be modified by regular \deskaFuncRef{setAttribute} calls \\
+    {\tt SqlError} & Execution of SQL statements resulted in an error \\
+    {\tt ServerError} & The server has encountered an internal error \\
 \end{longtable}
 
 \subsection{Adding Low-Level Data Types}
