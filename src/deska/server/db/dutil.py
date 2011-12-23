@@ -22,6 +22,7 @@ class DeskaException(Exception):
 		'70013': 'RevisionRangeError',
 		'70014': 'ChangesetRangeError',
 		'70015': 'ChangesetLockingError',
+		'70016': 'ConstraintError',#check_in_cycle
 		'23502': 'ConstraintError',#NOT NULL
 		'23514': 'ConstraintError',#check_positive
 		'10111': 'SqlError',#check_positive

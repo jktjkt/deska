@@ -779,3 +779,8 @@ class Table(constants.Templates):
 		for col in self.refers_to_set:
 			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": self.get_template_table(), 'refcol': col}
 		return refs_set_coal_fns
+		
+	def gen_check_template_cycle(self):
+		"""Generates add check constriant for forbidding a cycle in templates"""
+		return self.template_add_cycle_check_str % {'tbl': self.name, 'templ_col': self.template_column}
+

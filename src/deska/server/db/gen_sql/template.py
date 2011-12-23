@@ -53,6 +53,38 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 	"""Add rset_ constraint to columns that refers to identifier set.
 	"""
 
+	cycle_check_constraint_str = '''CREATE FUNCTION %(tbl)s_template_not_in_cycle(obj_uid bigint, templ_uid bigint)
+RETURNS BOOLEAN
+AS
+$$
+BEGIN
+CREATE TEMP TABLE temp_templates AS SELECT uid, %(templ_col)s AS templ FROM %(tbl)s_template_data_version();
+
+IF obj_uid IN (
+	WITH recursive rdata AS(
+		SELECT templ_uid AS uid
+		UNION
+		SELECT templ AS uid FROM temp_templates tab JOIN rdata rd ON (tab.uid = rd.uid)
+		WHERE templ IS NOT NULL
+	)
+	SELECT uid FROM rdata
+)
+THEN
+	DROP TABLE temp_templates;
+	RAISE EXCEPTION '%(tbl)s templates are in cycle';
+	--RAISE EXCEPTION '%(tbl)s templates are in cycle' USING ERRCODE = '70016';
+	RETURN FALSE;
+ELSE
+	DROP TABLE temp_templates;
+	RETURN TRUE;
+END IF;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+'''
+
 	def __init__(self,db_connection):
 		self.plpy = db_connection;
 		self.plpy.execute("SET search_path TO deska,production, api")
@@ -98,6 +130,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 		for tbl in self.tables:
 			self.sql.write(self.gen_table_template(tbl))
 			self.sql.write(self.gen_table_drop_not_null(tbl))
+			self.sql.write(self.add_check_cycle(tbl, self.template_columns[tbl]))
 			self.gen_relation_modif(tbl)
 		self.sql.close()
 		return
@@ -175,3 +208,7 @@ ALTER TABLE %(tbl)s ADD CONSTRAINT rtempl_%(tbl)s FOREIGN KEY ("%(templ_col)s") 
 					self.not_null_dict[table_name])])
 		return '\n'.join(constraints) + '\n'
 
+	def add_check_cycle(self, table_name, template_column):
+		"""Generates check constriant function for finding a cycle in templates"""
+		return self.cycle_check_constraint_str % {'tbl': table_name, 'templ_col': template_column}
+		

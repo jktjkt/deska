@@ -2281,3 +2281,5 @@ LANGUAGE plpgsql;
 
 '''
 
+	template_add_cycle_check_str = '''ALTER TABLE %(tbl)s_history ADD CONSTRAINT %(tbl)s_chck_templ_cycle CHECK (%(tbl)s_not_in_cycle(uid, %(templ_col)s));
+'''
