@@ -85,7 +85,7 @@ class GitGenerator(object):
             path = os.path.join(self.scriptdir, script)
             s = os.stat(path)
             if stat.S_ISDIR(s.st_mode):
-                # Directories are ignored -- meybe they are required by the
+                # Directories are ignored -- maybe they are required by the
                 # scripts after all...
                 continue
             if not s.st_mode & stat.S_IXUSR:
