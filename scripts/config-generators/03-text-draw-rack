@@ -38,7 +38,16 @@ def position_sorter(item):
         z = 1
     return (-y, x, z, item)
 
-def print_current(s, indent, key):
+class BoxTree(object):
+    def __init__(self, name, modelbox):
+        self.name = name
+        self.modelbox = modelbox
+        self.children = []
+
+    def __repr__(self):
+        return "%s %s %s" % (self.name, self.modelbox, self.children)
+
+def walk_boxes(s, indent, key):
     prefix = " " * indent
     my_modelbox = None
     message = None
@@ -62,12 +71,17 @@ def print_current(s, indent, key):
         additional = message
     else:
         additional = " [no modelbox]"
-    s.write("%s%s%s\n" % (prefix, key, additional))
-    for x in sorted(res[key], key=position_sorter):
-        print_current(s, indent + 1, x)
+    #s.write("%s%s%s\n" % (prefix, key, additional))
 
+    me = BoxTree(key, my_modelbox)
+    for x in sorted(res[key], key=position_sorter):
+        child = walk_boxes(s, indent + 1, x)
+        me.children.append(child)
+    return me
+
+serverovna = walk_boxes(None, 0, "serverovna")
 f = file("boxes", "wb")
-print_current(f, 0, "serverovna")
+f.write(str(serverovna))
 
 t3 = time.time()
 
