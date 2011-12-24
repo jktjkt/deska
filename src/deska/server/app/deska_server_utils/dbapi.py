@@ -308,6 +308,10 @@ class DB:
 		# and wait for the corpse to appear
 		(stdout, stderr) = proc.communicate()
 		logging.debug("executeScript: time spent in executing: %ss" % (time.time() - startTime))
+		if len(stdout):
+			logging.debug(stdout)
+		if len(stderr):
+			logging.debug(stderr)
 		if proc.returncode:
 			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout, stderr)
 		# that's all, baby!
