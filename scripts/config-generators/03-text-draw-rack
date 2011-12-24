@@ -6,8 +6,9 @@ sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/des
 import deska
 
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use("SVG")
+import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 import matplotlib.path as mpath
 import matplotlib.patches as mpatches
@@ -47,17 +48,9 @@ def position_sorter(item):
         z = 1
     return (-y, x, z, item)
 
-class BoxTree(object):
-    def __init__(self, name, modelbox):
-        self.name = name
-        self.modelbox = modelbox
-        self.children = []
-
-    def __repr__(self):
-        return "%s %s %s" % (self.name, self.modelbox, self.children)
-
-def walk_boxes(key):
+def walk_boxes(key, parent_modelbox, boundary):
     my_modelbox = None
+    my_modelbox_obj = None
     message = None
     if boxes[key].direct_modelbox is not None:
         my_modelbox = deska.modelbox[deska.modelbox.name == boxes[key].direct_modelbox]
@@ -75,27 +68,55 @@ def walk_boxes(key):
             my_modelbox = None
     if my_modelbox is not None:
         additional = ": %s %s" % (my_modelbox.keys()[0], repr(my_modelbox.values()[0]))
+        my_modelbox_obj = my_modelbox[my_modelbox.keys()[0]]
     elif message is not None:
         additional = message
     else:
         additional = " [no modelbox]"
 
-    me = BoxTree(key, my_modelbox)
-    for x in sorted(res[key], key=position_sorter):
-        child = walk_boxes(x)
-        me.children.append(child)
-    return me
+    # Child boxes immediately nested in this one
+    all_children = sorted(res[key], key=position_sorter)
 
-serverovna = walk_boxes("serverovna")
-f = file("boxes", "wb")
-f.write(str(serverovna))
+    (x, y, width, height) = boundary
+    if parent_modelbox is not None and parent_modelbox.internal_width is not None:
+        # The parent modelbox provides information about its dimensions
+        if parent_modelbox.internal_depth not in (None, 0, 1):
+            # We do not support drawing of these boxes
+            raise RuntimeError, "Parent of box %s has weird depth, sorry" % key
+        internal_width = parent.internal_width
+        if internal_width < 1:
+            internal_width = 1
+        internal_height = parent.internal_height
+        if internal_height < 1:
+            internal_height = 1
+        pos = np.mgrid[0:1:
+        print key
+        pass
+    else:
+        # We do not know about our exact positioning, so we have to compute one.
+        # Given that the parent does not say anything about proper spacing etc,
+        # let's just assume a uniform distribution.
+        if len(all_children):
+            stepping = len(all_children)
+        else:
+            stepping = 1
+        # generate uniform spacing
+        pos = np.mgrid[0:1:stepping, 0:1:1].reshape(2, -1)
+        print key
+        print pos
+        pass
 
-matplotlib.use("SVG")
+    for x in all_children:
+        walk_boxes(x, my_modelbox_obj, boundary)
+
+
 
 font = "sans-serif"
 fig = plt.figure(figsize=(10,10))
 #fig = plt.figure()
 ax = plt.axes([0,0,1,1])
+
+walk_boxes("serverovna", None, (0, 0, 10, 10))
 
 # create 3x3 grid to plot the artists
 pos = np.mgrid[0.2:0.8:3j, 0.2:0.8:3j].reshape(2, -1)
@@ -107,13 +128,6 @@ art = mpatches.Rectangle(
     #(0,0), 0.05, 0.1,
     pos[:,1] - np.array([0.025, 0.05]), 0.05, 0.1,
         ec="none", label="pwn")
-#print pos[:,1] - np.array([0.025, 0.05])
-old_trans = art.get_transform()
-my_trans = mtransforms.IdentityTransform()
-art.set_transform(my_trans)
-print ax.transData
-print ax.transAxes
-print fig.transFigure
 patches.append(art)
 
 plt.text(pos[0,1], pos[1,1]-0.15, "Rectangle", ha="center",
@@ -126,7 +140,6 @@ ax.add_collection(collection)
 ax.set_xticks([])
 ax.set_yticks([])
 
-#plt.show()
 plt.savefig("rackview.svg")
 
 t3 = time.time()
