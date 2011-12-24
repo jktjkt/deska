@@ -9,9 +9,6 @@ deska.init()
 
 t1 = time.time()
 boxes = deska.box._all()
-hardware = deska.hardware._all()
-modelbox = deska.modelbox._all()
-modelhardware = deska.modelhardware._all()
 t2 = time.time()
 
 queue = ["serverovna"]
