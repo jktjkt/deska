@@ -5,6 +5,15 @@ import time
 sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
 import deska
 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+from matplotlib.collections import PatchCollection
+import matplotlib.path as mpath
+import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
+import matplotlib.transforms as mtransforms
+
 deska.init()
 
 t1 = time.time()
@@ -80,6 +89,45 @@ def walk_boxes(key):
 serverovna = walk_boxes("serverovna")
 f = file("boxes", "wb")
 f.write(str(serverovna))
+
+matplotlib.use("SVG")
+
+font = "sans-serif"
+fig = plt.figure(figsize=(10,10))
+#fig = plt.figure()
+ax = plt.axes([0,0,1,1])
+
+# create 3x3 grid to plot the artists
+pos = np.mgrid[0.2:0.8:3j, 0.2:0.8:3j].reshape(2, -1)
+
+patches = []
+
+# add a rectangle
+art = mpatches.Rectangle(
+    #(0,0), 0.05, 0.1,
+    pos[:,1] - np.array([0.025, 0.05]), 0.05, 0.1,
+        ec="none", label="pwn")
+#print pos[:,1] - np.array([0.025, 0.05])
+old_trans = art.get_transform()
+my_trans = mtransforms.IdentityTransform()
+art.set_transform(my_trans)
+print ax.transData
+print ax.transAxes
+print fig.transFigure
+patches.append(art)
+
+plt.text(pos[0,1], pos[1,1]-0.15, "Rectangle", ha="center",
+        family=font, size=14)
+
+colors = 100*np.random.rand(len(patches))
+collection = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
+collection.set_array(np.array(colors))
+ax.add_collection(collection)
+ax.set_xticks([])
+ax.set_yticks([])
+
+#plt.show()
+plt.savefig("rackview.svg")
 
 t3 = time.time()
 
