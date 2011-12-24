@@ -26,7 +26,7 @@ class Condition():
 		"columnNotContains": "NOT IN"
 	}
 
-	def __init__(self,data,condId):
+	def __init__(self,data,condId,directAccess):
 		'''Constructor, set local data and parse condition'''
 		self.newcond = None
 		if "value" not in data:
@@ -34,6 +34,7 @@ class Condition():
 		if "condition" not in data:
 			raise DutilException("FilterError","Item 'condition' is missing in condition.")
 
+		self.directAccess = directAccess
 		self.val = data["value"]
 		self.op = data["condition"]
 		self.counter = condId
@@ -144,7 +145,7 @@ class Condition():
 		self.relationParse()
 		self.operatorParse()
 		if self.idSet and self.op == "NOT IN":
-			self.id = "(SELECT {0} FROM inner_{0}_{1}_{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getDataSuffix(self.kind))
+			self.id = "(SELECT {0} FROM inner_{0}_{1}{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getDataSuffix(self.kind,self.directAccess))
 			self.col = "uid"
 
 	def get(self):
@@ -193,8 +194,9 @@ class Filter():
 	'''Class for handling filters'''
 	JOIN = " LEFT OUTER JOIN "
 
-	def __init__(self,filterData,start):
-		'''loads json filter data, start = fisrt number of parameter index'''
+	def __init__(self,filterData,start,directAccess = False):
+		'''loads json filter data, start = first number of parameter index'''
+		self.directAccess = directAccess
 		# counter for value id's in select string
 		self.counter = start
 		# list of values for select string
@@ -227,7 +229,7 @@ class Filter():
 		for kind in self.idSetInfo:
 			col = self.idSetInfo[kind]
 			joincond = "{0}.uid = inner_{1}.{0}".format(kind,col)
-			ret = ret + self.JOIN + "inner_{0}_{1}_{3} AS inner_{1} ON {2} ".format(kind, col, joincond, getDataSuffix(kind))
+			ret = ret + self.JOIN + "inner_{0}_{1}{3} AS inner_{1} ON {2} ".format(kind, col, joincond, getDataSuffix(kind,self.directAccess))
 		return ret
 
 
@@ -262,30 +264,30 @@ class Filter():
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(tbl))
+							ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(toTbl,self.directAccess))
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = getDataSuffix(fromTbl))
+							ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = fromTbl, cond = joincond, data = getDataSuffix(fromTbl,self.directAccess))
 							findJoinable = True
 						elif toTbl == kind and fromTbl == mykind:
 							# join inner table
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(fromTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(tbl))
+							ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = tbl, cond = joincond, data = getDataSuffix(fromTbl,self.directAccess))
 							# and join table of wanted kind
 							tbl = "inner_{0}_{1}".format(fromTbl,fromCol)
 							joincond = "{0}.uid = {1}.{0}".format(toTbl,tbl)
-							ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = getDataSuffix(toTbl))
+							ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = toTbl, cond = joincond, data = getDataSuffix(toTbl,self.directAccess))
 							findJoinable = True
 					elif fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,fromCol)
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
+						ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind,self.directAccess))
 						findJoinable = True
 					# back relation only for refs
 					elif relName in refNames and toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,fromCol)
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
+						ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind,self.directAccess))
 						findJoinable = True
 						
 				# find if there is embeding
@@ -295,11 +297,11 @@ class Filter():
 					toTbl = generated.relToTbl(relName)
 					if fromTbl == kind and toTbl == mykind:
 						joincond = "{0}.uid = {1}.{2}".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
+						ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind,self.directAccess))
 						findJoinable = True
 					if toTbl == kind and fromTbl == mykind:
 						joincond = "{0}.{2} = {1}.uid".format(mykind,kind,generated.relFromCol(relName))
-						ret = ret + self.JOIN + "{tbl}_{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind))
+						ret = ret + self.JOIN + "{tbl}{data} AS {tbl} ON {cond} ".format(tbl = kind, cond = joincond, data = getDataSuffix(kind,self.directAccess))
 						findJoinable = True
 						
 				if not findJoinable:
@@ -328,7 +330,7 @@ class Filter():
 				return "(" + ") OR (".join(res) + ")"
 			else:
 				raise DutilException("FilterError","Bad operands.")
-		cond = Condition(data,self.counter)
+		cond = Condition(data,self.counter,self.directAccess)
 		# collect affected kinds (need for join)
 		self.kinds.add(cond.getAffectedKind())
 		# also add identifier_set information for joining

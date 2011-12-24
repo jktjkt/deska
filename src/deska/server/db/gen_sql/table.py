@@ -192,6 +192,13 @@ class Table(constants.Templates):
 		else:
 			get_data_string = self.get_data_string
 
+		if len(collist) == 0:
+			#for kinds that has not additional data attributes (has only name, uid) generates another function
+			if self.embed_column <> "":
+				return self.get_data_empty_embed_kind_string % {'tbl': self.name, 'embed_col': self.embed_column, 'delim': constants.DELIMITER, 'reftbl': self.refuid_columns[self.embed_column]}
+			else:
+				return self.get_data_empty_kind_string % {'tbl': self.name}
+
 		#replace uid of referenced table object by its name
 		for col in self.refuid_columns:
 			if col in collist:
@@ -416,14 +423,16 @@ class Table(constants.Templates):
 	def gen_get_uid(self):
 		"""Generates stored function that returns the uid of the object with the given name."""
 		return self.get_uid_string % {'tbl': self.name} + \
-		self.get_uid_real_string % {'tbl': self.name}
+		self.get_uid_real_string % {'tbl': self.name} + \
+		self.find_uid_string % {'tbl': self.name}
 
 	def gen_get_uid_embed(self, refcolumn, reftable):
 		"""Generates stored function that returns the uid of the object with the given name.
 		This function is used for the tables that are embed into another.
 		"""
 		return self.get_uid_embed_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER} + \
-		self.get_uid_embed_real_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
+		self.get_uid_embed_real_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER} + \
+		self.find_uid_embed_string % {'tbl': self.name, 'column': refcolumn, 'reftbl': reftable, 'delim': constants.DELIMITER}
 
 	def gen_commit_templated(self):
 		"""gen_commit_templated generates commit function for templated tables.
@@ -772,3 +781,8 @@ class Table(constants.Templates):
 		for col in self.refers_to_set:
 			refs_set_coal_fns = refs_set_coal_fns + '\n' + self.ref_set_coal_string % {'tbl': self.name, "tbl_template": self.get_template_table(), 'refcol': col}
 		return refs_set_coal_fns
+		
+	def gen_check_template_cycle(self):
+		"""Generates add check constriant for forbidding a cycle in templates"""
+		return self.template_add_cycle_check_str % {'tbl': self.name, 'templ_col': self.template_column}
+

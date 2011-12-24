@@ -425,6 +425,56 @@ class Templates:
 
 '''
 
+	# template string for get data functionsfor objetcs that has no additional data (has only name, uid and dest_bit)
+	# get data of object name_ in given version
+	get_data_empty_embed_kind_string = '''CREATE FUNCTION
+	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
+	RETURNS void
+	AS
+	$$
+	DECLARE
+		current_changeset bigint;
+		dbit bit(1);
+		tmp text;
+		refname text;
+		local_name text;
+		refuid bigint;
+	BEGIN
+		SELECT embed_name[1], embed_name[2] FROM embed_name(name_,'%(delim)s') INTO refname, local_name;
+		refuid = %(reftbl)s_get_uid(refname);
+
+		IF from_version = 0 THEN
+			current_changeset = get_current_changeset_or_null();
+			IF current_changeset IS NULL THEN
+				--user wants last data
+				SELECT MAX(num) INTO from_version FROM version;
+			ELSE
+				SELECT dest_bit INTO dbit FROM %(tbl)s_history WHERE name = local_name AND %(embed_col)s = refuid AND version = current_changeset;
+				IF FOUND THEN
+					--we have result and can return it
+					IF dbit = '1' THEN
+						RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
+					END IF;
+					RETURN;
+				END IF;
+				--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+				from_version = id2num(parent(current_changeset));
+			END IF;
+		END IF;
+
+		SELECT name INTO tmp FROM %(tbl)s_data_version(from_version)
+			WHERE name = local_name AND %(embed_col)s = refuid;
+		IF NOT FOUND THEN
+			RAISE 'No %(tbl)s named %%. Create it first.', name_ USING ERRCODE = '70021';
+		END IF;
+
+		RETURN;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
 	# template string for get data functions with embed flag
 	get_embed_data_string = '''CREATE FUNCTION
 	%(tbl)s_get_data(IN name_ text, from_version bigint = 0)
@@ -590,6 +640,45 @@ class Templates:
 		IF NOT FOUND THEN
 			RAISE 'No %(tbl)s named %%. Create it first.',name_ USING ERRCODE = '70021';
 		END IF;
+		RETURN value;
+	END
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+	#template string for get uid functions (for name finds corresponding uid), never raises exception
+	#returns proper uid or null
+	#for not embed kinds
+	find_uid_string = '''CREATE FUNCTION
+	%(tbl)s_find_uid(IN name_ text, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		changeset_id bigint;
+		value bigint;
+	BEGIN
+	--from_version is user id of version
+	--we need id of changeset
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				--user wants current uid from production
+				SELECT uid INTO value FROM production.%(tbl)s WHERE name = name_;
+				RETURN value;
+			END IF;
+
+			SELECT uid INTO value FROM %(tbl)s_history WHERE name = name_ AND version = changeset_id;
+			IF FOUND THEN
+				--we have result and can return it
+				RETURN value;
+			END IF;
+			--object name_ is not present in current changeset, we need look for it in parent revision or erlier
+			--from_version = id2num(parent(changeset_id));
+		END IF;
+
+		SELECT uid INTO value FROM %(tbl)s_data_version(from_version) WHERE name = name_;
 		RETURN value;
 	END
 	$$
@@ -845,6 +934,56 @@ class Templates:
 	LANGUAGE plpgsql SECURITY DEFINER;
 
 '''
+
+	#template string for get uid functions (for name finds corresponding uid), never raises exception
+	#returns proper uid or null
+	#for embed kinds
+	find_uid_embed_string = '''CREATE OR REPLACE FUNCTION %(tbl)s_find_uid(full_name text, from_version bigint = 0)
+	RETURNS bigint
+	AS
+	$$
+	DECLARE
+		%(reftbl)s_uid bigint;
+		rest_of_name text;
+		%(tbl)s_name text;
+		%(tbl)s_uid bigint;
+		changeset_id bigint;
+	BEGIN
+		SELECT embed_name[1],embed_name[2] FROM embed_name(full_name,'%(delim)s') INTO rest_of_name,%(tbl)s_name;
+		--finds uid of object which is this one embed into
+		SELECT %(reftbl)s_find_uid(rest_of_name, from_version) INTO %(reftbl)s_uid;
+		IF NOT FOUND THEN
+			RETURN NULL;
+		END IF;
+
+		--finds id of changeset where was object with full_name changed = object with local name + uid of object which is object embed into
+		--look for object in current_changeset
+		IF from_version = 0 THEN
+			changeset_id = get_current_changeset_or_null();
+			IF changeset_id IS NULL THEN
+				SELECT uid INTO %(tbl)s_uid FROM %(tbl)s WHERE name = %(tbl)s_name AND %(column)s = %(reftbl)s_uid;
+				RETURN %(tbl)s_uid;
+			ELSE
+				SELECT uid INTO %(tbl)s_uid FROM %(tbl)s_history WHERE %(column)s = %(reftbl)s_uid AND name = %(tbl)s_name;
+				IF NOT FOUND THEN
+					--object with this name is not in current changeset, we should look for it in parent version or earlier
+					from_version = id2num(parent(changeset_id));
+				ELSE
+					--we have result and can return it
+					RETURN %(tbl)s_uid;
+				END IF;
+			END IF;
+		END IF;
+
+		SELECT uid INTO %(tbl)s_uid FROM %(tbl)s_data_version(from_version) WHERE name = %(tbl)s_name AND %(column)s = %(reftbl)s_uid;
+		RETURN %(tbl)s_uid;
+	END;
+	$$
+	LANGUAGE plpgsql SECURITY DEFINER;
+
+'''
+
+
 
 	# template string for add function
 	add_string = '''CREATE FUNCTION
@@ -2231,3 +2370,5 @@ LANGUAGE plpgsql;
 
 '''
 
+	template_add_cycle_check_str = '''ALTER TABLE %(tbl)s_history ADD CONSTRAINT %(tbl)s_chck_templ_cycle CHECK (%(tbl)s_not_in_cycle(uid, %(templ_col)s));
+'''

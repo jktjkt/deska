@@ -22,6 +22,7 @@ class DeskaException(Exception):
 		'70013': 'RevisionRangeError',
 		'70014': 'ChangesetRangeError',
 		'70015': 'ChangesetLockingError',
+		'70016': 'ConstraintError',#check_in_cycle
 		'23502': 'ConstraintError',#NOT NULL
 		'23514': 'ConstraintError',#check_positive
 		'10111': 'SqlError',#check_positive
@@ -117,6 +118,7 @@ def getdata(select,*args):
 	try:
 		with xact():
 			Postgres.NOTICE("Running command: "+select)
+			Postgres.NOTICE(args)
 			plan = prepare(select)
 			return plan.column_names, plan(*args)
 	except Postgres.Exception as dberr:
@@ -133,14 +135,18 @@ def hasTemplate(kindName):
 	else:
 		return False
 
-def getDataSuffix(kindName):
+def getDataSuffix(kindName,directAccess):
 	'''get suffix of name of the data function'''
+	if directAccess:
+		return ""
 	if hasTemplate(kindName):
-		return "resolved_data($1)"
-	return "data_version($1)"
+		return "_resolved_data($1)"
+	return "_data_version($1)"
 
-def getDataFunction(funcName,kindName):
+def getDataFunction(funcName,kindName,directAccess):
 	'''get name of the data function'''
+	if directAccess:
+		return ""
 	resolved = ["multipleResolvedObjectData","multipleResolvedObjectDataWithOrigin","resolvedObjectData", "resolvedObjectDataWithOrigin"]
 	resolvedDict = {
 		"multipleResolvedObjectData": "_resolved_data($1)",
@@ -164,9 +170,9 @@ def getDataFunction(funcName,kindName):
 			return resolvedDict[funcName]
 	return nameDict[funcName]
 
-def getSelect(kindName, functionName, columns = "*", join = "", where = ""):
+def getSelect(kindName, functionName, columns = "*", join = "", where = "", directAccess = False):
 	'''Create SELECT string'''
-	return 'SELECT {0} FROM {1}{2} AS {1} {3}{4}'.format(columns, kindName, getDataFunction(functionName,kindName), join, where)
+	return 'SELECT {0} FROM {1}{2} AS {1} {3}{4}'.format(columns, kindName, getDataFunction(functionName,kindName,directAccess), join, where)
 
 def getAtts(atts,kindName,addName = False):
 	'''Get attributes - columns definition'''
