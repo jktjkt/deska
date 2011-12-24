@@ -162,8 +162,8 @@ Another method is using command "show". When there is no context, it shows only 
 additional information. In context the command shows information about object or objects from the context. The
 information contains all attributes with resolved values from templates. When some attributes value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
-printed, its attributes and nsted kinds will be printed under attribute referring to this object. Nested objects are
-printed in the way similar to output fromcommand "dump". Example of output from "show" on host containing some hardware
+printed, its attributes and nested kinds will be printed under attribute referring to this object. Nested objects are
+printed in the way similar to output from command "dump". Example of output from "show" on host containing some hardware
 through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
@@ -195,7 +195,7 @@ end
 \end{minted}
 
 Command "show" could be used also for printing information about objects not in current context. Like "show host hpv2" or
-"show host hpv2 interface eth0". Ths will not change current context and shows information about object in parameter.
+"show host hpv2 interface eth0". This will not change current context and shows information about object in parameter.
 The parameter is also relative to current context. It means, that in context of host "hpv2" you can type "show interface eth0"
 for showing information about interface "eth0" nested in host "hpv2".
 
