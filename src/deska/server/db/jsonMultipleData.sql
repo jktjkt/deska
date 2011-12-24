@@ -89,6 +89,9 @@ def main(tag,kindName,revision,filter):
 	name = "multipleResolvedObjectData"
 	jsn = dutil.jsn(name,tag)
 
+	#True if there is $1 - revision parameter
+	revisionParameter = False
+
 	# check kind name
 	if kindName not in dutil.generated.kinds():
 		return dutil.errorJson(name,tag,"InvalidKindError","{0} is not valid kind.".format(kindName))
@@ -106,6 +109,7 @@ def main(tag,kindName,revision,filter):
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
 			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			revisionParameter = True
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
@@ -116,21 +120,47 @@ def main(tag,kindName,revision,filter):
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
 				# no action for identifier_set - getting it from data function
 				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
-				atts[refCol] = coldef
+				revisionParameter = True
+			else:
+				if dutil.hasTemplate(kindName):
+					coldef = "{0}_get_resolved_{1}({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
+				else:
+					#coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
+					#revisionParameter = True
+					coldef = atts[refCol]
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 
 	try:
-		# set start to 2, $1 - version is set
-		filter = Filter(filter,2)
+		changeset = dutil.fcall("get_current_changeset_or_null()")
+		if revision is None and changeset is None:
+			'''Check if we are in changeset'''
+			directAccess = True
+		else:
+			directAccess = False
+		if revisionParameter:
+			# set start to 2, $1 - version is set
+			filter = Filter(filter,2,directAccess)
+		else:
+			filter = Filter(filter,1,directAccess)
 		where, values = filter.getWhere()
-		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where)
+		select = dutil.getSelect(kindName, name, columns, filter.getJoin(kindName), where, directAccess)
 	except dutil.DutilException as err:
+		return err.json(name,jsn)
+	except dutil.DeskaException as err:
 		return err.json(name,jsn)
 
 	try:
 		revisionNumber = dutil.fcall("revision2num(text)",revision)
-		args = [revisionNumber]+values
+		if not directAccess:
+			args = [revisionNumber] + values
+		else:
+			if revisionParameter:
+				args = [revisionNumber] + values
+			else:
+				args = values
 		colnames, cur = dutil.getdata(select,*args)
 	except dutil.DeskaException as err:
 		return err.json(name,jsn)

@@ -349,6 +349,7 @@ CREATE FUNCTION commit_all(message text)
 			if tbl in self.templates:
 			#tbl is template
 				table.templates = self.templates[tbl]
+				self.table_sql.write(table.gen_check_template_cycle())
 			else:
 				table.templates = ""
 			self.fn_sql.write(table.gen_resolved_data())
