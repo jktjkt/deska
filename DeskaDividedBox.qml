@@ -6,9 +6,9 @@ Rectangle {
     // Number of inner positions (bays) at the vertical level
     property int innerHeight
     // Width of each of the inner bays
-    property double bayWidth: (innerWidth != 0) ? Math.max((width / innerWidth) - 2, 1) : NaN
+    property double bayWidth: (innerWidth != 0) ? Math.max((width / innerWidth), 1) : NaN
     // Height of each of the inner bays
-    property double bayHeight: (innerHeight != 0) ? Math.max((height / innerHeight) - 2, 1) : NaN
+    property double bayHeight: (innerHeight != 0) ? Math.max((height / innerHeight), 1) : NaN
 
     // Consumed bays in the vertical direction
     property int consumesBaysX: 1
