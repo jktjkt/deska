@@ -55,15 +55,14 @@ together.  Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a d
 needs to be set to {\tt DEFERRABLE}.
 
 \subsection{Relations Definition}
-Here we will describe how to add Deska relations to modules.
+Here we will describe how to add Deska relations (see \secref{sec:objects-and-relations-relations}) to modules.
 
 \todo{Martina: add proper cross-references}
 
 \subsubsection{REFERS\_TO}
 \label{sec:db-scheme-refers-to}
 
-The {\tt REFERS\_TO} relation (see \secref{sec:relation-refers-to}) needs adding the foreign key constraint. This
-constraint have to:
+The {\tt REFERS\_TO} relation (see \secref{sec:relation-refers-to}) needs adding the foreign key constraint. This constraint has to comply with following rules:
 
 \begin{itemize}
     \item The target module table has to be present in the database already
@@ -88,14 +87,14 @@ CREATE TABLE hardware (
 \end{minted}
 
 \subsubsection{EMBED\_INTO}
-The {\tt EMBED\_INTO} relation needs adding the foreign key constraint. This constraint have to:
+The {\tt EMBED\_INTO} relation (see \secref{sec:relation-embed-into}) needs adding the foreign key constraint. This constraint has to comply with following rules:
 \begin{itemize}
-    \item refer to module that will be installed before this one
-    \item have referring column of bigint type
-    \item have name with {\tt rembed\_} prefix
-    \item refer to uid column of the referenced table
+    \item The target module table has to be present in the database already
+    \item The referring column forming the relation has to be of the {\tt bigint} type
+    \item The name of the constraint shall start with the {\tt rembed\_} prefix
+    \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
-The tables that are embed into another have to have unique pair of uid and referencing column, which refers to uid of table that is this embed into.
+The tables that are embedded into another have to have unique pair of uid and referencing column, which refers to uid of table that is this embedded into.
 \begin{minted}{sql}
 SET search_path TO production,deska;
 
@@ -116,13 +115,13 @@ CREATE TABLE interface (
 
 
 \subsubsection{TEMPLATIZE}
-Templatize relation needs adding special column to the module. This column have to:
+The {\tt TEMPLATIZE} relation needs (see \secref{sec:relation-templatized}) adding a special column to the module. This column has to comply with following rules:
 \begin{itemize}
-    \item have name with {\tt template\_} prefix
-    \item be the only one column in module with name with {\tt template\_} prefix
-    \item be of bigint type
+    \item The name of the column shall start with {\tt template\_} prefix
+    \item The column has to be the only one column in module which name starts with {\tt template\_} prefix
+    \item The column shall be of the {\tt bigint} type
 \end{itemize}
-You can template only tables that have at least one column which value could be inherited from its template. Columns that are a part of composition relation, template relation or embed into relation could not inherit theirs values.
+You can template only tables that have at least one column which value could be inherited from its template. Columns that form some {\tt COMPOSITION relation}, {\tt TEMPLATIZE} relation or {\tt EMBED INTO} relation could not inherit theirs values.
 
 \begin{minted}{sql}
 SET search_path TO production,deska;
@@ -144,12 +143,12 @@ CREATE TABLE hardware (
 
 
 \subsubsection{Multi-value Reference}
-Multi-value reference relation needs adding the foreign key constrain. This constraint have to:
+{\tt Multi-value} reference relation (see \secref{sec:relation-multi-value-references}) needs adding the foreign key constrain. This constraint has to comply with following rules:
 \begin{itemize}
-    \item refer to module that will be installed before this one
-    \item have referring column of {\tt identifier\_set} type
-    \item have name with {\tt rset\_} prefix
-    \item refer to uid column of the referenced table
+    \item The target module table has to be present in the database already
+    \item The referring column forming the relation has to be of the {\tt identifier\_set} type
+    \item The name of the constraint shall start with the {\tt rset\_} prefix
+    \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
 
 \begin{minted}{sql}
@@ -169,18 +168,18 @@ CREATE TABLE host (
 );
 \end{minted}
 
-\subsubsection{Composition}
-Composition relation needs adding the foreign key constrain. This constraint have to:
+\subsubsection{COMPOSITION}
+{\tt COMPOSITION} relation (see \secref{sec:relation-contains}) needs adding the foreign key constrain. This constraint has to comply with following rules:
 \begin{itemize}
-    \item refer to module that will be installed before this one
-    \item have referring column of bigint type
-    \item have name with {\tt rconta\_} prefix
-    \item refer to uid column of the referenced table
+    \item The target module table has to be present in the database already
+    \item The referring column forming the relation has to be of the {\tt bigint} type
+    \item The name of the constraint shall start with the {\tt rconta\_} prefix
+    \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
 In addition to requirements on module's foreign key, it is needed that:
 \begin{itemize}
-    \item this module and referenced module do not have any attribute with the same name (of course except name and uid)
-    \item the chain created by composition foreign keys of defined modules do not contain a cycle
+    \item This module and referenced module do not have any attribute with the same name (of course except {\tt name} and {\tt uid})
+    \item The chain created by {\tt COMPOSITION} foreign keys of defined modules do not contain a cycle
 \end{itemize}
 
 \begin{minted}{sql}

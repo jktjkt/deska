@@ -376,7 +376,7 @@ select hardware_terminate_diff();
 Composition is described in \ref{sec:relation-contains}.
 Linking objects with the same name from different tables is maintained by before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
 Condition that one object could be contained in at most one another object is checked by the check constraints. When the table represents kind that is containable to more than one kind, the containable table has this check constraint.\\
-Following example shows, how the objects in composition relation are linked and disjoint. Result is in tables \ref{tab:comp-box}, \ref{tab:comp-hw} and \ref{tab:comp-switch}.
+Following example shows, how the objects in {\tt COMPOSITION} relation are linked and disjoint. Result is in tables \ref{tab:comp-box}, \ref{tab:comp-hw} and \ref{tab:comp-switch}.
 
 \begin{minted}{sql}
 select startchangeset();
