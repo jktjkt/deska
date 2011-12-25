@@ -53,6 +53,7 @@ Rectangle {
         text: parent.name
         anchors.centerIn: parent
         visible: parent.name.length > 0
+        rotation: parent.width < parent.height ? 270 : 0
     }
 }
 
