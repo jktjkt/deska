@@ -6,9 +6,9 @@ Rectangle {
     // Number of inner positions (bays) at the vertical level
     property int innerHeight
     // Width of each of the inner bays
-    property double bayWidth: Math.max((parent.width / innerWidth) - 2, 1)
+    property double bayWidth: (innerWidth != 0) ? Math.max((width / innerWidth) - 2, 1) : NaN
     // Height of each of the inner bays
-    property double bayHeight: Math.max((parent.height / innerHeight) - 2, 1)
+    property double bayHeight: (innerHeight != 0) ? Math.max((height / innerHeight) - 2, 1) : NaN
 
     property string name
 
@@ -16,32 +16,20 @@ Rectangle {
     property int rackX
     property int rackY
 
-    //onPosXChanged: alert("pwn")
+    Component.onCompleted: {
+        console.log("DeskaDividedBox " + name)
+        console.log(" width: " + width + ", height: " + height)
+        console.log(" bayWidth: " + bayWidth + ", bayHeight: " + bayHeight)
+        console.log(" innerWidth: " + innerWidth + ", innerHeight: " + innerHeight)
+        console.log(" rackX: " + rackX + ", rackY: " + rackY)
+    }
 
     border.color: "black"
     border.width: 1
 
-    width: parent.bayWidth
-    height: parent.bayHeight
+    width: parent.bayWidth != NaN ? parent.bayWidth : 10
+    height: parent.bayHeight != NaN ? parent.bayHeight : 10
     x: rackX * parent.bayWidth
     y: rackY * parent.bayHeight
-
-    /*Rectangle {
-
-
-        width: parent.bayWidth
-        height: parent.bayHeight
-
-        x: posX * parent.bayWidth
-        y: posY * parent.bayHeight
-
-        border.width: 1
-        border.color: "blue"
-
-        Text {
-            text: "Sample box"
-            anchors.fill: parent
-        }
-    }*/
 }
 
