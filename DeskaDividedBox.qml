@@ -36,5 +36,11 @@ Rectangle {
     height: parent.bayHeight != NaN ? consumesBaysY * parent.bayHeight : 10
     x: rackX * parent.bayWidth
     y: rackY * parent.bayHeight
+
+    Text {
+        text: parent.name
+        anchors.centerIn: parent
+        visible: parent.name.length > 0
+    }
 }
 
