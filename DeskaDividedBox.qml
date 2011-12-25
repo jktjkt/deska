@@ -22,11 +22,23 @@ Rectangle {
     property int rackY
 
     Component.onCompleted: {
-        console.log("DeskaDividedBox " + name)
+        if (parent.innerWidth != null && rackX >= parent.innerWidth) {
+            console.log("DeskaDividedBox " + name + " too much to the right")
+        }
+        if (rackX < 0) {
+            console.log("DeskaDividedBox " + name + " too much to the left")
+        }
+        if (parent.innerHeight != null && rackY >= parent.innerHeight) {
+            console.log("DeskaDividedBox " + name + " too much to the bottom")
+        }
+        if (rackY < 0) {
+            console.log("DeskaDividedBox " + name + " too much to the top")
+        }
+        /*console.log("DeskaDividedBox " + name)
         console.log(" width: " + width + ", height: " + height)
         console.log(" bayWidth: " + bayWidth + ", bayHeight: " + bayHeight)
         console.log(" innerWidth: " + innerWidth + ", innerHeight: " + innerHeight)
-        console.log(" rackX: " + rackX + ", rackY: " + rackY)
+        console.log(" rackX: " + rackX + ", rackY: " + rackY)*/
     }
 
     border.color: "black"
