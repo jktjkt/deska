@@ -13,8 +13,7 @@ public:
     virtual ~Qml2Image();
 
 private slots:
-    void maybeDone(const QDeclarativeView::Status status);
-    void slotRenderLater();
+    void maybeDone();
     void slotSave();
 
 private:
