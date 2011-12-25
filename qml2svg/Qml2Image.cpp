@@ -2,13 +2,12 @@
 #include <QtCore/QTimer>
 #include "Qml2Image.h"
 
-
 Qml2Image::Qml2Image(const QString &qmlFile, const QString &outFile_):
     generator(0), image(0), outFile(outFile_), qmlView(QUrl::fromLocalFile(qmlFile))
 {
-    //qmlView.resize(QSize(800, 1200));
-
-    QTimer::singleShot(500, this, SLOT(slotRenderLater()));
+    qmlView.resize(800, 1100);
+    qmlView.viewport()->resize(qmlView.size());
+    QTimer::singleShot(0, this, SLOT(slotRenderLater()));
 }
 
 void Qml2Image::maybeDone(const QDeclarativeView::Status status)
@@ -27,7 +26,6 @@ void Qml2Image::slotRenderLater()
         generator = new QSvgGenerator();
         generator->setFileName(outFile);
         generator->setSize(qmlView.size());
-        generator->setViewBox(QRect(QPoint(0, 0), qmlView.size()));
     } else {
         image = new QImage(qmlView.size(), QImage::Format_ARGB32);
     }
