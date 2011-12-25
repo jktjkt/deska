@@ -8,8 +8,8 @@ height: 700
 
     DeskaDividedBox {
         id: rack_L01
-        width: parent.width / 10
-        height: parent.height - 100
+        width: parent.width / 8
+        height: parent.height - 40
         color: "#ffdddd"
 
         innerWidth: 1
@@ -41,6 +41,42 @@ height: 700
         }
 
         DeskaDividedBox {
+            // a 10U blade chassis
+            rackY: 30
+            consumesBaysY: 10
+            innerWidth: 8
+            innerHeight: 2
+            name: "chassis"
+
+            DeskaDividedBox {
+                rackX: 0
+                rackY: 0
+                name: "0.0"
+            }
+
+            DeskaDividedBox {
+                rackX: 1
+                rackY: 1
+                name: "1.1"
+            }
+
+            DeskaDividedBox {
+                rackX: 2
+                name: "2.0"
+                color: "yellow"
+            }
+
+            /*DeskaDividedBox {
+                rackX: 8
+                rackY: 2
+                name: "err"
+            }*/
+
+            DeskaDividedBox {
+                rackX: 7
+                rackY: 0
+                name: "7.0"
+            }
         }
     }
 
@@ -48,8 +84,8 @@ height: 700
         id: rack_L02
         name: "L02"
         anchors.left: rack_L01.right
-        width: parent.width / 10
-        height: parent.height - 100
+        width: parent.width / 8
+        height: parent.height - 40
     }
 
 }

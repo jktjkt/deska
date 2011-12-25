@@ -18,8 +18,8 @@ Rectangle {
     property string name
 
     // Bay number occuiped by this item
-    property int rackX
-    property int rackY
+    property int rackX: 0
+    property int rackY: 0
 
     Component.onCompleted: {
         if (parent.innerWidth != null && rackX >= parent.innerWidth) {
