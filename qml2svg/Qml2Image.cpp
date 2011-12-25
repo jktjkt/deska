@@ -38,16 +38,19 @@ void Qml2Image::slotRenderLater()
 
 void Qml2Image::slotSave()
 {
-    if (generator)
+    if (generator) {
         painter.begin(generator);
-    else
+    } else {
         painter.begin(image);
+    }
+
     painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+    painter.setViewport(0, 0, qmlView.width(), qmlView.height());;
     qmlView.render(&painter);
-    //painter.drawRect(10, 20, 500, 400);
     painter.end();
-    if (image)
+    if (image) {
         image->save(outFile);
+    }
     QCoreApplication::exit(0);
 }
 
