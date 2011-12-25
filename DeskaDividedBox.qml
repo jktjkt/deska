@@ -34,11 +34,6 @@ Rectangle {
         if (rackY < 0) {
             console.log("DeskaDividedBox " + name + " too much to the top")
         }
-        /*console.log("DeskaDividedBox " + name)
-        console.log(" width: " + width + ", height: " + height)
-        console.log(" bayWidth: " + bayWidth + ", bayHeight: " + bayHeight)
-        console.log(" innerWidth: " + innerWidth + ", innerHeight: " + innerHeight)
-        console.log(" rackX: " + rackX + ", rackY: " + rackY)*/
     }
 
     border.color: "black"
