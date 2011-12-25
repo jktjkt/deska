@@ -6,7 +6,6 @@ id: serverovna
 width: 1200
 height: 600
 
-
     DeskaDividedBox {
         id: rack_L01
         name: "L01"
@@ -20,6 +19,7 @@ height: 600
         rackX: 10
 
         DeskaDividedBox {
+            // a full-sized pizza box
             rackX: 0
             rackY: 25
             color: "#aaffaa"
@@ -30,8 +30,10 @@ height: 600
         }
 
         DeskaDividedBox {
+            // a 2U pizza box
             rackX: 0
             rackY: 10
+            consumesBaysY: 2
             color: "#ccccff"
             Text {
                 anchors.fill: parent
