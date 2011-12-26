@@ -141,7 +141,7 @@ height: 700
 """,
 }
 
-f = file("boxes", "wb")
+f = file("boxes.qml", "wb")
 f.write("import QtQuick 1.0\n\n")
 #f.write(special_node_rules["serverovna"])
 print_current(f, 0, "serverovna", special_node_rules, parent_name=None, parent_box_data=None, previous_name=None)
