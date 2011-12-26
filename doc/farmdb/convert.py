@@ -534,7 +534,7 @@ for (uid, x) in fd_machines.iteritems():
         else:
             positions = [x.rackPos, x.rackPos - 1]
             rack_x = x.rackPos
-            sleeve_pos = 0
+            sleeve_pos = 2
         candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
                       v.hwUid == x.hwUid and v.rackNo == x.rackNo and
                       v.rackHPos == x.rackHPos and int(v.rackPos) in positions]
@@ -543,16 +543,19 @@ for (uid, x) in fd_machines.iteritems():
             boxname = "%s-sleeve" % candidates[0]
         else:
             boxname = "-".join(candidates)
+        rack_y = x.rackHPos
         format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
-                  "hostname": myname, "sleeve_pos": sleeve_pos}
+                  "hostname": myname, "sleeve_pos": sleeve_pos, "rack_y": rack_y}
         if not created_twins.has_key(boxname):
             if x.obsolete is not None:
                 obsolete_items.append(("box", boxname))
             created_twins[boxname] = True
             box_str = """create box %(boxname)s
 box %(boxname)s
+    direct_modelbox idataplex-chassis-2u
     inside %(rack)s
     x %(rack_x)s
+    y %(rack_y)s
 end
 """ % format
         else:
