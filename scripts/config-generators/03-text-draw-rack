@@ -67,13 +67,10 @@ def print_current(s, indent, key, special_nodes, parent):
 
     if key in special_nodes:
         s.write(special_nodes[key])
-        previous_item = None
         for x in all_children:
             print_current(s, indent + 2, x, special_nodes, my_modelbox_data)
         s.write("}\n")
         return
-    #elif my_modelbox_data.formfactor == "rack":
-    #    # it's a rack
 
     buf = []
     buf.append(short_prefix + "DeskaDividedBox {")
