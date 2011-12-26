@@ -41,7 +41,10 @@ def position_sorter(item):
         z = 1
     return (-y, x, z, item)
 
-def print_current(s, indent, key, special_nodes):
+def to_qml_identifier(x):
+    return "box_%s" % x.replace("-", "_")
+
+def print_current(s, indent, key, special_nodes, parent):
     short_prefix = " " * indent
     prefix = " " * (indent + 2)
     my_modelbox = None
@@ -57,18 +60,24 @@ def print_current(s, indent, key, special_nodes):
             my_modelbox = None
         else:
             my_modelbox_data = my_modelbox.values()[0]
+    else:
+        my_modelbox_data = None
 
     all_children = sorted(res[key], key=position_sorter)
 
     if key in special_nodes:
         s.write(special_nodes[key])
+        previous_item = None
         for x in all_children:
-            print_current(s, indent + 2, x, special_nodes)
+            print_current(s, indent + 2, x, special_nodes, my_modelbox_data)
         s.write("}\n")
         return
+    #elif my_modelbox_data.formfactor == "rack":
+    #    # it's a rack
 
     buf = []
     buf.append(short_prefix + "DeskaDividedBox {")
+    buf.append(prefix + 'id: %s' % to_qml_identifier(key))
     if len(all_children):
         buf.append(prefix + '// %s' % key)
     else:
@@ -88,6 +97,11 @@ def print_current(s, indent, key, special_nodes):
             buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
         if my_modelbox_data.height is not None:
             buf.append(prefix + 'consumesBaysY: %s' % my_modelbox_data.height)
+        if parent is not None:
+            if parent.internal_width is None:
+                # this box is not divided into inner bays, so we have to come up with a proper alignment
+                buf.append(prefix + 'width: parent.width / %d\n' % len(all_children))
+                buf.append(prefix + 'height: Math.max(parent.height - 40, 20)\n')
 
     else:
         buf.append(prefix + "// no modelbox\n")
@@ -95,7 +109,7 @@ def print_current(s, indent, key, special_nodes):
     buf.append("")
     s.write("\n".join(buf))
     for x in all_children:
-        print_current(s, indent + 2, x, special_nodes)
+        print_current(s, indent + 2, x, special_nodes, my_modelbox_data)
     s.write(short_prefix + "}\n")
 
 special_node_rules = {
@@ -106,7 +120,7 @@ id: serverovna
 width: 1200
 height: 700
 """,
-    "L01": """
+    "__L01": """
     DeskaDividedBox {
         id: rack_L01
         width: parent.width / 8
@@ -124,7 +138,7 @@ height: 700
             }
         }
 """,
-    "L10": """
+    "__L10": """
     DeskaDividedBox {
         id: rack_L10
         width: parent.width / 8
@@ -165,7 +179,7 @@ height: 700
 
 f = file("boxes", "wb")
 f.write("import QtQuick 1.0\n\n")
-print_current(f, 0, "serverovna", special_node_rules)
+print_current(f, 0, "serverovna", special_node_rules, parent=None)
 
 t3 = time.time()
 
