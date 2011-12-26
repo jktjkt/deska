@@ -17,3 +17,5 @@ CREATE TABLE warranty_contract (
 	supportnote text
 );
 
+CREATE INDEX idx_warr_contr_vendor ON warranty_contract(vendor);
+

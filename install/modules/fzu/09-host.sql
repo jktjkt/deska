@@ -43,4 +43,7 @@ $$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER host_hardware_check BEFORE INSERT OR UPDATE ON host FOR EACH ROW
-EXECUTE PROCEDURE host_runs_on_hw()
+EXECUTE PROCEDURE host_runs_on_hw();
+
+CREATE INDEX idx_host_hardware ON host(hardware);
+CREATE INDEX idx_host_virtual_hardware ON host(virtual_hardware);

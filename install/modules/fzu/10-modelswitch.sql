@@ -18,3 +18,6 @@ CREATE TABLE modelswitch (
 		CHECK (port_validity_regexp != '')
 );
 
+CREATE INDEX idx_modelswitch_vendor ON modelswitch(vendor);
+CREATE INDEX idx_modelswitch_modelbox ON modelswitch(modelbox);
+

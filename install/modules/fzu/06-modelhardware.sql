@@ -66,3 +66,5 @@ CREATE TABLE modelhardware (
 	note text
 );
 
+CREATE INDEX idx_modelhw_vendor ON modelhardware(vendor);
+CREATE INDEX idx_modelhw_modelbox ON modelhardware(modelbox);

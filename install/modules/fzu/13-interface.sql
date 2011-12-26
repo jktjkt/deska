@@ -31,6 +31,9 @@ CREATE TABLE interface (
 	CONSTRAINT "interface with this name already exists in this host" UNIQUE (name,host)
 );
 
+CREATE INDEX idx_interface_network ON interface(network);
+CREATE INDEX idx_interface_switch ON interface(switch);
+
 -- function for trigger, checking ports number and IPs
 CREATE FUNCTION interface_check()
 RETURNS TRIGGER

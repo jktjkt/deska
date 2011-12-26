@@ -22,3 +22,6 @@ CREATE TABLE switch (
 	inventory_no text
 );
 
+CREATE INDEX idx_switch_modelswitch ON switch(modelswitch);
+CREATE INDEX idx_switch_warr_contract ON switch(warranty_contract);
+
