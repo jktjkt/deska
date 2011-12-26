@@ -403,6 +403,39 @@ modelbox hp-blade-c
     height 1
     depth 1
 end
+
+
+create formfactor hp-blade-p
+
+create modelbox hp-blade-p-chassis
+modelbox hp-blade-p-chassis
+    formfactor rackmount
+    accepts_inside [hp-blade-p]
+    width 1
+    height 6
+    depth 1
+    internal_width 8
+    internal_height 2
+    internal_depth 1
+    note "A P-class HP blade chassis"
+end
+
+create modelbox hp-blade-p-1u
+modelbox hp-blade-p-1u
+    formfactor hp-blade-p
+    width 1
+    height 1
+    depth 1
+end
+
+create modelbox hp-blade-p-2u
+modelbox hp-blade-p-2u
+    formfactor hp-blade-p
+    width 1
+    height 2
+    depth 1
+end
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -480,9 +513,10 @@ for (uid, x) in fd_hardware.iteritems():
             print "  modelbox idataplex-1u"
         elif fullname == "SGI-Altix-XE340":
             print "  modelbox sgi-twin"
-        #elif fullname == "HP-BL20p":
-        #elif fullname == "HP-BL35p":
-        #elif fullname == "HP-BL35p-8GRAM":
+        elif fullname == "HP-BL20p":
+            print "  modelbox hp-blade-p-2u"
+        elif fullname.startswith("HP-BL35p"):
+            print "  modelbox hp-blade-p-1u"
         elif fullname in ("HP-BL465c", "HP-BL460c", "HP-Bl460c"):
             print "  modelbox hp-blade-c"
         else:
@@ -532,6 +566,30 @@ box hp-enc-c-2
     inside R05
     y 15
     x 1
+end
+
+create box hp-enc-p-1
+box hp-enc-p-1
+    direct_modelbox hp-blade-p-chassis
+    inside L08
+    x 1
+    y 29
+end
+
+create box hp-enc-p-2
+box hp-enc-p-2
+    direct_modelbox hp-blade-p-chassis
+    inside L08
+    x 1
+    y 23
+end
+
+create box hp-enc-p-3
+box hp-enc-p-3
+    direct_modelbox hp-blade-p-chassis
+    inside L08
+    x 1
+    y 17
 end
 
 
@@ -656,6 +714,38 @@ end
             enc_y = 1
         else:
             raise RuntimeError
+        format = {"boxname": myname, "enclosure": enclosure, "enc_x": enc_x,
+                  "enc_y": enc_y}
+        box_str = """create box %(boxname)s
+box %(boxname)s
+    inside %(enclosure)s
+    x %(enc_x)s
+    y %(enc_y)s
+end
+""" % format
+    elif my_modelhw.startswith("HP-BL"):
+        # The p-class blades
+        enc_x = x.rackHPos
+        if x.rackPos == "29":
+            enclosure = "hp-enc-p-1"
+            enc_y = 2
+        elif x.rackPos == "26":
+            enclosure = "hp-enc-p-1"
+            enc_y = 1
+        elif x.rackPos == "23":
+            enclosure = "hp-enc-p-2"
+            enc_y = 2
+        elif x.rackPos == "20":
+            enclosure = "hp-enc-p-2"
+            enc_y = 1
+        elif x.rackPos == "17":
+            enclosure = "hp-enc-p-3"
+            enc_y = 2
+        elif x.rackPos == "14":
+            enclosure = "hp-enc-p-3"
+            enc_y = 1
+        else:
+            raise RuntimeError, "Dunno how to convert %s" % x
         format = {"boxname": myname, "enclosure": enclosure, "enc_x": enc_x,
                   "enc_y": enc_y}
         box_str = """create box %(boxname)s
