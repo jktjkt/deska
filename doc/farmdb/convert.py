@@ -380,6 +380,29 @@ modelbox sgi-twin
     height 1
     depth 1
 end
+
+create formfactor hp-blade-c
+
+create modelbox hp-blade-c-chassis
+modelbox hp-blade-c-chassis
+    formfactor rackmount
+    accepts_inside [hp-blade-c]
+    width 1
+    height 9
+    depth 1
+    internal_width 8
+    internal_height 2
+    internal_depth 1
+    note "A C-class HP blade chassis"
+end
+
+create modelbox hp-blade-c
+modelbox hp-blade-c
+    formfactor hp-blade-c
+    width 1
+    height 1
+    depth 1
+end
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -457,6 +480,11 @@ for (uid, x) in fd_hardware.iteritems():
             print "  modelbox idataplex-1u"
         elif fullname == "SGI-Altix-XE340":
             print "  modelbox sgi-twin"
+        #elif fullname == "HP-BL20p":
+        #elif fullname == "HP-BL35p":
+        #elif fullname == "HP-BL35p-8GRAM":
+        elif fullname in ("HP-BL465c", "HP-BL460c", "HP-Bl460c"):
+            print "  modelbox hp-blade-c"
         else:
             print "# FIXME: weird width '%s' -> no modelbox" % x.width
     print "end\n"
@@ -488,6 +516,26 @@ def find_hostname_for_hw(uid, x):
         myname += "-obsolete"
     myname = myname.replace(" ", "_").replace("/", "_").replace(".", "_")
     return myname
+
+print """
+create box hp-enc-c-1
+box hp-enc-c-1
+    direct_modelbox hp-blade-c-chassis
+    inside R05
+    y 24
+    x 1
+end
+
+create box hp-enc-c-2
+box hp-enc-c-2
+    direct_modelbox hp-blade-c-chassis
+    inside R05
+    y 15
+    x 1
+end
+
+
+"""
 
 created_twins = {}
 obsolete_items = []
@@ -588,6 +636,28 @@ end
 box %(hostname)s
     inside %(boxname)s
     y %(sleeve_pos)s
+end
+""" % format
+    elif my_modelhw.startswith("HP-BL") and my_modelhw.endswith("c"):
+        # The c-class blades
+        if myname in ["golias%d" % num for num in range(151, 156)] + ["torque"]:
+            enclosure = "hp-enc-c-2"
+            y = 2
+            x = x.rackHPos
+        elif myname in ["golias%d" % num for num in range(157, 162)] + ["monitor"]:
+            enclosure = "hp-enc-c-2"
+            y = 1
+            x = x.rackHPos
+        elif True or myname in ["golias%d" % num for num in range(163, 166)]:
+            enclosure = "hp-enc-c-1"
+            y = 1 # FIXME
+            x = x.rackHPos
+        format = {"boxname": myname, "enclosure": enclosure, "enc_x": x, "enc_y": y}
+        box_str = """create box %(boxname)s
+box %(boxname)s
+    inside %(enclosure)s
+    x %(enc_x)s
+    y %(enc_y)s
 end
 """ % format
     else:
