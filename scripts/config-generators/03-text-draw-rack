@@ -46,7 +46,6 @@ def to_qml_identifier(x):
 
 def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, previous_name):
     short_prefix = " " * indent
-    s.write("%s // !!! %s: P %s; pdata: %s; previous name: %s\n" % (short_prefix, key, parent_name, parent_box_data, previous_name))
     prefix = " " * (indent + 2)
     my_modelbox = None
     my_box = boxes[key]
@@ -68,11 +67,11 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
 
     if key in special_nodes:
         s.write(special_nodes[key])
-        old_name = None
+        previous_name = None
         for x in all_children:
             print_current(s, indent + 2, x, special_nodes, parent_name=key, parent_box_data=my_modelbox_data,
-                          previous_name=old_name)
-            old_name = to_qml_identifier(x)
+                          previous_name=previous_name)
+            previous_name = to_qml_identifier(x)
         s.write("}\n")
         return
 
@@ -107,15 +106,18 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
                     buf.append(prefix + "anchors.left: parent.left")
                 else:
                     buf.append(prefix + "anchors.left: %s.right" % previous_name)
+                buf.append(prefix + "anchors.bottom: parent.bottom")
+                buf.append(prefix + "anchors.bottomMargin: 40")
     else:
         buf.append(prefix + "// no modelbox\n")
 
     buf.append("")
     s.write("\n".join(buf))
-    old_name = None
+    previous_name = None
     for x in all_children:
-        print_current(s, indent + 2, x, special_nodes, key, parent_box_data=my_modelbox_data, previous_name=old_name)
-        old_name = to_qml_identifier(x)
+        print_current(s, indent + 2, x, special_nodes, key, parent_box_data=my_modelbox_data,
+                      previous_name=previous_name)
+        previous_name = to_qml_identifier(x)
     s.write(short_prefix + "}\n")
 
 special_node_rules = {
@@ -126,61 +128,6 @@ id: serverovna
 width: 1200
 height: 700
 """,
-    "__L01": """
-    DeskaDividedBox {
-        id: rack_L01
-        width: parent.width / 8
-        height: parent.height - 40
-        color: "#ffdddd"
-
-        innerWidth: 1
-        innerHeight: 42
-
-        Text {
-            text: "L01"
-            anchors {
-                top: parent.bottom
-                horizontalCenter: parent.horizontalCenter
-            }
-        }
-""",
-    "__L10": """
-    DeskaDividedBox {
-        id: rack_L10
-        width: parent.width / 8
-        height: parent.height - 40
-        anchors.left: rack_L01.right
-
-        innerWidth: 2
-        innerHeight: 42
-
-        Text {
-            text: "L10"
-            anchors {
-                top: parent.bottom
-                horizontalCenter: parent.horizontalCenter
-            }
-        }
-""",
-    "__L11": """
-    DeskaDividedBox {
-        id: rack_L11
-        width: parent.width / 8
-        height: parent.height - 40
-        anchors.left: rack_L10.right
-
-        innerWidth: 2
-        innerHeight: 42
-
-        Text {
-            text: "L11"
-            anchors {
-                top: parent.bottom
-                horizontalCenter: parent.horizontalCenter
-            }
-        }
-""",
-
 }
 
 f = file("boxes", "wb")
