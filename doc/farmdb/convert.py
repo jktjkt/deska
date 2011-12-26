@@ -526,15 +526,29 @@ for (uid, x) in fd_machines.iteritems():
         # These things are special, as the farmdb specifies their own slot for
         # each of them
         x.rackPos = int(x.rackPos)
-        if x.rackPos % 2:
-            # an even one -> be special
-            positions = [x.rackPos, x.rackPos + 1]
-            rack_y = x.rackPos + 1
-            sleeve_pos = 1
+        if int(x.rackHPos) == 1:
+            # the left column
+            if x.rackPos % 2:
+                # an even one -> be special
+                positions = [x.rackPos, x.rackPos + 1]
+                rack_y = x.rackPos + 1
+                sleeve_pos = 1
+            else:
+                positions = [x.rackPos, x.rackPos - 1]
+                rack_y = x.rackPos
+                sleeve_pos = 2
         else:
-            positions = [x.rackPos, x.rackPos - 1]
-            rack_y = x.rackPos
-            sleeve_pos = 2
+            # the right column
+            if x.rackPos % 2:
+                # an even one -> be special
+                positions = [x.rackPos, x.rackPos - 1]
+                rack_y = x.rackPos
+                sleeve_pos = 1
+            else:
+                positions = [x.rackPos, x.rackPos + 1]
+                rack_y = x.rackPos + 1
+                sleeve_pos = 2
+
         candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
                       v.hwUid == x.hwUid and v.rackNo == x.rackNo and
                       v.rackHPos == x.rackHPos and int(v.rackPos) in positions]
