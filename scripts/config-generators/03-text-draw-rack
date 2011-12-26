@@ -41,13 +41,15 @@ def position_sorter(item):
         z = 1
     return (-y, x, z, item)
 
-def print_current(s, indent, key):
-    prefix = " " * indent
+def print_current(s, indent, key, special_nodes):
+    short_prefix = " " * indent
+    prefix = " " * (indent + 2)
     my_modelbox = None
-    message = None
-    if boxes[key].direct_modelbox is not None:
-        my_modelbox = deska.modelbox[deska.modelbox.name == boxes[key].direct_modelbox]
-    elif boxes[key].hardware is not None:
+    my_box = boxes[key]
+    if my_box.direct_modelbox is not None:
+        my_modelbox = deska.modelbox[deska.modelbox.name == my_box.direct_modelbox]
+        my_modelbox_data = my_modelbox.values()[0]
+    elif my_box.hardware is not None:
         my_modelhw = deska.modelhardware[deska.hardware.name == key]
         my_modelhw_obj = my_modelhw[my_modelhw.keys()[0]]
         my_modelbox = deska.modelbox[deska.modelbox.name == my_modelhw_obj.modelbox]
@@ -59,18 +61,118 @@ def print_current(s, indent, key):
         #my_modelbox = deska.modelbox[deska.modelhardware.name == my_modelhw.keys()[0]]
         if not len(my_modelbox):
             my_modelbox = None
-    if my_modelbox is not None:
-        additional = ": %s %s" % (my_modelbox.keys()[0], repr(my_modelbox.values()[0]))
-    elif message is not None:
-        additional = message
+        else:
+            my_modelbox_data = my_modelbox.values()[0]
+
+    all_children = sorted(res[key], key=position_sorter)
+
+    if key in special_nodes:
+        s.write(special_nodes[key])
+        for x in all_children:
+            print_current(s, indent + 2, x, special_nodes)
+        s.write("}\n")
+        return
+
+    buf = []
+    buf.append(short_prefix + "DeskaDividedBox {")
+    if len(all_children):
+        buf.append(prefix + '// %s' % key)
     else:
-        additional = " [no modelbox]"
-    s.write("%s%s%s\n" % (prefix, key, additional))
-    for x in sorted(res[key], key=position_sorter):
-        print_current(s, indent + 1, x)
+        buf.append(prefix + 'name: "%s"' % key)
+
+    if my_modelbox is not None:
+        #buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
+        if my_modelbox_data.internal_height is not None:
+            buf.append(prefix + 'innerHeight: %s' % my_modelbox_data.internal_height)
+        if my_modelbox_data.internal_width is not None:
+            buf.append(prefix + 'innerWidth: %s' % my_modelbox_data.internal_width)
+        if my_box.x is not None:
+            buf.append(prefix + 'rackX: %d' % (int(my_box.x) - 1))
+        if my_box.y is not None:
+            buf.append(prefix + 'rackY: %d' % (int(my_box.y) - 1))
+        if my_modelbox_data.width is not None:
+            buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
+        if my_modelbox_data.height is not None:
+            buf.append(prefix + 'consumesBaysY: %s' % my_modelbox_data.height)
+
+    else:
+        buf.append(prefix + "// no modelbox\n")
+
+    buf.append("")
+    s.write("\n".join(buf))
+    for x in all_children:
+        print_current(s, indent + 2, x, special_nodes)
+    s.write(short_prefix + "}\n")
+
+special_node_rules = {
+    "serverovna": """
+import QtQuick 1.0
+
+Rectangle {
+id: serverovna
+//color: "transparent"
+width: 1200
+height: 700
+""",
+    "L01": """
+    DeskaDividedBox {
+        id: rack_L01
+        width: parent.width / 8
+        height: parent.height - 40
+        color: "#ffdddd"
+
+        innerWidth: 1
+        innerHeight: 42
+
+        Text {
+            text: "L01"
+            anchors {
+                top: parent.bottom
+                horizontalCenter: parent.horizontalCenter
+            }
+        }
+""",
+    "L10": """
+    DeskaDividedBox {
+        id: rack_L10
+        width: parent.width / 8
+        height: parent.height - 40
+        anchors.left: rack_L01.right
+
+        innerWidth: 2
+        innerHeight: 42
+
+        Text {
+            text: "L10"
+            anchors {
+                top: parent.bottom
+                horizontalCenter: parent.horizontalCenter
+            }
+        }
+""",
+    "L11": """
+    DeskaDividedBox {
+        id: rack_L11
+        width: parent.width / 8
+        height: parent.height - 40
+        anchors.left: rack_L10.right
+
+        innerWidth: 2
+        innerHeight: 42
+
+        Text {
+            text: "L11"
+            anchors {
+                top: parent.bottom
+                horizontalCenter: parent.horizontalCenter
+            }
+        }
+""",
+
+}
 
 f = file("boxes", "wb")
-print_current(f, 0, "serverovna")
+print_current(f, 0, "serverovna", special_node_rules)
 
 t3 = time.time()
 

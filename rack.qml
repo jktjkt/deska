@@ -2,7 +2,7 @@ import QtQuick 1.0
 
 Rectangle {
 id: serverovna
-//color: "white"
+//color: "transparent"
 width: 1200
 height: 700
 
