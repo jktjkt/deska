@@ -525,11 +525,17 @@ for (uid, x) in fd_hardware.iteritems():
 print
 print
 
+def cut_trailing(haystack, needles):
+    for needle in needles:
+        if haystack.endswith(needle):
+            haystack = haystack[:-len(needle)]
+    return haystack
 
 def find_hostname_for_hw(uid, x):
     if map_ifaces.has_key(uid):
-        names = [fd_interfaces[y].dns for y in map_ifaces[uid] if
-                 fd_interfaces[y].dns is not None]
+        names = [cut_trailing(fd_interfaces[y].dns, (".farm.particle.cz", ".fzu.cz", ".monitor"))
+                for y in map_ifaces[uid] if fd_interfaces[y].dns is not None]
+        names = list(set(names))
         if len(names):
             myname = "-".join(names)
         else:
