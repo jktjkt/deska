@@ -443,7 +443,7 @@ for (uid, x) in fd_hardware.iteritems():
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
-        if fullname == "IBM-iDataPlex-dx340":
+        if fullname.startswith("IBM-iDataPlex"):
             print "  modelbox idataplex-1u"
         elif fullname == "SGI-Altix-XE340":
             print "  modelbox sgi-twin"
