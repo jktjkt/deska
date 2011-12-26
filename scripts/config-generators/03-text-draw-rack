@@ -100,8 +100,6 @@ def print_current(s, indent, key, special_nodes):
 
 special_node_rules = {
     "serverovna": """
-import QtQuick 1.0
-
 Rectangle {
 id: serverovna
 //color: "transparent"
@@ -166,6 +164,7 @@ height: 700
 }
 
 f = file("boxes", "wb")
+f.write("import QtQuick 1.0\n\n")
 print_current(f, 0, "serverovna", special_node_rules)
 
 t3 = time.time()
