@@ -701,7 +701,6 @@ end
 """ % format
     elif my_modelhw.startswith("HP-B") and my_modelhw.endswith("c"):
         # The c-class blades
-        enclosure = "hp-enc-c-1"
         enc_x = x.rackHPos
         if x.rackPos == "24":
             enclosure = "hp-enc-c-1"
