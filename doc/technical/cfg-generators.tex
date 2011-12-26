@@ -11,7 +11,14 @@
 
 \ldots
 
-\subsection{Technical notes for the showConfigDiff DBAPI method}
+\subsection{DBAPI access}
+
+\todo{Honza: describe the trick with the pipes}
+\todo{Honza: mention that accessing stdout/stdin will break once the buffer fills (we're in the libDeskaDb and it takes
+care just for the two FDs)}
+\todo{Honza: maybe even redirect the stream into a peristent file to prevent that?}
+
+\subsection{Technical notes for the showCionfigDiff DBAPI method}
 
 The DBAPI provides just a single method for running the configuration generators on the server side.  The aim of that
 function is to handle everything ``behind the scenes'', from setting up the configuration output directory and

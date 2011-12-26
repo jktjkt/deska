@@ -41,36 +41,111 @@ def position_sorter(item):
         z = 1
     return (-y, x, z, item)
 
-def print_current(s, indent, key):
-    prefix = " " * indent
+def to_qml_identifier(x):
+    return "box_%s" % x.replace("-", "_")
+
+def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, previous_name):
+    short_prefix = " " * indent
+    prefix = " " * (indent + 2)
     my_modelbox = None
-    message = None
-    if boxes[key].direct_modelbox is not None:
-        my_modelbox = deska.modelbox[deska.modelbox.name == boxes[key].direct_modelbox]
-    elif boxes[key].hardware is not None:
-        my_modelhw = deska.modelhardware[deska.hardware.name == key]
+    my_box = boxes[key]
+    if my_box.direct_modelbox is not None:
+        my_modelbox = dict((k,v) for (k,v) in modelbox.iteritems() if k == my_box.direct_modelbox)
+        my_modelbox_data = my_modelbox.values()[0]
+    elif my_box.hardware is not None:
+        my_modelhw = dict((k,v) for (k,v) in modelhardware.iteritems() if k == hardware[key].modelhardware)
         my_modelhw_obj = my_modelhw[my_modelhw.keys()[0]]
-        my_modelbox = deska.modelbox[deska.modelbox.name == my_modelhw_obj.modelbox]
-        # We really have to ask for the modelhw data (the server supports just
-        # one level of joining), and when we're at that point, it feels faster not
-        # to ask the database for a join, but just pass the name.
-        # The timing appears to have a pretty high noise level, so chances are
-        # that there is no measurable difference.
-        #my_modelbox = deska.modelbox[deska.modelhardware.name == my_modelhw.keys()[0]]
+        my_modelbox = dict((k,v) for (k,v) in modelbox.iteritems() if k == my_modelhw_obj.modelbox)
         if not len(my_modelbox):
             my_modelbox = None
-    if my_modelbox is not None:
-        additional = ": %s %s" % (my_modelbox.keys()[0], repr(my_modelbox.values()[0]))
-    elif message is not None:
-        additional = message
+        else:
+            my_modelbox_data = my_modelbox.values()[0]
     else:
-        additional = " [no modelbox]"
-    s.write("%s%s%s\n" % (prefix, key, additional))
-    for x in sorted(res[key], key=position_sorter):
-        print_current(s, indent + 1, x)
+        my_modelbox_data = None
 
-f = file("boxes", "wb")
-print_current(f, 0, "serverovna")
+    all_children = sorted(res[key], key=position_sorter)
+
+    if key in special_nodes:
+        s.write(special_nodes[key])
+        previous_name = None
+        for x in all_children:
+            print_current(s, indent + 2, x, special_nodes, parent_name=key, parent_box_data=my_modelbox_data,
+                          previous_name=previous_name)
+            previous_name = to_qml_identifier(x)
+        s.write("}\n")
+        return
+
+    buf = []
+    buf.append(short_prefix + "DeskaDividedBox {")
+    buf.append(prefix + 'id: %s' % to_qml_identifier(key))
+    if len(all_children):
+        buf.append(prefix + '// %s' % key)
+    else:
+        buf.append(prefix + 'name: "%s"' % key)
+
+    if my_modelbox is not None:
+        #buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
+        if my_modelbox_data.internal_height is not None:
+            buf.append(prefix + 'innerHeight: %s' % my_modelbox_data.internal_height)
+        if my_modelbox_data.internal_width is not None:
+            buf.append(prefix + 'innerWidth: %s' % my_modelbox_data.internal_width)
+        if my_box.x is not None:
+            # See the comment below. At least the numebring starts on the left.
+            buf.append(prefix + 'rackX: %d' % (int(my_box.x) - 1))
+        if my_box.y is not None:
+            # There's a bunch of issues with our positioning. The QML coordinate system has (0,0) at the top left
+            # corner, while the farmdb idnexing starts with one and at the bottom. Furthermore, the farmdb always
+            # specifies the top left corner of the box as the reference point when specifying the position.
+            if parent_box_data is not None and parent_box_data.internal_height is not None:
+                buf.append(prefix + 'rackY: %d' % (parent_box_data.internal_height - my_box.y))
+            else:
+                buf.append(prefix + 'rackY: %d' % (int(my_box.y) - 1))
+        if my_modelbox_data.width is not None:
+            buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
+        if my_modelbox_data.height is not None:
+            buf.append(prefix + 'consumesBaysY: %s' % my_modelbox_data.height)
+        if parent_name is not None:
+            if parent_box_data is None or parent_box_data.internal_width is None:
+                # this box is not divided into inner bays, so we have to come up with a proper alignment
+                buf.append(prefix + 'width: parent.width / %d' % len(res[parent_name]))
+                buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
+                if previous_name is None:
+                    buf.append(prefix + "anchors.left: parent.left")
+                else:
+                    buf.append(prefix + "anchors.left: %s.right" % previous_name)
+                buf.append(prefix + "anchors.bottom: parent.bottom")
+                buf.append(prefix + "anchors.bottomMargin: 40")
+        else:
+            # this is a special case when we're printing just one item and want to scale it properly
+            buf.append(prefix + "width: 400")
+            buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
+    else:
+        buf.append(prefix + "// no modelbox\n")
+
+    buf.append("")
+    s.write("\n".join(buf))
+    previous_name = None
+    for x in all_children:
+        print_current(s, indent + 2, x, special_nodes, key, parent_box_data=my_modelbox_data,
+                      previous_name=previous_name)
+        previous_name = to_qml_identifier(x)
+    s.write(short_prefix + "}\n")
+
+special_node_rules = {
+    "serverovna": """
+Rectangle {
+id: serverovna
+//color: "transparent"
+width: 1200
+height: 700
+""",
+}
+
+f = file("boxes.qml", "wb")
+f.write("import QtQuick 1.0\n\n")
+#f.write(special_node_rules["serverovna"])
+print_current(f, 0, "serverovna", special_node_rules, parent_name=None, parent_box_data=None, previous_name=None)
+#f.write("}\n")
 
 t3 = time.time()
 

@@ -51,12 +51,17 @@ end
 create modelbox 1u
 modelbox 1u
   formfactor rackmount
+  width 1
+  height 1
+  depth 1
 end
 
 create modelbox 2u
 modelbox 2u
   formfactor rackmount
+  width 1
   height 2
+  depth 1
 end
 
 box serverovna
@@ -72,7 +77,7 @@ modelbox idataplex-rack
     formfactor rack
 end
 
-create modelbox idataplex-sleeve
+create modelbox idataplex-chassis-2u
 modelbox idataplex-chassis-2u
     formfactor idataplex-sleeve
     accepts_inside [idataplex-unit]
@@ -251,13 +256,14 @@ end
 create host ibis28
 create box ibis28-ibis27
 box ibis28-ibis27
+    direct_modelbox idataplex-chassis-2u
     inside L11
-    x 28
+    y 28
 end
 create box ibis28
 box ibis28
     inside ibis28-ibis27
-    y 0
+    y 1
 end
 
 create hardware ibis27
@@ -271,7 +277,7 @@ create host ibis27
 create box ibis27
 box ibis27
     inside ibis28-ibis27
-    y 1
+    y 2
 end
 
 create hardware iberis27
@@ -282,13 +288,14 @@ end
 create host iberis27
 create box iberis27-iberis28
 box iberis27-iberis28
+    direct_modelbox idataplex-chassis-2u
     inside L10
-    x 28
+    y 28
 end
 create box iberis27
 box iberis27
     inside iberis27-iberis28
-    y 1
+    y 2
 end
 
 create hardware iberis28
@@ -300,7 +307,7 @@ create host iberis28
 create box iberis28
 box iberis28
     inside iberis27-iberis28
-    y 0
+    y 1
 end
 
 create hardware sql
