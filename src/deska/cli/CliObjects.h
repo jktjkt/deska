@@ -105,6 +105,9 @@ struct NonOptionalValuePrettyPrint: public boost::static_visitor<std::string>
     /** @short Pretty printer for strings */
     result_type operator()(const std::string &value) const;
 
+    /** @short Pretty printer for booleans */
+    result_type operator()(const bool &value) const;
+
     /** @short Pretty printer template for everything else -- simply let the operator<< do its job */
     template <typename T>
     result_type operator()(const T & value) const;

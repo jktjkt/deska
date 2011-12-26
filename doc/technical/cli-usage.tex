@@ -29,7 +29,7 @@ host hpv2> interface eth0
 host hpv2->interface eth0>
 \end{minted}
 
-Now we are in context of object interface "interface eth0" embedded in "host hpv2". Steping from the context is done by
+Now we are in context of object interface "interface eth0" embedded in "host hpv2". Stepping from the context is done by
 keyword "end".
 
 There is also a possibility of shortened types of jumping into context of a nested object using "->" in the name of the
@@ -61,7 +61,7 @@ structure:
 
 Note that each part of the filter has to be in braces. In a filter for a specific kind you can use expressions containing
 attributes directly from this kind, or kinds, that are contained in this one. There is also possibility to use expressions
-containing attributes of any kind, that is in some relation wtih this one. With relations we mean standard Deska relations
+containing attributes of any kind, that is in some relation with this one. With relations we mean standard Deska relations
 like "embed into", "contains" and "containable" and "refers to". These attributes should be prefixed by name of their
 kind with dot. For example "interface.ipv4". There are two sets of operators, that can be used in expressions. First
 set is for standard attributes: "<", ">", "<=", ">=", "!=" or "<>" and "=" or "==". The second set is for identifiers
@@ -88,7 +88,7 @@ filter on hardware> end
 >
 \end{minted}
 
-Now we can write filter for hardware not puchased in 2010 serving as www server.
+Now we can write filter for hardware not purchased in 2010 serving as www server.
 
 \begin{minted}{text}
 > hardware where (((purchase < 2010/01/01) | (purchase > 2010/12/31)) & (host.service contains www))
@@ -198,6 +198,114 @@ Command "show" could be used also for printing information about objects not in 
 "show host hpv2 interface eth0". This will not change current context and shows information about object in parameter.
 The parameter is also relative to current context. It means, that in context of host "hpv2" you can type "show interface eth0"
 for showing information about interface "eth0" nested in host "hpv2".
+
+\section{Modifying objects and their attributes}
+
+In this section we will describe, hw to create, rename and delete object and also how to set or remove a value of their
+attributes.
+
+\subsection{Objects creating, deleting and renaming}
+
+There are two way how to create an object. First one is an explicit one using keyword "create". For example "create
+host hpv2" will create object "host hpv2". You can also create directly nested object including its parent using
+"create host hpv2 interface eth0". This will create both objects. Note, that keyword "create" does not change
+current context. Second way how to create an object is an attempt to step into a context on a non-existing object.
+When trying to do that, CLI will ask you if you want to create this object. This will change also the context.
+For example:
+
+\begin{minted}{text}
+> host hpv2
+Object(s) host hpv2 do(es) not exist. Create? y
+host hpv2> end
+> host hpv2
+host hpv2> end
+>
+\end{minted}
+
+When going into context of nested object, where the parent does not exist as well, CLI will ask only for creating the
+parent as it is obvious, that the child does not exist as well and user wants to create it.
+
+There is also one special way how to create an object. It is using keyword "new". Using this keyword you can create only
+new nested object. You do not specify the object name as it is generated automatically. This feature is useful when creating
+new object where the custom name does not make much sense and where it is useful to have the objects somehow sorted
+by the creation. You specify only kind name after this keyword new. The name is generated in the way that you can see in
+the following example:
+
+\begin{minted}{text}
+> hardware ibm458
+hardware ibm458> new failure
+hardware ibm458->failure failure_1> end
+hardware ibm458> new failure
+hardware ibm458->failure failure_2> end
+hardware ibm458> last failure
+hardware ibm458->failure failure_2> end
+hardware ibm458> new failure
+hardware ibm458->failure failure_3> end
+hardware ibm458> last failure
+hardware ibm458->failure failure_3> end
+hardware ibm458> end
+>
+\end{minted}
+
+On the example you could see, that the keyword new changes the context. You can step into context of the newest object
+created using new using keyword "last". Of course, that you can also use standard way like "failure failure\_3", but when
+using keyword "last" you do not have to remember the number of the last object created.
+
+Deleting objects is similar to creating. It is done using keyword "delete". You can use the same parameters as in
+create. Like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
+eth0". This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
+also delete all these nested objects (after confirmation).
+
+Renaming of objects is also very simple. The keyword for renaming is surprisingly keyword "rename". The format of
+parameter for "rename" is the same as for create, but you have to specify the new name as the last word. For example
+"rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object, that is connected using relation
+"contains" or "containable" to another objects, the CLI will ask you, if you want to rename these connected objects
+as well as they have the same name. If you do not rename them, the connection between them will be lost.
+
+For renaming, creating and deleting objects you can also use filters. Here is the example of deleting all interfaces from
+some host with a specific characteristic.
+
+\begin{minted}{text}
+> host hpv2
+host hpv2> delete interface where (note == "to delete")
+Are you sure you want to delete objects(s) interface from filter? y
+host hpv2> end
+>
+\end{minted}
+
+\subsection{Modifying attributes}
+
+The simplest way how to modify an attribute of a specific object is by typing the attribute name and then the desired value
+when being in context of the object.
+
+\begin{minted}{text}
+> host hpv2
+host hpv2> ip4 192.168.25.65
+host hpv2>
+\end{minted}
+
+You can also remove the value of the attribute using keyword "no". For example "no ip4". There are also two special
+keywords for operations with identifier sets. It is keyword "add" for adding an identifier to a set and keyword
+"remove" for removing an identifier from a set. For example "add service www" for adding identifier "www" to a set
+with name service. You also set the set directly as a value of standard attribute using "service [ftp, www, dns]". This
+will set of overwrite the current set with a new one containing these three identifiers.
+
+Here is the list of all supported types and syntax for the values:
+
+\begin{itemize}
+    \item{String} - Characters in quotes or apostrophes when containing spaces, or characters without any spaces
+    \item{Identifier} - List of alphanumerical letters and '-' or '\_' not ending with '-' separated by "->" (when containing
+                        more than two items)
+    \item{Identifier set} - List of Identifiers in "[]" separated by ','
+    \item{IP Address v4} - Standard format of IP Address v4
+    \item{IP Address v6} - Standard format of IP Address v6
+    \item{MAC Address} - Standard format of MAC Address
+    \item{Integer} - Integer
+    \item{Double} - Double
+    \item{Boolean} - strings "true" or "false"
+    \item{Date} - Date in YYYY-MM-DD format
+    \item{Timestamp} - Timestamp in YYYY-MM-DD HH:MM:SS format where the seconds could have optionally decimal places
+\end{itemize} 
 
 \section{Database Backup}
 \label{sec:cli-db-backup}

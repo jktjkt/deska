@@ -42,17 +42,13 @@ $$
 DECLARE net ipv4;
 	ports_regexp text;
 BEGIN
-	-- FIXME: the constraint does not work yet and I really want to commit stuff
-	RETURN NEW;
-
-	SELECT ip4 INTO net FROM network WHERE uid = NEW.network;
-	IF NEW.ip4 << net THEN
-        -- FIXME: this is broken, got to calculate the network range on the fly from the low address and CIDR netmask
-		RAISE EXCEPTION 'IPv4 %  is not valid in network %!', NEW.ip4, ip4;
+	SELECT set_masklen(ip4,cidr4) INTO net FROM network WHERE uid = NEW.network;
+	IF NOT NEW.ip4 << net THEN
+		RAISE EXCEPTION '% has ip % that is not valid in network %!', NEW.name, NEW.ip4, net;
 	END IF;
 
 	SELECT port_validity_regexp INTO ports_regexp FROM switch JOIN modelswitch ON (modelswitch.uid = switch.modelswitch) WHERE switch.uid = NEW.switch;
-	IF NEW.switch_pos !~ ports_regexp THEN
+	IF NEW.port !~ ports_regexp THEN
 		RAISE EXCEPTION 'Switch port % does not match port_validity_regexp "%"!', NEW.switch_pos, ports_regexp;
 	END IF;
 	RETURN NEW;
