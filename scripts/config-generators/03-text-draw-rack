@@ -44,8 +44,9 @@ def position_sorter(item):
 def to_qml_identifier(x):
     return "box_%s" % x.replace("-", "_")
 
-def print_current(s, indent, key, special_nodes, parent):
+def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, previous_name):
     short_prefix = " " * indent
+    s.write("%s // !!! %s: P %s; pdata: %s; previous name: %s\n" % (short_prefix, key, parent_name, parent_box_data, previous_name))
     prefix = " " * (indent + 2)
     my_modelbox = None
     my_box = boxes[key]
@@ -67,8 +68,11 @@ def print_current(s, indent, key, special_nodes, parent):
 
     if key in special_nodes:
         s.write(special_nodes[key])
+        old_name = None
         for x in all_children:
-            print_current(s, indent + 2, x, special_nodes, my_modelbox_data)
+            print_current(s, indent + 2, x, special_nodes, parent_name=key, parent_box_data=my_modelbox_data,
+                          previous_name=old_name)
+            old_name = to_qml_identifier(x)
         s.write("}\n")
         return
 
@@ -81,7 +85,7 @@ def print_current(s, indent, key, special_nodes, parent):
         buf.append(prefix + 'name: "%s"' % key)
 
     if my_modelbox is not None:
-        #buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
+        buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
         if my_modelbox_data.internal_height is not None:
             buf.append(prefix + 'innerHeight: %s' % my_modelbox_data.internal_height)
         if my_modelbox_data.internal_width is not None:
@@ -94,19 +98,24 @@ def print_current(s, indent, key, special_nodes, parent):
             buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
         if my_modelbox_data.height is not None:
             buf.append(prefix + 'consumesBaysY: %s' % my_modelbox_data.height)
-        if parent is not None:
-            if parent.internal_width is None:
+        if parent_name is not None:
+            if parent_box_data is None or parent_box_data.internal_width is None:
                 # this box is not divided into inner bays, so we have to come up with a proper alignment
-                buf.append(prefix + 'width: parent.width / %d\n' % len(all_children))
-                buf.append(prefix + 'height: Math.max(parent.height - 40, 20)\n')
-
+                buf.append(prefix + 'width: parent.width / %d' % len(res[parent_name]))
+                buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
+                if previous_name is None:
+                    buf.append(prefix + "anchors.left: parent.left")
+                else:
+                    buf.append(prefix + "anchors.left: %s.right" % previous_name)
     else:
         buf.append(prefix + "// no modelbox\n")
 
     buf.append("")
     s.write("\n".join(buf))
+    old_name = None
     for x in all_children:
-        print_current(s, indent + 2, x, special_nodes, my_modelbox_data)
+        print_current(s, indent + 2, x, special_nodes, key, parent_box_data=my_modelbox_data, previous_name=old_name)
+        old_name = to_qml_identifier(x)
     s.write(short_prefix + "}\n")
 
 special_node_rules = {
@@ -153,7 +162,7 @@ height: 700
             }
         }
 """,
-    "L11": """
+    "__L11": """
     DeskaDividedBox {
         id: rack_L11
         width: parent.width / 8
@@ -176,7 +185,7 @@ height: 700
 
 f = file("boxes", "wb")
 f.write("import QtQuick 1.0\n\n")
-print_current(f, 0, "serverovna", special_node_rules, parent=None)
+print_current(f, 0, "serverovna", special_node_rules, parent_name=None, parent_box_data=None, previous_name=None)
 
 t3 = time.time()
 
