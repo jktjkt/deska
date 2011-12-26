@@ -40,3 +40,6 @@ CREATE TABLE hardware (
 	template_hardware bigint
 );
 
+CREATE INDEX idx_hw_modelhardware ON hardware(modelhardware);
+CREATE INDEX idx_hw_warranty_contract ON hardware(warranty_contract);
+CREATE INDEX idx_hw_box ON hardware(box);

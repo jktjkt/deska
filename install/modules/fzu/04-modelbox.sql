@@ -48,3 +48,5 @@ CREATE TABLE modelbox (
     note text
 );
 
+CREATE INDEX idx_modelbox_formfactor ON modelbox(formfactor);
+

@@ -57,50 +57,37 @@ WHERE hardware.name != \$2 OR hardware.name IS NULL
 
 \section{SQL generator}
 \label{sec:sql-generator}
-This section describes how the tables and functions in the Deska database are generated. The Deska database is described in \ref{sec:deska-db}.
-
-The Sql generator is generator of stored procedures and tables that ensure data manipulation for scheme described in modules.\\
-All generated stored procedures are created in schema genproc.
+This section describes how the tables and functions in the Deska database are generated. The Deska database is described in \secref{sec:deska-db}.\\
+The SQL generator is run by Deska database intstallator. It generates stored procedures and tables that ensure data manipulation for scheme described by user in module tables.\\
 
 The generator is composed of classes {\tt Connection}, {\tt Schema}, {\tt Table}, {\tt Template}, {\tt Composition} and {\tt Multiref}.\\
-The {\tt Connection} class provides connection to database server.\\
-The class {\tt Schema} explores modules defined by user and cooperates with Table class.\\
-The class {\tt Table} has methods that for given kind/table generate functions for data manipulation like get, set.\\
-The class {\tt Template} has methods that generate template for modules that are marked as having template.\\
-The class {\tt Composition} generates triggers that maintain contains/containable relation.\\
-And the class {\tt Multiref} generates code for inner tables for {\tt identifier\_set}s and functions for data manipulation with those tables.\\
-
 The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are formatted in class methods, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
 Detailed information about mentioned classes are below.
 
 Parts of plpgsql generator run at the moment when all modules defined by user are already present as tables in the database. And they start in this order:
 
 \begin{enumerate}
-    \item Template class - generate and create templates for tables that should have template
-    \item Schema class, Table class - generate and create history tables for all tables (even for template tables that were generated)
-    \item Schema class, Table class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
-    \item Multiref class - generate and create tables and stored procedures for {\tt identifier\_set}s, history and template table for {\tt identifier\_set}s.
-    \item Composition class - generate and add triggers for contains/containable relation
+    \item {\tt Template} class - generate and create templates for tables that should have template
+    \item {\tt Schema} class, {\tt Table} class - generate and create history tables for all tables (even for template tables that were generated)
+    \item {\tt Schema} class, {\tt Table} class - generate and create stored procedures for data manipulation (the same stored procedures for tables defined by user and template tables)
+    \item {\tt Multiref} class - generate and create tables and stored procedures for {\tt identifier\_set}s, history and template table for {\tt identifier\_set}s.
+    \item {\tt Composition} class - generate and add triggers for {\tt COMPOSITION} relation
 \end{enumerate}
 
-\subsection{Connection}
-Connection and sending commands to the database is provided by the Connection class. Generator instantiates the Connection class and passes it to the Schema class.
-
 \subsection{Schema}
-The Schema class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with Connection parameter, which is used to query the database. 
-The Schema class finds out which kinds were created in database and what their structure is. The Schema class instantiates Table classes one by one for each kind defined by user. Appropriate methods of Table class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to distinguish between kinds that are embed into and that are not. Objects of flat kinds that are not embed into another in database could be identified just by name. But objects of kinds that are embed into another could be identified by a pair, their local name and name of the objects that is this one embed into. Therefore the part of data manipulation functions, where the concrete objects are selected should be different for those embed and those not embed kinds.
-For templated kinds are in addition to not templated kinds generated functions for getting resolved data.\\
-The final code for created kinds is generated inside the Table class.
+The {\tt Schema} class controls generation of plpgsql code for creation of data manipulation functions. It is instantiated with {\tt Connection} parameter, which is used to query the database. 
+The {\tt Schema} class finds out which kinds were created in database and what their structure is. The {\tt Schema} class instantiates {\tt Table} classes one by one for each kind defined by user. Appropriate methods of {\tt Table} class that generate plpgsql code according to kind's characteristics are then called.\\ It is necessary to distinguish between kinds that are {\tt EMBED INTO} (see \secref{sec:relation-embed-into}) and that are not. The part of data manipulation functions, where the concrete objects are identified and selected should be different for those {\tt EMBED INTO} and those not {\tt EMBED INTO} kinds.
+For {\tt templated} kinds (\secref{sec:relation-templatized}) are in addition to not templated kinds generated functions for getting resolved data.\\
+The final code for created kinds is generated inside the {\tt Table} class.
 
 \subsection{Table}
-A lot of string constants are present inside the Table class. These string constants are prototypes of create type statements, create function statements or some other pieces of plpgsql code.\\
-Methods of Table class return concrete plpgsql code for data manipulation functions. Generated functions are prepared to be created on the database server.\\
-Plpgsql functions for following DBAPI commands are generated inside the Table class.
+A lot of string constants are present inside the {\tt Table} class. These string constants are prototypes of create tablem, create type statements, create function statements or some other pieces of plpgsql code.\\
+Methods of {\tt Table} class return concrete plpgsql code for creating history tables and data manipulation functions. Generated functions are prepared to be created on the database server.\\
 
 \begin{enumerate}
-    \item get data functions - objectData, resolvedObjectData, resolvedObjectDataWithOrigin, multipleObjectData, multipleResolvedObjectData, multipleResolvedObjectDataWithOrigin
-    \item add, delete objects, set attribute functions - createObject, deleteObject, restoreDeletedObject, renameObject, setAttribute
-    \item diff functions - dataDifference, dataDifferenceInTemporaryChangeset, resolvedDataDifference, resolvedDataDifferenceInTemporaryChangeset
+    \item get data functions
+    \item add, delete objects, set attribute functions
+    \item diff functions
     \item commit
 \end{enumerate}
 
@@ -111,7 +98,7 @@ For each table created in schema production a table with suffix \_history is gen
 
 \subsubsection{Retrieve Object Data}
 Getting objects' data means getting data of these objects' last modification before the given version in which user would like to get them.
-In resolved modifications of get data functions it is needed to resolve these data. And to resolve them again use inherited data from templates' last modification before the given version.
+In resolved modifications (resolving inherited values from object templates) of get data functions it is needed to resolve these data. And to resolve them again use inherited data from templates' last modification before the given version.
 These resolving functions are written as recursive selects.
 
 \subsubsection{Performing Modifications}
@@ -128,19 +115,19 @@ These diff initialization functions have two other forms, for getting list of mo
 Table class for given table generates also commit function that bring tables in the production schema up to data. As data in tables in the production schema are resolved and templated data could be modified even by a change in the template table, it is necessary to distinguish templated tables from not templated and generate different commit functions for them.
 
 \subsection{Template}
-When all tables described by user are created, tables that have an attribute with prefix "template\_" and at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
+When all tables described by user are created, tables that are marked as {\tt templated} and have at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
 Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
-Template table will be created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
+Template table is created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
 
 \subsection{Composition}
-Composition class generates sql script that alters created history tables which are in some composition relation. These history tables are altered in the way to ensure consistent state of objects in composition relation. Triggers for linking objects and check constraints are added.\\
+{\tt Composition} class generates sql script that alters created history tables which are in some {\tt COMPOSITION} relation. These history tables are altered in the way to ensure consistent state of objects in composition relation. Triggers for linking objects and check constraints are added.\\
 Linking objects of kinds in composition relation with same name is done by generating before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
-Condition that one object could be contained in at most one another object is checked by the check constraints that are generated by the Composition class as well.
+Condition that one object could be contained in at most one another object is checked by the check constraints that are generated by the {\tt Composition} class as well.
 
 \subsection{Multiref}
-Multiref class can for each {\tt identifier\_set} attribute of the given table generate create table statement for inner table, which provides multi-value references. The generated inner class stores for object its {\tt identifier\_set}.\\
+{\tt Multiref} class can for each {\tt identifier\_set} attribute of the given table generate create table statement for inner table, which provides {\tt Multi-value references}. The generated inner class stores for object its {\tt identifier\_set}.\\
 Generated inner table has always name with prefix "inner\_" followed by name of table, "\_" and name of table's {\tt identifier\_set} attribute. Inner tables have attributes attribute att1 with name of table tab1, attribute att2 with name of table tab2 that is referenced from {\tt identifier\_set} attribute of tab1, last attribute is a flag that is used to distinguish between rows representing empty set from rows representing NULL value. Generated inner table has following foreign key constraints, attribute att1 references uid column of table tab1 and attribute att2 references uid column of table tab2.\\
-As inner table stores data of attribute that is part of versioned data, Multiref class generates also create statement for history table of inner tables.\\ 
-The table, to which attribute an inner table is made, could also be templated. Therefore Multiref class generates create table statement for template table of these inner tables. And it also generates functions for resolving templated inner table's data.\\
-In addition to ordinary set attribute function that is for each kind and its attribute generated by Table class, Multiref class generates functions that insert or remove identifier into or from identifier set.
+As inner table stores data of attribute that is part of versioned data, {\tt Multiref} class generates also create statement for history table of inner tables.\\ 
+The table, to which attribute an inner table is made, could also be templated. Therefore {\tt Multiref} class generates create table statement for template table of these inner tables. And it also generates functions for resolving templated inner table's data.\\
+In addition to ordinary set attribute function that is for each kind and its attribute generated by {\tt Table} class, {\tt Multiref} class generates functions that insert or remove identifier into or from identifier set.
 \end{document}

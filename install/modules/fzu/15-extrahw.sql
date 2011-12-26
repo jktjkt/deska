@@ -14,6 +14,9 @@ CREATE TABLE modelextrahw (
         CONSTRAINT modelextrahw_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE
 );
 
+CREATE INDEX idx_modelextrahw_vendor ON modelextrahw(vendor);
+CREATE INDEX idx_modelextrahw_modelbox ON modelextrahw(modelbox);
+
 -- Extra equipment for which we don't have any specialized class
 CREATE TABLE extrahw (
     uid bigint DEFAULT nextval('extrahw_uid')
@@ -26,10 +29,14 @@ CREATE TABLE extrahw (
         CONSTRAINT rconta_extrahw_fk_box REFERENCES box(uid) DEFERRABLE,
     purchase date,
     warranty_contract bigint
-        CONSTRAINT switch_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
+        CONSTRAINT extrahw_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
     serial_1 text,
     serial_2 text,
     inventory_no text,
     note_extrahw text
 );
+
+CREATE INDEX idx_extrahw_modelextrahw ON extrahw(modelextrahw);
+CREATE INDEX idx_extrahw_box ON extrahw(box);
+CREATE INDEX idx_extrahw_warranty_contract ON extrahw(warranty_contract);
 

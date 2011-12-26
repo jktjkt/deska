@@ -126,6 +126,13 @@ NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()
 
 
 
+NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const bool &value) const
+{
+    return value ? "true" : "false";
+}
+
+
+
 NonOptionalValuePrettyPrint::result_type NonOptionalValuePrettyPrint::operator()(const std::string &value) const
 {
     bool quote = (value.find('"') != std::string::npos);

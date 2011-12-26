@@ -20,3 +20,5 @@ CREATE TABLE event (
     CONSTRAINT "Event with this name already exists in this context" UNIQUE (name, box)
 );
 
+CREATE INDEX idx_event_box ON event(box);
+

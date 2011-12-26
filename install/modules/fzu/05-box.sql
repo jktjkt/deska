@@ -43,6 +43,8 @@ CREATE TABLE box (
 	note text
 );
 
+CREATE INDEX id_box_direct_modelbox ON box(direct_modelbox);
+
 -- Make sure that the direct_modelbox is not present if there's an indirect reference through composition
 CREATE FUNCTION box_check_modelbox()
 RETURNS TRIGGER
