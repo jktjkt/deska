@@ -640,15 +640,15 @@ end
 """ % format
     elif my_modelhw.startswith("HP-BL") and my_modelhw.endswith("c"):
         # The c-class blades
-        if myname in ["golias%d" % num for num in range(151, 156)] + ["torque"]:
+        if myname in ["golias%d" % num for num in range(151, 157)] + ["torque"]:
             enclosure = "hp-enc-c-2"
             y = 2
             x = x.rackHPos
-        elif myname in ["golias%d" % num for num in range(157, 162)] + ["monitor"]:
+        elif myname in ["golias%d" % num for num in range(157, 163)] + ["monitor"]:
             enclosure = "hp-enc-c-2"
             y = 1
             x = x.rackHPos
-        elif True or myname in ["golias%d" % num for num in range(163, 166)]:
+        elif True or myname in ["golias%d" % num for num in range(163, 167)]:
             enclosure = "hp-enc-c-1"
             y = 1 # FIXME
             x = x.rackHPos
