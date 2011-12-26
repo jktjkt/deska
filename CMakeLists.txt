@@ -255,6 +255,11 @@ install(TARGETS LowLevelPyDeska
 include(CTest)
 add_subdirectory(tests)
 
+if(BUILD_QML2IMAGE)
+message(STATUS "Will build the qml2image tool")
+add_subdirectory(src/qml2image)
+endif()
+
 if(BUILD_DOCS)
     message(STATUS "Will build PDF documentation")
     add_subdirectory(doc/technical)

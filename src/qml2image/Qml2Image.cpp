@@ -54,3 +54,5 @@ Qml2Image::~Qml2Image()
     delete generator;
     delete image;
 }
+
+#include "Qml2Image.moc"
