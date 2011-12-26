@@ -2,7 +2,7 @@
 \documentclass[deska]{subfiles}
 \begin{document}
 
-\chapter{Configuring the Database Scheme}
+\chapter{Configuring the Deska Schema}
 \label{sec:admin-dbscheme}
 
 \begin{abstract}
@@ -11,15 +11,34 @@ needs, as well as through the deployment of the database side.
 \end{abstract}
 
 \todo{Lukas: tell the user how to actually configure the scheme; that's the part of the end-user docs.}
+\section{Schema creation}
+After you get Deska software installed, you have to create {\em Deska schema}. If you work with
+deska-cli, you work with objects, its attributes and relations between them as told in \secref{sec:objects-and-relations}.
+This is the part where kinds of this objects a and relation between this kinds are defined. Every kind have can have some attributes. These attributes can have defined some constraints. And relation can be defined between kinds.
+All this is described in {\tt Deska schema}.
+
+For defining Deska schema we use SQL tables, attributes (or columns), constraints and triggers.
+To define relation we use standard SQL foreign keys with small addition - special prefix of constraint name.
+The Deska schema definition is in fact standard SQL schema commands, creating standard SQL schema with some
+special requirements (will be described in \secref{sec:db-scheme-req}.
+
+\subsection{Kind Creation}
+If you want to create kind, create table in SQL with same name as your kind should have.
+We recommend to have one table in one SQL file. Start the name of the file with number,
+to determine the order in which files are loaded in the database.
+
+Every table should have at least 2 columns (attributes). Uid, which is Deska internal primary key.
+And name, which is identifier of each object. You can create more attributes of various types described in
+\secref{sec:db-att-types}.
 
 \section{Requirements on the Table Layout}
 \label{sec:db-scheme-req}
 
-\subsection{General Requirements}
-Every SQL table provided by the user needs to:
+Every SQL file should start with
+setting {\tt search\_path} to schemas {\tt production} and {\tt deska}.
 
+Every SQL table provided by the user needs to:
 \begin{itemize}
-    \item Set {\tt search\_path} to schemas {\tt production} and {\tt deska}
     \item Have primary key column {\tt uid} of the {\tt bigint} type
     \item Have unique, not null column {\tt name} of the {\tt identifier} type; the embedded tables should instead use a
         unique pair of a {\tt uid} and a referencing column (see \secref{sec:db-scheme-refers-to} for an example)
@@ -29,11 +48,6 @@ Every SQL table provided by the user needs to:
 Following example shows a simplest table to be used in Deska.
 
 \begin{minted}{sql}
---
--- This is example of a user-provided table for Deska.
--- It does not provide any attributes.
---
---
 SET search_path TO production, deska;
 
 CREATE SEQUENCE vendor_uid START 1;
@@ -46,13 +60,33 @@ CREATE TABLE vendor (
     -- Name is the user-visible identifier
     name identifier
         CONSTRAINT vendor_name_unique UNIQUE NOT NULL
+    --HERE can be placed kind attributes, contraints and relation definitions
 );
 \end{minted}
 
-It is not recommended to use table names starting with a prefix {\tt "inner\_"}, or ending with {\tt "\_template"}, as
+Do not use table names starting with a prefix {\tt "inner\_"}, or ending with {\tt "\_template"}, as
 Deska uses these names for internal use.  The total maximum length of a kind name and an attribute name is 20 characters
 together.  Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a default option. All foreign keys also
 needs to be set to {\tt DEFERRABLE}.
+
+\subsection{Attribute types}
+\label{sec:db-att-types}
+Due to performance reasons, we support only subset of Postgresql types and we added some.
+Here is the listing of supported types.
+
+\begin{itemize}
+	\item{identifier} - this is Deska identifier, it is used for object names.
+	\item{identifier\_set} - set of identifiers, use this for multireference attributes
+	\item{int} - for whole numbers
+	\item{bigint} - for large whole numbers, uids
+	\item{real} - for whole numbers
+	\item{text} - for strings
+	\item{ipv4} - for IP version 4 addresses
+	\item{ipv6} - for IP version 6 addresses
+	\item{macaddr} - for MAC addresses
+	\item{date} - for date
+	\item{timestamp} - for timestamp
+\begin{end}
 
 \subsection{Relations Definition}
 Here we will describe how to add Deska relations (see \secref{sec:objects-and-relations-relations}) to modules.
