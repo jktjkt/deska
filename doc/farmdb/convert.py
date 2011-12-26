@@ -529,11 +529,11 @@ for (uid, x) in fd_machines.iteritems():
         if x.rackPos % 2:
             # an even one -> be special
             positions = [x.rackPos, x.rackPos + 1]
-            rack_x = x.rackPos + 1
+            rack_y = x.rackPos + 1
             sleeve_pos = 1
         else:
             positions = [x.rackPos, x.rackPos - 1]
-            rack_x = x.rackPos
+            rack_y = x.rackPos
             sleeve_pos = 2
         candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
                       v.hwUid == x.hwUid and v.rackNo == x.rackNo and
@@ -543,7 +543,7 @@ for (uid, x) in fd_machines.iteritems():
             boxname = "%s-sleeve" % candidates[0]
         else:
             boxname = "-".join(candidates)
-        rack_y = x.rackHPos
+        rack_x = x.rackHPos
         format = {"boxname": boxname, "rack": x.rackNo, "rack_x": rack_x,
                   "hostname": myname, "sleeve_pos": sleeve_pos, "rack_y": rack_y}
         if not created_twins.has_key(boxname):
