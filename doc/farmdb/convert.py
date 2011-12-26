@@ -812,6 +812,12 @@ for (kind, name) in sorted(obsolete_items):
     print "delete %s %s" % (kind, name)
 
 print """
+
+delete box L50
+delete box L51
+delete box L53
+delete box L61
+
 @commit to r3
 jkt
 Removing obsolete items
