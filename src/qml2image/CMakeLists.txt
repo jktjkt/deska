@@ -13,3 +13,5 @@ set(qml2image_SRCS
 qt4_automoc(${qml2image_SRCS})
 add_executable(qml2image ${qml2image_SRCS})
 target_link_libraries(qml2image ${QT_QTDECLARATIVE_LIBRARY} ${QT_QTSVG_LIBRARY})
+
+install(TARGETS qml2image DESTINATION bin)

@@ -256,8 +256,10 @@ include(CTest)
 add_subdirectory(tests)
 
 if(BUILD_QML2IMAGE)
-message(STATUS "Will build the qml2image tool")
-add_subdirectory(src/qml2image)
+    message(STATUS "Will build the qml2image tool")
+    add_subdirectory(src/qml2image)
+else()
+    message(STATUS "Will skip the qml2image tool")
 endif()
 
 if(BUILD_DOCS)
