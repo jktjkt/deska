@@ -511,7 +511,7 @@ for (uid, x) in fd_hardware.iteritems():
             print "  modelbox idataplex-2u"
         elif fullname.startswith("IBM-iDataPlex"):
             print "  modelbox idataplex-1u"
-        elif fullname == "SGI-Altix-XE340":
+        elif fullname in ("SGI-Altix-XE310", "SGI-Altix-XE340"):
             print "  modelbox sgi-twin"
         elif fullname == "HP-BL20p":
             print "  modelbox hp-blade-p-2u"
@@ -763,6 +763,41 @@ box %(boxname)s
     y %(enc_y)s
 end
 """ % format
+
+
+    elif my_modelhw in ("SGI-Altix-XE310", "SGI-Altix-XE340"):
+        # the SGI twins
+        candidates = [find_hostname_for_hw(k,v) for (k,v) in fd_machines.iteritems() if
+                      v.hwUid == x.hwUid and v.rackNo == x.rackNo and v.rackPos == x.rackPos]
+        if len(candidates) == 1:
+            # looks like this one is alone in there
+            boxname = "%s-sleeve" % candidates[0]
+        else:
+            boxname = "-".join(sorted(candidates))
+        format = {"boxname": boxname, "rack": x.rackNo,"hostname": myname,
+                  "sleeve_pos": x.rackHPos, "rack_y": x.rackPos}
+        if not created_twins.has_key(boxname):
+            if x.obsolete is not None:
+                obsolete_items.append(("box", boxname))
+            created_twins[boxname] = True
+            box_str = """create box %(boxname)s
+box %(boxname)s
+    direct_modelbox sgi-twin-chassis
+    inside %(rack)s
+    x 1
+    y %(rack_y)s
+end
+""" % format
+        else:
+            box_str = ""
+        box_str = box_str + """create box %(hostname)s
+box %(hostname)s
+    inside %(boxname)s
+    x %(sleeve_pos)s
+    y 1
+end
+""" % format
+
     else:
         box_str = None
     print "create host %s" % myname
