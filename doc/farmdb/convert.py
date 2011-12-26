@@ -638,34 +638,24 @@ box %(hostname)s
     y %(sleeve_pos)s
 end
 """ % format
-    elif my_modelhw.startswith("HP-BL") and my_modelhw.endswith("c"):
+    elif my_modelhw.startswith("HP-B") and my_modelhw.endswith("c"):
         # The c-class blades
-        if myname in ["golias%d" % num for num in range(151, 157)] + ["torque"]:
+        enclosure = "hp-enc-c-1"
+        enc_x = x.rackHPos
+        if x.rackPos == "24":
+            enclosure = "hp-enc-c-1"
+            enc_y = 2
+        elif x.rackPos == "20":
+            enclosure = "hp-enc-c-1"
+            enc_y = 1
+        elif x.rackPos == "15":
             enclosure = "hp-enc-c-2"
             enc_y = 2
-            enc_x = x.rackHPos
-        elif myname in ["golias%d" % num for num in range(157, 163)] + ["monitor"]:
+        elif x.rackPos == "11":
             enclosure = "hp-enc-c-2"
             enc_y = 1
-            enc_x = x.rackHPos
-        elif myname in ["golias%d" % num for num in range(163, 167) + [100] +
-                        range(143, 151)]:
-            enclosure = "hp-enc-c-1"
-            enc_x = x.rackHPos
-            if x.rackPos == "24":
-                enclosure = "hp-enc-c-1"
-                enc_y = 2
-            elif x.rackPos == "20":
-                enclosure = "hp-enc-c-1"
-                enc_y = 1
-            elif x.rackPos == "15":
-                enclosure = "hp-enc-c-2"
-                enc_y = 2
-            elif x.rackPos == "11":
-                enclosure = "hp-enc-c-2"
-                enc_y = 1
-            else:
-                raise RuntimeError
+        else:
+            raise RuntimeError
         format = {"boxname": myname, "enclosure": enclosure, "enc_x": enc_x,
                   "enc_y": enc_y}
         box_str = """create box %(boxname)s
