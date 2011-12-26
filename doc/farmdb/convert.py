@@ -350,6 +350,14 @@ modelbox idataplex-1u
     depth 1
 end
 
+create modelbox idataplex-2u
+modelbox idataplex-2u
+    formfactor idataplex-unit
+    width 1
+    height 2
+    depth 1
+end
+
 create formfactor sgi-twin
 
 create modelbox sgi-twin-chassis
@@ -443,7 +451,9 @@ for (uid, x) in fd_hardware.iteritems():
         else:
             print "# FIXME: weird height '%s' -> no modelbox" % x.height
     else:
-        if fullname.startswith("IBM-iDataPlex"):
+        if fullname == "IBM-iDataPlex-dx360-M2-2U":
+            print "  modelbox idataplex-2u"
+        elif fullname.startswith("IBM-iDataPlex"):
             print "  modelbox idataplex-1u"
         elif fullname == "SGI-Altix-XE340":
             print "  modelbox sgi-twin"
