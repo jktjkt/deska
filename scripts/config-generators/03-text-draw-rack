@@ -84,15 +84,25 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
         buf.append(prefix + 'name: "%s"' % key)
 
     if my_modelbox is not None:
-        buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
+        #buf.append("// %s %s %s" % (my_modelbox.keys()[0], repr(my_modelbox_data), repr(my_box)))
         if my_modelbox_data.internal_height is not None:
             buf.append(prefix + 'innerHeight: %s' % my_modelbox_data.internal_height)
         if my_modelbox_data.internal_width is not None:
             buf.append(prefix + 'innerWidth: %s' % my_modelbox_data.internal_width)
         if my_box.x is not None:
-            buf.append(prefix + 'rackX: %d' % (int(my_box.x) - 1))
+            # There's a bunch of issues with our positioning. The QML coordinate system has (0,0) at the top left
+            # corner, while the farmdb idnexing starts with one and at the bottom. Furthermore, the farmdb always
+            # specifies the top left corner of the box as the reference point when specifying the position.
+            if parent_box_data is not None and parent_box_data.internal_width is not None:
+                buf.append(prefix + 'rackX: %d' % (parent_box_data.internal_width - my_box.x))
+            else:
+                buf.append(prefix + 'rackX: %d' % (int(my_box.x) - 1))
         if my_box.y is not None:
-            buf.append(prefix + 'rackY: %d' % (int(my_box.y) - 1))
+            # see the comment above
+            if parent_box_data is not None and parent_box_data.internal_height is not None:
+                buf.append(prefix + 'rackY: %d' % (parent_box_data.internal_height - my_box.y))
+            else:
+                buf.append(prefix + 'rackY: %d' % (int(my_box.y) - 1))
         if my_modelbox_data.width is not None:
             buf.append(prefix + 'consumesBaysX: %s' % my_modelbox_data.width)
         if my_modelbox_data.height is not None:
@@ -108,6 +118,10 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
                     buf.append(prefix + "anchors.left: %s.right" % previous_name)
                 buf.append(prefix + "anchors.bottom: parent.bottom")
                 buf.append(prefix + "anchors.bottomMargin: 40")
+        else:
+            # this is a special case when we're printing just one item and want to scale it properly
+            buf.append(prefix + "width: 400")
+            buf.append(prefix + 'height: Math.max(parent.height - 40, 20)')
     else:
         buf.append(prefix + "// no modelbox\n")
 
