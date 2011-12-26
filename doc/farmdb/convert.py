@@ -301,7 +301,7 @@ create formfactor rack
 
 create modelbox generic-rack
 modelbox generic-rack
-  internal_height 47
+  internal_height 48
   internal_width 1
   internal_depth 1
   accepts_inside [rackmount]
