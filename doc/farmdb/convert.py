@@ -600,6 +600,9 @@ obsolete_items = []
 
 print "# dumping hardware"
 for (uid, x) in fd_machines.iteritems():
+    if uid == "9870fb90-bd67-4162-8801-0dc6e3a29fab":
+        # wtf? "virtual blade"?
+        continue
     myname = find_hostname_for_hw(uid, x)
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
