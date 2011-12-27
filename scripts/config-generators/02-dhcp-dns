@@ -11,7 +11,7 @@ def ipv4_sorter(x):
     (k, v) = x
     return int(str(v.ip4).split(".")[-1])
 
-def write_file(iterable, fp_dhcp=None):
+def write_file(iterable, fp_dhcp=None, fp_zone=None, fp_rzone=None):
     for (k, v) in iterable:
         if v.mac is None:
             continue
@@ -30,14 +30,13 @@ def write_file(iterable, fp_dhcp=None):
                 note = ""
             additional.append("\n        # %s: %s%s" % (other_k.split("->")[-1],
                                                         note, other_v.mac))
+
+        args = {"ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)}
         if fp_dhcp is not None:
             fp_dhcp.write("""    host %(host)s {%(additional)s
         hardware ethernet %(mac)s;
         fixed-address %(ipv4)s;
-    }
-
-""" % {
-            "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
+    }\n\n""" % args)
 
 def write_bind_zones(fp_zone, fp_rzone, domain, iterable):
     for (k,v) in iterable:
