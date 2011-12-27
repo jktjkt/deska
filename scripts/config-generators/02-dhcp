@@ -17,8 +17,6 @@ def write_file(fname, header, footer, iterable):
 
     for (k, v) in iterable:
         (hostname, ifacename) = k.split("->")
-        if hostname.endswith("-obsolete"):
-            continue
         # check any other interfaces here
         # We do not go to the DB here; doing that locally is faster
         others = [(k1, v1) for (k1, v1) in iterable if
@@ -92,9 +90,7 @@ group {
 # /24 allocation. We're going to do that client-side.
 unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
 for subnet in unique_subnets_172:
-    write_file("dhcpd-%s" % subnet,
-"""group {\n""",
-"""\n}\n""",
+    write_file("dhcpd-%s" % subnet, "group {\n", "\n}\n",
                [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
 
 t3 = time.time()
