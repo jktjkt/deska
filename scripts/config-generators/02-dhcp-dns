@@ -16,6 +16,8 @@ def write_dhcp_file(fname, header, footer, iterable):
     output.write(header)
 
     for (k, v) in iterable:
+        if v.mac is None:
+            continue
         (hostname, ifacename) = k.split("->")
         # check any other interfaces here
         # We do not go to the DB here; doing that locally is faster
@@ -51,15 +53,12 @@ def write_dhcp_file(fname, header, footer, iterable):
 # details.
 t1 = time.time()
 interfaces_vlan25 = sorted(deska.interface[(deska.interface.ip4 != None) &
-                                           (deska.interface.mac != None) &
                                            (deska.network.vlan == 25)]
                            .iteritems(), key=ipv4_sorter)
 interfaces_vlan172= sorted(deska.interface[(deska.interface.ip4 != None) &
-                                           (deska.interface.mac != None) &
                                            (deska.network.vlan == 172)]
                            .iteritems(), key=ipv4_sorter)
 interfaces_vlan8  = sorted(deska.interface[(deska.interface.ip4 != None) &
-                                           (deska.interface.mac != None) &
                                            (deska.network.vlan == 8)]
                            .iteritems(), key=ipv4_sorter)
 
