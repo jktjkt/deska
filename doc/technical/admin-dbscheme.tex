@@ -228,4 +228,14 @@ CREATE TABLE host (
 );
 \end{minted}
 
+\section{Indexes}
+You can create indexes in {\tt Deska schema} for speed up some operations.
+At this time, {\tt Deska database} can use indexes while configuration generators run,
+and in deska-cli if you are not in changeset.
+
+Deska administrator should know how configuration generators works, and create index, if
+it can bring some speed up. Typically indexes should be created on columns, where 
+configuration generators searches for some values, or reference columns, where configuration generator
+searches in another kind (and do JOIN).
+
 \end{document}
