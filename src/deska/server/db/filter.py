@@ -97,7 +97,7 @@ class Condition():
 			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
-				self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
+				self.id = "{0}_find_uid({1},$1)".format(toTbl,self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
@@ -184,7 +184,7 @@ class AdditionalEmbedCondition(Condition):
 		# because this is column refers to another table
 
 		#version parametr, $1 every time
-		self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
+		self.id = "{0}_find_uid({1},$1)".format(self.col,self.id)
 
 class Filter():
 	'''Class for handling filters'''
