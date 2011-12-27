@@ -10,26 +10,21 @@ This chapter leads the Deska administrator through the process of customizing th
 needs, as well as through the deployment of the database side.
 \end{abstract}
 
-\todo{Lukas: tell the user how to actually configure the scheme; that's the part of the end-user docs.}
 \section{Schema creation}
-After you get Deska software installed, you have to create {\em Deska schema}. If you work with
+After \todo{or Before} you get Deska software installed, you have to create {\em Deska schema}. If you work with
 deska-cli, you work with objects, its attributes and relations between them as told in \secref{sec:objects-and-relations}.
-This is the part where kinds of this objects a and relation between this kinds are defined. Every kind have can have some attributes. These attributes can have defined some constraints. And relation can be defined between kinds.
-All this is described in {\tt Deska schema}.
+In this chapter is described how kinds of these objects and relations between them are defined. Every kind can have some attributes. These attributes can have defined some constraints. And relations can be defined between kinds.
+All this is part of {\tt Deska schema}.
 
-For defining Deska schema we use SQL tables, attributes (or columns), constraints and triggers.
-To define relation we use standard SQL foreign keys with small addition - special prefix of constraint name.
-The Deska schema definition is in fact standard SQL schema commands, creating standard SQL schema with some
+For defining {\tt Deska schema} we use SQL tables, attributes (or columns), constraints and triggers.
+To define relations we use standard SQL foreign keys with small addition - special prefix of constraint name.
+The {\tt Deska schema} definition is in fact composed of standard SQL schema commands for creating standard SQL schema with some
 special requirements (will be described in \secref{sec:db-scheme-req}.
 
 \subsection{Kind Creation}
-If you want to create kind, create table in SQL with same name as your kind should have.
+If you want to create a kind, you need to create a table in SQL with the same name as your kind should have and with the same columns' names as your kind's attributes should have. Supported types of columns are listed in \secref{sec:db-att-types}. Requirementes on the tables are in \secref{sec:db-scheme-req}.
 We recommend to have one table in one SQL file. Start the name of the file with number,
-to determine the order in which files are loaded in the database.
-
-Every table should have at least 2 columns (attributes). Uid, which is Deska internal primary key.
-And name, which is identifier of each object. You can create more attributes of various types described in
-\secref{sec:db-att-types}.
+to determine the order in which files are loaded into the database.
 
 \section{Requirements on the Table Layout}
 \label{sec:db-scheme-req}
@@ -65,7 +60,7 @@ CREATE TABLE vendor (
 \end{minted}
 
 Do not use table names starting with a prefix {\tt "inner\_"}, or ending with {\tt "\_template"}, as
-Deska uses these names for internal use.  The total maximum length of a kind name and an attribute name is 20 characters
+Deska uses these names for internal purposes.  The maximum total length of a kind name and an attribute name is 20 characters
 together.  Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a default option. All foreign keys also
 needs to be set to {\tt DEFERRABLE}.
 
@@ -75,7 +70,7 @@ Due to performance reasons, we support only subset of Postgresql types and we ad
 Here is the listing of supported types.
 
 \begin{itemize}
-	\item{identifier} - this is Deska identifier, it is used for object names.
+	\item{identifier} - this is Deska identifier, it is used for object names
 	\item{identifier\_set} - set of identifiers, use this for multireference attributes
 	\item{int} - for whole numbers
 	\item{bigint} - for large whole numbers, uids
