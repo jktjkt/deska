@@ -89,7 +89,7 @@ def main(tag,commitMessage):
 $$
 LANGUAGE python SECURITY DEFINER;
 
-CREATE OR REPLACE FUNCTION jsn.restoringCommit(tag text, commitMessage text, author text, timestamp_ timestamp without time zone)
+CREATE OR REPLACE FUNCTION api.restoringCommit(tag text, commitMessage text, author text, timestamp_ timestamp without time zone)
 RETURNS text
 AS
 $$
