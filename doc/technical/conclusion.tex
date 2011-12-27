@@ -8,34 +8,37 @@
 The goal of the Deska suite~\cite{deska-project} has always been making the work of the grid system administrators
 easier and more efficient.  Instead of duplicating the ongoing work and replacing well-working tools, we have attempted
 to fill up the void between various systems deployed today and provide a central place to store all important pieces of
-information about a grid computing site.
+information about a grid computing site (\secref{sec:intro}).
 
 We have achieved this goal through building a {\em generic}, versatile database supporting advanced object storage based
 on the user-defined database scheme.  The database supports server-side querying, boasts full support for data
 versioning and audit logging, and provides many advanced features which allow us to properly represent real-world
-entities and relations between them using flat RDBMS~\footnote{Relation Database Management System} tables.  To our best
-knowledge, no existing ORM~\footnote{Object Relation Mapping} system supports these features, making the Deska a unique
-achievement among today's systems.
+entities and relations between them using flat RDBMS~\footnote{Relation Database Management System} tables
+(\secref{sec:objects-and-relations}).  To our best knowledge, no existing ORM~\footnote{Object Relation Mapping} system
+supports these features, making the Deska a unique achievement among today's systems.
 
 A generic command-line console have been built which talks to the database over a custom, well-documented protocol, and
 supports working with the user-defined data in an effective and intuitive manner.  The console and the associated
-scripts sport a friendly interface, supports external scripting and hereby encourages deep integration with add-on
+scripts sport a friendly interface, supports external scripting and thereby encourages deep integration with add-on
 tools.
 
 The advanced features of the generic database are put into use through a database scheme reflecting varying needs of
 sites throughout the WLCG computing grid~\cite{wlcg}.  We have demonstrated that the developed database layout contains
 all features required to handle real-world needs of a fairly typical Tier-2 data center in Prague~\cite{farm}.  We have
 converted the existing data from a proprietary in-house system into the Deska database, and based on the comments from
-the site administrators, the Deska is very usable and significantly reduces the maintenance burden imposed by the
+the site administrators, the Deska is very usable and could significantly reduce the maintenance burden imposed by the
 day-to-day operation of the computing center.
 
 The configuration generating programs and add-on scripts delivered as a part of the Deska project support each and every
 feature required by the datacenter in Prague.  As of January 2012, the system is undergoing thorough testing in a pilot
-mode at the {\tt prague\_lcg2} WLCG computing site, and a full production deployment is expected later this year.
+mode at the {\tt prague\_lcg2} WLCG computing site, with full production deployment expected later this year.
 
 The Deska system has been presented at three international conferences in Dubna, Russia~\cite{dubna-kundrat}, Taipei,
 Taiwan~\cite{chep-2010-deska}, and Vancouver, Canada~\cite{hepix-2011-deska}.  Articles about Deska produced by the team
 have been published in the Journal of Physics~\cite{jop-deska} and in conference
 proceedings~\cite{dubna-deska-proceedings}.
+
+Altogether, the Deska system, as presented, solves a real-world problem, fulfills the objectives promised in its
+specification, and is ready for future extensions and further maintenance.
 
 \end{document}
