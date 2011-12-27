@@ -52,6 +52,8 @@ set(deska_doc_tex
     cfg-generators.tex
     existing-tools.tex
     fzu-setup.tex
+    automated-tests.tex
+    patches.tex
 )
 
 set(deska_doc_images

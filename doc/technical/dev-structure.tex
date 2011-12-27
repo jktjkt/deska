@@ -25,8 +25,9 @@ server.
 
 The Deska server is built as a thin wrapper around a PostgreSQL~\cite{postgresql} database.  The first layer of the
 server is implemented in Python (see \secref{sec:server-py} and for the most time simply translates the JSON calls
-received from the clients to the PostgreSQL's stored procedures.  It also handles a few more complex tasks which will be
-described later in this chapter~\todo{Honza: cfggen}.
+received from the clients to the PostgreSQL's stored procedures.  It also handles a few more complex tasks, like the
+interaction with the configuration generators (\secref{sec:config-generators}) which are described later in this
+chapter.
 
 The other part of the Deska server is implemented as a rich set of stored procedures implemented in a mixture of
 PL/PgSQL and PgPython~\cite{pg-python} languages.  Part of this system is hand-written (see \secref{sec:deska-db}),
@@ -55,5 +56,22 @@ of scripts is documented in \secref{sec:cfggen-git}.
 
 Finally, the configuration generators used at the Institute of Physics are introduced in \secref{sec:fzu-cfggen}; some
 of the challenges which we had to solve were not obvious at the first time.
+
+\section{Auxiliary Tools}
+
+Certain tools have been developed to integrate the Deska with the concrete infrastructure of the Institute of Physics.
+The script which is used for producing the data in the production database is briefly discussed in
+\secref{sec:fzu-farmdb}.
+
+We have also came across several bugs, other issues or simple drawbacks in various tools with which we have worked.  We
+have always tried to do our best in submitting our patches upstream and getting them merged.  A list of these issues is
+provided in \secref{sec:patches}.
+
+\section{Automated Tests}
+
+Due to the complexity of the Deska system, we have tried to do our best to ensure a smooth operation and prevent
+critical regressions.  The Deska system therefore ships with a rich suite of test cases which verify functionality of
+the low-level building blocks, as well as the interaction patterns between the components and the overall system
+functionality.  These tests are covered by \secref{sec:automated-tests}.
 
 \end{document}
