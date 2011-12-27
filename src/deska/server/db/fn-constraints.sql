@@ -1,4 +1,4 @@
---FIXME: SET search_path 
+SET search_path TO deska,versioning;
 
 /** This type is returning type of function pk_constraints_on_table.
    * consists of constraint name conname and atribute name attname

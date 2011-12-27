@@ -1,6 +1,6 @@
 SET search_path TO deska,versioning;
 
-CREATE FUNCTION api.lockCurrentChangeset()
+CREATE FUNCTION lockCurrentChangeset()
 RETURNS void
 AS
 $$
@@ -15,7 +15,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION api.unlockCurrentChangeset()
+CREATE FUNCTION unlockCurrentChangeset()
 RETURNS void
 AS
 $$
@@ -30,7 +30,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE FUNCTION api.changesetHasFreshConfig()
+CREATE FUNCTION changesetHasFreshConfig()
 RETURNS boolean
 AS
 $$
@@ -44,7 +44,7 @@ $$
 LANGUAGE plpgsql;
 
 --this function marks current changeset as having freshly generated configuration
-CREATE FUNCTION api.markChangesetFresh()
+CREATE FUNCTION markChangesetFresh()
 RETURNS void
 AS
 $$
