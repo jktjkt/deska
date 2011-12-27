@@ -11,7 +11,7 @@ def ipv4_sorter(x):
     (k, v) = x
     return int(str(v.ip4).split(".")[-1])
 
-def write_file(iterable, fp_dhcp=None, fp_zone=None, fp_rzone=None):
+def write_file(iterable, domain, fp_dhcp=None, fp_zone=None, fp_rzone=None):
     for (k, v) in iterable:
         if v.mac is None:
             continue
@@ -37,13 +37,11 @@ def write_file(iterable, fp_dhcp=None, fp_zone=None, fp_rzone=None):
         hardware ethernet %(mac)s;
         fixed-address %(ipv4)s;
     }\n\n""" % args)
-
-def write_bind_zones(fp_zone, fp_rzone, domain, iterable):
-    for (k,v) in iterable:
-        (hostname, ifacename) = k.split("->")
-        fp_zone.write("%s\t\t\tA\t%s\n" % (hostname, v.ip4))
-        fp_rzone.write("%s\t\tIN\tPTR\t%s.%s.\n" %
-                       (str(v.ip4).split(".")[3], hostname, domain))
+        if fp_zone is not None:
+            fp_zone.write("%s\t\t\tA\t%s\n" % (hostname, v.ip4))
+        if fp_rzone is not None:
+            fp_rzone.write("%s\t\tIN\tPTR\t%s.%s.\n" %
+                           (str(v.ip4).split(".")[3], hostname, domain))
 
 
 # There are a few gotchas here. First of all, the tests for NULLs got to be
