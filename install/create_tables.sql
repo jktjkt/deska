@@ -11,8 +11,7 @@ CREATE TABLE version(
 		CONSTRAINT version_pk PRIMARY KEY,
 	-- human readable id
 	num int
-		CONSTRAINT version_num_unique UNIQUE
-			DEFAULT nextval('version_num'),
+		CONSTRAINT version_num_unique UNIQUE,
 	-- who created
 	author text,
 	-- time of commit
@@ -47,7 +46,7 @@ CREATE TABLE changeset(
 );
 
 -- create first empty initial revision 0
-INSERT INTO version (id,author,message)
-        VALUES ('0',current_user,'Initial revision');
+INSERT INTO version (id,num,author,message)
+        VALUES ('0','1',current_user,'Initial revision');
 
 

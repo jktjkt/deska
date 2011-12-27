@@ -42,13 +42,12 @@ BEGIN
 		RAISE SQLSTATE '70004' USING MESSAGE = 'commitMessage must be nonempty string.';
 	END IF;	
 	SELECT get_current_changeset() INTO ver;
+	SELECT max(num)+1 INTO ret FROM version;
 	-- FIXME: add commit message here
 	INSERT INTO version (id,author)
 		SELECT id,author FROM changeset
 			WHERE id = ver;
-	UPDATE version SET message = message_
-		WHERE id = ver;
-	SELECT num INTO ret FROM version
+	UPDATE version SET message = message_, num = ret
 		WHERE id = ver;
 	IF NOT FOUND THEN
 		-- create version not successfull
