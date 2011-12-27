@@ -1,4 +1,4 @@
-SET search_path TO deska,api;
+SET search_path TO deska;
 
 CREATE OR REPLACE FUNCTION jsn.startChangeset(tag text)
 RETURNS text
@@ -338,7 +338,7 @@ def main(tag):
 	name = "lockCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -359,7 +359,7 @@ def main(tag):
 	name = "unlockCurrentChangeset"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -380,7 +380,7 @@ def main(tag):
 	name = "changesetHasFreshConfig"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		ver = dutil.fcall(fname)
 	except dutil.DeskaException as err:
@@ -402,7 +402,7 @@ def main(tag):
 	name = "markChangesetFresh"
 	jsn = dutil.jsn(name,tag)
 
-	fname = 'api.'+ name + "()"
+	fname = 'deska.'+ name + "()"
 	try:
 		dutil.fcall(fname)
 	except dutil.DeskaException as err:
