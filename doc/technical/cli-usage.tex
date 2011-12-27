@@ -9,6 +9,9 @@
 The following chapter serves as a users' guide to the CLI application.
 \end{abstract}
 
+\todo{Tomas: please use a proper markup (\\tt etc.) throughout this section. A command shall be shown in an appropriate
+typeface.}
+
 \section{Prompt and context}
 
 When the CLI is started, you will se the command prompt, where the commands could be entered. The prompt has its context.
@@ -117,12 +120,14 @@ The second filter is for obtaining last added embedded object using keyword "new
 
 \section{Showing content of the DB}
 
-There are two way, how to look, what is currently stored in the DB. First way is showing content of the whole DB. This
+There are two ways to look at what is currently stored in the DB. First way is showing content of the whole DB. This
 is done by command "dump".
 
-Command "dump" shows all objects in the DB including their attributes and also nested objects recursively. No other
-relations were displayed here. You can also use command "dump" with parameter. This parameter stands for a filename and
-the dump will be then stored in this file. The sample dump can look like this:
+Command "dump" recursively shows all objects in the DB including their attributes and nested objects. No other
+relations are displayed in this format. This command also accepts an optional parameter to redirect the command's output
+to the specified file.
+
+The sample dump can look like this:
 \begin{minted}{text}
 > dump
 host hpv2
@@ -158,12 +163,12 @@ service dns
 end
 \end{minted}
 
-Another method is using command "show". When there is no context, it shows only list of top-level objects without any
-additional information. In context the command shows information about object or objects from the context. The
-information contains all attributes with resolved values from templates. When some attributes value was taken from
+Another method is using command "show". When the user has not entered a context yet, this command shows only list of top-level objects without any
+additional information. When in a context, it will display information about object or objects from the current context. The
+information contains all attributes with resolved values from templates. When some attribute value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
-printed, its attributes and nested kinds will be printed under attribute referring to this object. Nested objects are
-printed in the way similar to output from command "dump". Example of output from "show" on host containing some hardware
+printed, its attributes and nested kinds will be printed under attribute referring to that object. Nested objects are
+printed in a way similar to the output from the command "dump". Example of output from "show" on a host containing some hardware
 through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
@@ -194,24 +199,25 @@ interface eth0
 end
 \end{minted}
 
-Command "show" could be used also for printing information about objects not in current context. Like "show host hpv2" or
-"show host hpv2 interface eth0". This will not change current context and shows information about object in parameter.
-The parameter is also relative to current context. It means, that in context of host "hpv2" you can type "show interface eth0"
+Command "show" could be used also for printing information about objects outside of the current context. Like "show host hpv2" or
+"show host hpv2 interface eth0". This form will print the requested information without changing the current context.
+The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type "show interface eth0"
 for showing information about interface "eth0" nested in host "hpv2".
 
 \section{Modifying objects and their attributes}
 
-In this section we will describe, hw to create, rename and delete object and also how to set or remove a value of their
+In this section we describe how to create, rename and delete object and also how to set or remove a value of their
 attributes.
 
 \subsection{Objects creating, deleting and renaming}
 
-There are two way how to create an object. First one is an explicit one using keyword "create". For example "create
-host hpv2" will create object "host hpv2". You can also create directly nested object including its parent using
-"create host hpv2 interface eth0". This will create both objects. Note, that keyword "create" does not change
-current context. Second way how to create an object is an attempt to step into a context on a non-existing object.
-When trying to do that, CLI will ask you if you want to create this object. This will change also the context.
-For example:
+There are three ways on how to create an object. First one is an explicit one using keyword "create". For example "create
+host hpv2" will create object "host hpv2". You can also directly create nested object (including its parent, if it
+doesn't exist yet) using a single "create host hpv2 interface eth0" call. Note that the keyword "create" does not change
+the current context, but acts as a standalone action -- an object is created, but the user's context remains the same.
+Second way how to create an object is through an attempt to step into the context on a non-existing object.
+When trying to do that, CLI will ask you if you want to create this object. Obviously, this second will change the
+context, for example:
 
 \begin{minted}{text}
 > host hpv2
@@ -222,14 +228,15 @@ host hpv2> end
 >
 \end{minted}
 
-When going into context of nested object, where the parent does not exist as well, CLI will ask only for creating the
-parent as it is obvious, that the child does not exist as well and user wants to create it.
+When going into the context of a nested object where the parent does not exist either, the CLI will ask only for creating the
+parent --- as the parent did not exist previously, the user surely intends to create the second object as well.
+\todo{Tomas: tohle nemusi byt pravda, protoze pak takovy preklep v prikazu ``host preklepnuty interface eth1'' ma
+potencial zalozit eth1, ackoli uzivatel napr. chtel jit do stareho eth0. Nevim, je to ku zvazeni, smas tohle todo,
+chces-li. -- Honza}
 
-There is also one special way how to create an object. It is using keyword "new". Using this keyword you can create only
-new nested object. You do not specify the object name as it is generated automatically. This feature is useful when creating
-new object where the custom name does not make much sense and where it is useful to have the objects somehow sorted
-by the creation. You specify only kind name after this keyword new. The name is generated in the way that you can see in
-the following example:
+Finally, the third way of creating an object is through the {\tt new} keyword. This command works only on the nested
+objects, and lets the server assign a name to the newly created object automatically. This feature is useful when creating
+new object where the custom name does not make much sense. You specify only the kind name after this keyword new:
 
 \begin{minted}{text}
 > hardware ibm458
@@ -247,23 +254,29 @@ hardware ibm458> end
 >
 \end{minted}
 
-On the example you could see, that the keyword new changes the context. You can step into context of the newest object
-created using new using keyword "last". Of course, that you can also use standard way like "failure failure\_3", but when
-using keyword "last" you do not have to remember the number of the last object created.
+Please keep in mind that the user cannot make any assumptions about the newly assigned name.  The current server
+implementation will use a monotonous sequence as the bases for the name, but extensions are free to change this behavior
+to e.g. include timestamps in the created names, etc.
+
+In this example you can see that the keyword new changes the context, and that it is possible to step into the context
+of the newest object through the keyword {\tt last}.  This might come handy when working with ``append-only'' objects
+like in an event log.
 
 Deleting objects is similar to creating. It is done using keyword "delete". You can use the same parameters as in
-create. Like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
+create, like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
 eth0". This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
 also delete all these nested objects (after confirmation).
 
-Renaming of objects is also very simple. The keyword for renaming is surprisingly keyword "rename". The format of
+\todo{Tomas: can I use {\tt delete interface hpv2->eth0}? If not, why not?}
+
+Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
 parameter for "rename" is the same as for create, but you have to specify the new name as the last word. For example
-"rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object, that is connected using relation
-"contains" or "containable" to another objects, the CLI will ask you, if you want to rename these connected objects
+"rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
+"contains" or "containable" to another objects, the CLI will ask you if you want to rename these connected objects
 as well as they have the same name. If you do not rename them, the connection between them will be lost.
 
 For renaming, creating and deleting objects you can also use filters. Here is the example of deleting all interfaces from
-some host with a specific characteristic.
+a host with some specific characteristic:
 
 \begin{minted}{text}
 > host hpv2
@@ -275,8 +288,8 @@ host hpv2> end
 
 \subsection{Modifying attributes}
 
-The simplest way how to modify an attribute of a specific object is by typing the attribute name and then the desired value
-when being in context of the object.
+The simplest way of modifying an attribute of a specific object is by typing the attribute name and then the desired value
+when being in context of the object:
 
 \begin{minted}{text}
 > host hpv2
@@ -286,25 +299,25 @@ host hpv2>
 
 You can also remove the value of the attribute using keyword "no". For example "no ip4". There are also two special
 keywords for operations with identifier sets. It is keyword "add" for adding an identifier to a set and keyword
-"remove" for removing an identifier from a set. For example "add service www" for adding identifier "www" to a set
-with name service. You also set the set directly as a value of standard attribute using "service [ftp, www, dns]". This
-will set of overwrite the current set with a new one containing these three identifiers.
+"remove" for removing an identifier from a set --- e.g. "add service www" for adding identifier "www" to a set
+with name service. You also set the set directly as a value of standard attribute using the notion "service [ftp, www,
+dns]", which simply overwrites the current value with the specified data.
 
 Here is the list of all supported types and syntax for the values:
 
 \begin{itemize}
     \item{String} - Characters in quotes or apostrophes when containing spaces, or characters without any spaces
-    \item{Identifier} - List of alphanumerical letters and '-' or '\_' not ending with '-' separated by "->" (when containing
-                        more than two items)
-    \item{Identifier set} - List of Identifiers in "[]" separated by ','
-    \item{IP Address v4} - Standard format of IP Address v4
-    \item{IP Address v6} - Standard format of IP Address v6
-    \item{MAC Address} - Standard format of MAC Address
+    \item{Identifier} - List of alphanumerical letters and {\tt -} or {\tt \_}, not ending with {\tt -}, separated by
+        {\tt ->} (when containing more than two items)
+    \item{Identifier set} - List of Identifiers in square brackets ({\tt []} separated by comma ({\tt ,})
+    \item{IP Address v4} - The dot-decimal notation~\cite{ipv4-dot-decimal}
+    \item{IP Address v6} - Various supported formats~\cite{rfc5952}
+    \item{MAC Address} - IEEE~802 format with colon as separators and lowercase letters
     \item{Integer} - Integer
     \item{Double} - Double
     \item{Boolean} - strings "true" or "false"
-    \item{Date} - Date in YYYY-MM-DD format
-    \item{Timestamp} - Timestamp in YYYY-MM-DD HH:MM:SS format where the seconds could have optionally decimal places
+    \item{Date} - Date in the {\tt YYYY-MM-DD} format
+    \item{Timestamp} - Timestamp in the {\tt YYYY-MM-DD HH:MM:SS} format.  Seconds optionally accept decimal fraction.
 \end{itemize} 
 
 \section{Database Backup}
