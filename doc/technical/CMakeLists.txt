@@ -35,6 +35,7 @@ set(PDFLATEX_COMPILER_FLAGS "-shell-escape"
 )
 
 set(deska_doc_tex
+    acknowledgement.tex
     intro.tex
     objects-and-relations.tex
     building.tex
@@ -54,6 +55,7 @@ set(deska_doc_tex
     fzu-setup.tex
     automated-tests.tex
     patches.tex
+    conclusion.tex
 )
 
 set(deska_doc_images
