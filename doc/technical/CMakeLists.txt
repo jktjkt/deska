@@ -40,6 +40,7 @@ set(deska_doc_tex
     building.tex
     admin-dbscheme.tex
     cli-usage.tex
+    dev-structure.tex
     dbapi-protocol.tex
     prog-cpp-deskadb.tex
     cli-app.tex
