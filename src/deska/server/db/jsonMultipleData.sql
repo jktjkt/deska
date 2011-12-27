@@ -24,10 +24,9 @@ def main(tag,kindName,revision,filter):
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
-			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '{delim}') AS name".format(ref = refTbl, kind = kindName, col = refCol, delim = dutil.generated.DELIMITER)
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
@@ -65,7 +64,7 @@ def main(tag,kindName,revision,filter):
 		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
-		#FIXME? this shoud be slower, but its in protocol spec.
+		#this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
 		res[objectName] = data
@@ -105,10 +104,9 @@ def main(tag,kindName,revision,filter):
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
-			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '{delim}') AS name".format(ref = refTbl, kind = kindName, col = refCol, delim = dutil.generated.DELIMITER)
 			revisionParameter = True
 			atts["name"] = coldef
 			# delete embed attribute
@@ -171,7 +169,7 @@ def main(tag,kindName,revision,filter):
 		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
-		#FIXME? this shoud be slower, but its in protocol spec.
+		# this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
 		res[objectName] = data
@@ -218,10 +216,9 @@ def main(tag,kindName,revision,filter):
 	rels.update(dutil.generated.templateNames())
 	for relName in embed:
 		if embed[relName] == kindName:
-			#FIXME: propagate delimiter constant here,or drop this argument
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
-			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+			coldef = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '{delim}') AS name".format(ref = refTbl, kind = kindName, col = refCol, delim = dutil.generated.DELIMITER)
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
@@ -258,7 +255,7 @@ def main(tag,kindName,revision,filter):
 		data = dutil.pytypes(line,specialTypeCols)
 		data = dict(zip(atts.keys(),data))
 
-		#FIXME? this shoud be slower, but its in protocol spec.
+		# this shoud be slower, but its in protocol spec.
 		objectName = data['name']
 		del data['name']
 		if dutil.hasTemplate(kindName):

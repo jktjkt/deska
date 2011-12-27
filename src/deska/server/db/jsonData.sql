@@ -21,11 +21,10 @@ def main(tag,kindName,revision,filter):
 		'''We need this for else branch'''
 		for relName in embed:
 			if embed[relName] == kindName:
-				'''Here we hope that there is only one of these ->FIXME'''
-				#FIXME: propagate delimiter constant here,or drop this argument
+				'''Here we assume that there is only one of these, that is correct now'''
 				refTbl = dutil.generated.relToTbl(relName)
 				refCol = dutil.generated.relFromCol(relName)
-				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '->') AS name".format(ref = refTbl, kind = kindName, col = refCol)
+				columns = "join_with_delim({ref}_get_name({kind}.{col}, $1), {kind}.name, '{delim}') AS name".format(ref = refTbl, kind = kindName, col = refCol, delim = dutil.generated.DELIMITER)
 	else:
 		columns = "{0}.name".format(kindName)
 

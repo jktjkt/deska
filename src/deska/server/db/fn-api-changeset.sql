@@ -43,7 +43,6 @@ BEGIN
 	END IF;	
 	SELECT get_current_changeset() INTO ver;
 	SELECT max(num)+1 INTO ret FROM version;
-	-- FIXME: add commit message here
 	INSERT INTO version (id,author)
 		SELECT id,author FROM changeset
 			WHERE id = ver;
@@ -55,7 +54,6 @@ BEGIN
 	END IF;
 	PERFORM delete_changeset();
 	RETURN ret;
-	--FIXME: Exceptions
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;
@@ -73,7 +71,6 @@ BEGIN
 	DELETE FROM changeset
 		WHERE id = ver;
 	RETURN 1;
-	--FIXME: Exceptions
 END
 $$
 LANGUAGE plpgsql SECURITY DEFINER;

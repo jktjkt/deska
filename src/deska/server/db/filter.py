@@ -74,8 +74,7 @@ class Condition():
 		# asking for embed name
 		for relName in embedNames:
 			if self.col == "name" and generated.relFromTbl(relName) == self.kind:
-				# FIXME: delimiter
-				#parent, name = fcall("embed_name(text,text)",self.val,'->')
+				#parent, name = fcall("embed_name(text,text)",self.val,generated.DELIMITER)
 				#self.val = str(name)
 				newcond = dict()
 				#newcond["attribute"] = generated.relToTbl(relName)
@@ -98,11 +97,7 @@ class Condition():
 			toTbl = generated.relToTbl(relName)
 			if self.kind == fromTbl and self.col == fromCol:
 				# update coldef for identifier references
-				#FIXME: delete same if-else when not needed
-				if generated.atts(self.kind)[self.col] == "identifier_set":
-					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
-				else:
-					self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
+				self.id = "{0}_get_uid({1},$1)".format(toTbl,self.id)
 
 	def operatorParse(self):
 		'''Work with operators'''
@@ -187,7 +182,8 @@ class AdditionalEmbedCondition(Condition):
 	def relationParse(self):
 		# We are called from else part - self.newcond...
 		# because this is column refers to another table
-		#FIXME: version parametr, $1 every time, check for conflicts
+
+		#version parametr, $1 every time
 		self.id = "{0}_get_uid({1},$1)".format(self.col,self.id)
 
 class Filter():

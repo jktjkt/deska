@@ -1,4 +1,5 @@
 from table import Table
+from constants import DELIMITER
 
 """@package Schema
 This modul generates history, template tables and set, get functions for all tables in production.
@@ -191,6 +192,7 @@ CREATE FUNCTION commit_all(message text)
 
 
 		# create some python helper functions
+		self.generated_py.write("DELIMITER = '%s'" % DELIMITER)
 		self.generated_py.write(self.py_fn_str % {'name': "kinds", 'args': '', 'result': list(self.tables)})
 		self.generated_py.write(self.py_fn_str % {'name': "atts", 'args': 'kind', 'result': str(self.atts) + "[kind]"})
 		self.generated_py.write(self.py_fn_str % {'name': "refNames", 'args': '', 'result': str(self.refNames)})
