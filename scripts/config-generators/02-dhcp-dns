@@ -11,7 +11,7 @@ def ipv4_sorter(x):
     (k, v) = x
     return int(str(v.ip4).split(".")[-1])
 
-def write_dhcp_file(fp_dhcp, iterable):
+def write_file(iterable, fp_dhcp=None):
     for (k, v) in iterable:
         if v.mac is None:
             continue
@@ -30,14 +30,14 @@ def write_dhcp_file(fp_dhcp, iterable):
                 note = ""
             additional.append("\n        # %s: %s%s" % (other_k.split("->")[-1],
                                                         note, other_v.mac))
-        fp_dhcp.write(
-"""    host %(host)s {%(additional)s
+        if fp_dhcp is not None:
+            fp_dhcp.write("""    host %(host)s {%(additional)s
         hardware ethernet %(mac)s;
         fixed-address %(ipv4)s;
     }
 
 """ % {
-        "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
+            "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
 
 def write_bind_zones(fp_zone, fp_rzone, domain, iterable):
     for (k,v) in iterable:
@@ -88,7 +88,7 @@ group {
     # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
 
 """)
-write_dhcp_file(f_dhcp, interfaces_vlan25)
+write_file(interfaces_vlan25, fp_dhcp=f_dhcp)
 f_dhcp.write("\n}\n")
 f_dhcp.close()
 
@@ -105,7 +105,7 @@ unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in inter
 for subnet in unique_subnets_172:
     f_dhcp = file("dhcpd-%s" % subnet, "wb")
     f_dhcp.write("group {\n")
-    write_dhcp_file(f_dhcp, [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
+    write_file([x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)], fp_dhcp=f_dhcp)
     f_dhcp.write("\n}\n")
     f_dhcp.close()
 
@@ -128,7 +128,7 @@ subnet 192.168.0.0 netmask 255.255.0.0 {
     min-lease-time          604800;
 
 """)
-write_dhcp_file(f_dhcp, interfaces_vlan8)
+write_file(interfaces_vlan8, fp_dhcp=f_dhcp)
 f_dhcp.write("\n}\n")
 
 t3 = time.time()
