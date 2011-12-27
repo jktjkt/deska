@@ -11,10 +11,7 @@ def ipv4_sorter(x):
     (k, v) = x
     return int(str(v.ip4).split(".")[-1])
 
-def write_dhcp_file(fname, header, footer, iterable):
-    output = file(fname, "wb")
-    output.write(header)
-
+def write_dhcp_file(fp_dhcp, iterable):
     for (k, v) in iterable:
         if v.mac is None:
             continue
@@ -33,7 +30,7 @@ def write_dhcp_file(fname, header, footer, iterable):
                 note = ""
             additional.append("\n        # %s: %s%s" % (other_k.split("->")[-1],
                                                         note, other_v.mac))
-        output.write(
+        fp_dhcp.write(
 """    host %(host)s {%(additional)s
         hardware ethernet %(mac)s;
         fixed-address %(ipv4)s;
@@ -41,9 +38,6 @@ def write_dhcp_file(fname, header, footer, iterable):
 
 """ % {
         "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
-
-    output.write(footer)
-    output.close()
 
 def write_bind_zones(fp_zone, fp_rzone, domain, iterable):
     for (k,v) in iterable:
@@ -72,8 +66,8 @@ interfaces_vlan8  = sorted(deska.interface[(deska.interface.ip4 != None) &
 
 t2 = time.time()
 
-write_dhcp_file("dhcpd-farm",
-"""subnet 147.231.25.0 netmask 255.255.255.0  {
+f_dhcp = file("dhcpd-farm", "wb")
+f_dhcp.write("""subnet 147.231.25.0 netmask 255.255.255.0  {
 
     option routers                  147.231.25.253;
     option domain-name "farm.particle.cz";
@@ -93,8 +87,10 @@ group {
 
     # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
 
-""",
-                "\n\n}\n", interfaces_vlan25)
+""")
+write_dhcp_file(f_dhcp, interfaces_vlan25)
+f_dhcp.write("\n}\n")
+f_dhcp.close()
 
 f_zone = open("bind-farm.particle.cz.zone", "wb")
 f_rzone = open("bind-farm.particle.cz.rzone", "wb")
@@ -107,12 +103,14 @@ write_bind_zones(f_zone, f_rzone, "farm.particle.cz", interfaces_vlan25)
 # /24 allocation. We're going to do that client-side.
 unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
 for subnet in unique_subnets_172:
-    write_dhcp_file("dhcpd-%s" % subnet, "group {\n", "\n}\n",
-                    [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
+    f_dhcp = file("dhcpd-%s" % subnet, "wb")
+    f_dhcp.write("group {\n")
+    write_dhcp_file(f_dhcp, [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
+    f_dhcp.write("\n}\n")
+    f_dhcp.close()
 
-write_dhcp_file("dhcpd-monitor",
-
-"""######################
+f_dhcp = file("dhcpd-monitor", "wb")
+f_dhcp.write("""######################
 # Monitoring network #
 ######################
 
@@ -129,7 +127,9 @@ subnet 192.168.0.0 netmask 255.255.0.0 {
     default-lease-time      604800;
     min-lease-time          604800;
 
-""", "\n\n}\n", interfaces_vlan8)
+""")
+write_dhcp_file(f_dhcp, interfaces_vlan8)
+f_dhcp.write("\n}\n")
 
 t3 = time.time()
 
