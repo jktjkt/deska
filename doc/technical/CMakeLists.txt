@@ -37,6 +37,7 @@ set(PDFLATEX_COMPILER_FLAGS "-shell-escape"
 set(deska_doc_tex
     acknowledgement.tex
     intro.tex
+    users-intro.tex
     objects-and-relations.tex
     building.tex
     admin-dbscheme.tex
