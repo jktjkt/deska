@@ -40,6 +40,8 @@ def write_dhcp_file(fname, header, footer, iterable):
 """ % {
         "ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)})
 
+    output.write(footer)
+    output.close()
 
 # There are a few gotchas here. First of all, the tests for NULLs got to be
 # performed through the "== None" or "!= None" operations instead of Pythonic
