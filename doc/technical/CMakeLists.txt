@@ -34,11 +34,34 @@ set(PDFLATEX_COMPILER_FLAGS "-shell-escape"
     "${PDFLATEX_COMPILER_FLAGS}"
 )
 
-file(GLOB deska_doc_tex
-    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.tex"
+set(deska_doc_tex
+    intro.tex
+    objects-and-relations.tex
+    building.tex
+    admin-dbscheme.tex
+    cli-usage.tex
+    dev-structure.tex
+    dbapi-protocol.tex
+    prog-cpp-deskadb.tex
+    cli-app.tex
+    python-bindings.tex
+    deska-server.tex
+    server-py.tex
+    deska-db.tex
+    sql-procedures.tex
+    cfg-generators.tex
+    existing-tools.tex
+    fzu-setup.tex
+    automated-tests.tex
+    patches.tex
 )
-file(GLOB deska_doc_images RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} img-*.pdf)
+
+set(deska_doc_images
+    img-deska-components.pdf
+    img-deska-workflow.pdf
+    img-deska-server-components.pdf
+)
+
 add_latex_document(deska.tex
     INPUTS ${deska_doc_tex}
     IMAGES ${deska_doc_images}

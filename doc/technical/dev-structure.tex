@@ -1,0 +1,77 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\chapter{Developer's Introduction}
+\label{sec:dev-intro}
+
+\begin{abstract}
+The Deska application suite is a complex system.  This part aims at navigating the maintenance programmer through the
+basic components and explaining the interactions between them.
+\end{abstract}
+
+\section{System Structure}
+The Deska system as a whole is built as an interconnected set of components.  Each component implements a particular
+interface for the other parts to use.  At the basic level, and with respect to the traditional client-server model, we
+can divide these components to a two groups, the first one being a {\em client} and the second one being a {\em server}.
+The server holds all of the data stored in the system, while the clients ask the server to perform operations on their
+behalf.  The clients talk to the server over a custom, JSON-based~\cite{json} protocol called the DBAPI, which is
+described in much more detail in~\secref{sec:dbapi-protocol}.
+
+The first client which deserves proper introduction is the CLI application, the Deska console
+(see~\secref{sec:cli-app}).  This application is simplemented in C++ with heavy use of the Boost~\cite{boost} libraries
+and uses the provided {\tt libDeskaDb} C++ library (see \secref{sec:cpp-deskadb}) to handle communication with the Deska
+server.
+
+The Deska server is built as a thin wrapper around a PostgreSQL~\cite{postgresql} database.  The first layer of the
+server is implemented in Python (see \secref{sec:server-py} and for the most time simply translates the JSON calls
+received from the clients to the PostgreSQL's stored procedures.  It also handles a few more complex tasks, like the
+interaction with the configuration generators (\secref{sec:config-generators}) which are described later in this
+chapter.
+
+The other part of the Deska server is implemented as a rich set of stored procedures implemented in a mixture of
+PL/PgSQL and PgPython~\cite{pg-python} languages.  Part of this system is hand-written (see \secref{sec:deska-db}),
+especially the set of the core business logic.  The code which actually performs modifications of the user data (see
+\secref{sec:admin-dbscheme} for a recapitulation of the role of the user-supplied scheme) is, on the other hand,
+machine-generated based on the exact contents and layout of the database scheme.  The code generator is described in
+\secref{sec:sql-generator}.
+
+The Deska system does not exist in an isolated environment, so the data which are stored in the database has to be made
+available to the third-party applications.  While in theory the applications could be patched to use the Deska database
+as the source of information for their operation, it is way more scalable to produce a static set of configuration files
+at the time new data get stored to the Deska database.  This task is done by the configuration generators (see
+\secref{sec:config-generators}).  These generators are executed by the Python Deska server before each database commit,
+and talk the regular DBAPI protocol (\ref{sec:dbapi-protocol}) to communicate with the rest of the Deska.  As most of
+these generators are implemented in Python, we have provided a Python library on top of the (see
+\secref{sec:python-bindings} {\tt libDeskaDb} C++ library.  This Python code not only encapsulates type-safe access to
+various Deska objects, but also build a native, high-level representation of the class hierarchy (see
+\secref{sec:objects-and-relations-relations} as first-class Python objects.
+
+The configuration generators are designed to be easily pluggable to an existing data center infrastructure, and play
+well with the already deployed tools.  Hooks are available to facilitate a seamless integration with the
+already-existing VCS\footnote{Version Control System} system which are very likely present at each site and use for
+their configuration management.  The whole idea is that the Deska system is merely another user providing input to the
+fabric management systems.  Deska ships with everything required to interact with a Git~\cite{git} repository; the set
+of scripts is documented in \secref{sec:cfggen-git}.
+
+Finally, the configuration generators used at the Institute of Physics are introduced in \secref{sec:fzu-cfggen}; some
+of the challenges which we had to solve were not obvious at the first time.
+
+\section{Auxiliary Tools}
+
+Certain tools have been developed to integrate the Deska with the concrete infrastructure of the Institute of Physics.
+The script which is used for producing the data in the production database is briefly discussed in
+\secref{sec:fzu-farmdb}.
+
+We have also came across several bugs, other issues or simple drawbacks in various tools with which we have worked.  We
+have always tried to do our best in submitting our patches upstream and getting them merged.  A list of these issues is
+provided in \secref{sec:patches}.
+
+\section{Automated Tests}
+
+Due to the complexity of the Deska system, we have tried to do our best to ensure a smooth operation and prevent
+critical regressions.  The Deska system therefore ships with a rich suite of test cases which verify functionality of
+the low-level building blocks, as well as the interaction patterns between the components and the overall system
+functionality.  These tests are covered by \secref{sec:automated-tests}.
+
+\end{document}
