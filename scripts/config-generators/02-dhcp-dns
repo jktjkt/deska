@@ -58,6 +58,10 @@ interfaces_vlan172= sorted(deska.interface[(deska.interface.ip4 != None) &
                                            (deska.interface.mac != None) &
                                            (deska.network.vlan == 172)]
                            .iteritems(), key=ipv4_sorter)
+interfaces_vlan8  = sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.interface.mac != None) &
+                                           (deska.network.vlan == 8)]
+                           .iteritems(), key=ipv4_sorter)
 
 t2 = time.time()
 
@@ -94,6 +98,27 @@ unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in inter
 for subnet in unique_subnets_172:
     write_dhcp_file("dhcpd-%s" % subnet, "group {\n", "\n}\n",
                     [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
+
+write_dhcp_file("dhcpd-monitor",
+
+"""######################
+# Monitoring network #
+######################
+
+
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+
+    option routers              192.168.0.234;
+    option domain-name          "monitor";
+    option domain-name-servers  192.168.1.14, 192.168.1.16;
+    option interface-mtu 1500;
+
+    # one week
+    default-lease-time      604800;
+    min-lease-time          604800;
+
+""", "\n\n}\n", interfaces_vlan8)
 
 t3 = time.time()
 
