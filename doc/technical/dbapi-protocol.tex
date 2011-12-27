@@ -936,7 +936,11 @@ Querying History}, \secref{sec:api-group-history}.
 
     This function is similar to the \deskaFuncRef{commitChangeset}, but in addition accepts two additional arguments, the {\tt
     author} and {\tt timestamp}.  They are used instead of the current user and current time as the metadata for history
-    revisions.}
+    revisions.
+
+    In contrast to the \deskaFuncRef{commitChangeset}, calling this function does {\em not} trigger an automatic
+    regeneration of configuration output, as we assume that producing the history again might lead to undesired
+    interactions with the live system.}
 
 \subsubsection{Querying History}
 \label{sec:api-group-history}

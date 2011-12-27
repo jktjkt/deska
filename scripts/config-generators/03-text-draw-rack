@@ -149,5 +149,5 @@ print_current(f, 0, "serverovna", special_node_rules, parent_name=None, parent_b
 
 t3 = time.time()
 
-file("__timing-stats", "wb").write(
+file("__timing-stats", "ab").write(
     "boxes: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))

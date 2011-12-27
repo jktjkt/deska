@@ -1,0 +1,147 @@
+#!/usr/bin/python
+import sys
+import time
+# FIXME: this shall be removed in the final version
+sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
+import deska
+
+deska.init()
+
+def ipv4_sorter(x):
+    (k, v) = x
+    return int(str(v.ip4).split(".")[-1])
+
+def write_file(iterable, domain, fp_dhcp=None, fp_zone=None, fp_rzone=None):
+    for (k, v) in iterable:
+        if v.mac is None:
+            continue
+        (hostname, ifacename) = k.split("->")
+        # check any other interfaces here
+        # We do not go to the DB here; doing that locally is faster
+        others = [(k1, v1) for (k1, v1) in iterable if
+                  k1.startswith("%s->" % hostname) and k1 != ifacename]
+        additional = []
+        for (other_k, other_v) in others:
+            if other_k == k:
+                continue
+            if v.note is not None:
+                note = v.note + " "
+            else:
+                note = ""
+            additional.append("\n        # %s: %s%s" % (other_k.split("->")[-1],
+                                                        note, other_v.mac))
+
+        args = {"ipv4": v.ip4, "mac": v.mac, "host": hostname, "additional": "".join(additional)}
+        if fp_dhcp is not None:
+            fp_dhcp.write("""    host %(host)s {%(additional)s
+        hardware ethernet %(mac)s;
+        fixed-address %(ipv4)s;
+    }\n\n""" % args)
+        if fp_zone is not None:
+            fp_zone.write("%s\t\t\tA\t%s\n" % (hostname, v.ip4))
+        if fp_rzone is not None:
+            fp_rzone.write("%s\t\tIN\tPTR\t%s.%s.\n" %
+                           (str(v.ip4).split(".")[3], hostname, domain))
+
+
+# There are a few gotchas here. First of all, the tests for NULLs got to be
+# performed through the "== None" or "!= None" operations instead of Pythonic
+# "is (not) None". Another point is that one cannot use the "and" oeprator, but
+# has to rely on the "&", as "and" cannot be overriden in Python. Please see
+# comments in src/deska/python/deska/classes.py (or the Deska documentation) for
+# details.
+t1 = time.time()
+interfaces_vlan25 = sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.network.vlan == 25)]
+                           .iteritems(), key=ipv4_sorter)
+interfaces_vlan172= sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.network.vlan == 172)]
+                           .iteritems(), key=ipv4_sorter)
+interfaces_vlan8  = sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.network.vlan == 8)]
+                           .iteritems(), key=ipv4_sorter)
+
+t2 = time.time()
+
+f_dhcp = file("dhcpd-farm", "wb")
+f_dhcp.write("""subnet 147.231.25.0 netmask 255.255.255.0  {
+
+    option routers                  147.231.25.253;
+    option domain-name "farm.particle.cz";
+    option domain-name-servers      147.231.25.14, 147.231.25.16, 147.231.27.173;
+    option interface-mtu 1500;
+
+    # one week
+    default-lease-time      604800;
+    min-lease-time          604800;
+}
+
+# sorted by IP address
+
+group {
+    filename "pxelinux.0";
+    next-server 147.231.25.14;
+
+    # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
+
+""")
+f_zone = open("bind-farm.particle.cz.common.zone", "wb")
+f_rzone = open("bind-farm.particle.cz.common.rzone", "wb")
+write_file(interfaces_vlan25, "farm.particle.cz", fp_dhcp=f_dhcp,
+           fp_zone=f_zone, fp_rzone=f_rzone)
+f_dhcp.write("\n}\n")
+f_dhcp.close()
+f_zone.close()
+f_rzone.close()
+
+# The list of interfaces in the VLAN172 is all what we need, but as it happens,
+# the FZU uses a different convention for this one -- even though all of the
+# machines are in the same VLAN, we shall produce a list of files splitted by a
+# /24 allocation. We're going to do that client-side.
+unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
+# The DNS zones are shared
+f_zone = open("bind-farm.particle.cz.private.zone", "wb")
+f_rzone = open("bind-farm.particle.cz.private.rzone", "wb")
+for subnet in unique_subnets_172:
+    f_dhcp = file("dhcpd-%s" % subnet, "wb")
+    f_dhcp.write("group {\n")
+    write_file([x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)],
+               "farm.particle.cz", fp_dhcp=f_dhcp, fp_zone=f_zone,
+               fp_rzone=f_rzone)
+    f_dhcp.write("\n}\n")
+    f_dhcp.close()
+f_zone.close()
+f_rzone.close()
+
+f_dhcp = file("dhcpd-monitor", "wb")
+f_dhcp.write("""######################
+# Monitoring network #
+######################
+
+
+
+subnet 192.168.0.0 netmask 255.255.0.0 {
+
+    option routers              192.168.0.234;
+    option domain-name          "monitor";
+    option domain-name-servers  192.168.1.14, 192.168.1.16;
+    option interface-mtu 1500;
+
+    # one week
+    default-lease-time      604800;
+    min-lease-time          604800;
+
+""")
+f_zone = open("bind-monitor.zone", "wb")
+f_rzone = open("bind-monitor.rzone", "wb")
+write_file(interfaces_vlan8, "monitor", fp_dhcp=f_dhcp, fp_zone=f_zone,
+           fp_rzone=f_rzone)
+f_dhcp.write("\n}\n")
+f_dhcp.close()
+f_zone.close()
+f_rzone.close()
+
+t3 = time.time()
+
+file("__timing-stats", "wb").write(
+    "DHCP VLAN 25: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))
