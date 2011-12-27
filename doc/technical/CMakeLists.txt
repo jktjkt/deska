@@ -51,6 +51,7 @@ set(deska_doc_tex
     sql-procedures.tex
     cfg-generators.tex
     existing-tools.tex
+    fzu-setup.tex
 )
 
 set(deska_doc_images
