@@ -85,26 +85,33 @@ group {
     # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
 
 """)
-write_file(interfaces_vlan25, fp_dhcp=f_dhcp)
+f_zone = open("bind-farm.particle.cz.common.zone", "wb")
+f_rzone = open("bind-farm.particle.cz.common.rzone", "wb")
+write_file(interfaces_vlan25, "farm.particle.cz", fp_dhcp=f_dhcp,
+           fp_zone=f_zone, fp_rzone=f_rzone)
 f_dhcp.write("\n}\n")
 f_dhcp.close()
-
-f_zone = open("bind-farm.particle.cz.zone", "wb")
-f_rzone = open("bind-farm.particle.cz.rzone", "wb")
-write_bind_zones(f_zone, f_rzone, "farm.particle.cz", interfaces_vlan25)
-
+f_zone.close()
+f_rzone.close()
 
 # The list of interfaces in the VLAN172 is all what we need, but as it happens,
 # the FZU uses a different convention for this one -- even though all of the
 # machines are in the same VLAN, we shall produce a list of files splitted by a
 # /24 allocation. We're going to do that client-side.
 unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
+# The DNS zones are shared
+f_zone = open("bind-farm.particle.cz.private.zone", "wb")
+f_rzone = open("bind-farm.particle.cz.private.rzone", "wb")
 for subnet in unique_subnets_172:
     f_dhcp = file("dhcpd-%s" % subnet, "wb")
     f_dhcp.write("group {\n")
-    write_file([x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)], fp_dhcp=f_dhcp)
+    write_file([x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)],
+               "farm.particle.cz", fp_dhcp=f_dhcp, fp_zone=f_zone,
+               fp_rzone=f_rzone)
     f_dhcp.write("\n}\n")
     f_dhcp.close()
+f_zone.close()
+f_rzone.close()
 
 f_dhcp = file("dhcpd-monitor", "wb")
 f_dhcp.write("""######################
@@ -125,8 +132,14 @@ subnet 192.168.0.0 netmask 255.255.0.0 {
     min-lease-time          604800;
 
 """)
-write_file(interfaces_vlan8, fp_dhcp=f_dhcp)
+f_zone = open("bind-monitor.zone", "wb")
+f_rzone = open("bind-monitor.rzone", "wb")
+write_file(interfaces_vlan8, "monitor", fp_dhcp=f_dhcp, fp_zone=f_zone,
+           fp_rzone=f_rzone)
 f_dhcp.write("\n}\n")
+f_dhcp.close()
+f_zone.close()
+f_rzone.close()
 
 t3 = time.time()
 
