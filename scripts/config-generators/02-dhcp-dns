@@ -45,6 +45,14 @@ def write_dhcp_file(fname, header, footer, iterable):
     output.write(footer)
     output.close()
 
+def write_bind_zones(fp_zone, fp_rzone, domain, iterable):
+    for (k,v) in iterable:
+        (hostname, ifacename) = k.split("->")
+        fp_zone.write("%s\t\t\tA\t%s\n" % (hostname, v.ip4))
+        fp_rzone.write("%s\t\tIN\tPTR\t%s.%s.\n" %
+                       (str(v.ip4).split(".")[3], hostname, domain))
+
+
 # There are a few gotchas here. First of all, the tests for NULLs got to be
 # performed through the "== None" or "!= None" operations instead of Pythonic
 # "is (not) None". Another point is that one cannot use the "and" oeprator, but
@@ -87,6 +95,10 @@ group {
 
 """,
                 "\n\n}\n", interfaces_vlan25)
+
+f_zone = open("bind-farm.particle.cz.zone", "wb")
+f_rzone = open("bind-farm.particle.cz.rzone", "wb")
+write_bind_zones(f_zone, f_rzone, "farm.particle.cz", interfaces_vlan25)
 
 
 # The list of interfaces in the VLAN172 is all what we need, but as it happens,
