@@ -15,7 +15,7 @@ def write_file(fname, header, footer, iterable):
     output = file(fname, "wb")
     output.write(header)
 
-    for (k, v) in interfaces:
+    for (k, v) in iterable:
         (hostname, ifacename) = k.split("->")
         if hostname.endswith("-obsolete"):
             continue
