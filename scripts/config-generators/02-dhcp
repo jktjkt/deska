@@ -50,9 +50,15 @@ def write_file(fname, header, footer, iterable):
 # comments in src/deska/python/deska/classes.py (or the Deska documentation) for
 # details.
 t1 = time.time()
-interfaces = sorted(deska.interface[(deska.interface.ip4 != None) &
-                                    (deska.interface.mac != None) &
-                                    (deska.network.vlan == 25)].iteritems(), key=ipv4_sorter)
+interfaces_vlan25 = sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.interface.mac != None) &
+                                           (deska.network.vlan == 25)]
+                           .iteritems(), key=ipv4_sorter)
+interfaces_vlan172= sorted(deska.interface[(deska.interface.ip4 != None) &
+                                           (deska.interface.mac != None) &
+                                           (deska.network.vlan == 172)]
+                           .iteritems(), key=ipv4_sorter)
+
 t2 = time.time()
 
 write_file("dhcpd-farm",
@@ -77,7 +83,19 @@ group {
     # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
 
 """,
-           "\n\n}\n", interfaces)
+           "\n\n}\n", interfaces_vlan25)
+
+
+# The list of interfaces in the VLAN172 is all what we need, but as it happens,
+# the FZU uses a different convention for this one -- even though all of the
+# machines are in the same VLAN, we shall produce a list of files splitted by a
+# /24 allocation. We're going to do that client-side.
+unique_subnets_172 = set([".".join(str(x[1].ip4).split(".")[0:3]) for x in interfaces_vlan172])
+for subnet in unique_subnets_172:
+    write_file("dhcpd-%s" % subnet,
+"""group {\n""",
+"""\n}\n""",
+               [x for x in interfaces_vlan172 if str(x[1].ip4).startswith(subnet)])
 
 t3 = time.time()
 
