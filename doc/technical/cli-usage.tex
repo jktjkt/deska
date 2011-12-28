@@ -260,9 +260,6 @@ host hpv2> end
 
 When going into the context of a nested object where the parent does not exist either, the CLI will ask only for creating the
 parent --- as the parent did not exist previously, the user surely intends to create the second object as well.
-\todo{Tomas: tohle nemusi byt pravda, protoze pak takovy preklep v prikazu ``host preklepnuty interface eth1'' ma
-potencial zalozit eth1, ackoli uzivatel napr. chtel jit do stareho eth0. Nevim, je to ku zvazeni, smas tohle todo,
-chces-li. -- Honza}
 
 Finally, the third way of creating an object is through the {\tt new} keyword. This command works only on the nested
 objects, and lets the server assign a name to the newly created object automatically. This feature is useful when creating
@@ -608,14 +605,14 @@ the directory from where we are executing the CLI.
 
 \todo {Fix these ugly tables}
 
-\begin{longtable}{ l | l | l | l |  p{5cm} | l }
+\begin{longtable}{ l | l | p{2.5cm} | c |  p{4cm} | p{3cm} }
     \caption{Parameters in {\tt deska.ini}}
     \label{tab:configfile} \\
     Parameter section & Parameter name & Parameter type & Mandatory & Description & Default value \\
     \hline
     \endhead
     DBConnection & Server & vector of strings & yes & path to executable for connection to Deska server including arguments & no \\
-    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt ~/.local/share/deska/.deska\_cli\_history} \\
+    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt \~/.local/share/deska/.deska\_cli\_history} \\
     CLI & HistoryLimit & unsigned integer & no & number of lines stored in history & 64 \\
     CLI & LineWidth & unsigned integer & no & maximum width of line in the console & no \\
     CLI & NonInteractive & boolean & no & Force non-interactive mode & false \\
@@ -628,7 +625,7 @@ In the table \ref{tab:cmdlineparams} you can see overview of parameters, that ca
 
 \todo {Fix these ugly tables}
 
-\begin{longtable}{ l | l | l | p{8cm} }
+\begin{longtable}{ l | l | l | p{7cm} }
     \caption{Command line parameters}
     \label{tab:cmdlineparams} \\
     Parameter name & Short name & Parameter type & Description \\
