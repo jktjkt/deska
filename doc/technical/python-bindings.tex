@@ -16,6 +16,10 @@ bindings of the class methods to explicit conversion functions which deal with t
 C++ type system.  In contrast to the lower-level functions, the second half of the Python code provides a high-level
 access to the Deska objects form the database.
 
+The biggest and most prominent user of this code are the configuration generators (cf. \secref{sec:config-generators})
+and other applications which require convenient access to the data stored in the Deska database from a language suitable
+for fast prototyping.
+
 \section{Low-level Bindings}
 
 The lower-level Python bindings are implemented in C++ with help of the Boost.Python library.  The functionality we
