@@ -7,7 +7,7 @@
 %global redminefile FIXME
 
 Name: deska
-Version: 0.11.742
+Version: 0.11.747
 Release: 1%{?dist}
 Group: Applications/System
 Summary: Tool for Central Administration of a Grid Site
@@ -65,7 +65,10 @@ The server daemon responsible for talking to the PostgreSQL database and the sup
 
 %build
 mkdir _build && cd _build
-%cmake -DPYTHON_SITE_PACKAGES=%{python_sitelib} -DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} ..
+%cmake \
+	-DPYTHON_SITE_PACKAGES=%{python_sitelib} \
+	-DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} \
+	..
 make -j20
 #make %{?_smp_mflags}
 %py_byte_compile %{__python} %{buildroot}/_build/src/deska/python/deska
@@ -117,5 +120,5 @@ rm -rf $RPM_BUILD_ROOT
 %postun client -p /sbin/ldconfig
 
 %changelog
-* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.742-1
+* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.747-1
 - Initial release
