@@ -48,9 +48,7 @@ set(deska_doc_tex
     cli-app.tex
     python-bindings.tex
     deska-server.tex
-    server-py.tex
-    deska-db.tex
-    sql-procedures.tex
+    tests.tex
     cfg-generators.tex
     existing-tools.tex
     fzu-setup.tex
@@ -72,6 +70,11 @@ add_latex_document(deska.tex
     MANGLE_TARGET_NAMES
     DEFAULT_PDF)
 
-set(DOCDIR share/doc)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/deska.pdf
-    DESTINATION ${DOCDIR}/${PROJECT_NAME})
+if(SKIP_INSTALL_DOCS)
+else()
+    if(NOT DOCDIR)
+        set(DOCDIR share/doc/${PROJECT_NAME})
+    endif()
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/deska.pdf
+        DESTINATION ${DOCDIR})
+endif()

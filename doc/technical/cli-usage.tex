@@ -224,7 +224,7 @@ Start of new changeset is done using keyword {\tt start}. Then if you are not do
 go home from the work, you can detach from the changeset. You should use command {\tt detach} for this purpose. Using
 this, you will not loose your work in progress. CLI will ask you for a detach message commenting what is going on in
 your changeset. You can optionally type the message as a command parameter. For example "detach Adding new machine".
-When you would like to connect to your changeset again, you should use command {\rr resume}. This command will show
+When you would like to connect to your changeset again, you should use command {\tt resume}. This command will show
 you a list of changesets with some additional information and you can choose one to connect to. You can also find your
 changeset in this list if your CLI dies, or if you exit it without detaching. Sou your work will not be lost. Each changeset has
 its ID. You can see it in the list and you can also obtain it using command {\tt status}. This command will tel you
@@ -401,7 +401,7 @@ It is also possible to load the commands modifying objects from a file. You can 
 like to perform. One command per line. Then you can load them using command {\tt batch}, where you give the filename
 of the file to this command as a parameter. CLI will load and execute all these commands. Note, that you have to be
 connected to some changeset to perform modifications. You can use also comments in the file. The comments are lines
-beginning with {\tt #}.
+beginning with {\tt \#}.
 
 \section{History log}
 
@@ -540,7 +540,7 @@ commit our work again and now, we hope, successfully.
 
 The format of the file is very intuitive and is in format of commands we are familiar from the CLI or command {\tt batch}.
 We can not revert changes made by someone else, so information about changes made by someone else are in form of comments
-(lines beginning with {\tt #}).
+(lines beginning with {\tt \#}).
 
 \section{Non interactive mode}
 
@@ -577,7 +577,7 @@ You can prepare your own files with commands, that could be executed as batches 
 can use also commands like {\tt start}, {\tt commit} and so on. The file can be loaded to the CLI using command
 {\tt execute}. Execute will take each line from the file and executes it in the same way as you are writing it in the
 console manually. The only difference is, that these commands are run in the non-interactive mode. There is also a
-possibility of using comment, that are lines beginning with {\tt #}.
+possibility of using comment, that are lines beginning with {\tt \#}.
 
 \section{Integrated help}
 

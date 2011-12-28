@@ -369,14 +369,6 @@ private:
     void allNestedObjectsTransitivelyRec(const ObjectDefinition &object,
                                          std::vector<ObjectDefinition> &nestedObjects);
 
-    /** @short Constructs filter on a specific kind and name as we can not ask directly to the global name with ->
-    *
-    *   @param kind Kind name
-    *   @param name Object name
-    *   @return Filter for object of a specific name
-    */
-    Db::Filter filterOnName(const Db::Identifier &kind, const Db::Identifier &name);
-
     /** Identifiers of top level kinds. */
     std::vector<Db::Identifier> pureTopLevelKinds;
     /** Identifiers of all kinds. */

@@ -1,0 +1,88 @@
+% vim: spelllang=en spell textwidth=120
+\documentclass[deska]{subfiles}
+\begin{document}
+
+\section{Performance tests}
+\label{sec:performance}
+
+During our development some performance tests were performed. Especially in Deska server and Deska database
+part of Deska, because large amount of data is held there. Some decisions were made as described in
+\secref{sec:schema-json}, \secref{sec:direct-access} and \secref{sec:cast}.
+Here we present some of these performance tests' results.
+
+It has to be said, that tested data are at least ten times bigger, than we
+expect in real Deska use. Performed tests are hundred times and more larger
+than current FZU schema.
+For example the number of hardware rows in FZU schema is less then 500 
+and the biggest table interface has 565 records.
+
+\subsection{JSON in database}
+\label{sec:test-json}
+Firstly we decided to have JSON in database, as told in \secref{sec:schema-json}.
+Here is result of diffing, that led us to
+return JSON from database.
+This test was performed on diffing function on one table.
+We tested one revision difference, ten, fifty, and hundred and fifty.
+The largest diff had about 700KB result.
+We tried the extreme 2000 difference diff with 40MB result.
+Tested table had about 300 000 rows and 100 columns.
+
+\label{test:json}
+\begin{longtable}{ l | l | l | l}
+\caption{Test results} \\
+Revisions & Server & DB and Server & Database \\
+\hline
+\endhead
+1 & 2.857s & 2.897s & 2.933s \\
+10 & 2.858s & 2.937s & 2.913s \\
+50 & 2.778s & 2.839s & 2.860s \\
+150 & 4.711s & 4.592 & 4.558s \\
+2000 & 23.745s & 15.868s & 11.780s \\
+\end{longtable}
+
+The column Server represents JSON creation in Deska server, column Database JSON creation in
+Deska database. The column DB and Server represents combination of another two. JSON is created
+in Deska server, but some data are prepared in Deska database.
+As you can see in table \ref{test:json}, the last option give better results with larger data.
+Little slow down in small data was acceptable and we decided for the JSON in database.
+
+\subsection{Direct access to tables}
+\label{sec:test-direct}
+
+\label{tbl:test-direct}
+\begin{longtable}{ l | l | l }
+\caption{Test results}\\
+test & without direct access & with direct access \\
+\hline
+\endhead
+test1 & 2.875s & 0.133s \\
+test2 & 32.806s & 1.680s \\
+\end{longtable}
+
+Another speed up was done by direct access by function {\tt multipleResolvedObjectData}, as told in \secref{sec:schema-json}.
+This speed up is used mainly by Configuration generators.
+In table \ref{tbl:test-direct} are times of how long it took to get data about hardware named "hw1000" using function {\tt multipleResolvedObjectData}
+\footnote{Notice, that using this function to select hardware of one concrete name is bad, for that we have
+{\tt resolvedObjectData} function}
+as test1. In this test hardware table had million columns.
+
+In test2 we tested selecting host where hardware.vendor was given. In this test, vendor table
+had 100 rows, host 50 000 and hardware 500 000 rows.
+
+\subsection{Type casting}
+\label{sec:test-cast}
+
+\begin{longtable}{ l | l | l }
+\caption{Test results}
+\label{tbl:test-casting-cmp}\\
+& without type casting & with type casting \\
+\hline
+\endhead
+time & 20.143s & 9.133s \\
+memory & 2GB & 50MB \\
+\end{longtable}
+
+In table \ref{tbl:test-casting-cmp} you can see, how type casting saves time and memory,
+while selecting 200 000 revision using {\tt listRevisions} function.
+
+\end{document}

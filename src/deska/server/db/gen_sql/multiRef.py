@@ -793,6 +793,9 @@ LANGUAGE plpgsql;
         #refattname should be uid
         if refattname != 'uid':
             raise ValueError, 'multiRef relation is badly defined, referenced column should be uid column'
+        
+        if table == reftable:
+            raise ValueError, 'multiRef relation is badly defined, table name and referenced table name should be different'
 
     def gen_tables(self, table, reftable, attname):
         """This function coordinates generation of create inner table statement and create history table for inner table statement.
