@@ -48,9 +48,6 @@ set(deska_doc_tex
     cli-app.tex
     python-bindings.tex
     deska-server.tex
-    server-py.tex
-    deska-db.tex
-    sql-procedures.tex
     cfg-generators.tex
     existing-tools.tex
     fzu-setup.tex
