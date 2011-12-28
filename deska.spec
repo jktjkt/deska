@@ -68,6 +68,9 @@ mkdir _build && cd _build
 %cmake -DPYTHON_SITE_PACKAGES=%{python_sitelib} -DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} ..
 make -j20
 #make %{?_smp_mflags}
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/python/deska
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils/config_generators
 
 %check
 cd _build
