@@ -39,15 +39,15 @@ BuildRequires: readline-devel
 BuildRequires: python-devel
 
 %description
-FIXME
+Shared libraries and scripts for the Deska system
 
-#%package client
-#Summary: The Deska CLI application
-#Group: Applications/System
-#License: LGPLv3+
-#
-#%description client
-#The command line client application for accessing the Deska database
+%package client
+Summary: The Deska CLI application
+Group: Applications/System
+License: GPLv2+
+
+%description client
+The command line client application for accessing the Deska database
 
 %package devel
 Summary: Development files for the Deska system
@@ -56,6 +56,15 @@ License: GPLv2+
 
 %description devel
 The include files required for compiling against the libDeskaDb library
+
+%package server
+Summary: The Deska server daemon
+Group: Application/System
+License: GPLv2+
+
+%description server
+The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
+
 
 %prep
 %setup -q
@@ -86,20 +95,27 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_bindir}/deska-cli
-%{_bindir}/deska-server
-%{_libdir}/libDeskaCli.so.0.10
 %{_libdir}/libDeskaDb.so.0.10
 %{python_sitearch}/deska/libLowLevelPyDeska.so
 %{python_sitelib}/deska/*.py*
-%{python_sitelib}/deska_server_utils/*.py*
-%{python_sitelib}/deska_server_utils/config_generators/*.py*
-%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
+
+%files client
+%defattr(-,root,root,-)
+%{_bindir}/deska-cli
+%{_libdir}/libDeskaCli.so.0.10
 
 %files devel
+%defattr(-,root,root,-)
 %{_includedir}/deska/db/*.h
 %{_libdir}/libDeskaDb.so
 %{_libdir}/libDeskaCli.so
+
+%files server
+%defattr(-,root,root,-)
+%{_bindir}/deska-server
+%{python_sitelib}/deska_server_utils/*.py*
+%{python_sitelib}/deska_server_utils/config_generators/*.py*
+%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
 
 #%files -f sssd.lang
 #%defattr(-,root,root,-)
@@ -147,9 +163,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun -p /sbin/ldconfig
 
-#%post client -p /sbin/ldconfig
-#
-#%postun client -p /sbin/ldconfig
+%post client -p /sbin/ldconfig
+
+%postun client -p /sbin/ldconfig
 
 %changelog
 * Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.742-1
