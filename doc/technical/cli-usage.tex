@@ -12,6 +12,11 @@ The following chapter serves as a users' guide to the CLI application.
 \todo{Tomas: please use a proper markup (\\tt etc.) throughout this section. A command shall be shown in an appropriate
 typeface.}
 
+\section{Introduction}
+\todo{Tomas: write some intro here}
+
+You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "Ctrl + D".
+
 \section{Prompt and context}
 
 When the CLI is started, you will se the command prompt, where the commands could be entered. The prompt has its context.
@@ -118,12 +123,18 @@ host hpv2>
 The second filter is for obtaining last added embedded object using keyword "new". The usage is the same as in case of
 "all". We will describe usage of both keywords later.
 
+Here is one useful command for operations with filters. Is is command {\tt context}. It will show you current context
+with the filters. It is useful as in the prompt you can see only that you are in context of a filter, but you can not
+see, which filter exactly. This command will show you exactly the filter. You can also use {\tt context objects}. This
+will show you list of all objects matching current context. It can show you all objects, that can be affected by commands
+operating with context.
+
 \section{Showing content of the DB}
 
 There are two ways to look at what is currently stored in the DB. First way is showing content of the whole DB. This
-is done by command "dump".
+is done by command {\tt dump}.
 
-Command "dump" recursively shows all objects in the DB including their attributes and nested objects. No other
+Command {\tt dump} recursively shows all objects in the DB including their attributes and nested objects. No other
 relations are displayed in this format. This command also accepts an optional parameter to redirect the command's output
 to the specified file.
 
@@ -163,28 +174,28 @@ service dns
 end
 \end{minted}
 
-Another method is using command "show". When the user has not entered a context yet, this command shows only list of top-level objects without any
+Another method is using command {\tt show}. When the user has not entered a context yet, this command shows only list of top-level objects without any
 additional information. When in a context, it will display information about object or objects from the current context. The
 information contains all attributes with resolved values from templates. When some attribute value was taken from
 a template, information about source of this value is also printed. If some object is contained in one being currently
 printed, its attributes and nested kinds will be printed under attribute referring to that object. Nested objects are
-printed in a way similar to the output from the command "dump". Example of output from "show" on a host containing some hardware
+printed in a way similar to the output from the command "dump". Example of output from {\tt show} on a host containing some hardware
 through attribute "hardware" with attribute "ram" inherited from template for hardware with name "hp357":
 
 \begin{minted}{text}
 > host hpv2
 host hpv2> show
 hardware hpv2
-cpu_ht 1
-cpu_num 4
-no hepcpec
-host hpv2
-no note_hardware
-purchase 2011-12-23
-ram 4096 -> hp357
-template_hardware hp357
-no vendor
-warranty 2013-12-23
+    cpu_ht 1
+    cpu_num 4
+    no hepcpec
+    host hpv2
+    no note_hardware
+    purchase 2011-12-23
+    ram 4096 -> hp357
+    template_hardware hp357
+    no vendor
+    warranty 2013-12-23
 note_host "Sample host"
 no service [ftp, www]
 no template_host
@@ -203,6 +214,25 @@ Command "show" could be used also for printing information about objects outside
 "show host hpv2 interface eth0". This form will print the requested information without changing the current context.
 The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type "show interface eth0"
 for showing information about interface "eth0" nested in host "hpv2".
+
+\section{Work with changesets}
+
+Till now, we could perform only read-only commands. For modifying content of the DB, you have to be connected to some changeset.
+Changeset is some kind of session, where you can modify objects int he DB where the DB does not change. When you are done,
+you can commit this changeset and your changes will be written to the DB and new revision will be created.
+Start of new changeset is done using keyword {\tt start}. Then if you are not done with your work and you would like to
+go home from the work, you can detach from the changeset. You should use command {\tt detach} for this purpose. Using
+this, you will not loose your work in progress. CLI will ask you for a detach message commenting what is going on in
+your changeset. You can optionally type the message as a command parameter. For example "detach Adding new machine".
+When you would like to connect to your changeset again, you should use command {\rr resume}. This command will show
+you a list of changesets with some additional information and you can choose one to connect to. You can also find your
+changeset in this list if your CLI dies, or if you exit it without detaching. Sou your work will not be lost. Each changeset has
+its ID. You can see it in the list and you can also obtain it using command {\tt status}. This command will tel you
+if you are in some changeset and if you are, it will tell you in which. You can then use this ID directly as parameter
+of the command {\tt resume}. This ID does not change, so if you know it, you can skip the choosing using list of
+all changesets. If you want to abort current changeset and discard all work you have don in it, type simply {\tt abort}.
+When you are done, you can commit your work using command {\tt commit}. The CLI will ask you for a commit message of as
+in case of detach, you can type it directly as a command parameter.
 
 \section{Modifying objects and their attributes}
 
@@ -265,9 +295,7 @@ like in an event log.
 Deleting objects is similar to creating. It is done using keyword "delete". You can use the same parameters as in
 create, like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
 eth0". This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
-also delete all these nested objects (after confirmation).
-
-\todo{Tomas: can I use {\tt delete interface hpv2->eth0}? If not, why not?}
+also delete all these nested objects (after confirmation). You can als
 
 Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
 parameter for "rename" is the same as for create, but you have to specify the new name as the last word. For example
@@ -286,14 +314,22 @@ host hpv2> end
 >
 \end{minted}
 
+Shortened notations like "interface hpv2->eth0" could be also used for deleting or renaming. Note, that when renaming
+object using this shortened notation, parameter identifying a new name should not contain parents name. For example:
+
+\begin{minted}{text}
+> rename interface hpv2->eth0 eth1
+>
+\end{minted}
+
 \subsection{Modifying attributes}
 
 The simplest way of modifying an attribute of a specific object is by typing the attribute name and then the desired value
 when being in context of the object:
 
 \begin{minted}{text}
-> host hpv2
-host hpv2> ip4 192.168.25.65
+> host hpv2 interface eth0
+host hpv2->interface eth0> ip4 192.168.25.65
 host hpv2>
 \end{minted}
 
@@ -318,13 +354,295 @@ Here is the list of all supported types and syntax for the values:
     \item{Boolean} - strings "true" or "false"
     \item{Date} - Date in the {\tt YYYY-MM-DD} format
     \item{Timestamp} - Timestamp in the {\tt YYYY-MM-DD HH:MM:SS} format.  Seconds optionally accept decimal fraction.
-\end{itemize} 
+\end{itemize}
 
-\section{Database Backup}
+You can also set more attributes using one line notation. For example:
+\begin{minted}{text}
+host hpv2->interface eth0> ip4 192.168.25.65 ip6 123f:1234::1 
+host hpv2->interface eth0>
+\end{minted}
+
+Moreover it is possible to step into context of some object and set its attributes using one line notation. This will
+change the context only temporarily for the attributes setting. The context remains the same as before after processing
+the line. Here is an example:
+\begin{minted}{text}
+host hpv2> interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+host hpv2>
+\end{minted}
+
+Also this notation does the work:
+\begin{minted}{text}
+>host hpv2 interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+>
+\end{minted}
+
+It is also possible to set attributes of more objects using one line. The objects must be nested.
+\begin{minted}{text}
+>host hpv2 note "Some note" interface eth0 ip4 192.168.25.65 ip6 123f:1234::1 
+>
+\end{minted}
+
+You can of course combine attribute settings with their removals of operations with sets as in this example:
+\begin{minted}{text}
+>host hpv2 no note add service www interface eth0 ip4 192.168.25.65 
+>
+\end{minted}
+This example removes note from host "hpv2", adds identifier "www" to set named "service" and sets IP address of nested
+interface "eth0". When any of the objects does not exist, CLI will ask you, if you want to create it.
+
+Moreover it is possible to access attributes of objects, that are contained in one in the context. So if some host
+contains hardware, you can set or remove attributes of the hardware from context of the host. And is the hardware
+does not exist and you are trying to set its attributes, CLI will ask you, if you want to create this hardware and
+connect it to the host. When confirmed, CLI will create hardware of the same name as out host and set its attribute.
+
+\section{Batched operations}
+
+It is also possible to load the commands modifying objects from a file. You can prepare a file with commands you would
+like to perform. One command per line. Then you can load them using command {\tt batch}, where you give the filename
+of the file to this command as a parameter. CLI will load and execute all these commands. Note, that you have to be
+connected to some changeset to perform modifications. You can use also comments in the file. The comments are lines
+beginning with {\tt #}.
+
+\section{History log}
+
+Deska provides similar log of changes to source versioning systems. You can print a list of all revisions using
+command {\tt log}. In the list you can see also author af a revision, timestamp, when it was committed and a commit
+message. If you do not want to see all changes, but you are interested in for example changes from a specific period
+or in revisions from a specific author, you can use filter. Syntax of this filter is similar to syntax of filters for
+objects. The filter definition syntax could be described as this recursive structure:
+
+\begin{minted}{text}
+<filter>     = (<andFilter>) or (<orFilter>) or (<expression>)
+<andFilter>  = list of <filter> separated by '&'
+<orFilter>   = list of <filter> separated by '|'
+<expression> = comparison of some revision metadata and some value
+\end{minted}
+
+Note that each part of the filter has to be in braces. In an expression you can use the following operators: "<", ">",
+"<=", ">=", "!=" or "<>" and "=" or "==".
+
+Here is the list of attributes, that can be used in expressions:
+
+\begin{itemize}
+    \item{revision} - Revision ID (r1, r45, r21, ...).
+    \item{author} - Author name (alphanumerical letters, {\tt -} or {\tt \_}).
+    \item{message} - Commit message (characters in quotes or apostrophes when containing spaces, or characters without any spaces).
+    \item{timestamp} - Timestamp in the {\tt YYYY-MM-DD HH:MM:SS} format.  Seconds optionally accept decimal fraction.
+    \item{<kind name>} - The attribute name is some kind name and value could be some object name.
+\end{itemize}
+
+Here is an example of filter showing revisions, where object "host hpv2" was modified by user "tom":
+\begin{minted}{text}
+> log ((host == hpv2) & (author == tom))
+Revisions:
+
+Revision | Author   | Time stamp                 
+         | Commit message
+===================================
+r1       | postgres | 2011-Jul-26 14:34:42
+         | Initial revision
+--------------------------------------------------------------------------------
+r2       | tom      | 2011-Sep-12 12:17:26
+         | Host hpv2 created
+--------------------------------------------------------------------------------
+r3       | tom      | 2011-Dec-27 23:48:26
+         | Host hpv2 modified
+> 
+\end{minted}
+
+\section{Diff}
+
+When looking on history log, or when working in a changeset, you could be interested in changes made. There is a command
+{\tt diff} for these purposes. When used without any parameter in a changeset, you will get diff between the changeset and
+its parent revisions. It means changes made in this changeset. You can use two revisions as parameters to get diff between
+these two revisions. The format of the diff is following:
+
+Object "host hpv2" created:
+\todo{Add colors here}
+\begin{minted}{text}
++ host hpv2
++ end
+\end{minted}
+
+Object "host hpv2" renamed to "hpv3":
+\begin{minted}{text}
+- host hpv2
++ host hpv3
+end
+\end{minted}
+
+Object "host hpv2" deleted:
+\begin{minted}{text}
+- host hpv2
+- end
+\end{minted}
+
+Attribute of object "host hpv2" set:
+\begin{minted}{text}
+host hpv2
++     note_host "Some note"
+end
+\end{minted}
+
+Attribute of object "host hpv2" removed:
+\begin{minted}{text}
+host hpv2
+-     note_host "Some note"
+end
+\end{minted}
+
+Attribute of object "host hpv2" changed:
+\begin{minted}{text}
+host hpv2
+-     note_host "Some old note"
++     note_host "Some new note"
+end
+\end{minted}
+
+All other changes are only combinations of possibilities above. For example creating and setting attributes of an
+object could look like this:
+\begin{minted}{text}
++ host hpv2
++     note_host "Some new note"
++ end
+\end{minted}
+
+Or renaming and changing attributes of some object could look like this:
+\begin{minted}{text}
+- host hpv2
++ host hpv3
+-     note_host "Some old note"
++     note_host "Some new note"
+end
+\end{minted}
+
+There will never be shown any attributes when some object was deleted.
+
+The {\tt diff} has also feature that generates file for command {\tt batch}. Using this feature you can for example backup
+your work in a changeset to a file. To use this feature, only use a filename where to generate the commands as a first
+parameter of the command {\tt diff}.
+
+\subsection{Configuration diff}
+
+There is also one more type of diff. It is command {\tt configdiff}, that shows differences in generated configuration files
+caused by changes in out changeset. You can also use parameter {\tt regenerate} to force the generators to regenerate the
+configuration files to see fresh diff.
+
+\section{Commit conflicts}
+
+When working in some changeset, another user could be faster and start and finish his work before we committed our work.
+It means, that parent of our changeset is obsolete. As a history in the Deska is linear, it is obvious, that the commit
+will not work in this situation. If you try to commit, CLI will inform you, that rebase is needed. There is command
+{\tt rebase} for this purposes. It generates a file summarizing changes in both our changeset and changes made while
+we were working. Than it opens an editor where we perform some kind of merge of our changes and changes made by other users.
+When the rebase is done. We will get the changeset with new parent and changes determined by our merge. Now we can try to
+commit our work again and now, we hope, successfully.
+
+The format of the file is very intuitive and is in format of commands we are familiar from the CLI or command {\tt batch}.
+We can not revert changes made by someone else, so information about changes made by someone else are in form of comments
+(lines beginning with {\tt #}).
+
+\section{Non interactive mode}
+
+When you are working in the CLI, it will quite often bother you with questions if you really want to delete some object,
+if you want to create it and so on. These questions could be useful to prevent typos, but they are slowing the work down.
+You can turn these questions off by command {\tt noninteractive off} or turn again by {\tt noninteractive on}. Using
+only {\tt noninteractive} you will get information if this mode is turned on or off. In non-interactive mode all
+questions will be confirmed with exception of renaming of contained and containable objects. This is the only case in
+which these objects will not be renamed as it will be impossible to rename only one object in this mode. If you want to
+rename them in the non-interactive mode all, you have to do it manually.
+
+Also commands asking for something could not be run in non-interactive mode. It means you can not run {\tt rebase}, or use
+{\tt commit}, {\tt detach} or {\tt resume} without parameter specifying commit/detach message of changeset ID.
+
+Also all commands loaded from file using command {\tt batch} are running in non-interactive mode.
+
+\section{Database backup and restore}
 \label{sec:cli-db-backup}
 
-\todo{Tomas: describe me}
-\todo{Tomas: also add a reference to the (upcoming) DB docs about the required user role deska\_admin which is required
-for the restoringCommit.}
+It may be useful to perform the backup of the whole DB. You can backup only persistent revisions. For backup of
+changeset, it is possible to use {\tt diff <filename>} for each changeset you would like to backup. For backup of the
+revisions including their changesets and information about author and commit message, you can use command {\tt backup}
+with parameter specifying file, where the backup will be created. This file is not intended to be modified manually,
+but if you find some reason to do so, you can find the format of the file in the programmers documentation.
+
+For restoring the DB from a backup, there is a command {\tt restore}. As a parameter it takes a filename of a file with
+the backup. There is a special role called {\tt deska\_admin} for the restore. You can not perform restore without this
+role. See DB part of the documentation for more information. The whole DB has to be empty before performing the restore.
+
+\section{CLI Scripting}
+
+You can prepare your own files with commands, that could be executed as batches from the CLI. In opposite to command
+{\tt batch}, where the set of commands was restricted only to commands modifying objects, when preparing this file, you
+can use also commands like {\tt start}, {\tt commit} and so on. The file can be loaded to the CLI using command
+{\tt execute}. Execute will take each line from the file and executes it in the same way as you are writing it in the
+console manually. The only difference is, that these commands are run in the non-interactive mode. There is also a
+possibility of using comment, that are lines beginning with {\tt #}.
+
+\section{Integrated help}
+
+The last command in the CLI is command {\tt help}. It will show you a short description of usage for each CLI command.
+When used without parameter, you will get information about usage for each command in the CLI. You can use command name
+to obtain information about only one command. You can also use some kind name as a parameter to obtain information about
+attributes and nested kinds of the kind. The last case is parameter {\tt kinds}, which will show list of defined kinds.
+
+\section{Tab completion}
+
+There is a tab completion feature in the CLI as you know it from the Linux Bash. It could be used for completing of
+keywords as well as object names. Press <TAB> key to perform completion. The double press will show the list of all
+possibilities.
+
+\todo {Is there needed some more detailed description what and where is completed?}
+
+\section{Commands history}
+
+The CLI stores history of all commands typed in the console. You can access this history using arrows up and down. Fro
+searching in this history use shortcut "CTRL + R". The file where the history is saved is a part of a configuration
+file.
+
+\section{CLI Configuration}
+
+The CLI has several values, that can or must be defined in order to get the CLI working. In the table \ref{tab:configfile}
+you can see list of parameters from the configuration file. The file name id {\tt deska.ini} and should be placed in
+the directory from where we are executing the CLI.
+
+\todo {Fix these ugly tables}
+
+\begin{longtable}{ l | l | l | l | l | l}
+    \caption{Parameters in {\tt deska.ini}}
+    \label{tab:configfile} \\
+    Parameter section & Parameter name & Parameter type & Mandatory & Description & Default value \\
+    \hline
+    \endhead
+    DBConnection & Server & vector of strings & yes & path to executable for connection to Deska server including arguments & no \\
+    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt ~/.local/share/deska/.deska\_cli\_history} \\
+    CLI & HistoryLimit & unsigned integer & no & number of lines stored in history & 64 \\
+    CLI & LineWidth & unsigned integer & no & maximum width of line in the console & no \\
+    CLI & NonInteractive & boolean & no & Force non-interactive mode & false \\
+    \hline
+\end{longtable}
+
+\section{Command line parameters}
+
+In the table \ref{tab:cmdlineparams} you can see overview of parameters, that can be used in the command line.
+
+\todo {Fix these ugly tables}
+
+\begin{longtable}{ l | l | l | l }
+    \caption{Command line parameters}
+    \label{tab:cmdlineparams} \\
+    Parameter name & Short name & Parameter type & Description \\
+    \hline
+    \endhead
+    non-interactive & n & no parameter & Force non-interactive mode \\
+    help & h & no parameter & Shows help message with list of all possible parameters \\
+    version & v & no parameter & Shows information about application version \\
+    dump & d & optionally filename & Performs dump of the DB (as command {\tt dump}) \\
+    backup & b & filename & Performs backup of the DB to a file (as command {\tt backup}) \\
+    restore & r & filename & Restores the DB from a file (as command {\tt restore}) \\
+    execute & e & filename & Executes commands from a file (as command {\tt execute}) \\
+    \hline
+\end{longtable}
+
 
 \end{document}

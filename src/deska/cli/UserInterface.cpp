@@ -586,7 +586,7 @@ void UserInterface::showObjectRecursive(const ObjectDefinition &object, unsigned
                     ObjectDefinition(contains, object.name));
                 if (itmo != containedObjs.end()) {
                     ++containedObjsSize;
-                    showObjectRecursive(*itmo, depth, object);
+                    showObjectRecursive(*itmo, depth + 1, object);
                 }
             }
         }
