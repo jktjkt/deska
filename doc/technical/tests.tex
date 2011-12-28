@@ -16,11 +16,11 @@ than current FZU schema.
 For example the number of hardware rows in FZU schema is less then 500 
 and the biggest table interface has 565 records.
 
-\subsection{Json in database}
+\subsection{JSON in database}
 \label{sec:test-json}
-Firstly we decided to have json in database, as told in \secref{sec:schema-json}.
+Firstly we decided to have JSON in database, as told in \secref{sec:schema-json}.
 Here is result of diffing, that led us to
-return json from database.
+return JSON from database.
 This test was performed on diffing function on one table.
 We test one revision difference, ten, fifty, and hundred and fifty.
 The largest diff has about 700KB result.
@@ -41,10 +41,10 @@ Revisions & Server & DB and Server & Database \\
 \end{longtable}
 
 As you can see in table \ref{test:json}, the last option give better result with larger data.
-The column Server represents json creation in Deska server, column Database json creation in
-Deska database. The column DB and Server represents combination of another two. Json is created
+The column Server represents JSON creation in Deska server, column Database JSON creation in
+Deska database. The column DB and Server represents combination of another two. JSON is created
 in Deska server, but some data are prepared in Deska database.
-Little slow down in small data was acceptable and we decided for the json in database.
+Little slow down in small data was acceptable and we decided for the JSON in database.
 
 \subsection{Direct access to tables}
 \label{sec:test-direct}
