@@ -286,10 +286,12 @@ class DB:
 		(reading, remote_writing) = os.pipe()
 		env["DESKA_VIA_FD_R"] = str(remote_reading)
 		env["DESKA_VIA_FD_W"] = str(remote_writing)
+		stdout = os.tmpfile()
+		stderr = os.tmpfile()
 
 		# launch the process
 		logging.debug("executeScript: starting %s (cwd=%s)" % (script, workdir))
-		proc = subprocess.Popen([script], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=workdir, env=env)
+		proc = subprocess.Popen([script], stdin=subprocess.PIPE, stdout=stdout.fileno(), stderr=stderr.fileno(), cwd=workdir, env=env)
 
 		# close our end of the pipes
 		os.close(remote_reading)
@@ -306,14 +308,22 @@ class DB:
 			except StopIteration:
 				break
 		# and wait for the corpse to appear
-		(stdout, stderr) = proc.communicate()
+		proc.communicate()
 		logging.debug("executeScript: time spent in executing: %ss" % (time.time() - startTime))
-		if len(stdout):
-			logging.debug(stdout)
-		if len(stderr):
-			logging.debug(stderr)
+		stdout.seek(0)
+		stdout_data = stdout.read()
+		stdout.close()
+		if len(stdout_data):
+			logging.debug(" stdout:")
+			logging.debug(stdout_data)
+		stderr.seek(0)
+		stderr_data = stderr.read()
+		stderr.close()
+		if len(stderr_data):
+			logging.debug(" stderr:")
+			logging.debug(stderr_data)
 		if proc.returncode:
-			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout, stderr)
+			raise RuntimeError, "Child process %s exited with state %d.\nStdout: %s\n\nStderr: %s\n" % (script, proc.returncode, stdout_data, stderr_data)
 		# that's all, baby!
 
 	def cfgPushToScm(self, message):
