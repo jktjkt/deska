@@ -6,17 +6,70 @@
 \label{sec:config-generators}
 
 \begin{abstract}
-\todo{Honza: describe how the config generators work}
+This chapter discusses the overall architecture of the configuration generators, components which turn the data in the
+Deska database into a form directly usable by third-party applications.
 \end{abstract}
 
-\ldots
+\section{Basic Architecture}
 
-\subsection{DBAPI access}
+The {\em configuration generators} are invoked by the Deska server whenever the output configuration has to be updated.
+The generators communicate over a special pair of pipes (further described below in section \ref{sec:cfggen-pipes})
+with the Deska server, reading contents of the Deska database over the DBAPI protocol (\secref{sec:dbapi-protocol}).
+Most of the generators, and especially those shipped with the Deska as samples, are implemented in Python, and therefore
+are built upon the high-level Python library (\secref{sec:python-bindings}) which publishes the data from the Deska
+database as a tree of native Python objects.
 
-\todo{Honza: describe the trick with the pipes}
-\todo{Honza: mention that accessing stdout/stdin will break once the buffer fills (we're in the libDeskaDb and it takes
-care just for the two FDs)}
-\todo{Honza: maybe even redirect the stream into a peristent file to prevent that?}
+The generators query the data in the database, perform target-specific transformation, and finally produce some output,
+reflecting the new state of the database.  The generators are designed to run in a {\em stateless} manner, that is, a
+generator shall always produce the same data when run repeatedly.\footnote{This is a slight oversimplification as some
+generators {\em have} to maintain a global state between subsequent runs --- a typical example is the serial number of a
+DNS zone file, which has to reflect both current date as well as the number of changes performed today, ensuring that
+the serial number is always properly incremented.  This use case is further discussed in detail in the part about the
+configuration generator setup as used in Prague in \secref{sec:fzu-cfggen}.}
+
+The Deska server runs all configured generators in a sequence whose order is determined by their alphabetically sorted
+names.
+
+The output of the generators is processed by a shim layer of the {\em VCS/SCM integration} which provides the user with
+an information about how the output as a whole has changed since the last time.  While nothing prevents development of
+brand-new diffing tools and history management utilities, the Deska project ships with a tool which makes heavy use of
+the Git~\cite{git} version control system, leveraging its content-tracking capabilities.  This integration is further
+described in section \ref{sec:cfggen-scm-integration} later in this chapter.
+
+The whole machinery is assisted by helper routines running in the scope of the PostgreSQL database.  These helpers make
+sure that the configuration generators are run only when needed, maintain proper isolation between the parallel runs,
+and handle the communication with the remote user.  Their operation is described in the least part of this chapter.
+
+\section{Database Access}
+\label{sec:cfggen-pipes}
+
+The configuration generators have to connect to a very precisely defined state of a database which is normally not
+accessible to other connections (see section \ref{sec:cfggen-db-support} later in this chapter for further discussion
+about this topic).  To achieve this goal in a robust and secure manner, the Deska server sets up an additional
+out-of-band communication channel for this communication.  This side channel is implemented as a pair of unidirectional
+{\tt pipe(2)} file descriptors.
+
+During the course of normal operation, the Deska server simply reads the JSON data from its standard input, responding
+to the received commands with JSON-encoded replies on the standard output.  When the generators are running, the server
+will not process its standard input, but instead react to data which might arrive from the pipe set up for each
+generator's needs.  We have settled on a pair of pipes, whose file descriptor number is passed through the environment
+variables {\tt DESKA\_VIA\_FD\_R} and {\tt DESKA\_VIA\_FD\_W} mainly to achieve an easy integration with future scripts.
+The {\tt libDeskaDb} library supports this communication method natively, and using a pair of pipes exposed through an
+environment variable makes it easy to prototype the configuration generators even in other languages which do not have
+proper bindings for this low-level library.  For example, communicating with the Deska database from a hypothetical
+configuration generator implemented in Bash shell script is simply a matter of calling {\tt echo} and {\tt read} or {\tt
+cat} with the appropriate output redirection.
+
+The output from the configuration generators have to be redirected to a proper place as well -- the implementation could
+not just use the Python's {\tt subprocess.PIPE} as the communication channel, because the code is using blocking reads
+on the existing pipe pair, not paying attention to the child's {\tt stdout}, so there would be a real risk of filing up
+the kernel-internal 4kB buffer dedicated to each pipe.  Redirecting the script output (both {\tt stdout} and {\tt
+stderr}) to a securely-created temporary file proved to work well.
+
+\section{VCS Integration}
+\label{sec:cfggen-scm-integration}
+
+\todo{Honza: write stuff}
 
 \subsection{Technical notes for the showCionfigDiff DBAPI method}
 
@@ -71,5 +124,36 @@ uses {\tt git}'s {\tt git-new-workdir} and branches quite heavily.
     \item {\tt git.cmd.Git(path).diff('-{-}color', '-{-}staged')} for obtaining a diff
     \item {\tt git reset -{-}hard HEAD \&\& git clean -d -f -f} for throwing out all the changes
 \end{itemize}
+
+
+\section{Database Support}
+\label{sec:cfggen-db-support}
+
+The Deska server, along with the database, has to keep track of the freshness of the generated configuration snapshot.
+Any modification performed by the user on the contents of a database in a particular changeset has to void the cached
+output copy.  This is implemented by a database stored procedure {\tt jsn.changesetHasFreshConfig}.
+
+To prevent multiple sessions from running against the same changeset at the same time, possibly corrupting the
+repository, the database enforces proper changeset locking through the
+\deskaFuncRef{lockCurrentChangeset}/\deskaFuncRef{unlockCurrentChangeset} DBAPI methods.  A session has to have a
+particular changeset {\em attached} before it is allowed to run the configuration generators, and a changeset which is
+{\em locked} cannot be attached by any other session (which is, on the other hand, also one of the reasons why the
+configuration generators have to jump through the extra hoops in order to get access to the database and why they use a
+side channel instead of simply opening another connection).  The Deska server therefore locks the current changeset
+before it starts running the configuration generators, effectively preventing any race conditions in the process.  This
+procedure is extensively covered by the unit tests which try hard to simulate situations where a configuration generator
+appears ``stuck'' and could be overtaken by a parallel session.
+
+Finally, for performance reasons, it is extremely desirable for the configuration generators to look at the {\tt
+production} tables, simply because accessing the once-prepared data is cheaper than retrieving them from the {\tt
+history} tables all the time, incurring potentially very expensive function calls.\footnote{A real speedup on a machine
+with fast SSD drive or a memory-backed database was more than thirty-fold.}  This is why the Deska server will at
+first start a database transaction, then call the {\tt commitChangeset} SQL stored procedure to save the data into the
+production tables, execute the configuration generators, and finally either commit the transaction (in case the
+output refresh was triggered by a real, intended \deskaFuncRef{commitChangeset} DBAPI method), or execute a {\tt
+ROLLBACK} in case the user did not want to actually commit the result just yet.\footnote{Incidentally, this workflow is
+also the second reason for the out-of-band communication between the generators and the Deska database; the generators
+have to use the same database session for their access.} Thanks to the database-level transactions, these operations are
+guaranteed to not contain any race conditions.
 
 \end{document}
