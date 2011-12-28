@@ -19,12 +19,12 @@ behalf.  The clients talk to the server over a custom, JSON-based~\cite{json} pr
 described in much more detail in~\secref{sec:dbapi-protocol}.
 
 The first client which deserves proper introduction is the CLI application, the Deska console
-(see~\secref{sec:cli-app}).  This application is simplemented in C++ with heavy use of the Boost~\cite{boost} libraries
+(see~\secref{sec:cli-app}).  This application is implemented in C++ with heavy use of the Boost~\cite{boost} libraries
 and uses the provided {\tt libDeskaDb} C++ library (see \secref{sec:cpp-deskadb}) to handle communication with the Deska
 server.
 
 The Deska server is built as a thin wrapper around a PostgreSQL~\cite{postgresql} database.  The first layer of the
-server is implemented in Python (see \secref{sec:server-py} and for the most time simply translates the JSON calls
+server is implemented in Python (see \secref{sec:server-py}) and for the most time simply translates the JSON calls
 received from the clients to the PostgreSQL's stored procedures.  It also handles a few more complex tasks, like the
 interaction with the configuration generators (\secref{sec:config-generators}) which are described later in this
 chapter.
@@ -41,11 +41,11 @@ available to the third-party applications.  While in theory the applications cou
 as the source of information for their operation, it is way more scalable to produce a static set of configuration files
 at the time new data get stored to the Deska database.  This task is done by the configuration generators (see
 \secref{sec:config-generators}).  These generators are executed by the Python Deska server before each database commit,
-and talk the regular DBAPI protocol (\ref{sec:dbapi-protocol}) to communicate with the rest of the Deska.  As most of
-these generators are implemented in Python, we have provided a Python library on top of the (see
-\secref{sec:python-bindings} {\tt libDeskaDb} C++ library.  This Python code not only encapsulates type-safe access to
+and talk the regular DBAPI protocol (\secref{sec:dbapi-protocol}) to communicate with the rest of the Deska.  As most of
+these generators are implemented in Python, we have provided a Python library (see \secref{sec:python-bindings}) on top
+of the {\tt libDeskaDb} C++ library.  This Python code not only encapsulates type-safe access to
 various Deska objects, but also build a native, high-level representation of the class hierarchy (see
-\secref{sec:objects-and-relations-relations} as first-class Python objects.
+\secref{sec:objects-and-relations-relations}) as first-class Python objects.
 
 The configuration generators are designed to be easily pluggable to an existing data center infrastructure, and play
 well with the already deployed tools.  Hooks are available to facilitate a seamless integration with the
