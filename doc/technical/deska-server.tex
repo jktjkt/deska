@@ -21,30 +21,30 @@ These functions and tables are genearated by SQL generator (see \secref{sec:sql-
 \section{Deska server}
 \label{sec:server-py}
 
-This section talks about deska-server, python application providing interaction with database.
+This section talks about Deska server, python application providing interaction with database.
 
 \todo{Honza: when it is start, parameters}
 
 \subsection{Database connection}
-After Deska server start, it tries to connect to Deska database using Psycopg2 python modul.
+After Deska server starts, it tries to connect to Deska database using Psycopg2 python modul.
 Parameters of connection are taken from Deska server parameters on start.
-When connection is successfull, it is kept until Deska server is terminated.
+When connection is successfully established, it is kept until Deska server is terminated.
 
 \subsection{Command running}
-For communication with the {\tt deska-cli}, the JSON-based DBAPI (see~\secref{sec:dbapi-protocol} is used. On server side, this json is tranformed into python structure of dicts and lists. Some check are performed, like if command or number of arguments is right.
-Most of command have their implementation inside the database, so the proper db function is called and its result is retuned. In this part, there is no special logic, just check parameter, add some defaults if it is needed and catch db exceptions.
+For communication with the deska-cli, the JSON-based DBAPI (see~\secref{sec:dbapi-protocol} is used. On server side, this JSON is tranformed into python structure of dicts and lists. Some checks are performed, like if command or number of arguments are right.
+Most of commands have their implementation inside the database, so the proper db function is called and its result is retuned. There is no special logic in this case, parameters are just checked, some defaults are added if needed and db exceptions are catched.
 
-But there are some function implemented in deska-server, like function for view freezing, which just starts or ends transaction, with isolation
+But there are some functions implemented in deska-server, like function for view freezing, which just starts or ends transaction, with isolation
 level read committed, to perform the freezing of view.
-Also showConfigDiff is not implemented in database. Special is commitChangeset, which has database implementation,
+Also showConfigDiff is not implemented in the Deska database. Special is commitChangeset, which has database implementation,
 but also needs to do generation of configuration outside the database (similar to showConfigDiff).
-These two functions that runs Configuration genarators (\secref{sec:config-generators}), works with read commited isolation level transakction.
-At first commitChangeset in Deska database is run, than Configuration generator produced configuration.
+These two functions that run Configuration genarators (\secref{sec:config-generators}), works with read commited isolation level transaction.
+At first commitChangeset in Deska database is run, then Configuration generator produces configuration.
 At the end, in showConfigDiff is database transaction aborted. In commitChangeset only if error in
 Configuration generators occurs. Therefore Configuration generators can access resolved data from
-production tables in database, as decribed in \secref{sec:direct-access}
+production tables in database, as decribed in \secref{sec:direct-access}.
 
-The combination of these 2 types is applyBatchedChangeset, which start transaction at begin, then perform its arguments, as it was a single
+The combination of these 2 types is applyBatchedChangeset, which starts transaction at the begining, then perform its arguments, as it was a single
 command, and then commit (or abort) the transaction. 
 Function that calls only one database function, pass the result because it is already in proper json format, but if the function does some
 more computing outside the database, or not call db function at all, it must create the result by its own.
@@ -52,7 +52,7 @@ more computing outside the database, or not call db function at all, it must cre
 \subsection{Security Model}
 \label{sec:server-security-model}
 
-The {\tt deska-server} relies heavily on the authentication/authorization features offered by the SSH server, and on the
+The Deska server relies heavily on the authentication/authorization features offered by the SSH server, and on the
 {\tt trust = ident} feature of the PostgreSQL server.  Any Unix user who is able to connect to the PostgreSQL database
 which contains the Deska installation will be able to perform any modification to the database over the standard DBAPI
 calls.
@@ -60,17 +60,17 @@ calls.
 \todo{Lukas: exceptions on server}
 
 \section{Deska database}
-Deska-database is Postgresql database server, storing all data of user given schema, its relations and all changes of data.
-There are tables, specified by user before build Deska database, tables for history tracking and many function for data manipulation.
+Deska database is Postgresql database server, storing all data of user given schema, its relations and all changes of data.
+There are tables, specified by user before build of Deska database, tables for history tracking and many function for data manipulation.
 
 \subsection{Data storage}
 To prevent misunderstanding, if we talk about database, we use word {\em schema} in two different meanings. {\em User defined schema},
-with meaning tables, with constraints describing data, that user wants to store into database. And {\em schema}, term used by
+with meaning tables, with constraints describing data, that user wants to store in database. And {\em schema}, term used by
 Postgresql with meaning something as namespace containing database objects (tables, types, functions etc).
 If we talk about user defined schema, we write the whole term, and if we talk about schema, we write
 schema plus its name.
 
-Lets look at how data are stored in Deska database. Three types of data are stored in Deska database.
+Lets look at how data are stored in Deska database. Three types of data are stored in the Deska database.
 
 \subsubsection{Deska database schema} 
 Firstly there are information about user defined database schema. These information are provided by {\tt kindNames}, {\tt kindAttributes} and {\tt kindRelations} functions.
@@ -79,7 +79,7 @@ These information are read from database catalog and stored in {\tt generated.py
 \subsubsection{Objects stored in Deska database}
 Secondly, the why we are here - the meaning of life, user data, fitting into user defined schema.
 Objects and its attributes are stored in tables. 
-After changeset is started, all data inserted into database, are placed into tables in history schema. Every kind has table in history
+After changeset is started, all data inserted into database are placed into tables in history schema. Every kind has table in history
 schema, with all attributes defined in user defined schema, and some more for history tracking.
 Tables defined by user are created in schema production. These tables
 (with its constraints) are used for data validation when committing changeset. If data are successfully copied into tables in schema production
@@ -87,7 +87,7 @@ from tables in schema history, data are valid against the user defined schema.
 See \secref{sec:versioning} for more info.
 
 \subsubsection{Revisions and changesets}
-Thirdly, information about revisions and changeset. There are two tables, version (the name was here before
+Thirdly, information about revisions and changesets. There are two tables, version (the name was here before
 we start using {\em revision}) and changeset, for storing information about revisions and changesets. These tables are
 in versioning schema.
 
@@ -95,12 +95,12 @@ in versioning schema.
 There are many stored procedures for manipulation with stored data, in Postgresql called {\em functions}.
 Every action with data, as create object, set attribute, delete object, get object data, create changeset, delete changeset etc.,
 has a function that do that. These functions for object and its attributes are generated by SQL generator (see \secref{sec:sql-generator}) in genproc schema.
-The functions for getting information about changesets and versions are written by hand and stored in Deska schema with many auxiliary functions.
+The functions for getting information about changesets and versions are written by hand and stored in deska schema with many auxiliary functions.
 
 \subsection{Version control}
 For each data modification it is necessary to start changeset and do modifications in context of some open changeset. New changeset could be open by calling startChangeset function. This function inserts row into changeset table with information about author, parent revision of the new changeset and pid. Pid is process id of connection to the Deska database. Through pid is later recognized with which temporary changeset the given connection works and in which temporary changeset should be the modification stored. Each connection could have attached at most one temporary changeset.\\
-Temporary changesets could be closed by calling commitChangeset function. This functions closes temporary changeset that is attached to the connection and creates new version. Closing of the changeset is done by deleting of row with record about it from the changeset table. New version is created by inserting a new row into version table. The row has information about id of the new version, author, id of changeset from which was this new version created.\\
-Temporary changeset could be closed also by calling abortChangeset. This function just closes the attached temporary changeset.\\
+Temporary changesets could be closed by calling commitChangeset function. This function closes temporary changeset that is attached to the connection and creates new version. Closing of the changeset is done by deleting of row with record about it from the changeset table. New version is created by inserting a new row into version table. The row has information about id of the new version, author, id of the changeset from which was this new version created and commit message.\\
+Temporary changeset could be closed also by calling abortCurrentChangeset. This function just closes the attached temporary changeset.\\
 It is also possible to just detach from current changeset by deleting the information about pid from the row with attached changeset. Or attach to any temporary changeset by setting pid attribute of appropriate row.\\
 Stored procedures, which ensure version control, are placed in schema deska, tables are in schema versioning.
 
