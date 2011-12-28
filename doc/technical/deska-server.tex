@@ -16,7 +16,7 @@ Main work is to load json data, call corresponding database function, and return
 There are some special functions (freezeChangeset, showConfigDiff etc.) that are not implemented by Deska database, but the server itselfs.
 The last part of Deska server work is to run Configuration generators.\\
 Due to the fact that the user defined schemas are modular, the most of stored procedures which are called by server have to be generated to fit with the schema.
-These functions and tables are genearated by SQL generator (see \secref{sec:sql-generator}) during installation of the Deska database. How the generated functions and tables work together to fulfil excpectations from DBAPI (see~\secref{sec:dbapi-protocol}) is described in \secref{sec:deska-db-data-manipulation}.
+These functions and tables are genearated by SQL generator (see \secref{sec:sql-generator}) during installation of the Deska database. How the generated functions and tables work together to fulfil expectations from DBAPI (see~\secref{sec:dbapi-protocol}) is described in \secref{sec:deska-db-data-manipulation}.
 
 \section{Deska server}
 \label{sec:server-py}
@@ -90,6 +90,13 @@ See \secref{sec:versioning} for more info.
 Thirdly, information about revisions and changeset. There are two tables, version (the name was here before
 we start using {\em revision}) and changeset, for storing information about revisions and changesets. These tables are
 in versioning schema.
+
+\subsection{Version control}
+For each data modification it is necessary to start changeset and do modifications in context of some open changeset. New changeset could be open by calling startChangeset function. This function inserts row into changeset table with information about author, parent revision of the new changeset and pid. Pid is process id of connection to the Deska database. Through pid is later recognized with which temporary changeset the given connection works and in which temporary changeset should be the modification stored. Each connection could have attached at most one temporary changeset.\\
+Temporary changesets could be closed by calling commitChangeset function. This functions closes temporary changeset that is attached to the connection and creates new version. Closing of the changeset is done by deleting of row with record about it from the changeset table. New version is created by inserting a new row into version table. The row has information about id of the new version, author, id of changeset from which was this new version created.\\
+Temporary changeset could be closed also by calling abortChangeset. This function just closes the attached temporary changeset.\\
+It is also possible to just detach from current changeset by deleting the information about pid from the row with attached changeset. Or attach to any temporary changeset by setting pid attribute of appropriate row.\\
+Stored procedures, which ensure version control, are placed in schema deska, tables are in schema versioning.
 
 \subsection{Data manipulation}
 There are many stored procedures for manipulation with stored data, in Postgresql called {\em functions}.
@@ -282,8 +289,6 @@ Here you can find how the Deska database works, how the data versioning, templat
 
 \subsection{Versioning}
 \label{sec:versioning}
-
-\todo{About changeset/version tables and functions around}
 
 The database can return object's data in any version in which it exists. This could be done due to history tables that are generated for each table defined by user.\\
 Each history table contains, in addition to attributes in the table defined by user, attributes {\tt version} and {\tt dest\_bit}. In version attribute is information about the changeset in which the object was modified. {\tt dest\_bit} attribute set to 1 means that the object is deleted, default value is 0.\\
