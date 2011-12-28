@@ -89,8 +89,7 @@ vector<Identifier> FakeApi::kindInstances(const Identifier &kindName, const boos
 
 map<Identifier, Value> FakeApi::objectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
 {
-    map<Identifier, Value> empty;
-    return empty;
+    throw Deska::Db::NotFoundError("Function objectData does not work in fake API");
 }
 
 map<Identifier, Value> FakeApi::resolvedObjectData(const Identifier &kindName, const Identifier &objectName, const boost::optional<RevisionId> &revision)
