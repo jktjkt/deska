@@ -3,6 +3,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
 
+%define with_doc %{?_with_doc: 1} %{?!_with_doc: 0}
+
 # Yeah, a braindead file URL
 %global redminefile FIXME
 
@@ -31,6 +33,13 @@ BuildRequires: boost-devel >= 1.41.0
 BuildRequires: cpp
 BuildRequires: readline-devel
 BuildRequires: python-devel
+%if %{with_doc}
+BuildRequires: texlive-a4wide
+BuildRequires: texlive-etoolbox
+BuildRequires: texlive-minted
+BuildRequires: texlive-todonotes
+BuildRequires: texlive-iopart-num
+%endif
 
 %description
 Shared libraries and scripts for the Deska system
@@ -59,21 +68,40 @@ License: GPLv2+
 %description server
 The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
 
+%if %{with_doc}
+%package doc
+Summary: Documentation for the Deska system
+Group: Application/System
+License: GPLv2+
+
+%description doc
+User's guide and complete developer documentation for the Deska system
+%endif
 
 %prep
 %setup -q
+
+%if %{with_doc}
+%global doc_opts -DBUILD_DOCS=1 -DSKIP_INSTALL_DOCS=1
+%else
+%global doc_opts -DBUILD_DOCS=0
+%endif
 
 %build
 mkdir _build && cd _build
 %cmake \
 	-DPYTHON_SITE_PACKAGES=%{python_sitelib} \
 	-DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} \
+	%{doc_opts} \
 	..
 make -j20
-#make %{?_smp_mflags}
 %py_byte_compile %{__python} %{buildroot}/_build/src/deska/python/deska
 %py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils
 %py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils/config_generators
+%if %{with_doc}
+mv doc/technical/deska.pdf ../deska.pdf
+%endif
+#make %{?_smp_mflags}
 
 %check
 cd _build
@@ -110,6 +138,12 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/deska_server_utils/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
+
+%if %{with_doc}
+%files doc
+%defattr(-,root,root,-)
+%doc deska.pdf
+%endif
 
 %post -p /sbin/ldconfig
 
