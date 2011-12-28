@@ -129,6 +129,9 @@ The result is, that every function callable by server returns json.
 \subsection{Getting data from tables}
 \label{sec:data-functions}
 Here we talk about getting data of objects, revisions and changesets stored in tables.
+These data are get from tables, or table returning functions for get data in proper version.
+See \secref{sec:versioning} how these functions works. Here we talk about functions in json schema.
+
 There are {\tt pendingChangeset} that selects data from changeset table, and {\tt listRevisions} that selects data from version table.
 Both accept filter as parameter and uses some cast optimization, about which we will talk in section about cast
 optimization \secref{sec:cast}.
@@ -139,6 +142,7 @@ that returns tuple of attribute values, that is just converted into json format 
 In functions {\tt multipleObjectData}. {\tt multipleResolvedObjectData} and {\tt multipleResolvedObjectDataWithOrigin}
 more work is done, than in another json schema function, that only runs some function.
 There is still only one main call another database function (and one helping, to get revision number).
+
 But the SQL statement to run is created in more difficult way. In contrast to other json functions,
 here we create complicated {\em column definition} for the SQL statement. It goes between SELECT and FROM keywords.
 This column definition contains definition of all columns that shall be returned in human readable form.
@@ -163,6 +167,7 @@ represented as uid in database, not string, kindName\_get\_name function must be
 using function join\_with\_delim.
 Then, the final SQL statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter are used.
 This function also checks if this kind has template or not, and proper function resolved or not is used in the final SQL statement.
+
 After this preparation, SQL statement is run and the result is fetched. For each line in the result table, one part of result json structure is
 created. And then final json is created and returned.
 
@@ -179,6 +184,13 @@ host\_resolved\_data\_template\_info(\$1) AS host -- call function for get resol
 LEFT OUTER JOIN hardware\_resolved\_data(\$1) AS hardware ON host.uid = hardware.host -- join host kind
 WHERE hardware.name != \$2 OR hardware.name IS NULL -- perform filter condition
 \end{minted}
+
+\subsection{Direct access to resolved data}
+If you are not in changeset, and do not give revision parameter to function {\tt multipleResolvedObjectData},
+you will access directly, because resolved data are in production schema tables.
+
+This is used by configuration generators and it is much more faster to read
+resolved data than do this in history schema, where compilated computation is run.
 
 \subsection{Getting data from tables - casting}
 \label{sec:cast}
