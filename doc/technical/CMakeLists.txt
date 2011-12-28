@@ -48,6 +48,7 @@ set(deska_doc_tex
     cli-app.tex
     python-bindings.tex
     deska-server.tex
+    tests.tex
     cfg-generators.tex
     existing-tools.tex
     fzu-setup.tex

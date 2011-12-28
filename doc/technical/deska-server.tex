@@ -21,7 +21,6 @@ The last part of Deska server work is to run run Configuration generators.
 
 This section talks about deska-server, python application providing interaction with database.
 
-\todo{Honza: about Deska server configuration generators}
 \todo{Honza: when it is start, parameters}
 
 \subsection{Database connection}
@@ -37,7 +36,7 @@ But there are some function implemented in deska-server, like function for view 
 level read committed, to perform the freezing of view.
 Also showConfigDiff is not implemented in database. Special is commitChangeset, which has database implementation,
 but also needs to do generation of configuration outside the database (similar to showConfigDiff).
-These two functions that runs Configuration genarators, works with read commited isolation level transakction.
+These two functions that runs Configuration genarators (\secref{sec:config-generators}), works with read commited isolation level transakction.
 At first commitChangeset in Deska database is run, than Configuration generator produced configuration.
 At the end, in showConfigDiff is database transaction aborted. In commitChangeset only if error in
 Configuration generators occurs. Therefore Configuration generators can access resolved data from
@@ -56,7 +55,6 @@ The {\tt deska-server} relies heavily on the authentication/authorization featur
 which contains the Deska installation will be able to perform any modification to the database over the standard DBAPI
 calls.
 
-\todo{Lukas: this is mainly a placeholder for further documentation\ldots}
 \todo{Lukas: exceptions on server}
 
 \section{Deska database}
@@ -128,10 +126,9 @@ In the same time, diffing implementation started, and there where problems with 
 that has to be called, which was hard to union into one function.
 So there was an idea, that json can be created inside database, so that the union of diffing function can return json.
 
-Some test were run, the time for smaller data was worse with json in database, but for large data, there was significant
+Some test were run \secref{sec:test-json}, the time for smaller data was worse with json in database, but for large data, there was significant
 speed up. The function written in pg-python creates part of the json structure in each line of database cursor.
 So the json structure grows up with data that database produced.
-\todo{Lukas: get results of these tests}
 
 The result is, that every function callable by server returns json.
 
@@ -201,6 +198,7 @@ you will access directly, because resolved data are in production schema tables.
 
 This is used by configuration generators and it is much more faster to read
 resolved data than do this in history schema, where compilated computation is run.
+See test results in \secref{sec:test-direct}
 
 \subsection{Getting data from tables - casting}
 \label{sec:cast}
@@ -212,8 +210,7 @@ Some of these types are converted in different way than we want.
 
 At first, we solved this with our own function, that did the transformation, but if it ran for every
 row and every column, it was very slow. So the most of these transformations is now done using Postgresql cast
-in SQL statements. It is much faster.
-\todo{Lukas: some test results}
+in SQL statements. It is much faster and saves memmory (see \secref{sec:test-cast}
 
 The column definition is more complicated than we describe above. If
 Postgres.convert\_postgres\_objects function 
