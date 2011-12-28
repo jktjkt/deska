@@ -173,16 +173,16 @@ created. And then final json is created and returned.
 
 And here is some example of SQL statement which is called:
 \begin{minted}{sql}
-SELECT host.service\_templ --simple column definition
-,host.name,host.service,host.virtual\_hardware\_templ,
-host\_template\_get\_name(host.template\_host,\$1) AS host\_template --column definition for uid column of template
-,hardware\_get\_name(host.hardware,\$1) AS hardware, --column definition for uid column of reference
-host.note\_host\_templ,virtual\_hardware\_get\_name(host.virtual\_hardware,\$1) AS virtual\_hardware,
-host.hardware\_templ,
-host.note\_host FROM
-host\_resolved\_data\_template\_info(\$1) AS host -- call function for get resolved data with template info
-LEFT OUTER JOIN hardware\_resolved\_data(\$1) AS hardware ON host.uid = hardware.host -- join host kind
-WHERE hardware.name != \$2 OR hardware.name IS NULL -- perform filter condition
+SELECT host.service_templ --simple column definition
+,host.name,host.service,host.virtual_hardware_templ,
+host_template_get_name(host.template_host,$1) AS host_template --column definition for uid column of template
+,hardware_get_name(host.hardware,$1) AS hardware, --column definition for uid column of reference
+host.note_host_templ,virtual_hardware_get_name(host.virtual_hardware,$1) AS virtual_hardware,
+host.hardware_templ,
+host.note_host FROM
+host_resolved_data_template_info($1) AS host -- call function for get resolved data with template info
+LEFT OUTER JOIN hardware_resolved_data($1) AS hardware ON host.uid = hardware.host -- join host kind
+WHERE hardware.name != $2 OR hardware.name IS NULL -- perform filter condition
 \end{minted}
 
 \subsection{Direct access to resolved data}
