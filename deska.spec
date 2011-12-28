@@ -24,12 +24,6 @@ Requires: boost-system >= 1.41.0
 Requires: boost-date-time >= 1.41.0
 Requires: boost-python >= 1.41.0
 
-#%global servicename sssd
-#%global sssdstatedir %{_localstatedir}/lib/sss
-#%global dbpath %{sssdstatedir}/db
-#%global pipepath %{sssdstatedir}/pipes
-#%global pubconfpath %{sssdstatedir}/pubconf
-
 ### Build Dependencies ###
 
 BuildRequires: cmake >= 2.6
@@ -84,12 +78,6 @@ cd _build
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
-# Copy default sssd.conf file
-#mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/sssd
-#install -m600 src/examples/sssd.conf $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.conf
-#install -m444 src/config/etc/sssd.api.conf $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.api.conf
-#install -m444 src/config/etc/sssd.api.d/* $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.api.d/
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -117,49 +105,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/deska_server_utils/config_generators/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
 
-#%files -f sssd.lang
-#%defattr(-,root,root,-)
-#%doc COPYING
-#%{_initrddir}/%{name}
-#%{_sbindir}/sssd
-#%{_libexecdir}/%{servicename}/
-#%{_libdir}/%{name}/
-#%{_libdir}/ldb/memberof.so
-#%dir %{sssdstatedir}
-#%attr(700,root,root) %dir %{dbpath}
-#%attr(755,root,root) %dir %{pipepath}
-#%attr(750,root,root) %dir %{_var}/log/%{name}
-#%attr(711,root,root) %dir %{_sysconfdir}/sssd
-#%config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sssd/sssd.conf
-#%config %{_sysconfdir}/sssd/sssd.api.conf
-#%attr(755,root,root) %dir %{_sysconfdir}/sssd/sssd.api.d
-#%config %{_sysconfdir}/sssd/sssd.api.d/
-#%{_mandir}/man5/sssd.conf.5*
-#%{python_sitearch}/pysss.so
-#%{python_sitelib}/*.py*
-
-#%files client
-#%defattr(-,root,root,-)
-#%doc src/sss_client/COPYING src/sss_client/COPYING.LESSER
-#/%{_lib}/libnss_sss.so.2
-#/%{_lib}/security/pam_sss.so
-#%{_libdir}/krb5/plugins/libkrb5/sssd_krb5_locator_plugin.so
-#%{_mandir}/man8/pam_sss.8*
-#%{_mandir}/man8/sssd_krb5_locator_plugin.8*
-
-%post
-/sbin/ldconfig
-#/sbin/chkconfig --add %{servicename}
-#
-#if [ $1 -ge 1 ] ; then
-#    /sbin/service %{servicename} condrestart 2>&1 > /dev/null
-#fi
-
-#%preun
-#if [ $1 = 0 ]; then
-#    /sbin/service %{servicename} stop 2>&1 > /dev/null
-#    /sbin/chkconfig --del %{servicename}
-#fi
+%post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
