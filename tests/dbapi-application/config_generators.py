@@ -147,6 +147,44 @@ deska.init()
     r.c(commitChangeset("nothing"))
     rmGenerator("01")
 
+def test_no_dbapi_traffic(r):
+    """A configuraiton generator which does not bother with the DBAPI access at all"""
+
+    # Start with a generator which does not read, but writes stuff to its output
+    writeGenerator("01",
+"""#!/usr/bin/env python
+
+for x in range(1024):
+    print "foo!" * 256
+""")
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-no-dbapi-traffic"))
+    r.assertEqual(r.c(showConfigDiff()), "")
+    r.c(commitChangeset("nothing"))
+    # try it once again, now without the explicit showConfigDiff() call
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-no-dbapi-traffic-2"))
+    r.c(commitChangeset("nothing"))
+
+    # And continue with a generator which just sleeps for a while, but with
+    # absolutely no IO traffic
+    writeGenerator("01",
+"""#!/usr/bin/env python
+import time
+
+time.sleep(0.1)
+""")
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-no-dbapi-traffic-3"))
+    r.assertEqual(r.c(showConfigDiff()), "")
+    r.c(commitChangeset("nothing"))
+    # try it once again, now without the explicit showConfigDiff() call
+    changeset = r.c(startChangeset())
+    r.c(createObject("vendor", "dummy-no-dbapi-traffic-4"))
+    r.c(commitChangeset("nothing"))
+    rmGenerator("01")
+
+
 def test_unchanged_output(r):
     """Test what happens if some commits do not generate any action"""
     writeGenerator("01",
@@ -421,6 +459,7 @@ def imperative(r):
     test_trivial(r)
     test_no_generators(r)
     test_no_output(r)
+    test_no_dbapi_traffic(r)
     test_unchanged_output(r)
     test_generator_repetition(r)
     test_parallel_commit(r, True)
