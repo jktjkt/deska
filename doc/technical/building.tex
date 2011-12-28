@@ -19,10 +19,11 @@ We have provided the following packages suitable for immediate installation on R
 built for the x86\_64 architecture:
 
 \begin{itemize}
-    \item {\tt deska-client}, for the command-line application (CLI)
-    \item {\tt deska-server}, for the Deska server and all supporting tools
-    \item {\tt deska}, for the shared libraries
-    \item {\tt deska-devel}, for development files like the C++ headers
+    \item {\tt deska-client}, for the command-line application (CLI),
+    \item {\tt deska-server}, for the Deska server and all supporting tools,
+    \item {\tt deska-libs}, the shared libraries for both client and server,
+    \item {\tt deska-python-libs}, containing a Python library for access to the Deska server,
+    \item {\tt deska-devel}, for development files like the C++ headers,
     %\item {\tt deska-docs}, for a copy of the documentation
 \end{itemize}
 
@@ -36,22 +37,25 @@ Please keep in mind that installation has to be performed as user {\tt root}:
 # yum localinstall path/to/deska/packages/*.rpm
 \end{minted}
 
-These packages indicate their desired dependencies correctly, and if YUM has the required repositories available, the
-dependency resolution works automatically.   However, if the target system is for some reason configured in a different
-way (very likely due to a few external repositories), the installation might fail with an error message about
-unsatisfiable dependencies.  In such cases, installing the dependency might help:
+Due to the technical reasons, the {\tt yum localinstall} command will not resolve dependencies automatically, so one has
+to provide a full list of packages to satisfy the package requirements.  In case of installation from a properly
+configured repository, though, the YUM package manager will resolve the dependencies automatically.
+
+The following sequence of commands will install all required packages for a full installation of the Deska system,
+including the PostrgeSQL database server (please note that you might have to substitute the full path to these packages
+from the enclosed CD):
+
+\todo{Honza: list of the all required packages}
 
 \begin{minted}{console}
 # yum localinstall path/to/external/deps/*.rpm
 \end{minted}
 
-\todo{Honza: list of the external packages}
-
 A typical user's workstation or a laptop does not have to contain the whole Deska system.  To install just the Deska
-CLI, proceed in the following way, installing packages {\tt deska} and {\tt deska-client}:
+CLI, proceed in the following way, installing packages {\tt deska-client} and {\tt deska-libs}:
 
 \begin{minted}{console}
-# yum localinstall path/to/deska{,-client}-1.0-1.rpm
+# yum localinstall path/to/deska-{client,libs}-1.0-1.rpm
 \end{minted}
 
 After the installation is complete, please proceed with configuring the Deska server by following instructions
