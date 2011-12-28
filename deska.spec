@@ -22,10 +22,6 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 ### Dependencies ###
 
-Requires: boost-system >= 1.41.0
-Requires: boost-date-time >= 1.41.0
-Requires: boost-python >= 1.41.0
-
 ### Build Dependencies ###
 
 BuildRequires: cmake >= 2.6
@@ -42,12 +38,34 @@ BuildRequires: texlive-iopart-num
 %endif
 
 %description
+Empty, as this package shall not be generated at all -- we use subpackages.
+
+%package libs
+Summary: The Deska shared libraries
+Group: Applications/System
+License: GPLv2+
+Requires: boost-system >= 1.41.0
+Requires: boost-date-time >= 1.41.0
+Requires: boost-python >= 1.41.0
+
+%description libs
 Shared libraries and scripts for the Deska system
+
+%package python-libs
+Summary: Library for accessing the Deska database from Python
+Group: Applications/System
+License: GPLv2+
+Requires: deska-libs
+
+%description python-libs
+This package contains the deska Python library which provides native object
+hierarchy for a high-level access to the Deska database.
 
 %package client
 Summary: The Deska CLI application
 Group: Applications/System
 License: GPLv2+
+Requires: deska-libs
 
 %description client
 The command line client application for accessing the Deska database
@@ -56,6 +74,8 @@ The command line client application for accessing the Deska database
 Summary: Development files for the Deska system
 Group: Application/System
 License: GPLv2+
+Requires: deska-libs
+Requires: deska-python-libs
 
 %description devel
 The include files required for compiling against the libDeskaDb library
@@ -64,6 +84,8 @@ The include files required for compiling against the libDeskaDb library
 Summary: The Deska server daemon
 Group: Application/System
 License: GPLv2+
+Requires: deska-python-libs
+Requires: deska-client
 
 %description server
 The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
@@ -92,6 +114,7 @@ mkdir _build && cd _build
 %cmake \
 	-DPYTHON_SITE_PACKAGES=%{python_sitelib} \
 	-DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} \
+	-DRUN_SQL_TESTS=1 \
 	%{doc_opts} \
 	..
 make -j20
@@ -105,7 +128,7 @@ mv doc/technical/deska.pdf ../deska.pdf
 
 %check
 cd _build
-echo "Testing is disabled"
+PATH=/usr/pgsql-9.0/bin:$PATH ../run-standalone-tests.sh
 
 %install
 cd _build
@@ -115,16 +138,19 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
+%files libs
 %defattr(-,root,root,-)
 %{_libdir}/libDeskaDb.so.0.10
+%{_libdir}/libDeskaCli.so.0.10
+
+%files python-libs
+%defattr(-,root,root,-)
 %{python_sitearch}/deska/libLowLevelPyDeska.so
 %{python_sitelib}/deska/*.py*
 
 %files client
 %defattr(-,root,root,-)
 %{_bindir}/deska-cli
-%{_libdir}/libDeskaCli.so.0.10
 
 %files devel
 %defattr(-,root,root,-)
