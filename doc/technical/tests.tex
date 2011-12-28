@@ -27,8 +27,8 @@ The largest diff has about 700KB result.
 We try the extreme 2000 difference diff with 40MB result.
 Tested table had about 300 000 rows and 100 columns.
 
-\begin{longtable}{ l | l | l | l}
 \label{test:json}
+\begin{longtable}{ l | l | l | l}
 \caption{Test results}\\
 Revisions & Server & DB and Server & Database \\
 \hline
@@ -49,9 +49,9 @@ Little slow down in small data was acceptable and we decided for the json in dat
 \subsection{Direct access to tables}
 \label{sec:test-direct}
 
+\label{test:direct}
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
-\label{test:direct}
 test & without direct access & with direct access \\
 \hline
 \endhead
@@ -72,9 +72,9 @@ has 100 rows, host 50 000 and hardware 500 000 rows.
 \subsection{Type casting}
 \label{sec:test-cast}
 
+\label{test:cast}
 \begin{longtable}{ l | l | l }
-\caption{Test results}
-\label{test:direct}\\
+\caption{Test results}\\
 & without type casting & with type casting \\
 \hline
 \endhead
@@ -82,7 +82,7 @@ time & 20.143s & 9.133s \\
 memory & 2GB & 50MB \\
 \end{longtable}
 
-In table \ref{test:direct} you can see, how type casting save time and memory,
+In table \ref{test:cast} you can see, how type casting save time and memory,
 while selecting 200 000 revision using {\tt listRevisions} function.
 
 \end{document}
