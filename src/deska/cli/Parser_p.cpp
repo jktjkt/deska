@@ -747,7 +747,6 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
 
         // Check for existence of parsed kind instance and add parse error based on parsing mode.
         if (!contextStack.empty() && parsingSucceeded && parsingSucceededActions) {
-            std::vector<Db::Identifier> instances;
             switch (parsingMode) {
                 case PARSING_MODE_STANDARD:
                 case PARSING_MODE_CREATE:
@@ -757,10 +756,9 @@ bool ParserImpl<Iterator>::parseLineImpl(const std::string &line)
                 case PARSING_MODE_RENAME:
                     // Modes SHOW, DELETE and RENAME requires existing kind instances.
                     if (!contextStack.back().filter) {
-                        instances = m_parser->m_dbApi->kindInstances(contextStack.back().kind,
-                            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, contextStack.back().kind,
-                                "name", Db::Value(contextStackToPath(contextStack)))));
-                        if (instances.empty()) {
+                        try {
+                            m_parser->m_dbApi->objectData(contextStack.back().kind, contextStackToPath(contextStack));
+                        } catch (Db::NotFoundError &e) {
                             addParseError(ParseError<Iterator>(line.begin(), end, iter - contextStack.back().name.size() - 1,
                                                                contextStack.back().kind, contextStack.back().name,
                                                                PARSE_ERROR_TYPE_OBJECT_NOT_FOUND));

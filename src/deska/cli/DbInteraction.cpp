@@ -319,8 +319,7 @@ std::vector<ObjectDefinition> DbInteraction::allNestedObjects(const ObjectDefini
 
     std::vector<ObjectDefinition> kinds;
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
-            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, filterOnName(object.kind, object.name));
         for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite) {
             kinds.push_back(ObjectDefinition(*it, *ite));
             if (stableView)
@@ -389,12 +388,14 @@ bool DbInteraction::objectExists(const ObjectDefinition &object)
         }
     }
 
-    std::vector<Db::Identifier> instances = m_api->kindInstances(object.kind,
-        Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
-    if (stableView) {
-        objectExistsCache[object] = !instances.empty();
+    try {
+        m_api->objectData(object.kind, object.name);
+        objectExistsCache[object] = true;
+    } catch (Db::NotFoundError &e) {
+        objectExistsCache[object] = false;
     }
-    return (!instances.empty());
+
+    return objectExistsCache[object];
 }
 
 
@@ -425,8 +426,7 @@ std::vector<ObjectDefinition> DbInteraction::containedObjects(const ObjectDefini
     std::vector<ObjectDefinition> containedObjects;
     for (std::vector<Db::Identifier>::iterator it =
         contains[object.kind].begin(); it != contains[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
-            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it, filterOnName(*it, object.name));
         BOOST_ASSERT(instances.size() <= 1);
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
@@ -661,8 +661,7 @@ std::vector<ObjectDefinition> DbInteraction::expandContextStack(const ContextSta
                     // If there is a filter, we have to construct filter for all extracted objects at first.
                     std::vector<Db::Filter> currObjects;
                     for (std::vector<ObjectDefinition>::iterator ito = objects.begin(); ito != objects.end(); ++ito) {
-                        currObjects.push_back(Db::AttributeExpression(
-                            Db::FILTER_COLUMN_EQ, ito->kind, "name", Db::Value(ito->name)));
+                        currObjects.push_back(filterOnName(ito->kind, ito->name));
                     }
                     Db::Filter currObjectsFilter = Db::OrFilter(currObjects);
                     std::vector<Db::Filter> finalFilter;
@@ -758,8 +757,7 @@ void DbInteraction::connectedObjectsTransitivelyRec(const ObjectDefinition &obje
     // Kinds, that this kind contains
     for (std::vector<Db::Identifier>::iterator it =
         contains[object.kind].begin(); it != contains[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
-            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it, filterOnName(*it, object.name));
         BOOST_ASSERT(instances.size() <= 1);
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
@@ -776,8 +774,7 @@ void DbInteraction::connectedObjectsTransitivelyRec(const ObjectDefinition &obje
     // Kinds containined by this kind
     for (std::vector<Db::Identifier>::iterator it =
         containable[object.kind].begin(); it != containable[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> instances = m_api->kindInstances(*it,
-            Db::Filter(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, *it, "name", Db::Value(object.name))));
+        std::vector<Db::Identifier> instances = m_api->kindInstances(*it, filterOnName(*it, object.name));
         BOOST_ASSERT(instances.size() <= 1);
         if (!instances.empty()) {
             BOOST_ASSERT(instances.front() == object.name);
@@ -798,8 +795,7 @@ void DbInteraction::allNestedObjectsTransitivelyRec(const ObjectDefinition &obje
                                                     std::vector<ObjectDefinition> &nestedObjects)
 {
     for (std::vector<Db::Identifier>::iterator it = embeds[object.kind].begin(); it != embeds[object.kind].end(); ++it) {
-        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, Db::Filter(
-            Db::AttributeExpression(Db::FILTER_COLUMN_EQ, object.kind, "name", Db::Value(object.name))));
+        std::vector<Db::Identifier> emb = m_api->kindInstances(*it, filterOnName(object.kind, object.name));
         for (std::vector<Db::Identifier>::iterator ite = emb.begin(); ite != emb.end(); ++ite) {
             ObjectDefinition nObj(*it, *ite);
             if (stableView)
@@ -812,11 +808,30 @@ void DbInteraction::allNestedObjectsTransitivelyRec(const ObjectDefinition &obje
     }
 }
 
+
+
 void DbInteraction::setApiCachingMode(Db::CommandBatchingMode mode)
 {
     m_api->setCommandBatching(mode);
 }
 
+
+
+Db::Filter DbInteraction::filterOnName(const Db::Identifier &kind, const Db::Identifier &name)
+{
+    std::vector<Db::Identifier> ids = pathToVector(name);
+    if (embeddedInto.find(kind) == embeddedInto.end()) {
+        BOOST_ASSERT(ids.size() == 1);
+        return Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kind, "name", Db::Value(name));
+    } else {
+        std::vector<Db::Filter> filters;
+        BOOST_ASSERT(ids.size() > 1);
+        filters.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kind, "name", Db::Value(ids.back())));
+        Db::Identifier parentName = vectorToPath(std::vector<Db::Identifier>(ids.begin(), ids.end() - 1));
+        filters.push_back(Db::AttributeExpression(Db::FILTER_COLUMN_EQ, kind, embeddedInto[kind].first, Db::Value(parentName)));
+        return Db::AndFilter(filters);
+    }   
+}
 
 
 }
