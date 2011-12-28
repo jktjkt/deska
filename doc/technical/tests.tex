@@ -27,9 +27,9 @@ The largest diff has about 700KB result.
 We try the extreme 2000 difference diff with 40MB result.
 Tested table had about 300 000 rows and 100 columns.
 
-\begin{longtable}{ l | l | l | l}
 \label{test:json}
-\caption{Test results}\\
+\begin{longtable}{ l | l | l | l}
+\caption{Test results} \\
 Revisions & Server & DB and Server & Database \\
 \hline
 \endhead
@@ -49,9 +49,9 @@ Little slow down in small data was acceptable and we decided for the JSON in dat
 \subsection{Direct access to tables}
 \label{sec:test-direct}
 
+\label{tbl:test-direct}
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
-\label{test:direct}
 test & without direct access & with direct access \\
 \hline
 \endhead
@@ -61,7 +61,7 @@ test2 & 32.806s & 1.680s \\
 
 Another speed up was done by direct access by function {\tt multipleResolvedObjectData}, as told in \secref{sec:schema-json}.
 This speed up is used mainly by Configuration generators.
-In table \ref{test:direct} are times of how long takes get data about hardware named "hw1000" using function {\tt multipleResolvedObjectData}
+In table \ref{tbl:test-direct} are times of how long takes get data about hardware named "hw1000" using function {\tt multipleResolvedObjectData}
 \footnote{Notice, that using this function to select hardware of one concrete name is bad, for that we have
 {\tt resolvedObjectData} function}
 as test1. In this test, hardware table had million columns.
@@ -74,7 +74,7 @@ has 100 rows, host 50 000 and hardware 500 000 rows.
 
 \begin{longtable}{ l | l | l }
 \caption{Test results}
-\label{test:direct}\\
+\label{tbl:test-casting-cmp}\\
 & without type casting & with type casting \\
 \hline
 \endhead
@@ -82,7 +82,7 @@ time & 20.143s & 9.133s \\
 memory & 2GB & 50MB \\
 \end{longtable}
 
-In table \ref{test:direct} you can see, how type casting save time and memory,
+In table \ref{tbl:test-casting-cmp} you can see, how type casting save time and memory,
 while selecting 200 000 revision using {\tt listRevisions} function.
 
 \end{document}

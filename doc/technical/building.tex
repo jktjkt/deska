@@ -11,7 +11,51 @@ This chapter guides the reader through the installation process of the Deska app
 
 \section{Packages}
 
-\todo{Honza: write something when we actually have any packages}
+\todo{Honza: verify these steps. Should be done by somebody else than me, obviously.}
+
+The easiest way of installing the Deska application suite is from the RPM packages delivered as a part of this project.
+We have provided the following packages suitable for immediate installation on Red Hat Enterprise Linux~6 \cite{rhel}
+(version 6.1 or newer, including derivatives like the Scientific Linux), which are available on the enclosed CD and
+built for the x86\_64 architecture:
+
+\begin{itemize}
+    \item {\tt deska-client}, for the command-line application (CLI)
+    \item {\tt deska-server}, for the Deska server and all supporting tools
+    \item {\tt deska}, for the shared libraries
+    \item {\tt deska-devel}, for development files like the C++ headers
+    %\item {\tt deska-docs}, for a copy of the documentation
+\end{itemize}
+
+The Deska system also depends on a few external packages which are not commonly available in the default RHEL6
+repositories.  These packages are available on the enclosed CD as well.
+
+To install the selected packages, either set up a YUM repository, or simply use the {\tt yum localinstall} command.
+Please keep in mind that installation has to be performed as user {\tt root}:
+
+\begin{minted}{console}
+# yum localinstall path/to/deska/packages/*.rpm
+\end{minted}
+
+These packages indicate their desired dependencies correctly, and if YUM has the required repositories available, the
+dependency resolution works automatically.   However, if the target system is for some reason configured in a different
+way (very likely due to a few external repositories), the installation might fail with an error message about
+unsatisfiable dependencies.  In such cases, installing the dependency might help:
+
+\begin{minted}{console}
+# yum localinstall path/to/external/deps/*.rpm
+\end{minted}
+
+\todo{Honza: list of the external packages}
+
+A typical user's workstation or a laptop does not have to contain the whole Deska system.  To install just the Deska
+CLI, proceed in the following way, installing packages {\tt deska} and {\tt deska-client}:
+
+\begin{minted}{console}
+# yum localinstall path/to/deska{,-client}-1.0-1.rpm
+\end{minted}
+
+After the installation is complete, please proceed with configuring the Deska server by following instructions
+in~\ref{sec:build-server-setup}.
 
 \section{Manual Building}
 
@@ -22,7 +66,7 @@ system.  The following platforms are equally tested and supported:
 \begin{itemize}
     \item Red Hat Enterprise Linux \cite{rhel} 5 (release 5.6 or newer, including derivatives like Scientific
         Linux~\cite{scientific-linux})
-    \item Red Hat Enterprise Linux 6 (release 6.1 or newer, including derivatives like Scientific Linux)
+    \item Red Hat Enterprise Linux 6 (release 6.1 or newer, including derivatives like the Scientific Linux)
     \item Gentoo Linux~\cite{gentoo}
 \end{itemize}
 
@@ -174,6 +218,7 @@ When the tests have finished correctly, the client tools and various Python modu
 make install}.  The server, however, requires more complex procedure to set up.
 
 \section{Setup and Configuration}
+\label{sec:build-server-setup}
 
 After having installed the server utilities by running the {\tt make install} command, it is time to deploy the database
 configuration.
