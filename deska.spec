@@ -4,10 +4,10 @@
 %endif
 
 # Yeah, a braindead file URL
-%global redminefile 85
+%global redminefile FIXME
 
 Name: deska
-Version: 0.11.734
+Version: 0.11.742
 Release: 1%{?dist}
 Group: Applications/System
 Summary: Tool for Central Administration of a Grid Site
@@ -49,12 +49,20 @@ FIXME
 #%description client
 #The command line client application for accessing the Deska database
 
+%package devel
+Summary: Development files for the Deska system
+Group: Application/System
+License: GPLv2+
+
+%description devel
+The include files required for compiling against the libDeskaDb library
+
 %prep
 %setup -q
 
 %build
 mkdir _build && cd _build
-%cmake -DPYTHON_SITE_PACKAGES=%{python_sitearch} ..
+%cmake -DPYTHON_SITE_PACKAGES=%{python_sitelib} -DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} ..
 make -j20
 #make %{?_smp_mflags}
 
@@ -80,13 +88,18 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_bindir}/deska-cli
 %{_bindir}/deska-server
-%{_includedir}/deska/db/*.h
 %{_libdir}/libDeskaCli.so.0.10
 %{_libdir}/libDeskaDb.so.0.10
-%{python_sitearch}/deska/*.py*
 %{python_sitearch}/deska/libLowLevelPyDeska.so
-%{python_sitearch}/deska_server_utils/*.py*
-# FIXME: would be great to respect sitelib/sitearch
+%{python_sitelib}/deska/*.py*
+%{python_sitelib}/deska_server_utils/*.py*
+%{python_sitelib}/deska_server_utils/config_generators/*.py*
+%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
+
+%files devel
+%{_includedir}/deska/db/*.h
+%{_libdir}/libDeskaDb.so
+%{_libdir}/libDeskaCli.so
 
 #%files -f sssd.lang
 #%defattr(-,root,root,-)
@@ -139,5 +152,5 @@ rm -rf $RPM_BUILD_ROOT
 #%postun client -p /sbin/ldconfig
 
 %changelog
-* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.734-1
+* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.742-1
 - Initial release
