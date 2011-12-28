@@ -9,6 +9,154 @@
 This section provides a quick overview of the tasks which a typical user performs when using the Deska system.
 \end{abstract}
 
-\todo{Honza: write about who is user and what shall he do}
+The Deska system can be essentially divided into two big parts: the CLI library (see \secref{sec:cli-usage}), which is
+used by the Unix system administrators to access the database, perform modifications, query the data etc., and the
+Deska server (see \todo{Honza: add a reference when the ``user's doc'' is actually there}) which implements object
+storage and integrates the whole business logic.  In order to use Deska, both components have to be present and
+well-configured.
+
+\section{The Deska Work Flow}
+\label{sec:user-workflow}
+
+The goal of the Deska system is to put all the important information about a data center into a single place, and make
+sure that the changes which are performed in the contained data are deployed to various places throughout the data
+center.  A set of components works in concert towards this goal. We will illustrate how a basic change, like adding a
+new machine to the data center, is performed using Deska, and how is the change reflected in production systems.
+
+Some of the details might not become immediately clear when reading this section.  All of the required concepts of the
+Deska operation are explained in much more detail in the rest of this documentation, especially in the
+\secref{sec:chap-objects-and-relations}.
+
+\subsection{Step Zero: Planning}
+
+The Deska database can be used even before the new hardware is ordered.  If properly maintained, the Deska contains data
+about all physical equipment, including their dimensions, placement in racks, power consumption and network
+interconnects, which together place constraints about whether a data center could actually {\em accommodate} the
+upcoming delivery.  Users can verify that the target racks actually have some free space, the Ethernet/FC switches have
+available (and licensed!) ports, and that the total allowed power consumption of a rack, or a room, is not exceeded.
+Experience at various sites have shown that catching these kinds of errors early can save substantial expenses at a
+surprisingly little costs of time and effort.
+
+\subsection{Step One: Physical Installation}
+
+When the managers had seen strong evidence that the new delivery is going to fit the existing system and the order has
+been delivered, the machines will have to be installed at the target racks by the suppliers or third-party contractors.
+At this time, the Deska {\em users} shall insert records about the new delivery into the Deska database.
+
+It might happen that the new hardware is of a type which has not been delivered before.  In these cases, it would be
+necessary to create proper representation of the new hardware model.~\footnote{Common to any inventory management
+system, the initial time investment is proportional to the required usefulness of the system; being able to distinguish
+between sub-families of a particular hardware brand directly translates to increased initial overhead when processing
+the delivery.  Finding a proper balance between managing too much detail and wasting resources on one side and not
+describing the world sufficiently is, unfortunately, a human problem which is not solved by any computer system.}  This
+is how one might add information about the newly delivered model.  The commands being used are described in much more
+detail later throughout these docs, so reads shall not give up when the exact meaning of this example is not immediately
+clear:
+
+\todo{Honza: add a nice example}
+\begin{minted}{console}
+    FIXME
+\end{minted}
+
+When the auxiliary data are in place, it is time to actually put in the information about each individual machine.  Here
+is how this could be done by the Deska CLI (again, the details will be explained later on):
+
+\todo{Honza: add a nice example}
+\begin{minted}{console}
+    FIXME
+\end{minted}
+
+\subsection{Step Two: Verifying the Results}
+
+Now the database contains the data about the new arrivals.  Even though that we have not configured all of the required
+properties, we can already check the {\em impact} of the change which we have just performed.  We will start with
+reviewing the modifications performed in the Deska database:
+
+\todo{Honza: console code here}
+
+The changes look reasonable, they affect just the systems which have just arrived, and there are no extra changes nor
+typos.  We shall therefore check about how are these modifications going to affect the {\em output configuration} of
+various services:
+
+\todo{Honza: again, example of configdiff}
+
+The changes look like a direct result of the newly added data, and therefore we are free to promote this state of the
+database into the production environment:
+
+\todo{Honza: commit}
+
+\subsection{Step Three: Affecting Production}
+
+What we, regular users, have done so far is simply performing a small change in the database, and letting Deska
+``propagate it further''.  This last part is something which deserves further description.
+
+First of all, the Deska system itself does not have any knowledge of how to convert the data in the Database into the
+usable output.  This task is handled by the {\em configuration generators}, which are described in much more detail in
+\secref{sec:config-generators}.  A sample set of these generators, as used at FZÚ, is shipped with Deska (see
+\secref{sec:fzu-cfggen}), but chances are that these scripts will have to be modified to suit each site's operation and
+local specialities.
+
+When the configuration generators are configured and executed, their output has to be somehow put into the use.  This is
+achieved in two steps.  In the first step, the resulting data are {\em published} somewhere.  It is assumed that each
+site already has their own configuration management system, and that it is managed by a version control system of some
+kind.  The Deska ships with a set of scripts which achieve full integration with the Git~\cite{git} version control
+system, which means that each time a Deska user saves the data into the Deska database, the output of the configuration
+generators is automatically pushed into a Git repository.
+
+The final thing, which is {\em not} handled by the Deska system, is actual delivery of the updated configuration to the
+target systems, like the DNS servers or network switches.  In this case, the Deska system is trying hard to {\em
+integrate} with the existing tools like Puppet~\cite{puppet} or Cfengine~\cite{cfengine}, and not reinvent the wheel.
+These systems are generally mature enough and work well, and replacing them would therefore be clearly out of scope for
+the Deska.
+
+\section{Users and Their Roles}
+
+Throughout this document, we will assume that two sorts of people are going to use Deska on the daily basis: the Deska
+{\em administrator}, a person who is, generally speaking, ``in charge'' of the whole system, configures the database
+scheme, performs backups and grants access to regular users, and the Deska {\em user}, someone whose only means of
+access to the Deska database is through a dedicated application.\footnote{To be technically correct, the only means of
+access to the Deska database for a regular user is over the DBAPI protocol (see \secref{sec:dbapi-protocol} for
+details).  The user {\em could} theoretically hand-craft the JSON commands by hand, and the Deska server would have no
+way to distinguish them from an access through an approved application.  This situation is similar to a case of a web
+application which implements user authentication/authorization on top of the HTTP protocol, and does not care about a
+particular browser being used.}
+
+\subsection{Deska Administrator}
+
+The Deska administrator is responsible for the initial setup and the day-to-day operation of the Deska database.  She
+will have to install the application on the server (\secref{sec:building}), setup the server to connect to a PostgreSQL
+database(see \secref{sec:build-server-setup}), deploy an appropriate database scheme (\secref{sec:admin-dbscheme}),
+manage user accounts and periodically create backups (\secref{sec:cli-db-backup}) and store them in a safe location.
+
+A good administrator will have some knowledge of the SQL language, as spoken by the PostgreSQL~9~\cite{postgresql}.  If
+the default database scheme, as shipped with Deska, is not sufficient for a specific environment, the administrator will
+also be in charge of the design of this scheme, which is a task which might require some experience with designing
+database applications.
+
+The administrator is also responsible to set up the output configuration generators, scripts which actually turn the
+data in the Deska database into usable configuration for the DNS servers, Ethernet switches, power outlets etc.  A set
+of sample scripts, as used in real-world scenario at the Institute of Physics, are discussed in \secref{sec:fzu-cfggen}.
+They will absolutely require adaptation to the target environment, but could serve as a valuable basis for further
+development.
+
+\subsection{Regular User: a Unix System Administrator}
+
+In contrast to the administrator, the regular user which is typically each and every Unix system administrator on site,
+does not have to worry about the Deska server and its setup at all.  It is assumed that she will be given the
+appropriate connection details for configuring the command-line application (see \secref{sec:cli-connection-setup}), and
+also that she will be briefed by the administrator about how the database scheme works.
+
+Nevertheless, the regular users shall get themselves very familiar with the general Deska concepts, especially as
+described in \secref{sec:chap-objects-and-relations}.  Thorough understanding of {\em objects}, {\em kinds} and {\em
+relations} is crucial for effective working with the Deska system.
+
+These users shall also be familiar with the configuration of various services which are deployed at their site, and
+especially shall be able to assess the impact of the changes in the generated configuration files.  Similarly to other
+systems which use a central place to specify an {\em authoritative} answer about the data, performing careless changes
+in the Deska database could have devastating consequences to the operation of the user's site.
+
+That said, no change is ever going to affect the production environment until the user explicitly confirms the result.
+To decrease the chances of disastrous errors, the Deska system will always present the user with a summary of changes in
+the database, along with their impact to the output configuration, before the data are saved and promoted to production.
 
 \end{document}

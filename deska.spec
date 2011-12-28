@@ -3,11 +3,13 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
 
+%define with_doc %{?_with_doc: 1} %{?!_with_doc: 0}
+
 # Yeah, a braindead file URL
 %global redminefile FIXME
 
 Name: deska
-Version: 0.11.742
+Version: 0.11.747
 Release: 1%{?dist}
 Group: Applications/System
 Summary: Tool for Central Administration of a Grid Site
@@ -20,16 +22,6 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 ### Dependencies ###
 
-Requires: boost-system >= 1.41.0
-Requires: boost-date-time >= 1.41.0
-Requires: boost-python >= 1.41.0
-
-#%global servicename sssd
-#%global sssdstatedir %{_localstatedir}/lib/sss
-#%global dbpath %{sssdstatedir}/db
-#%global pipepath %{sssdstatedir}/pipes
-#%global pubconfpath %{sssdstatedir}/pubconf
-
 ### Build Dependencies ###
 
 BuildRequires: cmake >= 2.6
@@ -37,14 +29,43 @@ BuildRequires: boost-devel >= 1.41.0
 BuildRequires: cpp
 BuildRequires: readline-devel
 BuildRequires: python-devel
+%if %{with_doc}
+BuildRequires: texlive-a4wide
+BuildRequires: texlive-etoolbox
+BuildRequires: texlive-minted
+BuildRequires: texlive-todonotes
+BuildRequires: texlive-iopart-num
+%endif
 
 %description
+Empty, as this package shall not be generated at all -- we use subpackages.
+
+%package libs
+Summary: The Deska shared libraries
+Group: Applications/System
+License: GPLv2+
+Requires: boost-system >= 1.41.0
+Requires: boost-date-time >= 1.41.0
+Requires: boost-python >= 1.41.0
+
+%description libs
 Shared libraries and scripts for the Deska system
+
+%package python-libs
+Summary: Library for accessing the Deska database from Python
+Group: Applications/System
+License: GPLv2+
+Requires: deska-libs
+
+%description python-libs
+This package contains the deska Python library which provides native object
+hierarchy for a high-level access to the Deska database.
 
 %package client
 Summary: The Deska CLI application
 Group: Applications/System
 License: GPLv2+
+Requires: deska-libs
 
 %description client
 The command line client application for accessing the Deska database
@@ -53,6 +74,8 @@ The command line client application for accessing the Deska database
 Summary: Development files for the Deska system
 Group: Application/System
 License: GPLv2+
+Requires: deska-libs
+Requires: deska-python-libs
 
 %description devel
 The include files required for compiling against the libDeskaDb library
@@ -61,48 +84,73 @@ The include files required for compiling against the libDeskaDb library
 Summary: The Deska server daemon
 Group: Application/System
 License: GPLv2+
+Requires: deska-python-libs
+Requires: deska-client
 
 %description server
 The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
 
+%if %{with_doc}
+%package doc
+Summary: Documentation for the Deska system
+Group: Application/System
+License: GPLv2+
+
+%description doc
+User's guide and complete developer documentation for the Deska system
+%endif
 
 %prep
 %setup -q
 
+%if %{with_doc}
+%global doc_opts -DBUILD_DOCS=1 -DSKIP_INSTALL_DOCS=1
+%else
+%global doc_opts -DBUILD_DOCS=0
+%endif
+
 %build
 mkdir _build && cd _build
-%cmake -DPYTHON_SITE_PACKAGES=%{python_sitelib} -DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} ..
+%cmake \
+	-DPYTHON_SITE_PACKAGES=%{python_sitelib} \
+	-DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} \
+	-DRUN_SQL_TESTS=1 \
+	%{doc_opts} \
+	..
 make -j20
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/python/deska
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils
+%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils/config_generators
+%if %{with_doc}
+mv doc/technical/deska.pdf ../deska.pdf
+%endif
 #make %{?_smp_mflags}
 
 %check
 cd _build
-echo "Testing is disabled"
+PATH=/usr/pgsql-9.0/bin:$PATH ../run-standalone-tests.sh
 
 %install
 cd _build
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 
-# Copy default sssd.conf file
-#mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/sssd
-#install -m600 src/examples/sssd.conf $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.conf
-#install -m444 src/config/etc/sssd.api.conf $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.api.conf
-#install -m444 src/config/etc/sssd.api.d/* $RPM_BUILD_ROOT%{_sysconfdir}/sssd/sssd.api.d/
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files
+%files libs
 %defattr(-,root,root,-)
 %{_libdir}/libDeskaDb.so.0.10
+%{_libdir}/libDeskaCli.so.0.10
+
+%files python-libs
+%defattr(-,root,root,-)
 %{python_sitearch}/deska/libLowLevelPyDeska.so
 %{python_sitelib}/deska/*.py*
 
 %files client
 %defattr(-,root,root,-)
 %{_bindir}/deska-cli
-%{_libdir}/libDeskaCli.so.0.10
 
 %files devel
 %defattr(-,root,root,-)
@@ -117,49 +165,13 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/deska_server_utils/config_generators/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
 
-#%files -f sssd.lang
-#%defattr(-,root,root,-)
-#%doc COPYING
-#%{_initrddir}/%{name}
-#%{_sbindir}/sssd
-#%{_libexecdir}/%{servicename}/
-#%{_libdir}/%{name}/
-#%{_libdir}/ldb/memberof.so
-#%dir %{sssdstatedir}
-#%attr(700,root,root) %dir %{dbpath}
-#%attr(755,root,root) %dir %{pipepath}
-#%attr(750,root,root) %dir %{_var}/log/%{name}
-#%attr(711,root,root) %dir %{_sysconfdir}/sssd
-#%config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sssd/sssd.conf
-#%config %{_sysconfdir}/sssd/sssd.api.conf
-#%attr(755,root,root) %dir %{_sysconfdir}/sssd/sssd.api.d
-#%config %{_sysconfdir}/sssd/sssd.api.d/
-#%{_mandir}/man5/sssd.conf.5*
-#%{python_sitearch}/pysss.so
-#%{python_sitelib}/*.py*
+%if %{with_doc}
+%files doc
+%defattr(-,root,root,-)
+%doc deska.pdf
+%endif
 
-#%files client
-#%defattr(-,root,root,-)
-#%doc src/sss_client/COPYING src/sss_client/COPYING.LESSER
-#/%{_lib}/libnss_sss.so.2
-#/%{_lib}/security/pam_sss.so
-#%{_libdir}/krb5/plugins/libkrb5/sssd_krb5_locator_plugin.so
-#%{_mandir}/man8/pam_sss.8*
-#%{_mandir}/man8/sssd_krb5_locator_plugin.8*
-
-%post
-/sbin/ldconfig
-#/sbin/chkconfig --add %{servicename}
-#
-#if [ $1 -ge 1 ] ; then
-#    /sbin/service %{servicename} condrestart 2>&1 > /dev/null
-#fi
-
-#%preun
-#if [ $1 = 0 ]; then
-#    /sbin/service %{servicename} stop 2>&1 > /dev/null
-#    /sbin/chkconfig --del %{servicename}
-#fi
+%post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
@@ -168,5 +180,5 @@ rm -rf $RPM_BUILD_ROOT
 %postun client -p /sbin/ldconfig
 
 %changelog
-* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.742-1
+* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.747-1
 - Initial release

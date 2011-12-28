@@ -5,31 +5,36 @@
 \section{Performance tests}
 \label{sec:performance}
 
-During our development some performance test were performed. Especially in Deska server and Deska database
-part of Deska, because large amount of data is held there. Some decision were made as described in
+During our development some performance tests were performed. Especially in Deska server and Deska database
+part of Deska, because large amount of data is held there. Some decisions were made as described in
 \secref{sec:schema-json}, \secref{sec:direct-access} and \secref{sec:cast}.
-Here we present some of this performance test results.
+Here we present some of these performance tests' results.
 
 It has to be said, that tested data are at least ten times bigger, than we
-except in real Deska use. Performed tests are hundred times and more larger
+expect in real Deska use. Performed tests are hundred times and more larger
 than current FZU schema.
 For example the number of hardware rows in FZU schema is less then 500 
 and the biggest table interface has 565 records.
+These test were run on our PC's and laptops. Server performance should be better.
 
-\subsection{Json in database}
+\subsection{JSON in database}
 \label{sec:test-json}
-Firstly we decided to have json in database, as told in \secref{sec:schema-json}.
+Firstly we decided to have JSON in database, as told in \secref{sec:schema-json}.
 Here is result of diffing, that led us to
-return json from database.
+return JSON from database.
 This test was performed on diffing function on one table.
-We test one revision difference, ten, fifty, and hundred and fifty.
-The largest diff has about 700KB result.
-We try the extreme 2000 difference diff with 40MB result.
+We tested one revision difference, ten, fifty, and hundred and fifty.
+The largest diff had about 700KB result.
+We tried the extreme 2000 difference diff with 40MB result.
 Tested table had about 300 000 rows and 100 columns.
 
 \label{test:json}
 \begin{longtable}{ l | l | l | l}
+<<<<<<< HEAD
 \caption{Test results}\\
+=======
+\caption{Test results} \\
+>>>>>>> e7c079f4c97eacc87afec948a07855143fda1fa0
 Revisions & Server & DB and Server & Database \\
 \hline
 \endhead
@@ -40,16 +45,17 @@ Revisions & Server & DB and Server & Database \\
 2000 & 23.745s & 15.868s & 11.780s \\
 \end{longtable}
 
-As you can see in table \ref{test:json}, the last option give better result with larger data.
-The column Server represents json creation in Deska server, column Database json creation in
-Deska database. The column DB and Server represents combination of another two. Json is created
+The column Server represents JSON creation in Deska server, column Database JSON creation in
+Deska database. The column DB and Server represents combination of another two. JSON is created
 in Deska server, but some data are prepared in Deska database.
-Little slow down in small data was acceptable and we decided for the json in database.
+As you can see in table \ref{test:json}, the last option give better results with larger data.
+Little slow down in small data was acceptable and we decided for the JSON in database.
 
 \subsection{Direct access to tables}
 \label{sec:test-direct}
 
-\label{test:direct}
+
+\label{tbl:test-direct}
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
 test & without direct access & with direct access \\
@@ -61,18 +67,18 @@ test2 & 32.806s & 1.680s \\
 
 Another speed up was done by direct access by function {\tt multipleResolvedObjectData}, as told in \secref{sec:schema-json}.
 This speed up is used mainly by Configuration generators.
-In table \ref{test:direct} are times of how long takes get data about hardware named "hw1000" using function {\tt multipleResolvedObjectData}
+In table \ref{tbl:test-direct} are times of how long it took to get data about hardware named "hw1000" using function {\tt multipleResolvedObjectData}
 \footnote{Notice, that using this function to select hardware of one concrete name is bad, for that we have
 {\tt resolvedObjectData} function}
-as test1. In this test, hardware table had million columns.
+as test1. In this test hardware table had million columns.
 
-As test2 we tested select host where hardware.vendor was given. In this test, vendor table
-has 100 rows, host 50 000 and hardware 500 000 rows.
+In test2 we tested selecting host where hardware.vendor was given. In this test, vendor table
+had 100 rows, host 50 000 and hardware 500 000 rows.
 
 \subsection{Type casting}
 \label{sec:test-cast}
 
-\label{test:cast}
+\label{tbl:test-casting-cmp}\\
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
 & without type casting & with type casting \\
@@ -82,7 +88,7 @@ time & 20.143s & 9.133s \\
 memory & 2GB & 50MB \\
 \end{longtable}
 
-In table \ref{test:cast} you can see, how type casting save time and memory,
+In table \ref{tbl:test-casting-cmp} you can see, how type casting saves time and memory,
 while selecting 200 000 revision using {\tt listRevisions} function.
 
 \end{document}
