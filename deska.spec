@@ -114,6 +114,7 @@ mkdir _build && cd _build
 %cmake \
 	-DPYTHON_SITE_PACKAGES=%{python_sitelib} \
 	-DPYTHON_SITE_PACKAGES_ARCH=%{python_sitearch} \
+	-DRUN_SQL_TESTS=1 \
 	%{doc_opts} \
 	..
 make -j20
@@ -127,7 +128,7 @@ mv doc/technical/deska.pdf ../deska.pdf
 
 %check
 cd _build
-echo "Testing is disabled"
+PATH=/usr/pgsql-9.0/bin:$PATH ../run-standalone-tests.sh
 
 %install
 cd _build
