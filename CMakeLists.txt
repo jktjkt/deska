@@ -103,7 +103,7 @@ include_directories(${PYTHON_INCLUDE_DIR} ${PYTHON_INCLUDE_PATH})
 #link_directories(${PYTHON_LIBRARIES})
 
 if(PYTHON_SITE_PACKAGES)
-    message(STATUS "Python site-packages specified by hand: ${PYTHON_SITE_PACKAGES}")
+    message(STATUS "Python site-packages dir specified by hand: ${PYTHON_SITE_PACKAGES}")
 else()
     # We also require the interpreter to be able to tell the PYTHONPATH
     find_package(PythonInterp REQUIRED)
@@ -116,6 +116,22 @@ else()
         message(FATAL "Couldn't determine the PYTHON_SITE_PACKAGES directory")
     endif()
 endif()
+
+if(PYTHON_SITE_PACKAGES_ARCH)
+    message(STATUS "Python arch-specific site-packages dir specified by hand: ${PYTHON_SITE_PACKAGES_ARCH}")
+else()
+    # We also require the interpreter to be able to tell the PYTHONPATH
+    find_package(PythonInterp REQUIRED)
+    if(PYTHONINTERP_FOUND)
+        execute_process(COMMAND ${PYTHON_EXECUTABLE} -c
+            "import distutils.sysconfig; import sys; sys.stdout.write(distutils.sysconfig.get_python_lib(1))"
+            OUTPUT_VARIABLE PYTHON_SITE_PACKAGES_ARCH)
+        message(STATUS "Python arch-specific site-packages target: ${PYTHON_SITE_PACKAGES_ARCH}")
+    else()
+        message(FATAL "Couldn't determine the PYTHON_SITE_PACKAGES_ARCH directory")
+    endif()
+endif()
+
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -250,7 +266,7 @@ install(DIRECTORY
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/python/deska
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES})
 install(TARGETS LowLevelPyDeska
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES}/deska)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES_ARCH}/deska)
 
 include(CTest)
 add_subdirectory(tests)
