@@ -10,6 +10,10 @@ This chapter describes the overall architecture of the {\tt DeskaDb}, a C++ libr
 database.
 \end{abstract}
 
+The {\tt DeskaDb} C++ library is used by all clients delivered as part of the Deska project.  The most prominent users
+are the Deska CLI (\secref{sec:cli-app}) and, indirectly through the Python library (\secref{sec:python-bindings}), the
+configuration generators (\secref{sec:config-generators}).
+
 \section{Usage}
 
 The main feature provided by the DeskaDb library is implemented by the {\tt Deska::Db::Connection} class.  When
