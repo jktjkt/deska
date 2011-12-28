@@ -254,7 +254,7 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/db/Revisions.h
     DESTINATION include/deska/db
 )
-install(TARGETS DeskaDb DeskaCli DESTINATION lib)
+install(TARGETS DeskaDb DeskaCli DESTINATION lib${LIB_SUFFIX})
 install(TARGETS deska-cli DESTINATION bin)
 install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/app/deska-server
