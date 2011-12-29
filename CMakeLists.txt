@@ -269,7 +269,11 @@ install(TARGETS LowLevelPyDeska
     DESTINATION ${PYTHON_SITE_PACKAGES_ARCH}/deska)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/install
-    DESTINATION share/deska
+    DESTINATION share/deska/install-scripts
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/db
+    DESTINATION share/deska/install-scripts/src/deska/server
 )
 
 include(CTest)
