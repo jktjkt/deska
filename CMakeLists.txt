@@ -256,12 +256,10 @@ install(FILES
 )
 install(TARGETS DeskaDb DeskaCli DESTINATION lib${LIB_SUFFIX})
 install(TARGETS deska-cli DESTINATION bin)
-install(DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/app/
-    DESTINATION bin
-    USE_SOURCE_PERMISSIONS
-    PATTERN "/deska-server"
-    )
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/app/deska-server
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    DESTINATION bin)
 install(DIRECTORY
     ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/app/deska_server_utils
     DESTINATION ${PYTHON_SITE_PACKAGES})
