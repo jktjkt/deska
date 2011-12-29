@@ -228,13 +228,21 @@ make install}.  The server, however, requires more complex procedure to set up.
 After having installed the server utilities by running the {\tt make install} command, it is time to deploy the database
 configuration.
 
+\subsection{Server Setup}
+
 The very first step is to configure a PostgreSQL server.  It is recommended that it runs on the same host as the {\tt
 deska-server} script for security reasons (see the \secref{sec:server-security-model} for details).  The server shall
 accept connections over Unix sockets and use the {\tt ident} scheme for user authentication over these sockets.
 Furthermore, each (physical) user who will have access to the Deska server will have to be present in the PostgreSQL
 database, be the member of the {\tt deska\_user} role, and has a Unix account with properly configured SSH keys for
-automated authentication to the server machine.  After the PostgreSQL server is configured properly, it is time to
-deploy the database scheme.
+automated authentication to the server machine.
+
+\todo{Honza: guide the user through the SSH setup here}
+
+\subsection{Database Deployment}
+\label{sec:build-database-deployment}
+
+After the PostgreSQL server is configured properly, it is time to deploy the database scheme.
 
 The utilities shipped with Deska support installation to an {\em empty} PostgreSQL database.  In case of an upgrade or
 an attempt to repair a broken database installation, please make sure to take a proper backup first (see
