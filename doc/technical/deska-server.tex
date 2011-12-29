@@ -124,7 +124,7 @@ functions, to manipulate with data in database. Or get data directly from tables
 Why we created this layer, and why it returns JSON data and not table or normal value, will be described in \secref{sec:schema-json}
 
 The picture \ref{img:deska-server} shows how Deska server and Deska database communicate. Schema json provides interface for Deska server. It
-calls functions from other schemas (genproc and Deska). All these schemas are drawn as components. Schemas containing
+calls functions from other schemas (genproc and deska). All these schemas are drawn as components. Schemas containing
 tables are shown in different form, because they do not provide real interface.
 
 \subsection{Json schema}
@@ -133,15 +133,15 @@ After we had generated functions for manipulating with data, and DBAPI specified
 that transforms createObject(kindName,xxx) to kindName\_add(xxx), which is call of generated SQL function.
 We do that in Deska database, because we wanted to have 1:1 mapping between database functions, and DBAPI commands.
 
-It worked well until first performance testing was made. The state was, that Deska server call for data - millions of objects,
+It worked well until first performance testing was made. The state was, that Deska server called for data - millions of objects,
 database worked and worked and... when finally returned this data to server, server started transformation... It took long time
 and consumed lots of memory.
 In the same time, diffing implementation started, and there where problems with many functions of different result types,
 that has to be called, which was hard to union into one function.
 So there was an idea, that JSON can be created inside database, so that the union of diffing function can return JSON.
 
-Some test were run \secref{sec:test-json}, the time for smaller data was worse with JSON in database, but for large data, there was significant
-speed up. The function written in pg-python creates part of the JSON structure in each line of database cursor.
+Some test were run \secref{sec:test-json}, the time for smaller data was worse with JSON in database, but for large data there was significant
+speed up. The function written in pg-python creates part of the JSON structure for each line of database cursor.
 So the JSON structure grows up with data that database produced.
 
 The result is, that every function callable by server returns JSON.
@@ -150,17 +150,17 @@ The result is, that every function callable by server returns JSON.
 \label{sec:data-functions}
 Here we talk about getting data of objects, revisions and changesets stored in tables.
 These data are get from tables, or table returning functions for get data in proper version.
-See \secref{sec:versioning} how these functions works. Here we talk about functions in json schema.
+See \secref{sec:versioning} how these functions work. Here we talk about functions in json schema.
 
 There are {\tt pendingChangeset} that selects data from changeset table, and {\tt listRevisions} that selects data from version table.
-Both accept filter as parameter and uses some cast optimization, about which we will talk in section about cast
+Both accept filter as parameter and use some cast optimization, about which we will talk in section about cast
 optimization \secref{sec:cast}.
 
-Object data functions {\tt objectData}. {\tt resolvedObjectData}. {\tt resolvedObjectDataWithOrigin} calls generated functions 
-that returns tuple of attribute values, that is just converted into JSON format and returned. 
+Object data functions {\tt objectData}. {\tt resolvedObjectData}. {\tt resolvedObjectDataWithOrigin} call generated functions 
+that return tuple of attribute values, that is just converted into JSON format and returned. 
 
 In functions {\tt multipleObjectData}. {\tt multipleResolvedObjectData} and {\tt multipleResolvedObjectDataWithOrigin}
-more work is done, than in another json schema function, that only runs some function.
+more work is done than in another json schema function, that only runs some function.
 There is still only one main call another database function (and one helping, to get revision number).
 
 But the SQL statement to run is created in more difficult way. In contrast to other json schema functions,
@@ -176,16 +176,17 @@ If host has attribute hardware, referencing to kind hardware. Than column defini
 
 \subsubsection{Example}
 Lets see the {\tt multipleResolvedObjectDataWithOrigin} function to explain, how it work. The other functions are very similar.
+%which name is set???
 At first, name is set (this is used for result JSON and/or reporting errors) and JSON structure is prepared,
 using dutil.jsn function. After this, kindName is checked. Then attributes are load from generated.py file.
-If kind has template, every attribute except one starts with template\_ prefix are duplicated, so that we has
+If kind has template, every attribute except the one, which starts with template\_ prefix, is duplicated, so that we have
 also information about origin of the value.
 Then columns definition is generated. For normal attribute, "kindName.attributeName" is the definition.
-But for referenced attributes, which are
+But for referring attributes, which are
 represented as uid in database, not string, kindName\_get\_name function must be called. So in the case that attribute vendor is represented as id, then
 "vendor\_get\_name(kindName.attributeName, version) AS kindName.attributeName" is the column definition. For embedded kind, embed name is created in similar way,
 using function join\_with\_delim.
-Then, the final SQL statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter are used.
+Then, the final SQL statement is created using function dutil.getSelect, columns definition and JOIN and WHERE parts from filter (see \secref{sec:filters}) are used.
 This function also checks if this kind has template or not, and proper function resolved or not is used in the final SQL statement.
 
 After this preparation, SQL statement is run and the result is fetched. For each line in the result table, one part of result JSON structure is
@@ -195,8 +196,10 @@ And here is some example of SQL statement which is called:
 \begin{minted}{sql}
 SELECT host.service_templ --simple column definition
 ,host.name,host.service,host.virtual_hardware_templ,
-host_template_get_name(host.template_host,$1) AS host_template --column definition for uid column of template
-,hardware_get_name(host.hardware,$1) AS hardware, --column definition for uid column of reference
+--column definition for uid column of template
+host_template_get_name(host.template_host,$1) AS host_template
+--column definition for uid column of reference
+,hardware_get_name(host.hardware,$1) AS hardware,
 host.note_host_templ,virtual_hardware_get_name(host.virtual_hardware,$1) AS virtual_hardware,
 host.hardware_templ,
 host.note_host FROM
@@ -208,16 +211,16 @@ WHERE hardware.name != $2 OR hardware.name IS NULL -- perform filter condition
 \subsection{Direct access to resolved data}
 \label{sec:direct-access}
 If you are not in changeset, and do not give revision parameter to function {\tt multipleResolvedObjectData},
-you will access directly, because resolved data are in production schema tables.
+you will access directly to tables, because resolved data are in production schema tables.
 
 This is used by configuration generators and it is much more faster to read
-resolved data than do this in history schema, where complected computation is run.
+resolved data than do this in history schema, where complecated computation is run.
 See test results in \secref{sec:test-direct}
 
 \subsection{Getting data from tables - casting}
 \label{sec:cast}
 For performance reasons we do one more thing in column definition. It is casting.
-In pg-python extension, there is some function that from Postgresql types create native python types.
+In pg-python extension, there is a function that from Postgresql types create native python types.
 It is called Postgres.convert\_postgres\_objects
 and must be called for every result from database. But it supports only some types.
 Some of these types are converted in different way than we want.
@@ -234,7 +237,7 @@ the conversion with mask suffix, we use {\em host} function in column definition
 
 
 \subsection{Filters}
-
+\label{sec:filters}
 Some functions (lets call them {\em data functions} in json schema have parameter filter. It is in JSON format,
 see DBAPI protocol in~\secref{sec:api-filters} for more info.
 The data function, in json schema, have part where SQL statement is created. It is described in
@@ -248,13 +251,13 @@ Filter constructor parses given filter into parts - conditions.
 Every condition has kind, attribute, operator and value. From this we create strings line
 {\em kind.attribute = kind2\_get\_uid(\$2)}. If there are more conditions, they are joined with AND or OR
 operators.
-If kind in condition is different from kindName - function parameter, it is remember,
+If kind in condition is different from kindName - function parameter, it is remembered,
 and in getJoin function, if it is possible, string like {\em JOIN kind2 ON kind2.uid = kind.attribute}
-is returned. This is possible when some relation between this kinds exists.
+is returned. This is possible when some relation between these kinds exists.
 If there are more different kinds, join string with more JOINs is produced.
 Information about relation are taken from generated.py file.
 
-It was add into Deska later than other functions, so that it uses what was developed before.
+It was added into Deska later than other functions, so that it uses what was developed before.
 
 \subsection{Filters limitations}
 \label{sec:filter-speed}
@@ -277,20 +280,19 @@ Here we try to explain work with exceptions in Deska database and Deska server. 
 This sqlstate is like number of error. We use this to split possible exceptions into some categories - exception types. Exception in database is
 every unexpected or “bad” thing that occurs. It can be runtime error as well as constraint violation, or exception thrown explicitly by RAISE.
 
-While json schema provides JSON as return type, we try to catch maximum number of exception inside the database (in
+While json schema provides JSON as return type, we try to catch maximum number of exceptions inside the database (in
 json schema part).
 For this catching DeskaException class is used. It has constructor, with Postgresql.dberr as parameter, which structure is that contains exception
 message, and sqlstate. We use this information to determine exception type - class contains typeDict - dictionary {sqlstate: exceptionType}.
-Finally this function has {\tt json} method, which takes name on the function, in which error occurs and creates exception in JSON format.
+%don't understand function has json method
+Finally this function has json method, which takes name on the function, in which error occurs and creates exception in JSON format.
 
 \label{sec:deska-db}
 
-In this section you can find how the Deska db works, how the data versioning, templating and other deska's features are done.\\
-Almost all tables and stored procedures are generated by sql-generator described in \secref{sec:sql-generator}.
-
 \section{Data manipulation in Deska database}
 \label{sec:deska-db-data-manipulation}
-Here you can find how the Deska database works, how the data versioning, templating and other Deska's features are done.
+In this section you can find how the Deska database works, how the data versioning, templating and other Deska's features are done.\\
+Almost all tables and stored procedures are generated by sql-generator described in \secref{sec:sql-generator}.
 
 \subsection{Versioning}
 \label{sec:versioning}
@@ -402,7 +404,7 @@ Commits from our example will cause these changes:
 
 \subsection{Refers To}
 \label{sec:db-refs-to}
-If the table is in the {\tt REFERS TO} relation with another, it has to have column that refers to the {\tt uid} column of the another table. This column, which refers to the {\tt uid} column of another table, we will call here {\em refuid}.\\
+If the table is in the {\tt REFERS TO} relation (see \secref{sec:relation-refers-to}) with another, it has to have column that refers to the {\tt uid} column of the another table. This column, which refers to the {\tt uid} column of another table, we will call here {\em refuid}.\\
 Stored procedures for setting refuid columns expect as parameter some value of name attribute from referenced table. The given name is found in referenced table and proper {\tt uid} is set as value of refuid column instead of the name.
 
 Here is an example of setting refuid column. The result of these selects is in tables \ref{tab:refs-hardware} and  \ref{tab:refs-vendor}.
@@ -441,7 +443,7 @@ select * from vendor;
 
 
 \subsection{Object Embedding}
-Object embedding is described in \ref{sec:relation-embed-into}. The object which is embedded into another object could be identified by the global name, pair of object's local name and parent's name. Embedded objects have an attribute which refer to the parent object's uid. With this attribute is manipulated in the same way as with the refuid attributes described in \ref{sec:db-refs-to}.\\
+Object embedding is described in \secref{sec:relation-embed-into}. The object which is embedded into another object could be identified by the global name, pair of object's local name and parent's name. Embedded objects have an attribute which refer to the parent object's uid. With this attribute is manipulated in the same way as with the refuid attributes described in \secref{sec:db-refs-to}.\\
 The following example shows how to work with embedding, the table identifier is embedded into the table host. Result of these selects is in the tables \ref{tab:embed-host} and \ref{tab:embed-interface}.
 
 \begin{minted}{sql}
@@ -479,7 +481,7 @@ select commitchangeset('r2');
 
 
 \subsection{Templates}
-{\tt TEMPLATIZED} relation which is described in \ref{sec:relation-templatized} is implemented by template tables. 
+{\tt TEMPLATIZED} relation which is described in \secref{sec:relation-templatized} is implemented by template tables. 
 
 \subsubsection{Value inheritance}
 The columns, which are a part of some {\tt COMPOSITION} relation or {\tt EMBED INTO} relation, can not inherit its value from templates. Therefore these columns are not present in the template table. All other attributes from the templated table are also in the template table.\\
@@ -535,7 +537,7 @@ select commitchangeset('r4');
 
 
 By calling the following commands we can get resolved data, it means with inherited values.\\
-It is possible to get resolved data even with the data origin, this function is introduced in subsection about multi-value references \ref{sec:multi-val}.
+It is possible to get resolved data even with the data origin, this function is introduced in subsection about multi-value references \secref{sec:multi-val}.
 \begin{minted}{sql}
 --from version 'r3'
 select * from hardware_resolved_data(3);
@@ -545,7 +547,7 @@ select * from hardware_template_resolved_data(3);
 Results are in \ref{tab:templ-hwres2} and \ref{tab:templ-hwtemplres2}.
 
 \begin{minted}{sql}
---in production are the newest resolved data
+--in production are the most actual resolved data
 select * from hardware;
 select * from hardware_template;
 \end{minted}
@@ -599,7 +601,7 @@ Commit of templated table is composed of:
 \begin{enumerate}
     \item find all objects in the template table that were modified in the current changeset
     \item find all objects in the template table that can transitively inherit data from objects in step 1
-    \item find all objects in the templated table that inherit data from objects in step 2
+    \item find all objects in the templated table that were modified or inherit data from objects in step 2
     \item resolve data of objects from step 3
     \item process data from step 4 as it was selected from history table of not templated table
 \end{enumerate}
@@ -613,7 +615,7 @@ Modifications which were done between two versions or inside a temporary changes
 \end{enumerate}
 Stage init diff creates temporary table with almost all data needed to get list of all modifications.
 More init functions exist, one for diff between two versions and one for diff between state in temporary changeset and in its parent version. For templated kinds these init diff functions exist even in resolved modification.\\
-Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI \ref{sec:dbapi-protocol} is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
+Temporary table created in init diff stage could be then processed by diff functions. Each type of "basic modification" described in DBAPI \secref{sec:dbapi-protocol} is listed by separate diff function. Basic modifications setting a single attribute are listed by one function for all attributes of {\tt identifier\_set} type and next one for the rest of attributes.\\
 The example below shows how you can select changes between versions.
 
 \begin{minted}{sql}
@@ -651,7 +653,7 @@ select hardware_terminate_diff();
 \end{minted}
 
 \subsection{Composition}
-Composition is described in \ref{sec:relation-contains}.
+{\ttCOMPOSITION} relation is described in \secref{sec:relation-contains}.
 Linking objects with the same name from different tables is maintained by before and after insert and update triggers. These triggers ensure even disjoining if one of linked objects is renamed or deleted and can immediately join renamed object with another one.\\
 Condition that one object could be contained in at most one another object is checked by the check constraints. When the table represents kind that is containable to more than one kind, the containable table has this check constraint.\\
 Following example shows, how the objects in {\tt COMPOSITION} relation are linked and disjoint. Result is in tables \ref{tab:comp-box}, \ref{tab:comp-hw} and \ref{tab:comp-switch}.
@@ -804,7 +806,7 @@ select uid, name, host_get_service(uid,4) from host_data_version(4);
 
 \subsubsection{Templates}
 The table, to which attribute an inner table is made, could also be templated. So it is needed to have template table of these inner tables and have functions for resolving templated inner table's data.\\
-Following example shows how we can work with templated {\tt identifier\_set}s. Promised example of function, which retrieves resolved objects' data with the data origin, is introduced in the example. Also the function which process diff data and lists data modifications of {\tt identifier\_set} attributes is showed in the example.\\
+Following example shows how we can work with templated {\tt identifier\_set}s. Promised example of function, which retrieves resolved objects' data with the data origin, is introduced in the example. Also the function which processes diff data and lists data modifications of {\tt identifier\_set} attributes is showed in the example.\\
 
 \begin{minted}{sql}
 select startchangeset();
@@ -884,13 +886,13 @@ and have access to all tables, meanwhile {\tt deska\_user} has not.
 \section{SQL generator}
 \label{sec:sql-generator}
 This section describes how the tables and functions in the Deska database are generated. The Deska database is described in \secref{sec:deska-db}.\\
-The SQL generator is run by Deska database intstallator. It generates stored procedures and tables that ensure data manipulation for scheme described by user in module tables.\\
+The SQL generator is run by Deska database intstallator. It generates stored procedures and tables that ensure data manipulation for module tables from user defined schema.\\
 
 The generator is composed of classes {\tt Connection}, {\tt Schema}, {\tt Table}, {\tt Template}, {\tt Composition} and {\tt Multiref}.\\
 The significant part of each class are string constants that represent plpgsql code with mapping keys. These string constants are formatted in class methods, mapping keys are replaced with appropriate parts of plpgsql code that could differ for various tables.
 Detailed information about mentioned classes are below.
 
-Parts of plpgsql generator run at the moment when all modules defined by user are already present as tables in the database. And they start in this order:
+Parts of SQL generator run at the moment when all modules defined by user are already present as tables in the database. And they start in this order:
 
 \begin{enumerate}
     \item {\tt Template} class - generate and create templates for tables that should have template
@@ -919,7 +921,7 @@ Methods of {\tt Table} class return concrete plpgsql code for creating history t
 
 \subsubsection{History tables}
 In following text we will talk about {\tt table} and its history table {\tt table\_history}.\\
-For each table created in schema production a table with suffix \_history is generated. {\tt table\_history} serves as complete history of objects of kind that is represented by {\tt table} in database. These history tables are created in schema history.\\
+For each table created in the schema production a table with suffix \_history is generated. {\tt table\_history} serves as complete history of objects of kind that is represented by {\tt table} in database. These history tables are created in the schema history.\\
 {\tt table\_history} has the same attributes like {\tt table} and in addition {\tt dest\_bit} and {\tt version} attributes. {\tt dest\_bit} attribute indicates whether the object was deleted or not. In {\tt version} attribute is stored in which changeset was this row inserted. Inserted rows represents new object creation but even modification of an object. Don't confuse this {\tt version} attribute with the number of revision.
 
 \subsubsection{Retrieve Object Data}
@@ -929,19 +931,19 @@ These resolving functions are written as recursive selects.
 
 \subsubsection{Performing Modifications}
 Create new object is done by inserting a row with values given {\tt name}, {\tt uid}, {\tt dest\_bit} set off and id of current changeset in {\tt version} attribute into history table.\\
-Set attribute operation inserts current data of the object which we would like to modify into history table, sets value of version attribute to id of current changeset and updates the value of attribute, which has to be set.\\
+Set attribute operation inserts current data of the object which we would like to modify into history table, sets value of {\tt version} attribute to id of current changeset and updates the value of attribute, which has to be set.\\
 Object deletion is done by setting {\tt dest\_bit} attribute on.\\
 The {\tt dest\_bit} attribute can be also set from on to off, this is the way, how we can undo deletion. But it is enabled only in the same changeset in which it was set to on. This deleted object will not exist later and will not be found.
 
 \subsubsection{Diff}
 For diffing are generated functions for diff initialization, processing data prepared during the initialization and cleaning after diff. For templated tables is generated also the resolved modification of function for diff initialization. Data processing stays the same even for diff of resolved data, because all data resolving is done in the initialization step.\\
-These diff initialization functions have two other forms, for getting list of modifications between two versions and between the state inside temporary changeset and in its parent version. Even data processing have to take into consideration between which stages is diffing done. It is because it is needed for columns, which refers to some table uid and were changed, the proper name have to be taken.
+These diff initialization functions have two forms, for getting list of modifications between two versions and between the state inside temporary changeset and in its parent version. Even data processing have to take into consideration between which stages is diffing done. It is because it is needed for columns, which refers to some table uid and were changed, to take the proper name.
 
 \subsubsection{Commit}
 Table class for given table generates also commit function that bring tables in the production schema up to data. As data in tables in the production schema are resolved and templated data could be modified even by a change in the template table, it is necessary to distinguish templated tables from not templated and generate different commit functions for them.
 
 \subsection{Template}
-When all tables described by user are created, tables that are marked as {\tt templated} and have at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
+When all tables described by user are created, tables that are marked as templated and have at least one attribute that could inherit its value are found. For these tables we generate template tables.\\
 Template table generation means generation of create table statement for template table and modifications needed for having well defined template table.
 Template table is created like table that will be templated by this template table. And thus created template table will have then dropped not null constraints and dropped columns that can't inherit their value.
 
@@ -951,7 +953,7 @@ Linking objects of kinds in composition relation with same name is done by gener
 Condition that one object could be contained in at most one another object is checked by the check constraints that are generated by the {\tt Composition} class as well.
 
 \subsection{Multiref}
-{\tt Multiref} class can for each {\tt identifier\_set} attribute of the given table generate create table statement for inner table, which provides {\tt Multi-value references}. The generated inner class stores for object its {\tt identifier\_set}.\\
+{\tt Multiref} class can for each {\tt identifier\_set} attribute of the given table generate create table statement for inner table, which provides {\tt Multi-value references} (see \secref{sec:relation-multi-value-references}). The generated inner class stores for object its {\tt identifier\_set}.\\
 Generated inner table has always name with prefix "inner\_" followed by name of table, "\_" and name of table's {\tt identifier\_set} attribute. Inner tables have attributes attribute att1 with name of table tab1, attribute att2 with name of table tab2 that is referenced from {\tt identifier\_set} attribute of tab1, last attribute is a flag that is used to distinguish between rows representing empty set from rows representing NULL value. Generated inner table has following foreign key constraints, attribute att1 references uid column of table tab1 and attribute att2 references uid column of table tab2.\\
 As inner table stores data of attribute that is part of versioned data, {\tt Multiref} class generates also create statement for history table of inner tables.\\ 
 The table, to which attribute an inner table is made, could also be templated. Therefore {\tt Multiref} class generates create table statement for template table of these inner tables. And it also generates functions for resolving templated inner table's data.\\
