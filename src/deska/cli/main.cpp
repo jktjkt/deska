@@ -47,7 +47,22 @@ int main(int argc, char **argv)
     // Ignore SIGPIPE signal and catch Deska::Db::JsonConnectionError instead
     signal(SIGPIPE, SIG_IGN);
 
-    const char configFile[] = "deska.ini";
+    std::string configFile;
+    if (::getenv("DESKA_CONFIG_FILE")) {
+        configFile = ::getenv("DESKA_CONFIG_FILE");
+    } else {
+        if (::getenv("HOME")) {
+            configFile = std::string(::getenv("HOME")) + "/deska.ini";
+        } else {
+            configFile = "deska.ini";
+        }
+    }
+
+    if (!std::ifstream(configFile.c_str())) {
+        std::cerr << "deska-cli: Error: configuration file " << configFile << " not found" << std::endl;
+        return 1;
+    }
+
     try {
         Deska::Cli::CliConfig config(configFile, argc, argv);
 
