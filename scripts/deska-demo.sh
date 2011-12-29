@@ -13,6 +13,9 @@ echo "Installing packages..."
 # Install the packages
 yum -y localinstall *.rpm || die "Error when installing packages"
 
+yum install -y yum-conf-epel
+yum install -y GitPython
+
 echo "Starting PostgreSQL..."
 service postgresql-9.0 initdb || die "Cannot initialize the PostgreSQL server"
 service postgresql-9.0 start || die "Cannot start PostgreSQL server"
