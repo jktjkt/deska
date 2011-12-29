@@ -268,6 +268,10 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/python/deska
 install(TARGETS LowLevelPyDeska
     DESTINATION ${PYTHON_SITE_PACKAGES_ARCH}/deska)
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/install
+    DESTINATION share/deska
+)
+
 include(CTest)
 add_subdirectory(tests)
 
