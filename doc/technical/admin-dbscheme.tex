@@ -238,4 +238,20 @@ it can bring some speed up. Typically indexes should be created on columns, wher
 configuration generators searches for some values, or reference columns, where configuration generator
 searches in another kind (and do JOIN).
 
+\section{User access to Deska database}
+If user wants to use CLI, he must have user account on the server, where Deska server runs and 
+user account in Deska database.
+To add user to Deska database, run PostgreSQL console using commnad {\tt psql -U postgres -d deska\_database}
+and then perform these commands.
+\begin{minted}{sql}
+-- create user joe
+CREATE USER joe;
+-- then assign role deska_user
+GRANT deska_user TO joe;
+-- if you want joe can use restore command in CLI
+-- or if joe should access database directly and add indexes etc...
+GRANT deska_admin TO joe;
+\end{minted}
+
+
 \end{document}
