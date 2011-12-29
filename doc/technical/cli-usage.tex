@@ -608,16 +608,26 @@ The CLI has several values, that can or must be defined in order to get the CLI 
 you can see list of parameters from the configuration file. The file name id {\tt deska.ini} and should be placed in
 the directory from where we are executing the CLI.
 
-\todo {Fix these ugly tables}
+The file has standard configuration file format. It means, that section names are in {\tt []} on separate lines and
+value assignments are in format {\tt <parameter name> = <parameter value>}. For example:
+\begin{minted}{text}
+[DBConnection]
+Server=./src/deska/server/app/deska-server
+
+[CLI]
+HistoryFilename=.deska_cli_history
+HistoryLimit=64
+LineWidth=80
+\end{minted}
 
 \label{tab:configfile}
-\begin{longtable}{ l | l | p{2.5cm} | c |  p{4cm} | p{3cm} }
+\begin{longtable}{ p{2.2cm} | l | p{1.5cm} | c | p{3.5cm} | p{2.5cm} }
     \caption{Parameters in {\tt deska.ini}} \\
     Parameter section & Parameter name & Parameter type & Mandatory & Description & Default value \\
     \hline
     \endhead
     DBConnection & Server & vector of strings & yes & path to executable for connection to Deska server including arguments & no \\
-    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt \~/.local/share/deska/.deska\_cli\_history} \\
+    CLI & HistoryFilename & string & yes & path to file where the history will be stored & {\tt \~/.local/ share/deska/ .deska\_cli\_history} \\
     CLI & HistoryLimit & unsigned integer & no & number of lines stored in history & 64 \\
     CLI & LineWidth & unsigned integer & no & maximum width of line in the console & no \\
     CLI & NonInteractive & boolean & no & Force non-interactive mode & false \\
@@ -628,11 +638,9 @@ the directory from where we are executing the CLI.
 
 In the table \ref{tab:cmdlineparams} you can see overview of parameters, that can be used in the command line.
 
-\todo {Fix these ugly tables}
-
+\label{tab:cmdlineparams}
 \begin{longtable}{ l | l | l | p{7cm} }
-    \caption{Command line parameters}
-    \label{tab:cmdlineparams} \\
+    \caption{Command line parameters} \\
     Parameter name & Short name & Parameter type & Description \\
     \hline
     \endhead
