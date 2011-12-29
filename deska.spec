@@ -86,6 +86,9 @@ Group: Application/System
 License: GPLv2+
 Requires: deska-python-libs
 Requires: deska-client
+Requires: python3
+Requires: postgresql90-server
+Requires: python-psycopg2
 
 %description server
 The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
