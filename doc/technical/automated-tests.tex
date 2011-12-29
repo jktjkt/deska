@@ -6,7 +6,112 @@
 \label{sec:automated-tests}
 
 \begin{abstract}
-\todo{Honza: Automated tests}
+Deska comes with a rich set of automated unit tests which perform verification of proper functionality of the whole
+system at various levels.
 \end{abstract}
+
+\section{Covered Functionality}
+
+\subsection{Unit Tests}
+
+The lowest level at which the testing starts is verifying functionality of the low-level building blocks, the individual
+sub-components.  The C++ parts are covered using the Boost Unit Test Framework~\cite{boost-testing}, while the SQL
+database is covered by the PgTAP~\cite{pgtap} framework.
+
+\subsubsection{Testing with C++ IOStreams}
+
+Testing the IO-interaction of a C++ program proved to be particularly challenging.  Unlike in the Qt toolkit~\cite{qt},
+where overriding the behavior of a class responsible for the IO operations is simply a matter of two overloaded virtual
+functions, in the case of iostreams we had to work at much lower level of the {\tt streambuf}, where basic buffer
+management is intermixed with the actual IO actions.\footnote{Ironically, when developing the test system, we have
+identified a number of bugs in the Boost.Process IO layer which we tried to replace for the test runners.  Our changes
+are described in a dedicated \secref{sec:patches}.}
+
+\subsection{Integration Tests}
+
+Much of the work went into testing the interaction with the Deska server.  These tests make heavy use of Python helper
+classes.  After a brief period of experimenting with a declarative-driven test scenarios, we have settled on a
+traditional, imperative approach.  A typical test suite therefore looks like the following example:
+
+\begin{minted}{python}
+# import the testing infrastructure
+from apiUtils import *
+
+# An actual body of the test; ``r'' is our utility class instance
+# through which we interact with the server and the testing framework
+def imperative(r):
+    r.assertEqual(r.c(startChangeset()), "tmp1")
+    r.c(createObject("modelhardware", "fake"))
+    r.assertEqual(r.c(createObject("hardware", "foo")), "foo")
+    r.cvoid(setAttribute("hardware", "foo", "modelhardware", "fake"))
+    r.assertEqual(r.c(createObject("switch", "foo")), "foo")
+    r.cfail(createObject("box", "foo"), exception=ConstraintError())
+    r.assertEqual(r.c(createObject("host", "foo")), "foo")
+    exc = r.cfail(commitChangeset("."), exception=ConstraintError())
+    r.assertTrue(exc["message"]
+      .find("null value in column \"box\" violates not-null constraint") != -1)
+
+    r.cvoid(deleteObject("switch", "foo"))
+    r.assertEqual(r.c(createObject("box", "foo")), "foo")
+    r.assertEqual(r.c(commitChangeset(".")), "r2")
+\end{minted}
+
+The test cases cover the whole surface of the DBAPI implementation.  We have also implemented a simply fuzzing tests
+which try to feed the database functions with garbage data, or values which are known to cause SQL injection in similar
+systems.
+
+The actual test running and databse interaction is provided by {\tt tests/sql/util-run-testcase.sh} and {\tt
+tests/dbapi-application/testdbapi.py} scripts.
+
+\section{Testing Infrastructure}
+
+Deska, by the virtue of being implemented in many languages and programming environments, is not exactly trivial to test
+using a pre-existing framework.  We have settled on using the {\tt ctest}, the test executor from CMake~\cite{cmake}, to
+drive the test execution.  However, we had to wrap the CTest itself in a thin shell wrapper, the {\tt
+run-standalone-tests.sh}, as available in Deska sources, to guarantee that a proper environment is deployed before each
+execution.
+
+\subsection{Database Interaction}
+
+The {\tt run-standalone-tests.sh} script deploys a testing instance of the PostgreSQL database, configured to run on top
+of a RAM disk to maximize speed.\footnote{The tests themselves are worthless if not being executed by the developers as
+they make modifications, and therefore the effort to make the tests run as fast as possible is well-justified.}  We
+simply use the {\tt /dev/shm} {\tt tmpfs} filesystem, which is guaranteed to be available on any system based on a
+recent enough {\tt glibc}.
+
+The PostrgeSQL server is started exactly once for the whole testing setup.  The individual test programs specify through
+the CMake configuration whether they require a particular {\em Deska database} to be set up, and what user scheme to
+use.  A key request is that the individual test runs have to be completely isolated against each other.  At the same
+time, we have to guarantee that the starting point is always the same, no matter what.  At first, we were calling the
+{\tt deska-deploy.sh} script before each test program execution, along with dropping the database regularly, but
+performance measurements have shown that using PostgreSQL-level backup and restore tools leads to faster
+results.\footnote{The restore operation still takes roughly one second on a machine with plenty of RAM for caches and a
+fast SSD disk underneath.}
+
+A similar approach with on-demand setup is employed for testing proper functionality of the Git-based configuration
+generators.  A repository is created when needed, and the test programs verify that their contents match the expected
+outcome.
+
+\section{Continuous Integration}
+
+Thanks to the support of the Institute of Physics, we were able to roll out continuous integration servers based on
+CMake's CDash.\footnote{We have submitted a patch to make the CDash support Redmine~\cite{redmine}.  Further details
+about the patches we have developed are available in \secref{sec:patches}.}  Due to the gcc's limitation (and especially
+its memory consumption when compiling template-heavy applications), these build servers have significantly reduced the
+turn-around time between introducing and identifying regressions.
+
+The CDash instance~\cite{deska-dashboard} sends out immediate notifications when a particular checking introduces a
+test regression, build failure, or even a compilation warning.  Thanks to these efforts, the Deska system builds
+cleanly, without any compiler warnings on all supported platforms.
+
+\section{Source Code Management and Issue Tracking}
+
+We have been using Git~\cite{git} for the source code versioning from the very start.  Certain features were developed
+in separate branches, merging them into the master branch when they were ready.  Using a distributed source code
+management tools have greatly increased our productivity.  Introducing automated commit e-mails upon each {\tt git push}
+have increased the level of awareness about the ongoing work performed by the team members.
+
+We have also settled on an issue tracking system for keeping track of defects and to-do items.  The issue tracker
+offering an anonymous, public access is linked from our project web site~\cite{deska-project}.
 
 \end{document}
