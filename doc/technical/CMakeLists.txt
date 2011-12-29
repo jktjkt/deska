@@ -55,6 +55,7 @@ set(deska_doc_tex
     automated-tests.tex
     patches.tex
     conclusion.tex
+    cd-structure.tex
 )
 
 set(deska_doc_images
