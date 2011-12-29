@@ -23,7 +23,9 @@ service postgresql-9.0 start || die "Cannot start PostgreSQL server"
 echo "Creating user franta..."
 useradd franta || die "Cannot add user franta"
 echo -e "franta\nfranta\n" | passwd franta --stdin || die "Cannot change franta's password"
-echo -e "[DBConnection]\nServer=deska-server\n" > ~franta/deska.ini
+echo -e "[DBConnection]\nServer=deska-server-wrapper\n" > ~franta/deska.ini
+
+# FIXME: produce the deska-server-wrapper with a proper git integration
 
 echo "Creating the PostgreSQL database"
 
