@@ -274,6 +274,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/install
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/db
     DESTINATION share/deska/install-scripts/src/deska/server
+    PATTERN "*/data_generator/*" EXCLUDE
 )
 
 include(CTest)
