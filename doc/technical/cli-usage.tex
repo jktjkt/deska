@@ -13,12 +13,9 @@ The following chapter serves as a users' guide to the CLI application.
 typeface.}
 
 \section{Introduction}
-\todo{Tomas: write some intro here}
 
-\todo{Tomas: speak about the connection options, ie. what goes into the deska.ini file, a bit earlier. It shall be at
-the start of this chapter.}
-\label{sec:cli-connection-setup}
-\ldots
+The Deska CLI is a console application serving as an exclusive tool for manipulating data in the DB. For running the
+CLI, some parameters and configuration file must be set. For details refer section \ref{sec:cli-connection-setup}.
 
 You can exit the CLI using command {\tt exit} or {\tt quit} or using shortcut "Ctrl + D".
 
@@ -31,8 +28,8 @@ is very similar to an ordinary unix prompt where under context we can imagine a 
 context could represent a set of objects, because it can contain also filters, not only single object definitions.
 We will talk about filters later. Context means, that all commands manipulating, or working with objects will now be related to
 object or objects represented by this context. This behavior is very similar to an ordinary unix prompt where under context
-we can imagine a current directory where we are. In unix prompt all commands like "ls", "cd", "mv" and so on are also related
-to the current directory.
+we can imagine a current directory where we are. In unix prompt all commands like {\tt ls}, {\tt cd}, {\tt mv} and so on
+are also related to the current directory.
 
 You can go into the context of some object simply by typing its kind and name. For example:
 
@@ -55,14 +52,14 @@ host hpv2> end
 >
 \end{minted}
 
-The "interface hpv2->eth0" is equivalent to "host hpv2 interface eth0". So also keyword "end" will jump into context of
+The "interface hpv2->eth0" is equivalent to "host hpv2 interface eth0". So also keyword {\tt end} will jump into context of
 "host hpv2" and not to a "top-level" context. This shortened version could be used also in commands manipulating with
 objects.
 
 \subsection{Filters}
 
 Now we can describe, how to use filters in the context. Filter could be entered by typing kind name followed by keyword
-"where" and then writing filter definition in braces. The filter definition syntax could be described as this recursive
+{\tt where} and then writing filter definition in braces. The filter definition syntax could be described as this recursive
 structure:
 
 \begin{minted}{text}
@@ -125,8 +122,8 @@ host hpv2>
 >
 \end{minted}
 
-The second filter is for obtaining last added embedded object using keyword "new". The usage is the same as in case of
-"all". We will describe usage of both keywords later.
+The second filter is for obtaining last added embedded object using keyword {\tt new}. The usage is the same as in case of
+{\tt all}. We will describe usage of both keywords later.
 
 Here is one useful command for operations with filters. Is is command {\tt context}. It will show you current context
 with the filters. It is useful as in the prompt you can see only that you are in context of a filter, but you can not
@@ -215,7 +212,7 @@ interface eth0
 end
 \end{minted}
 
-Command "show" could be used also for printing information about objects outside of the current context. Like "show host hpv2" or
+Command {\tt show} could be used also for printing information about objects outside of the current context. Like "show host hpv2" or
 "show host hpv2 interface eth0". This form will print the requested information without changing the current context.
 The parameter can refer both to the top-level objects and to those in the current context. It means that in context of host "hpv2" you can type "show interface eth0"
 for showing information about interface "eth0" nested in host "hpv2".
@@ -246,7 +243,7 @@ attributes.
 
 \subsection{Objects creating, deleting and renaming}
 
-There are three ways on how to create an object. First one is an explicit one using keyword "create". For example "create
+There are three ways on how to create an object. First one is an explicit one using keyword {\tt create}. For example "create
 host hpv2" will create object "host hpv2". You can also directly create nested object (including its parent, if it
 doesn't exist yet) using a single "create host hpv2 interface eth0" call. Note that the keyword "create" does not change
 the current context, but acts as a standalone action -- an object is created, but the user's context remains the same.
@@ -294,13 +291,13 @@ In this example you can see that the keyword new changes the context, and that i
 of the newest object through the keyword {\tt last}.  This might come handy when working with ``append-only'' objects
 like in an event log.
 
-Deleting objects is similar to creating. It is done using keyword "delete". You can use the same parameters as in
+Deleting objects is similar to creating. It is done using keyword {\tt delete}. You can use the same parameters as in
 create, like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
 eth0". This will delete only the interface, not the whole host. When deleting parent of some nested objects, CLI will
 also delete all these nested objects (after confirmation). You can als
 
 Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
-parameter for "rename" is the same as for create, but you have to specify the new name as the last word. For example
+parameter for {\tt rename} is the same as for create, but you have to specify the new name as the last word. For example
 "rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
 "contains" or "containable" to another objects, the CLI will ask you if you want to rename these connected objects
 as well as they have the same name. If you do not rename them, the connection between them will be lost.
@@ -335,9 +332,9 @@ host hpv2->interface eth0> ip4 192.168.25.65
 host hpv2>
 \end{minted}
 
-You can also remove the value of the attribute using keyword "no". For example "no ip4". There are also two special
-keywords for operations with identifier sets. It is keyword "add" for adding an identifier to a set and keyword
-"remove" for removing an identifier from a set --- e.g. "add service www" for adding identifier "www" to a set
+You can also remove the value of the attribute using keyword {\tt no}. For example "no ip4". There are also two special
+keywords for operations with identifier sets. It is keyword {\tt add} for adding an identifier to a set and keyword
+{\tt remove} for removing an identifier from a set --- e.g. "add service www" for adding identifier "www" to a set
 with name service. You also set the set directly as a value of standard attribute using the notion "service [ftp, www,
 dns]", which simply overwrites the current value with the specified data.
 
@@ -618,6 +615,17 @@ Server=./src/deska/server/app/deska-server
 HistoryFilename=.deska_cli_history
 HistoryLimit=64
 LineWidth=80
+\end{minted}
+
+\label{sec:cli-connection-setup}
+There is one crucial mandatory parameter in the configuration file. It is parameter {\tt Server} in section
+{\tt DBConnection}. This parameters specifies path to an executable to Deska server for connection to the DB including
+arguments. If the executable takes some arguments, they should be one per line as in this example:
+\begin{minted}{text}
+[DBConnection]
+Server=./deska-server
+Server=arg1
+Server=arg2
 \end{minted}
 
 \label{tab:configfile}
