@@ -40,6 +40,34 @@ The whole machinery is assisted by helper routines running in the scope of the P
 sure that the configuration generators are run only when needed, maintain proper isolation between the parallel runs,
 and handle the communication with the remote user.  Their operation is described in the least part of this chapter.
 
+\subsection{Technical Requirements for the showConfigDiff DBAPI Method}
+
+The DBAPI provides just a single method for running the configuration generators on the server side.  The aim of that
+function is to handle everything ``behind the scenes'', from setting up the configuration output directory and
+triggering the transformations to diffing the output.  The crucial idea here is that the CLI should not contain any
+domain-specific knowledge of how the whole process works, but instead shall present the user with just a single ``show
+me the changes'' functionality.
+
+There are many methods for correctly transferring the diff information and conveying that to the user.  Current version
+of the DBAPI spec deals with this complexity by essentially ignoring the complications and supporting only the most
+rudimentary form of the changes, the {\tt git diff} output.
+
+Using this approach, the actual data being transferred are simply dumped to the user's screen.  Everything else is
+handled by the SCM integration layer of the Deska server.
+
+\subsubsection{Pending Changesets}
+
+The basic unit to operate on when dealing with the configuration generating scripts is a pending changeset.  Only a
+changeset can possibly trigger output modifications, and only when transformed into a persistent revision.  Similarly,
+the actual configuration data are needed either at the time of a commit (in order to be pushed into a SCM repository of
+the output configuration files), or when the user wants to review them.  These two moments are identical for us --- they
+identify a point in time where the output has to be ready and reflect the present state of the DB.
+
+The output of the configuration generators is a function of the database state.  When the state of the database does not
+change, neither should the configuration generators.\footnote{Again, the exception mentioned earlier about perfectly
+valid use cases like the DNS zones are in fact supported.}  The Deska DB server can therefore cache the outputs on a changeset
+level --- i.e. maintain a configuration output separately for each changeset.
+
 \section{Database Access}
 \label{sec:cfggen-pipes}
 
@@ -69,62 +97,34 @@ stderr}) to a securely-created temporary file proved to work well.
 \section{VCS Integration}
 \label{sec:cfggen-scm-integration}
 
-\todo{Honza: write stuff}
+One of the key requirements which the configuration generators have to fulfil is their ability to accurately track
+differences between the previous, saved state and the newly generated output.  When combined with the fact that the
+generated output is going to be saved in a VCS~\footnote{Version Control System} repository {\em anyway}, it is obvious
+that delegating the change management to a fully fledged VCS will very likely lead to simpler, more efficient and robust
+code, at least in the situations where the versioning backend supports efficient offline diffing.
 
-\subsection{Technical notes for the showCionfigDiff DBAPI method}
+As delivered, Deska ships with a backend which uses Git.  Being a distributed source code management system (SCM), Git
+supports offline, local operations pretty effectively, and is therefore very efficient in the Deska use case as well.
 
-The DBAPI provides just a single method for running the configuration generators on the server side.  The aim of that
-function is to handle everything ``behind the scenes'', from setting up the configuration output directory and
-triggering the transformations to diffing the output.  The crucial idea here is that the CLI should not contain any
-domain-specific knowledge of how the whole process works, but instead shall present the user with just a single ``show
-me the changes'' functionality.
+The process starts with calling {\tt git pull} in the server-wide repository clone, hereby making sure that the status
+on which we are going to operate is fresh enough and limiting the possible window for race conditions.\footnote{Git,
+being a {\em distributed} system, does not guarantee that each modification already performed locally can be reproduced
+in another copy at all times.  Instead, it relies on humans as the last resort when resolving conflicts.  Upon
+collision, the Deska system will simply refuse to commit the result, and simply re-creating the output again, now based
+on an updated initial state, will lead the eventual resolution.  As the whole operation does not depend on any local
+state (even the DNS zones use just the database data and the repository state), this operation will never lose any
+important information.}  When the repository is fresh, the {\tt git-new-workdir} is called to create a lightweight clone
+of the original state of the produced output.  After this preparation, the configuration generators are run, overwriting
+or augmenting the data in the checkout as they see fit.  When they finish their tasks, the Git integration scripts add
+the new working directory contents to the git index and send the resulting staged diff to the remote user who initiated
+the whole operation.  Should the generators run again at any time, a {\tt git reset} with the appropriate options
+restores the checkout to its initial state, ready to accept an updated output.  Finally, when the changes are approved,
+a {\tt git commit} along with {\tt git push} sends the data to the original, possibly remote Git repository.
 
-There are many methods for correctly transferring the diff information and conveying that to the user.  Current version
-of the DBAPI spec deals with this complexity by essentially ignoring the complications and supporting only the most
-rudimentary form of the changes, the {\tt git diff} output.
-
-Using this approach, the actual data being transferred are simply dumped to the user's screen.  Everything else is
-handled by the SCM integration layer of the Deska server.
-
-\subsubsection{Pending Changesets}
-
-The basic unit to operate on when dealing with the configuration generating scripts is a pending changeset.  Only a
-changeset can possibly trigger output modifications, and only when transformed into a persistent revision.  Similarly,
-the actual configuration data are needed either at the time of a commit (in order to be pushed into a SCM repository of
-the output configuration files), or when the user wants to review them.  These two moments are identical for us --- they
-identify a point in time where the output has to be ready and reflect the present state of the DB.
-
-The output of the configuration generators is a function of the database state.  When the state of the database does not
-change, neither should the configuration generators.\footnote{There are also the usual corner cases, though --- suppose a
-DNS zone file.  The zone file typically contains a textual information about the ``age'' of a zone, which is typically
-done by embedding a transformed timestamp inside.  Clearly, this information depends not only on the database state, but
-also on some external information, like the current time or the ``generation'' of a particular configuration file.  For
-these cases, the Deska DBAPI adds a ``force generators re-run'' option which will make sure that a stale copy of the
-configuration output will not get used.  In addition to that, it's possible to ship a plugin which will use a policy to
-decide whether to re-use a previous output or not.}  The Deska DB server can therefore cache the outputs on a changeset
-level --- ie. maintain a configuration output separately for each changeset.
-
-Deciding whether to regenerate or reuse a previous version is then just a matter of maintaining a simple boolean flag
-for the freshness of the output.  Creating a new changeset or rebasing to a new revision set it to false, while a
-successful generator run sets it to true.
-
-\subsubsection{SCM Branching}
-
-In most situations, the configuration output will likely be stored in a SCM system.  Therefore, it makes sense to
-integrate the output management logic to the SCM-specific operations.  The reference implementation of the Deska server
-uses {\tt git}'s {\tt git-new-workdir} and branches quite heavily.
-
-\subsubsection{How to do that in Git}
-\todo{Honza: make this much more prominent}
-\label{sec:cfggen-git}
-
-\begin{itemize}
-    \item {\tt git-new-workdir} for setting up a WC the first time
-    \item {\tt git.cmd.Git(path).add('-A')} for creating an index
-    \item {\tt git.cmd.Git(path).diff('-{-}color', '-{-}staged')} for obtaining a diff
-    \item {\tt git reset -{-}hard HEAD \&\& git clean -d -f -f} for throwing out all the changes
-\end{itemize}
-
+Supporting various versions proved to be rather challenging.  Git offers a {\tt --porcelain} option for most of its
+commands, but unfortunately the version of Git which ships on the Red Hat Enterprise Linux 5 is too old to support it
+for the {\tt git status} command.  This is why the code falls back to calling {\tt git diff --cached --name-only} as a
+slightly less efficient substitute.
 
 \section{Database Support}
 \label{sec:cfggen-db-support}
