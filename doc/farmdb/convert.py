@@ -564,7 +564,6 @@ for (uid, x) in fd_hardware.iteritems():
     if fullname in ("Cisco-Catalyst-6500", "Force10-24-port-10GE-XFP", "BNT-RackSwitch-G8124"):
         continue
     out_assigned_modelhw[uid] = fullname
-    # FIXME: "create" fails with duplicates
     print "create modelhardware %s" % fullname
     print "modelhardware %s" % fullname
     if x.cpuCount is not None:
@@ -729,12 +728,9 @@ for (uid, x) in fd_machines.iteritems():
     if x.note is not None:
         print "  note_hardware '%s'" % x.note
     if x.obsolete is not None:
-        print "# FIXME obsolete: %s" % x.obsolete
         obsolete_items.append(("hardware", myname))
         obsolete_items.append(("box", myname))
         obsolete_items.append(("host", myname))
-    if x.os is not None:
-        print "# FIXME: os %s" % x.os
     my_modelhw = None
     if x.hwUid is not None:
         if out_assigned_modelhw.has_key(x.hwUid):
