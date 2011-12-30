@@ -16,10 +16,12 @@ f_cf_groups = file("cfengine-groups.cf", "wb")
 
 
 for service in all_services.keys():
-    hosts_farm = deska.host[(deska.host.service.contains(service)) &
+    hosts_farm = deska.host[deska.host.service.contains("in_nagios") &
+                            deska.host.service.contains(service) &
                             ((deska.interface.network == "Golias-25") |
                              (deska.interface.network == "Golias-NAT"))]
-    hosts_fzu  = deska.host[(deska.host.service.contains(service)) &
+    hosts_fzu  = deska.host[deska.host.service.contains("in_nagios") &
+                            deska.host.service.contains(service) &
                             (deska.interface.network == "FZU")]
 
     hostnames_all = sorted(hosts_farm.keys() + hosts_fzu.keys())
@@ -35,6 +37,11 @@ for service in all_services.keys():
         f_nagios_hostgroups.write("define hostgroup {\n  hostgroup_name %(service)s\n  members %(hostnames)s\n}\n"
                                   % {"service": service, "hostnames": ",".join(fqdn_hostnames)})
         f_nagios_hostgroups.close()
+
+    if service == "in_nagios":
+        # a special service which holds all servers that are supposed to be
+        # monitored by Nagios
+        pass
 
 
 
