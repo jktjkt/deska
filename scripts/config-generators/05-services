@@ -8,14 +8,28 @@ import deska
 deska.init()
 
 t1 = time.time()
-#hosts = deska.host[(deska.service != [])]
 all_services = deska.service._all()
 t2 = time.time()
 
+# File containing the group definitions for cfengine
 f_cf_groups = file("cfengine-groups.cf", "wb")
+
+
 for service in all_services.keys():
-    hosts = deska.host[deska.host.service.contains(service)]
-    f_cf_groups.write("%s = (%s)\n" % (service, " ".join(sorted(hosts.keys()))))
+    hosts_farm = deska.host[(deska.host.service.contains(service)) &
+                            ((deska.interface.network == "Golias-25") |
+                             (deska.interface.network == "Golias-NAT"))]
+    hosts_fzu  = deska.host[(deska.host.service.contains(service)) &
+                            (deska.interface.network == "FZU")]
+
+    hostnames_all = sorted(hosts_farm.keys() + hosts_fzu.keys())
+
+    # The required format for cfengine is pretty simple, just a list of host
+    # names in parenthesis
+    f_cf_groups.write("%s = (%s)\n" % (service, " ".join(hostnames_all)))
+
+
+
 f_cf_groups.close()
 
 
