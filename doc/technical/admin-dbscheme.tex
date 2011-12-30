@@ -66,20 +66,20 @@ needs to be set to {\tt DEFERRABLE}.
 
 \subsection{Attribute types}
 \label{sec:db-att-types}
-To limit the system complexity, we support only subset of Postgresql types and we added some.
-Here is the listing of supported types.
+To limit the system complexity, we support only a subset of the PostgreSQL data types with some additions that come
+handy in a typical data center environment.  Here is a list of the supported types:
 
 \begin{itemize}
-	\item{identifier} - this is Deska identifier, it is used for object names
-	\item{identifier\_set} - set of identifiers, use this for multireference attributes
-	\item{int} - for whole numbers
-	\item{bigint} - for large whole numbers, uids
-	\item{real} - for whole numbers
+	\item{identifier} - this is the Deska identifier, as used for object names
+	\item{identifier\_set} - set of identifiers used for multi-reference attributes
+	\item{int} - for integers
+	\item{bigint} - for large integers and internal UIDs
+	\item{real} - for floating-point numbers
 	\item{text} - for strings
-	\item{ipv4} - for IP version 4 addresses
-	\item{ipv6} - for IP version 6 addresses
-	\item{macaddr} - for MAC addresses
-	\item{date} - for date
+	\item{ipv4} - for IPv4 addresses
+	\item{ipv6} - for IPv6 addresses
+	\item{macaddr} - for Ethernet MAC addresses
+	\item{date} - for specifying a date
 	\item{timestamp} - for timestamp
 \end{itemize}
 
