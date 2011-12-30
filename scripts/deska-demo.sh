@@ -48,7 +48,7 @@ su postgres -c "DESKA_SCHEME=fzu ./deska-deploy-database.sh -U postgres -d d_fzu
 
 echo "Initializing Git stuff..."
 mkdir /var/lib/deska/cfggen
-./prepare-git-repo.sh /var/lib/deska/cfggen
+/usr/share/deska/install-scripts/prepare-git-repo.sh /var/lib/deska/cfggen
 
 export DESKA_CFGGEN_BACKEND=git
 echo -e "#/bin/bash
