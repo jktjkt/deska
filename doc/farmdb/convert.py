@@ -471,6 +471,8 @@ create service dns
 create service dhcpd
 create service bond0_eth0_eth1
 
+create service in_nagios
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -836,7 +838,7 @@ end
     else:
         box_str = None
     print "create host %s" % myname
-    services = []
+    services = ["in_nagios"]
     if myname == "golias100":
         services.append("dpm-head")
     elif myname.startswith("golias"):
@@ -879,7 +881,7 @@ end
     if myname in ("netservice1", "netservice2"):
         services = services + ["dns", "dhcpd"]
 
-    if myname in ("ha1", "ha2", "ha3", "sam3", "dpmpool4", "se4"):
+    if myname in ("ha1", "ha2", "ha3", "sam3", "dpmpool4", "se4", "samson", "dalila"):
         services.append("bond0_eth0_eth1")
 
     if len(services):
