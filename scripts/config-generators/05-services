@@ -50,6 +50,12 @@ for service in all_services.keys():
             f_nagios_host = file("nagios-host-%s.cfg" % hostname, "wb")
             f_nagios_host.write("define host {\n  use  non-critical-host-template\n  host_name %s\n}\n" % hostname)
             f_nagios_host.close()
+        # At FZU, a server being present in Nagios is exactly equal to it being checked by munin
+        f_munin_conf = file("munin-server.conf", "wb")
+        f_munin_conf.write("[farm.particle.cz;]\nnode_order %s\n" % " ".join(["%s.farm.particle.cz" % server for server in sorted(hosts_farm)]))
+        f_munin_conf.close()
+
+
     elif service == "ganglia_aggregator":
         subclusters = ["iberis", "ibis", "ib", "salix", "saltix", "golias"]
         for cluster in subclusters:
