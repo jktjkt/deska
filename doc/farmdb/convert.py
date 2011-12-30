@@ -838,7 +838,7 @@ end
     else:
         box_str = None
     print "create host %s" % myname
-    services = ["in_nagios"]
+    services = []
     if myname == "golias100":
         services.append("dpm-head")
     elif myname.startswith("golias"):
@@ -883,6 +883,9 @@ end
 
     if myname in ("ha1", "ha2", "ha3", "sam3", "dpmpool4", "se4", "samson", "dalila"):
         services.append("bond0_eth0_eth1")
+
+    if len(services):
+        services.append("in_nagios")
 
     if len(services):
         print "host %s" % myname
