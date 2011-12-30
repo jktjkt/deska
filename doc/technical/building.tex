@@ -20,7 +20,16 @@ Do {\bf NOT} use this script on real, production machines.  The configuration wh
 insecure, and is therefore intended just for quick evaluation in a virtual machine.  The script has been tested on a
 ``Basic Server'' installation of Scientific Linux 6.1, and might require adjustments on other systems.
 
-\todo{Honza: write the script}
+At first, transfer all the RPM packages and the {\tt deska-demo.sh} shell script from the enclosed CD disk to the target
+system.  Enter the directory with the packages and execute the shell script as root:
+
+\begin{minted}{console}
+# ./deska-demo.sh
+\end{minted}
+
+After the script finishes, the system is ready to be used.  Just login as user {\tt franta} with password {\tt franta}
+and execute the \path{deska-cli} as usual to play around with a fully configured Deska system with a sample
+configuration generator that prints all {\tt host}s in a database.
 
 The rest of this chapter contains all steps required for a proper deployment of Deska into a production environment.
 
