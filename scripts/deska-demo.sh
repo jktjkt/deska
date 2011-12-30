@@ -23,9 +23,7 @@ service postgresql-9.0 start || die "Cannot start PostgreSQL server"
 echo "Creating user franta..."
 useradd franta || die "Cannot add user franta"
 echo -e "franta\nfranta\n" | passwd franta --stdin || die "Cannot change franta's password"
-echo -e "[DBConnection]\nServer=deska-server-wrapper\n" > ~franta/deska.ini
-
-# FIXME: produce the deska-server-wrapper with a proper git integration
+echo -e "[DBConnection]\nServer=/usr/local/bin/deska-server-wrapper\n" > ~franta/deska.ini
 
 echo "Creating the PostgreSQL database"
 
@@ -47,5 +45,22 @@ chown postgres:postgres /var/lib/deska
 
 su postgres -c "DESKA_SCHEME=fzu ./deska-deploy-database.sh -U postgres -d d_fzu -t /var/lib/deska/d_fzu" \
     || die "Cannot deploy the database scheme"
+
+echo "Initializing Git stuff..."
+mkdir /var/lib/deska/cfggen
+./prepare-git-repo.sh /var/lib/deska/cfggen
+
+export DESKA_CFGGEN_BACKEND=git
+echo -e "#/bin/bash
+export DESKA_DB=d_fzu
+export DESKA_CFGGEN_BACKEND=git
+export DESKA_CFGGEN_SCRIPTS=/var/lib/deska/cfggen/scripts
+export DESKA_CFGGEN_GIT_REPO=/var/lib/deska/cfggen/cfggen-repo
+export DESKA_CFGGEN_GIT_WC=/var/lib/deska/cfggen/cfggen-wc
+export DESKA_CFGGEN_GIT_PRIMARY_CLONE=/var/lib/deska/cfggen/cfggen-primary
+export DESKA_CFGGEN_GIT_SECOND=/var/lib/deska/cfggen/second-wd
+/usr/bin/deska-server
+" > /usr/local/bin/deska-server-wrapper
+chmod +x /usr/local/bin/deska-server-wrapper
 
 echo "All done. Please login as user 'franta' (pw 'franta') and run 'deska-cli' to evaluate the Deska system."
