@@ -10,8 +10,10 @@ deska.init()
 t1 = time.time()
 boxes = deska.box._all()
 hardware = deska.hardware._all()
+switches = deska.switch._all()
 modelbox = deska.modelbox._all()
 modelhardware = deska.modelhardware._all()
+modelswitch = deska.modelswitch._all()
 t2 = time.time()
 
 queue = ["serverovna"]
@@ -56,6 +58,14 @@ def print_current(s, indent, key, special_nodes, parent_name, parent_box_data, p
         my_modelhw = dict((k,v) for (k,v) in modelhardware.iteritems() if k == hardware[key].modelhardware)
         my_modelhw_obj = my_modelhw[my_modelhw.keys()[0]]
         my_modelbox = dict((k,v) for (k,v) in modelbox.iteritems() if k == my_modelhw_obj.modelbox)
+        if not len(my_modelbox):
+            my_modelbox = None
+        else:
+            my_modelbox_data = my_modelbox.values()[0]
+    elif my_box.switch is not None:
+        my_modelsw = dict((k,v) for (k,v) in modelswitch.iteritems() if k == switches[key].modelswitch)
+        my_modelsw_obj = my_modelsw[my_modelsw.keys()[0]]
+        my_modelbox = dict((k,v) for (k,v) in modelbox.iteritems() if k == my_modelsw_obj.modelbox)
         if not len(my_modelbox):
             my_modelbox = None
         else:

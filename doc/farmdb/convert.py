@@ -473,6 +473,24 @@ create service bond0_eth0_eth1
 
 create service in_nagios
 
+create modelswitch Cisco-6506
+modelswitch Cisco-6506
+    modelbox 11u
+    vendor Cisco
+end
+
+create modelswitch Force10-24-port-10GE-XFP
+modelswitch Force10-24-port-10GE-XFP
+    modelbox 1u
+    vendor Force10
+end
+
+create modelswitch BNT-RackSwitch-G8124
+modelswitch BNT-RackSwitch-G8124
+    modelbox 1u
+    vendor BNT
+end
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -486,6 +504,34 @@ for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not N
     print "end"
 print
 
+print """
+create switch swL011
+switch swL011
+    modelswitch Cisco-6506
+    inside L01
+    x 1
+    y 34
+end
+
+create switch swL012
+switch swL012
+    modelswitch Force10-24-port-10GE-XFP
+    inside L01
+    x 1
+    y 36
+end
+
+create switch swL013
+switch swL013
+    modelswitch BNT-RackSwitch-G8124
+    inside L01
+    x 1
+    y 35
+end
+
+
+
+"""
 
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
@@ -505,6 +551,8 @@ for (uid, x) in fd_hardware.iteritems():
             # ...and hope for the best
         else:
             fullname = candidate
+    if fullname in ("Cisco-Catalyst-6500", "Force10-24-port-10GE-XFP", "BNT-RackSwitch-G8124"):
+        continue
     out_assigned_modelhw[uid] = fullname
     # FIXME: "create" fails with duplicates
     print "create modelhardware %s" % fullname
@@ -647,6 +695,8 @@ for (uid, x) in fd_machines.iteritems():
         # wtf? "virtual blade"?
         continue
     myname = find_hostname_for_hw(uid, x)
+    if myname.startswith("swL01"):
+        continue
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
     print "hardware %s" % myname
@@ -949,6 +999,7 @@ delete box L50
 delete box L51
 delete box L53
 delete box L61
+
 
 @commit to r3
 jkt
