@@ -168,7 +168,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/deska_server_utils/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/*.py*
 %attr(755,root,root)%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
-%{_datadir}/deska/install-scripts/install/*.sh
+%attr(755,root,root)%{_datadir}/deska/install-scripts/install/*.sh
 %attr(755,root,root)%{_datadir}/deska/install-scripts/tests/*.sh
 %attr(755,root,root)%{_datadir}/deska/install-scripts/tests/sql/*.sh
 %{_datadir}/deska/install-scripts/install/*.sql
