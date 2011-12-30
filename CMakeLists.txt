@@ -278,9 +278,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/deska/server/db
     PATTERN "*/data_generator/*" EXCLUDE
 )
 
-install(FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/prepare-git-repo.sh
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+install(DIRECTORY
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
     DESTINATION share/deska/install-scripts
 )
 
