@@ -449,6 +449,28 @@ create service cluster_ibis
 create service cluster_ib
 create service cluster_dorje
 
+create service ha
+create service dpmpool
+create service torque
+create service glite-ce
+create service cream
+create service dpm-head
+create service nfs
+create service sam
+create service sekce
+create service xrootd
+
+create service cvmfs_wn
+create service ui
+create service xen_dom0
+create service xen_paravirt
+create service www
+create service sbdii
+create service ganglia_aggregator
+create service dns
+create service dhcpd
+create service bond0_eth0_eth1
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -814,6 +836,57 @@ end
     else:
         box_str = None
     print "create host %s" % myname
+    services = []
+    if myname == "golias100":
+        services.append("dpm-head")
+    elif myname.startswith("golias"):
+        services.append("wn")
+        services.append("cluster_golias")
+    elif myname.startswith("iberis"):
+        services.append("wn")
+        services.append("cluster_iberis")
+    elif myname.startswith("ibis"):
+        services.append("wn")
+        services.append("cluster_ibis")
+    elif myname.startswith("ib"):
+        services.append("wn")
+        services.append("cluster_ib")
+    elif myname.startswith("salix"):
+        services.append("wn")
+        services.append("cluster_salix")
+    elif myname.startswith("saltix"):
+        services.append("wn")
+        services.append("cluster_saltix")
+    elif myname.startswith("dpmpool") or myname == "se4":
+        services.append("dpmpool")
+    elif myname.startswith("xrootd"):
+        services.append("xrootd")
+    elif myname.startswith("storage"):
+        services.append("nfs")
+    elif myname.startswith("ha"):
+        services.append("ha")
+    elif myname in ("sam2", "sam3", "sam4"):
+        services.append("sam")
+    elif myname.startswith("ui"):
+        services.append("ui")
+
+    if myname in ("golias101", "golias169", "iberis01", "iberis03", "salix01",
+                  "salix03", "saltix01", "saltix03", "ibis01", "ibis03", "ib01",
+                  "ib03", "monitor", "hpv2", "skurut1-2.egee.cesnet.cz",
+                  "skurut2-2", "dpm1", "ce2.egee.cesnet.cz"):
+        services.append("ganglia_aggregator")
+
+    if myname in ("netservice1", "netservice2"):
+        services = services + ["dns", "dhcpd"]
+
+    if myname in ("ha1", "ha2", "ha3", "sam3", "dpmpool4", "se4"):
+        services.append("bond0_eth0_eth1")
+
+    if len(services):
+        print "host %s" % myname
+        print "  service [%s]" % ", ".join(services)
+        print "end"
+
     if box_str is not None:
         print box_str
     else:
