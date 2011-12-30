@@ -6,7 +6,13 @@ constructed according to the default rules (inheriting necessary options from
 the environment and configuration files where applicable); this means that this
 module can only be used when the database is reachable and available.
 '''
-import libLowLevelPyDeska as _l
+try:
+    import libLowLevelPyDeska as _l
+except ImportError:
+    # a hack for RHEL6 and its paths
+    import sys
+    sys.path.append("/usr/lib64/python2.6/site-packages/deska")
+    import libLowLevelPyDeska as _l
 from classes import _discoverScheme, _addExpressionOperators
 
 def init(conn=None):
