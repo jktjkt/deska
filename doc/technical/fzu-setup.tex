@@ -6,7 +6,9 @@
 \label{sec:fzu-setup}
 
 \begin{abstract}
-\todo{Honza: FZU setup}
+This chapter describes the process and deliverables which were implemented as a part of integrating the Deska system
+with the pre-existing infrastructure of the Institute of Physics.  In particular, we discuss the features of the
+database scheme, the process of the data conversion and the deployed output configuration generators.
 \end{abstract}
 
 \section{Database Scheme}
@@ -15,7 +17,22 @@
 
 \section{Data conversion}
 \label{sec:fzu-farmdb}
-\todo{Honza: farmdb conversion}
+
+The Institute of Physics has had a web-based application for inventory management for a few years.  This
+ASP.NET~\cite{asp.net} based application has served well, but has focused mostly on keeping track of rack placement of
+the hardware, leaving much of more complicated tasks like assigning roles to machines unsolved.  The database also mixed
+different sorts of items in one table (i.e. it made no distinctions between a typical server and an Ethernet switch or a
+Fibre Channel disk array).  Converting this information to a highly structured data required by the Deska scheme has
+proven challenging.  The process was not helped by the fact that the existing database, the FarmDB, used dimensions in
+``rack fractions'' where a twin-sized SGI machine has width of 50\%, while the Deska scheme uses a hierarchy of nested
+boxes and internal offsetting.
+
+The conversion started with processing an SQL dump, constructing the objects and maintaining an in-memory representation
+of the database.  The dictionary of objects was then walked and a dump suitable for processing by the Deska CLI
+(\secref{sec:cli-usage}) got produced.
+
+The full sources of the conversion script are available in the Deska source tree (\path{doc/farmdb/dump}), along with
+the source data (\path{doc/farmdb/dbo.*.Table.sql}) and a helper script (\path{doc/farmdb/deunicodeify.sh}).
 
 \section{Configuration Generators}
 \label{sec:fzu-cfggen}
