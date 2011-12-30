@@ -491,6 +491,11 @@ modelswitch BNT-RackSwitch-G8124
     vendor BNT
 end
 
+create modelswitch anon-switch
+modelswitch anon-switch
+    modelbox 1u
+end
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -529,9 +534,14 @@ switch swL013
     y 35
 end
 
-
-
 """
+
+for sw in ("L031", "L041", "L051", "L052", "L071", "L081", "L082", "L083",
+           "L101", "L102", "L111", "L112", "R051", "R052", "R071", "R081"):
+    print "create switch sw%s" % sw
+    print "create box sw%s" % sw
+    print "switch sw%s modelswitch anon-switch" % sw
+print
 
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
@@ -978,8 +988,18 @@ for (uid, x) in fd_interfaces.iteritems():
         print "  mac %s" % x.mac
     if x.ip is not None:
         print "  ip4 %s" % x.ip
+    if x.switchNo is not None:
+        switchNo = x.switchNo
+        if switchNo == "SWL071":
+            switchNo = "swL071"
+        if switchNo.startswith("swL") or switchNo.startswith("swR"):
+            print "  switch %s" % switchNo
+            if x.switchPos is not None:
+                if switchNo == "swL011":
+                    print "  port gi%s" % x.switchPos
+                else:
+                    print "  port %s" % x.switchPos
     print "end\nend\n"
-    # FIXME: more of them!
 
 print
 print """@commit to r2
