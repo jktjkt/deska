@@ -24,6 +24,7 @@ echo "Creating user franta..."
 useradd franta || die "Cannot add user franta"
 echo -e "franta\nfranta\n" | passwd franta --stdin || die "Cannot change franta's password"
 echo -e "[DBConnection]\nServer=/usr/local/bin/deska-server-wrapper\n" > ~franta/deska.ini
+echo -e "LESS=-r\nexport LESS\n" >> ~franta/.bash_profile
 
 echo "Creating the PostgreSQL database"
 
