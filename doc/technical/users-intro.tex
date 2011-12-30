@@ -94,11 +94,11 @@ mere cosmetic changes, though.}
 \begin{minted}{text}
 > start
 Changeset tmp4 started.
-> hardware new-delivery
-Object(s) hardware new-delivery do(es) not exist. Create? y
-hardware new-delivery> inside L01
-Object(s) rack-placement new-delivery do(es) not exist. Create and connect to hardware new-delivery? y
-hardware new-delivery> rack_pos_y 12
+> hardware srv123
+Object(s) hardware srv123 do(es) not exist. Create? y
+hardware srv123> inside L01
+Object(s) rack-placement srv123 do(es) not exist. Create and connect to hardware srv123? y
+hardware srv123> rack_pos_y 12
 \end{minted}
 
 \subsection{Step Two: Verifying the Results}
@@ -108,14 +108,14 @@ properties, we can already check the {\em impact} of the change which we have ju
 reviewing the modifications performed in the Deska database:
 
 \begin{minted}{diff}
-hardware new-delivery> diff
-+ box new-delivery
-+     hardware new-delivery
+hardware srv123> diff
++ box srv123
++     hardware srv123
 +     inside L01
 +     y 12
 + end
-+ hardware new-delivery
-+     box new-delivery
++ hardware srv123
++     box srv123
 +     modelhardware HP-ProLiant-DL380-G6
 + end
 \end{minted}
@@ -125,7 +125,7 @@ typos.  We shall therefore check about how are these modifications going to affe
 various services:
 
 \begin{minted}{diff}
-hardware new-delivery> configdiff
+hardware srv123> configdiff
 diff --git a/RackView.qml b/RackView.qml
 index c34796f..bccd828 100644
 --- a/RackView.qml
@@ -135,7 +135,7 @@ index c34796f..bccd828 100644
      }
      DeskaDividedBox {
 +      id: box_new_delivery
-+      name: "new-delivery"
++      name: "srv123"
 +      rackY: 36
 +      consumesBaysY: 2
 +    }
@@ -149,7 +149,7 @@ The changes look like a direct result of the newly added data, and therefore we 
 database into the production environment:
 
 \begin{minted}{text}
-hardware new-delivery> commit
+hardware srv123> commit
 Commit message: Adding a box for the new delivery
 Changeset tmp4 commited to r4.
 >
