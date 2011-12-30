@@ -11,6 +11,10 @@ def ipv4_sorter(x):
     (k, v) = x
     return int(str(v.ip4).split(".")[-1])
 
+def switchport_sorter(x):
+    (k, v) = x
+    return "%s-%5s" % (v.switch, v.port)
+
 def write_file(iterable, domain, fp_dhcp=None, fp_zone=None, fp_rzone=None):
     for (k, v) in iterable:
         if v.mac is None:
@@ -51,6 +55,7 @@ def write_file(iterable, domain, fp_dhcp=None, fp_zone=None, fp_rzone=None):
 # comments in src/deska/python/deska/classes.py (or the Deska documentation) for
 # details.
 t1 = time.time()
+networks = deska.network._all()
 interfaces_vlan25 = sorted(deska.interface[(deska.interface.ip4 != None) &
                                            (deska.network.vlan == 25)]
                            .iteritems(), key=ipv4_sorter)
@@ -61,6 +66,7 @@ interfaces_vlan8  = sorted(deska.interface[(deska.interface.ip4 != None) &
                                            (deska.network.vlan == 8)]
                            .iteritems(), key=ipv4_sorter)
 
+interfaces_all = sorted(interfaces_vlan25 + interfaces_vlan172 + interfaces_vlan8, key=switchport_sorter)
 t2 = time.time()
 
 f_dhcp = file("dhcpd-farm", "wb")
@@ -140,6 +146,26 @@ f_dhcp.write("\n}\n")
 f_dhcp.close()
 f_zone.close()
 f_rzone.close()
+
+switches = sorted(set(v.switch for (k,v) in interfaces_all))
+for switch in switches:
+    f_switch = open("switch-%s" % switch, "wb")
+    for (iface, iface_data) in interfaces_all:
+        if iface_data.switch != switch:
+            continue
+        if iface_data.port is None:
+            continue
+        (hostname, iface_local) = iface.split("->")
+        mynet = networks[iface_data.network]
+        if mynet.vlan == 8 and not hostname.endswith(".monitor"):
+            hostname = hostname + ".monitor"
+        s = "interface %s\n" % iface_data.port
+        s += "  description %s\n" % hostname
+        s += "  switchport\n  switchport mode access\n  switchport access vlan %s\n" % mynet.vlan
+        s += "end\n\n"
+        f_switch.write(s)
+    f_switch.close()
+
 
 t3 = time.time()
 
