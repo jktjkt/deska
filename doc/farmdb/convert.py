@@ -436,6 +436,19 @@ modelbox hp-blade-p-2u
     depth 1
 end
 
+
+# services and roles
+
+create service wn
+create service cluster_salix
+create service cluster_saltix
+create service cluster_golias
+create service cluster_hypericum
+create service cluster_iberis
+create service cluster_ibis
+create service cluster_ib
+create service cluster_dorje
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
