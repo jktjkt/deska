@@ -27,7 +27,7 @@ deska_init_git()
     export GIT_AUTHOR_EMAIL="unit.test@example.org"
 
     # Initialize the master repository which simulates a remote repo
-    git init --bare --shared=all ${DESKA_CFGGEN_GIT_REPO} || deska_git_die "git init --bare my_repo failed"
+    git init --bare --shared=0666 ${DESKA_CFGGEN_GIT_REPO} || deska_git_die "git init --bare my_repo failed"
 
     # Set up a repo-side hook for auto-updating the second clone
     echo -e "#!/bin/bash\numask 000\nGIT_WORK_TREE="${DESKA_CFGGEN_GIT_SECOND}" git checkout -f" > \
@@ -47,6 +47,7 @@ deska_init_git()
     git push origin master || deska_git_die "git push origin master failed"
     popd
     umask 022
+    chmod 777 "${DESKA_CFGGEN_GIT_PRIMARY_CLONE}"
 
     # Prepare (empty) generating scripts
     mkdir "${DESKA_CFGGEN_SCRIPTS}"
