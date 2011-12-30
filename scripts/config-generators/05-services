@@ -23,10 +23,18 @@ for service in all_services.keys():
                             (deska.interface.network == "FZU")]
 
     hostnames_all = sorted(hosts_farm.keys() + hosts_fzu.keys())
+    fqdn_hostnames = sorted(["%s.fzu.cz" % h for h in hosts_fzu] +
+                            ["%s.farm.particle.cz" % h for h in hosts_farm])
 
     # The required format for cfengine is pretty simple, just a list of host
     # names in parenthesis
     f_cf_groups.write("%s = (%s)\n" % (service, " ".join(hostnames_all)))
+
+    if len(hostnames_all):
+        f_nagios_hostgroups = file("nagios-hostgroups-%s.cfg" % service, "wb")
+        f_nagios_hostgroups.write("define hostgroup {\n  hostgroup_name %(service)s\n  members %(hostnames)s\n}\n"
+                                  % {"service": service, "hostnames": ",".join(fqdn_hostnames)})
+        f_nagios_hostgroups.close()
 
 
 
