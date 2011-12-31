@@ -236,6 +236,7 @@ Please note that this rule does {\em not} translate to ``one can freely omit {\t
 explicitly returning {\tt null}s is compulsory e.g. when processing object attributes.
 
 \subsection{Exceptions}
+\label{sec:dbapi-exceptions}
 
 There are certain situations where the execution of a particular command terminates in an unexpected manner.  One reason
 could be that the user of the API has made an error and for example tried to retrieve an object which does not exist, or
@@ -874,7 +875,7 @@ Querying History}, \secref{sec:api-group-history}.
     second session, and the former session which had it attached will lose access.
     }
 
-\deskaFunc{detachFromCurrentChangeset}{"message": "clarify why"}
+\deskaFunc{detachFromCurrentChangeset}{, "message": "clarify why"}
     {}
     {Detach this session from its active changeset}
     {The purpose of this function is to facilitate a way to temporarily detach from a changeset which still needs some

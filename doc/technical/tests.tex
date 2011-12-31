@@ -28,12 +28,12 @@ The largest diff had about 700KB result.
 We tried the extreme 2000 difference diff with 40MB result.
 Tested table had about 300 000 rows and 100 columns.
 
-\label{test:json}
 \begin{longtable}{ l | l | l | l}
 \caption{Test results} \\
 Revisions & Server & DB and Server & Database \\
 \hline
 \endhead
+\label{test:json}
 1 & 2.857s & 2.897s & 2.933s \\
 10 & 2.858s & 2.937s & 2.913s \\
 50 & 2.778s & 2.839s & 2.860s \\
@@ -51,12 +51,12 @@ Little slow down in small data was acceptable and we decided for the JSON in dat
 \label{sec:test-direct}
 
 
-\label{tbl:test-direct}
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
 test & without direct access & with direct access \\
 \hline
 \endhead
+\label{tbl:test-direct}
 test1 & 2.875s & 0.133s \\
 test2 & 32.806s & 1.680s \\
 \end{longtable}
@@ -74,12 +74,12 @@ had 100 rows, host 50 000 and hardware 500 000 rows.
 \subsection{Type casting}
 \label{sec:test-cast}
 
-\label{tbl:test-casting-cmp}
 \begin{longtable}{ l | l | l }
 \caption{Test results}\\
 & without type casting & with type casting \\
 \hline
 \endhead
+\label{tbl:test-casting-cmp}
 time & 20.143s & 9.133s \\
 memory & 2GB & 50MB \\
 \end{longtable}
