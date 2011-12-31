@@ -1,6 +1,9 @@
 #!/usr/bin/python
 import sys
 import time
+import cStringIO as StringIO
+import datetime
+import os
 # FIXME: this shall be removed in the final version
 sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
 import deska
@@ -48,6 +51,75 @@ def write_file(iterable, domain, fp_dhcp=None, fp_zone=None, fp_rzone=None):
                            (str(v.ip4).split(".")[3], hostname, domain))
 
 
+class MagicZoneFile(object):
+    """Handle updating a magic number in case the file contents has changed"""
+
+    def __init__(self, targetFile):
+        self.buf = StringIO.StringIO()
+        self.targetFile = targetFile
+        self.serialPosition = None
+
+    def write(self, data):
+        self.buf.write(data)
+
+    def writeSerialHere(self):
+        if self.serialPosition is not None:
+            raise RuntimeError, "MagicZoneFile.writeSerialHere: serial position already marked. This shall happen only once."
+        self.serialPosition = self.buf.tell()
+
+    def close(self):
+        if self.serialPosition is None:
+            raise RuntimeError, "MagicZoneFile: position of the serial marker was not specified."
+        if not os.path.exists(self.targetFile):
+            self.forceWriteData(None)
+            return
+        sourceData = file(self.targetFile, "rb")
+        self.buf.seek(0)
+        oldHeader = sourceData.read(self.serialPosition)
+        newHeader = self.buf.read(self.serialPosition)
+        if oldHeader != newHeader:
+            sourceData.close()
+            print "MagicZoneFile(%s): headers are different" % self.targetFile
+            self.forceWriteData(None)
+        serialText = datetime.date.today().strftime("%Y%m%d")
+        # because the two characters are for the incrementing part
+        suffixLen = 2
+        length = len(serialText) + suffixLen
+        oldSerial = sourceData.read(length)
+        if len(oldSerial) != length:
+            sourceData.close()
+            print "MagicZoneFile(%s): old serial '%s' is corrupted" % (self.targetFile, oldSerial)
+            # Now there's a question what to do. We don't know what the old serial value was, so let's just assume zero...
+            self.forceWriteData(None)
+        oldNum = int(oldSerial[-suffixLen:])
+        if oldNum == 99 and serialText == oldSerial[:-suffixLen]:
+            sourceData.close()
+            raise RuntimeError, "MagicZoneFile(%s): serial wrap around for today, sorry" % self.targetFile
+        newSerial = "%s%02d" % (serialText, oldNum + 1)
+        oldData = sourceData.read()
+        newData = self.buf.read()
+        sourceData.close()
+        if oldData == newData:
+            print "MagicZoneFile(%s): data are the same" % self.targetFile
+        elif oldSerial[:-suffixLen] == serialText:
+            # increase the counter
+            self.forceWriteData(newSerial)
+        else:
+            # start at zero again
+            self.forceWriteData(None)
+
+
+    def forceWriteData(self, newSerial):
+        if newSerial is None:
+            newSerial = datetime.date.today().strftime("%Y%m%d") + "00"
+        assert(self.serialPosition is not None)
+        self.buf.seek(0)
+        target = file(self.targetFile, "wb")
+        target.write(self.buf.read(self.serialPosition))
+        target.write(newSerial)
+        target.write(self.buf.read())
+        target.close()
+
 # There are a few gotchas here. First of all, the tests for NULLs got to be
 # performed through the "== None" or "!= None" operations instead of Pythonic
 # "is (not) None". Another point is that one cannot use the "and" oeprator, but
@@ -91,8 +163,42 @@ group {
     # 147.231.25.1, 147.231.25.2, 147.231.25.3, 147.231.25.4 jsou vyhrazeny pro NATovana spojeni
 
 """)
-f_zone = open("bind-farm.particle.cz.common.zone", "wb")
-f_rzone = open("bind-farm.particle.cz.common.rzone", "wb")
+f_zone = MagicZoneFile("bind-farm.particle.cz.common.zone")
+f_zone.write("""
+;b this is a header
+$ORIGIN particle.cz.
+farm            IN      SOA   netservice1.farm.particle.cz.   svecj.fzu.cz. (
+                                      """)
+f_zone.writeSerialHere()
+f_zone.write("""
+                                      21600
+                                      3600
+                                      3600000
+                                      3h
+                                      )
+                IN      NS    sun173c.fzu.cz.
+                IN      NS    sie154b.fzu.cz.
+                IN      NS    netservice1.farm.particle.cz.
+                IN      NS    netservice2.farm.particle.cz.
+""")
+f_rzone = MagicZoneFile("bind-farm.particle.cz.common.rzone")
+f_rzone.write("""
+;b this is a header
+$ORIGIN particle.cz.
+farm            IN      SOA   netservice1.farm.particle.cz.   svecj.fzu.cz. (
+                                      """)
+f_rzone.writeSerialHere()
+f_rzone.write("""
+                                      21600
+                                      3600
+                                      3600000
+                                      3h
+                                      )
+                IN      NS    sun173c.fzu.cz.
+                IN      NS    sie154b.fzu.cz.
+                IN      NS    netservice1.farm.particle.cz.
+                IN      NS    netservice2.farm.particle.cz.
+""")
 write_file(interfaces_vlan25, "farm.particle.cz", fp_dhcp=f_dhcp,
            fp_zone=f_zone, fp_rzone=f_rzone)
 f_dhcp.write("\n}\n")
