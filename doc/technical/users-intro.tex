@@ -89,7 +89,9 @@ Everything looks correct so far, and the auxiliary data are in place.  It is the
 information about each individual machine.  Here is how this could be done by the Deska CLI (again, the details will be
 explained later on):\footnote{The examples have been slightly altered from the real FZU scheme for better readability.
 For example, a real scheme uses simply {\tt y} instead of {\tt rack\_pos\_y} for brevity, etc.  These differences are
-mere cosmetic changes, though.}
+mere cosmetic changes, though.} \footnote{The {\tt start} command is necessary to open a {\em changeset}, and thereby
+switch the database to a mode in which it accepts requests for modifications.  This workflow is described later in this
+documentation.}
 
 \begin{minted}{text}
 > start
