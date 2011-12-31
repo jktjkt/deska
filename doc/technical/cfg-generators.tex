@@ -14,10 +14,10 @@ Deska database into a form directly usable by third-party applications.
 
 The {\em configuration generators} are invoked by the Deska server whenever the output configuration has to be updated.
 The generators communicate over a special pair of pipes (further described below in section \ref{sec:cfggen-pipes})
-with the Deska server, reading contents of the Deska database over the DBAPI protocol (\secref{sec:dbapi-protocol}).
-Most of the generators, and especially those shipped with the Deska as samples, are implemented in Python, and therefore
-are built upon the high-level Python library (\secref{sec:python-bindings}) which publishes the data from the Deska
-database as a tree of native Python objects.
+with the Deska server, reading contents of the Deska database over the already-discussed DBAPI protocol
+(\secref{sec:dbapi-protocol}).  Most of the generators, and especially those shipped with the Deska as samples, are
+implemented in Python, and therefore are built upon the high-level Python library (\secref{sec:python-bindings}) which
+publishes the data from the Deska database as a tree of native Python objects.
 
 The generators query the data in the database, perform target-specific transformation, and finally produce some output,
 reflecting the new state of the database.  The generators are designed to run in a {\em stateless} manner, that is, a
@@ -28,7 +28,10 @@ the serial number is always properly incremented.  This use case is further disc
 configuration generator setup as used in Prague in \secref{sec:fzu-cfggen}.}
 
 The Deska server runs all configured generators in a sequence whose order is determined by their alphabetically sorted
-names.
+names.  We have opted to use this triggering scheme for robustness.  The alternatives would be to let each generator
+script express its dependencies in terms of data it is going to read, which would make the generators needlessly
+complicated.  Deducing the data dependencies automatically is, unfortunately, equivalent to solving the halting problem
+as the data generators are standalone {\em programs} capable of driving their execution in a completely independent way.
 
 The output of the generators is processed by a shim layer of the {\em VCS/SCM integration} which provides the user with
 an information about how the output as a whole has changed since the last time.  While nothing prevents development of
