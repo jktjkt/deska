@@ -161,6 +161,76 @@ guaranteed to not contain any race conditions.
 
 \section{Examples}
 
-\todo{Honza: add a simple example about a config generator}
+With all the required theoretical background in place, we can now move on to concrete examples of how to use the Deska
+database to produce useful output.  Let's start with a very basic configuration generator which merely produces a list
+of hosts and the notes associated with them:
+
+\begin{minted}{python}
+#!/usr/bin/python
+import deska
+deska.init()
+
+output = file("hosts", "wb")
+
+for name, data in deska.host._all().iteritems():
+    output.write("%s: %s\n" % (name, data.note))
+\end{minted}
+
+Placing the script above (for example as the \path{01-demo.py}) to the directory with the output generators (see section
+\secref{sec:server-py} for the {\tt --cfggen-script-path} command line option and section
+\secref{sec:build-cfg-generators} for the server setup) and making sure that the file is executable ({\tt chmod +x
+01-demo.py}) is enough to test its functionality.
+
+We will now discuss the script structure in detail.  The program starts with the necessary shebang line for the
+operating system and initialization of the Python library (see section \secref{sec:python-bindings} for details on the
+provided functions):
+
+\begin{minted}{python}
+#!/usr/bin/python
+import deska
+deska.init()
+\end{minted}
+
+The configuration generators should typically produce a certain output as their result.  The standard output of a script
+is used only for debug purposes and is not stored anywhere.  The script shall therefore make sure that it explicitly
+creates any files it needs:
+
+\begin{minted}{python}
+output = file("hosts", "wb")
+\end{minted}
+
+Any files produced below the script's working directory are going to be included in the final snapshot.  This directory
+is shared among all of the configuration generating scripts, and will contain the old state of the configuration
+snapshot before the first generator starts.
+
+The final part of the script simply uses the familiar way of data querying (see section \secref{sec:python-bindings})
+for fetching the data, which are then written to the target file:
+
+\begin{minted}{python}
+for name, data in deska.host._all().iteritems():
+    output.write("%s: %s\n" % (name, data.note))
+\end{minted}
+
+\section{Tips and Best Practices}
+
+The Deska database generally offers a reasonable performance, but there are certain steps which might improve the
+performance without much complications.
+
+First of all, every roundtrip to the database has an inherent cost.  The data which travel over the wire have to be
+marshalled into their JSON serialization, but the simple act of going over the network socket might dominate the
+execution time.
+
+Suppose an application which has to produce an output for a DHCP server.  Doing that requires iterating over all hosts
+(as we want to know the hostname), and for each of the hosts fetching a list of their network interfaces (which contains
+crucial information like the VLAN, the IP address and the Ethernet MAC address).  If the database contains five hundred
+hosts and each query takes only 9~milliseconds (which is, incidentally, a real-world number), fetching the whole set
+consumes 4.5~seconds.  On the other hand, fetching a list of {\em all} interfaces in advance cut the {\em total}
+execution time of the complete script to roughly 450~ms.  This approach is well illustrated in a real-world
+configuration generator, the \path{scripts/config-generators/02-dhcp-dns} in the Deska sources (and on the attached CD).
+
+Finally, letting one script produce configuration for related multiple unrelated services, as long as the source data
+are similar, might reduce the time even more.  A good example is the \path{scripts/config-generators/05-services}, as
+used in FZU, which uses the downloaded data of host roles to produce configuration for Nagios, Munin and Ganglia at
+once.
 
 \end{document}
