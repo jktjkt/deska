@@ -56,7 +56,7 @@ of supported variable names, please see the \path{src/deska/server/app/deska_ser
 
 \subsection{Database connection}
 After the Deska server starts, it tries to connect to the Deska database through the PsycoPg2 Python
-module~\cite{psycopg2}.  Parameters of connection are taken from Deska server parameters on start.  When the connection
+module~\cite{psycopg}.  Parameters of connection are taken from Deska server parameters on start.  When the connection
 is successfully established, it is kept until the Deska server is terminated.
 
 \subsection{Command running}
@@ -67,7 +67,7 @@ the commands are actually implemented inside the database, so the Python server 
 and returns the obtained result, catching and processing any exceptions which might have been raised.
 
 Some commands are implemented directly in the {\tt deska-server}, though.  The \deskaFuncRef{freezeView} and
-\deskaFuncRef{unfreezeView} simply sets up proper transaction control and session isolation, but there are two more
+\deskaFuncRef{unFreezeView} simply sets up proper transaction control and session isolation, but there are two more
 complicated exceptions, the \deskaFuncRef{showConfigDiff} and \deskaFuncRef{commitChangeset} which deal with running of
 the configuration generators (much more information about the configuration details is available in chapter
 \secref{sec:config-generators}).  These two functions, along with some assistance from the database through the {\tt
@@ -78,7 +78,7 @@ commit} behind the scenes so that the generators could access the data without a
 order not to influence any other parallel sessions, the whole operation is wrapped inside a database transaction which
 is automatically rolled back when the generators have finished running.
 
-Finally, the last exception is the \deskaFuncRef{applyBatchedChangeset} DBAPI function which is used to efficiently
+Finally, the last exception is the \deskaFuncRef{applyBatchedChanges} DBAPI function which is used to efficiently
 execute multiple operations in an atomic manner.  This function again relies on the underlying database transactions,
 and hence requires a small amount of custom code at the Python server layer.
 
