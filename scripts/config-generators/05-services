@@ -10,6 +10,7 @@ deska.init()
 t1 = time.time()
 all_services = deska.service._all()
 all_interfaces = deska.interface._all()
+all_hosts = deska.host._all()
 t2 = time.time()
 
 # File containing the group definitions for cfengine
@@ -19,7 +20,8 @@ f_cf_groups = file("cfengine-groups.cf", "wb")
 f_ganglia_agg = file("ganglia-sources", "wb")
 
 for service in all_services.keys():
-    current_hosts = deska.host[deska.host.service.contains(service)]
+    current_hosts = dict((k,v) for (k,v) in all_hosts.iteritems()
+                         if v.service is not None and service in v.service)
     hosts_farm = []
     hosts_fzu = []
     for (hostname, host_data) in current_hosts.iteritems():
