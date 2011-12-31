@@ -221,15 +221,24 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-			del atts[refCol+"_templ"]
+			if dutil.hasTemplate(kindName):
+				'''Only if kindName has template'''
+				del atts[refCol+"_templ"]
 	for relName in rels:
 		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
-				# No action for identifier_set required, getting from data function
 				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
+			else:
+				if dutil.hasTemplate(kindName):
+					coldef = "{0}_get_resolved_{1}({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
+				else:
+					coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 

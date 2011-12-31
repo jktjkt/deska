@@ -16,22 +16,15 @@ data = list([
 	'{"command": "deleteObject", "kindName": "hardware", "objectName": "hw" , "tag":"TAG"}',
 	'{"command": "setAttributeRemove", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":"dhcp", "tag":"TAG"}',
 	'{"command": "objectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
-	'{"command": "setAttributeInsert", "kindName":"host", "objectName":"test_host", "attributeName": "service", "attributeData":["dhcp"], "tag":"TAG"}',
-	'{"command": "setAttribute", "kindName":"host", "objectName":"test_host2", "attributeName": "service", "attributeData":"dhcp", "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hw", "attributeName": "purchase", "attributeData":"2001-09-09", "tag":"TAG"}',
+	'{"command": "setAttribute", "kindName":"hardware", "objectName":"hw", "attributeName": "warranty", "attributeData":"2011-09-09", "tag":"TAG"}',
 	'{"command": "objectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
-	#'{"command": "commitChangeset", "tag":"TAG", "commitMessage":"test"}',
-	'{"command": "resolvedObjectData", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
-	'{"command": "resolvedObjectDataWithOrigin", "kindName": "host", "objectName": "test_host" , "tag":"TAG"}',
-	'{"command": "multipleObjectData", "kindName": "host", "tag":"TAG"}',
-	'{"command": "multipleResolvedObjectData", "kindName": "host", "tag":"TAG"}',
-	'{"command": "lockCurrentChangeset", "tag":"TAG"}',
-	'{"command": "unlockCurrentChangeset", "tag":"TAG"}',
-	'{"command": "multipleResolvedObjectDataWithOrigin", "kindName": "host", "tag":"TAG"}'
+	'{"command": "commitChangeset", "tag":"TAG", "commitMessage":"test"}',
 ])
 
 dbargs = {}
 dbargs["database"] = "deska_dev"
-db = DB(dbOptions=dbargs, cfggenBackend=None, cfggenOptions=None)
+db = DB(dbOptions=dbargs, cfggenBackend="fake", cfggenOptions=None)
 
 
 for i in data:

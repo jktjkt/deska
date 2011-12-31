@@ -69,7 +69,7 @@ class DB:
 	})
 	writeFunctions = ["startChangeset", "commitChangeset", "restoringCommit", "resumeChangeset", "abortCurrentChangeset",
 		"detachFromCurrentChangeset", "lockCurrentChangeset", "unlockCurrentChangeset",
-		"deleteObject", "createObject", "restoreDeletedObject", "renameObject", "setAttribute",
+		"deleteObject", "createObject", "restoreDeletedObject", "renameObject", "setAttribute", "showConfigDiff"
 		"setAttributeInsert", "setAttributeRemove"]
 
 	def __init__(self, dbOptions, cfggenBackend, cfggenOptions):

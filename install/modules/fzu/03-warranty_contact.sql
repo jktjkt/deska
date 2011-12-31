@@ -11,7 +11,7 @@ CREATE TABLE warranty_contract (
     purchased date,
     expires date,
     contract_no text NOT NULL,
-    vendor bigint CONSTRAINT warranty_contract_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+    vendor bigint CONSTRAINT rrefer_warranty_contract_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	phone text,
 	supportmail text,
 	supportnote text

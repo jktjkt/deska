@@ -8,6 +8,12 @@ from dutil import DutilException
 from dutil import fcall
 from dutil import getDataSuffix
 
+# performance hack
+# if we can do propper filter for more columnContains, we could not
+# use joining, but many select inside, these are needed with this hack
+# only for more columnContains in filter
+numberOfColumnContainsInFilter = 0
+
 class Condition():
 	'''Class to store and handle column/value/operator data'''
 
@@ -61,6 +67,11 @@ class Condition():
 
 			if self.col != "name" and generated.atts(self.kind)[self.col] == "identifier_set":
 				self.idSet = True
+				# performance hack
+				if self.op == "columnContains":
+					global numberOfColumnContainsInFilter
+					numberOfColumnContainsInFilter = numberOfColumnContainsInFilter + 1
+
 		else:
 			raise DutilException("FilterError","Item 'kind' or 'metadata' must be in condition.")
 		self.parse()
@@ -106,6 +117,8 @@ class Condition():
 			if self.op not in self.opSetMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported for sets.".format(self.op))
 			self.op = self.opSetMap[self.op]
+			if self.op == "=" and numberOfColumnContainsInFilter > 1:
+				self.op = "IN"
 		else:
 			if self.op not in self.opMap:
 				raise DutilException("FilterError","Operator '{0}' is not supported.".format(self.op))
@@ -140,6 +153,9 @@ class Condition():
 		self.relationParse()
 		self.operatorParse()
 		if self.idSet and self.op == "NOT IN":
+			self.id = "(SELECT {0} FROM inner_{0}_{1}{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getDataSuffix(self.kind,self.directAccess))
+			self.col = "uid"
+		if self.idSet and self.op == "IN":
 			self.id = "(SELECT {0} FROM inner_{0}_{1}{3} WHERE {1} = {2})".format(self.kind, self.col, self.id, getDataSuffix(self.kind,self.directAccess))
 			self.col = "uid"
 
