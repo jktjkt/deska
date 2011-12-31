@@ -6,15 +6,69 @@
 \label{sec:patches}
 
 \begin{abstract}
-\todo{Honza: patches}
+This appendix provides a quick list of flaws or opportunities for improvements in some of the third-party tools and
+libraries which we are using in Deska.
 \end{abstract}
 
-- CDash for Redmine
-- PostgreSQL for error diagnostics
-- psycopg2 for err diagnostics (not yet)
-- psycopg2 and incompatibility in the session/txn control
-- boost.process for IO errors
-- boost.process for IO tracing
-- trailing zero for json
+\todo{Honza: add links in references.bib}
+
+All of the patches which are discussed below are either present in the Deska source tree on the enclosed CD, or
+available from the corresponding upstream bug/patch trackers.
+
+\section{PostgreSQL}
+
+The PostgreSQL~\cite{postgresql} database server has a feature which identifies an offending tuple that caused an
+operation to fail.  The code already supports reporting conflict of {\tt UNIQUE} constraints, but no details of the row
+were passed when the failure was detected by a custom {\tt CHECK} or elsewhere.  Certain operations in Deska perform
+multi-row operations in one go, and it is helpful if the server provides enough information to identify which row caused
+the problem.
+
+We have developed a patch which adds a message about the offending row for the {\tt CHECK} constraints.  The patch has
+been modified by one of the PostgreSQL core hackers, Tim Lane, to better fit the existing coding style, and is now
+merged~\cite{postgresql-check-patch} into the {\tt master} branch.\footnote{Incidentally, the patch also led to a job
+offer from a PostgreSQL-related company from a foreign, European country to the patch author.}
+
+\section{Psycopg2}
+
+The PsycoPg2~\cite{psycopg} library for accessing the PostgreSQL database from Python.  We have hit two issues with this
+library.
+
+One of them is an incompatible change between versions {\tt 2.4.1} and {\tt 2.4.2}.  Version {\tt 2.4.2} added a new
+method of setting parameters for session isolation and transaction management via the {\tt set\_session} method, but
+unfortunately changed behavior of the existing function {\tt set\_isolation\_level}.  We have changed our code to check
+the version of the library in use, and the Deska server will choose the appropriate behavior to work with all supported
+PsycoPg2 versions.
+
+Another drawback of the PsycoPg2 library is its failure to pass on additional diagnostic information, as included in
+PostgreSQL's error messages.  Contrary to the provided documentation, the exception object does {\em not} contain the
+extra ``detail'' information, as reported by PostgreSQL.  We have not pursued this behavior further.
+
+\section{Boost.Process}
+
+The Boost.Process~\cite{boost-process} is an out-of-tree extensions for the Boost programming libraries.  We have
+extended its operation through patching the C++ iostreams {\tt streambuf} implementation to keep track of the data
+flowing through the stream.  This feature proved to be very convenient for producing detailed error messages when the
+client detected a mishap in the structure of the JSON data provided by the server.
+
+During the course of implementing the patch for the above mentioned feature, we have identified a bug in the library's
+handling of interrupted syscalls, where the code failed to deal with the {\tt write(2)} syscall writing less data than
+asked for, and similarly {\tt read(2)} returning less bytes than expected.  We have fixed the code to handle these
+situations properly, fixing a few compiler warnings in the process, but were unable to push the fix upstream as the
+change depends on the previously introduced debugging infrastructure.
+
+\section{CMake/CDash}
+
+We use KitWare's CDash~\cite{cmake-cdash} web application, part of CMake~\cite{cmake}, as a web dashboard listing state
+of the automated builds and unit tests~\cite{deska-dashboard}.  We have contributed a patch which allows it to work with
+the Git~\cite{git} repository managed by Redmine~\cite{redmine}.  The patch has been accepted
+upstream~\cite{cdash-redmine-patch}.
+
+\section{JSON Spirit}
+
+The JSON Spirit~\cite{json-spirit} library has an option to transmit the floating point numbers in a ``compact'' format,
+without the trailing zeros.  This option, the {\tt remove\_trailing\_zeros}, unfortunately works a little bit too
+aggressively, transmitting {\tt 10.0} as {\tt 10.}.
+
+We have fixed the bug in the embedded copy of the JSON Spirit sources.
 
 \end{document}
