@@ -15,6 +15,7 @@ def helper_check_host(r, expected):
         r.assertEqual(r.c(resolvedObjectData("host", name)), strip_origin(expected[name]))
         r.assertEqual(r.c(resolvedObjectDataWithOrigin("host", name)), expected[name])
     r.assertEqual(r.c(multipleResolvedObjectData("host")), dict((k,strip_origin(v)) for (k,v) in expected.iteritems()))
+    # FIXME: fails, Redmine#427
     #r.assertEqual(r.c(multipleResolvedObjectDataWithOrigin("host")), expected)
 
 def do_host(r):
