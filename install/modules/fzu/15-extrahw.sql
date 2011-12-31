@@ -9,9 +9,9 @@ CREATE TABLE modelextrahw (
     name identifier
         CONSTRAINT "modelextrahw with this name already exists" UNIQUE NOT NULL,
     vendor bigint
-        CONSTRAINT modelextrahw_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+        CONSTRAINT rrefer_modelextrahw_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
     modelbox bigint
-        CONSTRAINT modelextrahw_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE
+        CONSTRAINT rrefer_modelextrahw_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE
 );
 
 CREATE INDEX idx_modelextrahw_vendor ON modelextrahw(vendor);
@@ -24,12 +24,12 @@ CREATE TABLE extrahw (
     name identifier
         CONSTRAINT "extrahw with this name already exists" UNIQUE NOT NULL,
     modelextrahw bigint NOT NULL
-        CONSTRAINT extrahw_fk_modelextrahw REFERENCES modelextrahw(uid) DEFERRABLE,
+        CONSTRAINT rrefer_extrahw_fk_modelextrahw REFERENCES modelextrahw(uid) DEFERRABLE,
     box bigint NOT NULL
         CONSTRAINT rconta_extrahw_fk_box REFERENCES box(uid) DEFERRABLE,
     purchase date,
     warranty_contract bigint
-        CONSTRAINT extrahw_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
+        CONSTRAINT rrefer_extrahw_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
     serial_1 text,
     serial_2 text,
     inventory_no text,

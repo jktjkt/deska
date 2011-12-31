@@ -15,11 +15,11 @@ CREATE TABLE modelhardware (
 		CONSTRAINT "modelhardware with this name already exists" UNIQUE NOT NULL,
 	-- vendor of the hardware
 	vendor bigint 
-		CONSTRAINT modelhardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+		CONSTRAINT rrefer_modelhardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	-- The "type of box" is specific to the model of hardware, which is why it
 	-- goes here
 	modelbox bigint 
-		CONSTRAINT modelhardware_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
+		CONSTRAINT rrefer_modelhardware_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
 	-- MB of RAM
 	ram int
 		CONSTRAINT "modelhardware ram should be positive number"

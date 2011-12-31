@@ -18,7 +18,7 @@ CREATE TABLE box (
 
 	-- Our "parent"
 	inside bigint
-		CONSTRAINT box_fk_box REFERENCES box(uid) DEFERRABLE,
+		CONSTRAINT rrefer_box_fk_box REFERENCES box(uid) DEFERRABLE,
 
 	-- Defining a link to "something" which provides the information about the model of the box
 	-- switch coble
@@ -29,7 +29,7 @@ CREATE TABLE box (
 	extrahw bigint,
 	-- fallback: direct specification
 	direct_modelbox bigint
-		CONSTRAINT box_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
+		CONSTRAINT rrefer_box_fk_modelbox REFERENCES modelbox(uid) DEFERRABLE,
 
 	-- position, checked by trigger
 	position text,

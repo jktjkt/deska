@@ -9,14 +9,14 @@ CREATE TABLE switch (
 	name identifier
 		CONSTRAINT "switch with this name already exists" UNIQUE NOT NULL,
 	modelswitch bigint NOT NULL
-		CONSTRAINT switch_fk_modelswitch REFERENCES modelswitch(uid) DEFERRABLE,
+		CONSTRAINT rrefer_switch_fk_modelswitch REFERENCES modelswitch(uid) DEFERRABLE,
 	-- contains box
 	box bigint NOT NULL
 		CONSTRAINT rconta_switch_fk_box REFERENCES box(uid) DEFERRABLE,
 	purchase date,
 	-- reference for the warranty information
 	warranty_contract bigint
-		CONSTRAINT switch_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
+		CONSTRAINT rrefer_switch_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
 	serial_1 text,
 	serial_2 text,
 	inventory_no text

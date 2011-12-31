@@ -39,7 +39,7 @@ CREATE TABLE modelbox (
 
     -- Outer form factor of this box
     formfactor bigint
-        CONSTRAINT modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
+        CONSTRAINT rrefer_modelbox_fk_formfactor REFERENCES formfactor(uid) DEFERRABLE,
 
     -- Which types of hardware we can accomodate?
     accepts_inside identifier_set

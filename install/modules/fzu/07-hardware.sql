@@ -15,11 +15,11 @@ CREATE TABLE hardware (
 		CONSTRAINT "hardware with this name already exists" UNIQUE NOT NULL,
 	-- model of hardware
 	modelhardware bigint 
-		CONSTRAINT hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE NOT NULL,
+		CONSTRAINT rrefer_hardware_fk_modelhardware REFERENCES modelhardware(uid) DEFERRABLE NOT NULL,
 	purchased date,
 	-- reference for the warranty information
 	warranty_contract bigint
-		CONSTRAINT hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
+		CONSTRAINT rrefer_hardware_fk_warranty_contract REFERENCES warranty_contract(uid) DEFERRABLE,
 	-- box (contains)
 	box bigint NOT NULL
 		CONSTRAINT rconta_hardware_fk_hwbox REFERENCES box(uid) DEFERRABLE,
