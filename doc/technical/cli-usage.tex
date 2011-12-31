@@ -106,14 +106,17 @@ filter on hardware> end
 >
 \end{minted}
 
-There are also two special filters. One is for selecting all instances of a specific kind. This is done by keyword "all".
+There is also a special filter {\tt all} which is used for selecting all instances of a specific kind:
+
 \begin{minted}{text}
 > all host
 filter on host> end
 >
 \end{minted}
 
-We can use this filter also for for example all interfaces of a specific host.
+The filter honors pre-existing context, so it can be for example used to list all interface which belongs to a specific
+host:
+
 \begin{minted}{text}
 > host hpv2
 host hpv2> all interface
@@ -121,9 +124,6 @@ host hpv2->filter on interface> end
 host hpv2>
 >
 \end{minted}
-
-The second filter is for obtaining last added embedded object using keyword {\tt new}. The usage is the same as in case of
-{\tt all}. We will describe usage of both keywords later.
 
 Here is one useful command for operations with filters. Is is command {\tt context}. It will show you current context
 with the filters. It is useful as in the prompt you can see only that you are in context of a filter, but you can not
@@ -273,12 +273,6 @@ hardware ibm458> new failure
 hardware ibm458->failure failure_1> end
 hardware ibm458> new failure
 hardware ibm458->failure failure_2> end
-hardware ibm458> last failure
-hardware ibm458->failure failure_2> end
-hardware ibm458> new failure
-hardware ibm458->failure failure_3> end
-hardware ibm458> last failure
-hardware ibm458->failure failure_3> end
 hardware ibm458> end
 >
 \end{minted}
@@ -287,9 +281,8 @@ Please keep in mind that the user cannot make any assumptions about the newly as
 implementation will use a monotonous sequence as the bases for the name, but extensions are free to change this behavior
 to e.g. include timestamps in the created names, etc.
 
-In this example you can see that the keyword new changes the context, and that it is possible to step into the context
-of the newest object through the keyword {\tt last}.  This might come handy when working with ``append-only'' objects
-like in an event log.
+In this example you can see that the keyword {\tt new} changes the context to enter the just-created object.  This might
+come handy when working with ``append-only'' objects like in an event log.
 
 Deleting objects is similar to creating. It is done using keyword {\tt delete}. You can use the same parameters as in
 create, like "delete host hpv2". When you are trying to delete a nested object directly, use "delete host hpv2 interface
@@ -297,7 +290,7 @@ eth0". This will delete only the interface, not the whole host. When deleting pa
 also delete all these nested objects (after confirmation). You can als
 
 Renaming of objects is also very simple, through the {\tt rename} keyword. The format of
-parameter for {\tt rename} is the same as for create, but you have to specify the new name as the last word. For example
+parameter for {\tt rename} is similar as in create, but you have to specify the new name of the object. For example
 "rename host hpv2 hpv3" will rename host "hpv2" to "hpv3". When you are renaming an object which is connected using relation
 "contains" or "containable" to another objects, the CLI will ask you if you want to rename these connected objects
 as well as they have the same name. If you do not rename them, the connection between them will be lost.
