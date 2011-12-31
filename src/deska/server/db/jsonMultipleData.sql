@@ -221,7 +221,9 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-			del atts[refCol+"_templ"]
+			if dutil.hasTemplate(kindName):
+				'''Only if kindName has template'''
+				del atts[refCol+"_templ"]
 	for relName in rels:
 		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
