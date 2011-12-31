@@ -61,7 +61,8 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
     
     normalFilter = (eps(!_a) > dispatch >> -eoi[_a = true]);
     
-    specialFilter = specialFilterL | specialFilterA;
+    // Commenting out the "last" keyword, as the server support is not here
+    specialFilter = /*specialFilterL |*/ specialFilterA;
 
     specialFilterL = (qi::lit("last") > lastKind);
 
