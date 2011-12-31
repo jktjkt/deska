@@ -228,7 +228,6 @@ def doTests(r):
     matching = deska.host[deska.host.service.contains("even") | deska.host.service.contains("odd")].keys()
     r.assertEqual(sorted(matching), ["x%d" % x for x in range(10)])
 
-    # FIXME: fails, Redmine#426
     matching = deska.host[deska.host.service.contains("even") & deska.host.service.contains("first_half")].keys()
     r.assertEqual(sorted(matching), [x for x in hosts_even if x in hosts_first_half])
     matching = deska.host[deska.host.service.contains("even") | deska.host.service.contains("first_half")].keys()
