@@ -214,23 +214,24 @@ for name, data in deska.host._all().iteritems():
 \section{Tips and Best Practices}
 
 The Deska database generally offers a reasonable performance, but there are certain steps which might improve the
-performance without much complications.
+performance without many complications.
 
 First of all, every roundtrip to the database has an inherent cost.  The data which travel over the wire have to be
-marshalled into their JSON serialization, but the simple act of going over the network socket might dominate the
+marshalled into their JSON serialization, but the simple act of going over a network socket might dominate the total
 execution time.
 
-Suppose an application which has to produce an output for a DHCP server.  Doing that requires iterating over all hosts
-(as we want to know the hostname), and for each of the hosts fetching a list of their network interfaces (which contains
-crucial information like the VLAN, the IP address and the Ethernet MAC address).  If the database contains five hundred
-hosts and each query takes only 9~milliseconds (which is, incidentally, a real-world number), fetching the whole set
-consumes 4.5~seconds.  On the other hand, fetching a list of {\em all} interfaces in advance cut the {\em total}
-execution time of the complete script to roughly 450~ms.  This approach is well illustrated in a real-world
-configuration generator, the \path{scripts/config-generators/02-dhcp-dns} in the Deska sources (and on the attached CD).
+Suppose an application which produces an output for a DHCP server.  Doing so requires iterating over all hosts (as we
+want to know the hostname), and for each of the matching hosts fetching a list of their network interfaces (which
+contains crucial information like the VLAN, the IP address and the Ethernet MAC address).  If the database contains five
+hundred hosts and each sub-query takes only 9~milliseconds (which is, incidentally, a real-world number), fetching the
+whole set consumes 4.5~seconds (which is again a time which we have observed when using this slow approach).  On the
+other hand, fetching a list of {\em all} interfaces in advance cuts the {\em total} execution time of the complete
+script to roughly 450~ms.  This approach is well illustrated in a real-world configuration generator, the
+\path{scripts/config-generators/02-dhcp-dns} in the Deska sources (and on the attached CD).
 
-Finally, letting one script produce configuration for related multiple unrelated services, as long as the source data
-are similar, might reduce the time even more.  A good example is the \path{scripts/config-generators/05-services}, as
-used in FZU, which uses the downloaded data of host roles to produce configuration for Nagios, Munin and Ganglia at
-once.
+Finally, letting one script produce configuration for multiple unrelated services, as long as the source data are
+similar, might reduce the time even more.  A good example is the \path{scripts/config-generators/05-services} as used
+in FZU which uses the downloaded data of hosts' roles to produce configuration for Nagios, Munin and Ganglia in one
+pass.
 
 \end{document}
