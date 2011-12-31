@@ -124,9 +124,8 @@ def main(tag,kindName,revision,filter):
 					coldef = "{0}_get_resolved_{1}({0}.uid, $1) AS {1}".format(kindName, refCol)
 					revisionParameter = True
 				else:
-					#coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
-					#revisionParameter = True
-					coldef = atts[refCol]
+					coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
