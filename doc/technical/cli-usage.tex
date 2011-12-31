@@ -450,41 +450,41 @@ its parent revisions. It means changes made in this changeset. You can use two r
 these two revisions. The format of the diff is following:
 
 Object "host hpv2" created:
-\todo{Add colors here}
-\begin{minted}{text}
+
+\begin{minted}{diff}
 + host hpv2
 + end
 \end{minted}
 
 Object "host hpv2" renamed to "hpv3":
-\begin{minted}{text}
+\begin{minted}{diff}
 - host hpv2
 + host hpv3
 end
 \end{minted}
 
 Object "host hpv2" deleted:
-\begin{minted}{text}
+\begin{minted}{diff}
 - host hpv2
 - end
 \end{minted}
 
 Attribute of object "host hpv2" set:
-\begin{minted}{text}
+\begin{minted}{diff}
 host hpv2
 +     note_host "Some note"
 end
 \end{minted}
 
 Attribute of object "host hpv2" removed:
-\begin{minted}{text}
+\begin{minted}{diff}
 host hpv2
 -     note_host "Some note"
 end
 \end{minted}
 
 Attribute of object "host hpv2" changed:
-\begin{minted}{text}
+\begin{minted}{diff}
 host hpv2
 -     note_host "Some old note"
 +     note_host "Some new note"
@@ -493,14 +493,14 @@ end
 
 All other changes are only combinations of possibilities above. For example creating and setting attributes of an
 object could look like this:
-\begin{minted}{text}
+\begin{minted}{diff}
 + host hpv2
 +     note_host "Some new note"
 + end
 \end{minted}
 
 Or renaming and changing attributes of some object could look like this:
-\begin{minted}{text}
+\begin{minted}{diff}
 - host hpv2
 + host hpv3
 -     note_host "Some old note"
