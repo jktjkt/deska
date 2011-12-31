@@ -325,12 +325,12 @@ Each history table contains, in addition to attributes in the table defined by u
 
 \subsubsection{Data Modification}
 
-\label{tab:example-hardwarehist}
 \begin{longtable}{ l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_history}}\\
     name & uid & purchase & note & dest\_bit & version\\
     \hline
     \endhead
+\label{tab:example-hardwarehist}
     h1 & 1 & & & 0 & 1 \\
     h2 & 2 & & & 0 & 1 \\
     h2 & 2 & & note & 0 & 2 \\
@@ -373,12 +373,12 @@ If we would like to get data of some objects in given version. We have to find t
 At the time of changeset commit, table with versions is updated. For our example it could looks like \ref{tab:example-version}.\\
 Important information for us are id and num. id is id of changeset from which the version num was created. The version number num is an increasing sequence, if version num2 was created on the base of version num1 then num1 < num2.
 
-\label{tab:example-version}
 \begin{longtable}{ l | l | l | l | l }
     \caption{Database table {\tt version}}\\
     id & num & author & timestamp & message\\
     \hline
     \endhead
+\label{tab:example-version}
     0 & 1 & martina & 2011-12-17 17:04:29.56794 & Initial revision\\
     1 & 2 & martina & 2011-12-17 17:04:47.876152 & .\\
     2 & 3 & martina & 2011-12-17 17:04:54.731837 & .\\
@@ -395,22 +395,22 @@ select * from hardware_data_version();
 select * from hardware_data_version(3);
 \end{minted}
 
-\label{tab:select-hardware}
 \begin{longtable}{ l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_data\_version()}}\\
     uid & name & note & purchase & version & dest\_bit\\
     \hline
     \endhead
+\label{tab:select-hardware}
     2 & h2 & note & 2011-01-01 & 3 & 0\\
     \hline
 \end{longtable}
 
-\label{tab:select-hardware-v3}
 \begin{longtable}{ l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_data\_version(3)}} \\
     uid & name & note & purchase & version & dest\_bit\\
     \hline
     \endhead
+\label{tab:select-hardware-v3}
     1 & h1 &  &  & 1 & 0\\
     2 & h2 & note &  & 2 & 0\\
     \hline
@@ -443,22 +443,22 @@ select * from hardware;
 select * from vendor;
 \end{minted}
 
-\label{tab:refs-hardware}
 \begin{longtable}{ l | l | l | l | l }
     \caption{Database table {\tt hardware}}\\
     uid & name & note & purchase & vendor\\
     \hline
     \endhead
+\label{tab:refs-hardware}
     1 & h1 &  &  & 2\\
     \hline
 \end{longtable}
 
-\label{tab:refs-vendor}
 \begin{longtable}{ l | l }
     \caption{Database table {\tt vendor}}\\
     uid & name \\
     \hline
     \endhead
+\label{tab:refs-vendor}
     1 & v1\\
     2 & v2\\
     \hline
@@ -479,23 +479,23 @@ select interface_add('h2->i1');
 select commitchangeset('r2');
 \end{minted}
 
-\label{tab:embed-host}
 \begin{longtable}{ l | l }
     \caption{Database table {\tt host}}\\
     uid & name \\
     \hline
     \endhead
+\label{tab:embed-host}
     1 & h1\\
     2 & h2\\
     \hline
 \end{longtable}
 
-\label{tab:embed-interface}
 \begin{longtable}{ l | l | l | l }
     \caption{Database table {\tt interface}}\\
     uid & name & host & note\\
     \hline
     \endhead
+\label{tab:embed-interface}
     1 & i1 & 1 & \\
     2 & i2 & 1 & \\
     3 & i1 & 2 & \\
@@ -535,23 +535,23 @@ select hardware_set_note('h1','own h1 note');
 select commitchangeset('r4');
 \end{minted}
 
-\label{tab:templ-hwhist}
 \begin{longtable}{ l | l | l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_history}}\\
     uid & name & note & purchase & vendor & template\_hw & version & dest\_bit\\
     \hline
     \endhead
+\label{tab:templ-hwhist}
     1 & h1 &  &  &  & 1 & 1 & 0\\
     1 & h1 & own h1 note &  &  & 1 & 3 & 0\\
     \hline
 \end{longtable}
 
-\label{tab:templ-hwtemplhist}
 \begin{longtable}{ l | l | l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_template\_history}}\\
     uid & name & note & purchase & vendor & template\_hw & version & dest\_bit\\
     \hline
     \endhead
+\label{tab:templ-hwtemplhist}
     1 & t1 & note from template t1 & 2011-01-01 &  &  & 1 & 0\\
     2 & t2 &  & 2011-01-01 & 1 &  & 2 & 0\\
     1 & t1 & note from template t1 & 2011-01-01 &  & 2 & 2 & 0\\
@@ -576,22 +576,22 @@ select * from hardware_template;
 \end{minted}
 Results are in \ref{tab:templ-hw} and \ref{tab:templ-hwtempl}.
 
-\label{tab:templ-hwres2}
 \begin{longtable}{ l | l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_resolved\_data(3)}}\\
     uid & name & note & purchase & vendor & template\_hw & dest\_bit\\
     \hline
     \endhead
+\label{tab:templ-hwres2}
     h1 & 1 & note from template t1 & 2011-01-01 & 1 & 1 & 0\\
     \hline
 \end{longtable}
 
-\label{tab:templ-hwtemplres2}
 \begin{longtable}{ l | l | l | l | l | l | l }
     \caption{Database table \\ {\tt hardware\_template\_resolved\_data(3)}}\\
     uid & name & note & purchase & vendor & template\_hw & dest\_bit\\
     \hline
     \endhead
+\label{tab:templ-hwtemplres2}
     t2 & 2 &  & 2011-01-01 & 1 &  & 0\\
     t1 & 1 & note from template t1 & 2011-01-01 & 1 & 2 & 0\\
     \hline
@@ -607,12 +607,12 @@ Results are in \ref{tab:templ-hw} and \ref{tab:templ-hwtempl}.
     \hline
 \end{longtable}
 
-\label{tab:templ-hwtempl}
 \begin{longtable}{ l | l | l | l | l | l }
     \caption{Database table {\tt hardware\_template}}\\
     uid & name & note & purchase & vendor & template\_hw\\
     \hline
     \endhead
+\label{tab:templ-hwtempl}
     1 & t1 & note from template t1 & 2011-01-01 & 1 & 2\\
     2 & t2 &  & 2011-01-01 & 1 & \\
     \hline
@@ -707,35 +707,35 @@ select uid, name, hardware, switch from box;
 select uid, name, box from switch;
 \end{minted}
 
-\label{tab:comp-box}
 \begin{longtable}{ l | l | l | l }
     \caption{Database table {\tt box}}\\
     uid & name & hardware & switch\\
     \hline
     \endhead
+\label{tab:comp-box}
     1 & h1 & 1 & \\
     3 & o1 & 2 & \\
     2 & h3 &  & 1\\
     \hline
 \end{longtable}
 
-\label{tab:comp-hw}
 \begin{longtable}{ l | l | l }
     \caption{Database table {\tt hardware}}\\
     uid & name & box\\
     \hline
     \endhead
+\label{tab:comp-hw}
     1 & h1 & 1\\
     2 & o1 & 3\\
     \hline
 \end{longtable}
 
-\label{tab:comp-switch}
 \begin{longtable}{ l | l | l }
     \caption{Database table {\tt switch}}\\
     uid & name & box\\
     \hline
     \endhead
+\label{tab:comp-switch}
     1 & h3 & 2\\
     \hline
 \end{longtable}
@@ -786,12 +786,12 @@ select * from inner_host_service_history;
 select uid, name, host_get_service(uid,4) from host_data_version(4);
 \end{minted}
 
-\label{tab:multi-hosthist}
 \begin{longtable}{ l | l | l | l }
     \caption{Database table {\tt host\_history}}\\
     uid & name & dest\_bit & version\\
     \hline
     \endhead
+\label{tab:multi-hosthist}
     1 & h1 & 0 & 1\\
     2 & h2 & 0 & 1\\
     1 & h1 & 0 & 2\\
@@ -801,12 +801,12 @@ select uid, name, host_get_service(uid,4) from host_data_version(4);
     \hline
 \end{longtable}
 
-\label{tab:multi-innerhist}
 \begin{longtable}{ l | l | l | l }
     \caption{Database table {\tt inner\_host\_service\_history}}\\
     host & service & flag & version\\
     \hline
     \endhead
+\label{tab:multi-innerhist}
     1 & 1 & 1 & 1\\
     1 & 2 & 1 & 1\\
     1 & 1 & 1 & 2\\
@@ -816,12 +816,12 @@ select uid, name, host_get_service(uid,4) from host_data_version(4);
     \hline
 \end{longtable}
 
-\label{tab:multi-hostv}
 \begin{longtable}{ l | l | l }
     \caption{Database table {\tt host}}\\
     uid & name & service\\
     \hline
     \endhead
+\label{tab:multi-hostv}
     1 & h1 & \{\}\\
     2 & h2 & \{s3\}\\
     \hline
@@ -869,23 +869,23 @@ select * from host_resolved_data_template_info(2);
 
 Results are in tables \ref{tab:multi-reshost} and \ref{tab:multi-reshostv2}.
 
-\label{tab:multi-reshost}
 \begin{longtable}{ l | l | l | l | l | l | l }
     \caption{Database table {\tt host\_resolved\_data\_template\_info()}}\\
     uid &  name &  service &  service\_templ &  note\_host &  note\_host\_templ &  template\_host\\
     \hline
     \endhead
+\label{tab:multi-reshost}
     2 & h2 & \{s1\} & h2 &  &  & 2\\
     1 & h1 & \{s1,s2,s3\} & t1 & note from t1 & t1 & 1\\
     \hline
 \end{longtable}
 
-\label{tab:multi-reshostv2}
 \begin{longtable}{ l | l | l | l | l | l | l }
     \caption{Database table {\tt host\_resolved\_data\_template\_info(2)}}\\
     uid &  name &  service &  service\_templ &  note\_host &  note\_host\_templ &  template\_host\\
     \hline
     \endhead
+\label{tab:multi-reshostv2}
     2 & h2 & \{s1,s2\} & t2 &  &  & 2\\
     1 & h1 & \{s1,s2\} & t2 & note from t1 & t1 & 1\\
     \hline
