@@ -63,6 +63,10 @@ The configuration generators are available from the directory \path{scripts/conf
         representation of the models of all servers.
 \end{description}
 
+A careful reader will immediately recognize that we have indeed followed our own suggestions about implementing the
+configuration generators efficiently.  The presented scripts take care not to query the database too often and try hard
+to group configuration generators into similar pieces where possible.
+
 \section{Rack View}
 One of the outputs provided by the Deska system is producing a graphical representation of all the racks in the data
 center.  We have chosen to utilize the excellent Qt's QML library.  The input file required by the QML application is a
@@ -87,7 +91,5 @@ The desired mode of operation is implemented by a special wrapper class instead 
 intercepts the data written to a file, comparing the data with the previous copy, and if it detects a difference from
 the previously saved state, it uses the original serial number and the current date to create a new identification in
 conformance with the relevant RFC documents.
-
-\todo{Honza: describe the history and issues of our cfggens}
 
 \end{document}
