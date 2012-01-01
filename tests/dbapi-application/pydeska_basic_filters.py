@@ -203,11 +203,7 @@ def doTests(r):
                                (deska.interface.name != "eth0")]
     r.assertEqual(sorted(matching.keys()), ["x0->eth1"])
 
-    # Redmine#400 - use local names
-    # Check for all other interfaces of a given host
-    matching = deska.interface[(deska.interface.host == "x0") &
-                               (deska.interface.name != "eth0")]
-    r.assertEqual(matching.keys(), ["x0->eth1"])
+    # Check for all other interfaces of a given host using local names
     matching = deska.interface[(deska.interface.host == "x0") &
                                (deska.interface.name != "eth0")]
     r.assertEqual(matching.keys(), ["x0->eth1"])
