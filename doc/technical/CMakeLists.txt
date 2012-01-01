@@ -62,6 +62,8 @@ set(deska_doc_images
     img-deska-components.pdf
     img-deska-workflow.pdf
     img-deska-server-components.pdf
+    img-deska-cli.pdf
+    img-deska-cli-parser.pdf
 )
 
 add_latex_document(deska.tex
