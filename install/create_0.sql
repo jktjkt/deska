@@ -48,4 +48,7 @@ GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA versioning TO deska_admin;
 
+-- The restoringCommit DBAPI method really needs access to this one
+GRANT USAGE ON SCHEMA api TO deska_admin;
+
 END;
