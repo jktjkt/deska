@@ -29,8 +29,7 @@ to determine the order in which files are loaded into the database.
 \section{Requirements on the Table Layout}
 \label{sec:db-scheme-req}
 
-Every SQL file should start with
-setting {\tt search\_path} to schemas {\tt production} and {\tt deska}.
+Every SQL file should start with setting {\tt search\_path} to schemas {\tt production} and {\tt deska}.
 
 Every SQL table provided by the user needs to:
 \begin{itemize}
@@ -59,10 +58,10 @@ CREATE TABLE vendor (
 );
 \end{minted}
 
-Do not use table names starting with a prefix {\tt "inner\_"}, or ending with {\tt "\_template"}, as
-Deska uses these names for internal purposes.  The maximum total length of a kind name and an attribute name is 20 characters
-together.  Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a default option. All foreign keys also
-needs to be set to {\tt DEFERRABLE}.
+Do not use table names starting with a prefix {\tt "inner\_"} or ending with {\tt "\_template"} as Deska uses these
+names for internal purposes.  The maximum total length of a kind name and an attribute name together is 20 characters.
+Foreign keys have to retain the {\tt ON DELETE NO ACTION} stanza, a default option. In addition, all foreign keys need
+to be explicitly set to {\tt DEFERRABLE}.
 
 \subsection{Attribute types}
 \label{sec:db-att-types}
@@ -89,10 +88,11 @@ Here we will describe how to add Deska relations (see \secref{sec:objects-and-re
 \subsubsection{REFERS\_TO}
 \label{sec:db-scheme-refers-to}
 
-The {\tt REFERS\_TO} relation (see \secref{sec:relation-refers-to}) needs adding the foreign key constraint. This constraint has to comply with following rules:
+The {\tt REFERS\_TO} relation (see \secref{sec:relation-refers-to}) is defined by adding a foreign key constraint. This
+constraint has to comply with following rules:
 
 \begin{itemize}
-    \item The target module table has to be present in the database already
+    \item The target module table has to be already present in the database
     \item The referring column forming the relation has to be of the {\tt bigint} type
     \item The name of the constraint shall start with the {\tt rrefer\_} prefix
     \item The foreign key shall always reference the {\tt uid} column of the target table
@@ -114,14 +114,19 @@ CREATE TABLE hardware (
 \end{minted}
 
 \subsubsection{EMBED\_INTO}
-The {\tt EMBED\_INTO} relation (see \secref{sec:relation-embed-into}) needs adding the foreign key constraint. This constraint has to comply with following rules:
+
+The {\tt EMBED\_INTO} relation (see \secref{sec:relation-embed-into}) is defined by adding a foreign key constraint
+obeying the following rules:
+
 \begin{itemize}
     \item The target module table has to be present in the database already
     \item The referring column forming the relation has to be of the {\tt bigint} type
     \item The name of the constraint shall start with the {\tt rembed\_} prefix
     \item The foreign key shall always reference the {\tt uid} column of the target table
 \end{itemize}
+
 The tables that are embedded into another have to have unique pair of uid and referencing column, which refers to uid of table that is this embedded into.
+
 \begin{minted}{sql}
 SET search_path TO production,deska;
 
@@ -142,13 +147,19 @@ CREATE TABLE interface (
 
 
 \subsubsection{TEMPLATIZE}
-The {\tt TEMPLATIZE} relation needs (see \secref{sec:relation-templatized}) adding a special column to the module. This column has to comply with following rules:
+
+The {\tt TEMPLATIZE} relation needs (see \secref{sec:relation-templatized}) adding a special column to the module. This
+column has to comply with following rules:
+
 \begin{itemize}
     \item The name of the column shall start with {\tt template\_} prefix
-    \item The column has to be the only one column in module which name starts with {\tt template\_} prefix
+    \item There shall be only one column in the table whose name starts with {\tt template\_} prefix
     \item The column shall be of the {\tt bigint} type
 \end{itemize}
-You can template only tables that have at least one column which value could be inherited from its template. Columns that form some {\tt COMPOSITION relation}, {\tt TEMPLATIZE} relation or {\tt EMBED INTO} relation could not inherit theirs values.
+
+You can template only tables that have at least one column whose value could be inherited from its template, and columns
+that form a {\tt COMPOSITION}, a {\tt TEMPLATIZE} or an {\tt EMBED\_INTO} relation could not inherit their values and
+therefore do not count.
 
 \begin{minted}{sql}
 SET search_path TO production,deska;
