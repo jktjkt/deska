@@ -1,0 +1,81 @@
+#!/usr/bin/python
+import sys
+import time
+# FIXME: this shall be removed in the final version
+sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
+import deska
+
+deska.init()
+
+t1 = time.time()
+all_services = deska.service._all()
+all_interfaces = deska.interface._all()
+all_hosts = deska.host._all()
+t2 = time.time()
+
+# File containing the group definitions for cfengine
+f_cf_groups = file("cfengine-groups.cf", "wb")
+
+# The aggregator definitions for Ganglia
+f_ganglia_agg = file("ganglia-sources", "wb")
+
+for service in all_services.keys():
+    current_hosts = dict((k,v) for (k,v) in all_hosts.iteritems()
+                         if v.service is not None and service in v.service)
+    hosts_farm = []
+    hosts_fzu = []
+    for (hostname, host_data) in current_hosts.iteritems():
+        networks = [v.network for (k,v) in all_interfaces.iteritems() if k.startswith("%s->" % hostname)]
+        if "Golias-25" in networks or "Golias-NAT" in networks:
+            hosts_farm.append(hostname)
+        elif "FZU" in networks:
+            hosts_fzu.append(hostname)
+
+    hostnames_all = sorted(hosts_farm + hosts_fzu)
+    fqdn_hostnames = sorted(["%s.fzu.cz" % h for h in hosts_fzu] +
+                            ["%s.farm.particle.cz" % h for h in hosts_farm])
+
+    # The required format for cfengine is pretty simple, just a list of host
+    # names in parenthesis
+    f_cf_groups.write("%s = (%s)\n" % (service, " ".join(hostnames_all)))
+
+    if len(hostnames_all):
+        f_nagios_hostgroups = file("nagios-hostgroups-%s.cfg" % service, "wb")
+        f_nagios_hostgroups.write("define hostgroup {\n  hostgroup_name %(service)s\n  members %(hostnames)s\n}\n"
+                                  % {"service": service, "hostnames": ",".join(fqdn_hostnames)})
+        f_nagios_hostgroups.close()
+
+    if service == "in_nagios":
+        # a special service which holds all servers that are supposed to be
+        # monitored by Nagios
+        for hostname in fqdn_hostnames:
+            f_nagios_host = file("nagios-host-%s.cfg" % hostname, "wb")
+            f_nagios_host.write("define host {\n  use  non-critical-host-template\n  host_name %s\n}\n" % hostname)
+            f_nagios_host.close()
+        # At FZU, a server being present in Nagios is exactly equal to it being checked by munin
+        f_munin_conf = file("munin-server.conf", "wb")
+        f_munin_conf.write("[farm.particle.cz;]\nnode_order %s\n" % " ".join(["%s.farm.particle.cz" % server for server in sorted(hosts_farm)]))
+        f_munin_conf.close()
+
+
+    elif service == "ganglia_aggregator":
+        subclusters = ["iberis", "ibis", "ib", "salix", "saltix", "golias"]
+        for cluster in subclusters:
+            other_service = "cluster_%s" % cluster
+            matching_hosts = [k for (k,v) in current_hosts.iteritems()
+                              if v.service is not None and "ganglia_aggregator" in v.service and other_service in v.service]
+            if len(matching_hosts):
+                f_ganglia_agg.write("data_source \"%s\" 60 %s\n" % (cluster, " ".join(matching_hosts)))
+            else:
+                f_ganglia_agg.write("# no aggregators for subcluster %s\n" % cluster)
+                # wtf: this is very likely a bug in the server, but I cannot reproduce it outside of the config generators.
+                # The "services" I receive are always None. That sucks.
+
+f_cf_groups.close()
+f_ganglia_agg.close()
+
+
+t3 = time.time()
+
+file("__timing-stats", "ab").write(
+    "services: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))

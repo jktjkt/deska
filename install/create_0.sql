@@ -48,6 +48,4 @@ GRANT ALL ON ALL TABLES IN SCHEMA deska TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA api TO deska_admin;
 GRANT ALL ON ALL TABLES IN SCHEMA versioning TO deska_admin;
 
--- FIXME: tests still using api no jsn
-GRANT USAGE ON SCHEMA api TO deska_user;
 END;

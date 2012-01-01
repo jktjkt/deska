@@ -15,10 +15,23 @@ def prepareObjects(r):
     realVendors = ["HP", "IBM", "SGI"]
     myVendors = realVendors + [None]
     r.c(startChangeset())
+    r.c(createObject("service", "even"))
+    r.c(createObject("service", "odd"))
+    r.c(createObject("service", "first_half"))
+    r.c(createObject("service", "second_half"))
     for x in range(10):
         objname = "x%d" % x
         r.assertEqual(r.c(createObject("host", objname)), objname)
         r.cvoid(setAttribute("host", objname, "note_host", "ahoj"))
+        if x < 5:
+            r.cvoid(setAttributeInsert("host", "x%d" % x, "service", "first_half"))
+        else:
+            r.cvoid(setAttributeInsert("host", "x%d" % x, "service", "second_half"))
+        if x % 2:
+            r.cvoid(setAttributeInsert("host", "x%d" % x, "service", "even"))
+        else:
+            r.cvoid(setAttributeInsert("host", "x%d" % x, "service", "odd"))
+
     for vendor in realVendors:
         r.assertEqual(r.c(createObject("vendor", vendor)), vendor)
     for x in range(5):
@@ -186,17 +199,34 @@ def doTests(r):
     r.assertEqual(sorted(matching.keys()), ["x0->eth0"])
 
     # Indirect query combined with an != on interface name
-    # FIXME: fails, produces invalid data: Redmine#399, Redmine#400
     matching = deska.interface[(deska.host.name == "x0") &
                                (deska.interface.name != "eth0")]
     r.assertEqual(sorted(matching.keys()), ["x0->eth1"])
 
-    # FIXME: fails, Redmine#400
+    # Redmine#400 - use local names
     # Check for all other interfaces of a given host
-    #matching = deska.interface[(deska.interface.host == "x0") &
-    #                           (deska.interface.name != "x0->eth0")]
-    #r.assertEqual(matching.keys(), ["x0->eth1"])
-    # FIXME: fails, Redmine#399
     matching = deska.interface[(deska.interface.host == "x0") &
                                (deska.interface.name != "eth0")]
     r.assertEqual(matching.keys(), ["x0->eth1"])
+    matching = deska.interface[(deska.interface.host == "x0") &
+                               (deska.interface.name != "eth0")]
+    r.assertEqual(matching.keys(), ["x0->eth1"])
+
+    hosts_even = sorted(deska.host[deska.host.service.contains("even")].keys())
+    r.assertEqual(hosts_even, ["x%d" % d for d in (1,3,5,7,9)])
+    hosts_odd = sorted(deska.host[deska.host.service.contains("odd")].keys())
+    r.assertEqual(hosts_odd, ["x%d" % d for d in (0,2,4,6,8)])
+    hosts_first_half = sorted(deska.host[deska.host.service.contains("first_half")].keys())
+    r.assertEqual(hosts_first_half, ["x%d" % d for d in range(5)])
+    hosts_second_half = sorted(deska.host[deska.host.service.contains("second_half")].keys())
+    r.assertEqual(hosts_second_half, ["x%d" % d for d in range(5, 10)])
+
+    matching = deska.host[deska.host.service.contains("even") & deska.host.service.contains("odd")].keys()
+    r.assertEqual(matching, [])
+    matching = deska.host[deska.host.service.contains("even") | deska.host.service.contains("odd")].keys()
+    r.assertEqual(sorted(matching), ["x%d" % x for x in range(10)])
+
+    matching = deska.host[deska.host.service.contains("even") & deska.host.service.contains("first_half")].keys()
+    r.assertEqual(sorted(matching), [x for x in hosts_even if x in hosts_first_half])
+    matching = deska.host[deska.host.service.contains("even") | deska.host.service.contains("first_half")].keys()
+    r.assertEqual(sorted(matching), sorted(list(set(hosts_even + hosts_first_half))))

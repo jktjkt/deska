@@ -9,6 +9,30 @@
 This chapter guides the reader through the installation process of the Deska application suite.
 \end{abstract}
 
+\section{Quick Evaluation}
+
+The installation procedure of the Deska server is a rather complicated process as it involves separate configuration of
+the server and clients and optionally also a proper configuration for the output configuration generators.  In order to
+quickly evaluate the whole Deska setup, there is also a sample script which installs all required packages, deploys the
+database and fills it with sample data.
+
+Do {\bf NOT} use this script on real, production machines.  The configuration which is produced is deliberately
+insecure, and is therefore intended just for quick evaluation in a virtual machine.  The script has been tested on a
+``Basic Server'' installation of Scientific Linux 6.1, and might require adjustments on other systems.
+
+At first, transfer all the RPM packages and the {\tt deska-demo.sh} shell script from the enclosed CD disk to the target
+system.  Enter the directory with the packages and execute the shell script as root:
+
+\begin{minted}{console}
+# ./deska-demo.sh
+\end{minted}
+
+After the script finishes, the system is ready to be used.  Just login as user {\tt franta} with password {\tt franta}
+and execute the \path{deska-cli} as usual to play around with a fully configured Deska system with a sample
+configuration generator that prints all {\tt host}s in a database.
+
+The rest of this chapter contains all steps required for a proper deployment of Deska into a production environment.
+
 \section{Packages}
 
 \todo{Honza: verify these steps. Should be done by somebody else than me, obviously.}
@@ -24,7 +48,7 @@ We have provided the following packages suitable for immediate installation on R
     \item {\tt deska-libs}, the shared libraries for both client and server,
     \item {\tt deska-python-libs}, containing a Python library for access to the Deska server,
     \item {\tt deska-devel}, for development files like the C++ headers,
-    %\item {\tt deska-docs}, for a copy of the documentation
+    \item {\tt deska-debuginfo}, which contains proper object symbols and a copy of the source for reporting bugs
 \end{itemize}
 
 The Deska system also depends on a few external packages which are not commonly available in the default RHEL6
@@ -37,25 +61,14 @@ Please keep in mind that installation has to be performed as user {\tt root}:
 # yum localinstall path/to/deska/packages/*.rpm
 \end{minted}
 
-Due to the technical reasons, the {\tt yum localinstall} command will not resolve dependencies automatically, so one has
-to provide a full list of packages to satisfy the package requirements.  In case of installation from a properly
-configured repository, though, the YUM package manager will resolve the dependencies automatically.
-
-The following sequence of commands will install all required packages for a full installation of the Deska system,
-including the PostrgeSQL database server (please note that you might have to substitute the full path to these packages
-from the enclosed CD):
-
-\todo{Honza: list of the all required packages}
-
-\begin{minted}{console}
-# yum localinstall path/to/external/deps/*.rpm
-\end{minted}
+The packages provided by the Deska team properly list their dependency information.  Unfortunately, some of the
+dependencies are on software which is not packaged on RHEL6 by default.  All packages are available on the CD, though.
 
 A typical user's workstation or a laptop does not have to contain the whole Deska system.  To install just the Deska
 CLI, proceed in the following way, installing packages {\tt deska-client} and {\tt deska-libs}:
 
 \begin{minted}{console}
-# yum localinstall path/to/deska-{client,libs}-1.0-1.rpm
+# yum localinstall path/to/deska-{client,libs}-*.rpm
 \end{minted}
 
 After the installation is complete, please proceed with configuring the Deska server by following instructions
@@ -225,24 +238,82 @@ make install}.  The server, however, requires more complex procedure to set up.
 \section{Setup and Configuration}
 \label{sec:build-server-setup}
 
-After having installed the server utilities by running the {\tt make install} command, it is time to deploy the database
-configuration.
+After having installed the server utilities, either from packages or by running the {\tt make install} command, it is
+time to deploy the database and configure the Deska server.
+
+\subsection{Server Setup}
 
 The very first step is to configure a PostgreSQL server.  It is recommended that it runs on the same host as the {\tt
 deska-server} script for security reasons (see the \secref{sec:server-security-model} for details).  The server shall
 accept connections over Unix sockets and use the {\tt ident} scheme for user authentication over these sockets.
 Furthermore, each (physical) user who will have access to the Deska server will have to be present in the PostgreSQL
 database, be the member of the {\tt deska\_user} role, and has a Unix account with properly configured SSH keys for
-automated authentication to the server machine.  After the PostgreSQL server is configured properly, it is time to
-deploy the database scheme.
+automated authentication to the server machine.
+
+Here is an example configuration for the PostgreSQL's \path{pg_hba.conf} showing the required options for the {\tt
+d\_fzu} database:
+
+\begin{minted}{text}
+local   d_fzu     all     ident
+\end{minted}
+
+The {\tt deska-server} itself does not run autonomously, but is instead started on-demand when a user launches the {\tt
+deska-cli}.  The console will open an SSH connection to the server, start a wrapper scripts which sets the required
+parameters, and then pass control to the actual {\tt deska-server} program.
+
+A sample script is available from the CD as the {\tt run-deska.sh}.  Here is how a typical configuration looks like:
+
+\label{sec:deska-server-wrapper}
+\begin{minted}{bash}
+#!/bin/bash
+
+# The database name to use
+export DESKA_DB=d_fzu
+
+# Enable configuration generators. The tests/prepare-git-repo.sh script can be
+# used to set up this directory tree, and sample scripts in the
+# scripts/config-generators directory can be symlinked into the
+# $DESKA_CFGGEN_SCRIPTS directory to activate those currently in use at the FZU.
+export DESKA_CFGGEN_BACKEND=git
+export DESKA_CFGGEN_SCRIPTS=/path/to/cfggen/scripts
+export DESKA_CFGGEN_GIT_REPO=/path/to/cfggen/repository
+export DESKA_CFGGEN_GIT_WC=/path/to/cfggen/changesets
+export DESKA_CFGGEN_GIT_PRIMARY_CLONE=/path/to/cfggen/primary
+
+# Now that we have set up our environment, launch the server.
+deska-server
+\end{minted}
+
+From now one, we will assume that the script above is available on the Deska server as \path{deska-server-launcher}
+somewhere in the user's {\tt \$PATH}, and that the name of the machine hosting the Deska server is
+\path{deska.farm.particle.cz}.
+
+Now we shall create the appropriate \path{deska.ini} file to be distributed to the regular Deska users.  Here is how
+this file shall look like:
+
+\begin{minted}{bash}
+[DBConnection]
+Server=ssh
+Server=deska.farm.particle.cz
+Server=/usr/local/bin/deska-server-launcher
+\end{minted}
+
+These files shall be put into each user's home directory.
+
+\subsection{Database Deployment}
+\label{sec:build-database-deployment}
+
+After the PostgreSQL server is configured properly, it is time to deploy the database scheme.  A database scheme
+describes the layout of the database and defines names of the Deska kinds andrelations between them (see
+\secref{sec:chap-objects-and-relations} for an introduction and \secref{sec:admin-dbscheme} for a list of constraints
+which this scheem has to fulfill in order to be usable in Deska).
 
 The utilities shipped with Deska support installation to an {\em empty} PostgreSQL database.  In case of an upgrade or
 an attempt to repair a broken database installation, please make sure to take a proper backup first (see
-\secref{sec:cli-db-backup} for details).
+\secref{sec:cli-db-backup} for details), and completely {\em remove} the original database before proceeding further.
 
 The installation process therefore starts with creating a database and the required user roles:
 
-\todo{Honza: Use a script for the SQL configuration}
 \begin{minted}{console}
 $ psql -U postgres
 \end{minted}
@@ -260,9 +331,9 @@ When the database has been created, install the PgPython procedural language in 
 $ psql -U postgres -d yourDb -v ON_ERROR_STOP=1 -f path/to/deska/install/pgpython.sql
 \end{minted}
 
-Now you can proceed to the actual installation of the Deska database, which is performed by the {\tt
-deska-deploy-database.sh} script.  There are three required arguments, the {\tt -U} ({\tt --user}) for specifying a
-PostgreSQL user name, the {\tt -d} ({\tt --database}) for the database name, and finally the {\tt -t} (or {\tt
+Now you can proceed to the actual installation of the Deska database which is performed by the
+\path{deska-deploy-database.sh} script.  There are three required arguments, the {\tt -U} ({\tt --user}) for specifying
+a PostgreSQL user name, the {\tt -d} ({\tt --database}) for the database name, and finally the {\tt -t} (or {\tt
 --target}) for the name of the directory in which to install additional server-side data (as the Deska server requires
 some generated code tailored to the used database scheme, and these files have to live outside of a PostgreSQL database
 directory hierarchy).  Due to the security model used by Postgres, where a Python-based procedural language module has
@@ -278,5 +349,39 @@ Please keep in mind that the directory used for the {\tt -t} option to the {\tt 
 exclusively used by exactly {\em one} instance of the Deska database.  It is perfectly acceptable to run several Deska
 databases on one machine and sharing the same PostgreSQL server instance, as long as they use a different path for the
 auxiliary files.
+
+\subsection{Configuration Generators}
+\label{sec:build-cfg-generators}
+
+In a real deployment, the configuration generators will have to be heavily tailored towards the site-specific scenarios.
+As an example, the initial set of scripts which are in use in Prague is available from the
+\path{scripts/config-generators/} directory in the Deska sources.  In the rest of this chapter, we will describe how to
+configure the Git integration and deploy these scripts.  The following steps will deploy an isolated Git repository
+which will be suitable for use by Deska, but the changes will {\em not} be pushed to any remote place (we do not know
+the host names or repository setup of each site's configuration management systems, after all).
+
+Start with running a sample script which creates the git repository and fills it with the initial content.  The
+\path{tests/prepare-git-repo.sh} is available from the Deska source tree:
+
+\begin{minted}{console}
+$ mkdir /path/to/cfggen/
+$ ./tests/prepare-git-repo.sh /path/to/cfggen/
+
+...some output goes here...
+
+Please use the following as the Deska server configuration:
+
+export DESKA_CFGGEN_BACKEND=git
+export DESKA_CFGGEN_SCRIPTS=/path/to/cfggen/scripts
+export DESKA_CFGGEN_GIT_REPO=/path/to/cfggen/cfggen-repo
+export DESKA_CFGGEN_GIT_PRIMARY_CLONE=/path/to/cfggen/cfggen-primary
+export DESKA_CFGGEN_GIT_SECOND=/path/to/cfggen/second-wd
+export DESKA_CFGGEN_GIT_WC=/path/to/cfggen/cfggen-wc
+
+A sample script has been put into /path/to/cfggen/scripts/01-demo for you.
+\end{minted}
+
+The variable definitions which the scripts asks you to use shall be put into the shell wrapper for the Deska server
+which we have discussed in section \ref{sec:deska-server-wrapper} earlier in this chapter.
 
 \end{document}

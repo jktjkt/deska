@@ -1,0 +1,51 @@
+#!/usr/bin/python
+
+import os
+import sys
+import cPickle as pickle
+
+conf_path = "./hw-defs"
+
+if not os.path.exists(conf_path):
+    print "Cannot find generated file %s" % conf_path
+    sys.exit(1)
+
+hw_conf = pickle.load(file(conf_path, "rb"))
+
+if len(sys.argv) != 3:
+    print "Usage: %s [hostname] [on|off]" % sys.argv[0]
+    sys.exit(1)
+
+if sys.argv[2] == "on":
+    mode = "powerOn"
+elif sys.argv[2] == "off":
+    mode = "powerOff"
+else:
+    print "Usage: %s [hostname] [on|off]" % sys.argv[0]
+    sys.exit(1)
+
+hostname = sys.argv[1].split(".")[0]
+
+if not hw_conf.has_key(hostname):
+    print "Error: host %s not found" % hostname
+    sys.exit(1)
+
+hwmodel = hw_conf[hostname]
+# FIXME: add these commands
+if hwmodel == "SGI-Altix-XE310" or hwmodel == "SGI-Altix-XE340":
+    args = ["ipmitool", "-I", "lanplus"]
+elif hwmodel == "IBM-iDataPlex-dx340":
+    args = None
+elif hwmodel.startswith("IBM-iDataPlex-dx360-M2") or
+        hwmodel.startswith("IBM-iDataPlex-dx360-M3"):
+    args = ["ipmitool", "FIXME"]
+else:
+    args = None
+
+if args is None:
+    print "Error: this script cannot manipulate this hardware."
+    print "Hardware model '%s' not recognized." % hwmodel
+    sys.exit(1)
+
+import subprocess
+sys.exit(subprocess.call(args))

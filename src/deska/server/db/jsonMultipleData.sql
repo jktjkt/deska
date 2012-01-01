@@ -1,3 +1,7 @@
+/** API function for multipleObjectData
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleObjectData(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -75,6 +79,10 @@ def main(tag,kindName,revision,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for multipleResolvedObjectData
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleResolvedObjectData(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -124,9 +132,8 @@ def main(tag,kindName,revision,filter):
 					coldef = "{0}_get_resolved_{1}({0}.uid, $1) AS {1}".format(kindName, refCol)
 					revisionParameter = True
 				else:
-					#coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
-					#revisionParameter = True
-					coldef = atts[refCol]
+					coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
 			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
@@ -180,6 +187,10 @@ def main(tag,kindName,revision,filter):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for multipleResolvedObjectDataWithOrigin
+   * Prepare SQL statement and call proper stored function
+   * See coldef creation to understand how SQL statement work
+   */
 CREATE OR REPLACE FUNCTION jsn.multipleResolvedObjectDataWithOrigin(tag text, kindName text, revision text, filter text = NULL)
 RETURNS text
 AS
@@ -222,15 +233,24 @@ def main(tag,kindName,revision,filter):
 			atts["name"] = coldef
 			# delete embed attribute
 			del atts[refCol]
-			del atts[refCol+"_templ"]
+			if dutil.hasTemplate(kindName):
+				'''Only if kindName has template'''
+				del atts[refCol+"_templ"]
 	for relName in rels:
 		if rels[relName] == kindName:
 			refTbl = dutil.generated.relToTbl(relName)
 			refCol = dutil.generated.relFromCol(relName)
 			if dutil.generated.atts(kindName)[refCol] != "identifier_set":
-				# No action for identifier_set required, getting from data function
 				coldef = "{0}_get_name({1}.{2},$1) AS {0}".format(refTbl,kindName,refCol)
 				atts[refCol] = coldef
+			else:
+				if dutil.hasTemplate(kindName):
+					coldef = "{0}_get_resolved_{1}({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
+				else:
+					coldef = "inner_{0}_{1}_get_set({0}.uid, $1) AS {1}".format(kindName, refCol)
+					revisionParameter = True
+			atts[refCol] = coldef
 
 	columns = ",".join(atts.values())
 

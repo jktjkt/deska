@@ -9,7 +9,7 @@
 %global redminefile FIXME
 
 Name: deska
-Version: 0.11.747
+Version: 1.0
 Release: 1%{?dist}
 Group: Applications/System
 Summary: Tool for Central Administration of a Grid Site
@@ -86,6 +86,9 @@ Group: Application/System
 License: GPLv2+
 Requires: deska-python-libs
 Requires: deska-client
+Requires: python3
+Requires: postgresql90-server
+Requires: python-psycopg2
 
 %description server
 The server daemon responsible for talking to the PostgreSQL database and the supporting utilities
@@ -118,9 +121,10 @@ mkdir _build && cd _build
 	%{doc_opts} \
 	..
 make -j20
-%py_byte_compile %{__python} %{buildroot}/_build/src/deska/python/deska
-%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils
-%py_byte_compile %{__python} %{buildroot}/_build/src/deska/server/app/deska_server_utils/config_generators
+%py_byte_compile %{__python} %{buildroot}/src/deska/python/deska
+%py_byte_compile %{__python} %{buildroot}/src/deska/server/app/deska_server_utils
+%py_byte_compile %{__python} %{buildroot}/src/deska/server/app/deska_server_utils/config_generators
+%py_byte_compile %{__python} %{buildroot}/src/deska/server/db/gen_sql
 %if %{with_doc}
 mv doc/technical/deska.pdf ../deska.pdf
 %endif
@@ -163,7 +167,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/deska-server
 %{python_sitelib}/deska_server_utils/*.py*
 %{python_sitelib}/deska_server_utils/config_generators/*.py*
-%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
+%attr(755,root,root)%{python_sitelib}/deska_server_utils/config_generators/git-new-workdir
+%attr(755,root,root)%{_datadir}/deska/install-scripts/install/*.sh
+%attr(755,root,root)%{_datadir}/deska/install-scripts/tests/*.sh
+%attr(755,root,root)%{_datadir}/deska/install-scripts/tests/sql/*.sh
+%{_datadir}/deska/install-scripts/install/*.sql
+%{_datadir}/deska/install-scripts/install/modules/demo/*.sql
+%{_datadir}/deska/install-scripts/install/modules/fzu/*.sql
+%attr(755,root,root)%{_datadir}/deska/install-scripts/src/deska/server/db/gen_sql/*.py*
+%{_datadir}/deska/install-scripts/src/deska/server/db/*.py*
+%{_datadir}/deska/install-scripts/src/deska/server/db/*.sql
 
 %if %{with_doc}
 %files doc
@@ -180,5 +193,5 @@ rm -rf $RPM_BUILD_ROOT
 %postun client -p /sbin/ldconfig
 
 %changelog
-* Wed Dec 28 2011 Jan Kundrát <kundratj@fzu.cz> - 0.11.747-1
+* Thu Dec 29 2011 Jan Kundrát <kundratj@fzu.cz> - 1.0-1
 - Initial release

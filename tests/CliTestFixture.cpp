@@ -198,7 +198,6 @@ void CliTestFixture::expectCliInit()
     expectAddCommandCompletion("help create");
     expectAddCommandCompletion("help delete");
     expectAddCommandCompletion("help end");
-    expectAddCommandCompletion("help last");
     expectAddCommandCompletion("help new");
     expectAddCommandCompletion("help no");
     expectAddCommandCompletion("help remove");

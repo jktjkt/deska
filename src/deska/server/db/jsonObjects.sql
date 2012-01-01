@@ -1,5 +1,8 @@
 SET search_path TO api,deska;
 
+/** API function setAttribute
+   * Call stored kind_set_attribute function
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttribute(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
@@ -37,6 +40,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function setAttribute - for setting identifier set
+   * Call stored kind_set_attribute function
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttribute(tag text, kindName text, objectName text, attributeName text, attributeData text[])
 RETURNS text
 AS
@@ -69,7 +75,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
--- dummy function for proper returning NotASetError
+/** API function setAttributeInsert - dummy for setting identifier set
+   * Returns dbException if called
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttributeInsert(tag text, kindName text, objectName text, attributeName text, attributeData text[])
 RETURNS text
 AS
@@ -88,6 +96,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function setAttributeInsert
+   * Call stored kind_set_attribute_insert function
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttributeInsert(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
@@ -120,7 +131,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
--- dummy function for proper returning NotASetError
+/** API function setAttributeRemove
+   * Returns dbException NotASetError if called
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttributeRemove(tag text, kindName text, objectName text, attributeName text, attributeData text[])
 RETURNS text
 AS
@@ -139,6 +152,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function setAttributeRemove
+   * Call stored kind_set_attribute_remove function
+   */
 CREATE OR REPLACE FUNCTION jsn.setAttributeRemove(tag text, kindName text, objectName text, attributeName text, attributeData text)
 RETURNS text
 AS
@@ -171,6 +187,9 @@ def main(tag,kindName,objectName,attributeName,attributeData):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function renameObject
+   * Call stored kind_set_name function
+   */
 CREATE OR REPLACE FUNCTION jsn.renameObject(tag text, kindName text, oldName text, newName text)
 RETURNS text
 AS
@@ -197,6 +216,9 @@ def main(tag,kindName,oldName,newName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function createObject
+   * Call stored kind_add function
+   */
 CREATE OR REPLACE FUNCTION jsn.createObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
@@ -224,6 +246,9 @@ def main(tag,kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function deleteObject
+   * Call stored kind_del function
+   */
 CREATE OR REPLACE FUNCTION jsn.deleteObject(tag text, kindName text, objectName text)
 RETURNS text
 AS
@@ -250,6 +275,9 @@ def main(tag,kindName,objectName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function restoreDeletedObject
+   * Call stored kind_undel function
+   */
 CREATE OR REPLACE FUNCTION jsn.restoreDeletedObject(tag text, kindName text, objectName text)
 RETURNS text
 AS

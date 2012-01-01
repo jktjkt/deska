@@ -47,8 +47,8 @@ def %(name)s(%(args)s):
 	refers_to_set_info_str = "SELECT attname, refkind, refattname FROM kindRelations_full_info('%(tbl)s') WHERE relation = 'REFERS_TO_SET'"
 	"""Query to get info about all relations refers_to_set."""
 	check_ondel_no_action_str = "SELECT kindname, refkind, attname FROM check_delete_no_action()"
-	invalid_relations_str = "SELECT attname, refkind FROM kindRelations_full_info('%s') WHERE relation = 'INVALID';"
 	"""Query to get foreign keys that are not deska relations """
+	invalid_relations_str = "SELECT attname, refkind FROM kindRelations_full_info('%s') WHERE relation = 'INVALID';"
 	commit_string = '''
 CREATE FUNCTION commit_all(message text)
 	RETURNS bigint
@@ -183,7 +183,7 @@ CREATE FUNCTION commit_all(message text)
 			self.refs[tbl] = self.refs[self.templates[tbl]]
 			for relName in refNamesCopy:
 				if self.refNames[relName] == self.templates[tbl]:
-					#FIXME: now we can overwrite another relation with same name, but this is wanted until we fix function for getting fks
+					# now we can overwrite another relation with same name, but this is wanted 
 					newRelName = relName + "_XXX"
 					self.refNames[newRelName] = tbl
 					self.relFromTbl[newRelName] = tbl
@@ -243,8 +243,9 @@ CREATE FUNCTION commit_all(message text)
 		for col in fkconstraints[:]:
 			table.add_fk(col[0],col[1],col[2],col[3])
 			relName = col[0]
-			if relName in self.relFromTbl:
-				#FIXME: this should not happen, HOTFIX:
+			while relName in self.relFromTbl:
+				#check if relation if this name exists
+				#and add suffix to it
 				relName = relName + "_XXX"
 			self.relFromTbl[relName] = tbl
 			self.relFromCol[relName] = col[1]
@@ -254,6 +255,7 @@ CREATE FUNCTION commit_all(message text)
 			if col[1] not in table.refers_to_set:
 				self.atts[tbl][col[1]] = 'identifier'
 			prefix = col[0][0:7]
+			prefixForSet = col[0][0:5]
 			if prefix == "rembed_":
 				self.embed[tbl] = col[1]
 				self.embedNames[relName] = tbl
@@ -265,7 +267,7 @@ CREATE FUNCTION commit_all(message text)
 			elif prefix == "rtempl_":
 				self.template[tbl] = col[2]
 				self.templateNames[relName] = tbl
-			else:
+			elif prefix == "rrefer_" or prefixForSet == "rset_":
 				self.refs[tbl].append(col[1])
 				self.refNames[relName] = tbl
 

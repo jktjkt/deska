@@ -436,6 +436,66 @@ modelbox hp-blade-p-2u
     depth 1
 end
 
+
+# services and roles
+
+create service wn
+create service cluster_salix
+create service cluster_saltix
+create service cluster_golias
+create service cluster_hypericum
+create service cluster_iberis
+create service cluster_ibis
+create service cluster_ib
+create service cluster_dorje
+
+create service ha
+create service dpmpool
+create service torque
+create service glite-ce
+create service cream
+create service dpm-head
+create service nfs
+create service sam
+create service sekce
+create service xrootd
+
+create service cvmfs_wn
+create service ui
+create service xen_dom0
+create service xen_paravirt
+create service www
+create service sbdii
+create service ganglia_aggregator
+create service dns
+create service dhcpd
+create service bond0_eth0_eth1
+
+create service in_nagios
+
+create modelswitch Cisco-6506
+modelswitch Cisco-6506
+    modelbox 11u
+    vendor Cisco
+end
+
+create modelswitch Force10-24-port-10GE-XFP
+modelswitch Force10-24-port-10GE-XFP
+    modelbox 1u
+    vendor Force10
+end
+
+create modelswitch BNT-RackSwitch-G8124
+modelswitch BNT-RackSwitch-G8124
+    modelbox 1u
+    vendor BNT
+end
+
+create modelswitch anon-switch
+modelswitch anon-switch
+    modelbox 1u
+end
+
 """
 
 for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not None]):
@@ -449,6 +509,39 @@ for rack in set([x.rackNo for x in fd_machines.itervalues() if x.rackNo is not N
     print "end"
 print
 
+print """
+create switch swL011
+switch swL011
+    modelswitch Cisco-6506
+    inside L01
+    x 1
+    y 34
+end
+
+create switch swL012
+switch swL012
+    modelswitch Force10-24-port-10GE-XFP
+    inside L01
+    x 1
+    y 36
+end
+
+create switch swL013
+switch swL013
+    modelswitch BNT-RackSwitch-G8124
+    inside L01
+    x 1
+    y 35
+end
+
+"""
+
+for sw in ("L031", "L041", "L051", "L052", "L071", "L081", "L082", "L083",
+           "L101", "L102", "L111", "L112", "R051", "R052", "R071", "R081"):
+    print "create switch sw%s" % sw
+    print "create box sw%s" % sw
+    print "switch sw%s modelswitch anon-switch" % sw
+print
 
 print "# dumping HW models"
 for (uid, x) in fd_hardware.iteritems():
@@ -468,8 +561,9 @@ for (uid, x) in fd_hardware.iteritems():
             # ...and hope for the best
         else:
             fullname = candidate
+    if fullname in ("Cisco-Catalyst-6500", "Force10-24-port-10GE-XFP", "BNT-RackSwitch-G8124"):
+        continue
     out_assigned_modelhw[uid] = fullname
-    # FIXME: "create" fails with duplicates
     print "create modelhardware %s" % fullname
     print "modelhardware %s" % fullname
     if x.cpuCount is not None:
@@ -610,6 +704,8 @@ for (uid, x) in fd_machines.iteritems():
         # wtf? "virtual blade"?
         continue
     myname = find_hostname_for_hw(uid, x)
+    if myname.startswith("swL01"):
+        continue
     out_assigned_hardware[uid] = myname
     print "create hardware %s" % myname
     print "hardware %s" % myname
@@ -632,12 +728,9 @@ for (uid, x) in fd_machines.iteritems():
     if x.note is not None:
         print "  note_hardware '%s'" % x.note
     if x.obsolete is not None:
-        print "# FIXME obsolete: %s" % x.obsolete
         obsolete_items.append(("hardware", myname))
         obsolete_items.append(("box", myname))
         obsolete_items.append(("host", myname))
-    if x.os is not None:
-        print "# FIXME: os %s" % x.os
     my_modelhw = None
     if x.hwUid is not None:
         if out_assigned_modelhw.has_key(x.hwUid):
@@ -801,6 +894,60 @@ end
     else:
         box_str = None
     print "create host %s" % myname
+    services = []
+    if myname == "golias100":
+        services.append("dpm-head")
+    elif myname.startswith("golias"):
+        services.append("wn")
+        services.append("cluster_golias")
+    elif myname.startswith("iberis"):
+        services.append("wn")
+        services.append("cluster_iberis")
+    elif myname.startswith("ibis"):
+        services.append("wn")
+        services.append("cluster_ibis")
+    elif myname.startswith("ib"):
+        services.append("wn")
+        services.append("cluster_ib")
+    elif myname.startswith("salix"):
+        services.append("wn")
+        services.append("cluster_salix")
+    elif myname.startswith("saltix"):
+        services.append("wn")
+        services.append("cluster_saltix")
+    elif myname.startswith("dpmpool") or myname == "se4":
+        services.append("dpmpool")
+    elif myname.startswith("xrootd"):
+        services.append("xrootd")
+    elif myname.startswith("storage"):
+        services.append("nfs")
+    elif myname.startswith("ha"):
+        services.append("ha")
+    elif myname in ("sam2", "sam3", "sam4"):
+        services.append("sam")
+    elif myname.startswith("ui"):
+        services.append("ui")
+
+    if myname in ("golias101", "golias169", "iberis01", "iberis03", "salix01",
+                  "salix03", "saltix01", "saltix03", "ibis01", "ibis03", "ib01",
+                  "ib03", "monitor", "hpv2", "skurut1-2.egee.cesnet.cz",
+                  "skurut2-2", "dpm1", "ce2.egee.cesnet.cz"):
+        services.append("ganglia_aggregator")
+
+    if myname in ("netservice1", "netservice2"):
+        services = services + ["dns", "dhcpd"]
+
+    if myname in ("ha1", "ha2", "ha3", "sam3", "dpmpool4", "se4", "samson", "dalila"):
+        services.append("bond0_eth0_eth1")
+
+    if len(services):
+        services.append("in_nagios")
+
+    if len(services):
+        print "host %s" % myname
+        print "  service [%s]" % ", ".join(services)
+        print "end"
+
     if box_str is not None:
         print box_str
     else:
@@ -837,8 +984,18 @@ for (uid, x) in fd_interfaces.iteritems():
         print "  mac %s" % x.mac
     if x.ip is not None:
         print "  ip4 %s" % x.ip
+    if x.switchNo is not None:
+        switchNo = x.switchNo
+        if switchNo == "SWL071":
+            switchNo = "swL071"
+        if switchNo.startswith("swL") or switchNo.startswith("swR"):
+            print "  switch %s" % switchNo
+            if x.switchPos is not None:
+                if switchNo == "swL011":
+                    print "  port gi%s" % x.switchPos
+                else:
+                    print "  port %s" % x.switchPos
     print "end\nend\n"
-    # FIXME: more of them!
 
 print
 print """@commit to r2
@@ -858,6 +1015,7 @@ delete box L50
 delete box L51
 delete box L53
 delete box L61
+
 
 @commit to r3
 jkt

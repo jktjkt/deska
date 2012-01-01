@@ -15,16 +15,14 @@ CREATE TABLE interface (
 	-- TODO unique constraint
 	ip4 ipv4,
 	network bigint
-		CONSTRAINT interface_fk_network REFERENCES network(uid) DEFERRABLE,
+		CONSTRAINT rrefer_interface_fk_network REFERENCES network(uid) DEFERRABLE,
 	ip6 ipv6,
 	-- MAC address of an interface. It does *not* have to be unique.
 	mac macaddr,
 	switch bigint
-		CONSTRAINT interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
+		CONSTRAINT rrefer_interface_fk_switch REFERENCES switch(uid) DEFERRABLE,
 	port text
 		CONSTRAINT "interface port cannot be empty string"
-        -- FIXME: relax this constraint; we can't enforce it right now
-        -- (think virtual machines or anything else without a real, physical switch interconnect)
 		CHECK (port != ''),
 	note text,
 	template bigint,

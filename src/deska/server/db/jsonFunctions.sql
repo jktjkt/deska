@@ -1,5 +1,8 @@
 SET search_path TO deska,api;
 
+/** API function for kindNames
+   * return kindNames from generated file
+   */
 CREATE OR REPLACE FUNCTION jsn.kindNames(tag text)
 RETURNS text
 AS
@@ -17,6 +20,9 @@ def main(tag):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for kindAttributes
+   * return kindAttributes from generated file
+   */
 CREATE OR REPLACE FUNCTION jsn.kindAttributes(tag text, kindName text)
 RETURNS text
 AS
@@ -62,6 +68,9 @@ def main(tag,kindName):
 $$
 LANGUAGE python SECURITY DEFINER;
 
+/** API function for kindRelations
+   * return kindRelations from generated file
+   */
 CREATE OR REPLACE FUNCTION jsn.kindRelations(tag text, kindName text)
 RETURNS text
 AS

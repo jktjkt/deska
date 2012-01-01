@@ -15,7 +15,7 @@ CREATE TABLE hardware (
 		CONSTRAINT hardware_name_unique UNIQUE NOT NULL,
 	-- TODO - better use uid
 	vendor bigint 
-		CONSTRAINT hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
+		CONSTRAINT rrefer_hardware_fk_vendor REFERENCES vendor(uid) DEFERRABLE,
 	purchase date NOT NULL,
 	warranty date NOT NULL,
 	-- GB of RAM

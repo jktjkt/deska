@@ -46,7 +46,7 @@ chmod +x "${SAMPLESCRIPT}"
 
 echo
 echo
-echo "Please copy-paste the following to your shell now:"
+echo "Please use the following as the Deska server configuration:"
 echo
 echo "export DESKA_CFGGEN_BACKEND=${DESKA_CFGGEN_BACKEND};" \
     "export DESKA_CFGGEN_SCRIPTS=${DESKA_CFGGEN_SCRIPTS};" \

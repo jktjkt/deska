@@ -5,19 +5,20 @@
 \chapter{Conclusion}
 \label{sec:conclusion}
 
-The goal of the Deska suite~\cite{deska-project} has always been making the work of the grid system administrators
-easier and more efficient.  Instead of duplicating the ongoing work and replacing well-working tools, we have attempted
-to fill up the void between various systems deployed today and provide a central place to store all important pieces of
-information about a grid computing site (\secref{sec:intro}).
+From the very start, the goal of the Deska suite~\cite{deska-project} has been to make the work of the grid system
+administrators easier and more efficient.  Instead of duplicating the ongoing work and replacing well-working tools, we
+have attempted to fill up the gap between various systems deployed today and provide a central place to store all
+important pieces of information about a grid computing site (\secref{sec:intro}).
 
 We have achieved this goal through building a {\em generic}, versatile database supporting advanced object storage based
 on the user-defined database scheme.  The database supports server-side querying, boasts full support for data
 versioning and audit logging, and provides many advanced features which allow us to properly represent real-world
 entities and relations between them using flat RDBMS~\footnote{Relation Database Management System} tables
-(\secref{sec:objects-and-relations}).  To our best knowledge, no existing ORM~\footnote{Object Relation Mapping} system
-supports these features, making the Deska a unique achievement among today's systems.
+(\secref{sec:objects-and-relations}).  To our best knowledge, the existing ORM~\footnote{Object Relation Mapping}
+systems typically do not offer the full-fledged version-control system among their core features, making the Deska a
+unique achievement among contemporary offerings.
 
-A generic command-line console have been built which talks to the database over a custom, well-documented protocol, and
+A generic command-line console has been built which talks to the database over a custom, well-documented protocol, and
 supports working with the user-defined data in an effective and intuitive manner.  The console and the associated
 scripts sport a friendly interface, support external scripting and thereby encourage deep integration with add-on tools.
 

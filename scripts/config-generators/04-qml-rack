@@ -2,8 +2,6 @@
 
 # FIXME: this one requires running X, so it shall be switched to the Xvfb asap
 # FIXME: also fix the path...
-# FIXME: finally, there's that nice potential for a dealock due to the
-# stdout/stderr activity being ignored by the libDeskaDb...
 
 echo "DeskaDividedBox /home/jkt/work/fzu/deska/scripts/qml/DeskaDividedBox.qml" > qmldir
 

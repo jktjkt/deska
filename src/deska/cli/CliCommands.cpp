@@ -723,6 +723,12 @@ bool Context::operator()(const std::string &params)
     
     std::vector<ObjectDefinition> objects =
         ui->m_dbInteraction->expandContextStack(ui->m_parser->currentContextStack());
+
+    using namespace boost::phoenix;
+    using namespace arg_names;
+
+    std::sort(objects.begin(), objects.end(), bind(&ObjectDefinition::name, arg1) < bind(&ObjectDefinition::name, arg2));
+
     if (objects.empty())
         ui->io->printMessage("No objects matched by current context stack.");
     else

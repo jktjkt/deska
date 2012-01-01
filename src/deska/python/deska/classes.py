@@ -134,26 +134,51 @@ def _discoverScheme(conn, target=None):
         else:
             globals()[kind] = kindInstance
 
+def _convert_to_Filter(foo):
+    if isinstance(foo, (_l.AttributeExpression, _l.MetadataExpression)):
+        return _l.Filter(_l.Expression(foo))
+    elif isinstance(foo, (_l.Expression, _l.OrFilter, _l.AndFilter)):
+        return _l.Filter(foo)
+    elif isinstance(foo, _l.Filter):
+        return foo
+    else:
+        raise NotImplementedError("Don't know how to convert %s to _l.Filter" %
+                                  type(foo))
+
+
 def _op_AndFilter_and(self, other):
     if isinstance(other, _l.AndFilter):
         return _l.AndFilter(self.operands + other.operands)
-    elif isinstance(other, (_l.AttributeExpression, _l.MetadataExpression)):
+    else:
         res = self.operands
-        res.append(_l.Filter(_l.Expression(other)))
+        res.append(_convert_to_Filter(other))
         return _l.AndFilter(res)
-    else:
-        raise NotImplementedError
 
-def _op_Expression_and(self, other):
-    if isinstance(other, (_l.AttributeExpression, _l.MetadataExpression)):
-        res = _l.std_vector_Filter()
-        res.append(_l.Filter(_l.Expression(self)))
-        res.append(_l.Filter(_l.Expression(other)))
-        return _l.AndFilter(res)
-    elif isinstance(other, _l.AndFilter):
-        return _l.AndFilter([self] + other.operands)
+def _op_generic_and(self, other):
+    if isinstance(other, _l.AndFilter):
+        return other.__or__(self)
     else:
-        raise NotImplementedError
+        res = _l.std_vector_Filter()
+        res.append(_convert_to_Filter(self))
+        res.append(_convert_to_Filter(other))
+        return _l.AndFilter(res)
+
+def _op_generic_or(self, other):
+    if isinstance(other, _l.OrFilter):
+        return other.__or__(self)
+    else:
+        res = _l.std_vector_Filter()
+        res.append(_convert_to_Filter(self))
+        res.append(_convert_to_Filter(other))
+        return _l.OrFilter(res)
+
+def _op_OrFilter_or(self, other):
+    if isinstance(other, _l.OrFilter):
+        return _l.OrFilter(self.operands + other.operands)
+    else:
+        res = self.operands
+        res.append(_convert_to_Filter(other))
+        return _l.AndFilter(res)
 
 def _op_nonzero(self):
     """Fake operator for catching bool promotion
@@ -163,8 +188,12 @@ def _op_nonzero(self):
 
 def _addExpressionOperators():
     """Add overloaded operators to the expression classes"""
-    _l.AttributeExpression.__and__ = _op_Expression_and
+    _l.AttributeExpression.__and__ = _op_generic_and
+    _l.AttributeExpression.__or__ = _op_generic_or
     _l.AndFilter.__and__ = _op_AndFilter_and
+    _l.AndFilter.__or__ = _op_generic_or
+    _l.OrFilter.__or__ = _op_OrFilter_or
+    _l.OrFilter.__and__ = _op_generic_and
     _l.AttributeExpression.__nonzero__ = _op_nonzero
     _l.MetadataExpression.__nonzero__ = _op_nonzero
     _l.Expression.__nonzero__ = _op_nonzero

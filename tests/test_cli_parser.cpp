@@ -2039,23 +2039,6 @@ BOOST_FIXTURE_TEST_CASE(filter_all_nested_objects, ParserTestFixture)
     expectNothingElse();
 }
 
-/** @short Filter for last nested objects */
-BOOST_FIXTURE_TEST_CASE(filter_last_nested_objects, ParserTestFixture)
-{
-    parser->parseLine("host hpv2\n");   
-    expectParsingStarted();
-    expectCategoryEntered("host", "hpv2");
-    expectParsingFinished();
-    verifyStackOneLevel("host", Deska::Db::Identifier("hpv2"));
-
-    parser->parseLine("last interface\n");
-    expectParsingStarted();
-    expectObjectsFilter("interface", boost::optional<Deska::Db::Filter>(Deska::Db::SpecialExpression(Deska::Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, "interface")));
-    expectParsingFinished();
-    verifyStackTwoLevels("host", Deska::Db::Identifier("hpv2"), "interface", boost::optional<Deska::Db::Filter>(Deska::Db::SpecialExpression(Deska::Db::FILTER_SPECIAL_EMBEDDED_LAST_ONE, "interface")));
-    expectNothingElse();
-}
-
 /** @short Error in filter for all objects */
 BOOST_FIXTURE_TEST_CASE(error_filter_all_objects, ParserTestFixture)
 {

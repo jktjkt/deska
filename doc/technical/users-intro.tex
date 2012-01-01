@@ -50,19 +50,57 @@ the delivery.  Finding a proper balance between managing too much detail and was
 describing the world sufficiently is, unfortunately, a human problem which is not solved by any computer system.}  This
 is how one might add information about the newly delivered model.  The commands being used are described in much more
 detail later throughout these docs, so reads shall not give up when the exact meaning of this example is not immediately
-clear:
+clear.
 
-\todo{Honza: add a nice example}
+We will start with launching the {\tt deska-cli}.  At first, we determine whether the database already contains
+something about the ``HP ProLiant DL380 G6'', the model which we have ordered.  We will make use of the CLI's tab
+completion, where pressing the {\tt Tab} key at any time offers a context-sensitive list of possible completions:
+
 \begin{minted}{console}
-    FIXME
+> modelhardware HP-
+HP-BL20p                           HP-ProLiant-DL320-G6
+HP-BL35p                           HP-ProLiant-DL360-G4p
+HP-BL460c                          HP-ProLiant-DL380-G5
+HP-BL465c                          HP-ProLiant-DL380-G6
 \end{minted}
 
-When the auxiliary data are in place, it is time to actually put in the information about each individual machine.  Here
-is how this could be done by the Deska CLI (again, the details will be explained later on):
+Our intended object appears to be in place.  Let's verify that it indeed holds a correct data:
 
-\todo{Honza: add a nice example}
 \begin{minted}{console}
-    FIXME
+> show modelhardware HP-ProLiant-DL380-G6
+cpu_cores 4
+cpu_ht true
+cpu_sockets 1
+cpu_type "Intel Xeon 2.2 GHz"
+hdd_drive_capacity 300
+no hdd_drive_count
+hdd_note "SAS 15k RPM (8x)"
+no hepspec
+modelbox 2u
+note "SAS 15k RPM (8x)"
+power_max 286
+no power_supply_count
+ram 6
+vendor HP
+no weight
+\end{minted}
+
+Everything looks correct so far, and the auxiliary data are in place.  It is therefore time to actually put in the
+information about each individual machine.  Here is how this could be done by the Deska CLI (again, the details will be
+explained later on):\footnote{The examples have been slightly altered from the real FZU scheme for better readability.
+For example, a real scheme uses simply {\tt y} instead of {\tt rack\_pos\_y} for brevity, etc.  These differences are
+mere cosmetic changes, though.} \footnote{The {\tt start} command is necessary to open a {\em changeset}, and thereby
+switch the database to a mode in which it accepts requests for modifications.  This workflow is described later in this
+documentation.}
+
+\begin{minted}{text}
+> start
+Changeset tmp4 started.
+> hardware srv123
+Object(s) hardware srv123 do(es) not exist. Create? y
+hardware srv123> inside L01
+Object(s) rack-placement srv123 do(es) not exist. Create and connect to hardware srv123? y
+hardware srv123> rack_pos_y 12
 \end{minted}
 
 \subsection{Step Two: Verifying the Results}
@@ -71,18 +109,53 @@ Now the database contains the data about the new arrivals.  Even though that we 
 properties, we can already check the {\em impact} of the change which we have just performed.  We will start with
 reviewing the modifications performed in the Deska database:
 
-\todo{Honza: console code here}
+\begin{minted}{diff}
+hardware srv123> diff
++ box srv123
++     hardware srv123
++     inside L01
++     y 12
++ end
++ hardware srv123
++     box srv123
++     modelhardware HP-ProLiant-DL380-G6
++ end
+\end{minted}
 
 The changes look reasonable, they affect just the systems which have just arrived, and there are no extra changes nor
 typos.  We shall therefore check about how are these modifications going to affect the {\em output configuration} of
 various services:
 
-\todo{Honza: again, example of configdiff}
+\begin{minted}{diff}
+hardware srv123> configdiff
+diff --git a/RackView.qml b/RackView.qml
+index c34796f..bccd828 100644
+--- a/RackView.qml
++++ b/RackView.qml
+@@ -83,6 +83,12 @@ height: 700
+       rackY: 36
+     }
+     DeskaDividedBox {
++      id: box_new_delivery
++      name: "srv123"
++      rackY: 36
++      consumesBaysY: 2
++    }
++    DeskaDividedBox {
+       id: box_hyperwin
+       name: "hyperwin"
+       rackX: 0
+\end{minted}
 
 The changes look like a direct result of the newly added data, and therefore we are free to promote this state of the
 database into the production environment:
 
-\todo{Honza: commit}
+\begin{minted}{text}
+hardware srv123> commit
+Commit message: Adding a box for the new delivery
+Changeset tmp4 commited to r4.
+>
+\end{minted}
 
 \subsection{Step Three: Affecting Production}
 

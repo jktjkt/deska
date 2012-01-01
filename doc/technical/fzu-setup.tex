@@ -6,7 +6,9 @@
 \label{sec:fzu-setup}
 
 \begin{abstract}
-\todo{Honza: FZU setup}
+This chapter describes the process and deliverables which were implemented as a part of integrating the Deska system
+with the pre-existing infrastructure of the Institute of Physics.  In particular, we discuss the features of the
+database scheme, the process of the data conversion and the deployed output configuration generators.
 \end{abstract}
 
 \section{Database Scheme}
@@ -15,10 +17,79 @@
 
 \section{Data conversion}
 \label{sec:fzu-farmdb}
-\todo{Honza: farmdb conversion}
+
+The Institute of Physics has had a web-based application for inventory management for a few years.  This
+ASP.NET~\cite{asp.net} based application has served well, but has focused mostly on keeping track of rack placement of
+the hardware, leaving much of more complicated tasks like assigning roles to machines unsolved.  The database also mixed
+different sorts of items in one table (i.e. it made no distinctions between a typical server and an Ethernet switch or a
+Fibre Channel disk array).  Converting this information to a highly structured data required by the Deska scheme has
+proven challenging.  The process was not helped by the fact that the existing database, the FarmDB, used dimensions in
+``rack fractions'' where a twin-sized SGI machine has width of 50\%, while the Deska scheme uses a hierarchy of nested
+boxes and internal offsetting.
+
+The conversion started with processing an SQL dump, constructing the objects and maintaining an in-memory representation
+of the database.  The dictionary of objects was then walked and a dump suitable for processing by the Deska CLI
+(\secref{sec:cli-usage}) got produced.
+
+The full sources of the conversion script are available in the Deska source tree (\path{doc/farmdb/convert.py}), along
+with the source data (\path{doc/farmdb/dbo.*.Table.sql}) and a helper script (\path{doc/farmdb/deunicodeify.sh}).
 
 \section{Configuration Generators}
 \label{sec:fzu-cfggen}
-\todo{Honza: describe the history and issues of our cfggens}
+
+\section{Generator Scripts}
+
+The rest of this chapter provides a quick overview of the configuration generators deployed at the FZU for generating
+production configuration.
+
+The configuration generators are available from the directory \path{scripts/config-generators/} in the Deska source tree
+(and also on the attached CD).  The following scripts are delivered:
+
+\begin{description}
+    \item[01-demo] A demo script which walks the Deska database, printing all data it finds.  Unlike other programs,
+        this script is not used in production, but just used as a simple example.
+    \item[02-dhcp-dns] As the name implies, this script produces configuration files for the DNS and DHCPD servers.  As
+        the required information is very similar for both of these use cases, they are grouped together, and in addition
+        outputs the configuration of network switches as well.
+    \item[03-text-draw-rack] This generator produces a textual representation of the racks and physical placement of all
+        equipment in the QML format.
+    \item[04-qml-rack] The fourth program converts the output of the \path{03-text-draw-rack} into a graphical
+        representation.  The QML format is described later in this chapter.
+    \item[05-services] This program produces output for various services whose input is driven by the services assigned
+        to the individual machines, and therefore makes heavy use of the {\tt service} kind.  At this level, the
+        configuration for the Nagios, Ganglia and Munin servers is manufactured.
+    \item[06-hw-management] The final script generates a configuration file for the add-on scripts that were developed
+        as a further demonstration of the Deska's power.  The produced file is merely a Python's {\tt pickle}
+        representation of the models of all servers.
+\end{description}
+
+A careful reader will immediately recognize that we have indeed followed our own suggestions about implementing the
+configuration generators efficiently.  The presented scripts take care not to query the database too often and try hard
+to group configuration generators into similar pieces where possible.
+
+\section{Rack View}
+One of the outputs provided by the Deska system is producing a graphical representation of all the racks in the data
+center.  We have chosen to utilize the excellent Qt's QML library.  The input file required by the QML application is a
+text file which is easy to understand.  Furthermore, the produced data can be not only used for rendering a simple,
+static image, but could be also used to define the graphical elements in a possible future GUI application.  Using QML
+as the intermediate layer allows reusing the existing code.
+
+However, using QML also mandates an extra conversion step before an actual image in a widely supported format emerges.
+We have originally intedned to use Qt's own {\tt qmlviewer} application, but it proved to be hard to get static images
+in a deterministic manner (the main use case is rendering complex QML-based animations into movie files for demos).  We
+have therefore built a standalone Qt-based application for converting a QML input to a static image.  The utility which
+supports converting a QML file into the PNG or SVG formats is available in source form in the Deska sources under the
+\path{\src/qml2image/}.  Please pass the {\tt -DBUILD\_QML2IMAGE=1} flag to {\tt cmake} to enable its building.
+
+\section{Working with State}
+
+The configuration generators are intended to work in a stateless manner (see \secref{sec:config-generators}).  However,
+certain applications, like the Bind zone file for DNS, contain a serial number which is supposed to be changed upon each
+modification.  The \path{02-dhcp-dns} script is a nice, albeit a bit complicated example of how to work with this state.
+
+The desired mode of operation is implemented by a special wrapper class instead of a plain {\tt file} object.  The class
+intercepts the data written to a file, comparing the data with the previous copy, and if it detects a difference from
+the previously saved state, it uses the original serial number and the current date to create a new identification in
+conformance with the relevant RFC documents.
 
 \end{document}

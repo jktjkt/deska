@@ -1,0 +1,25 @@
+#!/usr/bin/python
+import sys
+import time
+# FIXME: this shall be removed in the final version
+sys.path = ["/home/jkt/work/fzu/deska/src/deska/python", "/home/jkt/work/fzu/deska/_build"] + sys.path
+import deska
+import cPickle as pickle
+
+deska.init()
+
+t1 = time.time()
+all_modelhw = deska.modelhardware._all()
+all_hw = deska.hardware._all()
+t2 = time.time()
+
+modelhw_map = {}
+for (hostname, server) in all_hw.iteritems():
+    modelhw_map[hostname] = server.modelhardware
+
+pickle.dump(modelhw_map, file("hw-defs", "wb"))
+
+t3 = time.time()
+
+file("__timing-stats", "ab").write(
+    "hw-management: total %s, main query %s, loop %s\n" % (t3 - t1, t2 - t1, t3 - t2))

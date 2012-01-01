@@ -60,8 +60,9 @@ KindsFiltersParser<Iterator>::KindsFiltersParser(const Db::Identifier &kindName,
     start = specialFilter | normalFilter;
     
     normalFilter = (eps(!_a) > dispatch >> -eoi[_a = true]);
-    
-    specialFilter = specialFilterL | specialFilterA;
+
+    // Hack: disable the "last" filter.  I have no idea about how to do that properly.
+    specialFilter = specialFilterA | specialFilterA;
 
     specialFilterL = (qi::lit("last") > lastKind);
 
